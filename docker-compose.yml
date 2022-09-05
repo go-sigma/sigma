@@ -1,0 +1,38 @@
+version: '2'
+services:
+  ximager:
+    image: ximager:latest
+    ports:
+      - "5001:5000"
+      - "3001:3000"
+    volumes:
+      - ./images:/images
+    environment:
+      XIMAGER_IMAGE_DIR: /images
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ximager
+      MYSQL_DATABASE: ximager
+      MYSQL_USER: ximager
+      MYSQL_PASSWORD: ximager
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ximager
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "ximager", "ping"]
+      timeout: 20s
+      retries: 10

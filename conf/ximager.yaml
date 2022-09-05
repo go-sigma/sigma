@@ -1,0 +1,34 @@
+log:
+  level: 1
+database:
+  # The database type to use. Supported types are: sqlite, mysql, postgresql
+  type: mysql
+  sqlite:
+    path: ximager.db
+  mysql:
+    host: mysql
+    port: 3306
+    user: ximager
+    password: ximager
+    database: ximager
+  postgresql:
+    host: localhost
+    port: 5432
+    user: ximager
+    password: ximager
+    database: ximager
+http:
+  addr: localhost:3000
+  debug:
+    addr: localhost:3001
+storage:
+  rootdirectory: ./storage
+  type: filesystem
+  filesystem:
+    path: /
+  s3:
+    ak: tosone
+    sk: 8541539655
+    endpoint: https://minio.tosone.cn
+    bucket: ximager
+    forcePathStyle: true
