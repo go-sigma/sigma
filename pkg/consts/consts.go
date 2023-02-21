@@ -17,4 +17,6 @@ const (
 	// BlobUploads represent blob uploads
 	// file always represent like: blob_uploads/{upload_id}
 	BlobUploads = "blob_uploads"
+	// DefaultTimePattern 时间格式
+	DefaultTimePattern = "2006-01-02 15:04:05"
 )

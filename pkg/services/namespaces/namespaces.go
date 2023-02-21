@@ -15,6 +15,8 @@ type NamespaceService interface {
 	Get(context.Context, uint) (*models.Namespace, error)
 	// GetByName gets the namespace with the specified namespace name.
 	GetByName(context.Context, string) (*models.Namespace, error)
+	// ListNamespace lists all namespaces.
+	ListNamespace(ctx context.Context) ([]*models.Namespace, error)
 }
 
 type namespaceService struct {
@@ -57,4 +59,9 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 		return nil, err
 	}
 	return ns, nil
+}
+
+// ListNamespace lists all namespaces.
+func (s *namespaceService) ListNamespace(ctx context.Context) ([]*models.Namespace, error) {
+	return s.tx.Namespace.WithContext(ctx).Find()
 }

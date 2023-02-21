@@ -55,7 +55,7 @@ export default function Footer() {
 
         </div>
         <p className="mt-8 text-center text-sm text-gray-400">
-          &copy; 2020 Workflow, Inc. All rights reserved.
+          &copy; 2020 XImager, Inc. All rights reserved.
         </p>
       </div>
     </footer>
