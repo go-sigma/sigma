@@ -15,7 +15,7 @@ const menuList: IMenu[] = [
   { text: "Share", icon: AiOutlineShareAlt },
 ];
 
-export default function TableItem({ name, description, updated }: { name: string, description: string, updated: string }) {
+export default function TableItem({ name, description, created_at, updated_at }: { name: string, description: string, created_at: string, updated_at: string }) {
   let [show, setShow] = useState(false);
 
   const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;;
@@ -39,7 +39,10 @@ export default function TableItem({ name, description, updated }: { name: string
         </div>
       </td>
       <td className="hidden md:table-cell px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-        {updated}
+        {created_at}
+      </td>
+      <td className="hidden md:table-cell px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
+        {updated_at}
       </td>
       <td className="pr-6">
         <div className="relative flex justify-end items-center" ref={ref}>

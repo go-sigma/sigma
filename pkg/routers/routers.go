@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/ximager/ximager/pkg/handlers/distribution"
+	"github.com/ximager/ximager/pkg/handlers/namespace"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/web"
 )
@@ -21,9 +22,11 @@ func Initialize(e *echo.Echo) error {
 	})
 
 	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	namespaceGroup.POST("/", func(c echo.Context) error {
+	namespaceHandler := namespace.New()
+	namespaceGroup.OPTIONS("/", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
+	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
@@ -33,9 +36,7 @@ func Initialize(e *echo.Echo) error {
 	namespaceGroup.GET("/:id", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
-	namespaceGroup.GET("/", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
+	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
 
 	e.Any("/v2/*", distribution.All)
 
