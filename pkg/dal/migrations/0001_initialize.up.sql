@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
   pushed_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_pull timestamp,
   pull_times bigint NOT NULL DEFAULT 0,
+  history_created_by longtext,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
   deleted_at timestamp,

@@ -10,12 +10,13 @@ import (
 // Artifact represents an artifact
 type Artifact struct {
 	gorm.Model
-	ID           uint `gorm:"primaryKey"`
-	RepositoryID uint
-	Digest       string
-	Size         int64
-	ContentType  string
-	Raw          string
+	ID               uint `gorm:"primaryKey"`
+	RepositoryID     uint
+	Digest           string
+	Size             int64
+	ContentType      string
+	Raw              string
+	HistoryCreatedBy *string
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"not null"`
