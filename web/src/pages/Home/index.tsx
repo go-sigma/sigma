@@ -1,6 +1,5 @@
 import axios from "axios";
-// import { Link } from "react-router-dom";
-import { Fragment, useEffect, useState, useRef } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from '@headlessui/react';
 
 import Menu from "../../components/Menu";
@@ -28,7 +27,6 @@ export default function Home() {
 
   return (
     <Fragment>
-
       <Helmet>
         <title>XImager - Home</title>
       </Helmet>

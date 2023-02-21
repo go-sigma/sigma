@@ -31,6 +31,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/logger"
 
+	_ "github.com/ximager/ximager/pkg/storage/filesystem"
 	_ "github.com/ximager/ximager/pkg/storage/s3"
 )
 
