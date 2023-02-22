@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS namespaces (
   id bigint AUTO_INCREMENT PRIMARY KEY,
   name varchar(64) NOT NULL,
+  description varchar(256),
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
   deleted_at timestamp,

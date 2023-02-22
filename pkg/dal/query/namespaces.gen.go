@@ -32,6 +32,7 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_namespace.DeletedAt = field.NewField(tableName, "deleted_at")
 	_namespace.Name = field.NewString(tableName, "name")
+	_namespace.Description = field.NewString(tableName, "description")
 
 	_namespace.fillFieldMap()
 
@@ -41,12 +42,13 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 type namespace struct {
 	namespaceDo namespaceDo
 
-	ALL       field.Asterisk
-	ID        field.Uint
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Field
-	Name      field.String
+	ALL         field.Asterisk
+	ID          field.Uint
+	CreatedAt   field.Time
+	UpdatedAt   field.Time
+	DeletedAt   field.Field
+	Name        field.String
+	Description field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -68,6 +70,7 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.UpdatedAt = field.NewTime(table, "updated_at")
 	n.DeletedAt = field.NewField(table, "deleted_at")
 	n.Name = field.NewString(table, "name")
+	n.Description = field.NewString(table, "description")
 
 	n.fillFieldMap()
 
@@ -92,12 +95,13 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 5)
+	n.fieldMap = make(map[string]field.Expr, 6)
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
 	n.fieldMap["name"] = n.Name
+	n.fieldMap["description"] = n.Description
 }
 
 func (n namespace) clone(db *gorm.DB) namespace {

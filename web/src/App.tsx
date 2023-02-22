@@ -2,9 +2,8 @@ import { Fragment } from 'react';
 import { Routes, Route, HashRouter as Router } from 'react-router-dom';
 
 import Home from "./pages/Home";
-// import Login from "./pages/User/Login";
-// import Signup from "./pages/User/Signup";
-// import Editor from "./pages/Editor";
+
+const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
 
 function About() {
   return <h1>About</h1>;
@@ -15,11 +14,8 @@ export default function App() {
     <Fragment>
       <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home localServer={localServer} />} />
           <Route path="/about" element={<About />} />
-          {/* <Route path="/editor" element={<Editor />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} /> */}
         </Routes>
       </Router>
     </Fragment>

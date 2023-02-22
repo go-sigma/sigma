@@ -1,29 +1,59 @@
 import axios from "axios";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from '@headlessui/react';
+import { Helmet } from "react-helmet";
 
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 import TableItem from "./TableItem";
+import Notification from "./Notification";
 
-import { INamespace } from "../../interfaces/interfaces"
-import { Helmet } from "react-helmet";
+import { INamespace, INamespaceList, INotification, IHTTPError } from "../../interfaces/interfaces";
 
-export default function Home() {
-  let [projectList, setProjectList] = useState<INamespace[]>([]);
-  const [open, setOpen] = useState(false);
+export default function Home({ localServer }: { localServer: string }) {
+  let [projectList, setProjectList] = useState<INamespaceList>({} as INamespaceList);
   let [namespaceText, setNamespaceText] = useState("");
+  let [descriptionText, setDescriptionText] = useState("");
+  let [refresh, setRefresh] = useState({});
+
+  let [notification, setNotification] = useState(false);
+  let [notificationText, setNotificationText] = useState({} as INotification);
+
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    axios.get('/namespace/')
+    axios.get(localServer + '/namespace/')
       .then((response) => {
         if (response.status === 200) {
-          setProjectList(response.data as INamespace[]);
+          setProjectList(response.data as INamespaceList);
         }
       });
-  }, []);
+  }, [refresh]);
+
+  let createNamespace = (namespace: string, description: string) => {
+    setOpen(false);
+    axios.post(localServer + '/namespace/', {
+      name: namespace,
+      description: description,
+    } as INamespace, {}).then(response => {
+      setNamespaceText("");
+      console.log(response);
+      if (response.status === 201) {
+        setRefresh({});
+      } else {
+        let errorcode = response.data as IHTTPError;
+        setNotificationText({ title: errorcode.title, message: errorcode.message });
+        setNotification(true);
+      }
+    }).catch(error => {
+      let errorcode = error.response.data as IHTTPError;
+      console.log(errorcode);
+      setNotificationText({ title: errorcode.title, message: errorcode.message });
+      setNotification(true);
+    })
+  }
 
   return (
     <Fragment>
@@ -36,7 +66,9 @@ export default function Home() {
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Home" props={
               <button className="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                onClick={() => { setOpen(true) }}
+                onClick={() => {
+                  setOpen(true)
+                }}
               >Create</button>
             } />
             <div className="hidden mt-1 sm:block">
@@ -58,7 +90,7 @@ export default function Home() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {
-                      projectList.map(m => {
+                      projectList.items?.map(m => {
                         return (
                           <TableItem key={m.id} name={m.name} description={m.description} created_at={m.created_at} updated_at={m.updated_at} />
                         );
@@ -113,18 +145,24 @@ export default function Home() {
                       }}
                     />
                   </div>
+                  <div className="col-span-6 sm:col-span-3 mt-5">
+                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      name="description"
+                      placeholder="30 characters"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      value={descriptionText}
+                      onChange={e => setDescriptionText(e.target.value)}
+                    />
+                  </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button
                       type="button"
                       className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                      onClick={() => {
-                        setOpen(false);
-                        axios.post('/namespace/', {
-                          name: namespaceText
-                        }, {}).then((response) => {
-                          console.log(response);
-                        });
-                      }}
+                      onClick={() => createNamespace(namespaceText, descriptionText)}
                     >
                       Create
                     </button>
@@ -142,6 +180,9 @@ export default function Home() {
           </div>
         </Dialog>
       </Transition.Root>
+      {
+        notification ? <Notification initShow={notification} notificationText={notificationText} /> : null
+      }
     </Fragment >
   )
 }

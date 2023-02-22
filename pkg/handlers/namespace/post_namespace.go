@@ -7,29 +7,32 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/services/namespaces"
+	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
-
-type CreateNamespaceRequest struct {
-	Name string `json:"name" validate:"required"`
-}
 
 // PostNamespace handles the post namespace request
 func (h *handlers) PostNamespace(c echo.Context) error {
-	var req CreateNamespaceRequest
+	var req types.Namespace
 	err := c.Bind(&req)
 	if err != nil {
-		return err
+		log.Error().Err(err).Msg("Bind request body failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	log.Info().Interface("req", req).Msg("PostNamespace")
 	vr := validator.New()
 	err = vr.Struct(&req)
 	if err != nil {
-		return err
+		log.Error().Err(err).Msg("Validate request body failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 	namespaceService := namespaces.NewNamespaceService()
-	_, err = namespaceService.Create(c.Request().Context(), &models.Namespace{Name: req.Name})
+	_, err = namespaceService.Create(c.Request().Context(), &models.Namespace{
+		Name:        req.Name,
+		Description: req.Description,
+	})
 	if err != nil {
-		return err
+		log.Error().Err(err).Msg("Create namespace failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	return nil
+	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeCreated)
 }

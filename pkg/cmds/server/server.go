@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
@@ -57,6 +58,7 @@ func Serve() error {
 			return next(c)
 		}
 	}))
+	e.Use(middleware.CORS())
 
 	err := routers.Initialize(e)
 	if err != nil {

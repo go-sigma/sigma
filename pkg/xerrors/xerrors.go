@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 // HTTPError is an error that can be returned by an HTTP handler.
@@ -23,7 +24,7 @@ func NewHTTPError(c echo.Context, code HTTPErrCode, message ...string) error {
 		Title: code.Title,
 	}
 	if len(message) > 0 {
-		err.Message = &message[0]
+		err.Message = ptr.Of(message[0])
 	}
 	return c.JSON(code.StatusCode, err)
 }
@@ -39,6 +40,10 @@ type HTTPErrCode struct {
 }
 
 var (
+	// HTTPErrCodeOK is an OK error.
+	HTTPErrCodeOK = HTTPErrCode{http.StatusOK, "OK", "OK"}
+	// HTTPErrCodeCreated is a created error.
+	HTTPErrCodeCreated = HTTPErrCode{http.StatusCreated, "CREATED", "Created"}
 	// HTTPErrCodeBadRequest is a bad request error.
 	HTTPErrCodeBadRequest = HTTPErrCode{http.StatusBadRequest, "BAD_REQUEST", "Bad Request"}
 	// HTTPErrCodeUnauthorized is an unauthorized error.

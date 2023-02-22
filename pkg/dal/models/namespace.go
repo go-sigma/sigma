@@ -26,6 +26,7 @@ import "gorm.io/gorm"
 // Namespace represents a namespace
 type Namespace struct {
 	gorm.Model
-	ID   uint   `gorm:"primaryKey"`
-	Name string `gorm:"uniqueIndex"`
+	ID          uint   `gorm:"primaryKey"`
+	Name        string `gorm:"uniqueIndex"`
+	Description *string
 }
