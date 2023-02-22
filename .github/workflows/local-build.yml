@@ -1,0 +1,56 @@
+name: Server Build CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # leetcode-server-lint:
+  #   name: leetcode-server-lint
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Checkout branch
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #         lfs: true
+  #     - name: Lint code
+  #       uses: golangci/golangci-lint-action@v3
+  #       with:
+  #         version: latest
+  #         working-directory: apps/cli
+  #         args: -v --timeout=5m
+  local-build:
+    name: local-build
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        go: ["1.19", "1.20"]
+        node: ["18", "19"]
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+          cache-dependency-path: "web/yarn.lock"
+      - name: Build server
+        run: |
+          cd web
+          yarn install --frozen-lockfile
+          yarn build
+          cd ..
+          make build
