@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { Routes, Route, HashRouter as Router } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
 
 import Home from "./pages/Home";
 
@@ -12,6 +13,18 @@ function About() {
 export default function App() {
   return (
     <Fragment>
+      <ToastContainer position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        style={{ top: "3rem" }}
+      />
       <Router>
         <Routes>
           <Route path="/" element={<Home localServer={localServer} />} />

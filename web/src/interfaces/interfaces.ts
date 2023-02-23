@@ -12,6 +12,7 @@ export interface INamespaceList {
 }
 
 export interface INotification {
+  level?: string;
   title: string;
   message: string;
 }

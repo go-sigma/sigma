@@ -6,52 +6,48 @@ import { Helmet } from "react-helmet";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import Toast from "../../components/Notification/Notification";
 
 import TableItem from "./TableItem";
-import Notification from "./Notification";
+import "./index.css";
 
-import { INamespace, INamespaceList, INotification, IHTTPError } from "../../interfaces/interfaces";
+import { INamespace, INamespaceList, IHTTPError } from "../../interfaces/interfaces";
 
 export default function Home({ localServer }: { localServer: string }) {
-  let [projectList, setProjectList] = useState<INamespaceList>({} as INamespaceList);
+  let [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
   let [namespaceText, setNamespaceText] = useState("");
   let [descriptionText, setDescriptionText] = useState("");
   let [refresh, setRefresh] = useState({});
 
-  let [notification, setNotification] = useState(false);
-  let [notificationText, setNotificationText] = useState({} as INotification);
-
-  const [open, setOpen] = useState(false);
+  const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
   useEffect(() => {
     axios.get(localServer + '/namespace/')
       .then((response) => {
         if (response.status === 200) {
-          setProjectList(response.data as INamespaceList);
+          setNamespaceList(response.data as INamespaceList);
         }
       });
   }, [refresh]);
 
   let createNamespace = (namespace: string, description: string) => {
-    setOpen(false);
+    setCreateNamespaceModal(false);
+    setNamespaceText("");
+    setDescriptionText("");
     axios.post(localServer + '/namespace/', {
       name: namespace,
       description: description,
     } as INamespace, {}).then(response => {
-      setNamespaceText("");
       console.log(response);
       if (response.status === 201) {
         setRefresh({});
       } else {
         let errorcode = response.data as IHTTPError;
-        setNotificationText({ title: errorcode.title, message: errorcode.message });
-        setNotification(true);
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
       }
     }).catch(error => {
       let errorcode = error.response.data as IHTTPError;
-      console.log(errorcode);
-      setNotificationText({ title: errorcode.title, message: errorcode.message });
-      setNotification(true);
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
     })
   }
 
@@ -66,9 +62,7 @@ export default function Home({ localServer }: { localServer: string }) {
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Home" props={
               <button className="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                onClick={() => {
-                  setOpen(true)
-                }}
+                onClick={() => { setCreateNamespaceModal(true) }}
               >Create</button>
             } />
             <div className="hidden mt-1 sm:block">
@@ -90,7 +84,7 @@ export default function Home({ localServer }: { localServer: string }) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {
-                      projectList.items?.map(m => {
+                      namespaceList.items?.map(m => {
                         return (
                           <TableItem key={m.id} name={m.name} description={m.description} created_at={m.created_at} updated_at={m.updated_at} />
                         );
@@ -104,8 +98,8 @@ export default function Home({ localServer }: { localServer: string }) {
           <Footer />
         </div>
       </div>
-      <Transition.Root show={open} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setOpen}>
+      <Transition.Root show={createNamespaceModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setCreateNamespaceModal}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -169,7 +163,7 @@ export default function Home({ localServer }: { localServer: string }) {
                     <button
                       type="button"
                       className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                      onClick={() => setOpen(false)}
+                      onClick={() => setCreateNamespaceModal(false)}
                     >
                       Cancel
                     </button>
@@ -180,9 +174,7 @@ export default function Home({ localServer }: { localServer: string }) {
           </div>
         </Dialog>
       </Transition.Root>
-      {
-        notification ? <Notification initShow={notification} notificationText={notificationText} /> : null
-      }
+
     </Fragment >
   )
 }

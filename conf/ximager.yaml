@@ -27,8 +27,8 @@ storage:
   filesystem:
     path: /
   s3:
-    ak: tosone
-    sk: 8541539655
-    endpoint: https://minio.tosone.cn
+    ak: xxx
+    sk: xxx
+    endpoint: https://xxx.xxx
     bucket: ximager
     forcePathStyle: true
