@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/logger"
+	"github.com/ximager/ximager/pkg/utils"
 
 	_ "github.com/ximager/ximager/pkg/storage/filesystem"
 	_ "github.com/ximager/ximager/pkg/storage/s3"
@@ -58,7 +58,7 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	rootCmd.PersistentPreRun = func(_ *cobra.Command, _ []string) {
-		logger.SetLevel(viper.GetInt("log.level"))
+		utils.SetLevel(viper.GetInt("log.level"))
 	}
 	err := rootCmd.Execute()
 	if err != nil {

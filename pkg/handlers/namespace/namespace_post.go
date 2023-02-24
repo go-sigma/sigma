@@ -1,7 +1,6 @@
 package namespace
 
 import (
-	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -13,21 +12,22 @@ import (
 
 // PostNamespace handles the post namespace request
 func (h *handlers) PostNamespace(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var req types.CreateNamespaceRequest
 	err := c.Bind(&req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	vr := validator.New()
-	err = vr.Struct(&req)
+	err = c.Validate(&req)
 	if err != nil {
 		log.Error().Err(err).Msg("Validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	namespaceService := dao.NewNamespaceService()
-	_, err = namespaceService.Create(c.Request().Context(), &models.Namespace{
+	_, err = namespaceService.Create(ctx, &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
 	})

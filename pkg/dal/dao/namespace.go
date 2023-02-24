@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
@@ -22,6 +24,10 @@ type NamespaceService interface {
 	ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error)
 	// CountNamespace counts all namespaces.
 	CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error)
+	// DeleteByID deletes the namespace with the specified namespace ID.
+	DeleteByID(ctx context.Context, id uint) error
+	// UpdateByID updates the namespace with the specified namespace ID.
+	UpdateByID(ctx context.Context, id uint, req types.PutNamespaceRequest) error
 }
 
 type namespaceService struct {
@@ -82,4 +88,34 @@ func (s *namespaceService) CountNamespace(ctx context.Context, req types.ListNam
 		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
 	}
 	return query.Count()
+}
+
+// DeleteByID deletes the namespace with the specified namespace ID.
+func (s *namespaceService) DeleteByID(ctx context.Context, id uint) error {
+	matched, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+// UpdateByID updates the namespace with the specified namespace ID.
+func (s *namespaceService) UpdateByID(ctx context.Context, id uint, req types.PutNamespaceRequest) error {
+	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id))
+
+	var update = make(map[string]interface{})
+	if req.Description != nil {
+		update[string(s.tx.Namespace.Description.ColumnName())] = ptr.To(req.Description)
+	}
+	matched, err := query.Updates(update)
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

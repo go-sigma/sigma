@@ -1,21 +1,21 @@
-package tag
+package namespace
 
 import (
-	"net/http"
+	"errors"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// DeleteTag handles the delete tag request
-func (h *handlers) DeleteTag(c echo.Context) error {
+func (h *handlers) PutNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req types.DeleteTagRequest
+	var req types.PutNamespaceRequest
 	err := c.Bind(&req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind request body failed")
@@ -27,12 +27,15 @@ func (h *handlers) DeleteTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	tagService := dao.NewTagService()
-	err = tagService.DeleteByID(ctx, req.ID)
+	namespaceService := dao.NewNamespaceService()
+	err = namespaceService.UpdateByID(ctx, req.ID, req)
 	if err != nil {
-		log.Error().Err(err).Msg("Delete tag failed")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Msg("Delete namespace from db failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+		}
+		log.Error().Err(err).Msg("Delete namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-
-	return c.NoContent(http.StatusNoContent)
+	return nil
 }

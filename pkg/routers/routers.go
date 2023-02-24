@@ -12,6 +12,7 @@ import (
 	"github.com/ximager/ximager/pkg/handlers/repository"
 	"github.com/ximager/ximager/pkg/handlers/tag"
 	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/ximager/ximager/pkg/validators"
 	"github.com/ximager/ximager/web"
 )
 
@@ -31,7 +32,9 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
 
-	e.Validator = &CustomValidator{validator: validator.New()}
+	validate := validator.New()
+	validators.Register(validate)
+	e.Validator = &CustomValidator{validator: validate}
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")
@@ -56,19 +59,19 @@ func Initialize(e *echo.Echo) error {
 	})
 	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
 
-	repositoryGroup := e.Group("/repository", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	repositoryGroup := namespaceGroup.Group("/:namespace/repository")
 	repositoryHandler := repository.New()
 	repositoryGroup.GET("/", repositoryHandler.ListRepository)
 	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
 	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
 
-	artifactGroup := e.Group("/artifact", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	artifactGroup := namespaceGroup.Group("/:namespace/artifact")
 	artifactHandler := artifact.New()
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
 	artifactGroup.GET("/:id", artifactHandler.GetArtifact)
 	artifactGroup.DELETE("/:id", artifactHandler.DeleteArtifact)
 
-	tagGroup := e.Group("/tag", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	tagGroup := namespaceGroup.Group("/:namespace/tag")
 	tagHandler := tag.New()
 	tagGroup.GET("/", tagHandler.ListTag)
 	tagGroup.GET("/:id", tagHandler.GetTag)

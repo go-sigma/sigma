@@ -8,6 +8,8 @@ type Handlers interface {
 	PostNamespace(c echo.Context) error
 	// ListNamespace handles the list namespace request
 	ListNamespace(c echo.Context) error
+	// DeleteNamespace handles the delete namespace request
+	DeleteNamespace(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}

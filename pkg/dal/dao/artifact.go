@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
-	"gorm.io/gorm"
+	"github.com/ximager/ximager/pkg/types"
 )
 
 // ArtifactService is the interface that provides the artifact service methods.
@@ -22,9 +24,17 @@ type ArtifactService interface {
 	// AssociateBlobs associates the blobs with the artifact.
 	AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error
 	// CountByNamespace counts the artifacts by the specified namespace.
-	CountByNamespace(ctx context.Context, namespaceID []uint) (map[uint]int64, error)
+	CountByNamespace(ctx context.Context, namespaceIDs []uint) (map[uint]int64, error)
+	// CountByRepository counts the artifacts by the specified repository.
+	CountByRepository(ctx context.Context, repositoryIDs []uint) (map[uint]int64, error)
 	// Incr increases the pull times of the artifact.
 	Incr(ctx context.Context, id uint) error
+	// ListArtifact lists the artifacts by the specified request.
+	ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error)
+	// CountArtifact counts the artifacts by the specified request.
+	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
+	// DeleteByID deletes the artifact with the specified artifact ID.
+	DeleteByID(ctx context.Context, id uint) error
 }
 
 type artifactService struct {
@@ -106,9 +116,9 @@ func (s *artifactService) Incr(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *artifactService) CountByNamespace(ctx context.Context, namespaceID []uint) (map[uint]int64, error) {
+func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []uint) (map[uint]int64, error) {
 	artifactCount := make(map[uint]int64)
-	if len(namespaceID) == 0 {
+	if len(namespaceIDs) == 0 {
 		return artifactCount, nil
 	}
 	var count []struct {
@@ -116,11 +126,10 @@ func (s *artifactService) CountByNamespace(ctx context.Context, namespaceID []ui
 		Count       int64 `gorm:"column:count"`
 	}
 	err := s.tx.Artifact.WithContext(ctx).LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
-		Where(s.tx.Repository.NamespaceID.In(namespaceID...)).
+		Where(s.tx.Repository.NamespaceID.In(namespaceIDs...)).
 		Group(s.tx.Repository.NamespaceID).
 		Select(s.tx.Repository.NamespaceID, s.tx.Artifact.ID.Count().As("count")).
 		Scan(&count)
-
 	if err != nil {
 		return nil, err
 	}
@@ -128,4 +137,50 @@ func (s *artifactService) CountByNamespace(ctx context.Context, namespaceID []ui
 		artifactCount[c.NamespaceID] = c.Count
 	}
 	return artifactCount, nil
+}
+
+// CountByRepository counts the artifacts by the specified repository.
+func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs []uint) (map[uint]int64, error) {
+	artifactCount := make(map[uint]int64)
+	if len(repositoryIDs) == 0 {
+		return artifactCount, nil
+	}
+	var count []struct {
+		RepositoryID uint  `gorm:"column:repository_id"`
+		Count        int64 `gorm:"column:count"`
+	}
+	err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.In(repositoryIDs...)).
+		Group(s.tx.Artifact.RepositoryID).
+		Select(s.tx.Artifact.RepositoryID, s.tx.Artifact.ID.Count().As("count")).
+		Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range count {
+		artifactCount[c.RepositoryID] = c.Count
+	}
+	return artifactCount, nil
+}
+
+// ListArtifact lists the artifacts by the specified request.
+func (s *artifactService) ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error) {
+	query := s.tx.Artifact.WithContext(ctx).Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
+	return query.Find()
+}
+
+// CountArtifact counts the artifacts by the specified request.
+func (s *artifactService) CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error) {
+	return s.tx.Artifact.WithContext(ctx).Count()
+}
+
+// DeleteByID deletes the artifact with the specified ID.
+func (s *artifactService) DeleteByID(ctx context.Context, id uint) error {
+	matched, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

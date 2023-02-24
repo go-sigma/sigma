@@ -2,8 +2,8 @@ package types
 
 // CommonList is the common list struct
 type CommonList struct {
-	Total int64         `json:"total"`
-	Items []interface{} `json:"items"`
+	Total int64 `json:"total"`
+	Items []any `json:"items"`
 }
 
 // Pagination is the pagination struct

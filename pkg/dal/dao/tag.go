@@ -8,6 +8,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/types"
 )
 
 // TagService is the interface that provides the tag service methods.
@@ -24,6 +25,12 @@ type TagService interface {
 	Incr(ctx context.Context, id uint) error
 	// ListByDtPagination lists the tags by the specified repository and pagination.
 	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...uint) ([]*models.Tag, error)
+	// ListTag lists the tags by the specified request.
+	ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error)
+	// CountArtifact counts the artifacts by the specified request.
+	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
+	// DeleteByID deletes the tag with the specified tag ID.
+	DeleteByID(ctx context.Context, id uint) error
 }
 
 type tagService struct {
@@ -110,4 +117,32 @@ func (s *tagService) ListByDtPagination(ctx context.Context, repository string, 
 		return nil, err
 	}
 	return tags, nil
+}
+
+// ListTag lists the tags by the specified request.
+func (s *tagService) ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error) {
+	return s.tx.Tag.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
+		Where(s.tx.Repository.Name.Eq(req.Repository)).
+		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
+}
+
+// CountArtifact counts the artifacts by the specified request.
+func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (int64, error) {
+	return s.tx.Tag.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
+		Where(s.tx.Repository.Name.Eq(req.Repository)).
+		Count()
+}
+
+// DeleteByID deletes the tag with the specified tag ID.
+func (s *tagService) DeleteByID(ctx context.Context, id uint) error {
+	matched, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

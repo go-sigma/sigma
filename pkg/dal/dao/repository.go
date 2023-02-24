@@ -3,8 +3,11 @@ package dao
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils/imagerefs"
 )
 
@@ -20,6 +23,12 @@ type RepositoryService interface {
 	GetByName(context.Context, string) (*models.Repository, error)
 	// ListByDtPagination lists the repositories by the pagination.
 	ListByDtPagination(ctx context.Context, limit int, lastID ...uint) ([]*models.Repository, error)
+	// ListRepository lists all repositories.
+	ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error)
+	// CountRepository counts all repositories.
+	CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error)
+	// DeleteByID deletes the repository with the specified repository ID.
+	DeleteByID(ctx context.Context, id uint) error
 }
 
 type repositoryService struct {
@@ -100,4 +109,30 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 		return nil, err
 	}
 	return repositories, nil
+}
+
+// ListRepository lists all repositories.
+func (s *repositoryService) ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error) {
+	query := s.tx.Repository.WithContext(ctx).
+		LeftJoin(s.tx.Namespace, s.tx.Namespace.ID.EqCol(s.tx.Repository.NamespaceID)).
+		Where(s.tx.Namespace.Name.Eq(req.Namespace)).
+		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
+	return query.Find()
+}
+
+// CountRepository counts all repositories.
+func (s *repositoryService) CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error) {
+	return s.tx.Repository.WithContext(ctx).Count()
+}
+
+// DeleteByID deletes the repository with the specified repository ID.
+func (s *repositoryService) DeleteByID(ctx context.Context, id uint) error {
+	matched, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
-	"gorm.io/gorm"
 )
 
 // BlobService defines the operations related to blobs
@@ -21,6 +22,8 @@ type BlobService interface {
 	Exists(ctx context.Context, digest string) (bool, error)
 	// Incr increases the pull times of the artifact.
 	Incr(ctx context.Context, id uint) error
+	// DeleteByID deletes the blob with the specified blob ID.
+	DeleteByID(ctx context.Context, id uint) error
 }
 
 var _ BlobService = &blobService{}
@@ -84,6 +87,18 @@ func (s *blobService) Incr(ctx context.Context, id uint) error {
 		})
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// DeleteByID deletes the blob with the specified blob ID.
+func (s *blobService) DeleteByID(ctx context.Context, id uint) error {
+	matched, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
