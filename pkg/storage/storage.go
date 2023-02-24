@@ -87,8 +87,10 @@ func RegisterDriverFactory(name string, factory Factory) error {
 	return nil
 }
 
+// Driver is the storage driver
 var Driver StorageDriver
 
+// Initialize initializes the storage driver
 func Initialize() error {
 	typ := viper.GetString("storage.type")
 	factory, ok := driverFactories[typ]

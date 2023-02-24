@@ -32,7 +32,10 @@ type awss3 struct {
 }
 
 func init() {
-	storage.RegisterDriverFactory(name, &factory{})
+	err := storage.RegisterDriverFactory(name, &factory{})
+	if err != nil {
+		panic(fmt.Sprintf("fail to register driver factory: %v", err))
+	}
 }
 
 type factory struct{}

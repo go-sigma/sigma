@@ -24,7 +24,7 @@ type BlobService interface {
 	Get(ctx context.Context, dgst digest.Digest) ([]byte, error)
 	Open(ctx context.Context, dgst digest.Digest) (io.ReadCloser, error)
 	Put(ctx context.Context, mediaType string, p []byte) (distribution.Descriptor, error)
-	Create(ctx context.Context, mount ...Mount) (BlobWriter, error)
+	Create(ctx context.Context) (BlobWriter, error)
 	Resume(ctx context.Context, id string) (BlobWriter, error)
 }
 
@@ -114,7 +114,7 @@ func (b *blob) Open(ctx context.Context, dgst digest.Digest) (io.ReadCloser, err
 // of the content. The descriptor's digest may be different than the digest of
 // p if the blob store performs data validation on write.
 func (b *blob) Put(ctx context.Context, mediaType string, p []byte) (distribution.Descriptor, error) {
-
+	return distribution.Descriptor{}, fmt.Errorf("not implemented")
 }
 
 // Create creates a new blob writer with a randomly generated ID.
