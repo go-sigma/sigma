@@ -10,8 +10,8 @@ import (
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"gorm.io/gorm"
 
+	services "github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/services/repositories"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -28,7 +28,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 	lastFound := false
 	var lastID uint = 0
 
-	repositoryService := repositories.NewRepositoryService()
+	repositoryService := services.NewRepositoryService()
 	var last = c.QueryParam("last")
 	if last != "" {
 		tagObj, err := repositoryService.GetByName(ctx, last)

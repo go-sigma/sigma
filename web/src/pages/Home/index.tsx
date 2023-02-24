@@ -22,7 +22,7 @@ export default function Home({ localServer }: { localServer: string }) {
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
   useEffect(() => {
-    axios.get(localServer + '/namespace/')
+    axios.get(localServer + '/namespace/?page_size=10&page_num=1&name=lib')
       .then((response) => {
         if (response.status === 200) {
           setNamespaceList(response.data as INamespaceList);

@@ -1,4 +1,4 @@
-package blobs
+package dao
 
 import (
 	"context"

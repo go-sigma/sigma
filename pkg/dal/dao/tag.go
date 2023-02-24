@@ -1,4 +1,4 @@
-package tags
+package dao
 
 import (
 	"context"

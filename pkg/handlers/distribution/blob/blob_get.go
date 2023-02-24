@@ -12,7 +12,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/services/blobs"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"gorm.io/gorm"
@@ -32,7 +32,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	blobService := blobs.NewBlobService()
+	blobService := dao.NewBlobService()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

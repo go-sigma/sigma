@@ -1,22 +1,27 @@
-package namespaces
+package dao
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 // NamespaceService is the interface that provides the namespace service methods.
 type NamespaceService interface {
 	// Create creates a new namespace.
-	Create(context.Context, *models.Namespace) (*models.Namespace, error)
+	Create(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 	// Get gets the namespace with the specified namespace ID.
-	Get(context.Context, uint) (*models.Namespace, error)
+	Get(ctx context.Context, id uint) (*models.Namespace, error)
 	// GetByName gets the namespace with the specified namespace name.
-	GetByName(context.Context, string) (*models.Namespace, error)
+	GetByName(ctx context.Context, name string) (*models.Namespace, error)
 	// ListNamespace lists all namespaces.
-	ListNamespace(ctx context.Context) ([]*models.Namespace, error)
+	ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error)
+	// CountNamespace counts all namespaces.
+	CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error)
 }
 
 type namespaceService struct {
@@ -62,6 +67,19 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 }
 
 // ListNamespace lists all namespaces.
-func (s *namespaceService) ListNamespace(ctx context.Context) ([]*models.Namespace, error) {
-	return s.tx.Namespace.WithContext(ctx).Find()
+func (s *namespaceService) ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error) {
+	query := s.tx.Namespace.WithContext(ctx).Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
+	if req.Name != nil {
+		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
+	}
+	return query.Find()
+}
+
+// CountNamespace counts all namespaces.
+func (s *namespaceService) CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error) {
+	query := s.tx.Namespace.WithContext(ctx)
+	if req.Name != nil {
+		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
+	}
+	return query.Count()
 }

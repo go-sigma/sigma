@@ -9,13 +9,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-
-	"github.com/ximager/ximager/pkg/services/artifacts"
-	"github.com/ximager/ximager/pkg/services/tags"
+	"github.com/ximager/ximager/pkg/dal/dao"
 )
 
-// HeadManifest handles the head manifest request
-func (h *handler) HeadManifest(c echo.Context) error {
+// GetManifest handles the get manifest request
+func (h *handler) GetManifest(c echo.Context) error {
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 
@@ -30,23 +28,23 @@ func (h *handler) HeadManifest(c echo.Context) error {
 
 	var err error
 	var dgest digest.Digest
-	if reference.TagRegexp.MatchString(ref) {
-		tagService := tags.NewTagService()
+	if dgest, err = digest.Parse(ref); err == nil {
+	} else {
+		tagService := dao.NewTagService()
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
 			return err
 		}
 		dgest = digest.Digest(tag.Digest)
-	} else {
-		dgest, err = digest.Parse(ref)
+		err = tagService.Incr(ctx, tag.ID)
 		if err != nil {
-			log.Error().Err(err).Str("ref", ref).Msg("Parse digest failed")
+			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")
 			return err
 		}
 	}
 
-	artifactService := artifacts.NewArtifactService()
+	artifactService := dao.NewArtifactService()
 	artifact, err := artifactService.GetByDigest(ctx, repository, dgest.String())
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
@@ -57,7 +55,6 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	if contentType == "" {
 		contentType = "application/vnd.docker.distribution.manifest.v2+json"
 	}
-	c.Request().Header.Set("Content-Type", contentType)
 
-	return c.NoContent(http.StatusOK)
+	return c.Blob(http.StatusOK, contentType, []byte(artifact.Raw))
 }

@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/services/blobs"
+	"github.com/ximager/ximager/pkg/dal/dao"
 )
 
 // HeadBlob returns the blob's size and digest.
@@ -30,7 +30,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	blobService := blobs.NewBlobService()
+	blobService := dao.NewBlobService()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

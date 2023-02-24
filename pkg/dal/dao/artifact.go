@@ -1,4 +1,4 @@
-package artifacts
+package dao
 
 import (
 	"context"
@@ -21,6 +21,8 @@ type ArtifactService interface {
 	DeleteByDigest(ctx context.Context, repository, digest string) error
 	// AssociateBlobs associates the blobs with the artifact.
 	AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error
+	// CountByNamespace counts the artifacts by the specified namespace.
+	CountByNamespace(ctx context.Context, namespaceID []uint) (map[uint]int64, error)
 	// Incr increases the pull times of the artifact.
 	Incr(ctx context.Context, id uint) error
 }
@@ -102,4 +104,28 @@ func (s *artifactService) Incr(ctx context.Context, id uint) error {
 		return err
 	}
 	return nil
+}
+
+func (s *artifactService) CountByNamespace(ctx context.Context, namespaceID []uint) (map[uint]int64, error) {
+	artifactCount := make(map[uint]int64)
+	if len(namespaceID) == 0 {
+		return artifactCount, nil
+	}
+	var count []struct {
+		NamespaceID uint  `gorm:"column:namespace_id"`
+		Count       int64 `gorm:"column:count"`
+	}
+	err := s.tx.Artifact.WithContext(ctx).LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+		Where(s.tx.Repository.NamespaceID.In(namespaceID...)).
+		Group(s.tx.Repository.NamespaceID).
+		Select(s.tx.Repository.NamespaceID, s.tx.Artifact.ID.Count().As("count")).
+		Scan(&count)
+
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range count {
+		artifactCount[c.NamespaceID] = c.Count
+	}
+	return artifactCount, nil
 }

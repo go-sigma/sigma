@@ -1,4 +1,4 @@
-package blobuploads
+package dao
 
 import (
 	"context"

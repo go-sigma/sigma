@@ -15,9 +15,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/services/blobs"
-	"github.com/ximager/ximager/pkg/services/blobuploads"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
@@ -40,7 +39,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	blobUploadService := blobuploads.NewBlobUploadService()
+	blobUploadService := dao.NewBlobUploadService()
 	upload, err := blobUploadService.GetLastPart(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
@@ -48,7 +47,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	}
 	srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, upload.FileID)
 
-	blobService := blobs.NewBlobService()
+	blobService := dao.NewBlobService()
 	exist, err := blobService.Exists(ctx, dgest.String())
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")

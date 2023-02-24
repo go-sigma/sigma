@@ -18,11 +18,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/services/artifacts"
-	"github.com/ximager/ximager/pkg/services/blobs"
-	"github.com/ximager/ximager/pkg/services/repositories"
-	"github.com/ximager/ximager/pkg/services/tags"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
@@ -59,7 +56,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		c.Response().Header().Set(consts.ContentDigest, dgest.String())
 	}
 
-	repositoryService := repositories.NewRepositoryService()
+	repositoryService := dao.NewRepositoryService()
 	repoObj, err := repositoryService.Save(ctx, &models.Repository{
 		Name: repository,
 	})
@@ -69,7 +66,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 
 	contentType := c.Request().Header.Get("Content-Type")
-	artifactService := artifacts.NewArtifactService()
+	artifactService := dao.NewArtifactService()
 	artifactObj, err := artifactService.Save(ctx, &models.Artifact{
 		RepositoryID: repoObj.ID,
 		Digest:       dgest.String(),
@@ -87,7 +84,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	if isTag {
 		tag := ref
-		tagService := tags.NewTagService()
+		tagService := dao.NewTagService()
 		_, err = tagService.Save(ctx, &models.Tag{
 			RepositoryID: repoObj.ID,
 			ArtifactID:   artifactObj.ID,
@@ -116,7 +113,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		digests = append(digests, layer.Digest.String())
 	}
 
-	blobService := blobs.NewBlobService()
+	blobService := dao.NewBlobService()
 	bs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Find blobs failed")

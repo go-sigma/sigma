@@ -6,8 +6,11 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/handlers/artifact"
 	"github.com/ximager/ximager/pkg/handlers/distribution"
 	"github.com/ximager/ximager/pkg/handlers/namespace"
+	"github.com/ximager/ximager/pkg/handlers/repository"
+	"github.com/ximager/ximager/pkg/handlers/tag"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/web"
 )
@@ -41,9 +44,6 @@ func Initialize(e *echo.Echo) error {
 
 	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	namespaceHandler := namespace.New()
-	namespaceGroup.OPTIONS("/", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", func(c echo.Context) error {
 		return c.String(200, "OK")
@@ -55,6 +55,24 @@ func Initialize(e *echo.Echo) error {
 		return c.String(200, "OK")
 	})
 	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
+
+	repositoryGroup := e.Group("/repository", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	repositoryHandler := repository.New()
+	repositoryGroup.GET("/", repositoryHandler.ListRepository)
+	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
+	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
+
+	artifactGroup := e.Group("/artifact", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	artifactHandler := artifact.New()
+	artifactGroup.GET("/", artifactHandler.ListArtifact)
+	artifactGroup.GET("/:id", artifactHandler.GetArtifact)
+	artifactGroup.DELETE("/:id", artifactHandler.DeleteArtifact)
+
+	tagGroup := e.Group("/tag", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	tagHandler := tag.New()
+	tagGroup.GET("/", tagHandler.ListTag)
+	tagGroup.GET("/:id", tagHandler.GetTag)
+	tagGroup.DELETE("/:id", tagHandler.DeleteTag)
 
 	e.Any("/v2/*", distribution.All)
 

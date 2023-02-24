@@ -14,8 +14,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	services "github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/services/tags"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -40,7 +40,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 	lastFound := false
 	var lastID uint = 0
 
-	tagService := tags.NewTagService()
+	tagService := services.NewTagService()
 	var last = c.QueryParam("last")
 	if last != "" {
 		tagObj, err := tagService.GetByName(ctx, repository, last)

@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/services/blobuploads"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils/counter"
 )
@@ -29,7 +29,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 
 	ctx := c.Request().Context()
-	blobUploadService := blobuploads.NewBlobUploadService()
+	blobUploadService := dao.NewBlobUploadService()
 	upload, err := blobUploadService.GetLastPart(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
