@@ -26,6 +26,10 @@ build: ## Build your project and put the output binary in ./bin
 	@$(GOCMD) mod download
 	@GO111MODULE=on $(GOCMD) build -o bin/$(BINARY_NAME) -v .
 
+build-release: ## Build your project for release and put the output binary in ./bin
+	@$(GOCMD) mod download
+	@GO111MODULE=on $(GOCMD) build -ldflags "-s -w" -o bin/$(BINARY_NAME) -v .
+
 build-linux: ## Build your project for linux and put the output binary in ./bin
 	@GO111MODULE=on GOOS=linux $(GOCMD) build -o bin/$(BINARY_NAME) -v .
 
@@ -71,7 +75,7 @@ endif
 
 lint-go: ## Use golintci-lint on your project
 	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--out-format checkstyle ./... | tee /dev/tty > checkstyle-report.xml" || echo "" ))
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest-alpine golangci-lint run --deadline=65s $(OUTPUT_OPTIONS)
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest-alpine golangci-lint run --deadline=10m $(OUTPUT_OPTIONS)
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)

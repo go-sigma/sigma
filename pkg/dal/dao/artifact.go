@@ -1,3 +1,25 @@
+// The MIT License (MIT)
+//
+// Copyright © 2023 Tosone <i@tosone.cn>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 package dao
 
 import (
@@ -116,6 +138,7 @@ func (s *artifactService) Incr(ctx context.Context, id uint) error {
 	return nil
 }
 
+// CountByNamespace counts the artifacts by the specified namespace.
 func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []uint) (map[uint]int64, error) {
 	artifactCount := make(map[uint]int64)
 	if len(namespaceIDs) == 0 {
@@ -125,7 +148,8 @@ func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []u
 		NamespaceID uint  `gorm:"column:namespace_id"`
 		Count       int64 `gorm:"column:count"`
 	}
-	err := s.tx.Artifact.WithContext(ctx).LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+	err := s.tx.Artifact.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
 		Where(s.tx.Repository.NamespaceID.In(namespaceIDs...)).
 		Group(s.tx.Repository.NamespaceID).
 		Select(s.tx.Repository.NamespaceID, s.tx.Artifact.ID.Count().As("count")).
@@ -164,13 +188,20 @@ func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs [
 
 // ListArtifact lists the artifacts by the specified request.
 func (s *artifactService) ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error) {
-	query := s.tx.Artifact.WithContext(ctx).Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
+	query := s.tx.Artifact.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID), s.tx.Repository.Name.Eq(req.Repository)).
+		LeftJoin(s.tx.Namespace, s.tx.Namespace.Name.EqCol(s.tx.Repository.Name), s.tx.Namespace.Name.Eq(req.Namespace)).
+		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
+		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
 	return query.Find()
 }
 
 // CountArtifact counts the artifacts by the specified request.
 func (s *artifactService) CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error) {
-	return s.tx.Artifact.WithContext(ctx).Count()
+	return s.tx.Artifact.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID), s.tx.Repository.Name.Eq(req.Repository)).
+		LeftJoin(s.tx.Namespace, s.tx.Namespace.Name.EqCol(s.tx.Repository.Name), s.tx.Namespace.Name.Eq(req.Namespace)).
+		Count()
 }
 
 // DeleteByID deletes the artifact with the specified ID.

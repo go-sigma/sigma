@@ -21,12 +21,19 @@ THE SOFTWARE.
 */
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/plugin/soft_delete"
+)
 
 // Namespace represents a namespace
 type Namespace struct {
-	gorm.Model
-	ID          uint   `gorm:"primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint                  `gorm:"primaryKey"`
+
 	Name        string `gorm:"uniqueIndex"`
 	Description *string
 }

@@ -27,10 +27,10 @@ func newBlobUpload(db *gorm.DB, opts ...gen.DOOption) blobUpload {
 
 	tableName := _blobUpload.blobUploadDo.TableName()
 	_blobUpload.ALL = field.NewAsterisk(tableName)
-	_blobUpload.ID = field.NewUint(tableName, "id")
 	_blobUpload.CreatedAt = field.NewTime(tableName, "created_at")
 	_blobUpload.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_blobUpload.DeletedAt = field.NewField(tableName, "deleted_at")
+	_blobUpload.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_blobUpload.ID = field.NewUint(tableName, "id")
 	_blobUpload.PartNumber = field.NewInt(tableName, "part_number")
 	_blobUpload.UploadID = field.NewString(tableName, "upload_id")
 	_blobUpload.Etag = field.NewString(tableName, "etag")
@@ -47,10 +47,10 @@ type blobUpload struct {
 	blobUploadDo blobUploadDo
 
 	ALL        field.Asterisk
-	ID         field.Uint
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
-	DeletedAt  field.Field
+	DeletedAt  field.Uint
+	ID         field.Uint
 	PartNumber field.Int
 	UploadID   field.String
 	Etag       field.String
@@ -73,10 +73,10 @@ func (b blobUpload) As(alias string) *blobUpload {
 
 func (b *blobUpload) updateTableName(table string) *blobUpload {
 	b.ALL = field.NewAsterisk(table)
-	b.ID = field.NewUint(table, "id")
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
-	b.DeletedAt = field.NewField(table, "deleted_at")
+	b.DeletedAt = field.NewUint(table, "deleted_at")
+	b.ID = field.NewUint(table, "id")
 	b.PartNumber = field.NewInt(table, "part_number")
 	b.UploadID = field.NewString(table, "upload_id")
 	b.Etag = field.NewString(table, "etag")
@@ -108,10 +108,10 @@ func (b *blobUpload) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 
 func (b *blobUpload) fillFieldMap() {
 	b.fieldMap = make(map[string]field.Expr, 10)
-	b.fieldMap["id"] = b.ID
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
+	b.fieldMap["id"] = b.ID
 	b.fieldMap["part_number"] = b.PartNumber
 	b.fieldMap["upload_id"] = b.UploadID
 	b.fieldMap["etag"] = b.Etag

@@ -27,10 +27,10 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 
 	tableName := _repository.repositoryDo.TableName()
 	_repository.ALL = field.NewAsterisk(tableName)
-	_repository.ID = field.NewUint(tableName, "id")
 	_repository.CreatedAt = field.NewTime(tableName, "created_at")
 	_repository.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_repository.DeletedAt = field.NewField(tableName, "deleted_at")
+	_repository.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_repository.ID = field.NewUint(tableName, "id")
 	_repository.NamespaceID = field.NewUint(tableName, "namespace_id")
 	_repository.Name = field.NewString(tableName, "name")
 	_repository.Namespace = repositoryBelongsToNamespace{
@@ -48,10 +48,10 @@ type repository struct {
 	repositoryDo repositoryDo
 
 	ALL         field.Asterisk
-	ID          field.Uint
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
-	DeletedAt   field.Field
+	DeletedAt   field.Uint
+	ID          field.Uint
 	NamespaceID field.Uint
 	Name        field.String
 	Namespace   repositoryBelongsToNamespace
@@ -71,10 +71,10 @@ func (r repository) As(alias string) *repository {
 
 func (r *repository) updateTableName(table string) *repository {
 	r.ALL = field.NewAsterisk(table)
-	r.ID = field.NewUint(table, "id")
 	r.CreatedAt = field.NewTime(table, "created_at")
 	r.UpdatedAt = field.NewTime(table, "updated_at")
-	r.DeletedAt = field.NewField(table, "deleted_at")
+	r.DeletedAt = field.NewUint(table, "deleted_at")
+	r.ID = field.NewUint(table, "id")
 	r.NamespaceID = field.NewUint(table, "namespace_id")
 	r.Name = field.NewString(table, "name")
 
@@ -102,10 +102,10 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 
 func (r *repository) fillFieldMap() {
 	r.fieldMap = make(map[string]field.Expr, 7)
-	r.fieldMap["id"] = r.ID
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
+	r.fieldMap["id"] = r.ID
 	r.fieldMap["namespace_id"] = r.NamespaceID
 	r.fieldMap["name"] = r.Name
 

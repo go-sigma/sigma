@@ -27,10 +27,10 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 
 	tableName := _blob.blobDo.TableName()
 	_blob.ALL = field.NewAsterisk(tableName)
-	_blob.ID = field.NewUint(tableName, "id")
 	_blob.CreatedAt = field.NewTime(tableName, "created_at")
 	_blob.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_blob.DeletedAt = field.NewField(tableName, "deleted_at")
+	_blob.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_blob.ID = field.NewUint(tableName, "id")
 	_blob.Digest = field.NewString(tableName, "digest")
 	_blob.Size = field.NewInt64(tableName, "size")
 	_blob.ContentType = field.NewString(tableName, "content_type")
@@ -99,10 +99,10 @@ type blob struct {
 	blobDo blobDo
 
 	ALL         field.Asterisk
-	ID          field.Uint
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
-	DeletedAt   field.Field
+	DeletedAt   field.Uint
+	ID          field.Uint
 	Digest      field.String
 	Size        field.Int64
 	ContentType field.String
@@ -126,10 +126,10 @@ func (b blob) As(alias string) *blob {
 
 func (b *blob) updateTableName(table string) *blob {
 	b.ALL = field.NewAsterisk(table)
-	b.ID = field.NewUint(table, "id")
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
-	b.DeletedAt = field.NewField(table, "deleted_at")
+	b.DeletedAt = field.NewUint(table, "deleted_at")
+	b.ID = field.NewUint(table, "id")
 	b.Digest = field.NewString(table, "digest")
 	b.Size = field.NewInt64(table, "size")
 	b.ContentType = field.NewString(table, "content_type")
@@ -159,10 +159,10 @@ func (b *blob) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 
 func (b *blob) fillFieldMap() {
 	b.fieldMap = make(map[string]field.Expr, 11)
-	b.fieldMap["id"] = b.ID
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
+	b.fieldMap["id"] = b.ID
 	b.fieldMap["digest"] = b.Digest
 	b.fieldMap["size"] = b.Size
 	b.fieldMap["content_type"] = b.ContentType

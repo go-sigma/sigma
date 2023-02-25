@@ -27,10 +27,10 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 
 	tableName := _artifact.artifactDo.TableName()
 	_artifact.ALL = field.NewAsterisk(tableName)
-	_artifact.ID = field.NewUint(tableName, "id")
 	_artifact.CreatedAt = field.NewTime(tableName, "created_at")
 	_artifact.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_artifact.DeletedAt = field.NewField(tableName, "deleted_at")
+	_artifact.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_artifact.ID = field.NewUint(tableName, "id")
 	_artifact.RepositoryID = field.NewUint(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
 	_artifact.Size = field.NewInt64(tableName, "size")
@@ -120,10 +120,10 @@ type artifact struct {
 	artifactDo artifactDo
 
 	ALL              field.Asterisk
-	ID               field.Uint
 	CreatedAt        field.Time
 	UpdatedAt        field.Time
-	DeletedAt        field.Field
+	DeletedAt        field.Uint
+	ID               field.Uint
 	RepositoryID     field.Uint
 	Digest           field.String
 	Size             field.Int64
@@ -154,10 +154,10 @@ func (a artifact) As(alias string) *artifact {
 
 func (a *artifact) updateTableName(table string) *artifact {
 	a.ALL = field.NewAsterisk(table)
-	a.ID = field.NewUint(table, "id")
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
-	a.DeletedAt = field.NewField(table, "deleted_at")
+	a.DeletedAt = field.NewUint(table, "deleted_at")
+	a.ID = field.NewUint(table, "id")
 	a.RepositoryID = field.NewUint(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
 	a.Size = field.NewInt64(table, "size")
@@ -190,10 +190,10 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 
 func (a *artifact) fillFieldMap() {
 	a.fieldMap = make(map[string]field.Expr, 16)
-	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
+	a.fieldMap["id"] = a.ID
 	a.fieldMap["repository_id"] = a.RepositoryID
 	a.fieldMap["digest"] = a.Digest
 	a.fieldMap["size"] = a.Size

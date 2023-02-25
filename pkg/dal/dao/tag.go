@@ -1,3 +1,25 @@
+// The MIT License (MIT)
+//
+// Copyright © 2023 Tosone <i@tosone.cn>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 package dao
 
 import (
@@ -31,6 +53,8 @@ type TagService interface {
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// DeleteByID deletes the tag with the specified tag ID.
 	DeleteByID(ctx context.Context, id uint) error
+	// CountByArtifact counts the tags by the specified artifact.
+	CountByArtifact(ctx context.Context, artifactIDs []uint) (map[uint]int64, error)
 }
 
 type tagService struct {
@@ -145,4 +169,26 @@ func (s *tagService) DeleteByID(ctx context.Context, id uint) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// CountByArtifact counts the tags by the specified artifact.
+func (s *tagService) CountByArtifact(ctx context.Context, artifactIDs []uint) (map[uint]int64, error) {
+	tagCount := make(map[uint]int64)
+	var count []struct {
+		ArtifactID uint  `gorm:"column:artifact_id"`
+		Count      int64 `gorm:"column:count"`
+	}
+	err := s.tx.Tag.WithContext(ctx).
+		LeftJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID)).
+		Where(s.tx.Artifact.ID.In(artifactIDs...)).
+		Group(s.tx.Artifact.ID).
+		Select(s.tx.Artifact.ID.As("artifact_id"), s.tx.Tag.ID.Count().As("count")).
+		Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range count {
+		tagCount[c.ArtifactID] = c.Count
+	}
+	return tagCount, nil
 }

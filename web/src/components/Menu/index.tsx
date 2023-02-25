@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { AiOutlineHome, AiOutlineMenu, AiOutlineClockCircle } from "react-icons/ai";
+import { Link, useNavigate } from "react-router-dom";
 import { IconType } from "react-icons";
 import { useClickAway } from 'react-use';
+
+import { AiOutlineHome, AiOutlineMenu, AiOutlineClockCircle } from "react-icons/ai";
 
 interface IMenu {
   text: string;
@@ -11,13 +12,13 @@ interface IMenu {
 
 const menuList: IMenu[] = [
   { text: "Home", icon: AiOutlineHome },
-  { text: "My tasks", icon: AiOutlineMenu },
-  { text: "Recent", icon: AiOutlineClockCircle },
+  { text: "Namespace", icon: AiOutlineMenu },
+  { text: "Settings", icon: AiOutlineClockCircle },
 ];
 
-export default function Menu() {
+export default function Menu({ item }: { item: string }) {
   let [showProfileMenu, setShowProfileMenu] = useState(false);
-  let [menuActive, setMenuActive] = useState(menuList[0].text);
+  let [menuActive, setMenuActive] = useState(item === "" ? menuList[0].text : item);
 
   const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;;
   useClickAway(ref, () => {
@@ -71,7 +72,7 @@ export default function Menu() {
               {
                 menuList.map(m => {
                   return (
-                    <Link to="" key={m.text} className={`text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === m.text ? "bg-gray-200" : "text-gray-700"}`} onClick={() => {
+                    <Link to={`/${m.text.toLowerCase()}`} key={m.text} className={`text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === m.text ? "bg-gray-200" : "text-gray-700"}`} onClick={() => {
                       setMenuActive(m.text);
                     }}>
                       <m.icon className="text-gray-500 mr-3 h-6 w-6" />

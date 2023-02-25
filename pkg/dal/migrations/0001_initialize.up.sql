@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS namespaces (
   description varchar(256),
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   CONSTRAINT namespaces_unique_with_name UNIQUE (name, deleted_at)
 );
 
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS repositories (
   namespace_id bigint NOT NULL,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (namespace_id) REFERENCES namespaces (id),
   CONSTRAINT repositories_unique_with_namespace UNIQUE (namespace_id, name, deleted_at)
 );
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
   history_created_by longtext,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (repository_id) REFERENCES repositories (id),
   CONSTRAINT artifacts_unique_with_repo UNIQUE (repository_id, digest, deleted_at)
 );
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS tags (
   pull_times bigint NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (repository_id) REFERENCES repositories (id),
   FOREIGN KEY (artifact_id) REFERENCES artifacts (id),
   CONSTRAINT tags_unique_with_repo UNIQUE (repository_id, name, deleted_at)
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS blobs (
   pull_times bigint NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   CONSTRAINT blobs_unique_with_digest UNIQUE (digest, deleted_at)
 );
 
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS blob_uploads (
   size bigint NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  deleted_at timestamp,
+  deleted_at bigint NOT NULL DEFAULT 0,
   CONSTRAINT blob_uploads_unique_with_upload_id_etag UNIQUE (upload_id, etag, deleted_at)
 );
 

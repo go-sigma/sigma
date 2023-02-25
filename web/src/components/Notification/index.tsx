@@ -1,10 +1,11 @@
-import "./index.css";
 import { toast } from 'react-toastify';
 import { InboxIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 import { INotification } from "../../interfaces/interfaces";
 
-export default function Toast(noti: INotification) {
+import "./index.css";
+
+export default function (noti: INotification) {
   const id = toast('fake-toast', {
     position: "top-right",
     autoClose: 5000,
@@ -36,7 +37,6 @@ export default function Toast(noti: INotification) {
           <div className="flex items-start">
             <div className="flex-shrink-0">
               {renderWithLevel()}
-              {/* <InboxIcon className="h-6 w-6 text-gray-400" aria-hidden="true" /> */}
             </div>
             <div className="ml-3 w-0 flex-1 pt-0.5">
               <p className="text-sm font-medium text-gray-900">{noti.title}</p>

@@ -21,12 +21,19 @@ THE SOFTWARE.
 */
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/plugin/soft_delete"
+)
 
 // Repository represents a repository
 type Repository struct {
-	gorm.Model
-	ID          uint `gorm:"primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint                  `gorm:"primaryKey"`
+
 	NamespaceID uint
 	Name        string `gorm:"uniqueIndex"`
 

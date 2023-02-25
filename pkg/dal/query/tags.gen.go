@@ -28,10 +28,10 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 
 	tableName := _tag.tagDo.TableName()
 	_tag.ALL = field.NewAsterisk(tableName)
-	_tag.ID = field.NewUint(tableName, "id")
 	_tag.CreatedAt = field.NewTime(tableName, "created_at")
 	_tag.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_tag.DeletedAt = field.NewField(tableName, "deleted_at")
+	_tag.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_tag.ID = field.NewUint(tableName, "id")
 	_tag.RepositoryID = field.NewUint(tableName, "repository_id")
 	_tag.ArtifactID = field.NewUint(tableName, "artifact_id")
 	_tag.Name = field.NewString(tableName, "name")
@@ -105,10 +105,10 @@ type tag struct {
 	tagDo tagDo
 
 	ALL          field.Asterisk
-	ID           field.Uint
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
-	DeletedAt    field.Field
+	DeletedAt    field.Uint
+	ID           field.Uint
 	RepositoryID field.Uint
 	ArtifactID   field.Uint
 	Name         field.String
@@ -136,10 +136,10 @@ func (t tag) As(alias string) *tag {
 
 func (t *tag) updateTableName(table string) *tag {
 	t.ALL = field.NewAsterisk(table)
-	t.ID = field.NewUint(table, "id")
 	t.CreatedAt = field.NewTime(table, "created_at")
 	t.UpdatedAt = field.NewTime(table, "updated_at")
-	t.DeletedAt = field.NewField(table, "deleted_at")
+	t.DeletedAt = field.NewUint(table, "deleted_at")
+	t.ID = field.NewUint(table, "id")
 	t.RepositoryID = field.NewUint(table, "repository_id")
 	t.ArtifactID = field.NewUint(table, "artifact_id")
 	t.Name = field.NewString(table, "name")
@@ -171,10 +171,10 @@ func (t *tag) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 
 func (t *tag) fillFieldMap() {
 	t.fieldMap = make(map[string]field.Expr, 14)
-	t.fieldMap["id"] = t.ID
 	t.fieldMap["created_at"] = t.CreatedAt
 	t.fieldMap["updated_at"] = t.UpdatedAt
 	t.fieldMap["deleted_at"] = t.DeletedAt
+	t.fieldMap["id"] = t.ID
 	t.fieldMap["repository_id"] = t.RepositoryID
 	t.fieldMap["artifact_id"] = t.ArtifactID
 	t.fieldMap["name"] = t.Name
