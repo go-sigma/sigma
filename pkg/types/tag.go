@@ -26,8 +26,6 @@ package types
 type TagItem struct {
 	ID        uint64 `json:"id"`
 	Name      string `json:"name"`
-	Digest    string `json:"digest"`
-	Size      int64  `json:"size"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }

@@ -58,8 +58,6 @@ func (h *handlers) ListTag(c echo.Context) error {
 		resp = append(resp, types.TagItem{
 			ID:        tag.ID,
 			Name:      tag.Name,
-			Digest:    tag.Digest,
-			Size:      tag.Size,
 			CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

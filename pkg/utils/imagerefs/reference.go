@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3/reference"
-	"github.com/opencontainers/go-digest"
 )
 
 // Parse ...
@@ -56,42 +55,4 @@ func Parse(name string) (string, string, string, string, error) {
 	ns := parts[0]
 	repo := path
 	return domain, ns, repo, tag, nil
-}
-
-// Reference ...
-type Reference struct {
-	isTag  bool
-	tag    string
-	digest digest.Digest
-}
-
-// NewReference ...
-func NewReference(ref string) (*Reference, error) {
-	isTag := false
-	tag := ""
-	dgest, err := digest.Parse(ref)
-	if err != nil {
-		isTag = true
-		tag = ref
-		if !reference.TagRegexp.MatchString(ref) {
-			return nil, fmt.Errorf("not valid digest or tag")
-		}
-	}
-	return &Reference{
-		isTag:  isTag,
-		tag:    tag,
-		digest: dgest,
-	}, nil
-}
-
-func (r *Reference) IsTag() bool {
-	return r.isTag
-}
-
-func (r *Reference) Tag() string {
-	return r.tag
-}
-
-func (r *Reference) Digest() digest.Digest {
-	return r.digest
 }

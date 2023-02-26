@@ -39,7 +39,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.HistoryCreatedBy = field.NewString(tableName, "history_created_by")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
-	_artifact.PullTimes = field.NewUint(tableName, "pull_times")
+	_artifact.PullTimes = field.NewUint64(tableName, "pull_times")
 	_artifact.Tags = artifactHasManyTags{
 		db: db.Session(&gorm.Session{}),
 
@@ -132,7 +132,7 @@ type artifact struct {
 	HistoryCreatedBy field.String
 	LastPull         field.Field
 	PushedAt         field.Time
-	PullTimes        field.Uint
+	PullTimes        field.Uint64
 	Tags             artifactHasManyTags
 
 	Repository artifactBelongsToRepository
@@ -166,7 +166,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.HistoryCreatedBy = field.NewString(table, "history_created_by")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
-	a.PullTimes = field.NewUint(table, "pull_times")
+	a.PullTimes = field.NewUint64(table, "pull_times")
 
 	a.fillFieldMap()
 

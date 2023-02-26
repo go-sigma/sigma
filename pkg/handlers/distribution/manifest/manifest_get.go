@@ -58,7 +58,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
 			return err
 		}
-		dgest = digest.Digest(tag.Digest)
+		// dgest = digest.Digest(tag.Digest)
 		err = tagService.Incr(ctx, tag.ID)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")

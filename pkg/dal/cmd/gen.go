@@ -30,8 +30,9 @@ import (
 
 func main() {
 	g := gen.NewGenerator(gen.Config{
-		OutPath: "pkg/dal/query",
-		Mode:    gen.WithDefaultQuery,
+		OutPath:       "pkg/dal/query",
+		Mode:          gen.WithDefaultQuery,
+		FieldSignable: true,
 	})
 
 	g.ApplyBasic(

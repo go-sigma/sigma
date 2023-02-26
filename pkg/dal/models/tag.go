@@ -40,15 +40,13 @@ type Tag struct {
 	RepositoryID uint64
 	ArtifactID   uint64
 	Name         string
-	Digest       string
-	Size         int64
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"not null"`
 	PullTimes uint64    `gorm:"default:0"`
 
-	Repository Repository
-	Artifact   Artifact
+	Repository *Repository
+	Artifact   *Artifact
 }
 
 type TagQuerier interface {

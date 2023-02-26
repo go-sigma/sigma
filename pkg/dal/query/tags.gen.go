@@ -35,8 +35,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 	_tag.RepositoryID = field.NewUint64(tableName, "repository_id")
 	_tag.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_tag.Name = field.NewString(tableName, "name")
-	_tag.Digest = field.NewString(tableName, "digest")
-	_tag.Size = field.NewInt64(tableName, "size")
 	_tag.LastPull = field.NewField(tableName, "last_pull")
 	_tag.PushedAt = field.NewTime(tableName, "pushed_at")
 	_tag.PullTimes = field.NewUint64(tableName, "pull_times")
@@ -112,8 +110,6 @@ type tag struct {
 	RepositoryID field.Uint64
 	ArtifactID   field.Uint64
 	Name         field.String
-	Digest       field.String
-	Size         field.Int64
 	LastPull     field.Field
 	PushedAt     field.Time
 	PullTimes    field.Uint64
@@ -143,8 +139,6 @@ func (t *tag) updateTableName(table string) *tag {
 	t.RepositoryID = field.NewUint64(table, "repository_id")
 	t.ArtifactID = field.NewUint64(table, "artifact_id")
 	t.Name = field.NewString(table, "name")
-	t.Digest = field.NewString(table, "digest")
-	t.Size = field.NewInt64(table, "size")
 	t.LastPull = field.NewField(table, "last_pull")
 	t.PushedAt = field.NewTime(table, "pushed_at")
 	t.PullTimes = field.NewUint64(table, "pull_times")
@@ -170,7 +164,7 @@ func (t *tag) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *tag) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 14)
+	t.fieldMap = make(map[string]field.Expr, 12)
 	t.fieldMap["created_at"] = t.CreatedAt
 	t.fieldMap["updated_at"] = t.UpdatedAt
 	t.fieldMap["deleted_at"] = t.DeletedAt
@@ -178,8 +172,6 @@ func (t *tag) fillFieldMap() {
 	t.fieldMap["repository_id"] = t.RepositoryID
 	t.fieldMap["artifact_id"] = t.ArtifactID
 	t.fieldMap["name"] = t.Name
-	t.fieldMap["digest"] = t.Digest
-	t.fieldMap["size"] = t.Size
 	t.fieldMap["last_pull"] = t.LastPull
 	t.fieldMap["pushed_at"] = t.PushedAt
 	t.fieldMap["pull_times"] = t.PullTimes

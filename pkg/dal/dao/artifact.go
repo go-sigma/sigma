@@ -94,7 +94,12 @@ func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact,
 
 // GetByDigest gets the artifact with the specified digest.
 func (s *artifactService) GetByDigest(ctx context.Context, repository, digest string) (*models.Artifact, error) {
-	artifact, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.Digest.Eq(digest)).First()
+	artifact, err := s.tx.Artifact.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+		Where(s.tx.Repository.Name.Eq(repository)).
+		Where(s.tx.Artifact.Digest.Eq(digest)).
+		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
+		First()
 	if err != nil {
 		return nil, err
 	}

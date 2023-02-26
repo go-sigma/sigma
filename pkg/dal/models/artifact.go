@@ -45,7 +45,7 @@ type Artifact struct {
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"not null"`
-	PullTimes uint      `gorm:"default:0"`
+	PullTimes uint64    `gorm:"default:0"`
 
 	Repository Repository
 	Blobs      []*Blob `gorm:"many2many:artifact_blobs;"`

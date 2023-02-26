@@ -54,8 +54,6 @@ func (h *handlers) GetTag(c echo.Context) error {
 	return c.JSON(200, types.TagItem{
 		ID:        tag.ID,
 		Name:      tag.Name,
-		Digest:    tag.Digest,
-		Size:      tag.Size,
 		CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

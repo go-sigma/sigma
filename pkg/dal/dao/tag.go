@@ -40,7 +40,7 @@ type TagService interface {
 	// Get gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID uint64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
-	GetByName(context.Context, string, string) (*models.Tag, error)
+	GetByName(ctx context.Context, repository, tag string) (*models.Tag, error)
 	// DeleteByName deletes the tag with the specified tag name.
 	DeleteByName(ctx context.Context, repository string, tag string) error
 	// Incr increases the pull times of the artifact.
@@ -96,6 +96,7 @@ func (s *tagService) GetByName(ctx context.Context, repository, tag string) (*mo
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
 		Where(s.tx.Tag.Name.Eq(tag)).
 		Where(s.tx.Repository.Name.Eq(repository)).
+		Preload(s.tx.Tag.Artifact).
 		First()
 	if err != nil {
 		return nil, err

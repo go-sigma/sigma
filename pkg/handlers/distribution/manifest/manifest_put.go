@@ -50,16 +50,15 @@ import (
 
 // PutManifest handles the put manifest request
 func (h *handler) PutManifest(c echo.Context) error {
+	ctx := c.Request().Context()
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 
 	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
 		log.Debug().Err(err).Str("ref", ref).Msg("not valid digest or tag")
 		return fmt.Errorf("not valid digest or tag")
 	}
-
-	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
-	ctx := c.Request().Context()
 
 	countReader := counter.NewCounter(c.Request().Body)
 	body, err := io.ReadAll(countReader)
@@ -111,8 +110,6 @@ func (h *handler) PutManifest(c echo.Context) error {
 			RepositoryID: repoObj.ID,
 			ArtifactID:   artifactObj.ID,
 			Name:         tag,
-			Digest:       dgest.String(),
-			Size:         size,
 			PushedAt:     time.Now(),
 			LastPull:     sql.NullTime{},
 			PullTimes:    0,
