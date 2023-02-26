@@ -107,7 +107,7 @@ format: sql-format
 sql-format: ## format all sql files
 	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
 
-## Migration:
+## Misc:
 migration-create: ## Create a new migration file
 	@migrate create -dir ./migrations -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
@@ -116,6 +116,14 @@ gormgen: ## Generate gorm model from database
 
 swagen: ## Generate swagger from code comments
 	@swag init --output pkg/handlers/apidocs
+
+addlicense: ## Add license to all go files
+	@find pkg -type f -name "*.go" | xargs addlicense -f LICENSE
+	@find cmd -type f -name "*.go" | xargs addlicense -f LICENSE
+	@addlicense -f LICENSE main.go
+	@find web/src -type f -name "*.tsx" | xargs addlicense -f LICENSE
+	@find web/src -type f -name "*.ts" | xargs addlicense -f LICENSE
+	@find web/src -type f -name "*.css" | xargs addlicense -f LICENSE
 
 ## Help:
 help: ## Show this help.
