@@ -33,7 +33,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/routers"
+	"github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/storage"
 )
 
@@ -60,7 +60,7 @@ func Serve() error {
 	}))
 	e.Use(middleware.CORS())
 
-	err := routers.Initialize(e)
+	err := handlers.Initialize(e)
 	if err != nil {
 		return err
 	}

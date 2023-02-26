@@ -13,6 +13,14 @@ import (
 )
 
 // ListNamespace handles the list namespace request
+// @Summary List namespace
+// @Accept json
+// @Produce json
+// @Router /namespace/ [get]
+// @Param page_size query int64 true "page size" minimum(10) maximum(100) default(10)
+// @Param page_num query int64 true "page number" minimum(1) default(1)
+// @Param name query string false "search namespace with name"
+// @Success 200	{object} types.ListNamespaceResponse
 func (h *handlers) ListNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 

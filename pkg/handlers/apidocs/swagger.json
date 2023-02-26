@@ -1,0 +1,110 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "XImager API",
+        "contact": {
+            "name": "tosone",
+            "url": "https://github.com/tosone",
+            "email": "i@tosone.cn"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/license/mit/"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/namespace/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List namespace",
+                "parameters": [
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "search namespace with name",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ListNamespaceResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "types.ListNamespaceResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.NamespaceItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.NamespaceItem": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "artifact_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 30
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 2
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

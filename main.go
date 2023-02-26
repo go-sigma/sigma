@@ -24,6 +24,18 @@ package main
 
 import "github.com/ximager/ximager/cmd"
 
+// @title XImager API
+// @version 1.0
+
+// @contact.name tosone
+// @contact.url https://github.com/tosone
+// @contact.email i@tosone.cn
+
+// @license.name MIT
+// @license.url https://opensource.org/license/mit/
+
+// @BasePath /
+
 func main() {
 	cmd.Execute()
 }

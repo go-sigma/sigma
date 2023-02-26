@@ -1,0 +1,75 @@
+basePath: /
+definitions:
+  types.ListNamespaceResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/types.NamespaceItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  types.NamespaceItem:
+    properties:
+      artifact_count:
+        type: integer
+      created_at:
+        type: string
+      description:
+        maxLength: 30
+        type: string
+      id:
+        type: integer
+      name:
+        maxLength: 20
+        minLength: 2
+        type: string
+      updated_at:
+        type: string
+    required:
+    - name
+    type: object
+info:
+  contact:
+    email: i@tosone.cn
+    name: tosone
+    url: https://github.com/tosone
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+  title: XImager API
+  version: "1.0"
+paths:
+  /namespace/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: page size
+        in: query
+        maximum: 100
+        minimum: 10
+        name: page_size
+        required: true
+        type: integer
+      - default: 1
+        description: page number
+        in: query
+        minimum: 1
+        name: page_num
+        required: true
+        type: integer
+      - description: search namespace with name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ListNamespaceResponse'
+      summary: List namespace
+swagger: "2.0"

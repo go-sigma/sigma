@@ -114,6 +114,9 @@ migration-create: ## Create a new migration file
 gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
 
+swagen: ## Generate swagger from code comments
+	@swag init --output pkg/handlers/apidocs
+
 ## Help:
 help: ## Show this help.
 	@echo ''

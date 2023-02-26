@@ -20,13 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package routers
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
+
+	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 
 	"github.com/ximager/ximager/pkg/handlers/artifact"
 	"github.com/ximager/ximager/pkg/handlers/distribution"
@@ -53,6 +56,8 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
+
+	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validate := validator.New()
 	validators.Register(validate)
