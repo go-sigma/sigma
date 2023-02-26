@@ -30,8 +30,8 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.CreatedAt = field.NewTime(tableName, "created_at")
 	_artifact.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_artifact.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_artifact.ID = field.NewUint(tableName, "id")
-	_artifact.RepositoryID = field.NewUint(tableName, "repository_id")
+	_artifact.ID = field.NewUint64(tableName, "id")
+	_artifact.RepositoryID = field.NewUint64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
 	_artifact.Size = field.NewInt64(tableName, "size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
@@ -123,8 +123,8 @@ type artifact struct {
 	CreatedAt        field.Time
 	UpdatedAt        field.Time
 	DeletedAt        field.Uint
-	ID               field.Uint
-	RepositoryID     field.Uint
+	ID               field.Uint64
+	RepositoryID     field.Uint64
 	Digest           field.String
 	Size             field.Int64
 	ContentType      field.String
@@ -157,8 +157,8 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.DeletedAt = field.NewUint(table, "deleted_at")
-	a.ID = field.NewUint(table, "id")
-	a.RepositoryID = field.NewUint(table, "repository_id")
+	a.ID = field.NewUint64(table, "id")
+	a.RepositoryID = field.NewUint64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
 	a.Size = field.NewInt64(table, "size")
 	a.ContentType = field.NewString(table, "content_type")

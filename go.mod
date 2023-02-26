@@ -3,11 +3,11 @@ module github.com/ximager/ximager
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.204
+	github.com/aws/aws-sdk-go v1.44.209
 	github.com/distribution/distribution/v3 v3.0.0-20230217222803-a4d64adabcb9
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2
-	github.com/labstack/echo/v4 v4.10.0
+	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/moby/moby v23.0.1+incompatible
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230208164722-acfc11dad631
@@ -17,12 +17,13 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1
-	gorm.io/driver/mysql v1.4.0
-	gorm.io/driver/postgres v1.4.1
-	gorm.io/driver/sqlite v1.4.1
+	gorm.io/driver/mysql v1.4.7
+	gorm.io/driver/postgres v1.4.5
+	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gen v0.3.21
 	gorm.io/gorm v1.24.5
-	gorm.io/plugin/dbresolver v1.3.0
+	gorm.io/plugin/dbresolver v1.4.1
+	gorm.io/plugin/soft_delete v1.2.0
 	k8s.io/client-go v0.22.5
 )
 
@@ -42,7 +43,7 @@ require (
 	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -98,15 +99,15 @@ require (
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	golang.org/x/crypto v0.2.0 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/time v0.2.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 	google.golang.org/grpc v1.52.0 // indirect
@@ -116,9 +117,8 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/datatypes v1.0.7 // indirect
-	gorm.io/hints v1.1.0 // indirect
-	gorm.io/plugin/soft_delete v1.2.0 // indirect
+	gorm.io/datatypes v1.1.0 // indirect
+	gorm.io/hints v1.1.1 // indirect
 	k8s.io/api v0.22.5 // indirect
 	k8s.io/apimachinery v0.22.5 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect

@@ -35,7 +35,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var namespaceIDs []uint
+	var namespaceIDs []uint64
 	for _, ns := range namespaces {
 		namespaceIDs = append(namespaceIDs, ns.ID)
 	}

@@ -34,9 +34,9 @@ type Artifact struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint                  `gorm:"primaryKey"`
+	ID        uint64                `gorm:"primaryKey"`
 
-	RepositoryID     uint
+	RepositoryID     uint64
 	Digest           string
 	Size             int64
 	ContentType      string

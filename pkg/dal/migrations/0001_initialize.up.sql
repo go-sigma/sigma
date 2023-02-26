@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS namespaces (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   name varchar(64) NOT NULL,
   description varchar(256),
   created_at timestamp NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS namespaces (
 );
 
 CREATE TABLE IF NOT EXISTS repositories (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   name varchar(64) NOT NULL UNIQUE,
   namespace_id bigint NOT NULL,
   created_at timestamp NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS repositories (
 );
 
 CREATE TABLE IF NOT EXISTS artifacts (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   repository_id bigint NOT NULL,
   digest varchar(256) NOT NULL,
   size bigint NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
 );
 
 CREATE TABLE IF NOT EXISTS tags (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   repository_id bigint NOT NULL,
   artifact_id bigint NOT NULL,
   name varchar(64) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS tags (
   size bigint NOT NULL,
   pushed_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_pull timestamp,
-  pull_times bigint NOT NULL DEFAULT 0,
+  pull_times bigint unsigned NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
   deleted_at bigint NOT NULL DEFAULT 0,
@@ -56,13 +56,13 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 
 CREATE TABLE IF NOT EXISTS blobs (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   digest varchar(256) NOT NULL UNIQUE,
   size bigint NOT NULL,
   content_type varchar(256) NOT NULL,
   pushed_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_pull timestamp,
-  pull_times bigint NOT NULL DEFAULT 0,
+  pull_times bigint unsigned NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
   deleted_at bigint NOT NULL DEFAULT 0,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS blobs (
 );
 
 CREATE TABLE IF NOT EXISTS blob_uploads (
-  id bigint AUTO_INCREMENT PRIMARY KEY,
+  id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   part_number int NOT NULL,
   upload_id varchar(256) NOT NULL,
   etag varchar(256) NOT NULL,
@@ -84,8 +84,8 @@ CREATE TABLE IF NOT EXISTS blob_uploads (
 );
 
 CREATE TABLE IF NOT EXISTS artifact_blobs (
-  artifact_id bigint NOT NULL,
-  blob_id bigint NOT NULL,
+  artifact_id bigint unsigned NOT NULL,
+  blob_id bigint unsigned NOT NULL,
   PRIMARY KEY (artifact_id, blob_id),
   CONSTRAINT fk_artifact_blobs_artifact FOREIGN KEY (artifact_id) REFERENCES artifacts (id),
   CONSTRAINT fk_artifact_blobs_blob FOREIGN KEY (blob_id) REFERENCES blobs (id)

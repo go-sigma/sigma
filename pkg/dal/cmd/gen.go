@@ -19,46 +19,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package main
 
 import (
-	"github.com/spf13/cobra"
 	"gorm.io/gen"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 )
 
-// gormGenCmd represents the gormGen command
-var gormGenCmd = &cobra.Command{
-	Use:   "gorm-gen",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+func main() {
+	g := gen.NewGenerator(gen.Config{
+		OutPath: "pkg/dal/query",
+		Mode:    gen.WithDefaultQuery,
+	})
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(_ *cobra.Command, _ []string) {
-		g := gen.NewGenerator(gen.Config{
-			OutPath: "pkg/dal/query",
-			Mode:    gen.WithDefaultQuery,
-		})
+	g.ApplyBasic(
+		models.Namespace{},
+		models.Repository{},
+		models.Artifact{},
+		models.Tag{},
+		models.Blob{},
+		models.BlobUpload{},
+	)
 
-		g.ApplyBasic(
-			models.Namespace{},
-			models.Repository{},
-			models.Artifact{},
-			models.Tag{},
-			models.Blob{},
-			models.BlobUpload{},
-		)
+	g.ApplyInterface(func(models.TagQuerier) {}, models.Tag{})
 
-		g.ApplyInterface(func(models.TagQuerier) {}, models.Tag{})
-
-		g.Execute()
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(gormGenCmd)
+	g.Execute()
 }

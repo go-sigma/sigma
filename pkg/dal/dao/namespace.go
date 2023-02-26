@@ -39,7 +39,7 @@ type NamespaceService interface {
 	// Create creates a new namespace.
 	Create(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 	// Get gets the namespace with the specified namespace ID.
-	Get(ctx context.Context, id uint) (*models.Namespace, error)
+	Get(ctx context.Context, id uint64) (*models.Namespace, error)
 	// GetByName gets the namespace with the specified namespace name.
 	GetByName(ctx context.Context, name string) (*models.Namespace, error)
 	// ListNamespace lists all namespaces.
@@ -47,9 +47,9 @@ type NamespaceService interface {
 	// CountNamespace counts all namespaces.
 	CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error)
 	// DeleteByID deletes the namespace with the specified namespace ID.
-	DeleteByID(ctx context.Context, id uint) error
+	DeleteByID(ctx context.Context, id uint64) error
 	// UpdateByID updates the namespace with the specified namespace ID.
-	UpdateByID(ctx context.Context, id uint, req types.PutNamespaceRequest) error
+	UpdateByID(ctx context.Context, id uint64, req types.PutNamespaceRequest) error
 }
 
 type namespaceService struct {
@@ -77,7 +77,7 @@ func (s *namespaceService) Create(ctx context.Context, namespace *models.Namespa
 }
 
 // Get gets the namespace with the specified namespace ID.
-func (s *namespaceService) Get(ctx context.Context, id uint) (*models.Namespace, error) {
+func (s *namespaceService) Get(ctx context.Context, id uint64) (*models.Namespace, error) {
 	ns, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).First()
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (s *namespaceService) CountNamespace(ctx context.Context, req types.ListNam
 }
 
 // DeleteByID deletes the namespace with the specified namespace ID.
-func (s *namespaceService) DeleteByID(ctx context.Context, id uint) error {
+func (s *namespaceService) DeleteByID(ctx context.Context, id uint64) error {
 	matched, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Delete()
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s *namespaceService) DeleteByID(ctx context.Context, id uint) error {
 }
 
 // UpdateByID updates the namespace with the specified namespace ID.
-func (s *namespaceService) UpdateByID(ctx context.Context, id uint, req types.PutNamespaceRequest) error {
+func (s *namespaceService) UpdateByID(ctx context.Context, id uint64, req types.PutNamespaceRequest) error {
 	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id))
 
 	var update = make(map[string]interface{})

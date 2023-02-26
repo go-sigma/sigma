@@ -111,6 +111,9 @@ sql-format: ## format all sql files
 migration-create: ## Create a new migration file
 	@migrate create -dir ./migrations -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
+gormgen: ## Generate gorm model from database
+	@$(GOCMD) run ./pkg/dal/cmd/gen.go
+
 ## Help:
 help: ## Show this help.
 	@echo ''

@@ -31,15 +31,15 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 	_tag.CreatedAt = field.NewTime(tableName, "created_at")
 	_tag.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_tag.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_tag.ID = field.NewUint(tableName, "id")
-	_tag.RepositoryID = field.NewUint(tableName, "repository_id")
-	_tag.ArtifactID = field.NewUint(tableName, "artifact_id")
+	_tag.ID = field.NewUint64(tableName, "id")
+	_tag.RepositoryID = field.NewUint64(tableName, "repository_id")
+	_tag.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_tag.Name = field.NewString(tableName, "name")
 	_tag.Digest = field.NewString(tableName, "digest")
 	_tag.Size = field.NewInt64(tableName, "size")
 	_tag.LastPull = field.NewField(tableName, "last_pull")
 	_tag.PushedAt = field.NewTime(tableName, "pushed_at")
-	_tag.PullTimes = field.NewUint(tableName, "pull_times")
+	_tag.PullTimes = field.NewUint64(tableName, "pull_times")
 	_tag.Repository = tagBelongsToRepository{
 		db: db.Session(&gorm.Session{}),
 
@@ -108,15 +108,15 @@ type tag struct {
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	DeletedAt    field.Uint
-	ID           field.Uint
-	RepositoryID field.Uint
-	ArtifactID   field.Uint
+	ID           field.Uint64
+	RepositoryID field.Uint64
+	ArtifactID   field.Uint64
 	Name         field.String
 	Digest       field.String
 	Size         field.Int64
 	LastPull     field.Field
 	PushedAt     field.Time
-	PullTimes    field.Uint
+	PullTimes    field.Uint64
 	Repository   tagBelongsToRepository
 
 	Artifact tagBelongsToArtifact
@@ -139,15 +139,15 @@ func (t *tag) updateTableName(table string) *tag {
 	t.CreatedAt = field.NewTime(table, "created_at")
 	t.UpdatedAt = field.NewTime(table, "updated_at")
 	t.DeletedAt = field.NewUint(table, "deleted_at")
-	t.ID = field.NewUint(table, "id")
-	t.RepositoryID = field.NewUint(table, "repository_id")
-	t.ArtifactID = field.NewUint(table, "artifact_id")
+	t.ID = field.NewUint64(table, "id")
+	t.RepositoryID = field.NewUint64(table, "repository_id")
+	t.ArtifactID = field.NewUint64(table, "artifact_id")
 	t.Name = field.NewString(table, "name")
 	t.Digest = field.NewString(table, "digest")
 	t.Size = field.NewInt64(table, "size")
 	t.LastPull = field.NewField(table, "last_pull")
 	t.PushedAt = field.NewTime(table, "pushed_at")
-	t.PullTimes = field.NewUint(table, "pull_times")
+	t.PullTimes = field.NewUint64(table, "pull_times")
 
 	t.fillFieldMap()
 

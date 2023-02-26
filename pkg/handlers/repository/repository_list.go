@@ -31,7 +31,7 @@ func (h *handlers) ListRepository(c echo.Context) error {
 	repositoryService := dao.NewRepositoryService()
 	repositories, err := repositoryService.ListRepository(ctx, req)
 
-	var repositoryIDs []uint
+	var repositoryIDs []uint64
 	for _, repository := range repositories {
 		repositoryIDs = append(repositoryIDs, repository.ID)
 	}

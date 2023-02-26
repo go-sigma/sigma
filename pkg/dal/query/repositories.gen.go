@@ -30,8 +30,8 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.CreatedAt = field.NewTime(tableName, "created_at")
 	_repository.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_repository.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_repository.ID = field.NewUint(tableName, "id")
-	_repository.NamespaceID = field.NewUint(tableName, "namespace_id")
+	_repository.ID = field.NewUint64(tableName, "id")
+	_repository.NamespaceID = field.NewUint64(tableName, "namespace_id")
 	_repository.Name = field.NewString(tableName, "name")
 	_repository.Namespace = repositoryBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
@@ -51,8 +51,8 @@ type repository struct {
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 	DeletedAt   field.Uint
-	ID          field.Uint
-	NamespaceID field.Uint
+	ID          field.Uint64
+	NamespaceID field.Uint64
 	Name        field.String
 	Namespace   repositoryBelongsToNamespace
 
@@ -74,8 +74,8 @@ func (r *repository) updateTableName(table string) *repository {
 	r.CreatedAt = field.NewTime(table, "created_at")
 	r.UpdatedAt = field.NewTime(table, "updated_at")
 	r.DeletedAt = field.NewUint(table, "deleted_at")
-	r.ID = field.NewUint(table, "id")
-	r.NamespaceID = field.NewUint(table, "namespace_id")
+	r.ID = field.NewUint64(table, "id")
+	r.NamespaceID = field.NewUint64(table, "namespace_id")
 	r.Name = field.NewString(table, "name")
 
 	r.fillFieldMap()

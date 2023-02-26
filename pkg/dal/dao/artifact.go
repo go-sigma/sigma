@@ -38,7 +38,7 @@ type ArtifactService interface {
 	// Save save a new artifact if conflict update.
 	Save(ctx context.Context, artifact *models.Artifact) (*models.Artifact, error)
 	// Get gets the artifact with the specified artifact ID.
-	Get(ctx context.Context, id uint) (*models.Artifact, error)
+	Get(ctx context.Context, id uint64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
 	GetByDigest(ctx context.Context, repository, digest string) (*models.Artifact, error)
 	// DeleteByDigest deletes the artifact with the specified digest.
@@ -46,17 +46,17 @@ type ArtifactService interface {
 	// AssociateBlobs associates the blobs with the artifact.
 	AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error
 	// CountByNamespace counts the artifacts by the specified namespace.
-	CountByNamespace(ctx context.Context, namespaceIDs []uint) (map[uint]int64, error)
+	CountByNamespace(ctx context.Context, namespaceIDs []uint64) (map[uint64]int64, error)
 	// CountByRepository counts the artifacts by the specified repository.
-	CountByRepository(ctx context.Context, repositoryIDs []uint) (map[uint]int64, error)
+	CountByRepository(ctx context.Context, repositoryIDs []uint64) (map[uint64]int64, error)
 	// Incr increases the pull times of the artifact.
-	Incr(ctx context.Context, id uint) error
+	Incr(ctx context.Context, id uint64) error
 	// ListArtifact lists the artifacts by the specified request.
 	ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
 	// DeleteByID deletes the artifact with the specified artifact ID.
-	DeleteByID(ctx context.Context, id uint) error
+	DeleteByID(ctx context.Context, id uint64) error
 }
 
 type artifactService struct {
@@ -84,7 +84,7 @@ func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) (
 }
 
 // Get gets the artifact with the specified artifact ID.
-func (s *artifactService) Get(ctx context.Context, id uint) (*models.Artifact, error) {
+func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact, error) {
 	artifact, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).First()
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func (s *artifactService) AssociateBlobs(ctx context.Context, artifact *models.A
 }
 
 // Incr increases the pull times of the artifact.
-func (s *artifactService) Incr(ctx context.Context, id uint) error {
+func (s *artifactService) Incr(ctx context.Context, id uint64) error {
 	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
@@ -139,14 +139,14 @@ func (s *artifactService) Incr(ctx context.Context, id uint) error {
 }
 
 // CountByNamespace counts the artifacts by the specified namespace.
-func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []uint) (map[uint]int64, error) {
-	artifactCount := make(map[uint]int64)
+func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []uint64) (map[uint64]int64, error) {
+	artifactCount := make(map[uint64]int64)
 	if len(namespaceIDs) == 0 {
 		return artifactCount, nil
 	}
 	var count []struct {
-		NamespaceID uint  `gorm:"column:namespace_id"`
-		Count       int64 `gorm:"column:count"`
+		NamespaceID uint64 `gorm:"column:namespace_id"`
+		Count       int64  `gorm:"column:count"`
 	}
 	err := s.tx.Artifact.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
@@ -164,14 +164,14 @@ func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []u
 }
 
 // CountByRepository counts the artifacts by the specified repository.
-func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs []uint) (map[uint]int64, error) {
-	artifactCount := make(map[uint]int64)
+func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs []uint64) (map[uint64]int64, error) {
+	artifactCount := make(map[uint64]int64)
 	if len(repositoryIDs) == 0 {
 		return artifactCount, nil
 	}
 	var count []struct {
-		RepositoryID uint  `gorm:"column:repository_id"`
-		Count        int64 `gorm:"column:count"`
+		RepositoryID uint64 `gorm:"column:repository_id"`
+		Count        int64  `gorm:"column:count"`
 	}
 	err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.In(repositoryIDs...)).
 		Group(s.tx.Artifact.RepositoryID).
@@ -205,7 +205,7 @@ func (s *artifactService) CountArtifact(ctx context.Context, req types.ListArtif
 }
 
 // DeleteByID deletes the artifact with the specified ID.
-func (s *artifactService) DeleteByID(ctx context.Context, id uint) error {
+func (s *artifactService) DeleteByID(ctx context.Context, id uint64) error {
 	matched, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).Delete()
 	if err != nil {
 		return err

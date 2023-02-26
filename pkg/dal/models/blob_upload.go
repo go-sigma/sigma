@@ -32,7 +32,7 @@ type BlobUpload struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint                  `gorm:"primaryKey"`
+	ID        uint64                `gorm:"primaryKey"`
 
 	PartNumber int
 	UploadID   string

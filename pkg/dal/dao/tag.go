@@ -38,23 +38,23 @@ type TagService interface {
 	// Save save a new tag if conflict update.
 	Save(ctx context.Context, tag *models.Tag) (*models.Tag, error)
 	// Get gets the tag with the specified tag ID.
-	GetByID(ctx context.Context, tagID uint) (*models.Tag, error)
+	GetByID(ctx context.Context, tagID uint64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
 	GetByName(context.Context, string, string) (*models.Tag, error)
 	// DeleteByName deletes the tag with the specified tag name.
 	DeleteByName(ctx context.Context, repository string, tag string) error
 	// Incr increases the pull times of the artifact.
-	Incr(ctx context.Context, id uint) error
+	Incr(ctx context.Context, id uint64) error
 	// ListByDtPagination lists the tags by the specified repository and pagination.
-	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...uint) ([]*models.Tag, error)
+	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...uint64) ([]*models.Tag, error)
 	// ListTag lists the tags by the specified request.
 	ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// DeleteByID deletes the tag with the specified tag ID.
-	DeleteByID(ctx context.Context, id uint) error
+	DeleteByID(ctx context.Context, id uint64) error
 	// CountByArtifact counts the tags by the specified artifact.
-	CountByArtifact(ctx context.Context, artifactIDs []uint) (map[uint]int64, error)
+	CountByArtifact(ctx context.Context, artifactIDs []uint64) (map[uint64]int64, error)
 }
 
 type tagService struct {
@@ -82,7 +82,7 @@ func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, er
 }
 
 // Get gets the tag with the specified tag ID.
-func (s *tagService) GetByID(ctx context.Context, tagID uint) (*models.Tag, error) {
+func (s *tagService) GetByID(ctx context.Context, tagID uint64) (*models.Tag, error) {
 	tag, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID)).First()
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (s *tagService) DeleteByName(ctx context.Context, repository, tag string) e
 }
 
 // Incr increases the pull times of the artifact.
-func (s *tagService) Incr(ctx context.Context, id uint) error {
+func (s *tagService) Incr(ctx context.Context, id uint64) error {
 	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
@@ -129,7 +129,7 @@ func (s *tagService) Incr(ctx context.Context, id uint) error {
 }
 
 // ListByDtPagination lists the tags by the specified repository and pagination.
-func (s *tagService) ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...uint) ([]*models.Tag, error) {
+func (s *tagService) ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...uint64) ([]*models.Tag, error) {
 	do := s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
 		Where(s.tx.Repository.Name.Eq(repository))
@@ -160,7 +160,7 @@ func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (in
 }
 
 // DeleteByID deletes the tag with the specified tag ID.
-func (s *tagService) DeleteByID(ctx context.Context, id uint) error {
+func (s *tagService) DeleteByID(ctx context.Context, id uint64) error {
 	matched, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).Delete()
 	if err != nil {
 		return err
@@ -172,11 +172,11 @@ func (s *tagService) DeleteByID(ctx context.Context, id uint) error {
 }
 
 // CountByArtifact counts the tags by the specified artifact.
-func (s *tagService) CountByArtifact(ctx context.Context, artifactIDs []uint) (map[uint]int64, error) {
-	tagCount := make(map[uint]int64)
+func (s *tagService) CountByArtifact(ctx context.Context, artifactIDs []uint64) (map[uint64]int64, error) {
+	tagCount := make(map[uint64]int64)
 	var count []struct {
-		ArtifactID uint  `gorm:"column:artifact_id"`
-		Count      int64 `gorm:"column:count"`
+		ArtifactID uint64 `gorm:"column:artifact_id"`
+		Count      int64  `gorm:"column:count"`
 	}
 	err := s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID)).

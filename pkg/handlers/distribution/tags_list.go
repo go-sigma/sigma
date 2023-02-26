@@ -38,7 +38,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 	repository := strings.TrimSuffix(strings.TrimPrefix(uri, "/v2/"), "/tags/list")
 
 	lastFound := false
-	var lastID uint = 0
+	var lastID uint64 = 0
 
 	tagService := services.NewTagService()
 	var last = c.QueryParam("last")

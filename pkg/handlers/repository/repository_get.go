@@ -41,7 +41,7 @@ func (h *handlers) GetRepository(c echo.Context) error {
 	}
 
 	artifactService := dao.NewArtifactService()
-	artifactCountRef, err := artifactService.CountByRepository(ctx, []uint{repository.ID})
+	artifactCountRef, err := artifactService.CountByRepository(ctx, []uint64{repository.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count artifact from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

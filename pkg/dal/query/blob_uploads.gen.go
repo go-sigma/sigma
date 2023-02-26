@@ -30,7 +30,7 @@ func newBlobUpload(db *gorm.DB, opts ...gen.DOOption) blobUpload {
 	_blobUpload.CreatedAt = field.NewTime(tableName, "created_at")
 	_blobUpload.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_blobUpload.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_blobUpload.ID = field.NewUint(tableName, "id")
+	_blobUpload.ID = field.NewUint64(tableName, "id")
 	_blobUpload.PartNumber = field.NewInt(tableName, "part_number")
 	_blobUpload.UploadID = field.NewString(tableName, "upload_id")
 	_blobUpload.Etag = field.NewString(tableName, "etag")
@@ -50,7 +50,7 @@ type blobUpload struct {
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 	DeletedAt  field.Uint
-	ID         field.Uint
+	ID         field.Uint64
 	PartNumber field.Int
 	UploadID   field.String
 	Etag       field.String
@@ -76,7 +76,7 @@ func (b *blobUpload) updateTableName(table string) *blobUpload {
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
 	b.DeletedAt = field.NewUint(table, "deleted_at")
-	b.ID = field.NewUint(table, "id")
+	b.ID = field.NewUint64(table, "id")
 	b.PartNumber = field.NewInt(table, "part_number")
 	b.UploadID = field.NewString(table, "upload_id")
 	b.Etag = field.NewString(table, "etag")
