@@ -118,12 +118,12 @@ swagen: ## Generate swagger from code comments
 	@swag init --output pkg/handlers/apidocs
 
 addlicense: ## Add license to all go files
-	@find pkg -type f -name "*.go" | xargs addlicense -f LICENSE
-	@find cmd -type f -name "*.go" | xargs addlicense -f LICENSE
-	@addlicense -f LICENSE main.go
-	@find web/src -type f -name "*.tsx" | xargs addlicense -f LICENSE
-	@find web/src -type f -name "*.ts" | xargs addlicense -f LICENSE
-	@find web/src -type f -name "*.css" | xargs addlicense -f LICENSE
+	@find pkg -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "XImager" -v
+	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "XImager"
+	@addlicense -l apache -y 2023 -c "XImager" main.go
+	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2023 -c "XImager"
+	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2023 -c "XImager"
+	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "XImager"
 
 ## Help:
 help: ## Show this help.
