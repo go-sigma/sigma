@@ -15,6 +15,8 @@
 package consts
 
 const (
+	// AppName represents the app name
+	AppName = "XImager"
 	// APIVersion represents the API version
 	APIVersion = "v2"
 	// APIVersionKey represents the API version key
@@ -31,6 +33,6 @@ const (
 	// BlobUploads represent blob uploads
 	// file always represent like: blob_uploads/{upload_id}
 	BlobUploads = "blob_uploads"
-	// DefaultTimePattern 时间格式
+	// DefaultTimePattern time pattern
 	DefaultTimePattern = "2006-01-02 15:04:05"
 )
