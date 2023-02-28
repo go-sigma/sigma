@@ -15,6 +15,7 @@
 package leader
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -35,7 +36,7 @@ type LeaderElector interface {
 
 // Factory is the interface for the storage driver factory
 type Factory interface {
-	New(opts Options) (LeaderElector, error)
+	New(ctx context.Context, opts Options) (LeaderElector, error)
 }
 
 var leaderFactories = make(map[string]Factory)
@@ -52,12 +53,17 @@ func RegisterLeaderFactory(name string, factory Factory) error {
 // Leader is the leader elector
 var Leader LeaderElector
 
-func Initialize() error {
+func Initialize(ctx context.Context) error {
 	typ := viper.GetString("leader.type")
 	factory, ok := leaderFactories[typ]
 	if !ok {
 		return fmt.Errorf("leader %q not registered", typ)
 	}
+
+	viper.SetDefault("leader.name", "redis")
+	viper.SetDefault("leader.leaseDuration", time.Second*15)
+	viper.SetDefault("leader.renewDeadline", time.Second*10)
+	viper.SetDefault("leader.retryPeriod", time.Second*2)
 
 	var opts = Options{
 		Name:          viper.GetString("leader.name"),
@@ -70,8 +76,10 @@ func Initialize() error {
 		return fmt.Errorf("leader name is empty")
 	}
 
+	// if the leader ctx is canceled, the leader will be released
+
 	var err error
-	Leader, err = factory.New(opts)
+	Leader, err = factory.New(ctx, opts)
 	if err != nil {
 		return err
 	}

@@ -28,6 +28,7 @@ import (
 	_ "github.com/ximager/ximager/pkg/storage/s3"
 
 	_ "github.com/ximager/ximager/pkg/utils/leader/k8s"
+	_ "github.com/ximager/ximager/pkg/utils/leader/redis"
 )
 
 var cfgFile string

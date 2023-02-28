@@ -20,19 +20,16 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/ximager/ximager/pkg/utils/leader"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
+
+	"github.com/ximager/ximager/pkg/utils/leader"
 )
 
 const (
 	name = "k8s"
 )
-
-type k8sLeaderElector struct {
-	leader *leaderelection.LeaderElector
-}
 
 func init() {
 	err := leader.RegisterLeaderFactory(name, &factory{})
@@ -45,8 +42,12 @@ type factory struct{}
 
 var _ leader.Factory = &factory{}
 
+type k8sLeaderElector struct {
+	leader *leaderelection.LeaderElector
+}
+
 // New ...
-func (f factory) New(opts leader.Options) (leader.LeaderElector, error) {
+func (f factory) New(ctx context.Context, opts leader.Options) (leader.LeaderElector, error) {
 	podName := os.Getenv("POD_NAME")
 	podNamespace := os.Getenv("POD_NAMESPACE")
 
@@ -82,7 +83,7 @@ func (f factory) New(opts leader.Options) (leader.LeaderElector, error) {
 	if err != nil {
 		return nil, fmt.Errorf("fail to create leader elector: %w", err)
 	}
-	go leaderElector.Run(context.Background())
+	go leaderElector.Run(ctx)
 
 	return k8sLeaderElector{
 		leader: leaderElector,
