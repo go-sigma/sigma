@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -69,29 +70,23 @@ func (s *repositoryService) Create(ctx context.Context, repository *models.Repos
 	return repository, nil
 }
 
+// Save saves the repository.
 func (s *repositoryService) Save(ctx context.Context, repository *models.Repository) (*models.Repository, error) {
 	_, ns, _, _, err := imagerefs.Parse(repository.Name)
 	if err != nil {
 		return nil, err
 	}
-	err = s.tx.Transaction(func(tx *query.Query) error {
-		nsObj, err := tx.Namespace.WithContext(ctx).Where(tx.Namespace.Name.Eq(ns)).First()
-		if err != nil {
-			return err
-		}
-		repository.NamespaceID = nsObj.ID
-		err = tx.Repository.WithContext(ctx).
-			Where(tx.Repository.NamespaceID.Eq(nsObj.ID), tx.Repository.Name.Eq(repository.Name)).
-			Save(repository)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	nsObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(ns)).First()
 	if err != nil {
 		return nil, err
 	}
-	return repository, nil
+	repository.NamespaceID = nsObj.ID
+	err = s.tx.Repository.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(repository)
+	if err != nil {
+		return nil, err
+	}
+	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID),
+		s.tx.Repository.Name.Eq(repository.Name)).First()
 }
 
 // Get gets the repository with the specified repository ID.

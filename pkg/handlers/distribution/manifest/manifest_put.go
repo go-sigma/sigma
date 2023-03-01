@@ -34,6 +34,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
@@ -50,6 +51,12 @@ func (h *handler) PutManifest(c echo.Context) error {
 	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
 		log.Debug().Err(err).Str("ref", ref).Msg("not valid digest or tag")
 		return fmt.Errorf("not valid digest or tag")
+	}
+
+	contentType := c.Request().Header.Get("Content-Type")
+	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
+		contentType == "application/vnd.oci.image.index.v1+json" {
+		return h.manifestList(c, repository, ref)
 	}
 
 	countReader := counter.NewCounter(c.Request().Body)
@@ -78,7 +85,6 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return err
 	}
 
-	contentType := c.Request().Header.Get("Content-Type")
 	artifactService := dao.NewArtifactService()
 	artifactObj, err := artifactService.Save(ctx, &models.Artifact{
 		RepositoryID: repoObj.ID,
@@ -176,5 +182,96 @@ func (h *handler) getImageConfig(c echo.Context, dgest digest.Digest, configDesc
 	}
 	log.Info().Interface("config", string(configBytes)).Msg("config")
 
+	return nil
+}
+
+// manifestList handles the manifest list request
+// support media type:
+// application/vnd.docker.distribution.manifest.list.v2+json
+// application/vnd.oci.image.index.v1+json
+func (h *handler) manifestList(c echo.Context, repository, ref string) error {
+	ctx := c.Request().Context()
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		log.Error().Err(err).Msg("Read body failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+	}
+	var imageIndex imgspecv1.Index
+	err = json.Unmarshal(bodyBytes, &imageIndex)
+	if err != nil {
+		log.Error().Err(err).Str("body", string(bodyBytes)).Msg("Decode manifest list failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeManifestInvalid)
+	}
+	var dgests = make([]string, 0, len(imageIndex.Manifests))
+	for _, manifest := range imageIndex.Manifests {
+		dgests = append(dgests, manifest.Digest.String())
+	}
+	artifactService := dao.NewArtifactService()
+	artifacts, err := artifactService.GetByDigests(ctx, repository, dgests)
+	if err != nil {
+		log.Error().Err(err).Str("repository", repository).Interface("digests", dgests).Msg("Get artifacts failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+	}
+	// ensure all of the artifacts exist
+	for _, dgest := range dgests {
+		var exist bool
+		for _, artifact := range artifacts {
+			if artifact.Digest == dgest {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			log.Error().Str("digest", dgest).Msg("Artifact not found")
+			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeManifestUnknown)
+		}
+	}
+
+	dgest := digest.FromBytes(bodyBytes)
+
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		// Save the repository
+		repositoryService := dao.NewRepositoryService()
+		repoObj, err := repositoryService.Save(ctx, &models.Repository{
+			Name: repository,
+		})
+		if err != nil {
+			log.Error().Err(err).Str("repository", repository).Msg("Save repository failed")
+			return err
+		}
+		// Save the artifact
+		artifactService := dao.NewArtifactService(tx)
+		artifactObj, err := artifactService.Save(ctx, &models.Artifact{
+			RepositoryID: repoObj.ID,
+			Digest:       dgest.String(),
+			Size:         uint64(len(bodyBytes)),
+			ContentType:  imageIndex.MediaType,
+			Raw:          string(bodyBytes),
+			PushedAt:     time.Now(),
+			PullTimes:    0,
+			LastPull:     sql.NullTime{},
+		})
+		// Save the tag if it is a tag
+		if reference.TagRegexp.MatchString(ref) {
+			tagService := dao.NewTagService(tx)
+			_, err = tagService.Save(ctx, &models.Tag{
+				RepositoryID: repoObj.ID,
+				ArtifactID:   artifactObj.ID,
+				Name:         ref,
+				PushedAt:     time.Now(),
+				LastPull:     sql.NullTime{},
+				PullTimes:    0,
+			})
+			if err != nil {
+				log.Error().Err(err).Str("repository", repository).Str("tag", ref).Msg("Save tag failed")
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("Save artifact failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+	}
 	return nil
 }

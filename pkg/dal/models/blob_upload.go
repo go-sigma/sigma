@@ -31,5 +31,5 @@ type BlobUpload struct {
 	Etag       string
 	Repository string
 	FileID     string
-	Size       int64
+	Size       uint64
 }

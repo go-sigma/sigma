@@ -36,7 +36,7 @@ func newBlobUpload(db *gorm.DB, opts ...gen.DOOption) blobUpload {
 	_blobUpload.Etag = field.NewString(tableName, "etag")
 	_blobUpload.Repository = field.NewString(tableName, "repository")
 	_blobUpload.FileID = field.NewString(tableName, "file_id")
-	_blobUpload.Size = field.NewInt64(tableName, "size")
+	_blobUpload.Size = field.NewUint64(tableName, "size")
 
 	_blobUpload.fillFieldMap()
 
@@ -56,7 +56,7 @@ type blobUpload struct {
 	Etag       field.String
 	Repository field.String
 	FileID     field.String
-	Size       field.Int64
+	Size       field.Uint64
 
 	fieldMap map[string]field.Expr
 }
@@ -82,7 +82,7 @@ func (b *blobUpload) updateTableName(table string) *blobUpload {
 	b.Etag = field.NewString(table, "etag")
 	b.Repository = field.NewString(table, "repository")
 	b.FileID = field.NewString(table, "file_id")
-	b.Size = field.NewInt64(table, "size")
+	b.Size = field.NewUint64(table, "size")
 
 	b.fillFieldMap()
 

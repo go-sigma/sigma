@@ -29,7 +29,7 @@ type Blob struct {
 	ID        uint64                `gorm:"primaryKey"`
 
 	Digest      string
-	Size        int64
+	Size        uint64
 	ContentType string
 
 	LastPull  sql.NullTime

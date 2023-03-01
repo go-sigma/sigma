@@ -27,7 +27,7 @@ import (
 )
 
 // GetContentLength returns the content length of the request.
-func GetContentLength(req *http.Request) (int64, error) {
+func GetContentLength(req *http.Request) (uint64, error) {
 	if req == nil {
 		return 0, fmt.Errorf("request is nil")
 	}
@@ -35,7 +35,7 @@ func GetContentLength(req *http.Request) (int64, error) {
 	if str == "" {
 		return 0, nil
 	}
-	length, err := strconv.ParseInt(str, 10, 64)
+	length, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("content length is not a number")
 	}

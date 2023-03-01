@@ -28,12 +28,11 @@ type Artifact struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        uint64                `gorm:"primaryKey"`
 
-	RepositoryID     uint64
-	Digest           string
-	Size             int64
-	ContentType      string
-	Raw              string
-	HistoryCreatedBy *string
+	RepositoryID uint64
+	Digest       string
+	Size         uint64
+	ContentType  string
+	Raw          string
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"not null"`

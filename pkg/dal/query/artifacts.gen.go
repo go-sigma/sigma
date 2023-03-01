@@ -33,10 +33,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.ID = field.NewUint64(tableName, "id")
 	_artifact.RepositoryID = field.NewUint64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
-	_artifact.Size = field.NewInt64(tableName, "size")
+	_artifact.Size = field.NewUint64(tableName, "size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
 	_artifact.Raw = field.NewString(tableName, "raw")
-	_artifact.HistoryCreatedBy = field.NewString(tableName, "history_created_by")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewUint64(tableName, "pull_times")
@@ -119,21 +118,20 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 type artifact struct {
 	artifactDo artifactDo
 
-	ALL              field.Asterisk
-	CreatedAt        field.Time
-	UpdatedAt        field.Time
-	DeletedAt        field.Uint
-	ID               field.Uint64
-	RepositoryID     field.Uint64
-	Digest           field.String
-	Size             field.Int64
-	ContentType      field.String
-	Raw              field.String
-	HistoryCreatedBy field.String
-	LastPull         field.Field
-	PushedAt         field.Time
-	PullTimes        field.Uint64
-	Tags             artifactHasManyTags
+	ALL          field.Asterisk
+	CreatedAt    field.Time
+	UpdatedAt    field.Time
+	DeletedAt    field.Uint
+	ID           field.Uint64
+	RepositoryID field.Uint64
+	Digest       field.String
+	Size         field.Uint64
+	ContentType  field.String
+	Raw          field.String
+	LastPull     field.Field
+	PushedAt     field.Time
+	PullTimes    field.Uint64
+	Tags         artifactHasManyTags
 
 	Repository artifactBelongsToRepository
 
@@ -160,10 +158,9 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.ID = field.NewUint64(table, "id")
 	a.RepositoryID = field.NewUint64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
-	a.Size = field.NewInt64(table, "size")
+	a.Size = field.NewUint64(table, "size")
 	a.ContentType = field.NewString(table, "content_type")
 	a.Raw = field.NewString(table, "raw")
-	a.HistoryCreatedBy = field.NewString(table, "history_created_by")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
 	a.PullTimes = field.NewUint64(table, "pull_times")
@@ -189,7 +186,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 16)
+	a.fieldMap = make(map[string]field.Expr, 15)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -199,7 +196,6 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["size"] = a.Size
 	a.fieldMap["content_type"] = a.ContentType
 	a.fieldMap["raw"] = a.Raw
-	a.fieldMap["history_created_by"] = a.HistoryCreatedBy
 	a.fieldMap["last_pull"] = a.LastPull
 	a.fieldMap["pushed_at"] = a.PushedAt
 	a.fieldMap["pull_times"] = a.PullTimes

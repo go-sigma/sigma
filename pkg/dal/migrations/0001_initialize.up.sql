@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL UNIQUE,
-  `namespace_id` bigint NOT NULL,
+  `namespace_id` bigint unsigned NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -21,15 +21,14 @@ CREATE TABLE IF NOT EXISTS `repositories` (
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `repository_id` bigint NOT NULL,
+  `repository_id` bigint unsigned NOT NULL,
   `digest` varchar(256) NOT NULL,
-  `size` bigint NOT NULL,
+  `size` bigint unsigned NOT NULL DEFAULT 0 COMMENT 'size of the artifact in bytes, it is zero if it is a manifest list',
   `content_type` varchar(256) NOT NULL,
   `raw` longtext NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `history_created_by` longtext,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -39,8 +38,8 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
 
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `repository_id` bigint NOT NULL,
-  `artifact_id` bigint NOT NULL,
+  `repository_id` bigint unsigned NOT NULL,
+  `artifact_id` bigint unsigned NOT NULL,
   `name` varchar(64) NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
@@ -56,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
 CREATE TABLE IF NOT EXISTS `blobs` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `digest` varchar(256) NOT NULL UNIQUE,
-  `size` bigint NOT NULL,
+  `size` bigint unsigned NOT NULL,
   `content_type` varchar(256) NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
@@ -74,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `etag` varchar(256) NOT NULL,
   `repository` varchar(256) NOT NULL,
   `file_id` varchar(256) NOT NULL,
-  `size` bigint NOT NULL DEFAULT 0,
+  `size` bigint unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
