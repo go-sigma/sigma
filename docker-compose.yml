@@ -25,7 +25,8 @@ services:
       MYSQL_PASSWORD: ximager
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
+      interval: 10s
+      timeout: 5s
       retries: 10
   redis:
     image: redis:7.0-alpine
@@ -34,5 +35,6 @@ services:
     command: redis-server --requirepass ximager
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "ximager", "ping"]
-      timeout: 20s
+      interval: 10s
+      timeout: 5s
       retries: 10
