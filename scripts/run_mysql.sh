@@ -6,4 +6,5 @@ docker run -it \
   -e MYSQL_DATABASE=ximager \
   -e MYSQL_USER=ximager \
   -e MYSQL_PASSWORD=ximager \
-  -p 3306:3306 -d mysql:8.0
+  -p 3306:3306 -d --rm \
+  mysql:8.0

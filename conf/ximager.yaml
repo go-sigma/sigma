@@ -27,9 +27,9 @@ storage:
   filesystem:
     path: /
   s3:
-    ak: xxx
-    sk: xxx
-    endpoint: https://xxx.xxx
+    ak: ximager
+    sk: ximager-ximager
+    endpoint: http://127.0.0.1:9000
     bucket: ximager
     forcePathStyle: true
 admin:
