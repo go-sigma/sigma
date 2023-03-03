@@ -22,8 +22,12 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
+const (
+	maxNamespace = 20
+)
+
 var (
-	namespaceRegex = regexp.MustCompile(`^[a-z]+$`)
+	namespaceRegex = regexp.MustCompile(`^[a-z][a-z-]{0,20}$`)
 )
 
 // Register registers the validators
@@ -36,7 +40,8 @@ func Register(v *validator.Validate) {
 
 // ValidateRepository validates the repository name
 func ValidateRepository(field validator.FieldLevel) bool {
-	return reference.NameRegexp.MatchString(field.Field().String())
+	_, err := reference.ParseNormalizedNamed(field.Field().String())
+	return err == nil
 }
 
 // ValidateDigest validates the digest
@@ -48,7 +53,8 @@ func ValidateDigest(field validator.FieldLevel) bool {
 
 // ValidateNamespace validates the namespace name
 func ValidateNamespace(field validator.FieldLevel) bool {
-	return namespaceRegex.MatchString(field.Field().String())
+	namespace := field.Field().String()
+	return namespaceRegex.MatchString(namespace) && len(namespace) <= maxNamespace
 }
 
 // ValidateTag validates the tag
