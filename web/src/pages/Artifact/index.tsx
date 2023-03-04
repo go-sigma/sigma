@@ -33,21 +33,21 @@ import "./index.css";
 import { IArtifact, IArtifactList, IHTTPError } from "../../interfaces/interfaces";
 
 export default function Artifact({ localServer }: { localServer: string }) {
-  let [artifactList, setArtifactList] = useState<IArtifactList>({} as IArtifactList);
-  let [refresh, setRefresh] = useState({});
-  let [pageNum, setPageNum] = useState(1);
-  let [total, setTotal] = useState(0);
+  const [artifactList, setArtifactList] = useState<IArtifactList>({} as IArtifactList);
+  const [refresh, setRefresh] = useState({});
+  const [pageNum, setPageNum] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository = searchParams.get('repository');
 
   useEffect(() => {
-    let url = localServer + `/namespace/${namespace}/artifact/?repository=${repository}&page_size=${Settings.PageSize}&page_num=${pageNum}`;
+    const url = localServer + `/namespace/${namespace}/artifact/?repository=${repository}&page_size=${Settings.PageSize}&page_num=${pageNum}`;
     axios.get(url)
       .then((response) => {
         if (response.status === 200) {
-          let artifactList = response.data as IArtifactList;
+          const artifactList = response.data as IArtifactList;
           setArtifactList(artifactList);
           setTotal(artifactList.total);
         }

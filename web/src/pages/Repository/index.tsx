@@ -32,11 +32,11 @@ import "./index.css";
 import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces/interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
-  let [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
-  let [refresh, setRefresh] = useState({});
-  let [pageNum, setPageNum] = useState(1);
-  let [searchRepository, setSearchRepository] = useState("");
-  let [total, setTotal] = useState(0);
+  const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
+  const [refresh, setRefresh] = useState({});
+  const [pageNum, setPageNum] = useState(1);
+  const [searchRepository, setSearchRepository] = useState("");
+  const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
 
@@ -48,7 +48,7 @@ export default function Repository({ localServer }: { localServer: string }) {
     axios.get(url)
       .then((response) => {
         if (response.status === 200) {
-          let repositoryList = response.data as IRepositoryList;
+          const repositoryList = response.data as IRepositoryList;
           setRepositoryList(repositoryList);
           setTotal(repositoryList.total);
         }

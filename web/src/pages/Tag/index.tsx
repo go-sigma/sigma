@@ -35,11 +35,11 @@ import "./index.css";
 import { ITag, ITagList, IHTTPError } from "../../interfaces/interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
-  let [tagList, setTagList] = useState<ITagList>({} as ITagList);
-  let [refresh, setRefresh] = useState({});
-  let [pageNum, setPageNum] = useState(1);
-  let [searchRepository, setSearchRepository] = useState("");
-  let [total, setTotal] = useState(0);
+  const [tagList, setTagList] = useState<ITagList>({} as ITagList);
+  const [refresh, setRefresh] = useState({});
+  const [pageNum, setPageNum] = useState(1);
+  const [searchRepository, setSearchRepository] = useState("");
+  const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
@@ -53,7 +53,7 @@ export default function Tag({ localServer }: { localServer: string }) {
     axios.get(url)
       .then((response) => {
         if (response.status === 200) {
-          let tagList = response.data as ITagList;
+          const tagList = response.data as ITagList;
           setTagList(tagList);
           setTotal(tagList.total);
         }

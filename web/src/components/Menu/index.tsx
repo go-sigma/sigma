@@ -26,7 +26,7 @@ import { AiOutlineHome, AiOutlineMenu, AiOutlineClockCircle } from "react-icons/
 interface IMenu {
   text: string;
   icon: IconType;
-};
+}
 
 const menuList: IMenu[] = [
   { text: "Home", icon: AiOutlineHome },
@@ -35,10 +35,10 @@ const menuList: IMenu[] = [
 ];
 
 export default function Menu({ item }: { item: string }) {
-  let [showProfileMenu, setShowProfileMenu] = useState(false);
-  let [menuActive, setMenuActive] = useState(item === "" ? menuList[0].text : item);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [menuActive, setMenuActive] = useState(item === "" ? menuList[0].text : item);
 
-  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;;
+  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   useClickAway(ref, () => {
     if (showProfileMenu) {
       setShowProfileMenu(!showProfileMenu);

@@ -26,9 +26,9 @@ dayjs.extend(relativeTime);
 
 export default function TableItem({ id, namespace, repository, digest, size, tags, tag_count, created_at, updated_at }: { id: number, namespace: string | undefined, repository: string | null, digest: string, size: number, tags: string[], tag_count: number, created_at: string, updated_at: string }) {
   const navigate = useNavigate();
-  let [show, setShow] = useState(false);
+  const [show, setShow] = useState(false);
 
-  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;;
+  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   useClickAway(ref, () => {
     if (show) {
       setShow(!show);
