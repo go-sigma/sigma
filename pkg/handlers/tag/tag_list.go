@@ -44,8 +44,12 @@ func (h *handlers) ListTag(c echo.Context) error {
 
 	tagService := dao.NewTagService()
 	tags, err := tagService.ListTag(ctx, req)
+	if err != nil {
+		log.Error().Err(err).Msg("List tag from db failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
 
-	var resp []any
+	var resp = make([]any, 0, len(tags))
 	for _, tag := range tags {
 		resp = append(resp, types.TagItem{
 			ID:        tag.ID,

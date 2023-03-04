@@ -32,10 +32,10 @@ var (
 
 // Register registers the validators
 func Register(v *validator.Validate) {
-	v.RegisterValidation("is_valid_namespace", ValidateNamespace)
-	v.RegisterValidation("is_valid_repository", ValidateRepository)
-	v.RegisterValidation("is_valid_digest", ValidateDigest)
-	v.RegisterValidation("is_valid_tag", ValidateTag)
+	v.RegisterValidation("is_valid_namespace", ValidateNamespace)   // nolint:errcheck
+	v.RegisterValidation("is_valid_repository", ValidateRepository) // nolint:errcheck
+	v.RegisterValidation("is_valid_digest", ValidateDigest)         // nolint:errcheck
+	v.RegisterValidation("is_valid_tag", ValidateTag)               // nolint:errcheck
 }
 
 // ValidateRepository validates the repository name

@@ -4,14 +4,15 @@ on:
   push:
     branches:
       - main
+      - gh-readonly-queue/main/*
   pull_request:
     branches:
       - main
 
 jobs:
-  test:
-    name: test
-    runs-on: ubuntu-20.04
+  unit-test:
+    name: unit-test
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         go: ["1.19"]
@@ -29,12 +30,12 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true
       - name: Setup golang
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
       - name: Setup node

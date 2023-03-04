@@ -36,7 +36,11 @@ func Serve() error {
 	if debugAddr != "" {
 		go func(addr string) {
 			log.Info().Str("addr", addr).Msg("Debug server listening")
-			err := http.ListenAndServe(addr, nil)
+			server := &http.Server{
+				Addr:              ":1234",
+				ReadHeaderTimeout: 3 * time.Second,
+			}
+			err := server.ListenAndServe()
 			if err != nil {
 				log.Fatal().Err(err).Msg("Listening on debug interface failed")
 			}
@@ -80,7 +84,7 @@ func Serve() error {
 	defer cancel()
 	err = e.Shutdown(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Server forced to shutdown")
+		log.Error().Err(err).Msg("Server shutdown failed")
 	}
 
 	return nil

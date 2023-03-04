@@ -118,7 +118,7 @@ func (m *manifest) Get(ctx context.Context, ref Reference) (distribution.Manifes
 		return nil, nil, err
 	}
 	for _, t := range distribution.ManifestMediaTypes() {
-		req.Header.Add(http.CanonicalHeaderKey("Accept"), t)
+		req.Header.Add("Accept", t)
 	}
 	resp, err := m.client.Do(req)
 	if err != nil {
@@ -129,7 +129,7 @@ func (m *manifest) Get(ctx context.Context, ref Reference) (distribution.Manifes
 	if err != nil {
 		return nil, nil, err
 	}
-	mt := resp.Header.Get(http.CanonicalHeaderKey("Content-Type"))
+	mt := resp.Header.Get("Content-Type")
 	manifest, desc, err := distribution.UnmarshalManifest(mt, body)
 	if err != nil {
 		return nil, nil, err

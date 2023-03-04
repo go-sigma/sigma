@@ -147,6 +147,7 @@ func (a *awss3) sanitizePath(p string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(path.Join(a.rootDirectory, p), "."), "/")
 }
 
+// Move moves a file from sourcePath to destPath.
 func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) error {
 	sourcePath = a.sanitizePath(sourcePath)
 	destPath = a.sanitizePath(destPath)
@@ -225,6 +226,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 	return err
 }
 
+// Delete removes the object at the given path.
 func (a *awss3) Delete(ctx context.Context, path string) error {
 	path = a.sanitizePath(path)
 
@@ -299,6 +301,7 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 	return nil
 }
 
+// Reader returns a reader for the given path.
 func (a *awss3) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
 	resp, err := a.S3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
@@ -311,6 +314,7 @@ func (a *awss3) Reader(ctx context.Context, path string, offset int64) (io.ReadC
 	return resp.Body, nil
 }
 
+// CreateUploadID creates a new upload ID.
 func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error) {
 	resp, err := a.S3.CreateMultipartUploadWithContext(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
@@ -322,6 +326,7 @@ func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error)
 	return aws.StringValue(resp.UploadId), nil
 }
 
+// UploadPart uploads a part of an object.
 func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumber int64, body io.Reader) (string, error) {
 	_, err := a.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(a.bucket),
@@ -344,6 +349,7 @@ func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumbe
 	return aws.StringValue(resp.CopyPartResult.ETag), nil
 }
 
+// CommitUpload commits an upload.
 func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts []string) error {
 	completedParts := make([]*s3.CompletedPart, len(parts))
 	for i, part := range parts {

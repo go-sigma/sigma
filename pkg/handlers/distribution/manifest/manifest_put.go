@@ -118,13 +118,13 @@ func (h *handler) PutManifest(c echo.Context) error {
 		}
 	}
 
-	var digests []string
 	var manifest imgspecv1.Manifest
 	err = json.Unmarshal(body, &manifest)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Unmarshal manifest failed")
 		return err
 	}
+	var digests = make([]string, 0, len(manifest.Layers)+1)
 	digests = append(digests, manifest.Config.Digest.String())
 	for _, layer := range manifest.Layers {
 		digests = append(digests, layer.Digest.String())
@@ -146,6 +146,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	return nil
 }
 
+// nolint: unused
 func (h *handler) getImageConfig(c echo.Context, dgest digest.Digest, configDescriptor imgspecv1.Descriptor) error {
 	ctx := c.Request().Context()
 	configReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(configDescriptor.Digest)), 0)
@@ -237,7 +238,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Msg("Save repository failed")
-			return err
+			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
 		}
 		// Save the artifact
 		artifactService := dao.NewArtifactService(tx)
@@ -251,6 +252,11 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			PullTimes:    0,
 			LastPull:     sql.NullTime{},
 		})
+		if err != nil {
+			log.Error().Err(err).Str("repository", repository).Str("digest", dgest.String()).Msg("Save artifact failed")
+			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		}
+
 		// Save the tag if it is a tag
 		if reference.TagRegexp.MatchString(ref) {
 			tagService := dao.NewTagService(tx)
@@ -264,7 +270,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			})
 			if err != nil {
 				log.Error().Err(err).Str("repository", repository).Str("tag", ref).Msg("Save tag failed")
-				return err
+				return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
 			}
 		}
 		return nil

@@ -63,6 +63,7 @@ type BlobWriter interface {
 	Cancel(ctx context.Context) error
 }
 
+// nolint: unused
 type blobWriter struct {
 	ctx context.Context
 
@@ -77,6 +78,7 @@ type blobWriter struct {
 	closed   bool
 }
 
+// nolint: unused
 func (hbu *blobWriter) ReadFrom(r io.Reader) (n int64, err error) {
 	req, err := http.NewRequestWithContext(hbu.ctx, http.MethodPatch, hbu.location, io.NopCloser(r))
 	if err != nil {
@@ -111,6 +113,7 @@ func (hbu *blobWriter) ReadFrom(r io.Reader) (n int64, err error) {
 	return (end - start + 1), nil
 }
 
+// nolint: unused
 func (hbu *blobWriter) Write(p []byte) (n int, err error) {
 	req, err := http.NewRequestWithContext(hbu.ctx, http.MethodPatch, hbu.location, bytes.NewReader(p))
 	if err != nil {
@@ -146,18 +149,22 @@ func (hbu *blobWriter) Write(p []byte) (n int, err error) {
 	return (end - start + 1), nil
 }
 
+// nolint: unused
 func (hbu *blobWriter) Size() int64 {
 	return hbu.offset
 }
 
+// nolint: unused
 func (hbu *blobWriter) ID() string {
 	return hbu.uuid
 }
 
+// nolint: unused
 func (hbu *blobWriter) StartedAt() time.Time {
 	return hbu.startedAt
 }
 
+// nolint: unused
 func (hbu *blobWriter) Commit(ctx context.Context, desc distribution.Descriptor) (*distribution.Descriptor, error) {
 	req, err := http.NewRequestWithContext(hbu.ctx, http.MethodPut, hbu.location, nil)
 	if err != nil {
@@ -181,6 +188,7 @@ func (hbu *blobWriter) Commit(ctx context.Context, desc distribution.Descriptor)
 	return hbu.blobService.Stat(ctx, desc.Digest)
 }
 
+// nolint: unused
 func (hbu *blobWriter) Cancel(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(hbu.ctx, http.MethodDelete, hbu.location, nil)
 	if err != nil {
@@ -198,11 +206,13 @@ func (hbu *blobWriter) Cancel(ctx context.Context) error {
 	return fmt.Errorf("unexpected status code %d", resp.StatusCode)
 }
 
+// nolint: unused
 func (hbu *blobWriter) Close() error {
 	hbu.closed = true
 	return nil
 }
 
+// nolint: unused
 func sanitizeLocation(location, base string) (string, error) {
 	baseURL, err := url.Parse(base)
 	if err != nil {
@@ -219,6 +229,7 @@ func sanitizeLocation(location, base string) (string, error) {
 
 // SuccessStatus returns true if the argument is a successful HTTP response
 // code (in the range 200 - 399 inclusive).
+// nolint: unused
 func SuccessStatus(status int) bool {
 	return status >= 200 && status <= 399
 }

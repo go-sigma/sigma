@@ -27,6 +27,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils/counter"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // PatchUpload handles the patch upload request
@@ -51,6 +52,10 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	}
 
 	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("Get blob upload record failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+	}
 
 	counterReader := counter.NewCounter(c.Request().Body)
 
