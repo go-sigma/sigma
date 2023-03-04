@@ -86,42 +86,45 @@ func All(c echo.Context) error {
 	urix := uri[:strings.LastIndex(uri, "/")]
 
 	if strings.HasSuffix(urix, "/blobs/uploads") {
-		if method == http.MethodGet {
+		switch method {
+		case http.MethodGet:
 			return uploadHandler.GetUpload(c)
-		} else if method == http.MethodPatch {
+		case http.MethodPatch:
 			return uploadHandler.PatchUpload(c)
-		} else if method == http.MethodPut {
+		case http.MethodPut:
 			return uploadHandler.PutUpload(c)
-		} else if method == http.MethodDelete {
+		case http.MethodDelete:
 			return uploadHandler.DeleteUpload(c)
-		} else {
-			return c.String(405, "Method Not Allowed")
+		default:
+			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
 	}
 
 	blobHandler := NewBlob()
 	if strings.HasSuffix(urix, "/blobs") {
-		if method == http.MethodGet {
+		switch method {
+		case http.MethodGet:
 			return blobHandler.GetBlob(c)
-		} else if method == http.MethodHead {
+		case http.MethodHead:
 			return blobHandler.HeadBlob(c)
-		} else {
-			return c.String(405, "Method Not Allowed")
+		default:
+			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
 	}
 
 	manifestHandler := NewManifest()
 	if strings.HasSuffix(urix, "/manifests") {
-		if method == http.MethodGet {
+		switch method {
+		case http.MethodGet:
 			return manifestHandler.GetManifest(c)
-		} else if method == http.MethodHead {
+		case http.MethodHead:
 			return manifestHandler.HeadManifest(c)
-		} else if method == http.MethodPut {
+		case http.MethodPut:
 			return manifestHandler.PutManifest(c)
-		} else if method == http.MethodDelete {
+		case http.MethodDelete:
 			return manifestHandler.DeleteManifest(c)
-		} else {
-			return c.String(405, "Method Not Allowed")
+		default:
+			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
 	}
 

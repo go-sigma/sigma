@@ -20,6 +20,7 @@ import (
 
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
+
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 )

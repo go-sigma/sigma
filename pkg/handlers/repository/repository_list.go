@@ -44,8 +44,12 @@ func (h *handlers) ListRepository(c echo.Context) error {
 
 	repositoryService := dao.NewRepositoryService()
 	repositories, err := repositoryService.ListRepository(ctx, req)
+	if err != nil {
+		log.Error().Err(err).Msg("List repository from db failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
 
-	var repositoryIDs []uint64
+	var repositoryIDs = make([]uint64, 0, len(repositories))
 	for _, repository := range repositories {
 		repositoryIDs = append(repositoryIDs, repository.ID)
 	}
@@ -56,7 +60,7 @@ func (h *handlers) ListRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp []any
+	var resp = make([]any, 0, len(repositories))
 	for _, repository := range repositories {
 		resp = append(resp, types.RepositoryItem{
 			ID:            repository.ID,

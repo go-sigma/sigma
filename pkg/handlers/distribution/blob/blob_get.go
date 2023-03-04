@@ -25,11 +25,13 @@ import (
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
+
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
-	"gorm.io/gorm"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // GetBlob returns the blob's size and digest.
@@ -62,12 +64,16 @@ func (h *handler) GetBlob(c echo.Context) error {
 			return c.JSON(http.StatusNotFound, err)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return err
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
 
 	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), 0)
+	if err != nil {
+		log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob reader failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+	}
 
 	return c.Stream(http.StatusOK, blob.ContentType, reader)
 }

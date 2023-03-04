@@ -11,7 +11,19 @@ linters:
     - unparam
     - goimports
     - whitespace
+    - gci
 
 linters-settings:
   whitespace:
     multi-func: true
+  cyclop:
+    max-complexity: 30
+    package-average: 10
+    skip-tests: true
+  gci:
+    sections:
+      - standard
+      - blank
+      - default
+      - prefix(github.com/ximager/ximager)
+      - dot

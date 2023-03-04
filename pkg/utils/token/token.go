@@ -90,6 +90,7 @@ func NewTokenService(privateKeyString, publicKeyString string) (TokenService, er
 		privateKey: privateKey,
 		publicKey:  publicKey,
 		redisCli:   redisCli,
+		ttl:        viper.GetDuration("admin.jwt.expire"),
 	}, nil
 }
 
@@ -99,7 +100,7 @@ func (s *tokenService) New(username string) (string, error) {
 	claims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    consts.AppName,
-			ExpiresAt: jwt.NewNumericDate(now.Add(viper.GetDuration("admin.jwt.expire"))),
+			ExpiresAt: jwt.NewNumericDate(now.Add(s.ttl)),
 			NotBefore: jwt.NewNumericDate(now),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        uuid.New().String(),

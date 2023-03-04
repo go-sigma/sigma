@@ -42,6 +42,10 @@ func (h *handlers) GetTag(c echo.Context) error {
 
 	tagService := dao.NewTagService()
 	tag, err := tagService.GetByID(ctx, req.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("Get tag from db failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
 
 	return c.JSON(200, types.TagItem{
 		ID:        tag.ID,

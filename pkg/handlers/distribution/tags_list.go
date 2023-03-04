@@ -75,7 +75,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 	if err != nil {
 		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
 	}
-	var names []string
+	var names = make([]string, 0, len(tags))
 	for _, tag := range tags {
 		names = append(names, tag.Name)
 	}

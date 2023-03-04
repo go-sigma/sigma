@@ -49,7 +49,7 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var artifactIDs []uint64
+	var artifactIDs = make([]uint64, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		artifactIDs = append(artifactIDs, artifact.ID)
 	}
@@ -60,7 +60,7 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp []any
+	var resp = make([]any, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		tags := make([]string, 0, len(artifact.Tags))
 		for _, tag := range artifact.Tags {

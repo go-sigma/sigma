@@ -57,7 +57,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var namespaceIDs []uint64
+	var namespaceIDs = make([]uint64, 0, len(namespaces))
 	for _, ns := range namespaces {
 		namespaceIDs = append(namespaceIDs, ns.ID)
 	}
@@ -68,7 +68,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp []any
+	var resp = make([]any, 0, len(namespaces))
 	for _, ns := range namespaces {
 		resp = append(resp, types.NamespaceItem{
 			ID:            ns.ID,

@@ -23,6 +23,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+
 	"github.com/ximager/ximager/pkg/dal/dao"
 )
 
@@ -42,7 +43,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 
 	var err error
 	var dgest digest.Digest
-	if dgest, err = digest.Parse(ref); err == nil {
+	if dgest, err = digest.Parse(ref); err == nil { // nolint: staticcheck
 		dgest, err = digest.Parse(ref)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Parse digest failed")

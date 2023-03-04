@@ -103,6 +103,7 @@ func NewClient(addr, username, password string) Client {
 	}
 }
 
+// nolint: unparam
 func (c *client) requester(method, url string, body ...io.Reader) (*http.Request, error) {
 	b := io.Reader(nil)
 	if len(body) > 0 {
@@ -216,7 +217,7 @@ func (c *client) GetManifest(repo, ref string) (distribution.Manifest, error) {
 		return nil, err
 	}
 	for _, t := range distribution.ManifestMediaTypes() {
-		req.Header.Add(http.CanonicalHeaderKey("Accept"), t)
+		req.Header.Add("Accept", t)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -230,7 +231,7 @@ func (c *client) GetManifest(repo, ref string) (distribution.Manifest, error) {
 	if err != nil {
 		return nil, err
 	}
-	mt := resp.Header.Get(http.CanonicalHeaderKey("Content-Type"))
+	mt := resp.Header.Get("Content-Type")
 	manifest, _, err := distribution.UnmarshalManifest(mt, body)
 	if err != nil {
 		return nil, err

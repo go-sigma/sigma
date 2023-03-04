@@ -62,7 +62,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 	if err != nil {
 		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
 	}
-	var names []string
+	var names = make([]string, 0, len(repositories))
 	for _, repository := range repositories {
 		names = append(names, repository.Name)
 	}

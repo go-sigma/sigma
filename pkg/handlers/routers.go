@@ -25,18 +25,18 @@ import (
 	"github.com/spf13/viper"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
-	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
-	"github.com/ximager/ximager/pkg/handlers/user"
-	"github.com/ximager/ximager/pkg/types"
-
 	"github.com/ximager/ximager/pkg/handlers/artifact"
 	"github.com/ximager/ximager/pkg/handlers/distribution"
 	"github.com/ximager/ximager/pkg/handlers/namespace"
 	"github.com/ximager/ximager/pkg/handlers/repository"
 	"github.com/ximager/ximager/pkg/handlers/tag"
+	"github.com/ximager/ximager/pkg/handlers/user"
 	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/validators"
 	"github.com/ximager/ximager/web"
+
+	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
 // CustomValidator is a custom validator for echo

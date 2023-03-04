@@ -15,12 +15,7 @@
 package blob
 
 import (
-	"fmt"
-	"regexp"
-
-	"github.com/distribution/distribution/v3/reference"
 	"github.com/labstack/echo/v4"
-	"github.com/opencontainers/go-digest"
 )
 
 // Handlers is the interface for the distribution blob handlers
@@ -32,7 +27,7 @@ type Handlers interface {
 
 var _ Handlers = &handler{}
 
-var blobRouteReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/blobs/%s$`, reference.NameRegexp.String(), digest.DigestRegexp.String()))
+// var blobRouteReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/blobs/%s$`, reference.NameRegexp.String(), digest.DigestRegexp.String()))
 
 type handler struct{}
 

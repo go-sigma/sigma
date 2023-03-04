@@ -105,7 +105,7 @@ func (b *blobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID s
 	if err != nil {
 		return nil, err
 	}
-	var etags []string
+	var etags = make([]string, 0, len(blobUploads))
 	for _, blobUpload := range blobUploads {
 		etags = append(etags, blobUpload.Etag)
 	}
