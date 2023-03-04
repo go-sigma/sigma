@@ -1,4 +1,4 @@
-name: Server Build CI
+name: Build CI
 
 on:
   push:
@@ -10,21 +10,6 @@ on:
       - main
 
 jobs:
-  # leetcode-server-lint:
-  #   name: leetcode-server-lint
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - name: Checkout branch
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #         lfs: true
-  #     - name: Lint code
-  #       uses: golangci/golangci-lint-action@v3
-  #       with:
-  #         version: latest
-  #         working-directory: apps/cli
-  #         args: -v --timeout=5m
   local-build:
     name: local-build
     runs-on: ubuntu-22.04
