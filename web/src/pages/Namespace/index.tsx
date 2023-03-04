@@ -34,13 +34,13 @@ import "./index.css";
 import { INamespace, INamespaceList, IHTTPError } from "../../interfaces/interfaces";
 
 export default function Namespace({ localServer }: { localServer: string }) {
-  let [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
-  let [namespaceText, setNamespaceText] = useState("");
-  let [descriptionText, setDescriptionText] = useState("");
-  let [refresh, setRefresh] = useState({});
-  let [pageNum, setPageNum] = useState(1);
-  let [searchNamespace, setSearchNamespace] = useState("");
-  let [total, setTotal] = useState(0);
+  const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
+  const [namespaceText, setNamespaceText] = useState("");
+  const [descriptionText, setDescriptionText] = useState("");
+  const [refresh, setRefresh] = useState({});
+  const [pageNum, setPageNum] = useState(1);
+  const [searchNamespace, setSearchNamespace] = useState("");
+  const [total, setTotal] = useState(0);
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
@@ -52,14 +52,14 @@ export default function Namespace({ localServer }: { localServer: string }) {
     axios.get(url)
       .then((response) => {
         if (response.status === 200) {
-          let namespaceList = response.data as INamespaceList;
+          const namespaceList = response.data as INamespaceList;
           setNamespaceList(namespaceList);
           setTotal(namespaceList.total);
         }
       });
   }, [refresh, pageNum]);
 
-  let createNamespace = (namespace: string, description: string) => {
+  const createNamespace = (namespace: string, description: string) => {
     setCreateNamespaceModal(false);
     setNamespaceText("");
     setDescriptionText("");
@@ -71,11 +71,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
       if (response.status === 201) {
         setRefresh({});
       } else {
-        let errorcode = response.data as IHTTPError;
+        const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
       }
     }).catch(error => {
-      let errorcode = error.response.data as IHTTPError;
+      const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
     })
   }
