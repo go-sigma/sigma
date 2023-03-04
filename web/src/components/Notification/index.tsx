@@ -37,7 +37,7 @@ export default function (noti: INotification) {
     className: "fake-toast",
   });
 
-  let renderWithLevel = () => {
+  const renderWithLevel = () => {
     switch (noti.level) {
       case "info":
         return <InboxIcon className="h-6 w-6 text-red-400" aria-hidden="true" />

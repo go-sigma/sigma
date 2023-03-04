@@ -30,7 +30,7 @@ import { AiOutlineCopy, AiOutlineEdit, AiOutlineShareAlt } from "react-icons/ai"
 interface IMenu {
   text: string;
   icon: IconType;
-};
+}
 
 const menuList: IMenu[] = [
   { text: "Edit", icon: AiOutlineEdit },
@@ -40,9 +40,9 @@ const menuList: IMenu[] = [
 
 export default function TableItem({ name, description, artifact_count, created_at, updated_at }: { name: string, description: string, artifact_count: number, created_at: string, updated_at: string }) {
   const navigate = useNavigate();
-  let [show, setShow] = useState(false);
+  const [show, setShow] = useState(false);
 
-  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;;
+  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   useClickAway(ref, () => {
     if (show) {
       setShow(!show);
