@@ -1,0 +1,24 @@
+name: Image CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  image-build:
+    name: image-build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Build image
+        run: |
+          make docker-build
