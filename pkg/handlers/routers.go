@@ -57,9 +57,7 @@ func Initialize(e *echo.Echo) error {
 
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
-	validate := validator.New()
-	validators.Register(validate)
-	e.Validator = &CustomValidator{validator: validate}
+	validators.Initialize(e)
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")

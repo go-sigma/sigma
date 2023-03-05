@@ -70,7 +70,11 @@ func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, er
 	if err != nil {
 		return nil, err
 	}
-	return tag, nil
+	return s.tx.Tag.WithContext(ctx).Where(
+		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
+		s.tx.Tag.ArtifactID.Eq(tag.ArtifactID),
+		s.tx.Tag.Name.Eq(tag.Name),
+	).First()
 }
 
 // Get gets the tag with the specified tag ID.

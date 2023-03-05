@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -90,7 +91,8 @@ func initConfig() {
 		viper.SetConfigName(".ximager")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// If a config file is found, read it in.
 	err := viper.ReadInConfig()

@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
+-- CREATE TABLE IF NOT EXISTS `test` (
+--   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+--   `name` varchar(64) NOT NULL UNIQUE
+-- );
+
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL UNIQUE,
@@ -23,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint unsigned NOT NULL,
   `digest` varchar(256) NOT NULL,
-  `size` bigint unsigned NOT NULL DEFAULT 0 COMMENT 'size of the artifact in bytes, it is zero if it is a manifest list',
+  `size` bigint unsigned NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` longtext NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
