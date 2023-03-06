@@ -56,6 +56,11 @@ jobs:
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=sqlite3 go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit-test-sqlite3
 
   unit-test-postgresql:
     name: unit-test-postgresql
@@ -102,6 +107,12 @@ jobs:
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=postgresql go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit-test-postgresql
+
   unit-test-mysql:
     name: unit-test-mysql
     runs-on: ubuntu-22.04
@@ -148,3 +159,8 @@ jobs:
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=mysql go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit-test-mysql
