@@ -8,11 +8,6 @@ CREATE TABLE IF NOT EXISTS namespaces (
   CONSTRAINT namespaces_unique_with_name UNIQUE (name, deleted_at)
 );
 
--- CREATE TABLE IF NOT EXISTS `test` (
---   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
---   `name` varchar(64) NOT NULL UNIQUE
--- );
-
 CREATE TABLE IF NOT EXISTS repositories (
   id bigserial PRIMARY KEY,
   name varchar(64) NOT NULL UNIQUE,
