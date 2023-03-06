@@ -24,13 +24,20 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 )
 
-//go:embed migrations/*.sql
-var fs embed.FS
+//go:embed migrations/mysql/*.sql
+var mysqlFS embed.FS
+
+//go:embed migrations/postgresql/*.sql
+var postgresqlFS embed.FS
+
+//go:embed migrations/sqlite3/*.sql
+var sqlite3FS embed.FS
 
 func migrateMysql(dsn string) error {
-	d, err := iofs.New(fs, "migrations")
+	d, err := iofs.New(mysqlFS, "migrations/mysql")
 	if err != nil {
 		return err
 	}
@@ -51,11 +58,32 @@ func migrateMysql(dsn string) error {
 }
 
 func migratePostgres(dsn string) error {
-	d, err := iofs.New(fs, "migrations")
+	d, err := iofs.New(postgresqlFS, "migrations/postgresql")
 	if err != nil {
 		return err
 	}
 	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("postgres://%s", dsn))
+	if err != nil {
+		return err
+	}
+	err = m.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	version, dirty, err := m.Version()
+	if err != nil {
+		return err
+	}
+	log.Info().Uint("version", version).Bool("dirty", dirty).Msg("Migrate database")
+	return nil
+}
+
+func migrateSqlite(dsn string) error {
+	d, err := iofs.New(sqlite3FS, "migrations/sqlite3")
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("sqlite3://%s", dsn))
 	if err != nil {
 		return err
 	}

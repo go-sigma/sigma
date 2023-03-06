@@ -185,3 +185,6 @@ sketch
 
 # conf
 conf/ximager-dev.yaml
+
+# database
+*.db

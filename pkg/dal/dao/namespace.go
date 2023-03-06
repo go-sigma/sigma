@@ -60,12 +60,12 @@ func NewNamespaceService(txs ...*query.Query) NamespaceService {
 }
 
 // Create creates a new namespace.
-func (s *namespaceService) Create(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
-	err := s.tx.Namespace.WithContext(ctx).Create(namespace)
+func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Namespace) (*models.Namespace, error) {
+	err := s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
 	if err != nil {
 		return nil, err
 	}
-	return namespace, nil
+	return namespaceObj, nil
 }
 
 // Get gets the namespace with the specified namespace ID.

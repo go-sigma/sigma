@@ -39,7 +39,7 @@ func Initialize() error {
 	switch dbType {
 	case "mysql":
 		err = connectMysql()
-	case "postgres":
+	case "postgresql":
 		err = connectPostgres()
 	case "sqlite":
 		err = connectSqlite()
@@ -106,13 +106,18 @@ func connectPostgres() error {
 }
 
 func connectSqlite() error {
-	dbname := viper.GetString("database.sqlite.dbname")
+	dbname := viper.GetString("database.sqlite.path")
 
 	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 	DB = db
+
+	err = migrateSqlite(dbname)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

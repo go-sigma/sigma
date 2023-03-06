@@ -35,7 +35,7 @@ func TestValidateRepository(t *testing.T) {
 	}
 
 	validate := validator.New()
-	Register(validate)
+	register(validate)
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestValidateDigest(t *testing.T) {
 	}
 
 	validate := validator.New()
-	Register(validate)
+	register(validate)
 
 	for _, test := range tests {
 		t.Run(test.Digest, func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestValidateNamespace(t *testing.T) {
 	}
 
 	validate := validator.New()
-	Register(validate)
+	register(validate)
 
 	for _, test := range tests {
 		t.Run(test.Namespace, func(t *testing.T) {
@@ -109,12 +109,10 @@ func TestValidateTag(t *testing.T) {
 
 	var tests = []Test{
 		{"valid.tag", true},
-		// {"valid/tag", false},
-		// {"@invalid^tag", false},
 	}
 
 	validate := validator.New()
-	Register(validate)
+	register(validate)
 
 	for _, test := range tests {
 		t.Run(test.Tag, func(t *testing.T) {

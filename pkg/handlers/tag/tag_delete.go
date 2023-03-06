@@ -40,6 +40,7 @@ func (h *handlers) DeleteTag(c echo.Context) error {
 		log.Error().Err(err).Msg("Validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
+	log.Debug().Interface("req", req).Msg("Delete tag called")
 
 	tagService := dao.NewTagService()
 	err = tagService.DeleteByID(ctx, req.ID)

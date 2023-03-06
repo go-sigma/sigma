@@ -15,10 +15,12 @@
 package validators
 
 import (
+	"net/http"
 	"regexp"
 
 	"github.com/distribution/distribution/v3/reference"
 	"github.com/go-playground/validator"
+	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 )
 
@@ -30,8 +32,27 @@ var (
 	namespaceRegex = regexp.MustCompile(`^[a-z][a-z-]{0,20}$`)
 )
 
-// Register registers the validators
-func Register(v *validator.Validate) {
+// CustomValidator is a custom validator for echo
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		// Optionally, you could return the error to give each route more control over the status code
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return nil
+}
+
+func Initialize(e *echo.Echo) {
+	validate := validator.New()
+	register(validate)
+	e.Validator = &CustomValidator{validator: validate}
+}
+
+// register registers the validators
+func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_namespace", ValidateNamespace)   // nolint:errcheck
 	v.RegisterValidation("is_valid_repository", ValidateRepository) // nolint:errcheck
 	v.RegisterValidation("is_valid_digest", ValidateDigest)         // nolint:errcheck

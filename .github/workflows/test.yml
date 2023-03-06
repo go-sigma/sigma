@@ -10,8 +10,8 @@ on:
       - main
 
 jobs:
-  unit-test:
-    name: unit-test
+  unit-test-sqlite3:
+    name: unit-test-sqlite3
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -49,3 +49,102 @@ jobs:
           cd web
           yarn install --frozen-lockfile
           yarn build
+      - name: Setup minio
+        run: |
+          ./scripts/run_minio.sh
+          sleep 5
+      - name: Run tests
+        run: |
+          CI_DATABASE_TYPE=sqlite3 go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+  unit-test-postgresql:
+    name: unit-test-postgresql
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        go: ["1.19"]
+        node: ["18"]
+    services:
+      postgresql:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: ximager
+          POSTGRES_USER: ximager
+          POSTGRES_DB: ximager
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+          cache-dependency-path: "web/yarn.lock"
+      - name: Test
+        run: |
+          cd web
+          yarn install --frozen-lockfile
+          yarn build
+      - name: Setup minio
+        run: |
+          ./scripts/run_minio.sh
+          sleep 5
+      - name: Run tests
+        run: |
+          CI_DATABASE_TYPE=postgresql go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+  unit-test-mysql:
+    name: unit-test-mysql
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        go: ["1.19"]
+        node: ["18"]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ximager
+          MYSQL_DATABASE: ximager
+          MYSQL_USER: ximager
+          MYSQL_PASSWORD: ximager
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+          cache-dependency-path: "web/yarn.lock"
+      - name: Test
+        run: |
+          cd web
+          yarn install --frozen-lockfile
+          yarn build
+      - name: Setup minio
+        run: |
+          ./scripts/run_minio.sh
+          sleep 5
+      - name: Run tests
+        run: |
+          CI_DATABASE_TYPE=mysql go test -v -coverprofile=coverage.txt -covermode=atomic ./...
