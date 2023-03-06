@@ -14,16 +14,23 @@
 
 package s3
 
-// func TestNew(t *testing.T) {
-// 	s3, err := New("https://minio.tosone,cn", "cn-north-1", "tosone", "8541539655", "registry")
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, s3)
-// }
+import (
+	"testing"
 
-// func TestS3_Stat(t *testing.T) {
-// 	s3, err := New("https://minio.tosone.cn", "cn-north-1", "tosone", "8541539655", "registry")
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, s3)
-// 	_, err = s3.Stat(context.Background(), "docker")
-// 	assert.NoError(t, err)
-// }
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestNew(t *testing.T) {
+	viper.SetDefault("storage.s3.endpoint", "http://localhost:9000")
+	viper.SetDefault("storage.s3.region", "cn-north-1")
+	viper.SetDefault("storage.s3.ak", "ximager")
+	viper.SetDefault("storage.s3.sk", "ximager-ximager")
+	viper.SetDefault("storage.s3.bucket", "ximager")
+	viper.SetDefault("storage.s3.forcePathStyle", true)
+
+	var f = factory{}
+	driver, err := f.New()
+	assert.NoError(t, err)
+	assert.NotNil(t, driver)
+}
