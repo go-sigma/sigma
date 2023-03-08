@@ -1,6 +1,8 @@
 #!/bin/bash
 
-docker run -it \
+DOCKER=${DOCKER:-docker}
+
+"$DOCKER" run -it \
   --name ximager-redis \
   -p 6379:6379 -d --rm \
   --health-cmd "redis-cli -a ximager ping || exit 1" \

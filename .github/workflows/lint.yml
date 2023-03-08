@@ -42,3 +42,13 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           args: --deadline=10m
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./build/Dockerfile
+          ignore: DL3018
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./build/local.Dockerfile
+          ignore: DL3018

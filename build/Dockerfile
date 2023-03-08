@@ -8,7 +8,9 @@ RUN set -eux && apk add --no-cache make bash ncurses build-base
 
 COPY ./web /web
 
-RUN set -eux && cd /web && yarn install --frozen-lockfile && yarn build
+WORKDIR /web
+
+RUN set -eux && yarn install --frozen-lockfile && yarn build
 
 FROM golang:${GOLANG_VERSION} as builder
 

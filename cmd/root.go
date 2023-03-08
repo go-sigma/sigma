@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/ximager/ximager/pkg/configs"
 	"github.com/ximager/ximager/pkg/utils"
 
 	_ "github.com/ximager/ximager/pkg/storage/filesystem"
@@ -36,20 +37,22 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "ximager",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Short: "XImager is an OCI artifact storage and distribution system",
+	Long: `XImager is an OCI artifact storage and distribution system,
+which is designed to be a lightweight, easy-to-use, and easy-to-deploy,
+and can be used as a private registry or a public registry.
+XImager is a cloud-native, distributed, and highly available system,
+which can be deployed on any cloud platform or on-premises.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		err := configs.Initialize()
+		if err != nil {
+			return err
+		}
+		return nil
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute ...
 func Execute() {
 	rootCmd.PersistentPreRun = func(_ *cobra.Command, _ []string) {
 		utils.SetLevel(viper.GetInt("log.level"))
@@ -64,24 +67,14 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ximager.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
@@ -94,7 +87,6 @@ func initConfig() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// If a config file is found, read it in.
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Sprintf("Fatal error config file: %s \n", err))

@@ -12,35 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package configs
 
-import (
-	"github.com/rs/zerolog/log"
-	"github.com/spf13/cobra"
+type checker func() error
 
-	"github.com/ximager/ximager/pkg/cmds/server"
-	"github.com/ximager/ximager/pkg/dal"
-)
+var checkers []checker
 
-// serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Start the XImager server",
-	Run: func(_ *cobra.Command, _ []string) {
-		err := dal.Initialize()
+// Initialize initializes the configs.
+func Initialize() error {
+	for _, checker := range checkers {
+		err := checker()
 		if err != nil {
-			log.Error().Err(err).Msg("Initialize database with error")
-			return
+			return err
 		}
-
-		err = server.Serve()
-		if err != nil {
-			log.Error().Err(err).Msg("Serve with error")
-			return
-		}
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(serverCmd)
+	}
+	return nil
 }

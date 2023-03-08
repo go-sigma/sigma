@@ -1,6 +1,8 @@
 #!/bin/bash
 
-docker run -it \
+DOCKER=${DOCKER:-docker}
+
+"$DOCKER" run -it \
   --name ximager-postgres \
   -e POSTGRES_PASSWORD=ximager \
   -e POSTGRES_USER=ximager \
