@@ -1,6 +1,8 @@
 #!/bin/bash
 
-docker run -it \
+DOCKER=${DOCKER:-docker}
+
+"$DOCKER" run -it \
   --name ximager-mysql \
   -e MYSQL_ROOT_PASSWORD=ximager \
   -e MYSQL_DATABASE=ximager \

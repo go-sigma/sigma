@@ -28,6 +28,15 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+      postgresql:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: ximager
+          POSTGRES_USER: ximager
+          POSTGRES_DB: ximager
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -70,6 +79,16 @@ jobs:
         go: ["1.19"]
         node: ["18"]
     services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ximager
+          MYSQL_DATABASE: ximager
+          MYSQL_USER: ximager
+          MYSQL_PASSWORD: ximager
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgresql:
         image: postgres:15-alpine
         env:
@@ -131,6 +150,15 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+      postgresql:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: ximager
+          POSTGRES_USER: ximager
+          POSTGRES_DB: ximager
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
