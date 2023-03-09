@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/dal/models"
 )
 
 const (
@@ -49,7 +50,7 @@ func (j JWTClaims) Valid() error {
 // TokenService is the interface for token service.
 type TokenService interface {
 	// New creates a new token.
-	New(username string) (string, error)
+	New(user *models.User, expire time.Duration) (string, error)
 	// Validate validates the token.
 	Validate(ctx context.Context, token string) (string, string, error)
 	// Revoke revokes the token.
@@ -59,7 +60,6 @@ type TokenService interface {
 type tokenService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
-	ttl        time.Duration
 	redisCli   redis.UniversalClient
 }
 
@@ -90,22 +90,22 @@ func NewTokenService(privateKeyString, publicKeyString string) (TokenService, er
 		privateKey: privateKey,
 		publicKey:  publicKey,
 		redisCli:   redisCli,
-		ttl:        viper.GetDuration("admin.jwt.expire"),
 	}, nil
 }
 
 // New creates a new token.
-func (s *tokenService) New(username string) (string, error) {
+func (s *tokenService) New(user *models.User, expire time.Duration) (string, error) {
 	now := time.Now()
 	claims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   user.Role,
 			Issuer:    consts.AppName,
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.ttl)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(expire)),
 			NotBefore: jwt.NewNumericDate(now),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        uuid.New().String(),
 		},
-		Username: username,
+		Username: user.Username,
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS512, claims).SignedString(s.privateKey)
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, stri
 
 // Revoke revokes the token.
 func (s *tokenService) Revoke(ctx context.Context, id string) error {
-	_, err := s.redisCli.Set(ctx, fmt.Sprintf(expireKey, id), expireVal, viper.GetDuration("admin.jwt.expire")).Result()
+	_, err := s.redisCli.Set(ctx, fmt.Sprintf(expireKey, id), expireVal, viper.GetDuration("auth.jwt.refreshTtl")).Result()
 	if err != nil {
 		return err
 	}

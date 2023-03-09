@@ -88,3 +88,31 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES blobs (`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `username` varchar(64) NOT NULL UNIQUE,
+  `password` varchar(256) NOT NULL,
+  `email` varchar(256) NOT NULL UNIQUE,
+  `role` varchar(256) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`),
+  CONSTRAINT `users_unique_with_email` UNIQUE (`email`, `deleted_at`)
+);
+
+INSERT INTO `users` (`username`, `password`, `email`, `role`, `created_at`, `updated_at`)
+  VALUES ('ximager', ' $argon2id$v=19$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w', 'i@tosone.cn', 'root', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
+
+INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
+  VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'root', '*', '*');
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'admin', '*', '*');
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'anonymous', 'blob', 'pull');
+

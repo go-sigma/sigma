@@ -13,3 +13,34 @@
 // limitations under the License.
 
 package user
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
+
+	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/utils/token"
+	"github.com/ximager/ximager/pkg/xerrors"
+)
+
+// Logout handles the logout request
+func (h *handlers) Logout(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))
+	if err != nil {
+		log.Error().Err(err).Msg("Create token service failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
+	user := c.Get("user").(*models.User)
+	log.Info().Interface("user", user).Msg("User logout")
+
+	err = tokenService.Revoke(ctx, "admin")
+	if err != nil {
+		log.Error().Err(err).Msg("Revoke token failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+	return nil
+}

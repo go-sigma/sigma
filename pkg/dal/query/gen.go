@@ -23,6 +23,7 @@ var (
 	Namespace  *namespace
 	Repository *repository
 	Tag        *tag
+	User       *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -33,6 +34,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
 	Tag = &Q.Tag
+	User = &Q.User
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -44,6 +46,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Namespace:  newNamespace(db, opts...),
 		Repository: newRepository(db, opts...),
 		Tag:        newTag(db, opts...),
+		User:       newUser(db, opts...),
 	}
 }
 
@@ -56,6 +59,7 @@ type Query struct {
 	Namespace  namespace
 	Repository repository
 	Tag        tag
+	User       user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -69,6 +73,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Namespace:  q.Namespace.clone(db),
 		Repository: q.Repository.clone(db),
 		Tag:        q.Tag.clone(db),
+		User:       q.User.clone(db),
 	}
 }
 
@@ -89,6 +94,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Namespace:  q.Namespace.replaceDB(db),
 		Repository: q.Repository.replaceDB(db),
 		Tag:        q.Tag.replaceDB(db),
+		User:       q.User.replaceDB(db),
 	}
 }
 
@@ -99,6 +105,7 @@ type queryCtx struct {
 	Namespace  *namespaceDo
 	Repository *repositoryDo
 	Tag        *tagDo
+	User       *userDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -109,6 +116,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Namespace:  q.Namespace.WithContext(ctx),
 		Repository: q.Repository.WithContext(ctx),
 		Tag:        q.Tag.WithContext(ctx),
+		User:       q.User.WithContext(ctx),
 	}
 }
 

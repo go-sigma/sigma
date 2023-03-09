@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package configs
 
 import (
 	"time"
@@ -20,8 +20,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Initialize inject the default values for the consts
-func Initialize() {
+func defaultSettings() {
 	viper.SetDefault("auth.jwt.type", "RS256")            // the jwt token type
 	viper.SetDefault("auth.jwt.ttl", time.Hour)           // the jwt token ttl
 	viper.SetDefault("auth.jwt.refreshTtl", time.Hour*24) // the refresh token ttl

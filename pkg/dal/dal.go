@@ -63,21 +63,31 @@ func connectMysql() error {
 	port := viper.GetString("database.mysql.port")
 	user := viper.GetString("database.mysql.user")
 	password := viper.GetString("database.mysql.password")
-	dbname := viper.GetString("database.mysql.database")
+	dbname := viper.GetString("database.mysql.dbname")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname)
 	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
-
-	err := migrateMysql(dsn)
-	if err != nil {
-		return err
-	}
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 	DB = db
+
+	err = setAuthModel(db)
+	if err != nil {
+		return err
+	}
+
+	err = migrateMysql(dsn)
+	if err != nil {
+		return err
+	}
+
+	err = AuthEnforcer.LoadPolicy()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -88,19 +98,30 @@ func connectPostgres() error {
 	user := viper.GetString("database.postgres.user")
 	password := viper.GetString("database.postgres.password")
 	dbname := viper.GetString("database.postgres.dbname")
+	sslmode := viper.GetString("database.postgres.sslmode")
 
-	migrateDsn := fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
-	err := migratePostgres(migrateDsn)
-	if err != nil {
-		return err
-	}
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", host, port, user, dbname, password)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 	DB = db
+
+	err = setAuthModel(db)
+	if err != nil {
+		return err
+	}
+
+	migrateDsn := fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
+	err = migratePostgres(migrateDsn)
+	if err != nil {
+		return err
+	}
+
+	err = AuthEnforcer.LoadPolicy()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -114,7 +135,17 @@ func connectSqlite() error {
 	}
 	DB = db
 
+	err = setAuthModel(db)
+	if err != nil {
+		return err
+	}
+
 	err = migrateSqlite(dbname)
+	if err != nil {
+		return err
+	}
+
+	err = AuthEnforcer.LoadPolicy()
 	if err != nil {
 		return err
 	}

@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configs
+package types
 
-type checker func() error
+// PostUserLoginRequest ...
+type PostUserLoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
-var checkers []checker
+// PostUserLoginResponse ...
+type PostUserLoginResponse struct {
+	RefreshToken string `json:"refresh_token"`
+	Token        string `json:"token"`
+}
 
-// Initialize initializes the configs.
-func Initialize() error {
-	for _, checker := range checkers {
-		err := checker()
-		if err != nil {
-			return err
-		}
-	}
-
-	defaultSettings()
-
-	return nil
+// PostUserTokenRequest ...
+type PostUserTokenResponse struct {
+	Token     string `json:"token"`
+	ExpiresIn int    `json:"expires_in"`
+	IssuedAt  string `json:"issued_at"`
 }

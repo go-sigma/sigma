@@ -35,4 +35,25 @@ const (
 	BlobUploads = "blob_uploads"
 	// DefaultTimePattern time pattern
 	DefaultTimePattern = "2006-01-02 15:04:05"
+	// ContextJti represents jti in context
+	ContextJti = "jti"
+	// ContextUser represents user in context
+	ContextUser = "user"
+)
+
+const (
+	// AuthModel represents the auth model
+	AuthModel = `
+	[request_definition]
+	r = sub, obj, act
+
+	[policy_definition]
+	p = sub, obj, act
+
+	[policy_effect]
+	e = some(where (p.eft == allow))
+
+	[matchers]
+	m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
+	`
 )

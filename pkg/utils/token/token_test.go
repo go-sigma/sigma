@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/utils"
 )
 
@@ -38,13 +39,13 @@ func TestNew(t *testing.T) {
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	viper.SetDefault("admin.jwt.expire", time.Second)
+	viper.SetDefault("auth.jwt.expire", time.Second)
 
 	tokenService, err := NewTokenService(privateKeyString, publicKeyString)
 	assert.NoError(t, err)
 	assert.NotNil(t, tokenService)
 
-	token, err := tokenService.New("test")
+	token, err := tokenService.New(&models.User{Username: "test", Role: "root"}, time.Second*30)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 

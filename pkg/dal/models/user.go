@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configs
+package models
 
-type checker func() error
+import (
+	"time"
 
-var checkers []checker
+	"gorm.io/plugin/soft_delete"
+)
 
-// Initialize initializes the configs.
-func Initialize() error {
-	for _, checker := range checkers {
-		err := checker()
-		if err != nil {
-			return err
-		}
-	}
+// User is the model for the user table.
+type User struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint64                `gorm:"primaryKey"`
 
-	defaultSettings()
-
-	return nil
+	Username string `gorm:"uniqueIndex;not null"`
+	Password string `gorm:"not null"`
+	Email    string `gorm:"uniqueIndex;not null"`
+	Role     string `gorm:"not null"`
 }

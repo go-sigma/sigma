@@ -12,3 +12,5 @@ DROP TABLE IF EXISTS `blob_uploads`;
 
 DROP TABLE IF EXISTS `artifact_blobs`;
 
+DROP TABLE IF EXISTS `users`;
+
