@@ -24,6 +24,8 @@ type Handlers interface {
 	Logout(c echo.Context) error
 	// Token handles the token request
 	Token(c echo.Context) error
+	// Signup handles the signup request
+	Signup(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}

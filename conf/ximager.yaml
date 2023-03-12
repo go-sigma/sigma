@@ -1,5 +1,5 @@
 log:
-  level: 1
+  level: 0
 database:
   # The database type to use. Supported types are: sqlite, mysql, postgresql
   type: mysql

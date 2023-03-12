@@ -31,12 +31,12 @@ definitions:
     type: object
 info:
   contact:
-    email: i@tosone.cn
+    email: ximager@tosone.cn
     name: tosone
     url: https://github.com/tosone
   license:
-    name: MIT
-    url: https://opensource.org/license/mit/
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
   title: XImager API
   version: "1.0"
 paths:

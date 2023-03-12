@@ -4,8 +4,8 @@ DOCKER=${DOCKER:-docker}
 
 "$DOCKER" run -p 9000:9000 -p 9001:9001 \
   --name ximager-minio \
-  -e MINIO_ACCESS_KEY=ximager \
-  -e MINIO_SECRET_KEY=ximager-ximager \
+  -e MINIO_ROOT_USER=ximager \
+  -e MINIO_ROOT_PASSWORD=ximager-ximager \
   -e MINIO_REGION_NAME=cn-north-1 \
   --rm -d \
   --entrypoint "" \

@@ -5,11 +5,11 @@
         "contact": {
             "name": "tosone",
             "url": "https://github.com/tosone",
-            "email": "i@tosone.cn"
+            "email": "ximager@tosone.cn"
         },
         "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/license/mit/"
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0"
         },
         "version": "1.0"
     },

@@ -25,6 +25,8 @@ import (
 type UserService interface {
 	// GetByUsername gets the user with the specified user name.
 	GetByUsername(ctx context.Context, username string) (*models.User, error)
+	// Create creates a new user.
+	Create(ctx context.Context, user *models.User) error
 }
 
 type userService struct {
@@ -45,4 +47,9 @@ func NewUserService(txs ...*query.Query) UserService {
 // GetByUsername gets the user with the specified user name.
 func (s *userService) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	return s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Eq(username)).First()
+}
+
+// Create creates a new user.
+func (s *userService) Create(ctx context.Context, user *models.User) error {
+	return s.tx.User.WithContext(ctx).Create(user)
 }

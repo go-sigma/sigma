@@ -32,3 +32,16 @@ type PostUserTokenResponse struct {
 	ExpiresIn int    `json:"expires_in"`
 	IssuedAt  string `json:"issued_at"`
 }
+
+// PostUserSignupRequest ...
+type PostUserSignupRequest struct {
+	Username string `json:"username" validate:"required,alpha,min=2,max=20"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+}
+
+// PostUserSignupResponse ...
+type PostUserSignupResponse struct {
+	RefreshToken string `json:"refresh_token"`
+	Token        string `json:"token"`
+}

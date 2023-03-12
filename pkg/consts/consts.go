@@ -14,6 +14,10 @@
 
 package consts
 
+import (
+	pwdvalidate "github.com/wagslane/go-password-validator"
+)
+
 const (
 	// AppName represents the app name
 	AppName = "XImager"
@@ -56,4 +60,9 @@ const (
 	[matchers]
 	m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
 	`
+)
+
+var (
+	// PwdStrength represents the password strength
+	PwdStrength = pwdvalidate.GetEntropy("1923432198Aa@")
 )
