@@ -1,5 +1,7 @@
 # ximager
 
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ximager/ximager/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/ximager/ximager?style=for-the-badge)
+
 Yet another harbor OCI artifact manager. Harbor is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager and well tested. And it never depends on [distribution](https://github.com/distribution/distribution) like harbor.
 
 ## Architecture
