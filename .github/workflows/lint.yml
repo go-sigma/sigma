@@ -41,7 +41,7 @@ jobs:
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          args: --deadline=10m
+          args: --deadline=10m --verbose
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:

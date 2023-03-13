@@ -12,18 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
+package models
 
-import "github.com/golang-jwt/jwt/v4"
+import (
+	"time"
 
-// JWTClaims is the claims for the JWT token
-type JWTClaims struct {
-	jwt.RegisteredClaims
+	"gorm.io/plugin/soft_delete"
+)
 
-	Username string `json:"username"`
-}
+// User is the model for the user table.
+type User struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint64                `gorm:"primaryKey"`
 
-// Valid validates the claims
-func (j JWTClaims) Valid() error {
-	return nil
+	Username string `gorm:"uniqueIndex;not null"`
+	Password string `gorm:"not null"`
+	Email    string `gorm:"uniqueIndex;not null"`
+	Role     string `gorm:"not null"`
 }

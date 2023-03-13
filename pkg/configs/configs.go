@@ -26,5 +26,8 @@ func Initialize() error {
 			return err
 		}
 	}
+
+	defaultSettings()
+
 	return nil
 }

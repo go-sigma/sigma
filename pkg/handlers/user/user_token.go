@@ -16,6 +16,7 @@ package user
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -28,34 +29,33 @@ import (
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// Login handles the login request
-func (h *handlers) Login(c echo.Context) error {
+// Token generate token for docker client
+func (h *handlers) Token(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req types.PostUserLoginRequest
-	err := c.Bind(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	username, pwd, ok := c.Request().BasicAuth()
+	if !ok {
+		log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
 	}
 
 	userService := dao.NewUserService()
-	user, err := userService.GetByUsername(ctx, req.Username)
+	user, err := userService.GetByUsername(ctx, username)
 	if err != nil {
 		log.Error().Err(err).Msg("Get user by username failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
 	}
 
 	passwordService := password.New()
-	verify, err := passwordService.Verify(req.Password, user.Password)
+	verify, err := passwordService.Verify(pwd, user.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
 	}
 
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")
+		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
 	}
 
 	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))
@@ -64,20 +64,15 @@ func (h *handlers) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	refreshToken, err := tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
-	if err != nil {
-		log.Error().Err(err).Msg("Create refresh token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	token, err := tokenService.New(user, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, types.PostUserLoginResponse{
-		RefreshToken: refreshToken,
-		Token:        token,
+	return c.JSON(http.StatusOK, types.PostUserTokenResponse{
+		Token:     token,
+		ExpiresIn: int(viper.GetDuration("auth.jwt.ttl").Seconds()),
+		IssuedAt:  time.Now().Format(time.RFC3339),
 	})
 }

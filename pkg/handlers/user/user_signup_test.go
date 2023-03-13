@@ -1,31 +1,20 @@
-// Copyright 2023 XImager
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package token
+package user
 
 import (
-	"context"
+	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/validators"
 )
 
 const (
@@ -33,31 +22,44 @@ const (
 	publicKeyString  = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDdm5sMnlNYUZkdDUyRThYSDdrRXZFSG5wbQp6WlZsUFM5YWtlMnlOZCs2bXdVcGVpVDl1alZGcE5idkZBZ2tNNk1Hd3ZZeTdYZFdRcDUwWjl1VUtHdVJSRGUrCnhBdC9uSU5tVkJxUnBTdWdjOE85V0w3NFNveFJXSUoxVXFidzZ2L2hVNytXUjBZTkVNbm1ZaHcyQzV2T0N3N1IKUitCckRPaHloS24rMncxZENRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo="
 )
 
-func TestNew(t *testing.T) {
+func TestSignup(t *testing.T) {
 	utils.SetLevel(0)
+	e := echo.New()
+	validators.Initialize(e)
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	viper.SetDefault("auth.jwt.publicKey", publicKeyString)
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	viper.SetDefault("auth.jwt.expire", time.Second)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123498712311Aa!","email":"test@xx.com"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	tokenService, err := NewTokenService(privateKeyString, publicKeyString)
-	assert.NoError(t, err)
-	assert.NotNil(t, tokenService)
-
-	token, err := tokenService.New(&models.User{Username: "test", Role: "root"}, time.Second*30)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-
-	id, username, err := tokenService.Validate(context.Background(), token)
-	assert.NoError(t, err)
-	assert.Equal(t, "test", username)
-	_, err = uuid.Parse(id)
+	userHandler := New()
+	err = userHandler.Signup(c)
 	assert.NoError(t, err)
 
-	err = tokenService.Revoke(context.Background(), id)
-	assert.NoError(t, err)
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123Aa!","email":"test@xx.com"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
 
-	_, _, err = tokenService.Validate(context.Background(), token)
-	assert.Error(t, err)
+	err = userHandler.Signup(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 }
