@@ -29,13 +29,13 @@ import (
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// AuthConfig is the configuration for the Auth middleware.
-type AuthConfig struct {
+// AuthDSConfig is the configuration for the Auth middleware.
+type AuthDSConfig struct {
 	Skipper middleware.Skipper
 }
 
-// AuthWithConfig returns a middleware which authenticates requests.
-func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
+// AuthDSWithConfig returns a middleware which authenticates requests.
+func AuthDSWithConfig(config AuthDSConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if config.Skipper != nil && config.Skipper(c) {
@@ -55,6 +55,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			jti, username, err := tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 			if err != nil {
 				log.Error().Err(err).Msg("Validate token failed")
+				c.Response().Header().Set("WWW-Authenticate", "Bearer realm=\"http://10.82.47.25:3000/user/token\"")
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 			}
 

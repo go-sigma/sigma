@@ -34,6 +34,7 @@ func main() {
 		models.Tag{},
 		models.Blob{},
 		models.BlobUpload{},
+		models.User{},
 	)
 
 	g.ApplyInterface(func(models.TagQuerier) {}, models.Tag{})

@@ -55,24 +55,24 @@ func TestDeleteTag(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		namespaceName  = "library"
+		namespaceName  = "test"
 		repositoryName = "busybox"
 	)
 
 	var tagObj *models.Tag
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := dao.NewNamespaceService(tx)
-		namespaceObj, err := namespaceService.Create(ctx, &models.Namespace{ID: 1, Name: namespaceName})
+		namespaceObj, err := namespaceService.Create(ctx, &models.Namespace{Name: namespaceName})
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
 		repositoryService := dao.NewRepositoryService(tx)
-		repositoryObj, err := repositoryService.Create(ctx, &models.Repository{ID: 1, Name: repositoryName, NamespaceID: namespaceObj.ID})
+		repositoryObj, err := repositoryService.Create(ctx, &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID})
 		assert.NoError(t, err)
 		artifactService := dao.NewArtifactService(tx)
-		artifactObj, err := artifactService.Save(ctx, &models.Artifact{ID: 1, RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()})
+		artifactObj, err := artifactService.Save(ctx, &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()})
 		assert.NoError(t, err)
 		tagService := dao.NewTagService(tx)
-		tagObj, err = tagService.Save(ctx, &models.Tag{ID: 1, Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()})
+		tagObj, err = tagService.Save(ctx, &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()})
 		assert.NoError(t, err)
 		return nil
 	})

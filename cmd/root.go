@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -44,6 +43,7 @@ and can be used as a private registry or a public registry.
 XImager is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		utils.SetLevel(viper.GetInt("log.level"))
 		err := configs.Initialize()
 		if err != nil {
 			return err
@@ -54,9 +54,6 @@ which can be deployed on any cloud platform or on-premises.`,
 
 // Execute ...
 func Execute() {
-	rootCmd.PersistentPreRun = func(_ *cobra.Command, _ []string) {
-		utils.SetLevel(viper.GetInt("log.level"))
-	}
 	err := rootCmd.Execute()
 	if err != nil {
 		log.Error().Err(err).Msg("Execute root command with error")
@@ -67,7 +64,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ximager.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -75,20 +72,13 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
-		// Search config in home directory with name ".ximager" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath("/etc/ximager")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".ximager")
+		viper.SetConfigName("ximager.yaml")
 	}
 
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Sprintf("Fatal error config file: %s \n", err))
-	}
+	cobra.CheckErr(viper.ReadInConfig())
 }

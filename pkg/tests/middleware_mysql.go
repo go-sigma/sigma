@@ -41,7 +41,7 @@ func (mysqlFactory) New() CIDatabase {
 }
 
 type mysqlCIDatabase struct {
-	database string
+	dbname string
 }
 
 var _ CIDatabase = &mysqlCIDatabase{}
@@ -52,8 +52,8 @@ func (d *mysqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-	d.database = strings.ReplaceAll(uuid.New().String(), "-", "")
-	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.database))
+	d.dbname = strings.ReplaceAll(uuid.New().String(), "-", "")
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.dbname))
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (d *mysqlCIDatabase) Init() error {
 	viper.SetDefault("database.mysql.port", "3306")
 	viper.SetDefault("database.mysql.user", "root")
 	viper.SetDefault("database.mysql.password", "ximager")
-	viper.SetDefault("database.mysql.database", d.database)
+	viper.SetDefault("database.mysql.dbname", d.dbname)
 
 	err = dal.Initialize()
 	if err != nil {
@@ -82,7 +82,7 @@ func (d *mysqlCIDatabase) DeInit() error {
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", d.database))
+	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", d.dbname))
 	if err != nil {
 		return err
 	}

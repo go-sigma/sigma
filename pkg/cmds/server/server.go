@@ -37,7 +37,7 @@ func Serve() error {
 		go func(addr string) {
 			log.Info().Str("addr", addr).Msg("Debug server listening")
 			server := &http.Server{
-				Addr:              ":1234",
+				Addr:              addr,
 				ReadHeaderTimeout: 3 * time.Second,
 			}
 			err := server.ListenAndServe()

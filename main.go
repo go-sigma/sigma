@@ -21,10 +21,10 @@ import "github.com/ximager/ximager/cmd"
 
 // @contact.name tosone
 // @contact.url https://github.com/tosone
-// @contact.email i@tosone.cn
+// @contact.email ximager@tosone.cn
 
-// @license.name MIT
-// @license.url https://opensource.org/license/mit/
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0
 
 // @BasePath /
 
