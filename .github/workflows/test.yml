@@ -43,6 +43,12 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Try the cluster
+        run: |
+          kubectl get nodes
+          kubectl get pods -A
       - name: Setup golang
         uses: actions/setup-go@v3
         with:
@@ -104,6 +110,12 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Try the cluster
+        run: |
+          kubectl get nodes
+          kubectl get pods -A
       - name: Setup golang
         uses: actions/setup-go@v3
         with:
@@ -165,6 +177,12 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Try the cluster
+        run: |
+          kubectl get nodes
+          kubectl get pods -A
       - name: Setup golang
         uses: actions/setup-go@v3
         with:

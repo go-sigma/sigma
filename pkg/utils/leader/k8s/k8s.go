@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package leader
+package k8s
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
@@ -47,16 +48,18 @@ type k8sLeaderElector struct {
 }
 
 // New ...
-func (f factory) New(ctx context.Context, opts leader.Options) (leader.LeaderElector, error) {
-	podName := os.Getenv("POD_NAME")
+func (f factory) New(ctx context.Context, opts leader.Options, kubeconfigStrs ...string) (leader.LeaderElector, error) {
 	podNamespace := os.Getenv("POD_NAMESPACE")
+	if podNamespace == "" {
+		podNamespace = "default"
+	}
 
-	kubeconfig, err := rest.InClusterConfig()
+	kubeconfig, err := getKubeconfig(kubeconfigStrs...)
 	if err != nil {
 		return nil, fmt.Errorf("fail to get kubeconfig: %w", err)
 	}
 
-	rcl, err := resourcelock.NewFromKubeconfig(resourcelock.LeasesResourceLock, podNamespace, opts.Name, resourcelock.ResourceLockConfig{Identity: podName}, kubeconfig, opts.RenewDeadline)
+	rcl, err := resourcelock.NewFromKubeconfig(resourcelock.LeasesResourceLock, podNamespace, opts.Name, resourcelock.ResourceLockConfig{Identity: opts.Name}, kubeconfig, opts.RenewDeadline)
 	if err != nil {
 		return nil, fmt.Errorf("fail to create resource lock: %w", err)
 	}
@@ -72,7 +75,7 @@ func (f factory) New(ctx context.Context, opts leader.Options) (leader.LeaderEle
 				log.Info().Msg("no longer the leader, staying inactive")
 			},
 			OnNewLeader: func(current_id string) {
-				if current_id == podName {
+				if current_id == opts.Name {
 					log.Info().Msg("still the leader")
 					return
 				}
@@ -96,4 +99,15 @@ func (l k8sLeaderElector) IsLeader() bool {
 		return false
 	}
 	return l.leader.IsLeader()
+}
+
+func getKubeconfig(kubeconfigStrs ...string) (*rest.Config, error) {
+	kubeconfigStr := ""
+	if len(kubeconfigStrs) > 0 {
+		kubeconfigStr = kubeconfigStrs[0]
+	}
+	if kubeconfigStr == "" {
+		return rest.InClusterConfig()
+	}
+	return clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfigStr))
 }
