@@ -17,9 +17,8 @@ package tests
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
+	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/dal"
@@ -52,7 +51,8 @@ func (d *mysqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-	d.dbname = strings.ReplaceAll(uuid.New().String(), "-", "")
+
+	d.dbname = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.dbname))
 	if err != nil {
 		return err
