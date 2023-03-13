@@ -135,7 +135,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, stri
 		return "", "", fmt.Errorf("invalid token")
 	}
 
-	val, err := s.redisCli.Get(context.Background(), fmt.Sprintf(expireKey, id)).Result()
+	val, err := s.redisCli.Get(ctx, fmt.Sprintf(expireKey, id)).Result()
 	if err != nil && err != redis.Nil {
 		return "", "", err
 	}
