@@ -36,7 +36,7 @@ type LeaderElector interface {
 
 // Factory is the interface for the storage driver factory
 type Factory interface {
-	New(ctx context.Context, opts Options) (LeaderElector, error)
+	New(ctx context.Context, opts Options, kubeconfigStrs ...string) (LeaderElector, error)
 }
 
 var leaderFactories = make(map[string]Factory)

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/google/uuid"
+	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/dal"
@@ -47,7 +47,7 @@ var _ CIDatabase = &sqlite3CIDatabase{}
 
 // Init sets the default values for the database configuration in ci tests
 func (d *sqlite3CIDatabase) Init() error {
-	d.path = fmt.Sprintf("%s.db", uuid.New().String())
+	d.path = fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
 	viper.SetDefault("database.type", "sqlite")
 	viper.SetDefault("database.sqlite.path", d.path)
 	err := dal.Initialize()

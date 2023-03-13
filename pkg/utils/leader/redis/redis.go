@@ -52,7 +52,7 @@ type redisLeaderElector struct {
 }
 
 // New ...
-func (f factory) New(ctx context.Context, opts leader.Options) (leader.LeaderElector, error) {
+func (f factory) New(ctx context.Context, opts leader.Options, _ ...string) (leader.LeaderElector, error) {
 	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
 	if err != nil {
 		return nil, fmt.Errorf("redis.ParseURL error: %v", err)

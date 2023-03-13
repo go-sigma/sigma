@@ -17,10 +17,9 @@ package tests
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
+	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
@@ -55,7 +54,7 @@ func (d *postgresqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-	d.dbname = strings.ReplaceAll(uuid.New().String(), "-", "")
+	d.dbname = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
 
 	fmt.Println("CREATE DATABASE", d.dbname)
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.dbname))
