@@ -29,7 +29,8 @@ import (
 
 const (
 	// name is the name of the filesystem storage driver
-	name = "filesystem"
+	name   = "filesystem"
+	tmpDir = "tmp"
 )
 
 // fs is the filesystem storage driver
@@ -85,10 +86,9 @@ func (f *fs) Reader(ctx context.Context, path string, offset int64) (io.ReadClos
 
 // CreateUploadID creates a new multipart upload and returns an
 // opaque upload ID.
-func (f *fs) CreateUploadID(ctx context.Context, rPath string) (string, error) {
-	rPath = f.sanitizePath(rPath)
+func (f *fs) CreateUploadID(ctx context.Context, _ string) (string, error) {
 	uploadID := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz0123456789", 32)
-	err := os.MkdirAll(path.Join(rPath, uploadID), 0755)
+	err := os.MkdirAll(path.Join(tmpDir, uploadID), 0755)
 	if err != nil {
 		return "", err
 	}
@@ -96,10 +96,9 @@ func (f *fs) CreateUploadID(ctx context.Context, rPath string) (string, error) {
 }
 
 // WritePart writes a part of a multipart upload.
-func (f *fs) UploadPart(ctx context.Context, rPath, uploadID string, partNumber int64, body io.Reader) (string, error) {
-	rPath = f.sanitizePath(rPath)
+func (f *fs) UploadPart(ctx context.Context, _, uploadID string, partNumber int64, body io.Reader) (string, error) {
 	eTag := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz0123456789", 32)
-	fp, err := os.OpenFile(path.Join(rPath, uploadID, eTag), os.O_CREATE|os.O_WRONLY, 0644)
+	fp, err := os.OpenFile(path.Join(tmpDir, uploadID, eTag), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", err
 	}
@@ -111,15 +110,15 @@ func (f *fs) UploadPart(ctx context.Context, rPath, uploadID string, partNumber 
 }
 
 // CommitUpload commits a multipart upload.
-func (f *fs) CommitUpload(ctx context.Context, rPath string, uploadID string, parts []string) error {
+func (f *fs) CommitUpload(ctx context.Context, rPath, uploadID string, parts []string) error {
 	rPath = f.sanitizePath(rPath)
-	fake := path.Join(rPath + uploadID + "fake")
+	fake := path.Join(rPath + ".fake")
 	fp, err := os.OpenFile(fake, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	for _, part := range parts {
-		partPath := path.Join(rPath, uploadID, part)
+		partPath := path.Join(tmpDir, uploadID, part)
 		partFP, err := os.Open(partPath)
 		if err != nil {
 			fp.Close() // nolint: errcheck
@@ -136,7 +135,7 @@ func (f *fs) CommitUpload(ctx context.Context, rPath string, uploadID string, pa
 	if err != nil {
 		return nil
 	}
-	err = os.RemoveAll(rPath)
+	err = os.RemoveAll(path.Join(tmpDir, uploadID))
 	if err != nil {
 		return nil
 	}
@@ -144,8 +143,8 @@ func (f *fs) CommitUpload(ctx context.Context, rPath string, uploadID string, pa
 }
 
 // AbortUpload aborts a multipart upload.
-func (f *fs) AbortUpload(ctx context.Context, rPath string, uploadID string) error {
-	return os.RemoveAll(path.Join(rPath, uploadID))
+func (f *fs) AbortUpload(ctx context.Context, _ string, uploadID string) error {
+	return os.RemoveAll(f.sanitizePath(path.Join(tmpDir, uploadID)))
 }
 
 // Upload upload a file to the given path.
