@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-import axios from "axios";
 import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
