@@ -21,6 +21,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -33,20 +34,6 @@ import (
 
 // Serve starts the server
 func Serve() error {
-	debugAddr := viper.GetString("http.debug.addr")
-	if debugAddr != "" {
-		go func(addr string) {
-			log.Info().Str("addr", addr).Msg("Debug server listening")
-			server := &http.Server{
-				Addr:              addr,
-				ReadHeaderTimeout: 3 * time.Second,
-			}
-			err := server.ListenAndServe()
-			if err != nil {
-				log.Fatal().Err(err).Msg("Listening on debug interface failed")
-			}
-		}(debugAddr)
-	}
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -59,6 +46,10 @@ func Serve() error {
 	e.Use(middleware.CORS())
 	e.Use(middlewares.Healthz())
 
+	if viper.GetInt("log.level") < 1 {
+		pprof.Register(e)
+	}
+
 	err := handlers.Initialize(e)
 	if err != nil {
 		return err
@@ -70,8 +61,8 @@ func Serve() error {
 	}
 
 	go func() {
-		log.Info().Str("addr", viper.GetString("http.addr")).Msg("Server listening")
-		err = e.Start(viper.GetString("http.addr"))
+		log.Info().Str("addr", viper.GetString("http.server")).Msg("Server listening")
+		err = e.Start(viper.GetString("http.server"))
 		if err != http.ErrServerClosed {
 			log.Fatal().Err(err).Msg("Listening on interface failed")
 		}

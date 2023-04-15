@@ -30,7 +30,7 @@ import (
 func TestNew(t *testing.T) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	logger.SetLevel(0)
+	logger.SetLevel("debug")
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
@@ -52,7 +52,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestLeaderChange(t *testing.T) {
-	logger.SetLevel(0)
+	logger.SetLevel("debug")
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
