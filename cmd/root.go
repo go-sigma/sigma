@@ -23,8 +23,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/configs"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/logger"
 
+	_ "github.com/ximager/ximager/pkg/daemon/sbom"
+	_ "github.com/ximager/ximager/pkg/daemon/scan"
 	_ "github.com/ximager/ximager/pkg/storage/filesystem"
 	_ "github.com/ximager/ximager/pkg/storage/s3"
 	_ "github.com/ximager/ximager/pkg/utils/leader/k8s"
@@ -43,7 +45,7 @@ and can be used as a private registry or a public registry.
 XImager is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		utils.SetLevel(viper.GetInt("log.level"))
+		logger.SetLevel(viper.GetInt("log.level"))
 		err := configs.Initialize()
 		if err != nil {
 			return err

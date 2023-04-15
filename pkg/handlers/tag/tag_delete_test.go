@@ -30,13 +30,13 @@ import (
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
-	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
 func TestDeleteTag(t *testing.T) {
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 	e := echo.New()
 	validators.Initialize(e)
 	err := tests.Initialize()
