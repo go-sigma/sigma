@@ -8,7 +8,6 @@ Yet another harbor OCI artifact manager. Harbor is a great product, but it's not
 
 https://user-images.githubusercontent.com/5346506/229798487-798225b1-e2bf-40a2-b5ab-588003c02f7b.mp4
 
-
 ## Architecture
 
 Wait for me to complete draw the architecture.

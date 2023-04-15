@@ -65,7 +65,9 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			authorization := req.Header.Get("Authorization")
 
 			var username, jti string
-			if strings.HasPrefix(authorization, "Basic") {
+
+			switch {
+			case strings.HasPrefix(authorization, "Basic"):
 				var pwd string
 				var ok bool
 				username, pwd, ok = c.Request().BasicAuth()
@@ -78,7 +80,11 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				user, err := userService.GetByUsername(ctx, username)
 				if err != nil {
 					log.Error().Err(err).Msg("Get user by username failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
 
 				passwordService := password.New()
@@ -90,10 +96,14 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 
 				if !verify {
 					log.Error().Err(err).Msg("Verify password failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 				}
 				jti = uuid.New().String()
-			} else if strings.HasPrefix(authorization, "Bearer") {
+			case strings.HasPrefix(authorization, "Bearer"):
 				jti, username, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 				if err != nil {
 					log.Error().Err(err).Msg("Validate token failed")
@@ -103,6 +113,12 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					}
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
+			default:
+				c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+				if config.DS {
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+				}
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 			}
 
 			userService := dao.NewUserService()

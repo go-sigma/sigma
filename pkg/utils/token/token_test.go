@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/logger"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 )
 
 func TestNew(t *testing.T) {
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis:////"+miniRedis.Addr())

@@ -23,14 +23,14 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/utils/leader"
 )
 
 func TestNew(t *testing.T) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
@@ -52,7 +52,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestLeaderChange(t *testing.T) {
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
