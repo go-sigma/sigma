@@ -54,7 +54,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
 	counterReader := counter.NewCounter(c.Request().Body)

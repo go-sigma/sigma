@@ -37,7 +37,9 @@ storage:
     bucket: ximager
     forcePathStyle: true
 auth:
-  server: ""
+  token:
+    realm: ""
+    service: ""
   jwt:
     ttl: 1h
     refreshTtl: 24h

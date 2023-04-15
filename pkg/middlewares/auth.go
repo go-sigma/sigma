@@ -15,8 +15,10 @@
 package middlewares
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -25,13 +27,17 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/utils/password"
 	"github.com/ximager/ximager/pkg/utils/token"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // AuthConfig is the configuration for the Auth middleware.
 type AuthConfig struct {
+	// Skipper defines a function to skip middleware.
 	Skipper middleware.Skipper
+	// DS is distribution service or not.
+	DS bool
 }
 
 // AuthWithConfig returns a middleware which authenticates requests.
@@ -43,19 +49,60 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))
+			privateKey := viper.GetString("auth.jwt.privateKey")
+			publicKey := viper.GetString("auth.jwt.publicKey")
+			tokenService, err := token.NewTokenService(privateKey, publicKey)
 			if err != nil {
 				log.Error().Err(err).Msg("Create token service failed")
+				if config.DS {
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 			}
 
-			ctx := c.Request().Context()
-			authorization := c.Request().Header.Get("Authorization")
+			req := c.Request()
+			ctx := req.Context()
+			authorization := req.Header.Get("Authorization")
 
-			jti, username, err := tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
-			if err != nil {
-				log.Error().Err(err).Msg("Validate token failed")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+			var username, jti string
+			if strings.HasPrefix(authorization, "Basic") {
+				var pwd string
+				var ok bool
+				username, pwd, ok = c.Request().BasicAuth()
+				if !ok {
+					log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+				}
+
+				userService := dao.NewUserService()
+				user, err := userService.GetByUsername(ctx, username)
+				if err != nil {
+					log.Error().Err(err).Msg("Get user by username failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+				}
+
+				passwordService := password.New()
+				verify, err := passwordService.Verify(pwd, user.Password)
+				if err != nil {
+					log.Error().Err(err).Msg("Verify password failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+				}
+
+				if !verify {
+					log.Error().Err(err).Msg("Verify password failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+				}
+				jti = uuid.New().String()
+			} else if strings.HasPrefix(authorization, "Bearer") {
+				jti, username, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
+				if err != nil {
+					log.Error().Err(err).Msg("Validate token failed")
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+				}
 			}
 
 			userService := dao.NewUserService()
@@ -63,9 +110,15 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			if err != nil {
 				if err == gorm.ErrRecordNotFound {
 					log.Error().Err(err).Msg("User not found")
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					}
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
 				log.Error().Err(err).Msg("Get user failed")
+				if config.DS {
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 			}
 
@@ -75,4 +128,18 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func genWwwAuthenticate(host, schema string) string {
+	realm := fmt.Sprintf("%s://%s/user/token", schema, host)
+	rRealm := viper.GetString("auth.token.realm")
+	if rRealm != "" {
+		realm = rRealm
+	}
+	service := consts.AppName
+	rService := viper.GetString("auth.token.service")
+	if rService != "" {
+		service = rService
+	}
+	return fmt.Sprintf("Bearer realm=\"%s\",service=\"%s\"", realm, service)
 }
