@@ -24,14 +24,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/util/homedir"
 
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/utils/leader"
 )
 
 func TestNew(t *testing.T) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 
 	kubeconfigBytes, err := os.ReadFile(filepath.Join(homedir.HomeDir(), ".kube", "config"))
 	assert.NoError(t, err)
@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestLeaderChange(t *testing.T) {
-	utils.SetLevel(0)
+	logger.SetLevel(0)
 
 	kubeconfigBytes, err := os.ReadFile(filepath.Join(homedir.HomeDir(), ".kube", "config"))
 	assert.NoError(t, err)

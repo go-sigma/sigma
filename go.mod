@@ -12,6 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
+	github.com/hibiken/asynq v0.24.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
@@ -36,6 +37,11 @@ require (
 	gorm.io/plugin/dbresolver v1.4.1
 	gorm.io/plugin/soft_delete v1.2.1
 	k8s.io/client-go v0.27.0
+)
+
+require (
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 )
 
 require (

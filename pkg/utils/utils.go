@@ -17,13 +17,9 @@ package utils
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 
 	"github.com/opencontainers/go-digest"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // GetContentLength returns the content length of the request.
@@ -46,25 +42,4 @@ func GetContentLength(req *http.Request) (uint64, error) {
 func GenPathByDigest(digest digest.Digest) string {
 	hex := digest.Hex()
 	return fmt.Sprintf("%s/%s/%s/%s", digest.Algorithm(), hex[0:2], hex[2:4], hex[4:])
-}
-
-// SetLevel sets the log level
-func SetLevel(level int) {
-	if level < int(zerolog.TraceLevel) || level > int(zerolog.FatalLevel) {
-		level = int(zerolog.InfoLevel)
-	}
-
-	var timeFormat = "2006-01-02 15:04:05" // change it to 'time.DataTime' om go 1.20
-	zerolog.SetGlobalLevel(zerolog.Level(level))
-	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: timeFormat, FormatCaller: func(i interface{}) string {
-		var c string
-		if cc, ok := i.(string); ok {
-			c = cc
-		}
-		if len(c) > 0 && strings.Contains(c, "/") {
-			lastIndex := strings.LastIndex(c, "/")
-			c = c[lastIndex+1:]
-		}
-		return c
-	}}).With().Caller().Timestamp().Logger()
 }
