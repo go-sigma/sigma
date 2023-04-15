@@ -34,7 +34,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 	var nStr = c.QueryParam("n")
 	n, err := strconv.Atoi(nStr)
 	if err != nil {
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodePaginationNumberInvalid)
+		return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
 	}
 
 	ctx := c.Request().Context()
@@ -47,7 +47,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 	if last != "" {
 		tagObj, err := repositoryService.GetByName(ctx, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		lastFound = true
 		lastID = tagObj.ID
@@ -60,7 +60,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 		repositories, err = repositoryService.ListByDtPagination(ctx, n, lastID)
 	}
 	if err != nil {
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	var names = make([]string, 0, len(repositories))
 	for _, repository := range repositories {

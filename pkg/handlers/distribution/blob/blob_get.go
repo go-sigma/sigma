@@ -64,7 +64,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 			return c.JSON(http.StatusNotFound, err)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
@@ -72,7 +72,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), 0)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob reader failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
 	return c.Stream(http.StatusOK, blob.ContentType, reader)

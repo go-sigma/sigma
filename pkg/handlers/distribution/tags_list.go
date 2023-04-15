@@ -39,13 +39,13 @@ var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference
 func (h *handlers) ListTags(c echo.Context) error {
 	var uri = c.Request().URL.Path
 	if !listTagsReg.MatchString(uri) {
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeNameInvalid)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)
 	}
 
 	var nStr = c.QueryParam("n")
 	n, err := strconv.Atoi(nStr)
 	if err != nil {
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodePaginationNumberInvalid)
+		return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
 	}
 
 	ctx := c.Request().Context()
@@ -60,7 +60,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 		tagObj, err := tagService.GetByName(ctx, repository, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("get tag by name")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		lastFound = true
 		lastID = tagObj.ID
@@ -73,7 +73,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 		tags, err = tagService.ListByDtPagination(ctx, repository, n, lastID)
 	}
 	if err != nil {
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	var names = make([]string, 0, len(tags))
 	for _, tag := range tags {
