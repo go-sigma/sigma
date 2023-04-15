@@ -152,13 +152,13 @@ func (h *handler) getImageConfig(c echo.Context, dgest digest.Digest, configDesc
 	configReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(configDescriptor.Digest)), 0)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Read config failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	defer configReader.Close() // nolint: errcheck
 	configBytes, err := io.ReadAll(configReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Read config failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
 	switch configDescriptor.MediaType {
@@ -167,7 +167,7 @@ func (h *handler) getImageConfig(c echo.Context, dgest digest.Digest, configDesc
 		err = json.Unmarshal(configBytes, &imageConfig)
 		if err != nil {
 			log.Error().Err(err).Msg("Unmarshal config failed")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		log.Info().Interface("config", imageConfig).Msg("config")
 	case imgspecv1.MediaTypeImageConfig:
@@ -175,11 +175,11 @@ func (h *handler) getImageConfig(c echo.Context, dgest digest.Digest, configDesc
 		err = json.Unmarshal(configBytes, &imageConfig)
 		if err != nil {
 			log.Error().Err(err).Msg("Unmarshal config failed")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 	default:
 		log.Error().Str("mediaType", configDescriptor.MediaType).Msg("Unsupported media type")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnsupported)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnsupported)
 	}
 	log.Info().Interface("config", string(configBytes)).Msg("config")
 
@@ -195,13 +195,13 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 	bodyBytes, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		log.Error().Err(err).Msg("Read body failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	var imageIndex imgspecv1.Index
 	err = json.Unmarshal(bodyBytes, &imageIndex)
 	if err != nil {
 		log.Error().Err(err).Str("body", string(bodyBytes)).Msg("Decode manifest list failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeManifestInvalid)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
 	}
 	var dgests = make([]string, 0, len(imageIndex.Manifests))
 	for _, manifest := range imageIndex.Manifests {
@@ -211,7 +211,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 	artifacts, err := artifactService.GetByDigests(ctx, repository, dgests)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Interface("digests", dgests).Msg("Get artifacts failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	// ensure all of the artifacts exist
 	for _, dgest := range dgests {
@@ -224,7 +224,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		}
 		if !exist {
 			log.Error().Str("digest", dgest).Msg("Artifact not found")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeManifestUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
 	}
 
@@ -238,7 +238,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Msg("Save repository failed")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		// Save the artifact
 		artifactService := dao.NewArtifactService(tx)
@@ -254,7 +254,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Str("digest", dgest.String()).Msg("Save artifact failed")
-			return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 
 		// Save the tag if it is a tag
@@ -270,14 +270,14 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			})
 			if err != nil {
 				log.Error().Err(err).Str("repository", repository).Str("tag", ref).Msg("Save tag failed")
-				return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 			}
 		}
 		return nil
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Save artifact failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	return nil
 }

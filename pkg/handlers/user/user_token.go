@@ -36,26 +36,26 @@ func (h *handlers) Token(c echo.Context) error {
 	username, pwd, ok := c.Request().BasicAuth()
 	if !ok {
 		log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	userService := dao.NewUserService()
 	user, err := userService.GetByUsername(ctx, username)
 	if err != nil {
 		log.Error().Err(err).Msg("Get user by username failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	passwordService := password.New()
 	verify, err := passwordService.Verify(pwd, user.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.GenDsResponseError(c, xerrors.ErrorCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))

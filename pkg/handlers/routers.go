@@ -108,7 +108,7 @@ func Initialize(e *echo.Echo) error {
 	tagGroup.GET("/:id", tagHandler.GetTag)
 	tagGroup.DELETE("/:id", tagHandler.DeleteTag)
 
-	e.Any("/v2/*", distribution.All, middlewares.AuthDSWithConfig(middlewares.AuthDSConfig{}))
+	e.Any("/v2/*", distribution.All, middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
 
 	return nil
 }
