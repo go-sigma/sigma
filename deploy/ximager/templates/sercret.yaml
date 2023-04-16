@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%s-secret" .Chart.Name }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "ximager.labels" . | nindent 4 }}
+data:
+  {{ $privateKey := (genPrivateKey "rsa" | b64enc) }}
+  AUTH_JWT_PRIVATEKEY: {{ .Values.config.auth.jwt.privateKey | default $privateKey | quote }}
+  AUTH_USER_PASSWORD: {{ (trimPrefix "ximager:" (htpasswd "ximager" (.Values.config.auth.user.password | default "ximager")))  | b64enc | quote }}

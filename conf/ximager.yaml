@@ -36,6 +36,9 @@ storage:
     bucket: ximager
     forcePathStyle: true
 auth:
+  user:
+    username: ximager
+    password: ximager
   token:
     realm: ""
     service: ""

@@ -18,19 +18,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestNew(t *testing.T) {
-	var param = Params{}
-	pwd := New(param)
+	pwd := New(20)
 	assert.NotNil(t, pwd)
 }
 
 func TestHash(t *testing.T) {
-	pwdService := New()
+	pwdService := New(bcrypt.DefaultCost)
 	hashedPwd, err := pwdService.Hash("ximager")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashedPwd)
+
+	hashedPwd, err = pwdService.Hash("ximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximager")
+	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
+	assert.Empty(t, hashedPwd)
 }
 
 func TestVerify(t *testing.T) {
@@ -39,32 +43,31 @@ func TestVerify(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashedPwd)
 
-	eq, err := pwdService.Verify("ximager", hashedPwd)
-	assert.NoError(t, err)
+	eq := pwdService.Verify("ximager", hashedPwd)
 	assert.True(t, eq)
 
 	case1 := "$argon2id1$v=19$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w"
-	_, err = pwdService.Verify("ximager", case1)
-	assert.Equal(t, ErrIncompatibleVariant, err)
+	neq := pwdService.Verify("ximager", case1)
+	assert.False(t, neq)
 
-	case2 := "$argon2id$v=18$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w"
-	_, err = pwdService.Verify("ximager", case2)
-	assert.Equal(t, ErrIncompatibleVersion, err)
+	// case2 := "$argon2id$v=18$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w"
+	// _, err = pwdService.Verify("ximager", case2)
+	// assert.Equal(t, ErrIncompatibleVersion, err)
 
-	case3 := "$argo$n2id1$v=19$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w"
-	_, err = pwdService.Verify("ximager", case3)
-	assert.Equal(t, ErrInvalidHash, err)
+	// case3 := "$argo$n2id1$v=19$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w"
+	// _, err = pwdService.Verify("ximager", case3)
+	// assert.Equal(t, ErrInvalidHash, err)
 
-	case4 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSM"
-	eq, err = pwdService.Verify("ximager", case4)
-	assert.NoError(t, err)
-	assert.False(t, eq)
+	// case4 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSM"
+	// eq, err = pwdService.Verify("ximager", case4)
+	// assert.NoError(t, err)
+	// assert.False(t, eq)
 
-	case5 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSwq="
-	_, err = pwdService.Verify("ximager", case5)
-	assert.Error(t, err)
+	// case5 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSwq="
+	// _, err = pwdService.Verify("ximager", case5)
+	// assert.Error(t, err)
 
-	case6 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg+12$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSwq="
-	_, err = pwdService.Verify("ximager", case6)
-	assert.Error(t, err)
+	// case6 := "$argon2id$v=19$m=65536,t=1,p=2$x7fdU5ghyVkaXmCL5Yt9Pg+12$ylFKFx4QnVqUXqQ73gjqBAL424FvjfCClVCBur9/SSwq="
+	// _, err = pwdService.Verify("ximager", case6)
+	// assert.Error(t, err)
 }
