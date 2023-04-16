@@ -64,6 +64,7 @@ endif
 ## Lint:
 lint: lint-go lint-dockerfile lint-yaml ## Run all available linters
 
+.PHONY: lint-dockerfile
 lint-dockerfile: ## Lint your Dockerfile
 # If dockerfile is present we lint it.
 ifeq ($(shell test -e ./Dockerfile && echo -n yes),yes)

@@ -17,11 +17,11 @@ package dal
 import (
 	"fmt"
 
+	"github.com/glebarez/sqlite"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal/query"

@@ -45,7 +45,7 @@ and can be used as a private registry or a public registry.
 XImager is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetLevel(viper.GetInt("log.level"))
+		logger.SetLevel(viper.GetString("log.level"))
 		err := configs.Initialize()
 		if err != nil {
 			return err

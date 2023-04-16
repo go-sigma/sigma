@@ -1,5 +1,5 @@
 log:
-  level: 0
+  level: debug
 database:
   # The database type to use. Supported types are: sqlite, mysql, postgresql
   type: mysql
@@ -21,9 +21,8 @@ database:
 redis:
   url: redis://:ximager@localhost:6379/0
 http:
-  addr: 0.0.0.0:3000
-  debug:
-    addr: 0.0.0.0:3001
+  server: 0.0.0.0:3000
+  worker: 0.0.0.0:3001
 storage:
   rootdirectory: ./storage
   type: s3

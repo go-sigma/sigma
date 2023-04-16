@@ -3,8 +3,8 @@ module github.com/ximager/ximager
 go 1.19
 
 require (
-	github.com/alicebob/miniredis/v2 v2.30.0
-	github.com/aws/aws-sdk-go v1.44.242
+	github.com/alicebob/miniredis/v2 v2.30.1
+	github.com/aws/aws-sdk-go v1.44.244
 	github.com/casbin/gorm-adapter/v3 v3.15.1
 	github.com/distribution/distribution/v3 v3.0.0-20230327091844-0c958010ace2
 	github.com/docker/distribution v2.8.1+incompatible
@@ -14,6 +14,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hibiken/asynq v0.24.0
 	github.com/jackc/pgx/v4 v4.18.1
+	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/moby/moby v23.0.3+incompatible
@@ -31,24 +32,18 @@ require (
 	golang.org/x/crypto v0.8.0
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/driver/postgres v1.5.0
-	gorm.io/driver/sqlite v1.5.0
 	gorm.io/gen v0.3.21
 	gorm.io/gorm v1.25.0
 	gorm.io/plugin/dbresolver v1.4.1
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/client-go v0.27.0
-)
-
-require (
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
+	k8s.io/client-go v0.27.1
 )
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
+	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/casbin/casbin/v2 v2.66.3
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/containerd/containerd v1.7.0 // indirect
@@ -64,7 +59,7 @@ require (
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/glebarez/go-sqlite v1.21.1 // indirect
-	github.com/glebarez/sqlite v1.8.0 // indirect
+	github.com/glebarez/sqlite v1.8.0
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
@@ -72,6 +67,7 @@ require (
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -126,6 +122,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rootless-containers/rootlesskit v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
@@ -137,7 +134,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
-	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 // indirect
+	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
@@ -155,10 +152,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.0 // indirect
+	gorm.io/driver/sqlite v1.5.0 // indirect
 	gorm.io/driver/sqlserver v1.4.3 // indirect
 	gorm.io/hints v1.1.1 // indirect
-	k8s.io/api v0.27.0 // indirect
-	k8s.io/apimachinery v0.27.0 // indirect
+	k8s.io/api v0.27.1 // indirect
+	k8s.io/apimachinery v0.27.1 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c // indirect
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
