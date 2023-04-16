@@ -36,6 +36,29 @@ CREATE TABLE IF NOT EXISTS artifacts (
   CONSTRAINT artifacts_unique_with_repo UNIQUE (repository_id, digest, deleted_at)
 );
 
+CREATE TABLE IF NOT EXISTS artifact_sbom (
+  id bigserial PRIMARY KEY,
+  artifact_id bigserial NOT NULL,
+  raw bytea NOT NULL,
+  created_at timestamp NOT NULL,
+  updated_at timestamp NOT NULL,
+  deleted_at bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (artifact_id) REFERENCES artifacts (id),
+  CONSTRAINT artifact_sbom_unique_with_artifact UNIQUE (artifact_id, deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS artifact_vulnerability (
+  id bigserial PRIMARY KEY,
+  artifact_id bigserial NOT NULL,
+  metadata bytea NOT NULL,
+  raw bytea NOT NULL,
+  created_at timestamp NOT NULL,
+  updated_at timestamp NOT NULL,
+  deleted_at bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (artifact_id) REFERENCES artifacts (id),
+  CONSTRAINT artifact_vulnerability_unique_with_artifact UNIQUE (artifact_id, deleted_at)
+);
+
 CREATE TABLE IF NOT EXISTS tags (
   id bigserial PRIMARY KEY,
   repository_id bigserial NOT NULL,

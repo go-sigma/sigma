@@ -15,12 +15,9 @@
 package sbom
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 
@@ -30,7 +27,9 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/compress"
 )
 
 func init() {
@@ -47,45 +46,38 @@ func runner(ctx context.Context, atask *asynq.Task) error {
 		log.Error().Err(err).Msg("Unmarshal error")
 		return err
 	}
+
+	artifactService := dao.NewArtifactService()
+	artifact, err := artifactService.Get(ctx, task.ArtifactID)
+	if err != nil {
+		log.Error().Err(err).Msg("Get artifact failed")
+		return err
+	}
+	image := fmt.Sprintf("127.0.0.1:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
+
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
-	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, task.Image)
+	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, image)
 	out, err := cmd.Output()
 	log.Info().Str("out", string(out)).Msg("syft output")
 	if err != nil {
 		log.Error().Err(err).Msg("Run syft failed")
 		return err
 	}
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Error().Err(err).Msg("Open file failed")
-		return err
-	}
+
 	defer func() {
-		err := file.Close()
+		err := os.Remove(filename)
 		if err != nil {
-			log.Error().Err(err).Msg("Close file failed")
-		}
-		err = os.Remove(filename)
-		if err != nil {
-			log.Error().Err(err).Msg("Remove file failed")
+			log.Warn().Err(err).Msg("Remove file failed")
 		}
 	}()
-	var sbom bytes.Buffer
-	gzipWriter, err := gzip.NewWriterLevel(&sbom, gzip.BestSpeed)
+
+	compressed, err := compress.Compress(filename)
 	if err != nil {
-		log.Error().Err(err).Msg("Create gzip reader failed")
+		log.Error().Err(err).Msg("Compress file failed")
 		return err
 	}
-	_, err = io.Copy(gzipWriter, file)
-	if err != nil {
-		log.Error().Err(err).Msg("Copy file to gzip reader failed")
-		return err
-	}
-	err = gzipWriter.Close()
-	if err != nil {
-		log.Error().Err(err).Msg("Close gzip reader failed")
-	}
-	log.Info().Int("sbom", len(sbom.Bytes())).Msg("sbom")
+
+	log.Info().Int("sbom", len(compressed)).Msg("sbom")
 
 	return nil
 }

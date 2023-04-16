@@ -51,6 +51,10 @@ type ArtifactService interface {
 	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
 	// DeleteByID deletes the artifact with the specified artifact ID.
 	DeleteByID(ctx context.Context, id uint64) error
+	// SaveSbom save a new artifact sbom if conflict update.
+	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) (*models.ArtifactSbom, error)
+	// SaveVulnerability save a new artifact vulnerability if conflict update.
+	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error)
 }
 
 type artifactService struct {
@@ -79,7 +83,9 @@ func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) (
 
 // Get gets the artifact with the specified artifact ID.
 func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact, error) {
-	artifact, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).First()
+	artifact, err := s.tx.Artifact.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+		Where(s.tx.Artifact.ID.Eq(id)).First()
 	if err != nil {
 		return nil, err
 	}
@@ -227,4 +233,22 @@ func (s *artifactService) DeleteByID(ctx context.Context, id uint64) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// SaveSbom save a new artifact sbom if conflict update.
+func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) (*models.ArtifactSbom, error) {
+	err := s.tx.ArtifactSbom.WithContext(ctx).Save(sbom)
+	if err != nil {
+		return nil, err
+	}
+	return sbom, nil
+}
+
+// SaveVulnerability save a new artifact vulnerability if conflict update.
+func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error) {
+	err := s.tx.ArtifactVulnerability.WithContext(ctx).Save(vulnerability)
+	if err != nil {
+		return nil, err
+	}
+	return vulnerability, nil
 }
