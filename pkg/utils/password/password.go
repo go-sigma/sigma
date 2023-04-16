@@ -31,9 +31,14 @@ type password struct {
 	cost int
 }
 
+const (
+	// DefaultCost is the default cost for bcrypt
+	DefaultCost = 15
+)
+
 // New returns a new password instance
 func New(costs ...int) Password {
-	var cost = bcrypt.DefaultCost
+	var cost = DefaultCost
 	if len(costs) > 0 {
 		cost = costs[0]
 	}
