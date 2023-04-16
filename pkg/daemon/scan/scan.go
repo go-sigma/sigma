@@ -15,12 +15,9 @@
 package scan
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 
@@ -30,7 +27,9 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
+	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/compress"
 )
 
 func init() {
@@ -47,44 +46,36 @@ func runner(ctx context.Context, atask *asynq.Task) error {
 		log.Error().Err(err).Msg("Unmarshal error")
 		return err
 	}
+
+	artifactService := dao.NewArtifactService()
+	artifact, err := artifactService.Get(ctx, task.ArtifactID)
+	if err != nil {
+		log.Error().Err(err).Msg("Get artifact failed")
+		return err
+	}
+	image := fmt.Sprintf("127.0.0.1:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
+
 	filename := fmt.Sprintf("%s.trivy.json", uuid.New().String())
-	cmd := exec.Command("trivy", "image", "-q", "--format", "json", "--output", filename, "--skip-db-update", "--offline-scan", task.Image)
+	cmd := exec.Command("trivy", "image", "-q", "--format", "json", "--output", filename, "--skip-db-update", "--offline-scan", image)
 	out, err := cmd.Output()
 	log.Info().Str("out", string(out)).Msg("trivy output")
 	if err != nil {
 		log.Error().Err(err).Msg("Run trivy failed")
 		return err
 	}
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Error().Err(err).Msg("Open file failed")
-		return err
-	}
 	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Close file failed")
-		}
-		err = os.Remove(filename)
+		err := os.Remove(filename)
 		if err != nil {
 			log.Error().Err(err).Msg("Remove file failed")
 		}
 	}()
-	var trivy bytes.Buffer
-	gzipWriter, err := gzip.NewWriterLevel(&trivy, gzip.BestSpeed)
+
+	compressed, err := compress.Compress(filename)
 	if err != nil {
-		log.Error().Err(err).Msg("Create gzip reader failed")
+		log.Error().Err(err).Msg("Compress file failed")
 		return err
 	}
-	_, err = io.Copy(gzipWriter, file)
-	if err != nil {
-		log.Error().Err(err).Msg("Copy file to gzip reader failed")
-		return err
-	}
-	err = gzipWriter.Close()
-	if err != nil {
-		log.Error().Err(err).Msg("Close gzip reader failed")
-	}
-	log.Info().Int("trivy", len(trivy.Bytes())).Msg("trivy")
+
+	log.Info().Int("trivy", len(compressed)).Msg("trivy")
 	return nil
 }

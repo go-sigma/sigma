@@ -31,6 +31,8 @@ func main() {
 		models.Namespace{},
 		models.Repository{},
 		models.Artifact{},
+		models.ArtifactSbom{},
+		models.ArtifactVulnerability{},
 		models.Tag{},
 		models.Blob{},
 		models.BlobUpload{},
