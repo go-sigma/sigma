@@ -88,12 +88,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				}
 
 				passwordService := password.New()
-				verify, err := passwordService.Verify(pwd, user.Password)
-				if err != nil {
-					log.Error().Err(err).Msg("Verify password failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
-				}
-
+				verify := passwordService.Verify(pwd, user.Password)
 				if !verify {
 					log.Error().Err(err).Msg("Verify password failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))

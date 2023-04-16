@@ -47,12 +47,7 @@ func (h *handlers) Login(c echo.Context) error {
 	}
 
 	passwordService := password.New()
-	verify, err := passwordService.Verify(req.Password, user.Password)
-	if err != nil {
-		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
+	verify := passwordService.Verify(req.Password, user.Password)
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")

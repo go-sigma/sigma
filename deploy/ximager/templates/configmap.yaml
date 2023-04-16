@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-configmap" .Chart.Name }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "ximager.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    {{- .Values.config | toYaml | nindent 4 }}

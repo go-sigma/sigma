@@ -47,12 +47,7 @@ func (h *handlers) Token(c echo.Context) error {
 	}
 
 	passwordService := password.New()
-	verify, err := passwordService.Verify(pwd, user.Password)
-	if err != nil {
-		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
-	}
-
+	verify := passwordService.Verify(pwd, user.Password)
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)

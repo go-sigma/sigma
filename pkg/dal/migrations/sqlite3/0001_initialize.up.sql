@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 );
 
 INSERT INTO `users` (`username`, `password`, `email`, `role`, `created_at`, `updated_at`)
-  VALUES ('ximager', ' $argon2id$v=19$m=65536,t=1,p=2$eIH0HZBTb0P1bu3mOw1xyQ$hUCbRhWG0ouJIW9+gFWDMu/w727820HkRA6bxpkRA5w', 'ximager@tosone.cn', 'root', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
+  VALUES ('ximager', '$2y$05$yau/Wv5t1HvpdpW03FY0IudWUC5f545DVzb0722Z76DiPqzORVSRq', 'ximager@tosone.cn', 'root', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
 
 INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
   VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
