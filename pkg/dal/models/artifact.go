@@ -42,3 +42,30 @@ type Artifact struct {
 	Blobs      []*Blob `gorm:"many2many:artifact_blobs;"`
 	Tags       []*Tag  `gorm:"foreignKey:ArtifactID;"`
 }
+
+// ArtifactSbom represents an artifact sbom
+type ArtifactSbom struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint64                `gorm:"primaryKey"`
+
+	ArtifactID uint64
+	Raw        []byte
+
+	Artifact *Artifact
+}
+
+// ArtifactVulnerability represents an artifact vulnerability
+type ArtifactVulnerability struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint64                `gorm:"primaryKey"`
+
+	ArtifactID uint64
+	Metadata   []byte
+	Raw        []byte
+
+	Artifact *Artifact
+}

@@ -14,3 +14,7 @@ DROP TABLE IF EXISTS `artifact_blobs`;
 
 DROP TABLE IF EXISTS `users`;
 
+DROP TABLE IF EXISTS `artifact_sbom`;
+
+DROP TABLE IF EXISTS `artifact_vulnerability`;
+

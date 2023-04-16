@@ -16,19 +16,23 @@ import (
 )
 
 var (
-	Q          = new(Query)
-	Artifact   *artifact
-	Blob       *blob
-	BlobUpload *blobUpload
-	Namespace  *namespace
-	Repository *repository
-	Tag        *tag
-	User       *user
+	Q                     = new(Query)
+	Artifact              *artifact
+	ArtifactSbom          *artifactSbom
+	ArtifactVulnerability *artifactVulnerability
+	Blob                  *blob
+	BlobUpload            *blobUpload
+	Namespace             *namespace
+	Repository            *repository
+	Tag                   *tag
+	User                  *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Artifact = &Q.Artifact
+	ArtifactSbom = &Q.ArtifactSbom
+	ArtifactVulnerability = &Q.ArtifactVulnerability
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	Namespace = &Q.Namespace
@@ -39,41 +43,47 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:         db,
-		Artifact:   newArtifact(db, opts...),
-		Blob:       newBlob(db, opts...),
-		BlobUpload: newBlobUpload(db, opts...),
-		Namespace:  newNamespace(db, opts...),
-		Repository: newRepository(db, opts...),
-		Tag:        newTag(db, opts...),
-		User:       newUser(db, opts...),
+		db:                    db,
+		Artifact:              newArtifact(db, opts...),
+		ArtifactSbom:          newArtifactSbom(db, opts...),
+		ArtifactVulnerability: newArtifactVulnerability(db, opts...),
+		Blob:                  newBlob(db, opts...),
+		BlobUpload:            newBlobUpload(db, opts...),
+		Namespace:             newNamespace(db, opts...),
+		Repository:            newRepository(db, opts...),
+		Tag:                   newTag(db, opts...),
+		User:                  newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Artifact   artifact
-	Blob       blob
-	BlobUpload blobUpload
-	Namespace  namespace
-	Repository repository
-	Tag        tag
-	User       user
+	Artifact              artifact
+	ArtifactSbom          artifactSbom
+	ArtifactVulnerability artifactVulnerability
+	Blob                  blob
+	BlobUpload            blobUpload
+	Namespace             namespace
+	Repository            repository
+	Tag                   tag
+	User                  user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Artifact:   q.Artifact.clone(db),
-		Blob:       q.Blob.clone(db),
-		BlobUpload: q.BlobUpload.clone(db),
-		Namespace:  q.Namespace.clone(db),
-		Repository: q.Repository.clone(db),
-		Tag:        q.Tag.clone(db),
-		User:       q.User.clone(db),
+		db:                    db,
+		Artifact:              q.Artifact.clone(db),
+		ArtifactSbom:          q.ArtifactSbom.clone(db),
+		ArtifactVulnerability: q.ArtifactVulnerability.clone(db),
+		Blob:                  q.Blob.clone(db),
+		BlobUpload:            q.BlobUpload.clone(db),
+		Namespace:             q.Namespace.clone(db),
+		Repository:            q.Repository.clone(db),
+		Tag:                   q.Tag.clone(db),
+		User:                  q.User.clone(db),
 	}
 }
 
@@ -87,36 +97,42 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Artifact:   q.Artifact.replaceDB(db),
-		Blob:       q.Blob.replaceDB(db),
-		BlobUpload: q.BlobUpload.replaceDB(db),
-		Namespace:  q.Namespace.replaceDB(db),
-		Repository: q.Repository.replaceDB(db),
-		Tag:        q.Tag.replaceDB(db),
-		User:       q.User.replaceDB(db),
+		db:                    db,
+		Artifact:              q.Artifact.replaceDB(db),
+		ArtifactSbom:          q.ArtifactSbom.replaceDB(db),
+		ArtifactVulnerability: q.ArtifactVulnerability.replaceDB(db),
+		Blob:                  q.Blob.replaceDB(db),
+		BlobUpload:            q.BlobUpload.replaceDB(db),
+		Namespace:             q.Namespace.replaceDB(db),
+		Repository:            q.Repository.replaceDB(db),
+		Tag:                   q.Tag.replaceDB(db),
+		User:                  q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Artifact   *artifactDo
-	Blob       *blobDo
-	BlobUpload *blobUploadDo
-	Namespace  *namespaceDo
-	Repository *repositoryDo
-	Tag        *tagDo
-	User       *userDo
+	Artifact              *artifactDo
+	ArtifactSbom          *artifactSbomDo
+	ArtifactVulnerability *artifactVulnerabilityDo
+	Blob                  *blobDo
+	BlobUpload            *blobUploadDo
+	Namespace             *namespaceDo
+	Repository            *repositoryDo
+	Tag                   *tagDo
+	User                  *userDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Artifact:   q.Artifact.WithContext(ctx),
-		Blob:       q.Blob.WithContext(ctx),
-		BlobUpload: q.BlobUpload.WithContext(ctx),
-		Namespace:  q.Namespace.WithContext(ctx),
-		Repository: q.Repository.WithContext(ctx),
-		Tag:        q.Tag.WithContext(ctx),
-		User:       q.User.WithContext(ctx),
+		Artifact:              q.Artifact.WithContext(ctx),
+		ArtifactSbom:          q.ArtifactSbom.WithContext(ctx),
+		ArtifactVulnerability: q.ArtifactVulnerability.WithContext(ctx),
+		Blob:                  q.Blob.WithContext(ctx),
+		BlobUpload:            q.BlobUpload.WithContext(ctx),
+		Namespace:             q.Namespace.WithContext(ctx),
+		Repository:            q.Repository.WithContext(ctx),
+		Tag:                   q.Tag.WithContext(ctx),
+		User:                  q.User.WithContext(ctx),
 	}
 }
 

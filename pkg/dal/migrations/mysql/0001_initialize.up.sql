@@ -36,6 +36,29 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
 );
 
+CREATE TABLE IF NOT EXISTS `artifact_sbom` (
+  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `artifact_id` bigint unsigned NOT NULL,
+  `raw` BLOB NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
+  CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
+);
+
+CREATE TABLE IF NOT EXISTS `artifact_vulnerability` (
+  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `artifact_id` bigint unsigned NOT NULL,
+  `metadata` BLOB NOT NULL,
+  `raw` BLOB NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
+  CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
+);
+
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint unsigned NOT NULL,
