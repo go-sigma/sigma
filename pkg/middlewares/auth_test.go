@@ -71,7 +71,7 @@ func Test_genWwwAuthenticate(t *testing.T) {
 }
 
 func TestAuthWithConfig(t *testing.T) {
-	logger.SetLevel(0)
+	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
 	err := tests.Initialize()

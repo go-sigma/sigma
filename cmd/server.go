@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ximager/ximager/pkg/cmds/server"
+	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal"
 )
 
@@ -30,6 +31,12 @@ var serverCmd = &cobra.Command{
 		err := dal.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
+			return
+		}
+
+		err = daemon.InitializeClient()
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize daemon client with error")
 			return
 		}
 

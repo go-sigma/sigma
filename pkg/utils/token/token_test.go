@@ -36,7 +36,7 @@ const (
 )
 
 func TestNew(t *testing.T) {
-	logger.SetLevel(0)
+	logger.SetLevel("debug")
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis:////"+miniRedis.Addr())
