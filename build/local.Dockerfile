@@ -4,30 +4,38 @@ FROM alpine:${ALPINE_VERSION} as syft
 
 ARG SYFT_VERSION=0.77.0
 
+ARG TARGETARCH
+
 RUN set -eux && \
   sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
-  wget -q -O syft_${SYFT_VERSION}_linux_amd64.tar.gz https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz && \
-  tar -xzf syft_${SYFT_VERSION}_linux_amd64.tar.gz && \
+  wget -q -O syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz https://github.com/anchore/syft/releases/download/v"${SYFT_VERSION}"/syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
+  tar -xzf syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
   mv syft /usr/local/bin/syft && \
-  rm syft_${SYFT_VERSION}_linux_amd64.tar.gz
+  rm syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
-ARG TRIVY_VERSION=0.39.1
+ARG TRIVY_VERSION=0.40.0
 ARG ORAS_VERSION=1.0.0
+
+ARG TARGETARCH
 
 RUN set -eux && \
   sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
-  wget -q -O trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz && \
-  tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz && \
+  case "${TARGETARCH}" in \
+		amd64) export TRIVYARCH='64bit' ;; \
+		arm64) export TRIVYARCH='ARM64' ;; \
+	esac; \
+  wget -q -O trivy_"${TRIVY_VERSION}"_Linux-"${TRIVYARCH}".tar.gz https://github.com/aquasecurity/trivy/releases/download/v"${TRIVY_VERSION}"/trivy_"${TRIVY_VERSION}"_Linux-"${TRIVYARCH}".tar.gz && \
+  tar -xzf trivy_"${TRIVY_VERSION}"_Linux-"${TRIVYARCH}".tar.gz && \
   mv trivy /usr/local/bin/trivy && \
-  rm trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz && \
-  wget -q -O oras_${ORAS_VERSION}_linux_amd64.tar.gz https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz && \
-  tar -xzf oras_${ORAS_VERSION}_linux_amd64.tar.gz && \
+  rm trivy_"${TRIVY_VERSION}"_Linux-"${TRIVYARCH}".tar.gz && \
+  wget -q -O oras_"${ORAS_VERSION}"_linux_"${TARGETARCH}".tar.gz https://github.com/oras-project/oras/releases/download/v"${ORAS_VERSION}"/oras_"${ORAS_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
+  tar -xzf oras_"${ORAS_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
   mv oras /usr/local/bin/oras && \
-  rm oras_${ORAS_VERSION}_linux_amd64.tar.gz && \
+  rm oras_"${ORAS_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
   oras pull ghcr.io/aquasecurity/trivy-db:2 && \
   mkdir -p /opt/trivy/ && \
   mv ./db.tar.gz /opt/trivy/db.tar.gz && \
