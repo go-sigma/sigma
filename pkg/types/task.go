@@ -14,7 +14,7 @@
 
 package types
 
-//go:generate go-enum
+//go:generate go-enum --sql --mustparse
 
 // TaskCommonStatus x ENUM(
 // Pending,
