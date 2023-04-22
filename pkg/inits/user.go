@@ -22,6 +22,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/utils/password"
 )
 
 func init() {
@@ -29,6 +30,7 @@ func init() {
 }
 
 func initUser() error {
+	passwordService := password.New()
 	userService := dao.NewUserService()
 	userCount, err := userService.Count(context.Background())
 	if err != nil {
@@ -45,11 +47,15 @@ func initUser() error {
 	if internalUserUsername == "" {
 		return fmt.Errorf("the internal user username is not set")
 	}
+	internalUserPasswordHashed, err := passwordService.Hash(internalUserPassword)
+	if err != nil {
+		return err
+	}
 	internalUser := &models.User{
 		Username: internalUserUsername,
-		Password: internalUserPassword,
+		Password: internalUserPasswordHashed,
 		Email:    "internal-fake@gmail.com",
-		Role:     "",
+		Role:     "root", // TODO: change to read-only role
 	}
 	err = userService.Create(context.Background(), internalUser)
 	if err != nil {
@@ -64,11 +70,19 @@ func initUser() error {
 	if adminUserUsername == "" {
 		return fmt.Errorf("the admin user username is not set")
 	}
+	adminUserPasswordHashed, err := passwordService.Hash(adminUserPassword)
+	if err != nil {
+		return err
+	}
+	adminUserEmail := viper.GetString("auth.admin.email")
+	if adminUserEmail == "" {
+		adminUserEmail = "fake@gmail.com"
+	}
 	adminUser := &models.User{
 		Username: adminUserUsername,
-		Password: adminUserPassword,
-		Email:    "fake@gmail.com",
-		Role:     "admin",
+		Password: adminUserPasswordHashed,
+		Email:    adminUserEmail,
+		Role:     "root",
 	}
 	err = userService.Create(context.Background(), adminUser)
 	if err != nil {
