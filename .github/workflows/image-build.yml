@@ -41,8 +41,8 @@ jobs:
         with:
           context: .
           file: build/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
+          platforms: linux/amd64
+          push: false
           tags: ghcr.io/ximager/ximager:latest
           provenance: false
           sbom: false

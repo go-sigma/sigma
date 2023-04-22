@@ -38,6 +38,7 @@ storage:
 auth:
   internalUser:
     username: internal-ximager
+    password: internal-ximager
   admin:
     username: ximager
     password: ximager
