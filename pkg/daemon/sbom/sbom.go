@@ -15,52 +15,47 @@
 package sbom
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/google/uuid"
-	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils/compress"
 )
 
 func init() {
-	err := daemon.RegisterTask(consts.TopicSbom, runner)
+	err := daemon.RegisterTask(daemon.DaemonSbom, daemon.DecoratorArtifact(runner))
 	if err != nil {
 		log.Fatal().Err(err).Msg("RegisterTask error")
 	}
 }
 
-func runner(ctx context.Context, atask *asynq.Task) error {
-	var task types.TaskSbom
-	err := json.Unmarshal(atask.Payload(), &task)
-	if err != nil {
-		log.Error().Err(err).Msg("Unmarshal error")
-		return err
-	}
-
-	artifactService := dao.NewArtifactService()
-	artifact, err := artifactService.Get(ctx, task.ArtifactID)
-	if err != nil {
-		log.Error().Err(err).Msg("Get artifact failed")
-		return err
-	}
-	image := fmt.Sprintf("127.0.0.1:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
-
+func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
+	statusChan <- daemon.DecoratorArtifactStatus{Daemon: daemon.DaemonSbom, Status: types.TaskCommonStatusDoing, Message: ""}
+	image := fmt.Sprintf("192.168.31.198:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
 	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, image)
-	out, err := cmd.Output()
-	log.Info().Str("out", string(out)).Msg("syft output")
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Run syft failed")
+		statusChan <- daemon.DecoratorArtifactStatus{
+			Daemon:  daemon.DaemonSbom,
+			Status:  types.TaskCommonStatusFailed,
+			Stdout:  stdout.Bytes(),
+			Stderr:  stderr.Bytes(),
+			Message: fmt.Sprintf("Run syft failed: %s", err.Error()),
+		}
 		return err
 	}
 
@@ -74,10 +69,11 @@ func runner(ctx context.Context, atask *asynq.Task) error {
 	compressed, err := compress.Compress(filename)
 	if err != nil {
 		log.Error().Err(err).Msg("Compress file failed")
+		statusChan <- daemon.DecoratorArtifactStatus{Daemon: daemon.DaemonSbom, Status: types.TaskCommonStatusFailed, Message: err.Error()}
 		return err
 	}
 
-	log.Info().Int("sbom", len(compressed)).Msg("sbom")
+	statusChan <- daemon.DecoratorArtifactStatus{Daemon: daemon.DaemonSbom, Status: types.TaskCommonStatusSuccess, Message: "", Raw: compressed}
 
 	return nil
 }

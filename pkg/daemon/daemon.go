@@ -22,17 +22,32 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/logger"
 )
 
+//go:generate go-enum
+
+// Daemon x ENUM(
+// Vulnerability,
+// Sbom,
+// )
+type Daemon string
+
 // tasks all daemon tasks
-var tasks = map[string]func(context.Context, *asynq.Task) error{}
+var tasks = map[Daemon]func(context.Context, *asynq.Task) error{}
+
+// topics all daemon topics
+var topics = map[Daemon]string{
+	DaemonSbom:          consts.TopicSbom,
+	DaemonVulnerability: consts.TopicVulnerability,
+}
 
 // asynqCli asynq client
 var asynqCli *asynq.Client
 
 // RegisterTask registers a daemon task
-func RegisterTask(name string, handler func(context.Context, *asynq.Task) error) error {
+func RegisterTask(name Daemon, handler func(context.Context, *asynq.Task) error) error {
 	_, ok := tasks[name]
 	if ok {
 		return fmt.Errorf("daemon task %q already registered", name)
@@ -62,7 +77,11 @@ func Initialize() error {
 
 	mux := asynq.NewServeMux()
 	for taskType, handler := range tasks {
-		mux.HandleFunc(taskType, handler)
+		topic, ok := topics[taskType]
+		if !ok {
+			return fmt.Errorf("topic for daemon task %q not found", taskType)
+		}
+		mux.HandleFunc(topic, handler)
 	}
 
 	go func() {

@@ -55,6 +55,10 @@ type ArtifactService interface {
 	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) (*models.ArtifactSbom, error)
 	// SaveVulnerability save a new artifact vulnerability if conflict update.
 	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error)
+	// UpdateSbomStatus update the artifact sbom status.
+	UpdateSbomStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error
+	// UpdateVulnerabilityStatus update the artifact vulnerability status.
+	UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error
 }
 
 type artifactService struct {
@@ -83,8 +87,10 @@ func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) (
 
 // Get gets the artifact with the specified artifact ID.
 func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact, error) {
+	// SELECT * FROM `repositories` WHERE `repositories`.`id` = 1 AND `repositories`.`deleted_at` = 0
+	// SELECT * FROM `artifacts` WHERE `artifacts`.`id` = 1 AND `artifacts`.`deleted_at` = 0 ORDER BY `artifacts`.`id` LIMIT 1
 	artifact, err := s.tx.Artifact.WithContext(ctx).
-		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+		Preload(s.tx.Artifact.Repository).
 		Where(s.tx.Artifact.ID.Eq(id)).First()
 	if err != nil {
 		return nil, err
@@ -251,4 +257,28 @@ func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *
 		return nil, err
 	}
 	return vulnerability, nil
+}
+
+// UpdateSbomStatus update the artifact sbom status.
+func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
+	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(artifactID)).
+		UpdateColumns(map[string]interface{}{
+			"status": status,
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateVulnerabilityStatus update the artifact vulnerability status.
+func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
+	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(artifactID)).
+		UpdateColumns(map[string]interface{}{
+			"status": status,
+		})
+	if err != nil {
+		return err
+	}
+	return nil
 }

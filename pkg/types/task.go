@@ -14,12 +14,22 @@
 
 package types
 
+//go:generate go-enum
+
+// TaskCommonStatus x ENUM(
+// Pending,
+// Doing,
+// Success,
+// Failed
+// )
+type TaskCommonStatus string
+
 // TaskSbom is the task sbom struct
 type TaskSbom struct {
 	ArtifactID uint64 `json:"artifact_id"`
 }
 
-// TaskScan is the task scan struct
-type TaskScan struct {
+// TaskVulnerability is the task scan struct
+type TaskVulnerability struct {
 	ArtifactID uint64 `json:"artifact_id"`
 }
