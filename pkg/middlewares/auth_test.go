@@ -28,6 +28,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/inits"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/utils/token"
@@ -85,6 +86,15 @@ func TestAuthWithConfig(t *testing.T) {
 		err = tests.DB.DeInit()
 		assert.NoError(t, err)
 	}()
+
+	viper.SetDefault("auth.internalUser.password", "internal-ximager")
+	viper.SetDefault("auth.internalUser.username", "internal-ximager")
+	viper.SetDefault("auth.admin.password", "ximager")
+	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.admin.email", "ximager@gmail.com")
+
+	err = inits.Initialize()
+	assert.NoError(t, err)
 
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 

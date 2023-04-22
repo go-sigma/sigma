@@ -124,9 +124,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   CONSTRAINT `users_unique_with_email` UNIQUE (`email`, `deleted_at`)
 );
 
-INSERT INTO `users` (`username`, `password`, `email`, `role`, `created_at`, `updated_at`)
-  VALUES ('ximager', '$2y$05$yau/Wv5t1HvpdpW03FY0IudWUC5f545DVzb0722Z76DiPqzORVSRq', 'ximager@tosone.cn', 'root', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
-
 INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
   VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
 
