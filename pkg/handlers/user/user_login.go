@@ -53,7 +53,7 @@ func (h *handlers) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")
 	}
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))
+	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token service failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

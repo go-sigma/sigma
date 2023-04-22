@@ -67,7 +67,7 @@ COPY --from=web-builder /web/dist /go/src/github.com/ximager/ximager/web/dist
 
 WORKDIR /go/src/github.com/ximager/ximager
 
-RUN make build
+RUN make build-release
 
 FROM alpine:${ALPINE_VERSION}
 

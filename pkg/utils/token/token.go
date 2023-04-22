@@ -64,7 +64,7 @@ type tokenService struct {
 }
 
 // NewTokenService creates a new token service.
-func NewTokenService(privateKeyString, publicKeyString string) (TokenService, error) {
+func NewTokenService(privateKeyString string) (TokenService, error) {
 	privateKeyBytes, err := base64.StdEncoding.DecodeString(privateKeyString)
 	if err != nil {
 		return nil, err
@@ -73,14 +73,7 @@ func NewTokenService(privateKeyString, publicKeyString string) (TokenService, er
 	if err != nil {
 		return nil, err
 	}
-	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKeyString)
-	if err != nil {
-		return nil, err
-	}
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyBytes)
-	if err != nil {
-		return nil, err
-	}
+	publicKey := &privateKey.PublicKey
 	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
 	if err != nil {
 		return nil, fmt.Errorf("redis.ParseURL error: %v", err)

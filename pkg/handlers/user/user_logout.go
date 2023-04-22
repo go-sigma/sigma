@@ -28,7 +28,7 @@ import (
 func (h *handlers) Logout(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"), viper.GetString("auth.jwt.publicKey"))
+	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token service failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
