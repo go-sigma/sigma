@@ -34,6 +34,10 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 	_artifactVulnerability.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_artifactVulnerability.Metadata = field.NewBytes(tableName, "metadata")
 	_artifactVulnerability.Raw = field.NewBytes(tableName, "raw")
+	_artifactVulnerability.Status = field.NewString(tableName, "status")
+	_artifactVulnerability.Stdout = field.NewBytes(tableName, "stdout")
+	_artifactVulnerability.Stderr = field.NewBytes(tableName, "stderr")
+	_artifactVulnerability.Message = field.NewString(tableName, "message")
 	_artifactVulnerability.Artifact = artifactVulnerabilityBelongsToArtifact{
 		db: db.Session(&gorm.Session{}),
 
@@ -103,6 +107,10 @@ type artifactVulnerability struct {
 	ArtifactID field.Uint64
 	Metadata   field.Bytes
 	Raw        field.Bytes
+	Status     field.String
+	Stdout     field.Bytes
+	Stderr     field.Bytes
+	Message    field.String
 	Artifact   artifactVulnerabilityBelongsToArtifact
 
 	fieldMap map[string]field.Expr
@@ -127,6 +135,10 @@ func (a *artifactVulnerability) updateTableName(table string) *artifactVulnerabi
 	a.ArtifactID = field.NewUint64(table, "artifact_id")
 	a.Metadata = field.NewBytes(table, "metadata")
 	a.Raw = field.NewBytes(table, "raw")
+	a.Status = field.NewString(table, "status")
+	a.Stdout = field.NewBytes(table, "stdout")
+	a.Stderr = field.NewBytes(table, "stderr")
+	a.Message = field.NewString(table, "message")
 
 	a.fillFieldMap()
 
@@ -151,7 +163,7 @@ func (a *artifactVulnerability) GetFieldByName(fieldName string) (field.OrderExp
 }
 
 func (a *artifactVulnerability) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 8)
+	a.fieldMap = make(map[string]field.Expr, 12)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -159,6 +171,10 @@ func (a *artifactVulnerability) fillFieldMap() {
 	a.fieldMap["artifact_id"] = a.ArtifactID
 	a.fieldMap["metadata"] = a.Metadata
 	a.fieldMap["raw"] = a.Raw
+	a.fieldMap["status"] = a.Status
+	a.fieldMap["stdout"] = a.Stdout
+	a.fieldMap["stderr"] = a.Stderr
+	a.fieldMap["message"] = a.Message
 
 }
 

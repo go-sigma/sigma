@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/ximager/ximager/pkg/types"
 )
 
 // Artifact represents an artifact
@@ -52,6 +54,10 @@ type ArtifactSbom struct {
 
 	ArtifactID uint64
 	Raw        []byte
+	Status     types.TaskCommonStatus
+	Stdout     []byte
+	Stderr     []byte
+	Message    string
 
 	Artifact *Artifact
 }
@@ -64,8 +70,12 @@ type ArtifactVulnerability struct {
 	ID        uint64                `gorm:"primaryKey"`
 
 	ArtifactID uint64
-	Metadata   []byte
+	Metadata   []byte // is the trivy db metadata
 	Raw        []byte
+	Status     types.TaskCommonStatus
+	Stdout     []byte
+	Stderr     []byte
+	Message    string
 
 	Artifact *Artifact
 }

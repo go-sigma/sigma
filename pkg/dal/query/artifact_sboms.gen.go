@@ -33,6 +33,10 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 	_artifactSbom.ID = field.NewUint64(tableName, "id")
 	_artifactSbom.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_artifactSbom.Raw = field.NewBytes(tableName, "raw")
+	_artifactSbom.Status = field.NewString(tableName, "status")
+	_artifactSbom.Stdout = field.NewBytes(tableName, "stdout")
+	_artifactSbom.Stderr = field.NewBytes(tableName, "stderr")
+	_artifactSbom.Message = field.NewString(tableName, "message")
 	_artifactSbom.Artifact = artifactSbomBelongsToArtifact{
 		db: db.Session(&gorm.Session{}),
 
@@ -101,6 +105,10 @@ type artifactSbom struct {
 	ID         field.Uint64
 	ArtifactID field.Uint64
 	Raw        field.Bytes
+	Status     field.String
+	Stdout     field.Bytes
+	Stderr     field.Bytes
+	Message    field.String
 	Artifact   artifactSbomBelongsToArtifact
 
 	fieldMap map[string]field.Expr
@@ -124,6 +132,10 @@ func (a *artifactSbom) updateTableName(table string) *artifactSbom {
 	a.ID = field.NewUint64(table, "id")
 	a.ArtifactID = field.NewUint64(table, "artifact_id")
 	a.Raw = field.NewBytes(table, "raw")
+	a.Status = field.NewString(table, "status")
+	a.Stdout = field.NewBytes(table, "stdout")
+	a.Stderr = field.NewBytes(table, "stderr")
+	a.Message = field.NewString(table, "message")
 
 	a.fillFieldMap()
 
@@ -148,13 +160,17 @@ func (a *artifactSbom) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (a *artifactSbom) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 7)
+	a.fieldMap = make(map[string]field.Expr, 11)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["artifact_id"] = a.ArtifactID
 	a.fieldMap["raw"] = a.Raw
+	a.fieldMap["status"] = a.Status
+	a.fieldMap["stdout"] = a.Stdout
+	a.fieldMap["stderr"] = a.Stderr
+	a.fieldMap["message"] = a.Message
 
 }
 

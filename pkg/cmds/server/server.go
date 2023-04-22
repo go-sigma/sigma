@@ -39,8 +39,15 @@ func Serve() error {
 	e.HidePort = true
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			log.Info().Str("method", c.Request().Method).Str("path", c.Request().URL.Path).Str("query", c.Request().URL.RawQuery).Msg("Request")
-			return next(c)
+			n := next(c)
+			log.Debug().
+				Str("method", c.Request().Method).
+				Str("path", c.Request().URL.Path).
+				Str("query", c.Request().URL.RawQuery).
+				Interface("req-header", c.Request().Header).
+				Interface("resp-header", c.Response().Header()).
+				Msg("Request debugger")
+			return n
 		}
 	}))
 	e.Use(middleware.CORS())

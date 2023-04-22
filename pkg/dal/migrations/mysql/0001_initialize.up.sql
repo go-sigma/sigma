@@ -36,10 +36,14 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `artifact_sbom` (
+CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `artifact_id` bigint unsigned NOT NULL,
-  `raw` BLOB NOT NULL,
+  `raw` BLOB,
+  `status` varchar(64) NOT NULL,
+  `stdout` BLOB,
+  `stderr` BLOB,
+  `message` varchar(256),
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -47,11 +51,15 @@ CREATE TABLE IF NOT EXISTS `artifact_sbom` (
   CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `artifact_vulnerability` (
+CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `artifact_id` bigint unsigned NOT NULL,
-  `metadata` BLOB NOT NULL,
-  `raw` BLOB NOT NULL,
+  `metadata` BLOB,
+  `raw` BLOB,
+  `status` varchar(64) NOT NULL,
+  `stdout` BLOB,
+  `stderr` BLOB,
+  `message` varchar(256),
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,

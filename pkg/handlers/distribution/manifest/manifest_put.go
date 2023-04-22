@@ -32,10 +32,12 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/storage"
+	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -140,6 +142,52 @@ func (h *handler) PutManifest(c echo.Context) error {
 	err = artifactService.AssociateBlobs(ctx, artifactObj, bs)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Associate blobs failed")
+		return err
+	}
+
+	_, err = artifactService.SaveSbom(ctx, &models.ArtifactSbom{
+		ArtifactID: artifactObj.ID,
+		Status:     types.TaskCommonStatusPending,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save sbom failed")
+		return err
+	}
+
+	taskSbomPayload := types.TaskSbom{
+		ArtifactID: artifactObj.ID,
+	}
+	taskSbomPayloadBytes, err := json.Marshal(taskSbomPayload)
+	if err != nil {
+		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
+		return err
+	}
+	err = daemon.Enqueue(consts.TopicSbom, taskSbomPayloadBytes)
+	if err != nil {
+		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
+		return err
+	}
+
+	_, err = artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
+		ArtifactID: artifactObj.ID,
+		Status:     types.TaskCommonStatusPending,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save vulnerability failed")
+		return err
+	}
+
+	taskVulnerabilityPayload := types.TaskVulnerability{
+		ArtifactID: artifactObj.ID,
+	}
+	taskVulnerabilityPayloadBytes, err := json.Marshal(taskVulnerabilityPayload)
+	if err != nil {
+		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
+		return err
+	}
+	err = daemon.Enqueue(consts.TopicVulnerability, taskVulnerabilityPayloadBytes)
+	if err != nil {
+		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return err
 	}
 
