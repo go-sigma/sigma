@@ -36,7 +36,9 @@ storage:
     bucket: ximager
     forcePathStyle: true
 auth:
-  user:
+  internalUser:
+    username: internal-ximager
+  admin:
     username: ximager
     password: ximager
   token:

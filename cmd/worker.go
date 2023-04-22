@@ -20,6 +20,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/cmds/worker"
 	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/inits"
 )
 
 // workerCmd represents the worker command
@@ -30,6 +31,12 @@ var workerCmd = &cobra.Command{
 		err := dal.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
+			return
+		}
+
+		err = inits.Initialize()
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize inits with error")
 			return
 		}
 

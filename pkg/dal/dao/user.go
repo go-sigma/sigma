@@ -27,6 +27,8 @@ type UserService interface {
 	GetByUsername(ctx context.Context, username string) (*models.User, error)
 	// Create creates a new user.
 	Create(ctx context.Context, user *models.User) error
+	// Count gets the total number of users.
+	Count(ctx context.Context) (int64, error)
 }
 
 type userService struct {
@@ -52,4 +54,9 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 // Create creates a new user.
 func (s *userService) Create(ctx context.Context, user *models.User) error {
 	return s.tx.User.WithContext(ctx).Create(user)
+}
+
+// Count gets the total number of users.
+func (s *userService) Count(ctx context.Context) (int64, error) {
+	return s.tx.User.WithContext(ctx).Count()
 }

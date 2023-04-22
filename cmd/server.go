@@ -21,6 +21,7 @@ import (
 	"github.com/ximager/ximager/pkg/cmds/server"
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/inits"
 )
 
 // serverCmd represents the server command
@@ -31,6 +32,12 @@ var serverCmd = &cobra.Command{
 		err := dal.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
+			return
+		}
+
+		err = inits.Initialize()
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize inits with error")
 			return
 		}
 

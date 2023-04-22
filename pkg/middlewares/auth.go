@@ -50,8 +50,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			}
 
 			privateKey := viper.GetString("auth.jwt.privateKey")
-			publicKey := viper.GetString("auth.jwt.publicKey")
-			tokenService, err := token.NewTokenService(privateKey, publicKey)
+			tokenService, err := token.NewTokenService(privateKey)
 			if err != nil {
 				log.Error().Err(err).Msg("Create token service failed")
 				if config.DS {
