@@ -79,7 +79,9 @@ func (h *handler) PatchUpload(c echo.Context) error {
 		log.Error().Err(err).Msg("Save blob upload record failed")
 		return err
 	}
-	c.Response().Header().Set("Range", fmt.Sprintf("%d-%d", sizeBefore, sizeBefore+size))
+	// Note that the HTTP Range header byte ranges are inclusive and that will be honored, even in non-standard use cases.
+	// See: https://docs.docker.com/registry/spec/api/#pushing-a-layer
+	c.Response().Header().Set("Range", fmt.Sprintf("%d-%d", sizeBefore, sizeBefore+size-1))
 
 	return c.NoContent(http.StatusAccepted)
 }
