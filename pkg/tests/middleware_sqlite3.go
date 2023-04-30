@@ -48,8 +48,8 @@ var _ CIDatabase = &sqlite3CIDatabase{}
 // Init sets the default values for the database configuration in ci tests
 func (d *sqlite3CIDatabase) Init() error {
 	d.path = fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	viper.SetDefault("database.type", "sqlite")
-	viper.SetDefault("database.sqlite.path", d.path)
+	viper.SetDefault("database.type", "sqlite3")
+	viper.SetDefault("database.sqlite3.path", d.path)
 	err := dal.Initialize()
 	if err != nil {
 		return err
