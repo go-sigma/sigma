@@ -1,9 +1,9 @@
 log:
   level: debug
 database:
-  # The database type to use. Supported types are: sqlite, mysql, postgresql
+  # The database type to use. Supported types are: sqlite3, mysql, postgresql
   type: mysql
-  sqlite:
+  sqlite3:
     path: ximager.db
   mysql:
     host: localhost

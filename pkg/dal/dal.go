@@ -15,6 +15,7 @@
 package dal
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/glebarez/sqlite"
@@ -25,6 +26,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/logger"
 )
 
 var (
@@ -35,22 +37,22 @@ var (
 // Initialize initializes the database connection
 func Initialize() error {
 	var err error
-	dbType := viper.GetString("database.type")
+	dbType := MustParseDatabase(viper.GetString("database.type"))
 	switch dbType {
-	case "mysql":
+	case DatabaseMysql:
 		err = connectMysql()
-	case "postgresql":
+	case DatabasePostgresql:
 		err = connectPostgres()
-	case "sqlite":
-		err = connectSqlite()
+	case DatabaseSqlite3:
+		err = connectSqlite3()
 	default:
 		return fmt.Errorf("unknown database type: %s", dbType)
 	}
 	if err != nil {
 		return err
 	}
-	logLevel := viper.GetInt("log.level")
-	if logLevel == 0 {
+	logLevel := viper.GetString("log.level")
+	if logLevel == "debug" {
 		query.SetDefault(DB.Debug())
 	} else {
 		query.SetDefault(DB)
@@ -68,10 +70,13 @@ func connectMysql() error {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname)
 	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.ZLogger{},
+	})
 	if err != nil {
 		return err
 	}
+	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
 	err = setAuthModel(db)
@@ -101,10 +106,13 @@ func connectPostgres() error {
 	sslmode := viper.GetString("database.postgres.sslmode")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.ZLogger{},
+	})
 	if err != nil {
 		return err
 	}
+	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
 	err = setAuthModel(db)
@@ -126,13 +134,16 @@ func connectPostgres() error {
 	return nil
 }
 
-func connectSqlite() error {
-	dbname := viper.GetString("database.sqlite.path")
+func connectSqlite3() error {
+	dbname := viper.GetString("database.sqlite3.path")
 
-	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{
+		Logger: logger.ZLogger{},
+	})
 	if err != nil {
 		return err
 	}
+	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
 	err = setAuthModel(db)

@@ -14,7 +14,7 @@
 
 package dal
 
-//go:generate go-enum
+//go:generate go-enum --sql --mustparse
 
 // Database x ENUM(
 // postgresql,
