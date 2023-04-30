@@ -59,3 +59,44 @@ func TestCompress(t *testing.T) {
 		})
 	}
 }
+
+func TestDecompress(t *testing.T) {
+	type args struct {
+		src []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "TestDecompress-1",
+			args: args{
+				src: []byte{31, 139, 8, 0, 0, 0, 0, 0, 4, 255, 0, 17, 0, 238, 255, 104, 101, 108, 108, 111, 32, 120, 105, 109, 97, 103, 101, 114, 33, 33, 33, 10, 1, 0, 0, 255, 255, 170, 130, 92, 143, 17, 0, 0, 0},
+			},
+			want:    "hello ximager!!!\n",
+			wantErr: false,
+		},
+		{
+			name: "TestDecompress-1",
+			args: args{
+				src: []byte{11, 139, 8, 0, 0, 0, 0, 0, 4, 255, 0, 17, 0, 238, 255, 104, 101, 108, 108, 111, 32, 120, 105, 109, 97, 103, 101, 114, 33, 33, 33, 10, 1, 0, 0, 255, 255, 170, 130, 92, 143, 17, 0, 0, 0},
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Decompress(tt.args.src)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Decompress() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Decompress() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
