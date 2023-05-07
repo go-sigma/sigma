@@ -72,4 +72,47 @@ paths:
           schema:
             $ref: '#/definitions/types.ListNamespaceResponse'
       summary: List namespace
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: Namespace description
+        in: body
+        name: description
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+      summary: Create namespace
+  /namespace/{id}:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete namespace
+  /repository/{id}:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete repository
 swagger: "2.0"

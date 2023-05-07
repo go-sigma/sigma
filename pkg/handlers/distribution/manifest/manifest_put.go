@@ -280,7 +280,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		// Save the repository
-		repositoryService := dao.NewRepositoryService()
+		repositoryService := dao.NewRepositoryService(tx)
 		repoObj, err := repositoryService.Save(ctx, &models.Repository{
 			Name: repository,
 		})
