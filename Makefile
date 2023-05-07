@@ -1,21 +1,27 @@
-GOCMD=go
-GOTEST=$(GOCMD) test
-GOVET=$(GOCMD) vet
-BINARY_NAME=ximager
-VERSION?=0.0.0
-SERVICE_PORT?=3000
-DOCKER_REGISTRY?= #if set it should finished by /
-EXPORT_RESULT?=false # for CI please set EXPORT_RESULT to true
+GOCMD            = go
+GOTEST           = $(GOCMD) test
+GOVET            = $(GOCMD) vet
+BINARY_NAME      = ximager
+VERSION         ?= 0.0.0
+SERVICE_PORT    ?= 3000
+DOCKER_REGISTRY ?= #if set it should finished by /
+EXPORT_RESULT   ?= false # for CI please set EXPORT_RESULT to true
 
-MIGRATION_NAME ?=
 
-SHELL := /bin/bash
+MIGRATION_NAME  ?=
 
-GREEN  := $(shell tput -Txterm setaf 2)
-YELLOW := $(shell tput -Txterm setaf 3)
-WHITE  := $(shell tput -Txterm setaf 7)
-CYAN   := $(shell tput -Txterm setaf 6)
-RESET  := $(shell tput -Txterm sgr0)
+SHELL           := /bin/bash
+
+GREEN           := $(shell tput -Txterm setaf 2)
+YELLOW          := $(shell tput -Txterm setaf 3)
+WHITE           := $(shell tput -Txterm setaf 7)
+CYAN            := $(shell tput -Txterm setaf 6)
+RESET           := $(shell tput -Txterm sgr0)
+
+GOLDFLAGS       += -X github.com/ximager/ximager/cmd.version=$(shell git describe --tags --dirty)
+GOLDFLAGS       += -X github.com/ximager/ximager/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+GOLDFLAGS       += -X github.com/ximager/ximager/cmd.gitHash=$(shell git rev-parse --short HEAD)
+GOFLAGS          = -ldflags '-extldflags "-static" -s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor
 
@@ -24,14 +30,14 @@ all: help
 ## Build:
 build: ## Build your project and put the output binary in ./bin
 	@$(GOCMD) mod download
-	@GO111MODULE=on $(GOCMD) build -o bin/$(BINARY_NAME) -v .
+	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-release: ## Build your project for release and put the output binary in ./bin
 	@$(GOCMD) mod download
-	@GO111MODULE=on $(GOCMD) build -ldflags "-s -w" -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-linux: ## Build your project for linux and put the output binary in ./bin
-	@GO111MODULE=on GOOS=linux $(GOCMD) build -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=0 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 clean: ## Remove build related file
 	rm -fr ./bin
