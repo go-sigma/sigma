@@ -6,7 +6,7 @@ Yet another harbor OCI artifact manager. Harbor is a great product, but it's not
 
 ## Introduction
 
-https://user-images.githubusercontent.com/5346506/229798487-798225b1-e2bf-40a2-b5ab-588003c02f7b.mp4
+<https://user-images.githubusercontent.com/5346506/229798487-798225b1-e2bf-40a2-b5ab-588003c02f7b.mp4>
 
 ## Architecture
 
@@ -25,10 +25,11 @@ cd web && yarn && yarn build && cd .. && make build
 
 - [x] Support docker registry v2 protocol.
 - [x] Support OCI Image v1 Format and OCI Image Index v1 Format.
+- [x] Support OCI artifact such as helm and so on.
+- [x] Support OCI sbom.
+- [x] Support Image security scan.
 - [ ] Support registry proxy.
-- [ ] Support OCI artifact such as helm and sbom and so on.
 - [ ] Support Namespace quota.
-- [ ] Support Image security scan.
 - [ ] Support Image replication.
 - [ ] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image sign.

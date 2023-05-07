@@ -26,6 +26,7 @@ import (
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
+// PutNamespace handles the put namespace request
 func (h *handlers) PutNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 

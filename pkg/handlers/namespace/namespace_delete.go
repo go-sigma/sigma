@@ -28,6 +28,11 @@ import (
 )
 
 // DeleteNamespace handles the delete namespace request
+// @Summary Delete namespace
+// @Accept json
+// @Produce json
+// @Router /namespace/{id} [delete]
+// @Success 204
 func (h *handlers) DeleteNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 
