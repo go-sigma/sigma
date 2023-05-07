@@ -9,6 +9,7 @@ require (
 	github.com/distribution/distribution/v3 v3.0.0-20230505052155-8900e90699a5
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0

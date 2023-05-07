@@ -25,6 +25,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // GetManifest handles the get manifest request
@@ -49,12 +51,11 @@ func (h *handler) GetManifest(c echo.Context) error {
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
 		err = tagService.Incr(ctx, tag.ID)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")
-			return err
 		}
 		dgest = digest.Digest(tag.Artifact.Digest)
 	}
@@ -72,4 +73,10 @@ func (h *handler) GetManifest(c echo.Context) error {
 	}
 
 	return c.Blob(http.StatusOK, contentType, []byte(artifact.Raw))
+}
+
+// fallbackProxy cannot found the manifest, proxy to the origin registry
+// nolint: unused
+func (h *handler) fallbackProxy() {
+	_, _ = clients.New()
 }
