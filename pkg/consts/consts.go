@@ -15,6 +15,8 @@
 package consts
 
 import (
+	"fmt"
+
 	pwdvalidate "github.com/wagslane/go-password-validator"
 )
 
@@ -44,6 +46,9 @@ const (
 	// ContextUser represents user in context
 	ContextUser = "user"
 )
+
+// UserAgent represents the user agent
+var UserAgent = fmt.Sprintf("XImager/%s (https://github.com/ximager/ximager)", APIVersion)
 
 const (
 	// AuthModel represents the auth model

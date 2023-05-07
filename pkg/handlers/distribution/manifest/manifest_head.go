@@ -44,7 +44,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	reference, err := referenceService.Get(ctx, repository, ref)
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get reference failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
 	if reference.Artifact == nil {
