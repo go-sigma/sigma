@@ -25,6 +25,14 @@ import (
 )
 
 // PostNamespace handles the post namespace request
+// @Summary Create namespace
+// @Accept json
+// @Produce json
+// @Router /namespace/ [post]
+// @Param name body string true "Namespace name"
+// @Param description body string false "Namespace description"
+// @Success 201
+// @Failure 400
 func (h *handlers) PostNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 

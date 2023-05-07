@@ -16,6 +16,7 @@ package upload
 
 import "github.com/labstack/echo/v4"
 
+// GetUpload handles the get upload request
 func (h *handler) GetUpload(ctx echo.Context) error {
 	return nil
 }

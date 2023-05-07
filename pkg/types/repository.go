@@ -37,3 +37,8 @@ type GetRepositoryRequest struct {
 	ID        uint64 `json:"name" param:"id" validate:"required,number"`
 	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20"`
 }
+
+// DeleteRepositoryRequest represents the request to delete a repository.
+type DeleteRepositoryRequest struct {
+	ID uint64 `json:"id" param:"id" validate:"required,number"`
+}

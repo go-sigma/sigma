@@ -28,10 +28,15 @@ import (
 )
 
 // DeleteRepository handles the delete repository request
+// @Summary Delete repository
+// @Accept json
+// @Produce json
+// @Router /repository/{id} [delete]
+// @Success 204
 func (h *handlers) DeleteRepository(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req types.GetRepositoryRequest
+	var req types.DeleteRepositoryRequest
 	err := c.Bind(&req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind request body failed")
