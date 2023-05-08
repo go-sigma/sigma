@@ -23,9 +23,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
-	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -51,6 +51,17 @@ func (h *handler) GetManifest(c echo.Context) error {
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
+			if viper.GetBool("proxy.enabled") {
+				statusCode, header, bodyBytes, err := h.fallbackProxy(c)
+				if err != nil {
+					log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
+				if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
+					return c.Blob(http.StatusOK, header.Get("Content-Type"), bodyBytes)
+				}
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
 			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
 		err = tagService.Incr(ctx, tag.ID)
@@ -64,6 +75,19 @@ func (h *handler) GetManifest(c echo.Context) error {
 	artifact, err := artifactService.GetByDigest(ctx, repository, dgest.String())
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
+		if viper.GetBool("proxy.enabled") {
+			statusCode, header, bodyBytes, err := h.fallbackProxy(c)
+			if err != nil {
+				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
+				c.Response().Header().Set("Docker-Content-Digest", header.Get("Docker-Content-Digest"))
+				c.Response().Header().Set("ETag", header.Get("ETag"))
+				return c.Blob(http.StatusOK, header.Get("Content-Type"), bodyBytes)
+			}
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		}
 		return err
 	}
 
@@ -73,10 +97,4 @@ func (h *handler) GetManifest(c echo.Context) error {
 	}
 
 	return c.Blob(http.StatusOK, contentType, []byte(artifact.Raw))
-}
-
-// fallbackProxy cannot found the manifest, proxy to the origin registry
-// nolint: unused
-func (h *handler) fallbackProxy() {
-	_, _ = clients.New()
 }

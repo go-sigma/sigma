@@ -46,6 +46,7 @@ func Serve() error {
 				Str("query", c.Request().URL.RawQuery).
 				Interface("req-header", c.Request().Header).
 				Interface("resp-header", c.Response().Header()).
+				Int("status", c.Response().Status).
 				Msg("Request debugger")
 			return n
 		}

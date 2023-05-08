@@ -8,6 +8,7 @@ require (
 	github.com/casbin/gorm-adapter/v3 v3.17.0
 	github.com/distribution/distribution/v3 v3.0.0-20230505052155-8900e90699a5
 	github.com/docker/distribution v2.8.1+incompatible
+	github.com/fatih/color v1.13.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0

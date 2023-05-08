@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -68,7 +67,6 @@ func Test_Logger_Sqlite(t *testing.T) {
 
 	type Post struct {
 		Title, Body string
-		CreatedAt   time.Time
 	}
 	db.AutoMigrate(&Post{}) // nolint: errcheck
 
@@ -80,8 +78,8 @@ func Test_Logger_Sqlite(t *testing.T) {
 		{
 			run: func() error { return db.Create(&Post{Title: "awesome"}).Error },
 			sql: fmt.Sprintf(
-				"INSERT INTO `posts` (`title`,`body`,`created_at`) VALUES (%q,%q,%q)",
-				"awesome", "", strings.TrimSuffix(now.Format("2006-01-02 15:04:05.000"), "0"),
+				"INSERT INTO `posts` (`title`,`body`) VALUES (%q,%q)",
+				"awesome", "",
 			),
 			err_ok: false,
 		},

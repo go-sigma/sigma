@@ -1,3 +1,17 @@
+// Copyright 2023 XImager
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package clients
 
 import (
@@ -18,6 +32,7 @@ import (
 // Clients is the interface of clients
 type Clients interface {
 	AuthToken() error
+	DoRequest(method, path string) (int, http.Header, []byte, error)
 }
 
 // clients is the implementation of Clients
@@ -125,6 +140,7 @@ func (c *clients) ping(headers ...map[string]string) (challenge.Challenge, error
 
 // token returns the token
 func (c *clients) token(cha challenge.Challenge) (string, error) {
+	c.cli.Header.Del("Authorization") // clear the authorization header
 	req := c.cli.R()
 	req.SetHeader("Content-Type", "application/json")
 	if cha.Parameters["service"] != "" {
@@ -149,4 +165,41 @@ func (c *clients) token(cha challenge.Challenge) (string, error) {
 		return "", err
 	}
 	return body.Token, nil
+}
+
+// DoRequest returns the response
+func (c *clients) DoRequest(method, path string) (int, http.Header, []byte, error) {
+	req := c.cli.R()
+	req.SetHeader("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.list.v2+json")
+	req.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
+	req.Header.Add("Accept", "application/vnd.oci.image.manifest.v1+json")
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := req.Execute(method, fmt.Sprintf("%s/%s", c.endpoint, strings.TrimPrefix(path, "/")))
+	if err != nil {
+		return 0, nil, nil, err
+	}
+	if resp.StatusCode() == http.StatusUnauthorized {
+		challenges := challenge.ResponseChallenges(resp.RawResponse)
+		if len(challenges) != 1 {
+			return 0, nil, nil, fmt.Errorf("unexpected number of challenges: %d", len(challenges))
+		}
+		cha := challenges[0]
+		if cha.Scheme == "bearer" {
+			token, err := c.token(cha)
+			if err != nil {
+				return 0, nil, nil, err
+			}
+			if token == "" {
+				return 0, nil, nil, fmt.Errorf("no token")
+			}
+			c.cli.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
+			return c.DoRequest(method, path)
+		}
+		return 0, nil, nil, fmt.Errorf("unsupported schema: %s", cha.Scheme)
+	}
+
+	return resp.StatusCode(), resp.RawResponse.Header, resp.Body(), nil
 }
