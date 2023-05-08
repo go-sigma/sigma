@@ -12,5 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// clients package contains the clients for the distribution service
-package clients
+package manifest
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+)
+
+// fallbackProxy cannot found the manifest, proxy to the origin registry
+func (h *handler) fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
+	cli, err := clients.New()
+	if err != nil {
+		return 0, nil, nil, err
+	}
+	statusCode, header, bodyBytes, err := cli.DoRequest(http.MethodGet, c.Request().URL.Path)
+	if err != nil {
+		return 0, nil, nil, err
+	}
+	return statusCode, header, bodyBytes, nil
+}

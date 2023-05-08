@@ -23,6 +23,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -43,7 +44,19 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	referenceService := dao.NewReferenceService()
 	reference, err := referenceService.Get(ctx, repository, ref)
 	if err != nil {
-		log.Error().Err(err).Str("ref", ref).Msg("Get reference failed")
+		log.Error().Err(err).Str("ref", ref).Msg("Get local reference failed")
+		if viper.GetBool("proxy.enabled") {
+			statusCode, header, _, err := h.fallbackProxy(c)
+			if err != nil {
+				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			c.Response().Header().Set("Content-Type", header.Get("Content-Type"))
+			if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
+				return c.NoContent(statusCode)
+			}
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		}
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
@@ -63,7 +76,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	if contentType == "" {
 		contentType = "application/vnd.docker.distribution.manifest.v2+json"
 	}
-	c.Request().Header.Set("Content-Type", contentType)
+	c.Response().Header().Set("Content-Type", contentType)
 
 	return c.NoContent(http.StatusOK)
 }
