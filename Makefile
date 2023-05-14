@@ -30,7 +30,7 @@ all: help
 ## Build:
 build: ## Build your project and put the output binary in ./bin
 	@$(GOCMD) mod download
-	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-release: ## Build your project for release and put the output binary in ./bin
 	@$(GOCMD) mod download

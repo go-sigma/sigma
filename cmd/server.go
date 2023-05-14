@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ximager/ximager/pkg/cmds/server"
+	"github.com/ximager/ximager/pkg/configs"
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/inits"
@@ -29,7 +30,13 @@ var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start the XImager server",
 	Run: func(_ *cobra.Command, _ []string) {
-		err := dal.Initialize()
+		err := configs.Initialize()
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize configs with error")
+			return
+		}
+
+		err = dal.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
 			return
