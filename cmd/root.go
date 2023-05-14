@@ -16,13 +16,13 @@ package cmd
 
 import (
 	"os"
+	"path"
 	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/configs"
 	"github.com/ximager/ximager/pkg/logger"
 
 	_ "github.com/ximager/ximager/pkg/daemon/sbom"
@@ -46,10 +46,6 @@ XImager is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.SetLevel(viper.GetString("log.level"))
-		err := configs.Initialize()
-		if err != nil {
-			return err
-		}
 		return nil
 	},
 }
@@ -74,7 +70,11 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
+		pwd, err := os.Getwd()
+		cobra.CheckErr(err)
 		viper.AddConfigPath("/etc/ximager")
+		viper.AddConfigPath("$HOME/.ximager")
+		viper.AddConfigPath(path.Join(pwd, "conf"))
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("ximager.yaml")
 	}
