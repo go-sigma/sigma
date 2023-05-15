@@ -33,7 +33,7 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 	_artifactSbom.ID = field.NewUint64(tableName, "id")
 	_artifactSbom.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_artifactSbom.Raw = field.NewBytes(tableName, "raw")
-	_artifactSbom.Status = field.NewString(tableName, "status")
+	_artifactSbom.Status = field.NewField(tableName, "status")
 	_artifactSbom.Stdout = field.NewBytes(tableName, "stdout")
 	_artifactSbom.Stderr = field.NewBytes(tableName, "stderr")
 	_artifactSbom.Message = field.NewString(tableName, "message")
@@ -105,7 +105,7 @@ type artifactSbom struct {
 	ID         field.Uint64
 	ArtifactID field.Uint64
 	Raw        field.Bytes
-	Status     field.String
+	Status     field.Field
 	Stdout     field.Bytes
 	Stderr     field.Bytes
 	Message    field.String
@@ -132,7 +132,7 @@ func (a *artifactSbom) updateTableName(table string) *artifactSbom {
 	a.ID = field.NewUint64(table, "id")
 	a.ArtifactID = field.NewUint64(table, "artifact_id")
 	a.Raw = field.NewBytes(table, "raw")
-	a.Status = field.NewString(table, "status")
+	a.Status = field.NewField(table, "status")
 	a.Stdout = field.NewBytes(table, "stdout")
 	a.Stderr = field.NewBytes(table, "stderr")
 	a.Message = field.NewString(table, "message")
@@ -227,6 +227,11 @@ func (a artifactSbomBelongsToArtifact) Where(conds ...field.Expr) *artifactSbomB
 
 func (a artifactSbomBelongsToArtifact) WithContext(ctx context.Context) *artifactSbomBelongsToArtifact {
 	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactSbomBelongsToArtifact) Session(session *gorm.Session) *artifactSbomBelongsToArtifact {
+	a.db = a.db.Session(session)
 	return &a
 }
 

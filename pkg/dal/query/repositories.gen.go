@@ -145,6 +145,11 @@ func (a repositoryBelongsToNamespace) WithContext(ctx context.Context) *reposito
 	return &a
 }
 
+func (a repositoryBelongsToNamespace) Session(session *gorm.Session) *repositoryBelongsToNamespace {
+	a.db = a.db.Session(session)
+	return &a
+}
+
 func (a repositoryBelongsToNamespace) Model(m *models.Repository) *repositoryBelongsToNamespaceTx {
 	return &repositoryBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
 }

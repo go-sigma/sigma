@@ -21,13 +21,15 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // HeadBlob returns the blob's size and digest.
@@ -44,25 +46,32 @@ func (h *handler) HeadBlob(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
+	c.Response().Header().Set(consts.ContentDigest, dgest.String())
+
 	blobService := dao.NewBlobService()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			var err = dtspecv1.ErrorResponse{
-				Errors: []dtspecv1.ErrorInfo{
-					{
-						Code:    "BLOB_UNKNOWN",
-						Message: fmt.Sprintf("blob unknown to registry: %s", dgest.String()),
-						Detail:  fmt.Sprintf("blob unknown to registry: %s", dgest.String()),
-					},
-				},
+		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			cli, err := clients.New()
+			if err != nil {
+				log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 			}
-			return c.JSON(http.StatusNotFound, err)
+			statusCode, header, _, err := cli.DoRequest(c.Request().Method, c.Request().URL.Path)
+			if err != nil {
+				log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			if statusCode != http.StatusOK {
+				log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			c.Response().Header().Set("Content-Length", header.Get("Content-Length"))
+			return c.NoContent(http.StatusOK)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
-	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
 	return c.NoContent(http.StatusOK)
 }

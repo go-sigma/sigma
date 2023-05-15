@@ -23,6 +23,9 @@ var (
 	Blob                  *blob
 	BlobUpload            *blobUpload
 	Namespace             *namespace
+	ProxyArtifactBlob     *proxyArtifactBlob
+	ProxyArtifactTask     *proxyArtifactTask
+	ProxyTagTask          *proxyTagTask
 	Repository            *repository
 	Tag                   *tag
 	User                  *user
@@ -36,6 +39,9 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	Namespace = &Q.Namespace
+	ProxyArtifactBlob = &Q.ProxyArtifactBlob
+	ProxyArtifactTask = &Q.ProxyArtifactTask
+	ProxyTagTask = &Q.ProxyTagTask
 	Repository = &Q.Repository
 	Tag = &Q.Tag
 	User = &Q.User
@@ -50,6 +56,9 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
 		Namespace:             newNamespace(db, opts...),
+		ProxyArtifactBlob:     newProxyArtifactBlob(db, opts...),
+		ProxyArtifactTask:     newProxyArtifactTask(db, opts...),
+		ProxyTagTask:          newProxyTagTask(db, opts...),
 		Repository:            newRepository(db, opts...),
 		Tag:                   newTag(db, opts...),
 		User:                  newUser(db, opts...),
@@ -65,6 +74,9 @@ type Query struct {
 	Blob                  blob
 	BlobUpload            blobUpload
 	Namespace             namespace
+	ProxyArtifactBlob     proxyArtifactBlob
+	ProxyArtifactTask     proxyArtifactTask
+	ProxyTagTask          proxyTagTask
 	Repository            repository
 	Tag                   tag
 	User                  user
@@ -81,6 +93,9 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
 		Namespace:             q.Namespace.clone(db),
+		ProxyArtifactBlob:     q.ProxyArtifactBlob.clone(db),
+		ProxyArtifactTask:     q.ProxyArtifactTask.clone(db),
+		ProxyTagTask:          q.ProxyTagTask.clone(db),
 		Repository:            q.Repository.clone(db),
 		Tag:                   q.Tag.clone(db),
 		User:                  q.User.clone(db),
@@ -104,6 +119,9 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
 		Namespace:             q.Namespace.replaceDB(db),
+		ProxyArtifactBlob:     q.ProxyArtifactBlob.replaceDB(db),
+		ProxyArtifactTask:     q.ProxyArtifactTask.replaceDB(db),
+		ProxyTagTask:          q.ProxyTagTask.replaceDB(db),
 		Repository:            q.Repository.replaceDB(db),
 		Tag:                   q.Tag.replaceDB(db),
 		User:                  q.User.replaceDB(db),
@@ -117,6 +135,9 @@ type queryCtx struct {
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
 	Namespace             *namespaceDo
+	ProxyArtifactBlob     *proxyArtifactBlobDo
+	ProxyArtifactTask     *proxyArtifactTaskDo
+	ProxyTagTask          *proxyTagTaskDo
 	Repository            *repositoryDo
 	Tag                   *tagDo
 	User                  *userDo
@@ -130,6 +151,9 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
 		Namespace:             q.Namespace.WithContext(ctx),
+		ProxyArtifactBlob:     q.ProxyArtifactBlob.WithContext(ctx),
+		ProxyArtifactTask:     q.ProxyArtifactTask.WithContext(ctx),
+		ProxyTagTask:          q.ProxyTagTask.WithContext(ctx),
 		Repository:            q.Repository.WithContext(ctx),
 		Tag:                   q.Tag.WithContext(ctx),
 		User:                  q.User.WithContext(ctx),
@@ -141,10 +165,14 @@ func (q *Query) Transaction(fc func(tx *Query) error, opts ...*sql.TxOptions) er
 }
 
 func (q *Query) Begin(opts ...*sql.TxOptions) *QueryTx {
-	return &QueryTx{q.clone(q.db.Begin(opts...))}
+	tx := q.db.Begin(opts...)
+	return &QueryTx{Query: q.clone(tx), Error: tx.Error}
 }
 
-type QueryTx struct{ *Query }
+type QueryTx struct {
+	*Query
+	Error error
+}
 
 func (q *QueryTx) Commit() error {
 	return q.db.Commit().Error

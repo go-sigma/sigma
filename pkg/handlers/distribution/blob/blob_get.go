@@ -15,22 +15,29 @@
 package blob
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
-	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/reader"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -51,20 +58,52 @@ func (h *handler) GetBlob(c echo.Context) error {
 	blobService := dao.NewBlobService()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			var err = dtspecv1.ErrorResponse{
-				Errors: []dtspecv1.ErrorInfo{
-					{
-						Code:    "BLOB_UNKNOWN",
-						Message: fmt.Sprintf("blob unknown to registry: %s", dgest.String()),
-						Detail:  fmt.Sprintf("blob unknown to registry: %s", dgest.String()),
-					},
-				},
+		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			cli, err := clients.New()
+			if err != nil {
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
 			}
-			return c.JSON(http.StatusNotFound, err)
+			statusCode, header, bodyReader, err := cli.DoRequest(c.Request().Method, c.Request().URL.Path)
+			if err != nil {
+				log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			if statusCode != http.StatusOK {
+				log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			}
+			contentType := header.Get("Content-Type")
+			pipeReader, pipeWriter := io.Pipe()
+			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
+			go func() {
+				blobSize, err := strconv.ParseUint(header.Get("Content-Length"), 10, 64)
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
+					return
+				}
+				log.Info().Str("digest", dgest.String()).Uint64("length", blobSize).Msg("Proxy blob")
+				ctx := context.Background()
+				err = storage.Driver.Upload(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), reader.LimitReader(pipeReader, blobSize))
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Upload blob failed")
+					return
+				}
+				// Note: the blob exist in the storage, but not in the database,
+				// so gc should delete the file directly.
+				_, err = blobService.Create(ctx, &models.Blob{Digest: dgest.String(), Size: blobSize, ContentType: contentType, PushedAt: time.Now()})
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Create blob failed")
+					return
+				}
+			}()
+			c.Response().Header().Set("Content-Length", header.Get("Content-Length"))
+			return c.Stream(http.StatusOK, contentType, newBodyReader)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))

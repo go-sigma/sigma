@@ -258,6 +258,11 @@ func (a artifactHasManyTags) WithContext(ctx context.Context) *artifactHasManyTa
 	return &a
 }
 
+func (a artifactHasManyTags) Session(session *gorm.Session) *artifactHasManyTags {
+	a.db = a.db.Session(session)
+	return &a
+}
+
 func (a artifactHasManyTags) Model(m *models.Artifact) *artifactHasManyTagsTx {
 	return &artifactHasManyTagsTx{a.db.Model(m).Association(a.Name())}
 }
@@ -324,6 +329,11 @@ func (a artifactBelongsToRepository) WithContext(ctx context.Context) *artifactB
 	return &a
 }
 
+func (a artifactBelongsToRepository) Session(session *gorm.Session) *artifactBelongsToRepository {
+	a.db = a.db.Session(session)
+	return &a
+}
+
 func (a artifactBelongsToRepository) Model(m *models.Artifact) *artifactBelongsToRepositoryTx {
 	return &artifactBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
 }
@@ -387,6 +397,11 @@ func (a artifactManyToManyBlobs) Where(conds ...field.Expr) *artifactManyToManyB
 
 func (a artifactManyToManyBlobs) WithContext(ctx context.Context) *artifactManyToManyBlobs {
 	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactManyToManyBlobs) Session(session *gorm.Session) *artifactManyToManyBlobs {
+	a.db = a.db.Session(session)
 	return &a
 }
 

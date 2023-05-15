@@ -12,30 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package manifest
+package tag
 
 import (
-	"io"
-	"net/http"
+	"context"
 
-	"github.com/labstack/echo/v4"
+	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	"github.com/ximager/ximager/pkg/daemon"
 )
 
-// fallbackProxy cannot found the manifest, proxy to the origin registry
-func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
-	cli, err := clients.New()
+func init() {
+	err := daemon.RegisterTask(daemon.DaemonSbom, runner)
 	if err != nil {
-		return 0, nil, nil, err
+		log.Fatal().Err(err).Str("task", daemon.DaemonProxyTag.String()).Msg("RegisterTask error")
 	}
-	statusCode, header, reader, err := cli.DoRequest(c.Request().Method, c.Request().URL.Path)
-	if err != nil {
-		return 0, nil, nil, err
-	}
-	bodyBytes, err := io.ReadAll(reader)
-	if err != nil {
-		return 0, nil, nil, err
-	}
-	return statusCode, header, bodyBytes, nil
+}
+
+// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
+
+func runner(ctx context.Context, _ *asynq.Task) error {
+	return nil
 }

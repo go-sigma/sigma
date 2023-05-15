@@ -216,6 +216,11 @@ func (a tagBelongsToRepository) WithContext(ctx context.Context) *tagBelongsToRe
 	return &a
 }
 
+func (a tagBelongsToRepository) Session(session *gorm.Session) *tagBelongsToRepository {
+	a.db = a.db.Session(session)
+	return &a
+}
+
 func (a tagBelongsToRepository) Model(m *models.Tag) *tagBelongsToRepositoryTx {
 	return &tagBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
 }
@@ -298,6 +303,11 @@ func (a tagBelongsToArtifact) Where(conds ...field.Expr) *tagBelongsToArtifact {
 
 func (a tagBelongsToArtifact) WithContext(ctx context.Context) *tagBelongsToArtifact {
 	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a tagBelongsToArtifact) Session(session *gorm.Session) *tagBelongsToArtifact {
+	a.db = a.db.Session(session)
 	return &a
 }
 

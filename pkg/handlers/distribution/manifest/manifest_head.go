@@ -15,6 +15,7 @@
 package manifest
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -44,9 +46,8 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	referenceService := dao.NewReferenceService()
 	reference, err := referenceService.Get(ctx, repository, ref)
 	if err != nil {
-		log.Error().Err(err).Str("ref", ref).Msg("Get local reference failed")
-		if viper.GetBool("proxy.enabled") {
-			statusCode, header, _, err := h.fallbackProxy(c)
+		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			statusCode, header, _, err := fallbackProxy(c)
 			if err != nil {
 				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
 				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -57,6 +58,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 			}
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
+		log.Error().Err(err).Str("ref", ref).Msg("Get local reference failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
