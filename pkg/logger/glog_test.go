@@ -23,6 +23,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
@@ -57,7 +58,15 @@ func Test_Logger_Sqlite(t *testing.T) {
 
 	now := time.Now()
 
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{NowFunc: func() time.Time { return now }, Logger: ZLogger{}})
+	zLogger := ZLogger{}
+
+	assert.NotNil(t, zLogger.LogMode(0))
+
+	zLogger.Error(context.Background(), "error %s", "error")
+	zLogger.Warn(context.Background(), "warn %s", "warn")
+	zLogger.Info(context.Background(), "info %s", "info")
+
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{NowFunc: func() time.Time { return now }, Logger: zLogger})
 
 	if err != nil {
 		panic(err)

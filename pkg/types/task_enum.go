@@ -7,7 +7,6 @@
 package types
 
 import (
-	"database/sql/driver"
 	"errors"
 	"fmt"
 )
@@ -59,44 +58,4 @@ func MustParseTaskCommonStatus(name string) TaskCommonStatus {
 		panic(err)
 	}
 	return val
-}
-
-var errTaskCommonStatusNilPtr = errors.New("value pointer is nil") // one per type for package clashes
-
-// Scan implements the Scanner interface.
-func (x *TaskCommonStatus) Scan(value interface{}) (err error) {
-	if value == nil {
-		*x = TaskCommonStatus("")
-		return
-	}
-
-	// A wider range of scannable types.
-	// driver.Value values at the top of the list for expediency
-	switch v := value.(type) {
-	case string:
-		*x, err = ParseTaskCommonStatus(v)
-	case []byte:
-		*x, err = ParseTaskCommonStatus(string(v))
-	case TaskCommonStatus:
-		*x = v
-	case *TaskCommonStatus:
-		if v == nil {
-			return errTaskCommonStatusNilPtr
-		}
-		*x = *v
-	case *string:
-		if v == nil {
-			return errTaskCommonStatusNilPtr
-		}
-		*x, err = ParseTaskCommonStatus(*v)
-	default:
-		return errors.New("invalid type for TaskCommonStatus")
-	}
-
-	return
-}
-
-// Value implements the driver Valuer interface.
-func (x TaskCommonStatus) Value() (driver.Value, error) {
-	return x.String(), nil
 }

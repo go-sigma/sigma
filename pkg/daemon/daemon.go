@@ -26,7 +26,7 @@ import (
 	"github.com/ximager/ximager/pkg/logger"
 )
 
-//go:generate go-enum
+//go:generate go-enum --mustparse
 
 // Daemon x ENUM(
 // Vulnerability,

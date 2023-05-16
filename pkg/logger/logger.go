@@ -43,7 +43,12 @@ func SetLevel(levelStr string) {
 		}
 		if len(c) > 0 && strings.Contains(c, "/") {
 			lastIndex := strings.LastIndex(c, "/")
+			left := c[:lastIndex]
 			c = c[lastIndex+1:]
+			if strings.Contains(left, "/") {
+				lastIndex = strings.LastIndex(left, "/")
+				c = left[lastIndex+1:] + "/" + c
+			}
 		}
 		return c
 	}}).With().Caller().Timestamp().Logger()
