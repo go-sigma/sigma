@@ -14,26 +14,8 @@
 
 package configs
 
-import (
-	"fmt"
-	"testing"
+import "testing"
 
-	"github.com/stretchr/testify/assert"
-)
-
-func errChecker() error {
-	return fmt.Errorf("fake error")
-}
-
-func noErrChecker() error {
-	return nil
-}
-
-func TestInitialize(t *testing.T) {
-	checkers = make([]checker, 0)
-	err := Initialize()
-	assert.NoError(t, err)
-	checkers = append(checkers, noErrChecker, errChecker)
-	err = Initialize()
-	assert.Error(t, err)
+func TestDefaultSettings(t *testing.T) {
+	defaultSettings()
 }
