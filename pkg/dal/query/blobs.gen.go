@@ -228,6 +228,11 @@ func (a blobManyToManyArtifacts) WithContext(ctx context.Context) *blobManyToMan
 	return &a
 }
 
+func (a blobManyToManyArtifacts) Session(session *gorm.Session) *blobManyToManyArtifacts {
+	a.db = a.db.Session(session)
+	return &a
+}
+
 func (a blobManyToManyArtifacts) Model(m *models.Blob) *blobManyToManyArtifactsTx {
 	return &blobManyToManyArtifactsTx{a.db.Model(m).Association(a.Name())}
 }

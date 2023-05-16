@@ -31,6 +31,8 @@ import (
 // Daemon x ENUM(
 // Vulnerability,
 // Sbom,
+// ProxyArtifact,
+// ProxyTag,
 // )
 type Daemon string
 

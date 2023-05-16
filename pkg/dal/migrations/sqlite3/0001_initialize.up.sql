@@ -142,3 +142,32 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
 INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
   VALUES ('p', 'anonymous', 'blob', 'pull');
 
+CREATE TABLE IF NOT EXISTS `proxy_artifact_tasks` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `message` varchar(256),
+  `status` varchar(64) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `proxy_artifact_blobs` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `blob` varchar(256) NOT NULL,
+  `proxy_artifact_task_id` integer NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`proxy_artifact_task_id`) REFERENCES `proxy_artifact_tasks` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `proxy_tag_tasks` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `manifest` varchar(256) NOT NULL,
+  `message` varchar(256),
+  `status` varchar(64) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+

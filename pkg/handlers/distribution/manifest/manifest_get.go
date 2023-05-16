@@ -52,7 +52,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
 			if viper.GetBool("proxy.enabled") {
-				statusCode, header, bodyBytes, err := h.fallbackProxy(c)
+				statusCode, header, bodyBytes, err := fallbackProxy(c)
 				if err != nil {
 					log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
 					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -76,7 +76,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		if viper.GetBool("proxy.enabled") {
-			statusCode, header, bodyBytes, err := h.fallbackProxy(c)
+			statusCode, header, bodyBytes, err := fallbackProxy(c)
 			if err != nil {
 				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
 				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

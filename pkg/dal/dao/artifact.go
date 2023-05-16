@@ -261,7 +261,7 @@ func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *
 
 // UpdateSbomStatus update the artifact sbom status.
 func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
-	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(artifactID)).
+	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,
 		})
@@ -273,7 +273,7 @@ func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint6
 
 // UpdateVulnerabilityStatus update the artifact vulnerability status.
 func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
-	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(artifactID)).
+	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,
 		})

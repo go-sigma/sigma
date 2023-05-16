@@ -18,6 +18,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -32,7 +33,7 @@ import (
 // Clients is the interface of clients
 type Clients interface {
 	AuthToken() error
-	DoRequest(method, path string) (int, http.Header, []byte, error)
+	DoRequest(method, path string) (int, http.Header, io.ReadCloser, error)
 }
 
 // clients is the implementation of Clients
@@ -49,7 +50,7 @@ func New() (Clients, error) {
 			Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}, // nolint: gosec
 		})
 	}
-	if viper.GetString("log.level") == "debug" {
+	if viper.GetString("log.proxyLevel") == "debug" {
 		client.SetDebug(true)
 	}
 	client.SetHeader("User-Agent", consts.UserAgent)
@@ -168,7 +169,7 @@ func (c *clients) token(cha challenge.Challenge) (string, error) {
 }
 
 // DoRequest returns the response
-func (c *clients) DoRequest(method, path string) (int, http.Header, []byte, error) {
+func (c *clients) DoRequest(method, path string) (int, http.Header, io.ReadCloser, error) {
 	req := c.cli.R()
 	req.SetHeader("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -176,7 +177,7 @@ func (c *clients) DoRequest(method, path string) (int, http.Header, []byte, erro
 	req.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
 	req.Header.Add("Accept", "application/vnd.oci.image.manifest.v1+json")
 	req.Header.Add("Accept", "application/json")
-
+	req.SetDoNotParseResponse(true)
 	resp, err := req.Execute(method, fmt.Sprintf("%s/%s", c.endpoint, strings.TrimPrefix(path, "/")))
 	if err != nil {
 		return 0, nil, nil, err
@@ -201,5 +202,5 @@ func (c *clients) DoRequest(method, path string) (int, http.Header, []byte, erro
 		return 0, nil, nil, fmt.Errorf("unsupported schema: %s", cha.Scheme)
 	}
 
-	return resp.StatusCode(), resp.RawResponse.Header, resp.Body(), nil
+	return resp.StatusCode(), resp.RawResponse.Header, resp.RawBody(), nil
 }
