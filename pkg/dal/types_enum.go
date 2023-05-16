@@ -7,7 +7,6 @@
 package dal
 
 import (
-	"database/sql/driver"
 	"errors"
 	"fmt"
 )
@@ -56,44 +55,4 @@ func MustParseDatabase(name string) Database {
 		panic(err)
 	}
 	return val
-}
-
-var errDatabaseNilPtr = errors.New("value pointer is nil") // one per type for package clashes
-
-// Scan implements the Scanner interface.
-func (x *Database) Scan(value interface{}) (err error) {
-	if value == nil {
-		*x = Database("")
-		return
-	}
-
-	// A wider range of scannable types.
-	// driver.Value values at the top of the list for expediency
-	switch v := value.(type) {
-	case string:
-		*x, err = ParseDatabase(v)
-	case []byte:
-		*x, err = ParseDatabase(string(v))
-	case Database:
-		*x = v
-	case *Database:
-		if v == nil {
-			return errDatabaseNilPtr
-		}
-		*x = *v
-	case *string:
-		if v == nil {
-			return errDatabaseNilPtr
-		}
-		*x, err = ParseDatabase(*v)
-	default:
-		return errors.New("invalid type for Database")
-	}
-
-	return
-}
-
-// Value implements the driver Valuer interface.
-func (x Database) Value() (driver.Value, error) {
-	return x.String(), nil
 }

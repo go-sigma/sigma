@@ -80,3 +80,12 @@ func TestParseDatabase(t *testing.T) {
 		})
 	}
 }
+
+func TestMustParseDatabasePanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("MustParseDatabase() should have panicked!")
+		}
+	}()
+	MustParseDatabase("fake")
+}
