@@ -188,3 +188,5 @@ conf/ximager-dev.yaml
 
 # database
 *.db
+
+pkg/**/*.html

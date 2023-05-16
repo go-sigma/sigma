@@ -89,3 +89,22 @@ func TestMustParseDatabasePanic(t *testing.T) {
 	}()
 	MustParseDatabase("fake")
 }
+
+func TestMustParseDatabase(t *testing.T) {
+	tests := []struct {
+		name  string
+		name2 string
+		want  Database
+	}{
+		{name: "postgresql", name2: "postgresql", want: DatabasePostgresql},
+		{name: "mysql", name2: "mysql", want: DatabaseMysql},
+		{name: "sqlite3", name2: "sqlite3", want: DatabaseSqlite3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MustParseDatabase(tt.name2); got != tt.want {
+				t.Errorf("MustParseDatabase() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
