@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -117,6 +118,36 @@ func TestValidateTag(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Tag, func(t *testing.T) {
 			err := validate.Struct(test)
+
+			if !assert.Equal(t, test.Expected, err == nil) {
+				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
+			}
+		})
+	}
+}
+
+func TestInitialize(t *testing.T) {
+	e := echo.New()
+	Initialize(e)
+}
+
+func TestValidate(t *testing.T) {
+	e := echo.New()
+	Initialize(e)
+
+	type Test struct {
+		Name     string `json:"name" validate:"required"`
+		Expected bool
+	}
+
+	var tests = []Test{
+		{"my-repo", true},
+		{"", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			err := e.Validator.Validate(test)
 
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
