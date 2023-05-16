@@ -37,6 +37,7 @@ type CustomValidator struct {
 	validator *validator.Validate
 }
 
+// Validate validates the input
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
 		// Optionally, you could return the error to give each route more control over the status code
@@ -45,6 +46,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return nil
 }
 
+// Initialize initializes the validator
 func Initialize(e *echo.Echo) {
 	validate := validator.New()
 	register(validate)
