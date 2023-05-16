@@ -1,5 +1,6 @@
 log:
   level: debug
+  proxyLevel: info
 database:
   # The database type to use. Supported types are: sqlite3, mysql, postgresql
   type: mysql

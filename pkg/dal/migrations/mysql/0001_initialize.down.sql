@@ -18,3 +18,9 @@ DROP TABLE IF EXISTS `artifact_sbom`;
 
 DROP TABLE IF EXISTS `artifact_vulnerability`;
 
+DROP TABLE IF EXISTS `proxy_artifact_tasks`;
+
+DROP TABLE IF EXISTS `proxy_artifact_blobs`;
+
+DROP TABLE IF EXISTS `proxy_tag_tasks`;
+

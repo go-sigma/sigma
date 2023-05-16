@@ -34,7 +34,7 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 	_artifactVulnerability.ArtifactID = field.NewUint64(tableName, "artifact_id")
 	_artifactVulnerability.Metadata = field.NewBytes(tableName, "metadata")
 	_artifactVulnerability.Raw = field.NewBytes(tableName, "raw")
-	_artifactVulnerability.Status = field.NewString(tableName, "status")
+	_artifactVulnerability.Status = field.NewField(tableName, "status")
 	_artifactVulnerability.Stdout = field.NewBytes(tableName, "stdout")
 	_artifactVulnerability.Stderr = field.NewBytes(tableName, "stderr")
 	_artifactVulnerability.Message = field.NewString(tableName, "message")
@@ -107,7 +107,7 @@ type artifactVulnerability struct {
 	ArtifactID field.Uint64
 	Metadata   field.Bytes
 	Raw        field.Bytes
-	Status     field.String
+	Status     field.Field
 	Stdout     field.Bytes
 	Stderr     field.Bytes
 	Message    field.String
@@ -135,7 +135,7 @@ func (a *artifactVulnerability) updateTableName(table string) *artifactVulnerabi
 	a.ArtifactID = field.NewUint64(table, "artifact_id")
 	a.Metadata = field.NewBytes(table, "metadata")
 	a.Raw = field.NewBytes(table, "raw")
-	a.Status = field.NewString(table, "status")
+	a.Status = field.NewField(table, "status")
 	a.Stdout = field.NewBytes(table, "stdout")
 	a.Stderr = field.NewBytes(table, "stderr")
 	a.Message = field.NewString(table, "message")
@@ -231,6 +231,11 @@ func (a artifactVulnerabilityBelongsToArtifact) Where(conds ...field.Expr) *arti
 
 func (a artifactVulnerabilityBelongsToArtifact) WithContext(ctx context.Context) *artifactVulnerabilityBelongsToArtifact {
 	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactVulnerabilityBelongsToArtifact) Session(session *gorm.Session) *artifactVulnerabilityBelongsToArtifact {
+	a.db = a.db.Session(session)
 	return &a
 }
 

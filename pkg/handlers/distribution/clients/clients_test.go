@@ -17,6 +17,7 @@ package clients
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -48,7 +49,7 @@ func TestBasicAuthToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "debug")
+	viper.SetDefault("log.proxyLevel", "debug")
 	viper.SetDefault("proxy.endpoint", srv.URL)
 	viper.SetDefault("proxy.tlsVerify", true)
 	viper.SetDefault("proxy.username", cUsername)
@@ -194,8 +195,10 @@ func TestDoRequest(t *testing.T) {
 	clients, err := New()
 	assert.NoError(t, err)
 
-	statusCode, _, body, err := clients.DoRequest(http.MethodGet, "/v2/_catalog")
+	statusCode, _, bodyReader, err := clients.DoRequest(http.MethodGet, "/v2/_catalog")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, statusCode)
-	assert.Equal(t, `{"repositories":["library/alpine"]}`, strings.TrimSpace(string(body)))
+	bodyBytes, err := io.ReadAll(bodyReader)
+	assert.NoError(t, err)
+	assert.Equal(t, `{"repositories":["library/alpine"]}`, strings.TrimSpace(string(bodyBytes)))
 }

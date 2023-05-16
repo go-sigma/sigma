@@ -18,7 +18,7 @@ WHITE           := $(shell tput -Txterm setaf 7)
 CYAN            := $(shell tput -Txterm setaf 6)
 RESET           := $(shell tput -Txterm sgr0)
 
-GOLDFLAGS       += -X github.com/ximager/ximager/cmd.version=$(shell git describe --tags --dirty)
+GOLDFLAGS       += -X github.com/ximager/ximager/cmd.version=$(shell git describe --tags --dirty --always)
 GOLDFLAGS       += -X github.com/ximager/ximager/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GOLDFLAGS       += -X github.com/ximager/ximager/cmd.gitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS          = -ldflags '-extldflags "-static" -s -w $(GOLDFLAGS)'
