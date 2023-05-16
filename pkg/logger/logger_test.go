@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dal
+package logger
 
-//go:generate go-enum --mustparse
+import (
+	"fmt"
+	"testing"
 
-// Database x ENUM(
-// postgresql,
-// mysql,
-// sqlite3,
-// )
-type Database string
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+)
+
+func TestSetLevel(t *testing.T) {
+	SetLevel("debug")
+	log.Info().Str("x", "x").Msgf("log level set to %s", zerolog.GlobalLevel())
+	SetLevel("info")
+	log.Error().Str("x", "x").Err(fmt.Errorf("hello")).Stack().Msgf("log level set to %s", zerolog.GlobalLevel())
+}
