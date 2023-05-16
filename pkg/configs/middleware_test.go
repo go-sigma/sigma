@@ -25,9 +25,13 @@ import (
 )
 
 func TestCheckRedis(t *testing.T) {
+	viper.SetDefault("redis.url", "redis:///127.0.0.1:6379")
+	err := checkRedis()
+	assert.Error(t, err)
+
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	err := checkRedis()
+	err = checkRedis()
 	assert.NoError(t, err)
 
 	viper.SetDefault("redis.url", "redis://127.0.0.1:1100")
