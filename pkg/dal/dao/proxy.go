@@ -25,7 +25,7 @@ import (
 // ProxyService defines the interface to access proxy task.
 type ProxyService interface {
 	// SaveProxyArtifact save a new artifact proxy task if conflict update.
-	SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) (*models.ProxyArtifactTask, error)
+	SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) error
 	// UpdateProxyArtifactStatus update the artifact proxy task status.
 	UpdateProxyArtifactStatus(ctx context.Context, id uint64, status enums.TaskCommonStatus) error
 	// FindByBlob find the artifact proxy task by blob.
@@ -48,12 +48,8 @@ func NewProxyService(txs ...*query.Query) ProxyService {
 }
 
 // SaveProxyArtifact save a new artifact proxy task if conflict update.
-func (s *proxyService) SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) (*models.ProxyArtifactTask, error) {
-	err := s.tx.ProxyArtifactTask.WithContext(ctx).Save(task)
-	if err != nil {
-		return nil, err
-	}
-	return task, nil
+func (s *proxyService) SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) error {
+	return s.tx.ProxyArtifactTask.WithContext(ctx).Save(task)
 }
 
 // UpdateProxyArtifactStatus update the artifact proxy task status.
@@ -62,10 +58,7 @@ func (s *proxyService) UpdateProxyArtifactStatus(ctx context.Context, id uint64,
 		UpdateColumns(map[string]interface{}{
 			"status": status,
 		})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // FindByBlob find the artifact proxy task by blob.
