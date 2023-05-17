@@ -72,7 +72,10 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				username, pwd, ok = c.Request().BasicAuth()
 				if !ok {
 					log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Basic auth failed")
 				}
 
 				userService := dao.NewUserService()
