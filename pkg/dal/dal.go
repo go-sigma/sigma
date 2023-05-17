@@ -27,6 +27,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 var (
@@ -37,13 +38,13 @@ var (
 // Initialize initializes the database connection
 func Initialize() error {
 	var err error
-	dbType := MustParseDatabase(viper.GetString("database.type"))
+	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
 	switch dbType {
-	case DatabaseMysql:
+	case enums.DatabaseMysql:
 		err = connectMysql()
-	case DatabasePostgresql:
+	case enums.DatabasePostgresql:
 		err = connectPostgres()
-	case DatabaseSqlite3:
+	case enums.DatabaseSqlite3:
 		err = connectSqlite3()
 	default:
 		return fmt.Errorf("unknown database type: %s", dbType)

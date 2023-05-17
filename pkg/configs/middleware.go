@@ -27,7 +27,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/types/enums"
+
+	_ "github.com/ximager/ximager/pkg/dal"
 )
 
 func init() {
@@ -54,17 +56,17 @@ func checkRedis() error {
 func checkDatabase() error {
 	dbType := viper.GetString("database.type")
 
-	typ, err := dal.ParseDatabase(dbType)
+	typ, err := enums.ParseDatabase(dbType)
 	if err != nil {
-		return fmt.Errorf("database type is invalid, just support: %s, %s, %s", dal.DatabasePostgresql, dal.DatabaseMysql, dal.DatabaseSqlite3)
+		return fmt.Errorf("database type is invalid, just support: %s, %s, %s", enums.DatabasePostgresql, enums.DatabaseMysql, enums.DatabaseSqlite3)
 	}
 
 	switch typ {
-	case dal.DatabaseMysql:
+	case enums.DatabaseMysql:
 		return checkMysql()
-	case dal.DatabasePostgresql:
+	case enums.DatabasePostgresql:
 		return checkPostgresql()
-	case dal.DatabaseSqlite3:
+	case enums.DatabaseSqlite3:
 		return nil
 	default:
 		return fmt.Errorf("unknown database type: %s", dbType)

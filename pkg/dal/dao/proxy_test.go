@@ -26,7 +26,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 func TestProxyArtifact(t *testing.T) {
@@ -49,14 +49,14 @@ func TestProxyArtifact(t *testing.T) {
 
 	proxyService := NewProxyService()
 	_, err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
-		Status: types.TaskCommonStatusPending,
+		Status: enums.TaskCommonStatusPending,
 		Blobs: []models.ProxyArtifactBlob{
 			{Blob: "sha256:123"},
 			{Blob: "sha256:456"},
 		}})
 	assert.NoError(t, err)
 	_, err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
-		Status: types.TaskCommonStatusPending,
+		Status: enums.TaskCommonStatusPending,
 		Blobs: []models.ProxyArtifactBlob{
 			{Blob: "sha256:789"},
 			{Blob: "sha256:7891"},
@@ -65,6 +65,6 @@ func TestProxyArtifact(t *testing.T) {
 	findTasks, err := proxyService.FindByBlob(ctx, "sha256:123")
 	assert.NoError(t, err)
 	assert.Equal(t, len(findTasks), 1)
-	err = proxyService.UpdateProxyArtifactStatus(ctx, findTasks[0].ID, types.TaskCommonStatusSuccess)
+	err = proxyService.UpdateProxyArtifactStatus(ctx, findTasks[0].ID, enums.TaskCommonStatusSuccess)
 	assert.NoError(t, err)
 }

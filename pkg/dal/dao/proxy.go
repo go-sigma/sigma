@@ -19,7 +19,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // ProxyService defines the interface to access proxy task.
@@ -27,7 +27,7 @@ type ProxyService interface {
 	// SaveProxyArtifact save a new artifact proxy task if conflict update.
 	SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) (*models.ProxyArtifactTask, error)
 	// UpdateProxyArtifactStatus update the artifact proxy task status.
-	UpdateProxyArtifactStatus(ctx context.Context, id uint64, status types.TaskCommonStatus) error
+	UpdateProxyArtifactStatus(ctx context.Context, id uint64, status enums.TaskCommonStatus) error
 	// FindByBlob find the artifact proxy task by blob.
 	FindByBlob(ctx context.Context, blob string) ([]*models.ProxyArtifactTask, error)
 }
@@ -57,7 +57,7 @@ func (s *proxyService) SaveProxyArtifact(ctx context.Context, task *models.Proxy
 }
 
 // UpdateProxyArtifactStatus update the artifact proxy task status.
-func (s *proxyService) UpdateProxyArtifactStatus(ctx context.Context, id uint64, status types.TaskCommonStatus) error {
+func (s *proxyService) UpdateProxyArtifactStatus(ctx context.Context, id uint64, status enums.TaskCommonStatus) error {
 	_, err := s.tx.ProxyArtifactTask.WithContext(ctx).Where(s.tx.ProxyArtifactTask.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,
