@@ -15,9 +15,6 @@
 package handlers
 
 import (
-	"net/http"
-
-	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
@@ -34,29 +31,12 @@ import (
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
-// CustomValidator is a custom validator for echo
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-func (cv *CustomValidator) Validate(i interface{}) error {
-	if err := cv.validator.Struct(i); err != nil {
-		// Optionally, you could return the error to give each route more control over the status code
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return nil
-}
-
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
 
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validators.Initialize(e)
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
 
 	userGroup := e.Group("/user")
 	userHandler := user.New()
