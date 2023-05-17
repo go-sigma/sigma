@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 func TestCheckRedis(t *testing.T) {
@@ -45,7 +45,7 @@ func TestCheckDatabase(t *testing.T) {
 	err := checkDatabase()
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.type", dal.DatabaseMysql.String())
+	viper.SetDefault("database.type", enums.DatabaseMysql.String())
 	viper.SetDefault("database.mysql.host", "127.0.0.1")
 	viper.SetDefault("database.mysql.port", "3306")
 	viper.SetDefault("database.mysql.user", "root")
@@ -55,7 +55,7 @@ func TestCheckDatabase(t *testing.T) {
 	err = checkDatabase()
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.type", dal.DatabasePostgresql.String())
+	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
 	viper.SetDefault("database.postgres.host", "localhost")
 	viper.SetDefault("database.postgres.port", 5432)
 	viper.SetDefault("database.postgres.user", "ximager")
@@ -72,7 +72,7 @@ func TestCheckDatabase(t *testing.T) {
 }
 
 func TestCheckMysql(t *testing.T) {
-	viper.SetDefault("database.type", dal.DatabaseMysql.String())
+	viper.SetDefault("database.type", enums.DatabaseMysql.String())
 	viper.SetDefault("database.mysql.host", "127.0.0.1")
 	viper.SetDefault("database.mysql.port", "3306")
 	viper.SetDefault("database.mysql.user", "root")
@@ -89,7 +89,7 @@ func TestCheckMysql(t *testing.T) {
 }
 
 func TestCheckPostgresql(t *testing.T) {
-	viper.SetDefault("database.type", dal.DatabasePostgresql.String())
+	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
 	viper.SetDefault("database.postgres.host", "localhost")
 	viper.SetDefault("database.postgres.port", 5432)
 	viper.SetDefault("database.postgres.user", "ximager")

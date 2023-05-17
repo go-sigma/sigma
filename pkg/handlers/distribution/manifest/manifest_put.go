@@ -38,6 +38,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -147,7 +148,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	_, err = artifactService.SaveSbom(ctx, &models.ArtifactSbom{
 		ArtifactID: artifactObj.ID,
-		Status:     types.TaskCommonStatusPending,
+		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save sbom failed")
@@ -170,7 +171,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	_, err = artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
 		ArtifactID: artifactObj.ID,
-		Status:     types.TaskCommonStatusPending,
+		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save vulnerability failed")

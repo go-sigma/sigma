@@ -20,7 +20,7 @@ import (
 
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // Artifact represents an artifact
@@ -54,7 +54,7 @@ type ArtifactSbom struct {
 
 	ArtifactID uint64
 	Raw        []byte
-	Status     types.TaskCommonStatus
+	Status     enums.TaskCommonStatus
 	Stdout     []byte
 	Stderr     []byte
 	Message    string
@@ -72,7 +72,7 @@ type ArtifactVulnerability struct {
 	ArtifactID uint64
 	Metadata   []byte // is the trivy db metadata
 	Raw        []byte
-	Status     types.TaskCommonStatus
+	Status     enums.TaskCommonStatus
 	Stdout     []byte
 	Stderr     []byte
 	Message    string

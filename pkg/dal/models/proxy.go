@@ -19,7 +19,7 @@ import (
 
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // ArtifactProxyTask represents an artifact proxy task
@@ -29,7 +29,7 @@ type ProxyArtifactTask struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        uint64                `gorm:"primaryKey"`
 
-	Status  types.TaskCommonStatus
+	Status  enums.TaskCommonStatus
 	Message string
 
 	Blobs []ProxyArtifactBlob `gorm:"foreignKey:ProxyArtifactTaskID;references:ID"`
@@ -56,6 +56,6 @@ type ProxyTagTask struct {
 	ID        uint64                `gorm:"primaryKey"`
 
 	Manifest string
-	Status   types.TaskCommonStatus
+	Status   enums.TaskCommonStatus
 	Message  string
 }

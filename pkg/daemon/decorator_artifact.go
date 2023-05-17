@@ -23,13 +23,13 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // DecoratorArtifactStatus is a status for decorator
 type DecoratorArtifactStatus struct {
-	Daemon  Daemon
-	Status  types.TaskCommonStatus
+	Daemon  enums.Daemon
+	Status  enums.TaskCommonStatus
 	Raw     []byte
 	Stdout  []byte
 	Stderr  []byte
@@ -52,7 +52,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 		go func() {
 			for status := range statusChan {
 				switch status.Daemon {
-				case DaemonVulnerability:
+				case enums.DaemonVulnerability:
 					_, err = artifactService.SaveVulnerability(context.Background(), &models.ArtifactVulnerability{
 						ArtifactID: id,
 						Raw:        status.Raw,
@@ -61,7 +61,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 						Stderr:     status.Stderr,
 						Message:    status.Message,
 					})
-				case DaemonSbom:
+				case enums.DaemonSbom:
 					_, err = artifactService.SaveSbom(context.Background(), &models.ArtifactSbom{
 						ArtifactID: id,
 						Raw:        status.Raw,
