@@ -23,6 +23,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // ArtifactService is the interface that provides the artifact service methods.
@@ -56,9 +57,9 @@ type ArtifactService interface {
 	// SaveVulnerability save a new artifact vulnerability if conflict update.
 	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error)
 	// UpdateSbomStatus update the artifact sbom status.
-	UpdateSbomStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error
+	UpdateSbomStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error
 	// UpdateVulnerabilityStatus update the artifact vulnerability status.
-	UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error
+	UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error
 }
 
 type artifactService struct {
@@ -260,7 +261,7 @@ func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *
 }
 
 // UpdateSbomStatus update the artifact sbom status.
-func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
+func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error {
 	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,
@@ -272,7 +273,7 @@ func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint6
 }
 
 // UpdateVulnerabilityStatus update the artifact vulnerability status.
-func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status types.TaskCommonStatus) error {
+func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error {
 	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,

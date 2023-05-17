@@ -12,9 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dal
+package enums
 
-//go:generate go-enum --mustparse
+//go:generate go-enum --sql --mustparse
+
+// TaskCommonStatus x ENUM(
+// Pending,
+// Doing,
+// Success,
+// Failed
+// )
+type TaskCommonStatus string
 
 // Database x ENUM(
 // postgresql,
@@ -22,3 +30,11 @@ package dal
 // sqlite3,
 // )
 type Database string
+
+// Daemon x ENUM(
+// Vulnerability,
+// Sbom,
+// ProxyArtifact,
+// ProxyTag,
+// )
+type Daemon string

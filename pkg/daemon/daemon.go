@@ -24,32 +24,23 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/logger"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
-//go:generate go-enum --mustparse
-
-// Daemon x ENUM(
-// Vulnerability,
-// Sbom,
-// ProxyArtifact,
-// ProxyTag,
-// )
-type Daemon string
-
 // tasks all daemon tasks
-var tasks = map[Daemon]func(context.Context, *asynq.Task) error{}
+var tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
 // topics all daemon topics
-var topics = map[Daemon]string{
-	DaemonSbom:          consts.TopicSbom,
-	DaemonVulnerability: consts.TopicVulnerability,
+var topics = map[enums.Daemon]string{
+	enums.DaemonSbom:          consts.TopicSbom,
+	enums.DaemonVulnerability: consts.TopicVulnerability,
 }
 
 // asynqCli asynq client
 var asynqCli *asynq.Client
 
 // RegisterTask registers a daemon task
-func RegisterTask(name Daemon, handler func(context.Context, *asynq.Task) error) error {
+func RegisterTask(name enums.Daemon, handler func(context.Context, *asynq.Task) error) error {
 	_, ok := tasks[name]
 	if ok {
 		return fmt.Errorf("daemon task %q already registered", name)

@@ -21,12 +21,13 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/daemon"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 func init() {
-	err := daemon.RegisterTask(daemon.DaemonSbom, runner)
+	err := daemon.RegisterTask(enums.DaemonSbom, runner)
 	if err != nil {
-		log.Fatal().Err(err).Str("task", daemon.DaemonProxyTag.String()).Msg("RegisterTask error")
+		log.Fatal().Err(err).Str("task", enums.DaemonProxyTag.String()).Msg("RegisterTask error")
 	}
 }
 
