@@ -57,7 +57,7 @@ func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, i
 		event = zl.Info()
 	}
 
-	event = event.Dur("elapsed", time.Since(begin))
+	event = event.Str("elapsed", time.Since(begin).String())
 
 	sql, rows := f()
 	if sql != "" {

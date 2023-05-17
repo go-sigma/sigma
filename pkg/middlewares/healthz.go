@@ -31,7 +31,7 @@ type Resource interface {
 func Healthz(rs ...Resource) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().URL.Path == "/healthz" {
+			if c.Request().URL.Path == "/healthz" && c.Request().Method == http.MethodGet {
 				for _, r := range rs {
 					if err := r.HealthCheck(); err != nil {
 						return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

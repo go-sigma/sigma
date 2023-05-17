@@ -51,6 +51,7 @@ func Serve() error {
 			return n
 		}
 	}))
+	e.Use(middleware.RequestID())
 	e.Use(middleware.CORS())
 	e.Use(middlewares.Healthz())
 
