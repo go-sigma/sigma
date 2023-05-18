@@ -15,8 +15,12 @@
 package handlers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"golang.org/x/exp/slices"
 
 	"github.com/ximager/ximager/pkg/handlers/artifact"
 	"github.com/ximager/ximager/pkg/handlers/distribution"
@@ -31,6 +35,10 @@ import (
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
+var skipAuths = []string{"post:/user/login", "get:/user/token", "get:/user/signup", "get:/user/create"}
+
+var userHandler user.Handlers
+
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
 
@@ -39,10 +47,11 @@ func Initialize(e *echo.Echo) error {
 	validators.Initialize(e)
 
 	userGroup := e.Group("/user")
-	userHandler := user.New()
+	userHandler = user.New()
 	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
 		Skipper: func(c echo.Context) bool {
-			return c.Path() == "/user/login" || c.Path() == "/user/token" || c.Path() == "/user/signup"
+			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
+			return slices.Contains(skipAuths, authStr)
 		},
 	}))
 	userGroup.POST("/login", userHandler.Login)
@@ -54,15 +63,9 @@ func Initialize(e *echo.Echo) error {
 	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	namespaceHandler := namespace.New()
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
-	namespaceGroup.PUT("/:id", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
-	namespaceGroup.DELETE("/:id", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
-	namespaceGroup.GET("/:id", func(c echo.Context) error {
-		return c.String(200, "OK")
-	})
+	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
+	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
+	// namespaceGroup.GET("/:id",name)
 	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
 
 	repositoryGroup := namespaceGroup.Group("/:namespace/repository")
