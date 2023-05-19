@@ -25,7 +25,7 @@ GOFLAGS          = -ldflags '-extldflags "-static" -s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor
 
-all: help
+all: build
 
 ## Build:
 build: ## Build your project and put the output binary in ./bin
