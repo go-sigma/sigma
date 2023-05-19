@@ -33,6 +33,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.9.0
+	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gen v0.3.22

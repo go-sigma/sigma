@@ -24,6 +24,8 @@ type Handlers interface {
 	ListNamespace(c echo.Context) error
 	// DeleteNamespace handles the delete namespace request
 	DeleteNamespace(c echo.Context) error
+	// PutNamespace handles the put namespace request
+	PutNamespace(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
