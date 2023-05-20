@@ -26,6 +26,8 @@ import (
 	"github.com/ximager/ximager/pkg/types/enums"
 )
 
+//go:generate mockgen -destination=mocks/artifact.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ArtifactService
+
 // ArtifactService is the interface that provides the artifact service methods.
 type ArtifactService interface {
 	// Save save a new artifact if conflict update.

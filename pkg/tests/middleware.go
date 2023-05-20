@@ -19,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // CIDatabase is the interface for the database in ci tests
@@ -54,7 +56,7 @@ func Initialize() error {
 
 	typ := viper.GetString("ci.database.type")
 	if typ == "" {
-		typ = "sqlite3"
+		typ = enums.DatabaseSqlite3.String()
 	}
 
 	factory, ok := ciDatabaseFactories[typ]

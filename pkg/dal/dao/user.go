@@ -21,6 +21,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/user.go -package=mocks github.com/ximager/ximager/pkg/dal/dao UserService
+
 // UserService is the interface that provides the user service methods.
 type UserService interface {
 	// GetByUsername gets the user with the specified user name.

@@ -102,4 +102,11 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, "test", string(dataBytes))
 	err = driver.Delete(context.Background(), "unit-test-path")
 	assert.NoError(t, err)
+
+	err = driver.Upload(context.Background(), "unit-test-path", nil)
+	assert.Error(t, err)
+}
+
+func TestUpload(t *testing.T) {
+
 }
