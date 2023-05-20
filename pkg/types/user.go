@@ -16,8 +16,8 @@ package types
 
 // PostUserLoginRequest ...
 type PostUserLoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`
+	Password string `json:"password" validate:"required,min=6,max=20"`
 }
 
 // PostUserLoginResponse ...

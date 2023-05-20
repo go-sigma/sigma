@@ -17,10 +17,7 @@ package user
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/utils/token"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -28,19 +25,15 @@ import (
 func (h *handlers) Logout(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
-	if err != nil {
-		log.Error().Err(err).Msg("Create token service failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	jti, ok := c.Get("jti").(string)
+	if !ok || jti == "" {
+		log.Error().Str("jti", jti).Msg("Get jti failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Get jti failed")
 	}
-
-	user := c.Get("user").(*models.User)
-	log.Info().Interface("user", user).Msg("User logout")
-
-	err = tokenService.Revoke(ctx, "admin")
+	err := h.tokenService.Revoke(ctx, jti)
 	if err != nil {
 		log.Error().Err(err).Msg("Revoke token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	return nil
+	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeOK, "Logout successfully")
 }

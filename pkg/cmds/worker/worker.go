@@ -32,7 +32,7 @@ import (
 
 // Worker is the worker initialization
 func Worker() error {
-	err := daemon.Initialize()
+	err := daemon.InitializeServer()
 	if err != nil {
 		return err
 	}
