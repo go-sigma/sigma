@@ -6,5 +6,67 @@ metadata:
   labels:
     {{- include "ximager.labels" . | nindent 4 }}
 data:
-  config.yaml: |-
-    {{- .Values.config | toYaml | nindent 4 }}
+  {{- if eq .Values.middleware.type "internal" }}
+  ximager.yaml: |-
+    log:
+      level: debug
+    database:
+      type: mysql
+      sqlite3:
+        path: ximager.db
+      mysql:
+        host: {{ .Release.Name }}-mysql
+        port: 3306
+        user: ximager
+        password: ximager
+        dbname: ximager
+      postgresql:
+        host: localhost
+        port: 5432
+        user: ximager
+        password: ximager
+        dbname: ximager
+        sslmode: disable
+    redis:
+      url: redis://:ximager@{{ .Release.Name }}-redis-master:6379/0
+    http:
+      server: 0.0.0.0:3000
+      worker: 0.0.0.0:3001
+    storage:
+      rootdirectory: ./storage
+      type: s3
+      filesystem:
+        path: /
+      s3:
+        ak: ximager
+        sk: ximager-ximager
+        endpoint: http://{{ .Release.Name }}-minio:9000
+        region: cn-north-1
+        bucket: ximager
+        forcePathStyle: true
+    proxy:
+      enabled: true
+      endpoint: https://registry-1.docker.io
+      tlsVerify: true
+      username: ""
+      password: ""
+    auth:
+      user:
+        password: ""
+      internalUser:
+        username: internal-ximager
+        password: internal-ximager
+      admin:
+        username: ximager
+        password: ximager
+      token:
+        realm: ""
+        service: ""
+      jwt:
+        ttl: 1h
+        refreshTtl: 24h
+        privateKey: {{ randAlphaNum 32 | b64enc }}
+  {{- else if eq .Values.middleware.type "external" }}
+  ximager.yaml: |-
+    {{ .Values.config | toYaml | nindent 4 }}
+  {{- end }}
