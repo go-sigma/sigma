@@ -25,6 +25,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/reference.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ReferenceService
+
 // ReferenceService defines the operations related to reference.
 type ReferenceService interface {
 	Get(ctx context.Context, repository, ref string) (*models.Reference, error)

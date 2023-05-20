@@ -26,6 +26,8 @@ import (
 	"github.com/ximager/ximager/pkg/utils/imagerefs"
 )
 
+//go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryService
+
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
 	// Create creates a new repository.

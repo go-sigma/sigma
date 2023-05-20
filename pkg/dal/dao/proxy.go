@@ -22,6 +22,8 @@ import (
 	"github.com/ximager/ximager/pkg/types/enums"
 )
 
+//go:generate mockgen -destination=mocks/proxy.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ProxyService
+
 // ProxyService defines the interface to access proxy task.
 type ProxyService interface {
 	// SaveProxyArtifact save a new artifact proxy task if conflict update.

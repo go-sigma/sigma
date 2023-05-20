@@ -26,6 +26,8 @@ import (
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
+//go:generate mockgen -destination=mocks/namespace.go -package=mocks github.com/ximager/ximager/pkg/dal/dao NamespaceService
+
 // NamespaceService is the interface that provides the namespace service methods.
 type NamespaceService interface {
 	// Create creates a new namespace.

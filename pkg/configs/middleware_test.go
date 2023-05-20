@@ -40,7 +40,7 @@ func TestCheckRedis(t *testing.T) {
 }
 
 func TestCheckDatabase(t *testing.T) {
-	viper.SetDefault("database.type", "sqlite3")
+	viper.SetDefault("database.type", enums.DatabaseSqlite3.String())
 
 	err := checkDatabase()
 	assert.NoError(t, err)
