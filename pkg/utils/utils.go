@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 )
 
@@ -42,4 +43,24 @@ func GetContentLength(req *http.Request) (uint64, error) {
 func GenPathByDigest(digest digest.Digest) string {
 	hex := digest.Hex()
 	return fmt.Sprintf("%s/%s/%s/%s", digest.Algorithm(), hex[0:2], hex[2:4], hex[4:])
+}
+
+// BindValidate binds and validates the request body
+func BindValidate(c echo.Context, data any) error {
+	err := c.Bind(data)
+	if err != nil {
+		return err
+	}
+	err = c.Validate(data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// PanicIf panics if err is not nil
+func PanicIf(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

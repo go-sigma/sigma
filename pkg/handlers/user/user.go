@@ -14,7 +14,20 @@
 
 package user
 
-import "github.com/labstack/echo/v4"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/slices"
+
+	rhandlers "github.com/ximager/ximager/pkg/handlers"
+	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/password"
+	"github.com/ximager/ximager/pkg/utils/token"
+)
 
 // Handlers is the interface for the tag handlers
 type Handlers interface {
@@ -28,11 +41,66 @@ type Handlers interface {
 	Signup(c echo.Context) error
 }
 
+type handlers struct {
+	tokenService    token.TokenService
+	passwordService password.Password
+}
+
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type inject struct {
+	tokenService    token.TokenService
+	passwordService password.Password
+}
 
-// New creates a new instance of the distribution handlers
-func New() Handlers {
-	return &handlers{}
+// handlerNew creates a new instance of the distribution handlers
+func handlerNew(injects ...inject) (Handlers, error) {
+	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
+	if err != nil {
+		return nil, err
+	}
+	passwordService := password.New()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.tokenService != nil {
+			tokenService = ij.tokenService
+		}
+		if ij.passwordService != nil {
+			passwordService = ij.passwordService
+		}
+	}
+	return &handlers{
+		tokenService:    tokenService,
+		passwordService: passwordService,
+	}, nil
+}
+
+const router = "user"
+
+type factory struct{}
+
+var skipAuths = []string{"post:/user/login", "get:/user/token", "get:/user/signup", "get:/user/create"}
+
+func (f factory) Initialize(e *echo.Echo) error {
+	userGroup := e.Group("/user")
+	userHandler, err := handlerNew()
+	if err != nil {
+		return err
+	}
+	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
+		Skipper: func(c echo.Context) bool {
+			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
+			return slices.Contains(skipAuths, authStr)
+		},
+	}))
+	userGroup.POST("/login", userHandler.Login)
+	userGroup.GET("/logout", userHandler.Logout)
+	userGroup.GET("/token", userHandler.Token)
+	userGroup.GET("/signup", userHandler.Signup)
+	userGroup.GET("/create", userHandler.Signup)
+	return nil
+}
+
+func init() {
+	utils.PanicIf(rhandlers.RegisterRouterFactory(router, &factory{}))
 }

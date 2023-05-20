@@ -30,6 +30,8 @@ import (
 	"github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/storage"
+
+	_ "github.com/ximager/ximager/pkg/handlers/user"
 )
 
 // Serve starts the server
