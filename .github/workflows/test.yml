@@ -70,7 +70,7 @@ jobs:
           sleep 5
       - name: Run tests
         run: |
-          CI_DATABASE_TYPE=sqlite3 go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs"`
+          CI_DATABASE_TYPE=sqlite3 go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -137,7 +137,7 @@ jobs:
           sleep 5
       - name: Run tests
         run: |
-          CI_DATABASE_TYPE=postgresql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs"`
+          CI_DATABASE_TYPE=postgresql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -204,7 +204,7 @@ jobs:
           sleep 5
       - name: Run tests
         run: |
-          CI_DATABASE_TYPE=mysql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs"`
+          CI_DATABASE_TYPE=mysql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:

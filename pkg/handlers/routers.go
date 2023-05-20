@@ -16,18 +16,15 @@ package handlers
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
-	"golang.org/x/exp/slices"
 
 	"github.com/ximager/ximager/pkg/handlers/artifact"
 	"github.com/ximager/ximager/pkg/handlers/distribution"
 	"github.com/ximager/ximager/pkg/handlers/namespace"
 	"github.com/ximager/ximager/pkg/handlers/repository"
 	"github.com/ximager/ximager/pkg/handlers/tag"
-	"github.com/ximager/ximager/pkg/handlers/user"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/validators"
 	"github.com/ximager/ximager/web"
@@ -35,9 +32,7 @@ import (
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
-var skipAuths = []string{"post:/user/login", "get:/user/token", "get:/user/signup", "get:/user/create"}
-
-var userHandler user.Handlers
+// var userHandler user.Handlers
 
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
@@ -45,20 +40,6 @@ func Initialize(e *echo.Echo) error {
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validators.Initialize(e)
-
-	userGroup := e.Group("/user")
-	userHandler = user.New()
-	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
-		Skipper: func(c echo.Context) bool {
-			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
-			return slices.Contains(skipAuths, authStr)
-		},
-	}))
-	userGroup.POST("/login", userHandler.Login)
-	userGroup.GET("/logout", userHandler.Logout)
-	userGroup.GET("/token", userHandler.Token)
-	userGroup.GET("/signup", userHandler.Signup)
-	userGroup.GET("/create", userHandler.Signup)
 
 	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	namespaceHandler := namespace.New()
@@ -88,5 +69,27 @@ func Initialize(e *echo.Echo) error {
 
 	e.Any("/v2/*", distribution.All, middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
 
+	for name, factory := range routerFactories {
+		if err := factory.Initialize(e); err != nil {
+			return fmt.Errorf("failed to initialize router factory %q: %v", name, err)
+		}
+	}
+
+	return nil
+}
+
+// Factory is the interface for the storage router factory
+type Factory interface {
+	Initialize(e *echo.Echo) error
+}
+
+var routerFactories = make(map[string]Factory)
+
+// RegisterRouterFactory registers a new router factory
+func RegisterRouterFactory(name string, factory Factory) error {
+	if _, ok := routerFactories[name]; ok {
+		return fmt.Errorf("driver %q already registered", name)
+	}
+	routerFactories[name] = factory
 	return nil
 }
