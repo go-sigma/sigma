@@ -35,8 +35,8 @@ type PostUserTokenResponse struct {
 
 // PostUserSignupRequest ...
 type PostUserSignupRequest struct {
-	Username string `json:"username" validate:"required,alpha,min=2,max=20"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`
+	Password string `json:"password" validate:"required,min=6,max=20"`
 	Email    string `json:"email" validate:"required,email"`
 }
 

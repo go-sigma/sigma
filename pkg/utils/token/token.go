@@ -30,6 +30,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 )
 
+//go:generate mockgen -destination=mocks/token.go -package=mocks github.com/ximager/ximager/pkg/utils/token TokenService
+
 const (
 	expireKey = "ximager:expire:jwt:%s"
 	expireVal = "1"

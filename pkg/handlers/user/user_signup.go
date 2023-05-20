@@ -15,6 +15,7 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -26,8 +27,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/password"
-	"github.com/ximager/ximager/pkg/utils/token"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -36,14 +36,9 @@ func (h *handlers) Signup(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.PostUserSignupRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
@@ -52,14 +47,19 @@ func (h *handlers) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	passwordService := password.New()
-	pwdHash, err := passwordService.Hash(req.Password)
+	pwdHash, err := h.passwordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
 	userService := dao.NewUserService()
+	_, err = userService.GetByUsername(ctx, req.Username)
+	if err == nil {
+		log.Error().Msg("Username already exists")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, fmt.Errorf("username already exists").Error())
+	}
+
 	user := &models.User{
 		Username: req.Username,
 		Password: pwdHash,
@@ -71,19 +71,13 @@ func (h *handlers) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
-	if err != nil {
-		log.Error().Err(err).Msg("Create token service failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	refreshToken, err := tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := tokenService.New(user, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.refreshTtl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
