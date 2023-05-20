@@ -22,3 +22,13 @@ version: 0.1.0
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
+dependencies:
+  - name: redis
+    version: 17.10.2
+    repository: https://charts.bitnami.com/bitnami
+  - name: minio
+    version: 8.0.10
+    repository: https://helm.min.io/
+  - name: mysql
+    version: 9.9.0
+    repository: https://charts.bitnami.com/bitnami

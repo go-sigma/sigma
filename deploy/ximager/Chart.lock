@@ -1,0 +1,12 @@
+dependencies:
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 17.10.2
+- name: minio
+  repository: https://helm.min.io/
+  version: 8.0.10
+- name: mysql
+  repository: https://charts.bitnami.com/bitnami
+  version: 9.9.0
+digest: sha256:3173f61e9109067c183f9dddfc1fdcef97b4638ef686829b6ca948d89853d838
+generated: "2023-05-12T20:04:13.410483+08:00"
