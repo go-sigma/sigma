@@ -24,6 +24,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/blob.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobService
+
 // BlobService defines the operations related to blobs
 type BlobService interface {
 	// Create creates a new blob.

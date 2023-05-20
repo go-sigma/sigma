@@ -16,6 +16,7 @@ package filesystem
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -149,15 +150,18 @@ func (f *fs) AbortUpload(ctx context.Context, _ string, uploadID string) error {
 
 // Upload upload a file to the given path.
 func (f *fs) Upload(ctx context.Context, path string, body io.Reader) error {
+	if body == nil {
+		return fmt.Errorf("body is nil")
+	}
 	path = f.sanitizePath(path)
 	fp, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
+	defer fp.Close() // nolint: errcheck
 	_, err = io.Copy(fp, body)
 	if err != nil {
-		fp.Close() // nolint: errcheck
 		return err
 	}
-	return fp.Close()
+	return nil
 }

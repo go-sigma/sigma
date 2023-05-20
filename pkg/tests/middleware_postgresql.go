@@ -56,7 +56,6 @@ func (d *postgresqlCIDatabase) Init() error {
 	}
 	d.dbname = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
 
-	fmt.Println("CREATE DATABASE", d.dbname)
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.dbname))
 	if err != nil {
 		return err

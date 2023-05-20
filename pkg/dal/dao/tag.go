@@ -25,6 +25,8 @@ import (
 	"github.com/ximager/ximager/pkg/types"
 )
 
+//go:generate mockgen -destination=mocks/tag.go -package=mocks github.com/ximager/ximager/pkg/dal/dao TagService
+
 // TagService is the interface that provides the tag service methods.
 type TagService interface {
 	// Save save a new tag if conflict update.

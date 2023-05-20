@@ -22,6 +22,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/blobupload.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobUploadService
+
 // BlobUploadService is the interface for the blob upload service.
 type BlobUploadService interface {
 	// Create creates a new blob upload.
