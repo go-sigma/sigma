@@ -27,6 +27,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/artifact.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ArtifactService
+//go:generate mockgen -destination=mocks/artifact_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ArtifactServiceFactory
 
 // ArtifactService is the interface that provides the artifact service methods.
 type ArtifactService interface {
@@ -66,6 +67,28 @@ type ArtifactService interface {
 
 type artifactService struct {
 	tx *query.Query
+}
+
+// ArtifactServiceFactory is the interface that provides the artifact service factory methods.
+type ArtifactServiceFactory interface {
+	New(txs ...*query.Query) ArtifactService
+}
+
+type artifactServiceFactory struct{}
+
+// NewArtifactServiceFactory creates a new artifact service factory.
+func NewArtifactServiceFactory() ArtifactServiceFactory {
+	return &artifactServiceFactory{}
+}
+
+func (f *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &artifactService{
+		tx: tx,
+	}
 }
 
 // NewArtifactService creates a new artifact service.

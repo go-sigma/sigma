@@ -27,6 +27,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryService
+//go:generate mockgen -destination=mocks/repository_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryServiceFactory
 
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
@@ -50,6 +51,28 @@ type RepositoryService interface {
 
 type repositoryService struct {
 	tx *query.Query
+}
+
+// RepositoryServiceFactory is the interface that provides the repository service factory methods.
+type RepositoryServiceFactory interface {
+	New(txs ...*query.Query) RepositoryService
+}
+
+type repositoryServiceFactory struct{}
+
+// NewRepositoryServiceFactory creates a new repository service factory.
+func NewRepositoryServiceFactory() RepositoryServiceFactory {
+	return &repositoryServiceFactory{}
+}
+
+func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &repositoryService{
+		tx: tx,
+	}
 }
 
 // NewRepositoryService creates a new repository service.

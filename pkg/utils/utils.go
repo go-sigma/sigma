@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 )
@@ -63,4 +64,12 @@ func PanicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// Inject injects source to target if source is not nil
+func Inject(target any, source any) error {
+	if source == nil {
+		return nil
+	}
+	return copier.Copy(target, source)
 }

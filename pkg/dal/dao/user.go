@@ -22,6 +22,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/user.go -package=mocks github.com/ximager/ximager/pkg/dal/dao UserService
+//go:generate mockgen -destination=mocks/user_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao UserServiceFactory
 
 // UserService is the interface that provides the user service methods.
 type UserService interface {
@@ -36,6 +37,30 @@ type UserService interface {
 type userService struct {
 	tx *query.Query
 }
+
+// UserServiceFactory is the interface that provides the user service factory methods.
+type UserServiceFactory interface {
+	New(txs ...*query.Query) UserService
+}
+
+type userServiceFactory struct{}
+
+// NewUserServiceFactory creates a new user service factory.
+func NewUserServiceFactory() UserServiceFactory {
+	return &userServiceFactory{}
+}
+
+func (f *userServiceFactory) New(txs ...*query.Query) UserService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &userService{
+		tx: tx,
+	}
+}
+
+var _ UserServiceFactory = &userServiceFactory{}
 
 // NewUserService creates a new user service.
 func NewUserService(txs ...*query.Query) UserService {

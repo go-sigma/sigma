@@ -26,6 +26,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/reference.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ReferenceService
+//go:generate mockgen -destination=mocks/reference_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ReferenceServiceFactory
 
 // ReferenceService defines the operations related to reference.
 type ReferenceService interface {
@@ -34,6 +35,28 @@ type ReferenceService interface {
 
 type referenceService struct {
 	tx *query.Query
+}
+
+// ReferenceServiceFactory is the interface that provides the reference service factory methods.
+type ReferenceServiceFactory interface {
+	New(txs ...*query.Query) ReferenceService
+}
+
+type referenceServiceFactory struct{}
+
+// NewReferenceServiceFactory creates a new reference service factory.
+func NewReferenceServiceFactory() ReferenceServiceFactory {
+	return &referenceServiceFactory{}
+}
+
+func (f *referenceServiceFactory) New(txs ...*query.Query) ReferenceService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &referenceService{
+		tx: tx,
+	}
 }
 
 // NewReferenceService creates a new reference service.

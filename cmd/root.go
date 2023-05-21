@@ -25,6 +25,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/logger"
 
+	_ "github.com/golang/mock/mockgen/model"
 	_ "github.com/ximager/ximager/pkg/daemon/sbom"
 	_ "github.com/ximager/ximager/pkg/daemon/vulnerability"
 	_ "github.com/ximager/ximager/pkg/storage/filesystem"

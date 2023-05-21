@@ -6,36 +6,35 @@ package mocks
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
+	reflect "reflect"
 )
 
-// MockUserService is a mock of UserService interface.
+// MockUserService is a mock of UserService interface
 type MockUserService struct {
 	ctrl     *gomock.Controller
 	recorder *MockUserServiceMockRecorder
 }
 
-// MockUserServiceMockRecorder is the mock recorder for MockUserService.
+// MockUserServiceMockRecorder is the mock recorder for MockUserService
 type MockUserServiceMockRecorder struct {
 	mock *MockUserService
 }
 
-// NewMockUserService creates a new mock instance.
+// NewMockUserService creates a new mock instance
 func NewMockUserService(ctrl *gomock.Controller) *MockUserService {
 	mock := &MockUserService{ctrl: ctrl}
 	mock.recorder = &MockUserServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
-// Count mocks base method.
+// Count mocks base method
 func (m *MockUserService) Count(arg0 context.Context) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Count", arg0)
@@ -44,13 +43,13 @@ func (m *MockUserService) Count(arg0 context.Context) (int64, error) {
 	return ret0, ret1
 }
 
-// Count indicates an expected call of Count.
+// Count indicates an expected call of Count
 func (mr *MockUserServiceMockRecorder) Count(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockUserService)(nil).Count), arg0)
 }
 
-// Create mocks base method.
+// Create mocks base method
 func (m *MockUserService) Create(arg0 context.Context, arg1 *models.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
@@ -58,13 +57,13 @@ func (m *MockUserService) Create(arg0 context.Context, arg1 *models.User) error 
 	return ret0
 }
 
-// Create indicates an expected call of Create.
+// Create indicates an expected call of Create
 func (mr *MockUserServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserService)(nil).Create), arg0, arg1)
 }
 
-// GetByUsername mocks base method.
+// GetByUsername mocks base method
 func (m *MockUserService) GetByUsername(arg0 context.Context, arg1 string) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByUsername", arg0, arg1)
@@ -73,7 +72,7 @@ func (m *MockUserService) GetByUsername(arg0 context.Context, arg1 string) (*mod
 	return ret0, ret1
 }
 
-// GetByUsername indicates an expected call of GetByUsername.
+// GetByUsername indicates an expected call of GetByUsername
 func (mr *MockUserServiceMockRecorder) GetByUsername(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsername", reflect.TypeOf((*MockUserService)(nil).GetByUsername), arg0, arg1)
