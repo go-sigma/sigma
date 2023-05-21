@@ -14,7 +14,16 @@
 
 package repository
 
-import "github.com/labstack/echo/v4"
+import (
+	"path"
+	"reflect"
+
+	"github.com/labstack/echo/v4"
+
+	rhandlers "github.com/ximager/ximager/pkg/handlers"
+	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/ximager/ximager/pkg/utils"
+)
 
 // Handlers is the interface for the repository handlers
 type Handlers interface {
@@ -30,7 +39,26 @@ var _ Handlers = &handlers{}
 
 type handlers struct{}
 
-// New creates a new instance of the distribution handlers
-func New() Handlers {
-	return &handlers{}
+// handlerNew creates a new instance of the distribution handlers
+func handlerNew() (Handlers, error) {
+	return &handlers{}, nil
+}
+
+type factory struct{}
+
+// Initialize initializes the namespace handlers
+func (f factory) Initialize(e *echo.Echo) error {
+	repositoryGroup := e.Group("/namespace/:namespace/repository", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	repositoryHandler, err := handlerNew()
+	if err != nil {
+		return err
+	}
+	repositoryGroup.GET("/", repositoryHandler.ListRepository)
+	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
+	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
+	return nil
+}
+
+func init() {
+	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(handlers{}).PkgPath()), &factory{}))
 }

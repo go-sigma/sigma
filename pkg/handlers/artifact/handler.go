@@ -14,7 +14,16 @@
 
 package artifact
 
-import "github.com/labstack/echo/v4"
+import (
+	"path"
+	"reflect"
+
+	"github.com/labstack/echo/v4"
+
+	rhandlers "github.com/ximager/ximager/pkg/handlers"
+	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/ximager/ximager/pkg/utils"
+)
 
 // Handlers is the interface for the artifact handlers
 type Handlers interface {
@@ -30,7 +39,26 @@ var _ Handlers = &handlers{}
 
 type handlers struct{}
 
-// New creates a new instance of the distribution handlers
-func New() Handlers {
-	return &handlers{}
+// handlerNew creates a new instance of the distribution handlers
+func handlerNew() (Handlers, error) {
+	return &handlers{}, nil
+}
+
+type factory struct{}
+
+// Initialize initializes the namespace handlers
+func (f factory) Initialize(e *echo.Echo) error {
+	artifactGroup := e.Group("/namespace/:namespace/artifact", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	artifactHandler, err := handlerNew()
+	if err != nil {
+		return err
+	}
+	artifactGroup.GET("/", artifactHandler.ListArtifact)
+	artifactGroup.GET("/:id", artifactHandler.GetArtifact)
+	artifactGroup.DELETE("/:id", artifactHandler.DeleteArtifact)
+	return nil
+}
+
+func init() {
+	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(handlers{}).PkgPath()), &factory{}))
 }

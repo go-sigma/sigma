@@ -14,7 +14,15 @@
 
 package tag
 
-import "github.com/labstack/echo/v4"
+import (
+	"path"
+	"reflect"
+
+	"github.com/labstack/echo/v4"
+
+	rhandlers "github.com/ximager/ximager/pkg/handlers"
+	"github.com/ximager/ximager/pkg/utils"
+)
 
 // Handlers is the interface for the tag handlers
 type Handlers interface {
@@ -30,7 +38,25 @@ var _ Handlers = &handlers{}
 
 type handlers struct{}
 
-// New creates a new instance of the distribution handlers
-func New() Handlers {
-	return &handlers{}
+// handlerNew creates a new instance of the distribution handlers
+func handlerNew() (Handlers, error) {
+	return &handlers{}, nil
+}
+
+type factory struct{}
+
+func (f factory) Initialize(e *echo.Echo) error {
+	tagGroup := e.Group("/namespace/:namespace/tag")
+	tagHandler, err := handlerNew()
+	if err != nil {
+		return err
+	}
+	tagGroup.GET("/", tagHandler.ListTag)
+	tagGroup.GET("/:id", tagHandler.GetTag)
+	tagGroup.DELETE("/:id", tagHandler.DeleteTag)
+	return nil
+}
+
+func init() {
+	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(handlers{}).PkgPath()), &factory{}))
 }

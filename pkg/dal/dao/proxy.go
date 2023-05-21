@@ -23,6 +23,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/proxy.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ProxyService
+//go:generate mockgen -destination=mocks/proxy_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ProxyServiceFactory
 
 // ProxyService defines the interface to access proxy task.
 type ProxyService interface {
@@ -36,6 +37,28 @@ type ProxyService interface {
 
 type proxyService struct {
 	tx *query.Query
+}
+
+// ProxyServiceFactory is the interface that provides the proxy service factory methods.
+type ProxyServiceFactory interface {
+	New(txs ...*query.Query) ProxyService
+}
+
+type proxyServiceFactory struct{}
+
+// NewProxyServiceFactory creates a new proxy service factory.
+func NewProxyServiceFactory() ProxyServiceFactory {
+	return &proxyServiceFactory{}
+}
+
+func (f *proxyServiceFactory) New(txs ...*query.Query) ProxyService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &proxyService{
+		tx: tx,
+	}
 }
 
 // NewProxyService creates a new proxy service.

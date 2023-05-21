@@ -26,6 +26,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/tag.go -package=mocks github.com/ximager/ximager/pkg/dal/dao TagService
+//go:generate mockgen -destination=mocks/tag_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao TagServiceFactory
 
 // TagService is the interface that provides the tag service methods.
 type TagService interface {
@@ -53,6 +54,28 @@ type TagService interface {
 
 type tagService struct {
 	tx *query.Query
+}
+
+// TagServiceFactory is the interface that provides the tag service factory methods.
+type TagServiceFactory interface {
+	New(txs ...*query.Query) TagService
+}
+
+type tagServiceFactory struct{}
+
+// NewTagServiceFactory creates a new tag service factory.
+func NewTagServiceFactory() TagServiceFactory {
+	return &tagServiceFactory{}
+}
+
+func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &tagService{
+		tx: tx,
+	}
 }
 
 // NewTagService creates a new tag service.

@@ -22,6 +22,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -30,17 +31,11 @@ func (h *handlers) DeleteTag(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.DeleteTagRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	log.Debug().Interface("req", req).Msg("Delete tag called")
 
 	tagService := dao.NewTagService()
 	err = tagService.DeleteByID(ctx, req.ID)

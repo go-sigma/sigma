@@ -31,6 +31,11 @@ import (
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/storage"
 
+	_ "github.com/ximager/ximager/pkg/handlers/artifact"
+	_ "github.com/ximager/ximager/pkg/handlers/namespace"
+	_ "github.com/ximager/ximager/pkg/handlers/repository"
+	_ "github.com/ximager/ximager/pkg/handlers/tag"
+	_ "github.com/ximager/ximager/pkg/handlers/token"
 	_ "github.com/ximager/ximager/pkg/handlers/user"
 )
 
