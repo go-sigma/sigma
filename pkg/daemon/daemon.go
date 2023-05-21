@@ -36,8 +36,12 @@ var topics = map[enums.Daemon]string{
 	enums.DaemonVulnerability: consts.TopicVulnerability,
 }
 
-// asynqCli asynq client
-var asynqCli *asynq.Client
+var (
+	// asynqCli asynq client
+	asynqCli *asynq.Client
+	// asyncSrv asynq server
+	asyncSrv *asynq.Server
+)
 
 // RegisterTask registers a daemon task
 func RegisterTask(name enums.Daemon, handler func(context.Context, *asynq.Task) error) error {
@@ -49,13 +53,13 @@ func RegisterTask(name enums.Daemon, handler func(context.Context, *asynq.Task) 
 	return nil
 }
 
-// Initialize initializes the daemon tasks
-func Initialize() error {
+// InitializeServer initializes the daemon tasks
+func InitializeServer() error {
 	redisOpt, err := asynq.ParseRedisURI(viper.GetString("redis.url"))
 	if err != nil {
 		return fmt.Errorf("asynq.ParseRedisURI error: %v", err)
 	}
-	srv := asynq.NewServer(
+	asyncSrv = asynq.NewServer(
 		redisOpt,
 		asynq.Config{
 			Concurrency: 10,
@@ -78,13 +82,19 @@ func Initialize() error {
 	}
 
 	go func() {
-		err := srv.Run(mux)
+		err := asyncSrv.Run(mux)
 		if err != nil {
 			log.Fatal().Err(err).Msg("srv.Run error")
 		}
 	}()
 
 	return nil
+}
+
+// DeinitServer deinitializes the daemon server
+func DeinitServer() {
+	asyncSrv.Stop()
+	asyncSrv.Shutdown()
 }
 
 // InitializeClient initializes the daemon client
@@ -95,6 +105,11 @@ func InitializeClient() error {
 	}
 	asynqCli = asynq.NewClient(redisOpt)
 	return nil
+}
+
+// DeinitServer deinitializes the daemon server
+func DeinitClient() error {
+	return asynqCli.Close()
 }
 
 // Enqueue enqueues a task

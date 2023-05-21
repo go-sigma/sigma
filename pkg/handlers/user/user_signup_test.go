@@ -58,6 +58,7 @@ func TestSignup(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
+	viper.Reset()
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
