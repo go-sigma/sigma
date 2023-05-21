@@ -17,6 +17,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/jackc/pgx/v4 v4.18.1
+	github.com/jinzhu/copier v0.3.5
 	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0

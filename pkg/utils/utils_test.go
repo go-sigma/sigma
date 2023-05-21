@@ -99,3 +99,14 @@ func TestBindValidate(t *testing.T) {
 	err = BindValidate(c, &user)
 	assert.Error(t, err)
 }
+
+func TestInject(t *testing.T) {
+	var a = 1
+	var b = 2
+	err := Inject(&a, nil)
+	assert.Equal(t, 1, a)
+	assert.NoError(t, err)
+	err = Inject(&a, &b)
+	assert.Equal(t, 2, a)
+	assert.NoError(t, err)
+}

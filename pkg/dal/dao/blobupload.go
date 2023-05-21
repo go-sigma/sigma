@@ -23,6 +23,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/blobupload.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobUploadService
+//go:generate mockgen -destination=mocks/blobupload_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobUploadServiceFactory
 
 // BlobUploadService is the interface for the blob upload service.
 type BlobUploadService interface {
@@ -44,6 +45,28 @@ var _ BlobUploadService = &blobUploadService{}
 
 type blobUploadService struct {
 	tx *query.Query
+}
+
+// BlobUploadServiceFactory is the interface for the blob upload service factory.
+type BlobUploadServiceFactory interface {
+	New(txs ...*query.Query) BlobUploadService
+}
+
+type blobUploadServiceFactory struct{}
+
+// NewBlobUploadServiceFactory creates a new blob upload service factory.
+func NewBlobUploadServiceFactory() BlobUploadServiceFactory {
+	return &blobUploadServiceFactory{}
+}
+
+func (f *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &blobUploadService{
+		tx: tx,
+	}
 }
 
 // NewBlobUploadService creates a new blob upload service.

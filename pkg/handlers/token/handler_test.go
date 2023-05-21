@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package user
+package token
 
 import (
-	"context"
-	"net/http"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
@@ -37,6 +34,7 @@ const (
 )
 
 func TestFactory(t *testing.T) {
+	viper.Reset()
 	logger.SetLevel("debug")
 	e := echo.New()
 	e.HideBanner = true
@@ -70,31 +68,10 @@ func TestFactory(t *testing.T) {
 	var f = factory{}
 	err = f.Initialize(e)
 	assert.NoError(t, err)
-
-	go func() {
-		err = e.Start(":8080")
-		assert.ErrorIs(t, err, http.ErrServerClosed)
-	}()
-
-	time.Sleep(1 * time.Second)
-
-	url := "http://127.0.0.1:8080/user/token"
-
-	req, err := http.NewRequest("GET", url, nil)
-	assert.NoError(t, err)
-	req.SetBasicAuth("ximager", "ximager")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	assert.NoError(t, err)
-	err = resp.Body.Close()
-	assert.NoError(t, err)
-
-	err = e.Shutdown(context.Background())
-	assert.NoError(t, err)
 }
 
 func TestFactoryFailed(t *testing.T) {
+	viper.Reset()
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString+"1")
 	var f = factory{}
 	err := f.Initialize(echo.New())

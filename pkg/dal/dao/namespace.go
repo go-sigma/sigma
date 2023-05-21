@@ -27,6 +27,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/namespace.go -package=mocks github.com/ximager/ximager/pkg/dal/dao NamespaceService
+//go:generate mockgen -destination=mocks/namespace_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao NamespaceServiceFactory
 
 // NamespaceService is the interface that provides the namespace service methods.
 type NamespaceService interface {
@@ -48,6 +49,28 @@ type NamespaceService interface {
 
 type namespaceService struct {
 	tx *query.Query
+}
+
+// NamespaceServiceFactory is the interface that provides the namespace service factory methods.
+type NamespaceServiceFactory interface {
+	New(txs ...*query.Query) NamespaceService
+}
+
+type namespaceServiceFactory struct{}
+
+// NewNamespaceServiceFactory creates a new namespace service factory.
+func NewNamespaceServiceFactory() NamespaceServiceFactory {
+	return &namespaceServiceFactory{}
+}
+
+func (f *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
+	tx := query.Q
+	if len(txs) > 0 {
+		tx = txs[0]
+	}
+	return &namespaceService{
+		tx: tx,
+	}
 }
 
 // NewNamespaceService creates a new namespace service.
