@@ -24,8 +24,6 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/password"
-	"github.com/ximager/ximager/pkg/utils/token"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -46,20 +44,13 @@ func (h *handlers) Token(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
-	passwordService := password.New()
-	verify := passwordService.Verify(pwd, user.Password)
+	verify := h.passwordService.Verify(pwd, user.Password)
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
-	if err != nil {
-		log.Error().Err(err).Msg("Create token service failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	token, err := tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
+	token, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
