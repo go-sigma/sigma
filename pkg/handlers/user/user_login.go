@@ -21,8 +21,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -31,13 +31,13 @@ func (h *handlers) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.PostUserLoginRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	userService := dao.NewUserService()
+	userService := h.userServiceFactory.New()
 	user, err := userService.GetByUsername(ctx, req.Username)
 	if err != nil {
 		log.Error().Err(err).Msg("Get user by username failed")

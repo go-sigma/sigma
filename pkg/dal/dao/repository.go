@@ -32,7 +32,7 @@ import (
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
 	// Create creates a new repository.
-	Create(context.Context, *models.Repository) (*models.Repository, error)
+	Create(context.Context, *models.Repository) error
 	// Save saves the repository.
 	Save(context.Context, *models.Repository) (*models.Repository, error)
 	// Get gets the repository with the specified repository ID.
@@ -87,12 +87,8 @@ func NewRepositoryService(txs ...*query.Query) RepositoryService {
 }
 
 // Create creates a new repository.
-func (s *repositoryService) Create(ctx context.Context, repository *models.Repository) (*models.Repository, error) {
-	err := s.tx.Repository.WithContext(ctx).Create(repository)
-	if err != nil {
-		return nil, err
-	}
-	return repository, nil
+func (s *repositoryService) Create(ctx context.Context, repository *models.Repository) error {
+	return s.tx.Repository.WithContext(ctx).Create(repository)
 }
 
 // Save saves the repository.

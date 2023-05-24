@@ -78,7 +78,8 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Basic auth failed")
 				}
 
-				userService := dao.NewUserService()
+				userServiceFactory := dao.NewUserServiceFactory()
+				userService := userServiceFactory.New()
 				user, err := userService.GetByUsername(ctx, username)
 				if err != nil {
 					log.Error().Err(err).Msg("Get user by username failed")
@@ -118,7 +119,8 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 			}
 
-			userService := dao.NewUserService()
+			userServiceFactory := dao.NewUserServiceFactory()
+			userService := userServiceFactory.New()
 			user, err := userService.GetByUsername(ctx, username)
 			if err != nil {
 				if err == gorm.ErrRecordNotFound {
@@ -144,7 +146,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 }
 
 func genWwwAuthenticate(host, schema string) string {
-	realm := fmt.Sprintf("%s://%s/user/token", schema, host)
+	realm := fmt.Sprintf("%s://%s/token", schema, host)
 	rRealm := viper.GetString("auth.token.realm")
 	if rRealm != "" {
 		realm = rRealm

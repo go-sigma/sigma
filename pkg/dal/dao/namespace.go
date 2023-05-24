@@ -32,7 +32,7 @@ import (
 // NamespaceService is the interface that provides the namespace service methods.
 type NamespaceService interface {
 	// Create creates a new namespace.
-	Create(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
+	Create(ctx context.Context, namespace *models.Namespace) error
 	// Get gets the namespace with the specified namespace ID.
 	Get(ctx context.Context, id uint64) (*models.Namespace, error)
 	// GetByName gets the namespace with the specified namespace name.
@@ -85,21 +85,13 @@ func NewNamespaceService(txs ...*query.Query) NamespaceService {
 }
 
 // Create creates a new namespace.
-func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Namespace) (*models.Namespace, error) {
-	err := s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
-	if err != nil {
-		return nil, err
-	}
-	return namespaceObj, nil
+func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Namespace) error {
+	return s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
 }
 
 // Get gets the namespace with the specified namespace ID.
 func (s *namespaceService) Get(ctx context.Context, id uint64) (*models.Namespace, error) {
-	ns, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).First()
-	if err != nil {
-		return nil, err
-	}
-	return ns, nil
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).First()
 }
 
 // GetByName gets the namespace with the specified namespace name.

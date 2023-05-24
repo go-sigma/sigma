@@ -67,7 +67,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	}
 
 	size := counterReader.Count()
-	_, err = blobUploadService.Create(ctx, &models.BlobUpload{
+	err = blobUploadService.Create(ctx, &models.BlobUpload{
 		PartNumber: upload.PartNumber + 1,
 		UploadID:   id,
 		Etag:       strings.Trim(etag, "\""),

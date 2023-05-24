@@ -31,7 +31,8 @@ func init() {
 
 func initUser() error {
 	passwordService := password.New()
-	userService := dao.NewUserService()
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
 	userCount, err := userService.Count(context.Background())
 	if err != nil {
 		return err
