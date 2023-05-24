@@ -28,7 +28,7 @@ import (
 // BlobUploadService is the interface for the blob upload service.
 type BlobUploadService interface {
 	// Create creates a new blob upload.
-	Create(ctx context.Context, blobUpload *models.BlobUpload) (*models.BlobUpload, error)
+	Create(ctx context.Context, blobUpload *models.BlobUpload) error
 	// Get gets the blob upload with the specified blob upload ID.
 	GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error)
 	// FindAllByUploadID find all blob uploads with the specified upload ID.
@@ -81,12 +81,8 @@ func NewBlobUploadService(txs ...*query.Query) BlobUploadService {
 }
 
 // Create creates a new blob upload.
-func (b *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) (*models.BlobUpload, error) {
-	err := b.tx.BlobUpload.WithContext(ctx).Create(blobUpload)
-	if err != nil {
-		return nil, err
-	}
-	return blobUpload, nil
+func (b *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) error {
+	return b.tx.BlobUpload.WithContext(ctx).Create(blobUpload)
 }
 
 // GetLastPart gets the blob upload with the specified blob upload ID.
@@ -102,13 +98,9 @@ func (b *blobUploadService) GetLastPart(ctx context.Context, uploadID string) (*
 
 // FindAllByUploadID find all blob uploads with the specified upload ID.
 func (b *blobUploadService) FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error) {
-	blobUploads, err := b.tx.BlobUpload.WithContext(ctx).
+	return b.tx.BlobUpload.WithContext(ctx).
 		Where(b.tx.BlobUpload.UploadID.Eq(uploadID)).
 		Order(b.tx.BlobUpload.PartNumber).Find()
-	if err != nil {
-		return nil, err
-	}
-	return blobUploads, nil
 }
 
 // TotalSizeByUploadID gets the total size of the blob uploads with the specified upload ID.

@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
+	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/utils"
@@ -37,22 +38,22 @@ type Handlers interface {
 	Login(c echo.Context) error
 	// Logout handles the logout request
 	Logout(c echo.Context) error
-	// Token handles the token request
-	Token(c echo.Context) error
 	// Signup handles the signup request
 	Signup(c echo.Context) error
 }
 
 type handlers struct {
-	tokenService    token.TokenService
-	passwordService password.Password
+	tokenService       token.TokenService
+	passwordService    password.Password
+	userServiceFactory dao.UserServiceFactory
 }
 
 var _ Handlers = &handlers{}
 
 type inject struct {
-	tokenService    token.TokenService
-	passwordService password.Password
+	tokenService       token.TokenService
+	passwordService    password.Password
+	userServiceFactory dao.UserServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
@@ -62,6 +63,7 @@ func handlerNew(injects ...inject) (Handlers, error) {
 		return nil, err
 	}
 	passwordService := password.New()
+	userServiceFactory := dao.NewUserServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.tokenService != nil {
@@ -70,10 +72,14 @@ func handlerNew(injects ...inject) (Handlers, error) {
 		if ij.passwordService != nil {
 			passwordService = ij.passwordService
 		}
+		if ij.userServiceFactory != nil {
+			userServiceFactory = ij.userServiceFactory
+		}
 	}
 	return &handlers{
-		tokenService:    tokenService,
-		passwordService: passwordService,
+		tokenService:       tokenService,
+		passwordService:    passwordService,
+		userServiceFactory: userServiceFactory,
 	}, nil
 }
 
@@ -95,7 +101,6 @@ func (f factory) Initialize(e *echo.Echo) error {
 	}))
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.GET("/logout", userHandler.Logout)
-	userGroup.GET("/token", userHandler.Token)
 	userGroup.GET("/signup", userHandler.Signup)
 	userGroup.GET("/create", userHandler.Signup)
 	return nil

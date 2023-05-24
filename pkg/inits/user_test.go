@@ -101,7 +101,8 @@ func TestInitAdminUser2(t *testing.T) {
 	err = initUser()
 	assert.NoError(t, err)
 
-	userService := dao.NewUserService()
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
 	passwordService := password.New()
 
 	count, err := userService.Count(context.Background())

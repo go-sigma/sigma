@@ -107,7 +107,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		}
 		size := counterReader.Count()
 		etags = append(etags, etag)
-		_, err = blobUploadService.Create(ctx, &models.BlobUpload{
+		err = blobUploadService.Create(ctx, &models.BlobUpload{
 			PartNumber: upload.PartNumber + 1,
 			UploadID:   id,
 			Etag:       strings.Trim(etag, "\""),
@@ -148,7 +148,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	}
 
 	contentType := c.Request().Header.Get("Content-Type")
-	_, err = blobService.Create(ctx, &models.Blob{
+	err = blobService.Create(ctx, &models.Blob{
 		Digest:      dgest.String(),
 		Size:        sizeBefore + length,
 		ContentType: contentType,

@@ -27,18 +27,17 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
-	"github.com/ximager/ximager/pkg/types/enums"
 )
 
-func TestProxyServiceFactory(t *testing.T) {
-	f := NewProxyServiceFactory()
-	proxyService := f.New()
-	assert.NotNil(t, proxyService)
-	proxyService = f.New(query.Q)
-	assert.NotNil(t, proxyService)
+func TestUserServiceFactory(t *testing.T) {
+	f := NewUserServiceFactory()
+	userService := f.New()
+	assert.NotNil(t, userService)
+	userService = f.New(query.Q)
+	assert.NotNil(t, userService)
 }
 
-func TestProxyArtifact(t *testing.T) {
+func TestUserGetByUsername(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	err := tests.Initialize()
@@ -54,30 +53,21 @@ func TestProxyArtifact(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
+	f := NewUserServiceFactory()
+
 	ctx := log.Logger.WithContext(context.Background())
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		f := NewProxyServiceFactory()
-		proxyService := f.New(tx)
-		err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
-			Status: enums.TaskCommonStatusPending,
-			Blobs: []models.ProxyArtifactBlob{
-				{Blob: "sha256:123"},
-				{Blob: "sha256:456"},
-			}})
+		userService := f.New(tx)
+		assert.NotNil(t, userService)
+		err := userService.Create(ctx, &models.User{Username: "test-case", Password: "test-case", Email: "email", Role: "admin"})
 		assert.NoError(t, err)
-		err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
-			Status: enums.TaskCommonStatusPending,
-			Blobs: []models.ProxyArtifactBlob{
-				{Blob: "sha256:789"},
-				{Blob: "sha256:7891"},
-			}})
+		testUser, err := userService.GetByUsername(ctx, "test-case")
 		assert.NoError(t, err)
-		findTasks, err := proxyService.FindByBlob(ctx, "sha256:123")
+		assert.Equal(t, testUser.Password, "test-case")
+		total, err := userService.Count(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, len(findTasks), 1)
-		err = proxyService.UpdateProxyArtifactStatus(ctx, findTasks[0].ID, enums.TaskCommonStatusSuccess)
-		assert.NoError(t, err)
+		assert.Equal(t, total, int64(1))
 		return nil
 	})
 	assert.NoError(t, err)

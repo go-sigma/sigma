@@ -78,7 +78,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 
 		contentType := c.Request().Header.Get("Content-Type")
 		blobService := dao.NewBlobService()
-		_, err = blobService.Create(ctx, &models.Blob{
+		err = blobService.Create(ctx, &models.Blob{
 			Digest:      dgest.String(),
 			Size:        size,
 			ContentType: contentType,
@@ -100,7 +100,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	c.Response().Header().Set("Location", location)
 
 	blobUploadService := dao.NewBlobUploadService()
-	_, err = blobUploadService.Create(ctx, &models.BlobUpload{
+	err = blobUploadService.Create(ctx, &models.BlobUpload{
 		PartNumber: 0,
 		UploadID:   id,
 		Etag:       "fake",
