@@ -24,7 +24,6 @@ import (
 	pwdvalidate "github.com/wagslane/go-password-validator"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
@@ -53,7 +52,7 @@ func (h *handlers) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	userService := dao.NewUserService()
+	userService := h.userServiceFactory.New()
 	_, err = userService.GetByUsername(ctx, req.Username)
 	if err == nil {
 		log.Error().Msg("Username already exists")

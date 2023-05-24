@@ -16,6 +16,7 @@ package user
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -29,7 +30,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/dal/dao"
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/ximager/ximager/pkg/inits"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
 	passwordmock "github.com/ximager/ximager/pkg/utils/password/mocks"
@@ -235,7 +240,7 @@ func TestSignupMockToken3(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }
 
-func TestSignupMockPassword1(t *testing.T) {
+func TestSignupMockPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -265,6 +270,67 @@ func TestSignupMockPassword1(t *testing.T) {
 
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{passwordService: passwordMock})
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123498712311Aa!","email":"test@xx.com"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	err = userHandler.Signup(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+}
+
+func TestSignupMockDAO(t *testing.T) {
+	viper.Reset()
+	logger.SetLevel("debug")
+	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
+	validators.Initialize(e)
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	viper.SetDefault("auth.internalUser.password", "internal-ximager")
+	viper.SetDefault("auth.internalUser.username", "internal-ximager")
+	viper.SetDefault("auth.admin.password", "ximager")
+	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+
+	err = inits.Initialize()
+	assert.NoError(t, err)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockUserService := daomock.NewMockUserService(ctrl)
+	daoMockUserService.EXPECT().GetByUsername(context.Background(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.User, error) {
+		return nil, fmt.Errorf("test")
+	}).Times(1)
+	daoMockUserService.EXPECT().Create(context.Background(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.User) error {
+		return fmt.Errorf("test")
+	}).Times(1)
+
+	daoMockUserServiceFactory := daomock.NewMockUserServiceFactory(ctrl)
+	daoMockUserServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.UserService {
+		return daoMockUserService
+	}).Times(1)
+
+	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	userHandler, err := handlerNew(inject{userServiceFactory: daoMockUserServiceFactory})
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123498712311Aa!","email":"test@xx.com"}`))

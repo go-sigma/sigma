@@ -51,12 +51,11 @@ func (mr *MockNamespaceServiceMockRecorder) CountNamespace(arg0, arg1 interface{
 }
 
 // Create mocks base method
-func (m *MockNamespaceService) Create(arg0 context.Context, arg1 *models.Namespace) (*models.Namespace, error) {
+func (m *MockNamespaceService) Create(arg0 context.Context, arg1 *models.Namespace) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(*models.Namespace)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Create indicates an expected call of Create

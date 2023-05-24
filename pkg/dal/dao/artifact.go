@@ -183,10 +183,7 @@ func (s *artifactService) Incr(ctx context.Context, id uint64) error {
 			"pull_times": gorm.Expr("pull_times + ?", 1),
 			"last_pull":  time.Now(),
 		})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // CountByNamespace counts the artifacts by the specified namespace.
@@ -303,8 +300,5 @@ func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifac
 		UpdateColumns(map[string]interface{}{
 			"status": status,
 		})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

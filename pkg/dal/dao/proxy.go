@@ -61,17 +61,6 @@ func (f *proxyServiceFactory) New(txs ...*query.Query) ProxyService {
 	}
 }
 
-// NewProxyService creates a new proxy service.
-func NewProxyService(txs ...*query.Query) ProxyService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &proxyService{
-		tx: tx,
-	}
-}
-
 // SaveProxyArtifact save a new artifact proxy task if conflict update.
 func (s *proxyService) SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) error {
 	return s.tx.ProxyArtifactTask.WithContext(ctx).Save(task)

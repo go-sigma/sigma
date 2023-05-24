@@ -62,11 +62,13 @@ func TestDeleteTag(t *testing.T) {
 	var tagObj *models.Tag
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := dao.NewNamespaceService(tx)
-		namespaceObj, err := namespaceService.Create(ctx, &models.Namespace{Name: namespaceName})
+		namespaceObj := &models.Namespace{Name: namespaceName}
+		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
 		repositoryService := dao.NewRepositoryService(tx)
-		repositoryObj, err := repositoryService.Create(ctx, &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID})
+		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
+		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		artifactService := dao.NewArtifactService(tx)
 		artifactObj, err := artifactService.Save(ctx, &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()})

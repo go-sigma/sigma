@@ -50,6 +50,7 @@ func NewUserServiceFactory() UserServiceFactory {
 	return &userServiceFactory{}
 }
 
+// New creates a new user service.
 func (f *userServiceFactory) New(txs ...*query.Query) UserService {
 	tx := query.Q
 	if len(txs) > 0 {
@@ -61,17 +62,6 @@ func (f *userServiceFactory) New(txs ...*query.Query) UserService {
 }
 
 var _ UserServiceFactory = &userServiceFactory{}
-
-// NewUserService creates a new user service.
-func NewUserService(txs ...*query.Query) UserService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &userService{
-		tx: tx,
-	}
-}
 
 // GetByUsername gets the user with the specified user name.
 func (s *userService) GetByUsername(ctx context.Context, username string) (*models.User, error) {

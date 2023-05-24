@@ -49,7 +49,7 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	}
 
 	namespaceService := dao.NewNamespaceService()
-	_, err = namespaceService.Create(ctx, &models.Namespace{
+	err = namespaceService.Create(ctx, &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
 	})

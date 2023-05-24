@@ -78,7 +78,7 @@ func TestFactory(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	url := "http://127.0.0.1:8080/user/token"
+	url := "http://127.0.0.1:8080/user/login"
 
 	req, err := http.NewRequest("GET", url, nil)
 	assert.NoError(t, err)

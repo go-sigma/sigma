@@ -35,12 +35,11 @@ func (m *MockBlobUploadService) EXPECT() *MockBlobUploadServiceMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockBlobUploadService) Create(arg0 context.Context, arg1 *models.BlobUpload) (*models.BlobUpload, error) {
+func (m *MockBlobUploadService) Create(arg0 context.Context, arg1 *models.BlobUpload) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(*models.BlobUpload)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Create indicates an expected call of Create
