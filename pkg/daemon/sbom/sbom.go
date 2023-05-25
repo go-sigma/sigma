@@ -27,14 +27,12 @@ import (
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/compress"
 )
 
 func init() {
-	err := daemon.RegisterTask(enums.DaemonSbom, daemon.DecoratorArtifact(runner))
-	if err != nil {
-		log.Fatal().Err(err).Msg("RegisterTask error")
-	}
+	utils.PanicIf(daemon.RegisterTask(enums.DaemonSbom, daemon.DecoratorArtifact(runner)))
 }
 
 func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {

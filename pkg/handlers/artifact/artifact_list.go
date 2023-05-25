@@ -21,8 +21,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -31,18 +31,13 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.ListArtifactRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifacts, err := artifactService.ListArtifact(ctx, req)
 	if err != nil {
 		log.Error().Err(err).Msg("List artifact from db failed")
@@ -53,7 +48,7 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 	for _, artifact := range artifacts {
 		artifactIDs = append(artifactIDs, artifact.ID)
 	}
-	tagService := dao.NewTagService()
+	tagService := h.tagServiceFactory.New()
 	tagCountRef, err := tagService.CountByArtifact(ctx, artifactIDs)
 	if err != nil {
 		log.Error().Err(err).Msg("Count tag from db failed")

@@ -23,6 +23,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -31,14 +32,9 @@ func (h *handlers) ListTag(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.ListTagRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 

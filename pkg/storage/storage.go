@@ -44,11 +44,6 @@ type FileInfo interface {
 
 // StorageDriver is the interface for the storage driver
 type StorageDriver interface {
-	// Name returns the human-readable "name" of the driver, useful in error
-	// messages and logging. By convention, this will just be the registration
-	// name, but drivers may provide other information here.
-	Name() string
-
 	// Stat retrieves the FileInfo for the given path, including the current
 	// size in bytes and the creation time.
 	Stat(ctx context.Context, path string) (FileInfo, error)

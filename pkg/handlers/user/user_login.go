@@ -33,7 +33,7 @@ func (h *handlers) Login(c echo.Context) error {
 	var req types.PostUserLoginRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 

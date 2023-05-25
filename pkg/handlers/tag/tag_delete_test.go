@@ -91,8 +91,7 @@ func TestDeleteTag(t *testing.T) {
 	c.SetParamNames("namespace", "id")
 	c.SetParamValues(namespaceName, strconv.FormatUint(tagObj.ID, 10))
 
-	tagHandler, err := handlerNew()
-	assert.NoError(t, err)
+	tagHandler := handlerNew()
 	if assert.NoError(t, tagHandler.DeleteTag(c)) {
 		assert.Equal(t, http.StatusNoContent, rec.Code)
 	}
