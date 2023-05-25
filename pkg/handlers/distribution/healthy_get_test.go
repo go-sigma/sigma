@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package artifact
+package distribution
 
 import (
-	"context"
+	"bytes"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-	"github.com/hibiken/asynq"
-
-	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonProxyArtifact, runner))
-}
-
-// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
-
-func runner(ctx context.Context, _ *asynq.Task) error {
-	return nil
+func TestGetHealthy(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123498712311Aa!"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	baseHandler := New()
+	err := baseHandler.GetHealthy(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, c.Response().Status)
 }

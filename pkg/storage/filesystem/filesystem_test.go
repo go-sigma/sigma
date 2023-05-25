@@ -29,8 +29,6 @@ func TestNew(t *testing.T) {
 	driver := New()
 	assert.NotNil(t, driver)
 
-	assert.Equal(t, name, driver.Name())
-
 	fileStat, err := driver.Stat(context.Background(), "test")
 	assert.True(t, errors.Is(err, os.ErrNotExist))
 	assert.Nil(t, fileStat)

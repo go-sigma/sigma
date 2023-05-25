@@ -18,17 +18,14 @@ import (
 	"context"
 
 	"github.com/hibiken/asynq"
-	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils"
 )
 
 func init() {
-	err := daemon.RegisterTask(enums.DaemonSbom, runner)
-	if err != nil {
-		log.Fatal().Err(err).Str("task", enums.DaemonProxyTag.String()).Msg("RegisterTask error")
-	}
+	utils.PanicIf(daemon.RegisterTask(enums.DaemonProxyTag, runner))
 }
 
 // when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified

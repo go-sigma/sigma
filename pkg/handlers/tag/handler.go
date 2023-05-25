@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/utils"
 )
@@ -36,21 +37,54 @@ type Handlers interface {
 
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type handlers struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+}
+
+type inject struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew() (Handlers, error) {
-	return &handlers{}, nil
+func handlerNew(injects ...inject) Handlers {
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
+		if ij.artifactServiceFactory != nil {
+			artifactServiceFactory = ij.artifactServiceFactory
+		}
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
+		}
+		if ij.namespaceServiceFactory != nil {
+			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+	}
+	return &handlers{
+		namespaceServiceFactory:  namespaceServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
+		tagServiceFactory:        tagServiceFactory,
+		artifactServiceFactory:   artifactServiceFactory,
+	}
 }
 
 type factory struct{}
 
 func (f factory) Initialize(e *echo.Echo) error {
 	tagGroup := e.Group("/namespace/:namespace/tag")
-	tagHandler, err := handlerNew()
-	if err != nil {
-		return err
-	}
+	tagHandler := handlerNew()
 	tagGroup.GET("/", tagHandler.ListTag)
 	tagGroup.GET("/:id", tagHandler.GetTag)
 	tagGroup.DELETE("/:id", tagHandler.DeleteTag)

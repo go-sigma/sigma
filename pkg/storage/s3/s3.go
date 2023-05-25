@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -32,10 +33,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/storage"
-)
-
-const (
-	name = "s3"
+	"github.com/ximager/ximager/pkg/utils"
 )
 
 type awss3 struct {
@@ -46,10 +44,7 @@ type awss3 struct {
 }
 
 func init() {
-	err := storage.RegisterDriverFactory(name, &factory{})
-	if err != nil {
-		panic(fmt.Sprintf("fail to register driver factory: %v", err))
-	}
+	utils.PanicIf(storage.RegisterDriverFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }
 
 type factory struct{}
@@ -79,11 +74,6 @@ func (f factory) New() (storage.StorageDriver, error) {
 		bucket:        bucket,
 		rootDirectory: viper.GetString("storage.rootDirectory"),
 	}, nil
-}
-
-// New returns a new instance of the s3 storage driver.
-func (a *awss3) Name() string {
-	return name
 }
 
 type fileInfo struct {

@@ -28,6 +28,11 @@ import (
 
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/middlewares"
+
+	_ "github.com/ximager/ximager/pkg/daemon/proxy/artifact"
+	_ "github.com/ximager/ximager/pkg/daemon/proxy/tag"
+	_ "github.com/ximager/ximager/pkg/daemon/sbom"
+	_ "github.com/ximager/ximager/pkg/daemon/vulnerability"
 )
 
 // Worker is the worker initialization

@@ -30,7 +30,6 @@ import (
 
 const (
 	// name is the name of the filesystem storage driver
-	name   = "filesystem"
 	tmpDir = "tmp"
 )
 
@@ -46,11 +45,6 @@ func New() storage.StorageDriver {
 
 func (f *fs) sanitizePath(p string) string {
 	return strings.Trim(strings.TrimPrefix(path.Join(f.rootDirectory, p), "."), "/")
-}
-
-// Name returns the name of the filesystem storage driver
-func (f *fs) Name() string {
-	return name
 }
 
 // Stat returns the file info for the given path

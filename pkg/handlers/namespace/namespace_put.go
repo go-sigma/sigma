@@ -21,8 +21,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -31,18 +31,13 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.PutNamespaceRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	namespaceService := dao.NewNamespaceService()
+	namespaceService := h.namespaceServiceFactory.New()
 	err = namespaceService.UpdateByID(ctx, req.ID, req)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
