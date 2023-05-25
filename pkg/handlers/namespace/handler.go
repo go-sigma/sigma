@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/utils"
@@ -41,11 +42,33 @@ type Handlers interface {
 
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type handlers struct {
+	namespaceServiceFactory dao.NamespaceServiceFactory
+	artifactServiceFactory  dao.ArtifactServiceFactory
+}
+
+type inject struct {
+	namespaceServiceFactory dao.NamespaceServiceFactory
+	artifactServiceFactory  dao.ArtifactServiceFactory
+}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew() (Handlers, error) {
-	return &handlers{}, nil
+func handlerNew(injects ...inject) Handlers {
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.namespaceServiceFactory != nil {
+			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.artifactServiceFactory != nil {
+			artifactServiceFactory = ij.artifactServiceFactory
+		}
+	}
+	return &handlers{
+		namespaceServiceFactory: namespaceServiceFactory,
+		artifactServiceFactory:  artifactServiceFactory,
+	}
 }
 
 type factory struct{}
@@ -53,10 +76,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
 	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	namespaceHandler, err := handlerNew()
-	if err != nil {
-		return err
-	}
+	namespaceHandler := handlerNew()
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)

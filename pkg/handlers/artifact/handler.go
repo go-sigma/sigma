@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/utils"
@@ -37,11 +38,33 @@ type Handlers interface {
 
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type handlers struct {
+	artifactServiceFactory dao.ArtifactServiceFactory
+	tagServiceFactory      dao.TagServiceFactory
+}
+
+type inject struct {
+	artifactServiceFactory dao.ArtifactServiceFactory
+	tagServiceFactory      dao.TagServiceFactory
+}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew() (Handlers, error) {
-	return &handlers{}, nil
+func handlerNew(injects ...inject) Handlers {
+	tagServiceFactory := dao.NewTagServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
+		}
+		if ij.artifactServiceFactory != nil {
+			artifactServiceFactory = ij.artifactServiceFactory
+		}
+	}
+	return &handlers{
+		tagServiceFactory:      tagServiceFactory,
+		artifactServiceFactory: artifactServiceFactory,
+	}
 }
 
 type factory struct{}
@@ -49,10 +72,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
 	artifactGroup := e.Group("/namespace/:namespace/artifact", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	artifactHandler, err := handlerNew()
-	if err != nil {
-		return err
-	}
+	artifactHandler := handlerNew()
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
 	artifactGroup.GET("/:id", artifactHandler.GetArtifact)
 	artifactGroup.DELETE("/:id", artifactHandler.DeleteArtifact)

@@ -21,8 +21,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -31,18 +31,13 @@ func (h *handlers) ListRepository(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var req types.ListRepositoryRequest
-	err := c.Bind(&req)
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Bind request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	err = c.Validate(&req)
-	if err != nil {
-		log.Error().Err(err).Msg("Validate request body failed")
+		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	repositoryService := dao.NewRepositoryService()
+	repositoryService := h.repositoryServiceFactory.New()
 	repositories, err := repositoryService.ListRepository(ctx, req)
 	if err != nil {
 		log.Error().Err(err).Msg("List repository from db failed")
@@ -53,7 +48,7 @@ func (h *handlers) ListRepository(c echo.Context) error {
 	for _, repository := range repositories {
 		repositoryIDs = append(repositoryIDs, repository.ID)
 	}
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifactCountRef, err := artifactService.CountByRepository(ctx, repositoryIDs)
 	if err != nil {
 		log.Error().Err(err).Msg("Count artifact from db failed")

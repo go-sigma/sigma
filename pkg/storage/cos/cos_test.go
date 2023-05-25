@@ -12,24 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package artifact
-
-import (
-	"context"
-
-	"github.com/hibiken/asynq"
-
-	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils"
-)
-
-func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonProxyArtifact, runner))
-}
-
-// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
-
-func runner(ctx context.Context, _ *asynq.Task) error {
-	return nil
-}
+package cos

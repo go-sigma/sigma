@@ -15,21 +15,26 @@
 package artifact
 
 import (
-	"context"
+	"testing"
 
-	"github.com/hibiken/asynq"
+	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils"
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 )
 
-func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonProxyArtifact, runner))
-}
+func TestFactory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
+	daoMockTagService := daomock.NewMockTagServiceFactory(ctrl)
+	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
 
-func runner(ctx context.Context, _ *asynq.Task) error {
-	return nil
+	handler := handlerNew(inject{tagServiceFactory: daoMockTagService, artifactServiceFactory: daoMockArtifactService})
+	assert.NotNil(t, handler)
+
+	f := factory{}
+	err := f.Initialize(echo.New())
+	assert.NoError(t, err)
 }
