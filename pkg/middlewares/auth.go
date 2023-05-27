@@ -60,7 +60,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			}
 
 			req := c.Request()
-			ctx := req.Context()
+			ctx := log.Logger.WithContext(req.Context())
 			authorization := req.Header.Get("Authorization")
 
 			var username, jti string

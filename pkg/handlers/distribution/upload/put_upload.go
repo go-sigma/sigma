@@ -51,7 +51,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	location := fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, uri)
 	c.Response().Header().Set("Location", location)
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	blobUploadService := dao.NewBlobUploadService()
 	upload, err := blobUploadService.GetLastPart(ctx, id)

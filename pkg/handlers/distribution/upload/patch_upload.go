@@ -43,7 +43,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 	blobUploadService := dao.NewBlobUploadService()
 	upload, err := blobUploadService.GetLastPart(ctx, id)
 	if err != nil {

@@ -27,7 +27,7 @@ import (
 
 // GetTag handles the get tag request
 func (h *handlers) GetTag(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetTagRequest
 	err := utils.BindValidate(c, &req)
