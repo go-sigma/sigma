@@ -28,7 +28,7 @@ import (
 
 // Token generate token for docker client
 func (h *handlers) Token(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	username, pwd, ok := c.Request().BasicAuth()
 	if !ok {

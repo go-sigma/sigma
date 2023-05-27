@@ -28,7 +28,7 @@ import (
 
 // Login handles the login request
 func (h *handlers) Login(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostUserLoginRequest
 	err := utils.BindValidate(c, &req)

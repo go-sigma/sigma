@@ -21,7 +21,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -37,7 +36,7 @@ import (
 // @Param name query string false "search namespace with name"
 // @Success 200	{object} types.ListNamespaceResponse
 func (h *handlers) ListNamespace(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListNamespaceRequest
 	err := utils.BindValidate(c, &req)
@@ -53,26 +52,14 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var namespaceIDs = make([]uint64, 0, len(namespaces))
-	for _, ns := range namespaces {
-		namespaceIDs = append(namespaceIDs, ns.ID)
-	}
-	artifactService := dao.NewArtifactService()
-	artifactCountRef, err := artifactService.CountByNamespace(ctx, namespaceIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count artifact from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var resp = make([]any, 0, len(namespaces))
 	for _, ns := range namespaces {
 		resp = append(resp, types.NamespaceItem{
-			ID:            ns.ID,
-			Name:          ns.Name,
-			Description:   ns.Description,
-			ArtifactCount: artifactCountRef[ns.ID],
-			CreatedAt:     ns.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:     ns.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:          ns.ID,
+			Name:        ns.Name,
+			Description: ns.Description,
+			CreatedAt:   ns.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:   ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 

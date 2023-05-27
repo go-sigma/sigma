@@ -15,6 +15,8 @@
 package namespace
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -34,7 +36,7 @@ import (
 // @Success 201
 // @Failure 400
 func (h *handlers) PostNamespace(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.CreateNamespaceRequest
 	err := utils.BindValidate(c, &req)
@@ -44,14 +46,15 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	err = namespaceService.Create(ctx, &models.Namespace{
+	namespace := &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
-	})
+	}
+	err = namespaceService.Create(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Msg("Create namespace failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeCreated)
+	return c.JSON(http.StatusCreated, types.CreateNamespaceResponse{ID: namespace.ID})
 }

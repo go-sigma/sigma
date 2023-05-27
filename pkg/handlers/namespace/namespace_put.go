@@ -16,6 +16,7 @@ package namespace
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -28,7 +29,7 @@ import (
 
 // PutNamespace handles the put namespace request
 func (h *handlers) PutNamespace(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PutNamespaceRequest
 	err := utils.BindValidate(c, &req)
@@ -47,5 +48,5 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 		log.Error().Err(err).Msg("Delete namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

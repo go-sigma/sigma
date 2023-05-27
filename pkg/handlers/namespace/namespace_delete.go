@@ -34,7 +34,7 @@ import (
 // @Router /namespace/{id} [delete]
 // @Success 204
 func (h *handlers) DeleteNamespace(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.DeleteNamespaceRequest
 	err := utils.BindValidate(c, &req)
