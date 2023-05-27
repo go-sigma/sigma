@@ -242,7 +242,7 @@ func TestLoginMockDAO(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockUserService := daomock.NewMockUserService(ctrl)
-	daoMockUserService.EXPECT().GetByUsername(context.Background(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.User, error) {
+	daoMockUserService.EXPECT().GetByUsername(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.User, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 

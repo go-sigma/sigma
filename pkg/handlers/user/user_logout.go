@@ -23,7 +23,7 @@ import (
 
 // Logout handles the logout request
 func (h *handlers) Logout(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	jti, ok := c.Get("jti").(string)
 	if !ok || jti == "" {

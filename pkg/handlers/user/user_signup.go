@@ -32,7 +32,7 @@ import (
 
 // Signup handles the user signup
 func (h *handlers) Signup(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostUserSignupRequest
 	err := utils.BindValidate(c, &req)

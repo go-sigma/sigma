@@ -12,19 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
-
-// TaskSbom is the task sbom struct
-type TaskSbom struct {
-	ArtifactID uint64 `json:"artifact_id"`
-}
-
-// TaskVulnerability is the task scan struct
-type TaskVulnerability struct {
-	ArtifactID uint64 `json:"artifact_id"`
-}
-
-// TaskProxyArtifact is the task proxy artifact
-type TaskProxyArtifact struct {
-	BlobID uint64 `json:"blob_id"`
-}
+package transfer

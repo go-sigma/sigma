@@ -20,8 +20,6 @@ type NamespaceItem struct {
 	Name        string  `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
 	Description *string `json:"description" validate:"max=30"`
 
-	ArtifactCount int64 `json:"artifact_count"`
-
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
@@ -46,9 +44,24 @@ type CreateNamespaceRequest struct {
 	Description *string `json:"description" validate:"max=30"`
 }
 
+// CreateNamespaceResponse represents the response to create a namespace.
+type CreateNamespaceResponse struct {
+	ID uint64 `json:"id"`
+}
+
 // GetNamespaceRequest represents the request to get a namespace.
 type GetNamespaceRequest struct {
 	ID uint64 `json:"id" param:"id" validate:"required,number"`
+}
+
+// GetNamespaceResponse represents the response to get a namespace.
+type GetNamespaceResponse struct {
+	ID          uint64  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 // DeleteNamespaceRequest represents the request to delete a namespace.
@@ -60,10 +73,5 @@ type DeleteNamespaceRequest struct {
 type PutNamespaceRequest struct {
 	ID uint64 `json:"id" param:"id" validate:"required,number"`
 
-	Description *string `json:"description" validate:"max=30"`
-
-	ArtifactCount int64 `json:"artifact_count"`
-
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	Description *string `json:"description" validate:"max=30,min=2"`
 }
