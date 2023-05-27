@@ -86,5 +86,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(handlers{}).PkgPath()), &factory{}))
+	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

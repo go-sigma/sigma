@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.2
-	github.com/aws/aws-sdk-go v1.44.269
+	github.com/aws/aws-sdk-go v1.44.270
 	github.com/casbin/casbin/v2 v2.69.1
 	github.com/casbin/gorm-adapter/v3 v3.17.0
 	github.com/distribution/distribution/v3 v3.0.0-20230519140516-983358f8e250
@@ -23,7 +23,7 @@ require (
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/moby/moby v23.0.6+incompatible
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230504144732-57b69b6474e2
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230525175157-58a1fe939258
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc3
 	github.com/redis/go-redis/v9 v9.0.4
@@ -110,7 +110,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
-	github.com/microsoft/go-mssqldb v0.21.0 // indirect
+	github.com/microsoft/go-mssqldb v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/patternmatcher v0.5.0 // indirect
