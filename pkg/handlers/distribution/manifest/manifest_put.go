@@ -46,7 +46,7 @@ import (
 
 // PutManifest handles the put manifest request
 func (h *handler) PutManifest(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")

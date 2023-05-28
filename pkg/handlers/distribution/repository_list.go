@@ -22,6 +22,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
 	services "github.com/ximager/ximager/pkg/dal/dao"
@@ -37,7 +38,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
 	}
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	lastFound := false
 	var lastID uint64 = 0

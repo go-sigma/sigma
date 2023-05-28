@@ -48,7 +48,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
 	}
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 	repository := strings.TrimSuffix(strings.TrimPrefix(uri, "/v2/"), "/tags/list")
 
 	lastFound := false

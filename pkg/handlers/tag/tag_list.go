@@ -29,7 +29,7 @@ import (
 
 // ListTag handles the list tag request
 func (h *handlers) ListTag(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListTagRequest
 	err := utils.BindValidate(c, &req)

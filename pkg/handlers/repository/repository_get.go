@@ -29,7 +29,7 @@ import (
 
 // GetRepository handles the get repository request
 func (h *handlers) GetRepository(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRepositoryRequest
 	err := utils.BindValidate(c, &req)

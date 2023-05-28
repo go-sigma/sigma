@@ -34,7 +34,7 @@ import (
 // @Router /repository/{id} [delete]
 // @Success 204
 func (h *handlers) DeleteRepository(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.DeleteRepositoryRequest
 	err := utils.BindValidate(c, &req)
