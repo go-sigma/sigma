@@ -28,7 +28,7 @@ import (
 
 // ListRepository handles the list repository request
 func (h *handlers) ListRepository(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListRepositoryRequest
 	err := utils.BindValidate(c, &req)

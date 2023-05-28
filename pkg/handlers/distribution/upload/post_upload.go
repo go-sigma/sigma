@@ -39,7 +39,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	uri := c.Request().URL.Path
 	protocol := c.Scheme()
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 
 	fileID := gonanoid.MustGenerate("0123456789abcdefghijklmnopqrstuvwxyz", 64)

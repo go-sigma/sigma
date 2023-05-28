@@ -53,7 +53,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	log.Debug().Str("digest", dgest.String()).Str("repository", repository).Msg("Blob info")
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	blobService := dao.NewBlobService()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())

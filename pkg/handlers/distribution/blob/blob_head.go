@@ -44,7 +44,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	log.Debug().Str("digest", dgest.String()).Str("repository", repository).Msg("Blob info")
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 

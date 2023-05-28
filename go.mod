@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.2
-	github.com/aws/aws-sdk-go v1.44.270
+	github.com/aws/aws-sdk-go v1.44.271
 	github.com/casbin/casbin/v2 v2.69.1
 	github.com/casbin/gorm-adapter/v3 v3.17.0
 	github.com/distribution/distribution/v3 v3.0.0-20230519140516-983358f8e250

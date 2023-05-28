@@ -39,7 +39,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var err error
 	var dgest digest.Digest

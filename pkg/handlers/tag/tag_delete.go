@@ -28,7 +28,7 @@ import (
 
 // DeleteTag handles the delete tag request
 func (h *handlers) DeleteTag(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.DeleteTagRequest
 	err := utils.BindValidate(c, &req)
