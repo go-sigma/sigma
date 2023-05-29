@@ -59,14 +59,15 @@ func (h *handler) GetBlob(c echo.Context) error {
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
-			cli, err := clients.New()
+			f := clients.NewClientsFactory()
+			cli, err := f.New()
 			if err != nil {
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
 					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 				}
 			}
-			statusCode, header, bodyReader, err := cli.DoRequest(c.Request().Method, c.Request().URL.Path)
+			statusCode, header, bodyReader, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
 			if err != nil {
 				log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
 				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
