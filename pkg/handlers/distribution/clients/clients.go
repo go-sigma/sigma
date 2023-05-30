@@ -15,6 +15,7 @@
 package clients
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -22,18 +23,40 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/distribution/distribution/v3"
 	"github.com/distribution/distribution/v3/registry/client/auth/challenge"
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/opencontainers/go-digest"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
+
+	_ "github.com/distribution/distribution/v3/manifest/manifestlist"
+	_ "github.com/distribution/distribution/v3/manifest/ocischema"
+	_ "github.com/distribution/distribution/v3/manifest/schema2"
 )
+
+//go:generate mockgen -destination=mocks/clients.go -package=mocks github.com/ximager/ximager/pkg/handlers/distribution/clients Clients
+//go:generate mockgen -destination=mocks/clients_factory.go -package=mocks github.com/ximager/ximager/pkg/handlers/distribution/clients ClientsFactory
 
 // Clients is the interface of clients
 type Clients interface {
+	// AuthToken auth the clients
 	AuthToken() error
-	DoRequest(method, path string) (int, http.Header, io.ReadCloser, error)
+	// DoRequest request the target with auth
+	DoRequest(ctx context.Context, method, path string, headers http.Header, bodyReaders ...io.Reader) (int, http.Header, io.ReadCloser, error)
+	// GetBlob get blob from target
+	GetBlob(ctx context.Context, repository string, digest digest.Digest) (distribution.Descriptor, io.ReadCloser, error)
+	// HeadBlob get blob metadata from target
+	HeadBlob(ctx context.Context, repository string, digest digest.Digest) (distribution.Descriptor, error)
+	// PutBlob upload blob to target
+	PutBlob(ctx context.Context, repository string, digest digest.Digest, content io.Reader) error
+	// GetManifest ...
+	GetManifest(ctx context.Context, repository, reference string) (distribution.Manifest, distribution.Descriptor, error)
+	// HeadManifest ...
+	HeadManifest(ctx context.Context, repository, reference string) (bool, error)
 }
 
 // clients is the implementation of Clients
@@ -42,8 +65,20 @@ type clients struct {
 	endpoint string
 }
 
+// ClientsFactory ...
+type ClientsFactory interface {
+	New() (Clients, error)
+}
+
+type clientsFactory struct{}
+
+// NewClientsFactory ...
+func NewClientsFactory() ClientsFactory {
+	return &clientsFactory{}
+}
+
 // New returns a new Clients
-func New() (Clients, error) {
+func (c clientsFactory) New() (Clients, error) {
 	client := resty.New()
 	if !viper.GetBool("proxy.tlsVerify") {
 		client = resty.NewWithClient(&http.Client{
@@ -78,6 +113,9 @@ func (c *clients) AuthToken() error {
 	if err != nil {
 		return err
 	}
+	if cha == nil {
+		return nil
+	}
 	if cha.Scheme == "basic" {
 		if viper.GetString("proxy.username") == "" || viper.GetString("proxy.password") == "" {
 			return fmt.Errorf("no username or password")
@@ -94,7 +132,7 @@ func (c *clients) AuthToken() error {
 		if realm == "" {
 			return fmt.Errorf("no realm parameter")
 		}
-		token, err := c.token(cha)
+		token, err := c.token(*cha)
 		if err != nil {
 			return err
 		}
@@ -112,31 +150,31 @@ func (c *clients) AuthToken() error {
 }
 
 // ping returns the ping
-func (c *clients) ping(headers ...map[string]string) (challenge.Challenge, error) {
+func (c *clients) ping(headers ...map[string]string) (*challenge.Challenge, error) {
 	req := c.cli.R()
 	if len(headers) > 0 {
 		req.SetHeaders(headers[0])
 	}
 	resp, err := req.Get(fmt.Sprintf("%s/v2/", c.endpoint))
 	if err != nil {
-		return challenge.Challenge{}, err
+		return nil, err
 	}
 	if resp.StatusCode() == http.StatusOK {
-		return challenge.Challenge{}, nil
+		return nil, nil
 	}
 	if resp.StatusCode() != http.StatusUnauthorized {
-		return challenge.Challenge{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
-	authServerStr := resp.Header().Get("Www-Authenticate")
+	authServerStr := resp.Header().Get(echo.HeaderWWWAuthenticate)
 	if authServerStr == "" {
-		return challenge.Challenge{}, fmt.Errorf("no auth server header")
+		return nil, fmt.Errorf("no auth server header")
 	}
 	challenges := challenge.ResponseChallenges(resp.RawResponse)
 	if len(challenges) != 1 {
-		return challenge.Challenge{}, fmt.Errorf("unexpected number of challenges: %d", len(challenges))
+		return nil, fmt.Errorf("unexpected number of challenges: %d", len(challenges))
 	}
 	cha := challenges[0]
-	return cha, nil
+	return &cha, nil
 }
 
 // token returns the token
@@ -169,16 +207,33 @@ func (c *clients) token(cha challenge.Challenge) (string, error) {
 }
 
 // DoRequest returns the response
-func (c *clients) DoRequest(method, path string) (int, http.Header, io.ReadCloser, error) {
+func (c *clients) DoRequest(ctx context.Context, method, path string, headers http.Header, bodyReaders ...io.Reader) (int, http.Header, io.ReadCloser, error) {
 	req := c.cli.R()
-	req.SetHeader("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.list.v2+json")
-	req.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
-	req.Header.Add("Accept", "application/vnd.oci.image.manifest.v1+json")
-	req.Header.Add("Accept", "application/json")
+	if headers != nil {
+		for k, vals := range headers {
+			for _, val := range vals {
+				req.Header.Add(k, val)
+			}
+		}
+	} else {
+		req.SetHeader("Content-Type", "application/json")
+		req.Header.Add(echo.HeaderAccept, "application/vnd.docker.distribution.manifest.v2+json")
+		req.Header.Add(echo.HeaderAccept, "application/vnd.docker.distribution.manifest.list.v2+json")
+		req.Header.Add(echo.HeaderAccept, "application/vnd.oci.image.index.v1+json")
+		req.Header.Add(echo.HeaderAccept, "application/vnd.oci.image.manifest.v1+json")
+		req.Header.Add(echo.HeaderAccept, "application/json")
+		req.Header.Add(echo.HeaderAccept, "application/octet-stream")
+	}
 	req.SetDoNotParseResponse(true)
-	resp, err := req.Execute(method, fmt.Sprintf("%s/%s", c.endpoint, strings.TrimPrefix(path, "/")))
+	if len(bodyReaders) != 0 {
+		req.SetBody(bodyReaders[0])
+	}
+	req.SetContext(ctx)
+	url := fmt.Sprintf("%s/%s", c.endpoint, strings.TrimPrefix(path, "/"))
+	if strings.HasPrefix(path, "http") {
+		url = path
+	}
+	resp, err := req.Execute(method, url)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -197,7 +252,7 @@ func (c *clients) DoRequest(method, path string) (int, http.Header, io.ReadClose
 				return 0, nil, nil, fmt.Errorf("no token")
 			}
 			c.cli.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
-			return c.DoRequest(method, path)
+			return c.DoRequest(ctx, method, path, headers)
 		}
 		return 0, nil, nil, fmt.Errorf("unsupported schema: %s", cha.Scheme)
 	}

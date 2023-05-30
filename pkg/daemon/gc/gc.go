@@ -12,29 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package blob
+package gc
 
 import (
-	"github.com/labstack/echo/v4"
+	"context"
+
+	"github.com/hibiken/asynq"
+
+	"github.com/ximager/ximager/pkg/daemon"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils"
 )
 
-// Handlers is the interface for the distribution blob handlers
-type Handlers interface {
-	// DeleteBlob ...
-	DeleteBlob(ctx echo.Context) error
-	// HeadBlob ...
-	HeadBlob(ctx echo.Context) error
-	// GetBlob ...
-	GetBlob(ctx echo.Context) error
+func init() {
+	utils.PanicIf(daemon.RegisterTask(enums.DaemonGc, runner))
 }
 
-var _ Handlers = &handler{}
+// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
 
-// var blobRouteReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/blobs/%s$`, reference.NameRegexp.String(), digest.DigestRegexp.String()))
-
-type handler struct{}
-
-// New creates a new instance of the distribution blob handlers
-func New() Handlers {
-	return &handler{}
+func runner(ctx context.Context, _ *asynq.Task) error {
+	return nil
 }

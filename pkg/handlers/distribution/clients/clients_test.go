@@ -15,6 +15,7 @@
 package clients
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,6 +24,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +57,8 @@ func TestBasicAuthToken(t *testing.T) {
 	viper.SetDefault("proxy.username", cUsername)
 	viper.SetDefault("proxy.password", cPassword)
 
-	_, err := New()
+	f := NewClientsFactory()
+	_, err := f.New()
 	assert.NoError(t, err)
 }
 
@@ -84,7 +87,8 @@ func TestTLSBasicAuthToken(t *testing.T) {
 	viper.SetDefault("proxy.username", cUsername)
 	viper.SetDefault("proxy.password", cPassword)
 
-	_, err := New()
+	f := NewClientsFactory()
+	_, err := f.New()
 	assert.NoError(t, err)
 }
 
@@ -133,7 +137,8 @@ func TestBearerAuthToken(t *testing.T) {
 
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
-	_, err := New()
+	f := NewClientsFactory()
+	_, err := f.New()
 	assert.NoError(t, err)
 }
 
@@ -192,13 +197,159 @@ func TestDoRequest(t *testing.T) {
 
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
-	clients, err := New()
+	f := NewClientsFactory()
+	clients, err := f.New()
 	assert.NoError(t, err)
 
-	statusCode, _, bodyReader, err := clients.DoRequest(http.MethodGet, "/v2/_catalog")
+	statusCode, _, bodyReader, err := clients.DoRequest(context.Background(), http.MethodGet, "/v2/_catalog", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, statusCode)
 	bodyBytes, err := io.ReadAll(bodyReader)
 	assert.NoError(t, err)
 	assert.Equal(t, `{"repositories":["library/alpine"]}`, strings.TrimSpace(string(bodyBytes)))
+}
+
+func TestDoRequestPing1(t *testing.T) {
+	cUsername := "ximager"
+	cPassword := "ximager"
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", "http://127.0.0.1:10010")
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", cUsername)
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
+}
+
+func TestDoRequestPing2(t *testing.T) {
+	cUsername := "ximager"
+	cPassword := "ximager"
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", cUsername)
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
+}
+
+func TestDoRequestPing3(t *testing.T) {
+	cUsername := "ximager"
+	cPassword := "ximager"
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", cUsername)
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
+}
+
+func TestDoRequestPing4(t *testing.T) {
+	cUsername := "ximager"
+	cPassword := "ximager"
+
+	wwwAuthenticate1 := fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3000/user/token", "registry.docker.io", "repository:library/alpine:pull")
+	wwwAuthenticate2 := fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3001/user/token", "registry.docker.io", "repository:library/alpine:pull")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate1)
+		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate2)
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", cUsername)
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
+}
+
+func TestDoRequestNoUsername(t *testing.T) {
+	cPassword := "ximager"
+
+	wwwAuthenticate := fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3000/user/token", "registry.docker.io", "repository:library/alpine:pull")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate)
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	viper.Reset()
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", "")
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
+}
+
+func TestDoRequestPingBasicAuth(t *testing.T) {
+	cPassword := "ximager"
+	cUsername := "ximager"
+
+	var wwwAuthenticate string
+
+	authTimes := 0
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		authTimes++
+		if authTimes == 1 {
+			w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate)
+			w.WriteHeader(http.StatusUnauthorized)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	})
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	wwwAuthenticate = fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, s.URL+"/token", "registry.docker.io", "repository:library/alpine:pull")
+
+	viper.Reset()
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+	viper.SetDefault("proxy.username", cUsername)
+	viper.SetDefault("proxy.password", cPassword)
+
+	f := NewClientsFactory()
+	_, err := f.New()
+	assert.Error(t, err)
 }
