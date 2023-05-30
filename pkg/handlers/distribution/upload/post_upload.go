@@ -94,7 +94,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 		log.Error().Err(err).Msg("Create blob upload id failed")
 		return err
 	}
-	c.Response().Header().Set("Docker-Upload-UUID:", id)
+	c.Response().Header().Set("Docker-Upload-UUID", id)
 
 	location := fmt.Sprintf("%s://%s%s%s", protocol, host, uri, id)
 	c.Response().Header().Set("Location", location)
