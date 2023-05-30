@@ -21,6 +21,8 @@ const (
 	DaemonProxyArtifact Daemon = "ProxyArtifact"
 	// DaemonProxyTag is a Daemon of type ProxyTag.
 	DaemonProxyTag Daemon = "ProxyTag"
+	// DaemonGc is a Daemon of garbage collection
+	DaemonGc Daemon = "Gc"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")

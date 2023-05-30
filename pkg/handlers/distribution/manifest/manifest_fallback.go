@@ -25,11 +25,12 @@ import (
 
 // fallbackProxy cannot found the manifest, proxy to the origin registry
 func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
-	cli, err := clients.New()
+	f := clients.NewClientsFactory()
+	cli, err := f.New()
 	if err != nil {
 		return 0, nil, nil, err
 	}
-	statusCode, header, reader, err := cli.DoRequest(c.Request().Method, c.Request().URL.Path)
+	statusCode, header, reader, err := cli.DoRequest(c.Request().Context(), c.Request().Method, c.Request().URL.Path, nil)
 	if err != nil {
 		return 0, nil, nil, err
 	}
