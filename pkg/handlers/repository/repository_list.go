@@ -44,25 +44,13 @@ func (h *handlers) ListRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var repositoryIDs = make([]uint64, 0, len(repositories))
-	for _, repository := range repositories {
-		repositoryIDs = append(repositoryIDs, repository.ID)
-	}
-	artifactService := h.artifactServiceFactory.New()
-	artifactCountRef, err := artifactService.CountByRepository(ctx, repositoryIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count artifact from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var resp = make([]any, 0, len(repositories))
 	for _, repository := range repositories {
 		resp = append(resp, types.RepositoryItem{
-			ID:            repository.ID,
-			Name:          repository.Name,
-			ArtifactCount: artifactCountRef[repository.ID],
-			CreatedAt:     repository.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:     repository.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:        repository.ID,
+			Name:      repository.Name,
+			CreatedAt: repository.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt: repository.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	total, err := repositoryService.CountRepository(ctx, req)

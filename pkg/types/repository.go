@@ -29,13 +29,12 @@ type RepositoryItem struct {
 type ListRepositoryRequest struct {
 	Pagination
 
-	Namespace string `json:"namespace" param:"namespace"`
+	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
 }
 
 // GetRepositoryRequest represents the request to get a repository.
 type GetRepositoryRequest struct {
-	ID        uint64 `json:"name" param:"id" validate:"required,number"`
-	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20"`
+	ID uint64 `json:"name" param:"id" validate:"required,number"`
 }
 
 // DeleteRepositoryRequest represents the request to delete a repository.

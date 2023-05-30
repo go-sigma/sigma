@@ -49,18 +49,10 @@ func (h *handlers) GetRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	artifactService := h.artifactServiceFactory.New()
-	artifactCountRef, err := artifactService.CountByRepository(ctx, []uint64{repository.ID})
-	if err != nil {
-		log.Error().Err(err).Msg("Count artifact from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	return c.JSON(http.StatusOK, types.RepositoryItem{
-		ID:            repository.ID,
-		Name:          repository.Name,
-		ArtifactCount: artifactCountRef[repository.ID],
-		CreatedAt:     repository.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:     repository.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:        repository.ID,
+		Name:      repository.Name,
+		CreatedAt: repository.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt: repository.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
