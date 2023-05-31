@@ -19,7 +19,6 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 //go:generate mockgen -destination=mocks/proxy.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ProxyService
@@ -29,8 +28,6 @@ import (
 type ProxyService interface {
 	// SaveProxyArtifact save a new artifact proxy task if conflict update.
 	SaveProxyArtifact(ctx context.Context, task *models.ProxyArtifactTask) error
-	// UpdateProxyArtifactStatus update the artifact proxy task status.
-	UpdateProxyArtifactStatus(ctx context.Context, id uint64, status enums.TaskCommonStatus) error
 	// FindByBlob find the artifact proxy task by blob.
 	FindByBlob(ctx context.Context, blob string) ([]*models.ProxyArtifactTask, error)
 }
@@ -66,20 +63,11 @@ func (s *proxyService) SaveProxyArtifact(ctx context.Context, task *models.Proxy
 	return s.tx.ProxyArtifactTask.WithContext(ctx).Save(task)
 }
 
-// UpdateProxyArtifactStatus update the artifact proxy task status.
-func (s *proxyService) UpdateProxyArtifactStatus(ctx context.Context, id uint64, status enums.TaskCommonStatus) error {
-	_, err := s.tx.ProxyArtifactTask.WithContext(ctx).Where(s.tx.ProxyArtifactTask.ID.Eq(id)).
-		UpdateColumns(map[string]interface{}{
-			"status": status,
-		})
-	return err
-}
-
 // FindByBlob find the artifact proxy task by blob.
 func (s *proxyService) FindByBlob(ctx context.Context, blob string) ([]*models.ProxyArtifactTask, error) {
 	return s.tx.ProxyArtifactTask.WithContext(ctx).
-		LeftJoin(s.tx.ProxyArtifactBlob, s.tx.ProxyArtifactBlob.ProxyArtifactTaskID.EqCol(s.tx.ProxyArtifactTask.ID), s.tx.ProxyArtifactBlob.Blob.Eq(blob)).
-		Where(s.tx.ProxyArtifactBlob.Blob.IsNotNull()). // implement the inner join
+		LeftJoin(s.tx.ProxyArtifactTaskBlob, s.tx.ProxyArtifactTaskBlob.ProxyArtifactTaskID.EqCol(s.tx.ProxyArtifactTask.ID), s.tx.ProxyArtifactTaskBlob.Blob.Eq(blob)).
+		Where(s.tx.ProxyArtifactTaskBlob.Blob.IsNotNull()). // implement the inner join
 		Preload(s.tx.ProxyArtifactTask.Blobs).
 		Find()
 }

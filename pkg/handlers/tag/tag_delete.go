@@ -20,7 +20,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -37,7 +36,7 @@ func (h *handlers) DeleteTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	tagService := dao.NewTagService()
+	tagService := h.tagServiceFactory.New()
 	err = tagService.DeleteByID(ctx, req.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Delete tag failed")

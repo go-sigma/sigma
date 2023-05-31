@@ -19,18 +19,26 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 )
 
 // fallbackProxy cannot found the manifest, proxy to the origin registry
 func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
+	var headers = make(http.Header)
+	headers.Add(echo.HeaderAccept, "application/vnd.docker.distribution.manifest.v2+json")
+	headers.Add(echo.HeaderAccept, "application/vnd.docker.distribution.manifest.list.v2+json")
+	headers.Add(echo.HeaderAccept, "application/vnd.oci.image.index.v1+json")
+	headers.Add(echo.HeaderAccept, "application/vnd.oci.image.manifest.v1+json")
+	headers.Add(echo.HeaderAccept, "application/json")
+
 	f := clients.NewClientsFactory()
 	cli, err := f.New()
 	if err != nil {
 		return 0, nil, nil, err
 	}
-	statusCode, header, reader, err := cli.DoRequest(c.Request().Context(), c.Request().Method, c.Request().URL.Path, nil)
+	statusCode, header, reader, err := cli.DoRequest(c.Request().Context(), c.Request().Method, c.Request().URL.Path, headers)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -38,5 +46,6 @@ func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
 	if err != nil {
 		return 0, nil, nil, err
 	}
+	log.Info().Str("manifest", string(bodyBytes)).Str("method", c.Request().Method).Str("path", c.Request().URL.Path).Interface("headers", headers).Msg("")
 	return statusCode, header, bodyBytes, nil
 }

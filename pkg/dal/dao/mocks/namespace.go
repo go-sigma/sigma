@@ -6,36 +6,37 @@ package mocks
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
-	reflect "reflect"
 )
 
-// MockNamespaceService is a mock of NamespaceService interface
+// MockNamespaceService is a mock of NamespaceService interface.
 type MockNamespaceService struct {
 	ctrl     *gomock.Controller
 	recorder *MockNamespaceServiceMockRecorder
 }
 
-// MockNamespaceServiceMockRecorder is the mock recorder for MockNamespaceService
+// MockNamespaceServiceMockRecorder is the mock recorder for MockNamespaceService.
 type MockNamespaceServiceMockRecorder struct {
 	mock *MockNamespaceService
 }
 
-// NewMockNamespaceService creates a new mock instance
+// NewMockNamespaceService creates a new mock instance.
 func NewMockNamespaceService(ctrl *gomock.Controller) *MockNamespaceService {
 	mock := &MockNamespaceService{ctrl: ctrl}
 	mock.recorder = &MockNamespaceServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNamespaceService) EXPECT() *MockNamespaceServiceMockRecorder {
 	return m.recorder
 }
 
-// CountNamespace mocks base method
+// CountNamespace mocks base method.
 func (m *MockNamespaceService) CountNamespace(arg0 context.Context, arg1 types.ListNamespaceRequest) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountNamespace", arg0, arg1)
@@ -44,13 +45,13 @@ func (m *MockNamespaceService) CountNamespace(arg0 context.Context, arg1 types.L
 	return ret0, ret1
 }
 
-// CountNamespace indicates an expected call of CountNamespace
+// CountNamespace indicates an expected call of CountNamespace.
 func (mr *MockNamespaceServiceMockRecorder) CountNamespace(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountNamespace", reflect.TypeOf((*MockNamespaceService)(nil).CountNamespace), arg0, arg1)
 }
 
-// Create mocks base method
+// Create mocks base method.
 func (m *MockNamespaceService) Create(arg0 context.Context, arg1 *models.Namespace) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
@@ -58,13 +59,13 @@ func (m *MockNamespaceService) Create(arg0 context.Context, arg1 *models.Namespa
 	return ret0
 }
 
-// Create indicates an expected call of Create
+// Create indicates an expected call of Create.
 func (mr *MockNamespaceServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNamespaceService)(nil).Create), arg0, arg1)
 }
 
-// DeleteByID mocks base method
+// DeleteByID mocks base method.
 func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
@@ -72,13 +73,13 @@ func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 uint64) err
 	return ret0
 }
 
-// DeleteByID indicates an expected call of DeleteByID
+// DeleteByID indicates an expected call of DeleteByID.
 func (mr *MockNamespaceServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockNamespaceService)(nil).DeleteByID), arg0, arg1)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockNamespaceService) Get(arg0 context.Context, arg1 uint64) (*models.Namespace, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
@@ -87,13 +88,13 @@ func (m *MockNamespaceService) Get(arg0 context.Context, arg1 uint64) (*models.N
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockNamespaceServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNamespaceService)(nil).Get), arg0, arg1)
 }
 
-// GetByName mocks base method
+// GetByName mocks base method.
 func (m *MockNamespaceService) GetByName(arg0 context.Context, arg1 string) (*models.Namespace, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByName", arg0, arg1)
@@ -102,13 +103,13 @@ func (m *MockNamespaceService) GetByName(arg0 context.Context, arg1 string) (*mo
 	return ret0, ret1
 }
 
-// GetByName indicates an expected call of GetByName
+// GetByName indicates an expected call of GetByName.
 func (mr *MockNamespaceServiceMockRecorder) GetByName(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockNamespaceService)(nil).GetByName), arg0, arg1)
 }
 
-// ListNamespace mocks base method
+// ListNamespace mocks base method.
 func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 types.ListNamespaceRequest) ([]*models.Namespace, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListNamespace", arg0, arg1)
@@ -117,13 +118,13 @@ func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 types.Li
 	return ret0, ret1
 }
 
-// ListNamespace indicates an expected call of ListNamespace
+// ListNamespace indicates an expected call of ListNamespace.
 func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespace", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespace), arg0, arg1)
 }
 
-// UpdateByID mocks base method
+// UpdateByID mocks base method.
 func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 uint64, arg2 types.PutNamespaceRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateByID", arg0, arg1, arg2)
@@ -131,7 +132,7 @@ func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 uint64, arg
 	return ret0
 }
 
-// UpdateByID indicates an expected call of UpdateByID
+// UpdateByID indicates an expected call of UpdateByID.
 func (mr *MockNamespaceServiceMockRecorder) UpdateByID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockNamespaceService)(nil).UpdateByID), arg0, arg1, arg2)

@@ -29,14 +29,17 @@ type ProxyArtifactTask struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        uint64                `gorm:"primaryKey"`
 
-	Status  enums.TaskCommonStatus
-	Message string
+	Repository  string
+	Digest      string
+	Size        uint64
+	ContentType string
+	Raw         []byte
 
-	Blobs []ProxyArtifactBlob `gorm:"foreignKey:ProxyArtifactTaskID;references:ID"`
+	Blobs []ProxyArtifactTaskBlob `gorm:"foreignKey:ProxyArtifactTaskID;references:ID"`
 }
 
-// ProxyArtifactBlob represents an artifact proxy task
-type ProxyArtifactBlob struct {
+// ProxyArtifactBlob represents an artifact proxy task blob
+type ProxyArtifactTaskBlob struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`

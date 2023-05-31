@@ -32,7 +32,7 @@ type BlobService interface {
 	// Create creates a new blob.
 	Create(ctx context.Context, blob *models.Blob) error
 	// FindByDigest finds the blob with the specified digest.
-	FindByDigest(ctx context.Context, digests string) (*models.Blob, error)
+	FindByDigest(ctx context.Context, digest string) (*models.Blob, error)
 	// FindByDigests finds the blobs with the specified digests.
 	FindByDigests(ctx context.Context, digests []string) ([]*models.Blob, error)
 	// Exists checks if the blob with the specified digest exists.

@@ -31,12 +31,15 @@ func newProxyArtifactTask(db *gorm.DB, opts ...gen.DOOption) proxyArtifactTask {
 	_proxyArtifactTask.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_proxyArtifactTask.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_proxyArtifactTask.ID = field.NewUint64(tableName, "id")
-	_proxyArtifactTask.Status = field.NewField(tableName, "status")
-	_proxyArtifactTask.Message = field.NewString(tableName, "message")
+	_proxyArtifactTask.Repository = field.NewString(tableName, "repository")
+	_proxyArtifactTask.Digest = field.NewString(tableName, "digest")
+	_proxyArtifactTask.Size = field.NewUint64(tableName, "size")
+	_proxyArtifactTask.ContentType = field.NewString(tableName, "content_type")
+	_proxyArtifactTask.Raw = field.NewBytes(tableName, "raw")
 	_proxyArtifactTask.Blobs = proxyArtifactTaskHasManyBlobs{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Blobs", "models.ProxyArtifactBlob"),
+		RelationField: field.NewRelation("Blobs", "models.ProxyArtifactTaskBlob"),
 		ProxyArtifactTask: struct {
 			field.RelationField
 			Blobs struct {
@@ -47,7 +50,7 @@ func newProxyArtifactTask(db *gorm.DB, opts ...gen.DOOption) proxyArtifactTask {
 			Blobs: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Blobs.ProxyArtifactTask.Blobs", "models.ProxyArtifactBlob"),
+				RelationField: field.NewRelation("Blobs.ProxyArtifactTask.Blobs", "models.ProxyArtifactTaskBlob"),
 			},
 		},
 	}
@@ -60,14 +63,17 @@ func newProxyArtifactTask(db *gorm.DB, opts ...gen.DOOption) proxyArtifactTask {
 type proxyArtifactTask struct {
 	proxyArtifactTaskDo proxyArtifactTaskDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Uint64
-	Status    field.Field
-	Message   field.String
-	Blobs     proxyArtifactTaskHasManyBlobs
+	ALL         field.Asterisk
+	CreatedAt   field.Time
+	UpdatedAt   field.Time
+	DeletedAt   field.Uint
+	ID          field.Uint64
+	Repository  field.String
+	Digest      field.String
+	Size        field.Uint64
+	ContentType field.String
+	Raw         field.Bytes
+	Blobs       proxyArtifactTaskHasManyBlobs
 
 	fieldMap map[string]field.Expr
 }
@@ -88,8 +94,11 @@ func (p *proxyArtifactTask) updateTableName(table string) *proxyArtifactTask {
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewUint(table, "deleted_at")
 	p.ID = field.NewUint64(table, "id")
-	p.Status = field.NewField(table, "status")
-	p.Message = field.NewString(table, "message")
+	p.Repository = field.NewString(table, "repository")
+	p.Digest = field.NewString(table, "digest")
+	p.Size = field.NewUint64(table, "size")
+	p.ContentType = field.NewString(table, "content_type")
+	p.Raw = field.NewBytes(table, "raw")
 
 	p.fillFieldMap()
 
@@ -114,13 +123,16 @@ func (p *proxyArtifactTask) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (p *proxyArtifactTask) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 7)
+	p.fieldMap = make(map[string]field.Expr, 10)
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
 	p.fieldMap["id"] = p.ID
-	p.fieldMap["status"] = p.Status
-	p.fieldMap["message"] = p.Message
+	p.fieldMap["repository"] = p.Repository
+	p.fieldMap["digest"] = p.Digest
+	p.fieldMap["size"] = p.Size
+	p.fieldMap["content_type"] = p.ContentType
+	p.fieldMap["raw"] = p.Raw
 
 }
 
@@ -176,11 +188,11 @@ func (a proxyArtifactTaskHasManyBlobs) Model(m *models.ProxyArtifactTask) *proxy
 
 type proxyArtifactTaskHasManyBlobsTx struct{ tx *gorm.Association }
 
-func (a proxyArtifactTaskHasManyBlobsTx) Find() (result []*models.ProxyArtifactBlob, err error) {
+func (a proxyArtifactTaskHasManyBlobsTx) Find() (result []*models.ProxyArtifactTaskBlob, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a proxyArtifactTaskHasManyBlobsTx) Append(values ...*models.ProxyArtifactBlob) (err error) {
+func (a proxyArtifactTaskHasManyBlobsTx) Append(values ...*models.ProxyArtifactTaskBlob) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -188,7 +200,7 @@ func (a proxyArtifactTaskHasManyBlobsTx) Append(values ...*models.ProxyArtifactB
 	return a.tx.Append(targetValues...)
 }
 
-func (a proxyArtifactTaskHasManyBlobsTx) Replace(values ...*models.ProxyArtifactBlob) (err error) {
+func (a proxyArtifactTaskHasManyBlobsTx) Replace(values ...*models.ProxyArtifactTaskBlob) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -196,7 +208,7 @@ func (a proxyArtifactTaskHasManyBlobsTx) Replace(values ...*models.ProxyArtifact
 	return a.tx.Replace(targetValues...)
 }
 
-func (a proxyArtifactTaskHasManyBlobsTx) Delete(values ...*models.ProxyArtifactBlob) (err error) {
+func (a proxyArtifactTaskHasManyBlobsTx) Delete(values ...*models.ProxyArtifactTaskBlob) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v

@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockArtifactServiceFactory is a mock of ArtifactServiceFactory interface
+// MockArtifactServiceFactory is a mock of ArtifactServiceFactory interface.
 type MockArtifactServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockArtifactServiceFactoryMockRecorder
 }
 
-// MockArtifactServiceFactoryMockRecorder is the mock recorder for MockArtifactServiceFactory
+// MockArtifactServiceFactoryMockRecorder is the mock recorder for MockArtifactServiceFactory.
 type MockArtifactServiceFactoryMockRecorder struct {
 	mock *MockArtifactServiceFactory
 }
 
-// NewMockArtifactServiceFactory creates a new mock instance
+// NewMockArtifactServiceFactory creates a new mock instance.
 func NewMockArtifactServiceFactory(ctrl *gomock.Controller) *MockArtifactServiceFactory {
 	mock := &MockArtifactServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockArtifactServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockArtifactServiceFactory) EXPECT() *MockArtifactServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockArtifactServiceFactory) New(arg0 ...*query.Query) dao.ArtifactService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockArtifactServiceFactory) New(arg0 ...*query.Query) dao.ArtifactServi
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockArtifactServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockArtifactServiceFactory)(nil).New), arg0...)
