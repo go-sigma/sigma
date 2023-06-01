@@ -34,6 +34,7 @@ import (
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
+	"github.com/ximager/ximager/pkg/utils/hash"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -126,6 +127,21 @@ func (h *handler) PutUpload(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Strs("etags", etags).Msg("Commit upload failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+
+	srcPathReader, err := storage.Driver.Reader(ctx, srcPath, 0)
+	if err != nil {
+		log.Error().Err(err).Str("srcPath", srcPath).Msg("Get blob upload failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	srcPathHash, err := hash.Reader(srcPathReader, dgest.Algorithm().String())
+	if err != nil {
+		log.Error().Err(err).Str("srcPath", srcPath).Msg("Hash blob upload failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	if fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash) != dgest.String() {
+		log.Error().Str("srcPath", srcPath).Str("srcPathHash", fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash)).Str("targetHash", dgest.String()).Msg("Hash blob upload mismatch")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadDigestMismatch)
 	}
 
 	destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))

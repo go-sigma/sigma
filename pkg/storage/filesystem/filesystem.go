@@ -25,6 +25,7 @@ import (
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/storage"
 )
 
@@ -49,22 +50,22 @@ func (f *fs) sanitizePath(p string) string {
 
 // Stat returns the file info for the given path
 func (f *fs) Stat(ctx context.Context, path string) (storage.FileInfo, error) {
-	return os.Stat(path)
+	return os.Stat(f.sanitizePath(path))
 }
 
 // Move moves a file from sourcePath to destPath
 func (f *fs) Move(ctx context.Context, sourcePath string, destPath string) error {
-	return os.Rename(sourcePath, destPath)
+	return os.Rename(f.sanitizePath(sourcePath), f.sanitizePath(destPath))
 }
 
 // Delete deletes a file at the given path
 func (f *fs) Delete(ctx context.Context, path string) error {
-	return os.RemoveAll(path)
+	return os.RemoveAll(f.sanitizePath(path))
 }
 
 // Reader returns a reader for the file at the given path
 func (f *fs) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
-	fp, err := os.OpenFile(path, os.O_RDONLY, 0644)
+	fp, err := os.OpenFile(f.sanitizePath(path), os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -82,18 +83,14 @@ func (f *fs) Reader(ctx context.Context, path string, offset int64) (io.ReadClos
 // CreateUploadID creates a new multipart upload and returns an
 // opaque upload ID.
 func (f *fs) CreateUploadID(ctx context.Context, _ string) (string, error) {
-	uploadID := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz0123456789", 32)
-	err := os.MkdirAll(path.Join(tmpDir, uploadID), 0755)
-	if err != nil {
-		return "", err
-	}
-	return uploadID, nil
+	uploadID := gonanoid.MustGenerate(consts.Alphanum, 32)
+	return uploadID, os.MkdirAll(f.sanitizePath(path.Join(tmpDir, uploadID)), 0755)
 }
 
 // WritePart writes a part of a multipart upload.
 func (f *fs) UploadPart(ctx context.Context, _, uploadID string, partNumber int64, body io.Reader) (string, error) {
-	eTag := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz0123456789", 32)
-	fp, err := os.OpenFile(path.Join(tmpDir, uploadID, eTag), os.O_CREATE|os.O_WRONLY, 0644)
+	eTag := gonanoid.MustGenerate(consts.Alphanum, 32)
+	fp, err := os.OpenFile(f.sanitizePath(path.Join(tmpDir, uploadID, eTag)), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", err
 	}
@@ -130,7 +127,7 @@ func (f *fs) CommitUpload(ctx context.Context, rPath, uploadID string, parts []s
 	if err != nil {
 		return nil
 	}
-	err = os.RemoveAll(path.Join(tmpDir, uploadID))
+	err = os.RemoveAll(f.sanitizePath(path.Join(tmpDir, uploadID)))
 	if err != nil {
 		return nil
 	}
