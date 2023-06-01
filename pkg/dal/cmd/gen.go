@@ -34,7 +34,7 @@ func main() {
 		models.ArtifactSbom{},
 		models.ArtifactVulnerability{},
 		models.ProxyArtifactTask{},
-		models.ProxyArtifactBlob{},
+		models.ProxyArtifactTaskBlob{},
 		models.ProxyTagTask{},
 		models.Tag{},
 		models.Blob{},

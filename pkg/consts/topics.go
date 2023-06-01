@@ -19,4 +19,10 @@ const (
 	TopicSbom = "sbom"
 	// TopicVulnerability is the topic for the scan
 	TopicVulnerability = "scan"
+	// TopicGc is the topic for the gc
+	TopicGc = "gc"
+	// TopicProxyArtifact is the topic for the proxy artifact
+	TopicProxyArtifact = "proxy-artifact"
+	// TopicProxyTag is the topic for the proxy tag
+	TopicProxyTag = "proxy-tag"
 )

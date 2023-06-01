@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockNamespaceServiceFactory is a mock of NamespaceServiceFactory interface
+// MockNamespaceServiceFactory is a mock of NamespaceServiceFactory interface.
 type MockNamespaceServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockNamespaceServiceFactoryMockRecorder
 }
 
-// MockNamespaceServiceFactoryMockRecorder is the mock recorder for MockNamespaceServiceFactory
+// MockNamespaceServiceFactoryMockRecorder is the mock recorder for MockNamespaceServiceFactory.
 type MockNamespaceServiceFactoryMockRecorder struct {
 	mock *MockNamespaceServiceFactory
 }
 
-// NewMockNamespaceServiceFactory creates a new mock instance
+// NewMockNamespaceServiceFactory creates a new mock instance.
 func NewMockNamespaceServiceFactory(ctrl *gomock.Controller) *MockNamespaceServiceFactory {
 	mock := &MockNamespaceServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockNamespaceServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNamespaceServiceFactory) EXPECT() *MockNamespaceServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockNamespaceServiceFactory) New(arg0 ...*query.Query) dao.NamespaceService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockNamespaceServiceFactory) New(arg0 ...*query.Query) dao.NamespaceSer
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockNamespaceServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockNamespaceServiceFactory)(nil).New), arg0...)

@@ -6,37 +6,38 @@ package mocks
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
 	enums "github.com/ximager/ximager/pkg/types/enums"
-	reflect "reflect"
 )
 
-// MockArtifactService is a mock of ArtifactService interface
+// MockArtifactService is a mock of ArtifactService interface.
 type MockArtifactService struct {
 	ctrl     *gomock.Controller
 	recorder *MockArtifactServiceMockRecorder
 }
 
-// MockArtifactServiceMockRecorder is the mock recorder for MockArtifactService
+// MockArtifactServiceMockRecorder is the mock recorder for MockArtifactService.
 type MockArtifactServiceMockRecorder struct {
 	mock *MockArtifactService
 }
 
-// NewMockArtifactService creates a new mock instance
+// NewMockArtifactService creates a new mock instance.
 func NewMockArtifactService(ctrl *gomock.Controller) *MockArtifactService {
 	mock := &MockArtifactService{ctrl: ctrl}
 	mock.recorder = &MockArtifactServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockArtifactService) EXPECT() *MockArtifactServiceMockRecorder {
 	return m.recorder
 }
 
-// AssociateBlobs mocks base method
+// AssociateBlobs mocks base method.
 func (m *MockArtifactService) AssociateBlobs(arg0 context.Context, arg1 *models.Artifact, arg2 []*models.Blob) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssociateBlobs", arg0, arg1, arg2)
@@ -44,13 +45,13 @@ func (m *MockArtifactService) AssociateBlobs(arg0 context.Context, arg1 *models.
 	return ret0
 }
 
-// AssociateBlobs indicates an expected call of AssociateBlobs
+// AssociateBlobs indicates an expected call of AssociateBlobs.
 func (mr *MockArtifactServiceMockRecorder) AssociateBlobs(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateBlobs", reflect.TypeOf((*MockArtifactService)(nil).AssociateBlobs), arg0, arg1, arg2)
 }
 
-// CountArtifact mocks base method
+// CountArtifact mocks base method.
 func (m *MockArtifactService) CountArtifact(arg0 context.Context, arg1 types.ListArtifactRequest) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountArtifact", arg0, arg1)
@@ -59,13 +60,13 @@ func (m *MockArtifactService) CountArtifact(arg0 context.Context, arg1 types.Lis
 	return ret0, ret1
 }
 
-// CountArtifact indicates an expected call of CountArtifact
+// CountArtifact indicates an expected call of CountArtifact.
 func (mr *MockArtifactServiceMockRecorder) CountArtifact(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountArtifact", reflect.TypeOf((*MockArtifactService)(nil).CountArtifact), arg0, arg1)
 }
 
-// CountByNamespace mocks base method
+// CountByNamespace mocks base method.
 func (m *MockArtifactService) CountByNamespace(arg0 context.Context, arg1 []uint64) (map[uint64]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
@@ -74,13 +75,13 @@ func (m *MockArtifactService) CountByNamespace(arg0 context.Context, arg1 []uint
 	return ret0, ret1
 }
 
-// CountByNamespace indicates an expected call of CountByNamespace
+// CountByNamespace indicates an expected call of CountByNamespace.
 func (mr *MockArtifactServiceMockRecorder) CountByNamespace(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockArtifactService)(nil).CountByNamespace), arg0, arg1)
 }
 
-// CountByRepository mocks base method
+// CountByRepository mocks base method.
 func (m *MockArtifactService) CountByRepository(arg0 context.Context, arg1 []uint64) (map[uint64]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByRepository", arg0, arg1)
@@ -89,13 +90,13 @@ func (m *MockArtifactService) CountByRepository(arg0 context.Context, arg1 []uin
 	return ret0, ret1
 }
 
-// CountByRepository indicates an expected call of CountByRepository
+// CountByRepository indicates an expected call of CountByRepository.
 func (mr *MockArtifactServiceMockRecorder) CountByRepository(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockArtifactService)(nil).CountByRepository), arg0, arg1)
 }
 
-// DeleteByDigest mocks base method
+// DeleteByDigest mocks base method.
 func (m *MockArtifactService) DeleteByDigest(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByDigest", arg0, arg1, arg2)
@@ -103,13 +104,13 @@ func (m *MockArtifactService) DeleteByDigest(arg0 context.Context, arg1, arg2 st
 	return ret0
 }
 
-// DeleteByDigest indicates an expected call of DeleteByDigest
+// DeleteByDigest indicates an expected call of DeleteByDigest.
 func (mr *MockArtifactServiceMockRecorder) DeleteByDigest(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByDigest", reflect.TypeOf((*MockArtifactService)(nil).DeleteByDigest), arg0, arg1, arg2)
 }
 
-// DeleteByID mocks base method
+// DeleteByID mocks base method.
 func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
@@ -117,13 +118,13 @@ func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 uint64) erro
 	return ret0
 }
 
-// DeleteByID indicates an expected call of DeleteByID
+// DeleteByID indicates an expected call of DeleteByID.
 func (mr *MockArtifactServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockArtifactService)(nil).DeleteByID), arg0, arg1)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockArtifactService) Get(arg0 context.Context, arg1 uint64) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
@@ -132,13 +133,13 @@ func (m *MockArtifactService) Get(arg0 context.Context, arg1 uint64) (*models.Ar
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockArtifactServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockArtifactService)(nil).Get), arg0, arg1)
 }
 
-// GetByDigest mocks base method
+// GetByDigest mocks base method.
 func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1, arg2 string) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByDigest", arg0, arg1, arg2)
@@ -147,13 +148,13 @@ func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1, arg2 strin
 	return ret0, ret1
 }
 
-// GetByDigest indicates an expected call of GetByDigest
+// GetByDigest indicates an expected call of GetByDigest.
 func (mr *MockArtifactServiceMockRecorder) GetByDigest(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigest", reflect.TypeOf((*MockArtifactService)(nil).GetByDigest), arg0, arg1, arg2)
 }
 
-// GetByDigests mocks base method
+// GetByDigests mocks base method.
 func (m *MockArtifactService) GetByDigests(arg0 context.Context, arg1 string, arg2 []string) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByDigests", arg0, arg1, arg2)
@@ -162,13 +163,13 @@ func (m *MockArtifactService) GetByDigests(arg0 context.Context, arg1 string, ar
 	return ret0, ret1
 }
 
-// GetByDigests indicates an expected call of GetByDigests
+// GetByDigests indicates an expected call of GetByDigests.
 func (mr *MockArtifactServiceMockRecorder) GetByDigests(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigests", reflect.TypeOf((*MockArtifactService)(nil).GetByDigests), arg0, arg1, arg2)
 }
 
-// Incr mocks base method
+// Incr mocks base method.
 func (m *MockArtifactService) Incr(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
@@ -176,13 +177,13 @@ func (m *MockArtifactService) Incr(arg0 context.Context, arg1 uint64) error {
 	return ret0
 }
 
-// Incr indicates an expected call of Incr
+// Incr indicates an expected call of Incr.
 func (mr *MockArtifactServiceMockRecorder) Incr(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockArtifactService)(nil).Incr), arg0, arg1)
 }
 
-// ListArtifact mocks base method
+// ListArtifact mocks base method.
 func (m *MockArtifactService) ListArtifact(arg0 context.Context, arg1 types.ListArtifactRequest) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListArtifact", arg0, arg1)
@@ -191,28 +192,27 @@ func (m *MockArtifactService) ListArtifact(arg0 context.Context, arg1 types.List
 	return ret0, ret1
 }
 
-// ListArtifact indicates an expected call of ListArtifact
+// ListArtifact indicates an expected call of ListArtifact.
 func (mr *MockArtifactServiceMockRecorder) ListArtifact(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactService)(nil).ListArtifact), arg0, arg1)
 }
 
-// Save mocks base method
-func (m *MockArtifactService) Save(arg0 context.Context, arg1 *models.Artifact) (*models.Artifact, error) {
+// Save mocks base method.
+func (m *MockArtifactService) Save(arg0 context.Context, arg1 *models.Artifact) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0, arg1)
-	ret0, _ := ret[0].(*models.Artifact)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// Save indicates an expected call of Save
+// Save indicates an expected call of Save.
 func (mr *MockArtifactServiceMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockArtifactService)(nil).Save), arg0, arg1)
 }
 
-// SaveSbom mocks base method
+// SaveSbom mocks base method.
 func (m *MockArtifactService) SaveSbom(arg0 context.Context, arg1 *models.ArtifactSbom) (*models.ArtifactSbom, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveSbom", arg0, arg1)
@@ -221,13 +221,13 @@ func (m *MockArtifactService) SaveSbom(arg0 context.Context, arg1 *models.Artifa
 	return ret0, ret1
 }
 
-// SaveSbom indicates an expected call of SaveSbom
+// SaveSbom indicates an expected call of SaveSbom.
 func (mr *MockArtifactServiceMockRecorder) SaveSbom(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSbom", reflect.TypeOf((*MockArtifactService)(nil).SaveSbom), arg0, arg1)
 }
 
-// SaveVulnerability mocks base method
+// SaveVulnerability mocks base method.
 func (m *MockArtifactService) SaveVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveVulnerability", arg0, arg1)
@@ -236,13 +236,13 @@ func (m *MockArtifactService) SaveVulnerability(arg0 context.Context, arg1 *mode
 	return ret0, ret1
 }
 
-// SaveVulnerability indicates an expected call of SaveVulnerability
+// SaveVulnerability indicates an expected call of SaveVulnerability.
 func (mr *MockArtifactServiceMockRecorder) SaveVulnerability(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveVulnerability", reflect.TypeOf((*MockArtifactService)(nil).SaveVulnerability), arg0, arg1)
 }
 
-// UpdateSbomStatus mocks base method
+// UpdateSbomStatus mocks base method.
 func (m *MockArtifactService) UpdateSbomStatus(arg0 context.Context, arg1 uint64, arg2 enums.TaskCommonStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSbomStatus", arg0, arg1, arg2)
@@ -250,13 +250,13 @@ func (m *MockArtifactService) UpdateSbomStatus(arg0 context.Context, arg1 uint64
 	return ret0
 }
 
-// UpdateSbomStatus indicates an expected call of UpdateSbomStatus
+// UpdateSbomStatus indicates an expected call of UpdateSbomStatus.
 func (mr *MockArtifactServiceMockRecorder) UpdateSbomStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSbomStatus", reflect.TypeOf((*MockArtifactService)(nil).UpdateSbomStatus), arg0, arg1, arg2)
 }
 
-// UpdateVulnerabilityStatus mocks base method
+// UpdateVulnerabilityStatus mocks base method.
 func (m *MockArtifactService) UpdateVulnerabilityStatus(arg0 context.Context, arg1 uint64, arg2 enums.TaskCommonStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateVulnerabilityStatus", arg0, arg1, arg2)
@@ -264,7 +264,7 @@ func (m *MockArtifactService) UpdateVulnerabilityStatus(arg0 context.Context, ar
 	return ret0
 }
 
-// UpdateVulnerabilityStatus indicates an expected call of UpdateVulnerabilityStatus
+// UpdateVulnerabilityStatus indicates an expected call of UpdateVulnerabilityStatus.
 func (mr *MockArtifactServiceMockRecorder) UpdateVulnerabilityStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVulnerabilityStatus", reflect.TypeOf((*MockArtifactService)(nil).UpdateVulnerabilityStatus), arg0, arg1, arg2)

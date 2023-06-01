@@ -80,16 +80,17 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 
 	repositoryService := dao.NewRepositoryService()
-	repoObj, err := repositoryService.Save(ctx, &models.Repository{
+	repoObj := &models.Repository{
 		Name: repository,
-	})
+	}
+	err = repositoryService.Save(ctx, repoObj)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Create repository failed")
 		return err
 	}
 
 	artifactService := dao.NewArtifactService()
-	artifactObj, err := artifactService.Save(ctx, &models.Artifact{
+	artifactObj := &models.Artifact{
 		RepositoryID: repoObj.ID,
 		Digest:       dgest.String(),
 		Size:         size,
@@ -98,7 +99,8 @@ func (h *handler) PutManifest(c echo.Context) error {
 		PushedAt:     time.Now(),
 		PullTimes:    0,
 		LastPull:     sql.NullTime{},
-	})
+	}
+	err = artifactService.Save(ctx, artifactObj)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Create artifact failed")
 		return err
@@ -282,16 +284,17 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		// Save the repository
 		repositoryService := dao.NewRepositoryService(tx)
-		repoObj, err := repositoryService.Save(ctx, &models.Repository{
+		repoObj := &models.Repository{
 			Name: repository,
-		})
+		}
+		err := repositoryService.Save(ctx, repoObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Msg("Save repository failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		// Save the artifact
 		artifactService := dao.NewArtifactService(tx)
-		artifactObj, err := artifactService.Save(ctx, &models.Artifact{
+		artifactObj := &models.Artifact{
 			RepositoryID: repoObj.ID,
 			Digest:       dgest.String(),
 			Size:         uint64(len(bodyBytes)),
@@ -300,7 +303,8 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			PushedAt:     time.Now(),
 			PullTimes:    0,
 			LastPull:     sql.NullTime{},
-		})
+		}
+		err = artifactService.Save(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Str("digest", dgest.String()).Msg("Save artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

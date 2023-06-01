@@ -28,6 +28,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/consts"
@@ -230,6 +231,7 @@ func (c *clients) DoRequest(ctx context.Context, method, path string, headers ht
 	}
 	req.SetContext(ctx)
 	url := fmt.Sprintf("%s/%s", c.endpoint, strings.TrimPrefix(path, "/"))
+	log.Info().Str("url", url).Str("method", method).Interface("header", req.Header).Msg("clients do request")
 	if strings.HasPrefix(path, "http") {
 		url = path
 	}

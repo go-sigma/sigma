@@ -32,7 +32,7 @@ import (
 // ArtifactService is the interface that provides the artifact service methods.
 type ArtifactService interface {
 	// Save save a new artifact if conflict update.
-	Save(ctx context.Context, artifact *models.Artifact) (*models.Artifact, error)
+	Save(ctx context.Context, artifact *models.Artifact) error
 	// Get gets the artifact with the specified artifact ID.
 	Get(ctx context.Context, id uint64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
@@ -103,12 +103,8 @@ func NewArtifactService(txs ...*query.Query) ArtifactService {
 }
 
 // Save save a new artifact if conflict update.
-func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) (*models.Artifact, error) {
-	err := s.tx.Artifact.WithContext(ctx).Save(artifact)
-	if err != nil {
-		return nil, err
-	}
-	return artifact, nil
+func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) error {
+	return s.tx.Artifact.WithContext(ctx).Save(artifact)
 }
 
 // Get gets the artifact with the specified artifact ID.
