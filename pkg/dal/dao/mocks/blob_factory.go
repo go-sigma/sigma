@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockBlobServiceFactory is a mock of BlobServiceFactory interface
+// MockBlobServiceFactory is a mock of BlobServiceFactory interface.
 type MockBlobServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobServiceFactoryMockRecorder
 }
 
-// MockBlobServiceFactoryMockRecorder is the mock recorder for MockBlobServiceFactory
+// MockBlobServiceFactoryMockRecorder is the mock recorder for MockBlobServiceFactory.
 type MockBlobServiceFactoryMockRecorder struct {
 	mock *MockBlobServiceFactory
 }
 
-// NewMockBlobServiceFactory creates a new mock instance
+// NewMockBlobServiceFactory creates a new mock instance.
 func NewMockBlobServiceFactory(ctrl *gomock.Controller) *MockBlobServiceFactory {
 	mock := &MockBlobServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockBlobServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlobServiceFactory) EXPECT() *MockBlobServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockBlobServiceFactory) New(arg0 ...*query.Query) dao.BlobService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockBlobServiceFactory) New(arg0 ...*query.Query) dao.BlobService {
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockBlobServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockBlobServiceFactory)(nil).New), arg0...)

@@ -146,14 +146,17 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
 
 CREATE TABLE IF NOT EXISTS `proxy_artifact_tasks` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `message` varchar(256),
-  `status` varchar(64) NOT NULL,
+  `repository` varchar(64) NOT NULL,
+  `digest` varchar(256) NOT NULL,
+  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `content_type` varchar(256) NOT NULL,
+  `raw` BLOB,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS `proxy_artifact_blobs` (
+CREATE TABLE IF NOT EXISTS `proxy_artifact_task_blobs` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `blob` varchar(256) NOT NULL,
   `proxy_artifact_task_id` bigint unsigned NOT NULL,

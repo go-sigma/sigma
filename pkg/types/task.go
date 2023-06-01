@@ -26,5 +26,5 @@ type TaskVulnerability struct {
 
 // TaskProxyArtifact is the task proxy artifact
 type TaskProxyArtifact struct {
-	BlobID uint64 `json:"blob_id"`
+	BlobDigest string `json:"blob_digest"`
 }

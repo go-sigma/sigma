@@ -71,7 +71,8 @@ func TestDeleteTag(t *testing.T) {
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		artifactService := dao.NewArtifactService(tx)
-		artifactObj, err := artifactService.Save(ctx, &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()})
+		artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()}
+		err = artifactService.Save(ctx, artifactObj)
 		assert.NoError(t, err)
 		tagService := dao.NewTagService(tx)
 		tagObj, err = tagService.Save(ctx, &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()})

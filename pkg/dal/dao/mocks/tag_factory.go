@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockTagServiceFactory is a mock of TagServiceFactory interface
+// MockTagServiceFactory is a mock of TagServiceFactory interface.
 type MockTagServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockTagServiceFactoryMockRecorder
 }
 
-// MockTagServiceFactoryMockRecorder is the mock recorder for MockTagServiceFactory
+// MockTagServiceFactoryMockRecorder is the mock recorder for MockTagServiceFactory.
 type MockTagServiceFactoryMockRecorder struct {
 	mock *MockTagServiceFactory
 }
 
-// NewMockTagServiceFactory creates a new mock instance
+// NewMockTagServiceFactory creates a new mock instance.
 func NewMockTagServiceFactory(ctrl *gomock.Controller) *MockTagServiceFactory {
 	mock := &MockTagServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockTagServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTagServiceFactory) EXPECT() *MockTagServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockTagServiceFactory) New(arg0 ...*query.Query) dao.TagService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockTagServiceFactory) New(arg0 ...*query.Query) dao.TagService {
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockTagServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockTagServiceFactory)(nil).New), arg0...)

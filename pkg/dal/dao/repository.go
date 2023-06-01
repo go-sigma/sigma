@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 
+	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -34,7 +35,7 @@ type RepositoryService interface {
 	// Create creates a new repository.
 	Create(context.Context, *models.Repository) error
 	// Save saves the repository.
-	Save(context.Context, *models.Repository) (*models.Repository, error)
+	Save(context.Context, *models.Repository) error
 	// Get gets the repository with the specified repository ID.
 	Get(context.Context, uint64) (*models.Repository, error)
 	// GetByName gets the repository with the specified repository name.
@@ -92,22 +93,26 @@ func (s *repositoryService) Create(ctx context.Context, repository *models.Repos
 }
 
 // Save saves the repository.
-func (s *repositoryService) Save(ctx context.Context, repository *models.Repository) (*models.Repository, error) {
+func (s *repositoryService) Save(ctx context.Context, repository *models.Repository) error {
 	_, ns, _, _, err := imagerefs.Parse(repository.Name)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	nsObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(ns)).First()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	repository.NamespaceID = nsObj.ID
 	err = s.tx.Repository.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(repository)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID),
+	rRepository, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID),
 		s.tx.Repository.Name.Eq(repository.Name)).First()
+	if err != nil {
+		return err
+	}
+	return copier.Copy(repository, rRepository)
 }
 
 // Get gets the repository with the specified repository ID.

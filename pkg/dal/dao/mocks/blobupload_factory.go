@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockBlobUploadServiceFactory is a mock of BlobUploadServiceFactory interface
+// MockBlobUploadServiceFactory is a mock of BlobUploadServiceFactory interface.
 type MockBlobUploadServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobUploadServiceFactoryMockRecorder
 }
 
-// MockBlobUploadServiceFactoryMockRecorder is the mock recorder for MockBlobUploadServiceFactory
+// MockBlobUploadServiceFactoryMockRecorder is the mock recorder for MockBlobUploadServiceFactory.
 type MockBlobUploadServiceFactoryMockRecorder struct {
 	mock *MockBlobUploadServiceFactory
 }
 
-// NewMockBlobUploadServiceFactory creates a new mock instance
+// NewMockBlobUploadServiceFactory creates a new mock instance.
 func NewMockBlobUploadServiceFactory(ctrl *gomock.Controller) *MockBlobUploadServiceFactory {
 	mock := &MockBlobUploadServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockBlobUploadServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlobUploadServiceFactory) EXPECT() *MockBlobUploadServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockBlobUploadServiceFactory) New(arg0 ...*query.Query) dao.BlobUploadService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockBlobUploadServiceFactory) New(arg0 ...*query.Query) dao.BlobUploadS
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockBlobUploadServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockBlobUploadServiceFactory)(nil).New), arg0...)

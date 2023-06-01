@@ -36,5 +36,6 @@ type Database string
 // Sbom,
 // ProxyArtifact,
 // ProxyTag,
+// Gc
 // )
 type Daemon string

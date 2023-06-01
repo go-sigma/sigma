@@ -16,6 +16,7 @@ package blob
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,10 +33,12 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 	"github.com/ximager/ximager/pkg/storage"
+	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/reader"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -101,6 +104,16 @@ func (h *handler) GetBlob(c echo.Context) error {
 				}
 			}()
 			c.Response().Header().Set("Content-Length", header.Get("Content-Length"))
+			defer func() {
+				artifactObj, err := json.Marshal(types.TaskProxyArtifact{BlobDigest: dgest.String()})
+				if err != nil {
+					log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
+				}
+				err = daemon.Enqueue(consts.TopicProxyArtifact, artifactObj)
+				if err != nil {
+					log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
+				}
+			}()
 			return c.Stream(http.StatusOK, contentType, newBodyReader)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")

@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
-	reflect "reflect"
 )
 
-// MockRepositoryServiceFactory is a mock of RepositoryServiceFactory interface
+// MockRepositoryServiceFactory is a mock of RepositoryServiceFactory interface.
 type MockRepositoryServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryServiceFactoryMockRecorder
 }
 
-// MockRepositoryServiceFactoryMockRecorder is the mock recorder for MockRepositoryServiceFactory
+// MockRepositoryServiceFactoryMockRecorder is the mock recorder for MockRepositoryServiceFactory.
 type MockRepositoryServiceFactoryMockRecorder struct {
 	mock *MockRepositoryServiceFactory
 }
 
-// NewMockRepositoryServiceFactory creates a new mock instance
+// NewMockRepositoryServiceFactory creates a new mock instance.
 func NewMockRepositoryServiceFactory(ctrl *gomock.Controller) *MockRepositoryServiceFactory {
 	mock := &MockRepositoryServiceFactory{ctrl: ctrl}
 	mock.recorder = &MockRepositoryServiceFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepositoryServiceFactory) EXPECT() *MockRepositoryServiceFactoryMockRecorder {
 	return m.recorder
 }
 
-// New mocks base method
+// New mocks base method.
 func (m *MockRepositoryServiceFactory) New(arg0 ...*query.Query) dao.RepositoryService {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -46,7 +47,7 @@ func (m *MockRepositoryServiceFactory) New(arg0 ...*query.Query) dao.RepositoryS
 	return ret0
 }
 
-// New indicates an expected call of New
+// New indicates an expected call of New.
 func (mr *MockRepositoryServiceFactoryMockRecorder) New(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockRepositoryServiceFactory)(nil).New), arg0...)

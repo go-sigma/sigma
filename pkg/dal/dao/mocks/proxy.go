@@ -6,36 +6,36 @@ package mocks
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
-	enums "github.com/ximager/ximager/pkg/types/enums"
-	reflect "reflect"
 )
 
-// MockProxyService is a mock of ProxyService interface
+// MockProxyService is a mock of ProxyService interface.
 type MockProxyService struct {
 	ctrl     *gomock.Controller
 	recorder *MockProxyServiceMockRecorder
 }
 
-// MockProxyServiceMockRecorder is the mock recorder for MockProxyService
+// MockProxyServiceMockRecorder is the mock recorder for MockProxyService.
 type MockProxyServiceMockRecorder struct {
 	mock *MockProxyService
 }
 
-// NewMockProxyService creates a new mock instance
+// NewMockProxyService creates a new mock instance.
 func NewMockProxyService(ctrl *gomock.Controller) *MockProxyService {
 	mock := &MockProxyService{ctrl: ctrl}
 	mock.recorder = &MockProxyServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockProxyService) EXPECT() *MockProxyServiceMockRecorder {
 	return m.recorder
 }
 
-// FindByBlob mocks base method
+// FindByBlob mocks base method.
 func (m *MockProxyService) FindByBlob(arg0 context.Context, arg1 string) ([]*models.ProxyArtifactTask, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByBlob", arg0, arg1)
@@ -44,13 +44,13 @@ func (m *MockProxyService) FindByBlob(arg0 context.Context, arg1 string) ([]*mod
 	return ret0, ret1
 }
 
-// FindByBlob indicates an expected call of FindByBlob
+// FindByBlob indicates an expected call of FindByBlob.
 func (mr *MockProxyServiceMockRecorder) FindByBlob(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByBlob", reflect.TypeOf((*MockProxyService)(nil).FindByBlob), arg0, arg1)
 }
 
-// SaveProxyArtifact mocks base method
+// SaveProxyArtifact mocks base method.
 func (m *MockProxyService) SaveProxyArtifact(arg0 context.Context, arg1 *models.ProxyArtifactTask) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveProxyArtifact", arg0, arg1)
@@ -58,22 +58,8 @@ func (m *MockProxyService) SaveProxyArtifact(arg0 context.Context, arg1 *models.
 	return ret0
 }
 
-// SaveProxyArtifact indicates an expected call of SaveProxyArtifact
+// SaveProxyArtifact indicates an expected call of SaveProxyArtifact.
 func (mr *MockProxyServiceMockRecorder) SaveProxyArtifact(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveProxyArtifact", reflect.TypeOf((*MockProxyService)(nil).SaveProxyArtifact), arg0, arg1)
-}
-
-// UpdateProxyArtifactStatus mocks base method
-func (m *MockProxyService) UpdateProxyArtifactStatus(arg0 context.Context, arg1 uint64, arg2 enums.TaskCommonStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProxyArtifactStatus", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateProxyArtifactStatus indicates an expected call of UpdateProxyArtifactStatus
-func (mr *MockProxyServiceMockRecorder) UpdateProxyArtifactStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProxyArtifactStatus", reflect.TypeOf((*MockProxyService)(nil).UpdateProxyArtifactStatus), arg0, arg1, arg2)
 }
