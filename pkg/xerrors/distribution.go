@@ -221,6 +221,14 @@ var (
 		HTTPStatusCode: http.StatusNotFound,
 	}
 
+	// DSErrCodeBlobUploadDigestMismatch is returned when an upload digest mismatch.
+	DSErrCodeBlobUploadDigestMismatch = DSErrCode{
+		Value:          "BLOB_UPLOAD_DIGEST_MISMATCH",
+		Message:        "blob upload digest mismatch",
+		Description:    `The blob upload digest mismatch.`,
+		HTTPStatusCode: http.StatusNotFound,
+	}
+
 	// DSErrCodePaginationNumberInvalid is returned when the `n` parameter is
 	// not an integer, or `n` is negative.
 	DSErrCodePaginationNumberInvalid = DSErrCode{

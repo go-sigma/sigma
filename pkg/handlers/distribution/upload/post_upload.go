@@ -42,7 +42,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 
-	fileID := gonanoid.MustGenerate("0123456789abcdefghijklmnopqrstuvwxyz", 64)
+	fileID := gonanoid.MustGenerate(consts.Alphanum, 64)
 
 	// according to the docker registry api, if the digest is provided, the upload is complete
 	if c.QueryParam("digest") != "" {
