@@ -58,6 +58,11 @@ func TestNew(t *testing.T) {
 	dataBytes, err = io.ReadAll(reader)
 	assert.NoError(t, err)
 	assert.Equal(t, "est", string(dataBytes))
+	reader, err = driver.Reader(context.Background(), "unit-test", 1000)
+	assert.NoError(t, err)
+	dataBytes, err = io.ReadAll(reader)
+	assert.NoError(t, err)
+	assert.Equal(t, "", string(dataBytes))
 	err = driver.Delete(context.Background(), "unit-test")
 	assert.NoError(t, err)
 
@@ -79,6 +84,11 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "test"+"hello", string(dataBytes))
 	err = driver.Delete(context.Background(), "unit-test-path")
+	assert.NoError(t, err)
+
+	err = driver.CommitUpload(context.Background(), "unit-test-path", uploadID, []string{tag1, tag2})
+	assert.Error(t, err)
+	err = os.RemoveAll("unit-test-path.fake")
 	assert.NoError(t, err)
 
 	uploadID, err = driver.CreateUploadID(context.Background(), "unit-test-path")
@@ -103,8 +113,4 @@ func TestNew(t *testing.T) {
 
 	err = driver.Upload(context.Background(), "unit-test-path", nil)
 	assert.Error(t, err)
-}
-
-func TestUpload(t *testing.T) {
-
 }
