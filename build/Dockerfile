@@ -60,7 +60,7 @@ RUN set -eux && \
 FROM golang:${GOLANG_VERSION} as builder
 
 RUN set -eux && \
-  apk add --no-cache make bash ncurses build-base
+  apk add --no-cache make bash ncurses build-base git
 
 COPY . /go/src/github.com/ximager/ximager
 COPY --from=web-builder /web/dist /go/src/github.com/ximager/ximager/web/dist
