@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"reflect"
 	"strconv"
@@ -114,7 +115,7 @@ func (a *awss3) Stat(ctx context.Context, path string) (storage.FileInfo, error)
 	}
 
 	fi := fileInfo{name: path}
-	if len(resp.Contents) == 1 {
+	if len(resp.Contents) == 1 { // nolint: gocritic
 		if *resp.Contents[0].Key != path {
 			fi.isDir = true
 		} else {
@@ -122,6 +123,10 @@ func (a *awss3) Stat(ctx context.Context, path string) (storage.FileInfo, error)
 			fi.size = *resp.Contents[0].Size
 			fi.modTime = *resp.Contents[0].LastModified
 		}
+	} else if len(resp.CommonPrefixes) == 1 {
+		fi.isDir = true
+	} else {
+		return nil, os.ErrNotExist
 	}
 	return fi, nil
 }
@@ -298,10 +303,7 @@ func (a *awss3) Reader(ctx context.Context, path string, offset int64) (io.ReadC
 		Key:    aws.String(a.sanitizePath(path)),
 		Range:  aws.String("bytes=" + strconv.FormatInt(offset, 10) + "-"),
 	})
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body, nil
+	return resp.Body, err
 }
 
 // CreateUploadID creates a new upload ID.
@@ -374,8 +376,5 @@ func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 		Key:    aws.String(a.sanitizePath(path)),
 		Body:   body,
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
