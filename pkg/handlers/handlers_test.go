@@ -67,28 +67,6 @@ func TestInitializeSkipAuth(t *testing.T) {
 
 	err = Initialize(e)
 	assert.NoError(t, err)
-
-	// go func() {
-	// 	err = e.Start(":8080")
-	// 	assert.ErrorIs(t, err, http.ErrServerClosed)
-	// }()
-
-	// time.Sleep(1 * time.Second)
-
-	// url := "http://127.0.0.1:8080/user/token"
-
-	// req, err := http.NewRequest("GET", url, nil)
-	// assert.NoError(t, err)
-	// req.SetBasicAuth("ximager", "ximager")
-
-	// client := &http.Client{}
-	// resp, err := client.Do(req)
-	// assert.NoError(t, err)
-	// err = resp.Body.Close()
-	// assert.NoError(t, err)
-
-	// err = e.Shutdown(context.Background())
-	// assert.NoError(t, err)
 }
 
 type factoryOk struct{}

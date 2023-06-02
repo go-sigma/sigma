@@ -4,10 +4,10 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.3
-	github.com/aws/aws-sdk-go v1.44.273
+	github.com/aws/aws-sdk-go v1.44.274
 	github.com/casbin/casbin/v2 v2.69.1
 	github.com/casbin/gorm-adapter/v3 v3.17.0
-	github.com/distribution/distribution/v3 v3.0.0-20230601085657-5902a24fd0b1
+	github.com/distribution/distribution/v3 v3.0.0-20230601133803-97b1d649c493
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator v9.31.0+incompatible

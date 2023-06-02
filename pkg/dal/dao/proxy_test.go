@@ -30,7 +30,7 @@ import (
 )
 
 func TestProxyServiceFactory(t *testing.T) {
-	f := NewProxyServiceFactory()
+	f := NewProxyTaskServiceFactory()
 	proxyService := f.New()
 	assert.NotNil(t, proxyService)
 	proxyService = f.New(query.Q)
@@ -56,31 +56,31 @@ func TestProxyArtifact(t *testing.T) {
 	ctx := log.Logger.WithContext(context.Background())
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		f := NewProxyServiceFactory()
+		f := NewProxyTaskServiceFactory()
 		proxyService := f.New(tx)
-		err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
+		err = proxyService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 			Repository:  "library/busybox",
 			Digest:      "sha256:xxx",
 			Size:        120,
 			ContentType: "test",
 			Raw:         []byte("test1"),
-			Blobs: []models.ProxyArtifactTaskBlob{
+			Blobs: []models.ProxyTaskArtifactBlob{
 				{Blob: "sha256:123"},
 				{Blob: "sha256:456"},
 			}})
 		assert.NoError(t, err)
-		err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
+		err = proxyService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 			Repository:  "library/busybox",
 			Digest:      "sha256:xxxx",
 			Size:        120,
 			ContentType: "test",
 			Raw:         []byte("test2"),
-			Blobs: []models.ProxyArtifactTaskBlob{
+			Blobs: []models.ProxyTaskArtifactBlob{
 				{Blob: "sha256:789"},
 				{Blob: "sha256:7891"},
 			}})
 		assert.NoError(t, err)
-		findTasks, err := proxyService.FindByBlob(ctx, "sha256:123")
+		findTasks, err := proxyService.FindProxyTaskArtifactByBlob(ctx, "sha256:123")
 		assert.NoError(t, err)
 		assert.Equal(t, len(findTasks), 1)
 		return nil

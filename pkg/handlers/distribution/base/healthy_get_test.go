@@ -14,8 +14,22 @@
 
 package distribution
 
-import "testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-func TestListTags(t *testing.T) {
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+)
 
+func TestGetHealthy(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/v2/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	f := &factory{}
+	err := f.Initialize(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, c.Response().Status)
 }

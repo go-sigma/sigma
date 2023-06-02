@@ -15,118 +15,51 @@
 package distribution
 
 import (
+	"fmt"
 	"net/http"
-	"strings"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/handlers/distribution/blob"
-	"github.com/ximager/ximager/pkg/handlers/distribution/manifest"
-	"github.com/ximager/ximager/pkg/handlers/distribution/upload"
 )
-
-// Handlers is the interface for the distribution handlers
-type Handlers interface {
-	// GetHealthy handles the get healthy request
-	GetHealthy(ctx echo.Context) error
-	// ListTags handles the list tags request
-	ListTags(ctx echo.Context) error
-	// ListRepositories handles the list repositories request
-	ListRepositories(ctx echo.Context) error
-}
-
-var _ Handlers = &handlers{}
-
-type handlers struct{}
-
-// New creates a new instance of the distribution handlers
-func New() Handlers {
-	return &handlers{}
-}
-
-// NewBlob creates a new instance of the distribution blob handlers
-func NewBlob() blob.Handlers {
-	return blob.New()
-}
-
-// NewUpload creates a new instance of the distribution upload handlers
-func NewUpload() upload.Handlers {
-	return upload.New()
-}
-
-// NewManifest creates a new instance of the distribution manifest handlers
-func NewManifest() manifest.Handlers {
-	return manifest.New()
-}
 
 // All handles the all request
 func All(c echo.Context) error {
 	c.Response().Header().Set(consts.APIVersionKey, consts.APIVersionValue)
 
-	method := c.Request().Method
-	uri := c.Request().RequestURI
+	sort.SliceStable(routerFactories, func(i, j int) bool {
+		return routerFactories[i].Key < routerFactories[j].Key
+	})
 
-	baseHandler := New()
-	if method == http.MethodGet && uri == "/v2/" {
-		return baseHandler.GetHealthy(c)
-	}
-	if method == http.MethodGet && uri == "/v2/_catalog" {
-		return baseHandler.ListRepositories(c)
-	}
-	if method == http.MethodGet && strings.HasSuffix(uri, "/tags/list") {
-		return baseHandler.ListTags(c)
-	}
-
-	uploadHandler := NewUpload()
-	if method == http.MethodPost && strings.HasSuffix(uri, "blobs/uploads/") {
-		return uploadHandler.PostUpload(c)
-	}
-
-	urix := uri[:strings.LastIndex(uri, "/")]
-
-	if strings.HasSuffix(urix, "/blobs/uploads") {
-		switch method {
-		case http.MethodGet:
-			return uploadHandler.GetUpload(c)
-		case http.MethodPatch:
-			return uploadHandler.PatchUpload(c)
-		case http.MethodPut:
-			return uploadHandler.PutUpload(c)
-		case http.MethodDelete:
-			return uploadHandler.DeleteUpload(c)
-		default:
-			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+	for index, factory := range routerFactories {
+		if err := factory.Value.Initialize(c); err != nil {
+			return fmt.Errorf("failed to initialize router factory index(%d): %v", index, err)
 		}
 	}
 
-	blobHandler := NewBlob()
-	if strings.HasSuffix(urix, "/blobs") {
-		switch method {
-		case http.MethodGet:
-			return blobHandler.GetBlob(c)
-		case http.MethodHead:
-			return blobHandler.HeadBlob(c)
-		default:
-			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+	return c.NoContent(http.StatusOK)
+}
+
+// Factory is the interface for the storage router factory
+type Factory interface {
+	Initialize(ctx echo.Context) error
+}
+
+type Item struct {
+	Key   int
+	Value Factory
+}
+
+var routerFactories = make([]Item, 0, 10)
+
+// RegisterRouterFactory registers a new router factory
+func RegisterRouterFactory(factory Factory, index int) error {
+	for _, router := range routerFactories {
+		if router.Key == index {
+			return fmt.Errorf("router %d already registered", index)
 		}
 	}
-
-	manifestHandler := NewManifest()
-	if strings.HasSuffix(urix, "/manifests") {
-		switch method {
-		case http.MethodGet:
-			return manifestHandler.GetManifest(c)
-		case http.MethodHead:
-			return manifestHandler.HeadManifest(c)
-		case http.MethodPut:
-			return manifestHandler.PutManifest(c)
-		case http.MethodDelete:
-			return manifestHandler.DeleteManifest(c)
-		default:
-			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
-		}
-	}
-
-	return c.String(200, "OK: "+method+" "+uri)
+	routerFactories = append(routerFactories, Item{Key: index, Value: factory})
+	return nil
 }
