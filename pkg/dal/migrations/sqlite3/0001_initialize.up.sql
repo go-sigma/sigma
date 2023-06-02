@@ -142,7 +142,7 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
 INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
   VALUES ('p', 'anonymous', 'blob', 'pull');
 
-CREATE TABLE IF NOT EXISTS `proxy_artifact_tasks` (
+CREATE TABLE IF NOT EXISTS `proxy_task_artifacts` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `repository` varchar(64) NOT NULL,
   `digest` varchar(256) NOT NULL,
@@ -154,23 +154,35 @@ CREATE TABLE IF NOT EXISTS `proxy_artifact_tasks` (
   `deleted_at` bigint NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS `proxy_artifact_task_blobs` (
+CREATE TABLE IF NOT EXISTS `proxy_task_artifact_blobs` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `blob` varchar(256) NOT NULL,
-  `proxy_artifact_task_id` integer NOT NULL,
+  `proxy_task_artifact_id` integer NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`proxy_artifact_task_id`) REFERENCES `proxy_artifact_tasks` (`id`)
+  FOREIGN KEY (`proxy_task_artifact_id`) REFERENCES `proxy_task_artifacts` (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `proxy_tag_tasks` (
+CREATE TABLE IF NOT EXISTS `proxy_task_tags` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `manifest` varchar(256) NOT NULL,
-  `message` varchar(256),
-  `status` varchar(64) NOT NULL,
+  `repository` varchar(64) NOT NULL,
+  `reference` varchar(256) NOT NULL,
+  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `content_type` varchar(256) NOT NULL,
+  `raw` BLOB,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `proxy_task_tag_manifests` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `digest` varchar(256) NOT NULL,
+  `proxy_task_tag_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`proxy_task_tag_id`) REFERENCES `proxy_task_tags` (`id`)
 );
 

@@ -139,7 +139,7 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 	if len(lastID) > 0 {
 		do = do.Where(s.tx.Tag.ID.Gt(lastID[0]))
 	}
-	repositories, err := do.Order(s.tx.Tag.ID).Limit(limit).Find()
+	repositories, err := do.Order(s.tx.Repository.ID).Limit(limit).Find()
 	if err != nil {
 		return nil, err
 	}

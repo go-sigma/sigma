@@ -32,6 +32,9 @@ import (
 	"github.com/ximager/ximager/pkg/storage"
 
 	_ "github.com/ximager/ximager/pkg/handlers/artifact"
+	_ "github.com/ximager/ximager/pkg/handlers/distribution/blob"
+	_ "github.com/ximager/ximager/pkg/handlers/distribution/manifest"
+	_ "github.com/ximager/ximager/pkg/handlers/distribution/upload"
 	_ "github.com/ximager/ximager/pkg/handlers/namespace"
 	_ "github.com/ximager/ximager/pkg/handlers/repository"
 	_ "github.com/ximager/ximager/pkg/handlers/tag"

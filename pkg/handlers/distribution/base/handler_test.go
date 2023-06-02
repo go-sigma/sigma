@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package upload
+package distribution
 
-import "github.com/labstack/echo/v4"
+import (
+	"testing"
 
-// Handlers is the interface for the distribution blob handlers
-type Handlers interface {
-	DeleteUpload(ctx echo.Context) error
-	GetUpload(ctx echo.Context) error
-	PatchUpload(ctx echo.Context) error
-	PostUpload(ctx echo.Context) error
-	PutUpload(ctx echo.Context) error
-}
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 
-var _ Handlers = &handler{}
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
+)
 
-type handler struct{}
+func TestHandlerNew(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// New creates a new instance of the distribution blob handlers
-func New() Handlers {
-	return &handler{}
+	daoMockTagService := daomock.NewMockTagServiceFactory(ctrl)
+	daoMockRepositoryService := daomock.NewMockRepositoryServiceFactory(ctrl)
+
+	handler := handlerNew(inject{tagServiceFactory: daoMockTagService, repositoryServiceFactory: daoMockRepositoryService})
+	assert.NotNil(t, handler)
 }

@@ -38,7 +38,7 @@ func init() {
 // when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
 
 type inject struct {
-	proxyServiceFactory      dao.ProxyServiceFactory
+	proxyTaskServiceFactory  dao.ProxyTaskServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
@@ -48,11 +48,11 @@ func newRunner(injects ...inject) func(ctx context.Context, atask *asynq.Task) e
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
-	proxyServiceFactory := dao.NewProxyServiceFactory()
+	proxyTaskServiceFactory := dao.NewProxyTaskServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
-		if ij.proxyServiceFactory != nil {
-			proxyServiceFactory = ij.proxyServiceFactory
+		if ij.proxyTaskServiceFactory != nil {
+			proxyTaskServiceFactory = ij.proxyTaskServiceFactory
 		}
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
@@ -65,9 +65,9 @@ func newRunner(injects ...inject) func(ctx context.Context, atask *asynq.Task) e
 		}
 	}
 	return func(ctx context.Context, atask *asynq.Task) error {
-		proxyService := proxyServiceFactory.New()
+		proxyService := proxyTaskServiceFactory.New()
 		blobID := gjson.GetBytes(atask.Payload(), "blob_digest").String()
-		artifactTasks, err := proxyService.FindByBlob(ctx, blobID)
+		artifactTasks, err := proxyService.FindProxyTaskArtifactByBlob(ctx, blobID)
 		if err != nil {
 			return err
 		}

@@ -12,24 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package distribution
+package upload
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 )
 
-func TestGetHealthy(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := echo.New().NewContext(req, rec)
-	baseHandler := New()
-	err := baseHandler.GetHealthy(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, c.Response().Status)
+func TestHandlerNew(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockBlobUploadService := daomock.NewMockBlobUploadServiceFactory(ctrl)
+
+	handler := handlerNew(inject{blobUploadServiceFactory: daoMockBlobUploadService})
+	assert.NotNil(t, handler)
 }

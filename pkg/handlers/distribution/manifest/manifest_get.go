@@ -58,6 +58,12 @@ func (h *handler) GetManifest(c echo.Context) error {
 					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 				}
 				if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
+					c.Response().Header().Set("Docker-Content-Digest", header.Get("Docker-Content-Digest"))
+					c.Response().Header().Set("ETag", header.Get("ETag"))
+					err = h.proxyTaskTag(c, repository, ref, header.Get("Content-Type"), bodyBytes)
+					if err != nil {
+						log.Error().Err(err).Msg("Create proxy artifact task failed")
+					}
 					return c.Blob(http.StatusOK, header.Get("Content-Type"), bodyBytes)
 				}
 				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -84,7 +90,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 			if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
 				c.Response().Header().Set("Docker-Content-Digest", header.Get("Docker-Content-Digest"))
 				c.Response().Header().Set("ETag", header.Get("ETag"))
-				err = proxyArtifactTask(c, repository, header.Get("Docker-Content-Digest"), header.Get("Content-Type"), bodyBytes)
+				err = h.proxyTaskArtifact(c, repository, header.Get("Docker-Content-Digest"), header.Get("Content-Type"), bodyBytes)
 				if err != nil {
 					log.Error().Err(err).Msg("Create proxy artifact task failed")
 				}

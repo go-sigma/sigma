@@ -14,21 +14,21 @@
 
 package manifest
 
-import "github.com/labstack/echo/v4"
+import (
+	"testing"
 
-// Handlers is the interface for the distribution manifest handlers
-type Handlers interface {
-	GetManifest(ctx echo.Context) error
-	HeadManifest(ctx echo.Context) error
-	PutManifest(ctx echo.Context) error
-	DeleteManifest(ctx echo.Context) error
-}
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 
-var _ Handlers = &handler{}
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
+)
 
-type handler struct{}
+func TestHandlerNew(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// New creates a new instance of the distribution manifest handlers
-func New() Handlers {
-	return &handler{}
+	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
+
+	handler := handlerNew(inject{artifactServiceFactory: daoMockArtifactService})
+	assert.NotNil(t, handler)
 }

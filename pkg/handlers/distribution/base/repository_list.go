@@ -18,82 +18,71 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
-	"strings"
 
-	"github.com/distribution/distribution/v3/reference"
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	services "github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference.NameRegexp.String()))
-
-// ListTags handles the list tags request
-func (h *handlers) ListTags(c echo.Context) error {
-	var uri = c.Request().URL.Path
-	if !listTagsReg.MatchString(uri) {
-		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)
-	}
-
+// ListRepositories handles the list repositories request
+func (h *handlers) ListRepositories(c echo.Context) error {
+	var n = 1000
+	var err error
 	var nStr = c.QueryParam("n")
-	n, err := strconv.Atoi(nStr)
-	if err != nil {
-		return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
+	if nStr != "" {
+		n, err = strconv.Atoi(nStr)
+		if err != nil {
+			return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
+		}
 	}
 
 	ctx := log.Logger.WithContext(c.Request().Context())
-	repository := strings.TrimSuffix(strings.TrimPrefix(uri, "/v2/"), "/tags/list")
 
 	lastFound := false
 	var lastID uint64 = 0
 
-	tagService := services.NewTagService()
+	repositoryService := h.repositoryServiceFactory.New()
 	var last = c.QueryParam("last")
 	if last != "" {
-		tagObj, err := tagService.GetByName(ctx, repository, last)
+		tagObj, err := repositoryService.GetByName(ctx, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Error().Err(err).Msg("get tag by name")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		lastFound = true
 		lastID = tagObj.ID
 	}
 
-	var tags []*models.Tag
+	var repositories []*models.Repository
 	if !lastFound {
-		tags, err = tagService.ListByDtPagination(ctx, repository, n)
+		repositories, err = repositoryService.ListByDtPagination(ctx, n)
 	} else {
-		tags, err = tagService.ListByDtPagination(ctx, repository, n, lastID)
+		repositories, err = repositoryService.ListByDtPagination(ctx, n, lastID)
 	}
 	if err != nil {
+		log.Error().Err(err).Msg("List repository failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
-	var names = make([]string, 0, len(tags))
-	for _, tag := range tags {
-		names = append(names, tag.Name)
+	var names = make([]string, 0, len(repositories))
+	for _, repository := range repositories {
+		names = append(names, repository.Name)
 	}
 
-	var tagList = dtspecv1.TagList{
-		Name: repository,
-		Tags: names,
+	var repositoryList = dtspecv1.RepositoryList{
+		Repositories: names,
 	}
 
-	host := c.Request().Host
-	protocol := c.Scheme()
-	location := fmt.Sprintf("%s://%s%s", protocol, host, uri)
+	location := fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, c.Request().URL.Path)
 	values := url.Values{}
 	values.Set("n", nStr)
-	if len(tags) > 0 {
-		values.Set("last", tags[len(tags)-1].Name)
+	if len(repositories) > 0 {
+		values.Set("last", repositories[len(repositories)-1].Name)
 		c.Response().Header().Set("Link", fmt.Sprintf("<%s?%s>; rel=\"next\"", location, values.Encode()))
 	}
 
-	return c.JSON(http.StatusOK, tagList)
+	return c.JSON(http.StatusOK, repositoryList)
 }

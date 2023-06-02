@@ -15,26 +15,20 @@
 package blob
 
 import (
-	"github.com/labstack/echo/v4"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 )
 
-// Handlers is the interface for the distribution blob handlers
-type Handlers interface {
-	// DeleteBlob ...
-	DeleteBlob(ctx echo.Context) error
-	// HeadBlob ...
-	HeadBlob(ctx echo.Context) error
-	// GetBlob ...
-	GetBlob(ctx echo.Context) error
-}
+func TestHandlerNew(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-var _ Handlers = &handler{}
+	daoMockBlobService := daomock.NewMockBlobServiceFactory(ctrl)
 
-// var blobRouteReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/blobs/%s$`, reference.NameRegexp.String(), digest.DigestRegexp.String()))
-
-type handler struct{}
-
-// New creates a new instance of the distribution blob handlers
-func New() Handlers {
-	return &handler{}
+	handler := handlerNew(inject{blobServiceFactory: daoMockBlobService})
+	assert.NotNil(t, handler)
 }
