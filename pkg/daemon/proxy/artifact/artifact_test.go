@@ -55,15 +55,15 @@ func TestNewRunner(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	proxyServiceFactory := dao.NewProxyServiceFactory()
+	proxyServiceFactory := dao.NewProxyTaskServiceFactory()
 	proxyService := proxyServiceFactory.New()
-	err = proxyService.SaveProxyArtifact(ctx, &models.ProxyArtifactTask{
+	err = proxyService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 		Repository:  "library/busybox",
 		Digest:      "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157",
 		Size:        123,
 		ContentType: "test",
 		Raw:         []byte("test"),
-		Blobs: []models.ProxyArtifactTaskBlob{
+		Blobs: []models.ProxyTaskArtifactBlob{
 			{Blob: "sha256:123"},
 			{Blob: "sha256:234"},
 		},
@@ -107,21 +107,21 @@ func TestNewRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockProxyService := daomock.NewMockProxyService(ctrl)
+	daoMockProxyService := daomock.NewMockProxyTaskService(ctrl)
 	daoMockProxyServiceTimes := 0
-	daoMockProxyService.EXPECT().FindByBlob(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) ([]*models.ProxyArtifactTask, error) {
+	daoMockProxyService.EXPECT().FindProxyTaskArtifactByBlob(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) ([]*models.ProxyTaskArtifact, error) {
 		daoMockProxyServiceTimes++
 		if daoMockProxyServiceTimes == 1 {
 			return nil, fmt.Errorf("test")
 		}
-		return []*models.ProxyArtifactTask{
+		return []*models.ProxyTaskArtifact{
 			{
 				Repository:  "library/busybox",
 				Digest:      "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157",
 				Size:        123,
 				ContentType: "test",
 				Raw:         []byte("test"),
-				Blobs: []models.ProxyArtifactTaskBlob{
+				Blobs: []models.ProxyTaskArtifactBlob{
 					{Blob: "sha256:123"},
 					{Blob: "sha256:234"},
 				},
@@ -129,12 +129,12 @@ func TestNewRunner(t *testing.T) {
 		}, nil
 	}).Times(4)
 
-	daoMockProxyServiceFactory := daomock.NewMockProxyServiceFactory(ctrl)
-	daoMockProxyServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.ProxyService {
+	daoMockProxyTaskServiceFactory := daomock.NewMockProxyTaskServiceFactory(ctrl)
+	daoMockProxyTaskServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.ProxyTaskService {
 		return daoMockProxyService
 	}).Times(4)
 
-	runner = newRunner(inject{proxyServiceFactory: daoMockProxyServiceFactory})
+	runner = newRunner(inject{proxyTaskServiceFactory: daoMockProxyTaskServiceFactory})
 
 	err = runner(ctx, asynq.NewTask("test", []byte(`{"blob_digest": "sha256:123"}`)))
 	assert.Error(t, err)
@@ -161,7 +161,7 @@ func TestNewRunner(t *testing.T) {
 		return daoMockBlobService
 	}).Times(3)
 
-	runner = newRunner(inject{proxyServiceFactory: daoMockProxyServiceFactory, blobServiceFactory: daoMockBlobServiceFactory})
+	runner = newRunner(inject{proxyTaskServiceFactory: daoMockProxyTaskServiceFactory, blobServiceFactory: daoMockBlobServiceFactory})
 
 	err = runner(ctx, asynq.NewTask("test", []byte(`{"blob_digest": "sha256:123"}`)))
 	assert.Error(t, err)
@@ -181,7 +181,7 @@ func TestNewRunner(t *testing.T) {
 		return daoMockRepositoryService
 	}).Times(2)
 
-	runner = newRunner(inject{proxyServiceFactory: daoMockProxyServiceFactory, blobServiceFactory: daoMockBlobServiceFactory, repositoryServiceFactory: daoMockRepositoryServiceFactory})
+	runner = newRunner(inject{proxyTaskServiceFactory: daoMockProxyTaskServiceFactory, blobServiceFactory: daoMockBlobServiceFactory, repositoryServiceFactory: daoMockRepositoryServiceFactory})
 
 	err = runner(ctx, asynq.NewTask("test", []byte(`{"blob_digest": "sha256:123"}`)))
 	assert.Error(t, err)
@@ -196,7 +196,7 @@ func TestNewRunner(t *testing.T) {
 		return daoMockArtifactService
 	}).Times(1)
 
-	runner = newRunner(inject{proxyServiceFactory: daoMockProxyServiceFactory, blobServiceFactory: daoMockBlobServiceFactory, repositoryServiceFactory: daoMockRepositoryServiceFactory, artifactServiceFactory: daoMockArtifactServiceFactory})
+	runner = newRunner(inject{proxyTaskServiceFactory: daoMockProxyTaskServiceFactory, blobServiceFactory: daoMockBlobServiceFactory, repositoryServiceFactory: daoMockRepositoryServiceFactory, artifactServiceFactory: daoMockArtifactServiceFactory})
 
 	err = runner(ctx, asynq.NewTask("test", []byte(`{"blob_digest": "sha256:123"}`)))
 	assert.Error(t, err)

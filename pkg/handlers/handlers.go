@@ -28,6 +28,7 @@ import (
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
+// Initialize ...
 func Initialize(e *echo.Echo) error {
 	web.RegisterHandlers(e)
 

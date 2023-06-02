@@ -18,12 +18,10 @@ import (
 	"time"
 
 	"gorm.io/plugin/soft_delete"
-
-	"github.com/ximager/ximager/pkg/types/enums"
 )
 
-// ArtifactProxyTask represents an artifact proxy task
-type ProxyArtifactTask struct {
+// ProxyTaskArtifact represents an artifact proxy task
+type ProxyTaskArtifact struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
@@ -35,30 +33,43 @@ type ProxyArtifactTask struct {
 	ContentType string
 	Raw         []byte
 
-	Blobs []ProxyArtifactTaskBlob `gorm:"foreignKey:ProxyArtifactTaskID;references:ID"`
+	Blobs []ProxyTaskArtifactBlob `gorm:"foreignKey:ProxyTaskArtifactID;references:ID"`
 }
 
-// ProxyArtifactBlob represents an artifact proxy task blob
-type ProxyArtifactTaskBlob struct {
+// ProxyTaskArtifactBlob represents an proxy task artifact blobs
+type ProxyTaskArtifactBlob struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        uint64                `gorm:"primaryKey"`
 
-	ProxyArtifactTaskID uint64
+	ProxyTaskArtifactID uint64
 	Blob                string
-
-	ProxyArtifactTask ProxyArtifactTask `gorm:"foreignKey:ProxyArtifactTaskID;references:ID"`
 }
 
-// ProxyTagTask represents an artifact proxy task
-type ProxyTagTask struct {
+// ProxyTaskTag represents a proxy task tag
+type ProxyTaskTag struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        uint64                `gorm:"primaryKey"`
 
-	Manifest string
-	Status   enums.TaskCommonStatus
-	Message  string
+	Repository  string
+	Reference   string
+	Size        uint64
+	ContentType string
+	Raw         []byte
+
+	Manifests []ProxyTaskTagManifest `gorm:"foreignKey:ProxyTaskTagID;references:ID"`
+}
+
+// ProxyTaskTagManifest represents proxy task tag manifests
+type ProxyTaskTagManifest struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        uint64                `gorm:"primaryKey"`
+
+	ProxyTaskTagID uint64
+	Digest         string
 }
