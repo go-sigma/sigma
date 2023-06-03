@@ -33,7 +33,7 @@ type Blob struct {
 	ContentType string
 
 	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"not null"`
+	PushedAt  time.Time `gorm:"autoCreateTime"`
 	PullTimes uint      `gorm:"default:0"`
 
 	Artifacts []*Artifact `gorm:"many2many:artifact_blobs;"`

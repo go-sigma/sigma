@@ -84,8 +84,8 @@ func (s *proxyTaskService) SaveProxyTaskTag(ctx context.Context, task *models.Pr
 // FindProxyTaskTagByManifest find the proxy task tags by manifest.
 func (s *proxyTaskService) FindProxyTaskTagByManifest(ctx context.Context, manifest string) ([]*models.ProxyTaskTag, error) {
 	return s.tx.ProxyTaskTag.WithContext(ctx).
-		LeftJoin(s.tx.ProxyTaskTag, s.tx.ProxyTaskTagManifest.ProxyTaskTagID.EqCol(s.tx.ProxyTaskTag.ID), s.tx.ProxyTaskTagManifest.Manifest.Eq(manifest)).
-		Where(s.tx.ProxyTaskTagManifest.Manifest.IsNotNull()). // implement the inner join
+		LeftJoin(s.tx.ProxyTaskTag, s.tx.ProxyTaskTagManifest.ProxyTaskTagID.EqCol(s.tx.ProxyTaskTag.ID), s.tx.ProxyTaskTagManifest.Digest.Eq(manifest)).
+		Where(s.tx.ProxyTaskTagManifest.Digest.IsNotNull()). // implement the inner join
 		Preload(s.tx.ProxyTaskArtifact.Blobs).
 		Find()
 }
