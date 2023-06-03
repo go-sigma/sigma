@@ -73,16 +73,17 @@ func (f factory) Initialize(c echo.Context) error {
 	method := c.Request().Method
 	uri := c.Request().RequestURI
 	baseHandler := handlerNew()
-	if method == http.MethodGet && uri == "/v2/" {
-		return baseHandler.GetHealthy(c)
+	if method == http.MethodGet {
+		switch {
+		case uri == "/v2/":
+			return baseHandler.GetHealthy(c)
+		case uri == "/v2/_catalog":
+			return baseHandler.ListRepositories(c)
+		case strings.HasSuffix(uri, "/tags/list") && strings.HasPrefix(uri, "/v2/"):
+			return baseHandler.ListTags(c)
+		}
 	}
-	if method == http.MethodGet && uri == "/v2/_catalog" {
-		return baseHandler.ListRepositories(c)
-	}
-	if method == http.MethodGet && strings.HasSuffix(uri, "/tags/list") && strings.HasPrefix(uri, "/v2/") {
-		return baseHandler.ListTags(c)
-	}
-	return nil
+	return distribution.ErrNext
 }
 
 func init() {
