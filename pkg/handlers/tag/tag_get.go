@@ -17,9 +17,9 @@ package tag
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -35,10 +35,15 @@ func (h *handlers) GetTag(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
+	// TODO: check the tag namespace and repository auth
 
-	tagService := dao.NewTagService()
+	tagService := h.tagServiceFactory.New()
 	tag, err := tagService.GetByID(ctx, req.ID)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Error().Err(err).Msg("Tag not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+		}
 		log.Error().Err(err).Msg("Get tag from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}

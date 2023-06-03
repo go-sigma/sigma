@@ -32,7 +32,7 @@ func newProxyTaskTagManifest(db *gorm.DB, opts ...gen.DOOption) proxyTaskTagMani
 	_proxyTaskTagManifest.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_proxyTaskTagManifest.ID = field.NewUint64(tableName, "id")
 	_proxyTaskTagManifest.ProxyTaskTagID = field.NewUint64(tableName, "proxy_task_tag_id")
-	_proxyTaskTagManifest.Manifest = field.NewString(tableName, "manifest")
+	_proxyTaskTagManifest.Digest = field.NewString(tableName, "digest")
 
 	_proxyTaskTagManifest.fillFieldMap()
 
@@ -48,7 +48,7 @@ type proxyTaskTagManifest struct {
 	DeletedAt      field.Uint
 	ID             field.Uint64
 	ProxyTaskTagID field.Uint64
-	Manifest       field.String
+	Digest         field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -70,7 +70,7 @@ func (p *proxyTaskTagManifest) updateTableName(table string) *proxyTaskTagManife
 	p.DeletedAt = field.NewUint(table, "deleted_at")
 	p.ID = field.NewUint64(table, "id")
 	p.ProxyTaskTagID = field.NewUint64(table, "proxy_task_tag_id")
-	p.Manifest = field.NewString(table, "manifest")
+	p.Digest = field.NewString(table, "digest")
 
 	p.fillFieldMap()
 
@@ -101,7 +101,7 @@ func (p *proxyTaskTagManifest) fillFieldMap() {
 	p.fieldMap["deleted_at"] = p.DeletedAt
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["proxy_task_tag_id"] = p.ProxyTaskTagID
-	p.fieldMap["manifest"] = p.Manifest
+	p.fieldMap["digest"] = p.Digest
 }
 
 func (p proxyTaskTagManifest) clone(db *gorm.DB) proxyTaskTagManifest {

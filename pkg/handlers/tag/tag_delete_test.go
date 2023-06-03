@@ -16,18 +16,21 @@ package tag
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"
+	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
@@ -81,19 +84,55 @@ func TestDeleteTag(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	tagHandler := handlerNew()
+
 	req := httptest.NewRequest(http.MethodDelete, "/", nil)
 	q := req.URL.Query()
 	q.Add("repository", repositoryName)
 	req.URL.RawQuery = q.Encode()
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-
-	c.SetPath("/namespace/:namespace/tag/:id")
 	c.SetParamNames("namespace", "id")
 	c.SetParamValues(namespaceName, strconv.FormatUint(tagObj.ID, 10))
+	err = tagHandler.DeleteTag(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNoContent, rec.Code)
 
-	tagHandler := handlerNew()
-	if assert.NoError(t, tagHandler.DeleteTag(c)) {
-		assert.Equal(t, http.StatusNoContent, rec.Code)
-	}
+	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	q = req.URL.Query()
+	q.Add("repository", repositoryName)
+	req.URL.RawQuery = q.Encode()
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatUint(tagObj.ID, 10))
+	err = tagHandler.DeleteTag(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockTagService := daomock.NewMockTagService(ctrl)
+	daoMockTagService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) error {
+		return fmt.Errorf("test")
+	}).Times(1)
+	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
+	daoMockTagServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.TagService {
+		return daoMockTagService
+	}).Times(1)
+
+	tagHandler = handlerNew(inject{tagServiceFactory: daoMockTagServiceFactory})
+
+	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	q = req.URL.Query()
+	q.Add("repository", repositoryName)
+	req.URL.RawQuery = q.Encode()
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("namespace", "id")
+	c.SetParamValues(namespaceName, strconv.FormatUint(tagObj.ID, 10))
+	err = tagHandler.DeleteTag(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 }
