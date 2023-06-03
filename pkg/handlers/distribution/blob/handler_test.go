@@ -15,12 +15,16 @@
 package blob
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
+	"github.com/ximager/ximager/pkg/handlers/distribution"
 )
 
 func TestHandlerNew(t *testing.T) {
@@ -31,4 +35,12 @@ func TestHandlerNew(t *testing.T) {
 
 	handler := handlerNew(inject{blobServiceFactory: daoMockBlobService})
 	assert.NotNil(t, handler)
+
+	req := httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	f := &factory{}
+	err := f.Initialize(c)
+	assert.ErrorIs(t, err, distribution.ErrNext)
 }

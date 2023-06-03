@@ -67,3 +67,31 @@ func TestInitializeDup(t *testing.T) {
 	err = RegisterRouterFactory(&factoryErr{}, 1)
 	assert.Error(t, err)
 }
+
+type factoryContinue1 struct{}
+
+func (f *factoryContinue1) Initialize(_ echo.Context) error {
+	return ErrNext
+}
+
+type factoryContinue2 struct{}
+
+func (f *factoryContinue2) Initialize(_ echo.Context) error {
+	return ErrNext
+}
+
+func TestInitializeContinue(t *testing.T) {
+	routerFactories = make([]Item, 0)
+	err := RegisterRouterFactory(&factoryContinue1{}, 1)
+	assert.NoError(t, err)
+	err = RegisterRouterFactory(&factoryContinue2{}, 2)
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	err = All(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
+}

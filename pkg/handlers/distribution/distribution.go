@@ -15,6 +15,7 @@
 package distribution
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -22,6 +23,11 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/ximager/ximager/pkg/consts"
+)
+
+var (
+	// ErrNext continue next router
+	ErrNext = fmt.Errorf("continue next router")
 )
 
 // All handles the all request
@@ -33,12 +39,16 @@ func All(c echo.Context) error {
 	})
 
 	for index, factory := range routerFactories {
-		if err := factory.Value.Initialize(c); err != nil {
+		err := factory.Value.Initialize(c)
+		if err != nil {
+			if errors.Is(err, ErrNext) {
+				continue
+			}
 			return fmt.Errorf("failed to initialize router factory index(%d): %v", index, err)
 		}
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusMethodNotAllowed)
 }
 
 // Factory is the interface for the storage router factory
