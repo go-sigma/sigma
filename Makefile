@@ -81,7 +81,7 @@ ifeq ($(shell test -e ./Dockerfile && echo -n yes),yes)
 endif
 
 lint-go: ## Use golintci-lint on your project
-	golangci-lint run --deadline=10m
+	@golangci-lint run --deadline=10m
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)

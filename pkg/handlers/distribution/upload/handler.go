@@ -88,7 +88,7 @@ func (f factory) Initialize(c echo.Context) error {
 			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
 	}
-	return nil
+	return distribution.ErrNext
 }
 
 func init() {
