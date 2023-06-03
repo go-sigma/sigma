@@ -37,7 +37,7 @@ type Artifact struct {
 	Raw          string
 
 	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"not null"`
+	PushedAt  time.Time `gorm:"autoCreateTime"`
 	PullTimes uint64    `gorm:"default:0"`
 
 	Repository Repository

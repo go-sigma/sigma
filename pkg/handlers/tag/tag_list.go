@@ -21,7 +21,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -38,7 +37,7 @@ func (h *handlers) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	tagService := dao.NewTagService()
+	tagService := h.tagServiceFactory.New()
 	tags, err := tagService.ListTag(ctx, req)
 	if err != nil {
 		log.Error().Err(err).Msg("List tag from db failed")

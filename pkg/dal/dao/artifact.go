@@ -150,8 +150,12 @@ func (s *artifactService) GetByDigests(ctx context.Context, repository string, d
 
 // DeleteByDigest deletes the artifact with the specified digest.
 func (s *artifactService) DeleteByDigest(ctx context.Context, repository, digest string) error {
-	err := s.tx.Transaction(func(tx *query.Query) error {
-		artifact, err := tx.Artifact.WithContext(ctx).Where(tx.Artifact.Digest.Eq(digest)).First()
+	artifact, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.Digest.Eq(digest)).Preload(s.tx.Artifact.Blobs).First()
+	if err != nil {
+		return err
+	}
+	err = s.tx.Transaction(func(tx *query.Query) error {
+		err = s.tx.Artifact.Blobs.Model(artifact).Delete(artifact.Blobs...)
 		if err != nil {
 			return err
 		}
