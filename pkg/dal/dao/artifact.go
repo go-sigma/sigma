@@ -56,9 +56,9 @@ type ArtifactService interface {
 	// DeleteByID deletes the artifact with the specified artifact ID.
 	DeleteByID(ctx context.Context, id uint64) error
 	// SaveSbom save a new artifact sbom if conflict update.
-	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) (*models.ArtifactSbom, error)
+	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error
 	// SaveVulnerability save a new artifact vulnerability if conflict update.
-	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error)
+	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error
 	// UpdateSbomStatus update the artifact sbom status.
 	UpdateSbomStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error
 	// UpdateVulnerabilityStatus update the artifact vulnerability status.
@@ -100,13 +100,9 @@ func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) e
 func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact, error) {
 	// SELECT * FROM `repositories` WHERE `repositories`.`id` = 1 AND `repositories`.`deleted_at` = 0
 	// SELECT * FROM `artifacts` WHERE `artifacts`.`id` = 1 AND `artifacts`.`deleted_at` = 0 ORDER BY `artifacts`.`id` LIMIT 1
-	artifact, err := s.tx.Artifact.WithContext(ctx).
+	return s.tx.Artifact.WithContext(ctx).
 		Preload(s.tx.Artifact.Repository).
 		Where(s.tx.Artifact.ID.Eq(id)).First()
-	if err != nil {
-		return nil, err
-	}
-	return artifact, nil
 }
 
 // GetByDigest gets the artifact with the specified digest.
@@ -159,7 +155,7 @@ func (s *artifactService) AssociateBlobs(ctx context.Context, artifact *models.A
 
 // Incr increases the pull times of the artifact.
 func (s *artifactService) Incr(ctx context.Context, id uint64) error {
-	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).
+	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
 			"last_pull":  time.Now(),
@@ -245,21 +241,13 @@ func (s *artifactService) DeleteByID(ctx context.Context, id uint64) error {
 }
 
 // SaveSbom save a new artifact sbom if conflict update.
-func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) (*models.ArtifactSbom, error) {
-	err := s.tx.ArtifactSbom.WithContext(ctx).Save(sbom)
-	if err != nil {
-		return nil, err
-	}
-	return sbom, nil
+func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
+	return s.tx.ArtifactSbom.WithContext(ctx).Save(sbom)
 }
 
 // SaveVulnerability save a new artifact vulnerability if conflict update.
-func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error) {
-	err := s.tx.ArtifactVulnerability.WithContext(ctx).Save(vulnerability)
-	if err != nil {
-		return nil, err
-	}
-	return vulnerability, nil
+func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
+	return s.tx.ArtifactVulnerability.WithContext(ctx).Save(vulnerability)
 }
 
 // UpdateSbomStatus update the artifact sbom status.
@@ -268,10 +256,7 @@ func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint6
 		UpdateColumns(map[string]interface{}{
 			"status": status,
 		})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // UpdateVulnerabilityStatus update the artifact vulnerability status.

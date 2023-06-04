@@ -10,3 +10,6 @@ echo "Starting redis..."
 
 echo "Starting mysql..."
 "$SCRIPT_DIR/run_mysql.sh"
+
+echo "Starting postgresql..."
+"$SCRIPT_DIR/run_postgres.sh"

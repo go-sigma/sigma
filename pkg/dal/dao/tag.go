@@ -93,37 +93,33 @@ func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, er
 
 // Get gets the tag with the specified tag ID.
 func (s *tagService) GetByID(ctx context.Context, tagID uint64) (*models.Tag, error) {
-	tag, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID)).First()
-	if err != nil {
-		return nil, err
-	}
-	return tag, nil
+	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID)).First()
 }
 
 // GetByName gets the tag with the specified tag name.
 func (s *tagService) GetByName(ctx context.Context, repository, tag string) (*models.Tag, error) {
-	tagObj, err := s.tx.Tag.WithContext(ctx).
+	return s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
 		Where(s.tx.Tag.Name.Eq(tag)).
 		Where(s.tx.Repository.Name.Eq(repository)).
 		Preload(s.tx.Tag.Artifact).
 		First()
-	if err != nil {
-		return nil, err
-	}
-	return tagObj, nil
 }
 
 // DeleteByName deletes the tag with the specified tag name.
 func (s *tagService) DeleteByName(ctx context.Context, repository, tag string) error {
-	matched, err := s.tx.Tag.WithContext(ctx).DeleteByName(repository, tag)
+	repositoryObj, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(repository)).First()
 	if err != nil {
 		return err
 	}
-	if matched == 0 {
+	result, err := s.tx.Tag.WithContext(ctx).Where(
+		s.tx.Tag.RepositoryID.Eq(repositoryObj.ID),
+		s.tx.Tag.Name.Eq(tag),
+	).Delete()
+	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
-	return nil
+	return err
 }
 
 // Incr increases the pull times of the artifact.
@@ -133,10 +129,7 @@ func (s *tagService) Incr(ctx context.Context, id uint64) error {
 			"pull_times": gorm.Expr("pull_times + ?", 1),
 			"last_pull":  time.Now(),
 		})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // ListByDtPagination lists the tags by the specified repository and pagination.
@@ -148,10 +141,7 @@ func (s *tagService) ListByDtPagination(ctx context.Context, repository string, 
 		do = do.Where(s.tx.Tag.ID.Gt(lastID[0]))
 	}
 	tags, err := do.Order(s.tx.Tag.ID).Limit(limit).Find()
-	if err != nil {
-		return nil, err
-	}
-	return tags, nil
+	return tags, err
 }
 
 // ListTag lists the tags by the specified request.
