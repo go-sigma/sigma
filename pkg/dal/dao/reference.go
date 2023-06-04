@@ -59,17 +59,6 @@ func (f *referenceServiceFactory) New(txs ...*query.Query) ReferenceService {
 	}
 }
 
-// NewReferenceService creates a new reference service.
-func NewReferenceService(txs ...*query.Query) ReferenceService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &referenceService{
-		tx: tx,
-	}
-}
-
 // Get gets the reference with the specified repository name and reference.
 func (s *referenceService) Get(ctx context.Context, repository, ref string) (*models.Reference, error) {
 	dgest, err := digest.Parse(ref)
@@ -77,7 +66,8 @@ func (s *referenceService) Get(ctx context.Context, repository, ref string) (*mo
 		if !reference.TagRegexp.MatchString(ref) {
 			return nil, fmt.Errorf("not valid digest or tag")
 		}
-		tagService := NewTagService(s.tx)
+		tagServiceFactory := NewTagServiceFactory()
+		tagService := tagServiceFactory.New(s.tx)
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
 			return nil, err
@@ -87,7 +77,8 @@ func (s *referenceService) Get(ctx context.Context, repository, ref string) (*mo
 			Artifact: tag.Artifact,
 		}, nil
 	}
-	artifactService := NewArtifactService(s.tx)
+	artifactServiceFactory := NewArtifactServiceFactory()
+	artifactService := artifactServiceFactory.New(s.tx)
 	artifact, err := artifactService.GetByDigest(ctx, repository, dgest.String())
 	if err != nil {
 		return nil, err

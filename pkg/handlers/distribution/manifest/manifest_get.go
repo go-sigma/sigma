@@ -25,7 +25,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -47,7 +46,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 	var dgest digest.Digest
 	if dgest, err = digest.Parse(ref); err == nil {
 	} else {
-		tagService := dao.NewTagService()
+		tagService := h.tagServiceFactory.New()
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
@@ -77,7 +76,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		dgest = digest.Digest(tag.Artifact.Digest)
 	}
 
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifact, err := artifactService.GetByDigest(ctx, repository, dgest.String())
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")

@@ -37,7 +37,7 @@ func TestProxyServiceFactory(t *testing.T) {
 	assert.NotNil(t, proxyService)
 }
 
-func TestProxyArtifact(t *testing.T) {
+func TestProxyTaskArtifact(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	err := tests.Initialize()
@@ -55,8 +55,8 @@ func TestProxyArtifact(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
+	f := NewProxyTaskServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		f := NewProxyTaskServiceFactory()
 		proxyService := f.New(tx)
 		err = proxyService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 			Repository:  "library/busybox",
@@ -81,6 +81,57 @@ func TestProxyArtifact(t *testing.T) {
 			}})
 		assert.NoError(t, err)
 		findTasks, err := proxyService.FindProxyTaskArtifactByBlob(ctx, "sha256:123")
+		assert.NoError(t, err)
+		assert.Equal(t, len(findTasks), 1)
+		return nil
+	})
+	assert.NoError(t, err)
+}
+
+func TestProxyTaskTag(t *testing.T) {
+	viper.SetDefault("log.level", "debug")
+	logger.SetLevel("debug")
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	f := NewProxyTaskServiceFactory()
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		proxyService := f.New(tx)
+		err = proxyService.SaveProxyTaskTag(ctx, &models.ProxyTaskTag{
+			Repository:  "library/busybox",
+			Reference:   "sha256:xxx",
+			Size:        120,
+			ContentType: "test",
+			Raw:         []byte("test1"),
+			Manifests: []models.ProxyTaskTagManifest{
+				{Digest: "sha256:123"},
+				{Digest: "sha256:456"},
+			}})
+		assert.NoError(t, err)
+		err = proxyService.SaveProxyTaskTag(ctx, &models.ProxyTaskTag{
+			Repository:  "library/busybox",
+			Reference:   "sha256:xxxx",
+			Size:        120,
+			ContentType: "test",
+			Raw:         []byte("test2"),
+			Manifests: []models.ProxyTaskTagManifest{
+				{Digest: "sha256:789"},
+				{Digest: "sha256:7891"},
+			}})
+		assert.NoError(t, err)
+		findTasks, err := proxyService.FindProxyTaskTagByManifest(ctx, "sha256:123")
 		assert.NoError(t, err)
 		assert.Equal(t, len(findTasks), 1)
 		return nil

@@ -91,17 +91,6 @@ func (f *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
 	}
 }
 
-// NewArtifactService creates a new artifact service.
-func NewArtifactService(txs ...*query.Query) ArtifactService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &artifactService{
-		tx: tx,
-	}
-}
-
 // Save save a new artifact if conflict update.
 func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) error {
 	return s.tx.Artifact.WithContext(ctx).Save(artifact)
@@ -122,30 +111,22 @@ func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact,
 
 // GetByDigest gets the artifact with the specified digest.
 func (s *artifactService) GetByDigest(ctx context.Context, repository, digest string) (*models.Artifact, error) {
-	artifact, err := s.tx.Artifact.WithContext(ctx).
+	return s.tx.Artifact.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
 		Where(s.tx.Repository.Name.Eq(repository)).
 		Where(s.tx.Artifact.Digest.Eq(digest)).
 		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
 		First()
-	if err != nil {
-		return nil, err
-	}
-	return artifact, nil
 }
 
 // GetByDigests gets the artifacts with the specified digests.
 func (s *artifactService) GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error) {
-	artifacts, err := s.tx.Artifact.WithContext(ctx).
+	return s.tx.Artifact.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
 		Where(s.tx.Repository.Name.Eq(repository)).
 		Where(s.tx.Artifact.Digest.In(digests...)).
 		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
 		Find()
-	if err != nil {
-		return nil, err
-	}
-	return artifacts, nil
 }
 
 // DeleteByDigest deletes the artifact with the specified digest.
@@ -236,12 +217,11 @@ func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs [
 
 // ListArtifact lists the artifacts by the specified request.
 func (s *artifactService) ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error) {
-	query := s.tx.Artifact.WithContext(ctx).
+	return s.tx.Artifact.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID), s.tx.Repository.Name.Eq(req.Repository)).
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.Name.EqCol(s.tx.Repository.Name), s.tx.Namespace.Name.Eq(req.Namespace)).
 		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
-		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
-	return query.Find()
+		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
 }
 
 // CountArtifact counts the artifacts by the specified request.

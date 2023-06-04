@@ -76,17 +76,6 @@ func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	}
 }
 
-// NewRepositoryService creates a new repository service.
-func NewRepositoryService(txs ...*query.Query) RepositoryService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &repositoryService{
-		tx: tx,
-	}
-}
-
 // Create creates a new repository.
 func (s *repositoryService) Create(ctx context.Context, repository *models.Repository) error {
 	return s.tx.Repository.WithContext(ctx).Create(repository)

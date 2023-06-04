@@ -33,7 +33,6 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/storage"
@@ -79,7 +78,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		c.Response().Header().Set(consts.ContentDigest, dgest.String())
 	}
 
-	repositoryService := dao.NewRepositoryService()
+	repositoryService := h.repositoryServiceFactory.New()
 	repoObj := &models.Repository{
 		Name: repository,
 	}
@@ -89,7 +88,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return err
 	}
 
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifactObj := &models.Artifact{
 		RepositoryID: repoObj.ID,
 		Digest:       dgest.String(),
@@ -108,7 +107,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	if isTag {
 		tag := ref
-		tagService := dao.NewTagService()
+		tagService := h.tagServiceFactory.New()
 		_, err = tagService.Save(ctx, &models.Tag{
 			RepositoryID: repoObj.ID,
 			ArtifactID:   artifactObj.ID,
@@ -135,7 +134,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		digests = append(digests, layer.Digest.String())
 	}
 
-	blobService := dao.NewBlobService()
+	blobService := h.blobServiceFactory.New()
 	bs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Find blobs failed")
@@ -258,7 +257,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 	for _, manifest := range imageIndex.Manifests {
 		dgests = append(dgests, manifest.Digest.String())
 	}
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifacts, err := artifactService.GetByDigests(ctx, repository, dgests)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Interface("digests", dgests).Msg("Get artifacts failed")
@@ -283,7 +282,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		// Save the repository
-		repositoryService := dao.NewRepositoryService(tx)
+		repositoryService := h.repositoryServiceFactory.New(tx)
 		repoObj := &models.Repository{
 			Name: repository,
 		}
@@ -293,7 +292,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		// Save the artifact
-		artifactService := dao.NewArtifactService(tx)
+		artifactService := h.artifactServiceFactory.New(tx)
 		artifactObj := &models.Artifact{
 			RepositoryID: repoObj.ID,
 			Digest:       dgest.String(),
@@ -312,7 +311,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 
 		// Save the tag if it is a tag
 		if reference.TagRegexp.MatchString(ref) {
-			tagService := dao.NewTagService(tx)
+			tagService := h.tagServiceFactory.New(tx)
 			_, err = tagService.Save(ctx, &models.Tag{
 				RepositoryID: repoObj.ID,
 				ArtifactID:   artifactObj.ID,
