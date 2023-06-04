@@ -43,23 +43,30 @@ var _ Handlers = &handler{}
 
 type handler struct {
 	blobUploadServiceFactory dao.BlobUploadServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 type inject struct {
 	blobUploadServiceFactory dao.BlobUploadServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution upload blob handlers
 func handlerNew(injects ...inject) Handlers {
 	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
+	blobServiceFactory := dao.NewBlobServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.blobUploadServiceFactory != nil {
 			blobUploadServiceFactory = ij.blobUploadServiceFactory
 		}
+		if ij.blobServiceFactory != nil {
+			blobServiceFactory = ij.blobServiceFactory
+		}
 	}
 	return &handler{
 		blobUploadServiceFactory: blobUploadServiceFactory,
+		blobServiceFactory:       blobServiceFactory,
 	}
 }
 

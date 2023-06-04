@@ -26,7 +26,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
@@ -77,7 +76,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 		size := countReader.Count()
 
 		contentType := c.Request().Header.Get("Content-Type")
-		blobService := dao.NewBlobService()
+		blobService := h.blobServiceFactory.New()
 		err = blobService.Create(ctx, &models.Blob{
 			Digest:      dgest.String(),
 			Size:        size,
@@ -99,7 +98,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	location := fmt.Sprintf("%s://%s%s%s", protocol, host, uri, id)
 	c.Response().Header().Set("Location", location)
 
-	blobUploadService := dao.NewBlobUploadService()
+	blobUploadService := h.blobUploadServiceFactory.New()
 	err = blobUploadService.Create(ctx, &models.BlobUpload{
 		PartNumber: 0,
 		UploadID:   id,

@@ -71,17 +71,6 @@ func (f *blobServiceFactory) New(txs ...*query.Query) BlobService {
 	}
 }
 
-// NewBlobService creates a new blob upload service.
-func NewBlobService(txs ...*query.Query) BlobService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &blobService{
-		tx: tx,
-	}
-}
-
 // Create creates a new blob.
 func (b *blobService) Create(ctx context.Context, blob *models.Blob) error {
 	return b.tx.Blob.WithContext(ctx).Create(blob)
@@ -99,7 +88,7 @@ func (b *blobService) FindByDigests(ctx context.Context, digests []string) ([]*m
 // Exists checks if the blob with the specified digest exists.
 func (b *blobService) Exists(ctx context.Context, digest string) (bool, error) {
 	blob, err := b.tx.Blob.WithContext(ctx).Where(b.tx.Blob.Digest.Eq(digest)).First()
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
 	return blob != nil, nil
@@ -107,7 +96,7 @@ func (b *blobService) Exists(ctx context.Context, digest string) (bool, error) {
 
 // Incr increases the pull times of the artifact.
 func (s *blobService) Incr(ctx context.Context, id uint64) error {
-	_, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).
+	_, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
 			"last_pull":  time.Now(),

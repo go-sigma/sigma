@@ -69,17 +69,6 @@ func (f *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
 	}
 }
 
-// NewBlobUploadService creates a new blob upload service.
-func NewBlobUploadService(txs ...*query.Query) BlobUploadService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &blobUploadService{
-		tx: tx,
-	}
-}
-
 // Create creates a new blob upload.
 func (b *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) error {
 	return b.tx.BlobUpload.WithContext(ctx).Create(blobUpload)

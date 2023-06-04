@@ -27,7 +27,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
@@ -48,7 +47,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
-	blobService := dao.NewBlobService()
+	blobService := h.blobServiceFactory.New()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
