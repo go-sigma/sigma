@@ -147,7 +147,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return err
 	}
 
-	_, err = artifactService.SaveSbom(ctx, &models.ArtifactSbom{
+	err = artifactService.SaveSbom(ctx, &models.ArtifactSbom{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})
@@ -170,7 +170,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return err
 	}
 
-	_, err = artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
+	err = artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})

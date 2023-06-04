@@ -6,7 +6,6 @@ package query
 
 import (
 	"context"
-	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -354,27 +353,6 @@ func (a tagBelongsToArtifactTx) Count() int64 {
 }
 
 type tagDo struct{ gen.DO }
-
-// DeleteByName query data by name and age and return it as map
-//
-// UPDATE `tags` LEFT JOIN `repositories` ON `tags`.`repository_id` = `repositories`.`id`
-// SET `tags`.`deleted_at` = NOW() WHERE
-// `repositories`.`name` = @repository AND `tags`.`name` = @tag AND `tags`.`deleted_at` IS NULL
-func (t tagDo) DeleteByName(repository string, tag string) (rowsAffected int64, err error) {
-	var params []interface{}
-
-	var generateSQL strings.Builder
-	params = append(params, repository)
-	params = append(params, tag)
-	generateSQL.WriteString("UPDATE `tags` LEFT JOIN `repositories` ON `tags`.`repository_id` = `repositories`.`id` SET `tags`.`deleted_at` = NOW() WHERE `repositories`.`name` = ? AND `tags`.`name` = ? AND `tags`.`deleted_at` IS NULL ")
-
-	var executeSQL *gorm.DB
-	executeSQL = t.UnderlyingDB().Exec(generateSQL.String(), params...) // ignore_security_alert
-	rowsAffected = executeSQL.RowsAffected
-	err = executeSQL.Error
-
-	return
-}
 
 func (t tagDo) Debug() *tagDo {
 	return t.withDO(t.DO.Debug())

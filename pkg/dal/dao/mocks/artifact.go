@@ -213,12 +213,11 @@ func (mr *MockArtifactServiceMockRecorder) Save(arg0, arg1 interface{}) *gomock.
 }
 
 // SaveSbom mocks base method.
-func (m *MockArtifactService) SaveSbom(arg0 context.Context, arg1 *models.ArtifactSbom) (*models.ArtifactSbom, error) {
+func (m *MockArtifactService) SaveSbom(arg0 context.Context, arg1 *models.ArtifactSbom) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveSbom", arg0, arg1)
-	ret0, _ := ret[0].(*models.ArtifactSbom)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SaveSbom indicates an expected call of SaveSbom.
@@ -228,12 +227,11 @@ func (mr *MockArtifactServiceMockRecorder) SaveSbom(arg0, arg1 interface{}) *gom
 }
 
 // SaveVulnerability mocks base method.
-func (m *MockArtifactService) SaveVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) (*models.ArtifactVulnerability, error) {
+func (m *MockArtifactService) SaveVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveVulnerability", arg0, arg1)
-	ret0, _ := ret[0].(*models.ArtifactVulnerability)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SaveVulnerability indicates an expected call of SaveVulnerability.

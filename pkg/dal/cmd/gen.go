@@ -43,7 +43,5 @@ func main() {
 		models.User{},
 	)
 
-	g.ApplyInterface(func(models.TagQuerier) {}, models.Tag{})
-
 	g.Execute()
 }
