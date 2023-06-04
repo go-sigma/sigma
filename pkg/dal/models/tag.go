@@ -18,7 +18,6 @@ import (
 	"database/sql"
 	"time"
 
-	"gorm.io/gen"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -34,18 +33,9 @@ type Tag struct {
 	Name         string
 
 	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"not null"`
+	PushedAt  time.Time `gorm:"autoCreateTime"`
 	PullTimes uint64    `gorm:"default:0"`
 
 	Repository *Repository
 	Artifact   *Artifact
-}
-
-type TagQuerier interface {
-	// DeleteByName query data by name and age and return it as map
-	//
-	// UPDATE `tags` LEFT JOIN `repositories` ON `tags`.`repository_id` = `repositories`.`id`
-	// SET `tags`.`deleted_at` = NOW() WHERE
-	// `repositories`.`name` = @repository AND `tags`.`name` = @tag AND `tags`.`deleted_at` IS NULL
-	DeleteByName(repository, tag string) (gen.RowsAffected, error)
 }

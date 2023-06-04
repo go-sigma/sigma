@@ -106,47 +106,38 @@ func (s *repositoryService) Save(ctx context.Context, repository *models.Reposit
 
 // Get gets the repository with the specified repository ID.
 func (s *repositoryService) Get(ctx context.Context, id uint64) (*models.Repository, error) {
-	repo, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).First()
-	if err != nil {
-		return nil, err
-	}
-	return repo, nil
+	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).First()
 }
 
 // GetByName gets the repository with the specified repository name.
 func (s *repositoryService) GetByName(ctx context.Context, name string) (*models.Repository, error) {
-	repo, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(name)).First()
-	if err != nil {
-		return nil, err
-	}
-	return repo, nil
+	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(name)).First()
 }
 
 // ListByDtPagination lists the repositories by the pagination.
 func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, lastID ...uint64) ([]*models.Repository, error) {
 	do := s.tx.Repository.WithContext(ctx)
 	if len(lastID) > 0 {
-		do = do.Where(s.tx.Tag.ID.Gt(lastID[0]))
+		do = do.Where(s.tx.Repository.ID.Gt(lastID[0]))
 	}
-	repositories, err := do.Order(s.tx.Repository.ID).Limit(limit).Find()
-	if err != nil {
-		return nil, err
-	}
-	return repositories, nil
+	return do.Order(s.tx.Repository.ID).Limit(limit).Find()
 }
 
 // ListRepository lists all repositories.
 func (s *repositoryService) ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error) {
-	query := s.tx.Repository.WithContext(ctx).
+	return s.tx.Repository.WithContext(ctx).
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.ID.EqCol(s.tx.Repository.NamespaceID)).
 		Where(s.tx.Namespace.Name.Eq(req.Namespace)).
-		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
-	return query.Find()
+		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
 }
 
 // CountRepository counts all repositories.
 func (s *repositoryService) CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error) {
-	return s.tx.Repository.WithContext(ctx).Count()
+	nsObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(req.Namespace)).First()
+	if err != nil {
+		return 0, err
+	}
+	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID)).Count()
 }
 
 // DeleteByID deletes the repository with the specified repository ID.

@@ -54,7 +54,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 			for status := range statusChan {
 				switch status.Daemon {
 				case enums.DaemonVulnerability:
-					_, err = artifactService.SaveVulnerability(context.Background(), &models.ArtifactVulnerability{
+					err = artifactService.SaveVulnerability(context.Background(), &models.ArtifactVulnerability{
 						ArtifactID: id,
 						Raw:        status.Raw,
 						Status:     status.Status,
@@ -63,7 +63,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 						Message:    status.Message,
 					})
 				case enums.DaemonSbom:
-					_, err = artifactService.SaveSbom(context.Background(), &models.ArtifactSbom{
+					err = artifactService.SaveSbom(context.Background(), &models.ArtifactSbom{
 						ArtifactID: id,
 						Raw:        status.Raw,
 						Status:     status.Status,
