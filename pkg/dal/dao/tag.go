@@ -78,17 +78,6 @@ func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
 	}
 }
 
-// NewTagService creates a new tag service.
-func NewTagService(txs ...*query.Query) TagService {
-	tx := query.Q
-	if len(txs) > 0 {
-		tx = txs[0]
-	}
-	return &tagService{
-		tx: tx,
-	}
-}
-
 // Save save a new tag if conflict update.
 func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, error) {
 	err := s.tx.Tag.WithContext(ctx).Save(tag)

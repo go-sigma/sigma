@@ -34,7 +34,6 @@ import (
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
 	"github.com/ximager/ximager/pkg/storage"
@@ -58,7 +57,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	blobService := dao.NewBlobService()
+	blobService := h.blobServiceFactory.New()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {

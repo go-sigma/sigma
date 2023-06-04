@@ -23,8 +23,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-
-	"github.com/ximager/ximager/pkg/dal/dao"
 )
 
 // DeleteManifest handles the delete manifest request
@@ -49,14 +47,14 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 			log.Error().Err(err).Str("ref", ref).Msg("Parse digest failed")
 			return err
 		}
-		artifactService := dao.NewArtifactService()
+		artifactService := h.artifactServiceFactory.New()
 		err = artifactService.DeleteByDigest(ctx, repository, dgest.String())
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Delete artifact failed")
 			return err
 		}
 	} else {
-		tagService := dao.NewTagService()
+		tagService := h.tagServiceFactory.New()
 		err = tagService.DeleteByName(ctx, repository, ref)
 		if err != nil {
 			return err

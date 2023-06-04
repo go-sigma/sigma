@@ -43,7 +43,8 @@ func (h *handler) HeadManifest(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("reference %s not valid", ref))
 	}
 
-	referenceService := dao.NewReferenceService()
+	referenceServiceFactory := dao.NewReferenceServiceFactory()
+	referenceService := referenceServiceFactory.New()
 	reference, err := referenceService.Get(ctx, repository, ref)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
@@ -67,7 +68,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Artifact not found")
 	}
 
-	artifactService := dao.NewArtifactService()
+	artifactService := h.artifactServiceFactory.New()
 	artifact, err := artifactService.GetByDigest(ctx, repository, reference.Artifact.Digest)
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")

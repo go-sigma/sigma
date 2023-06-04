@@ -28,10 +28,15 @@ func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockTagService := daomock.NewMockTagServiceFactory(ctrl)
-	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
+	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
+	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 
-	handler := handlerNew(inject{tagServiceFactory: daoMockTagService, artifactServiceFactory: daoMockArtifactService})
+	handler := handlerNew(inject{
+		tagServiceFactory:       daoMockTagServiceFactory,
+		artifactServiceFactory:  daoMockArtifactServiceFactory,
+		namespaceServiceFactory: daoMockNamespaceServiceFactory,
+	})
 	assert.NotNil(t, handler)
 
 	f := factory{}

@@ -40,24 +40,45 @@ type Handlers interface {
 var _ Handlers = &handler{}
 
 type handler struct {
-	artifactServiceFactory dao.ArtifactServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 type inject struct {
-	artifactServiceFactory dao.ArtifactServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 // New creates a new instance of the distribution manifest handlers
 func handlerNew(injects ...inject) Handlers {
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	blobServiceFactory := dao.NewBlobServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
+		if ij.blobServiceFactory != nil {
+			blobServiceFactory = ij.blobServiceFactory
+		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
+		}
 	}
 	return &handler{
-		artifactServiceFactory: artifactServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
+		tagServiceFactory:        tagServiceFactory,
+		artifactServiceFactory:   artifactServiceFactory,
+		blobServiceFactory:       blobServiceFactory,
 	}
 }
 

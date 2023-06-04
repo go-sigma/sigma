@@ -31,9 +31,17 @@ func TestHandlerNew(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
+	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
+	daoMockBlobServiceFactory := daomock.NewMockBlobServiceFactory(ctrl)
+	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
+	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
 
-	handler := handlerNew(inject{artifactServiceFactory: daoMockArtifactService})
+	handler := handlerNew(inject{
+		artifactServiceFactory:   daoMockArtifactServiceFactory,
+		blobServiceFactory:       daoMockBlobServiceFactory,
+		tagServiceFactory:        daoMockTagServiceFactory,
+		repositoryServiceFactory: daoMockRepositoryServiceFactory,
+	})
 	assert.NotNil(t, handler)
 
 	req := httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
