@@ -63,7 +63,7 @@ func NewNamespaceServiceFactory() NamespaceServiceFactory {
 	return &namespaceServiceFactory{}
 }
 
-// New ...
+// New creates a new namespace service.
 func (f *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
 	tx := query.Q
 	if len(txs) > 0 {

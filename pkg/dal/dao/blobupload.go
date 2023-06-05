@@ -59,6 +59,7 @@ func NewBlobUploadServiceFactory() BlobUploadServiceFactory {
 	return &blobUploadServiceFactory{}
 }
 
+// New creates a new blob upload service.
 func (f *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
 	tx := query.Q
 	if len(txs) > 0 {
@@ -76,13 +77,9 @@ func (b *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobU
 
 // GetLastPart gets the blob upload with the specified blob upload ID.
 func (b *blobUploadService) GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
-	blobUpload, err := b.tx.BlobUpload.WithContext(ctx).
+	return b.tx.BlobUpload.WithContext(ctx).
 		Where(b.tx.BlobUpload.UploadID.Eq(uploadID)).
 		Order(b.tx.BlobUpload.PartNumber.Desc()).First()
-	if err != nil {
-		return nil, err
-	}
-	return blobUpload, nil
 }
 
 // FindAllByUploadID find all blob uploads with the specified upload ID.
