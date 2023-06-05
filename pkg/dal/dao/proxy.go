@@ -52,6 +52,7 @@ func NewProxyTaskServiceFactory() ProxyTaskServiceFactory {
 	return &proxyTaskServiceFactory{}
 }
 
+// New creates a new proxy task service.
 func (f *proxyTaskServiceFactory) New(txs ...*query.Query) ProxyTaskService {
 	tx := query.Q
 	if len(txs) > 0 {

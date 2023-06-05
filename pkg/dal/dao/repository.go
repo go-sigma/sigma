@@ -66,6 +66,7 @@ func NewRepositoryServiceFactory() RepositoryServiceFactory {
 	return &repositoryServiceFactory{}
 }
 
+// New creates a new repository service.
 func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	tx := query.Q
 	if len(txs) > 0 {

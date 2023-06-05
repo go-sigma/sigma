@@ -132,7 +132,7 @@ func (s *artifactService) DeleteByDigest(ctx context.Context, repository, digest
 		return err
 	}
 	err = s.tx.Transaction(func(tx *query.Query) error {
-		err = s.tx.Artifact.Blobs.Model(artifact).Delete(artifact.Blobs...)
+		err = tx.Artifact.Blobs.Model(artifact).Delete(artifact.Blobs...)
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func (s *artifactService) DeleteByDigest(ctx context.Context, repository, digest
 }
 
 func (s *artifactService) AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error {
-	return s.tx.Artifact.Blobs.Model(artifact).Append(blobs...)
+	return s.tx.Artifact.Blobs.WithContext(ctx).Model(artifact).Append(blobs...)
 }
 
 // Incr increases the pull times of the artifact.

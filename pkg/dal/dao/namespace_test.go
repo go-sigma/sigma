@@ -21,6 +21,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/models"
@@ -96,6 +97,18 @@ func TestNamespaceService(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, count, int64(1))
+
+		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, types.PutNamespaceRequest{Description: ptr.Of("test")})
+		assert.NoError(t, err)
+
+		err = namespaceService.UpdateByID(ctx, 10, types.PutNamespaceRequest{Description: ptr.Of("test")})
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+
+		err = namespaceService.DeleteByID(ctx, namespaceObj.ID)
+		assert.NoError(t, err)
+
+		err = namespaceService.DeleteByID(ctx, 10)
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		return nil
 	})

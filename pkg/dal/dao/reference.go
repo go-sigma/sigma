@@ -49,6 +49,7 @@ func NewReferenceServiceFactory() ReferenceServiceFactory {
 	return &referenceServiceFactory{}
 }
 
+// New creates a new reference service.
 func (f *referenceServiceFactory) New(txs ...*query.Query) ReferenceService {
 	tx := query.Q
 	if len(txs) > 0 {

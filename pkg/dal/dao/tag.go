@@ -88,7 +88,7 @@ func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, er
 		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
 		s.tx.Tag.ArtifactID.Eq(tag.ArtifactID),
 		s.tx.Tag.Name.Eq(tag.Name),
-	).First()
+	).Preload(s.tx.Tag.Artifact).First()
 }
 
 // Get gets the tag with the specified tag ID.
