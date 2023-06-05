@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   CONSTRAINT "artifacts_unique_with_repo" UNIQUE ("repository_id", "digest", "deleted_at")
 );
 
-CREATE TABLE IF NOT EXISTS "artifact_sbom" (
+CREATE TABLE IF NOT EXISTS "artifact_sboms" (
   "id" bigserial PRIMARY KEY,
   "artifact_id" bigserial NOT NULL,
   "raw" bytea,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "artifact_sbom" (
   CONSTRAINT "artifact_sbom_unique_with_artifact" UNIQUE ("artifact_id", "deleted_at")
 );
 
-CREATE TABLE IF NOT EXISTS "artifact_vulnerability" (
+CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   "id" bigserial PRIMARY KEY,
   "artifact_id" bigserial NOT NULL,
   "metadata" bytea,

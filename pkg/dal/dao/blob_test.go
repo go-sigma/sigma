@@ -21,6 +21,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/models"
@@ -95,6 +96,9 @@ func TestBlobService(t *testing.T) {
 
 		err = blobService.DeleteByID(ctx, blob1.ID)
 		assert.NoError(t, err)
+
+		err = blobService.DeleteByID(ctx, 10)
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		return nil
 	})

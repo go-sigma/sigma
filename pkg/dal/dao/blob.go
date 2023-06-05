@@ -61,6 +61,7 @@ func NewBlobServiceFactory() BlobServiceFactory {
 	return &blobServiceFactory{}
 }
 
+// New creates a new blob service.
 func (f *blobServiceFactory) New(txs ...*query.Query) BlobService {
 	tx := query.Q
 	if len(txs) > 0 {
@@ -76,6 +77,7 @@ func (b *blobService) Create(ctx context.Context, blob *models.Blob) error {
 	return b.tx.Blob.WithContext(ctx).Create(blob)
 }
 
+// FindByDigest finds the blob with the specified digest.
 func (b *blobService) FindByDigest(ctx context.Context, digest string) (*models.Blob, error) {
 	return b.tx.Blob.WithContext(ctx).Where(b.tx.Blob.Digest.Eq(digest)).First()
 }

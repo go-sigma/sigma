@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -126,6 +127,57 @@ func TestTagService(t *testing.T) {
 
 		err = tagService.DeleteByName(ctx, "test/busybox", "latest")
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+
+		artifactObj := &models.Artifact{
+			RepositoryID: repositoryObj.ID,
+			Digest:       "sha256:xxxxx",
+			Size:         123,
+			ContentType:  "test",
+			Raw:          "test",
+		}
+		err = tx.Artifact.WithContext(ctx).Create(artifactObj)
+		assert.NoError(t, err)
+
+		tagObj1 := &models.Tag{
+			RepositoryID: repositoryObj.ID,
+			Name:         "latest1",
+			Artifact:     artifactObj,
+		}
+		_, err = tagService.Save(ctx, tagObj1)
+		assert.NoError(t, err)
+
+		err = tagService.DeleteByID(ctx, tagObj1.ID)
+		assert.NoError(t, err)
+
+		err = tagService.DeleteByID(ctx, 10)
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+
+		artifactObj2 := &models.Artifact{
+			RepositoryID: repositoryObj.ID,
+			Digest:       "sha256:xxxxxxxx",
+			Size:         123,
+			ContentType:  "test",
+			Raw:          "test",
+		}
+		err = tx.Artifact.WithContext(ctx).Create(artifactObj2)
+		assert.NoError(t, err)
+		tagObj2 := &models.Tag{
+			RepositoryID: repositoryObj.ID,
+			Name:         "latest1",
+			Artifact:     artifactObj2,
+		}
+		tagObj2, err = tagService.Save(ctx, tagObj2)
+		assert.NoError(t, err)
+
+		tags2, err := tagService.ListByDtPagination(ctx, "test/busybox", 10, 1)
+		assert.NoError(t, err)
+		assert.Equal(t, len(tags2), int(1))
+
+		fmt.Printf("%+v\n", tagObj2)
+		tagCount1, err := tagService.CountByArtifact(ctx, []uint64{tagObj2.ArtifactID})
+		assert.NoError(t, err)
+		assert.Equal(t, len(tagCount1), int(1))
+		assert.Equal(t, tagCount1[tagObj2.ArtifactID], int64(1))
 
 		return nil
 	})
