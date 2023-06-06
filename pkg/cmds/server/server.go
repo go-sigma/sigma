@@ -32,6 +32,7 @@ import (
 	"github.com/ximager/ximager/pkg/storage"
 
 	_ "github.com/ximager/ximager/pkg/handlers/artifact"
+	_ "github.com/ximager/ximager/pkg/handlers/distribution/base"
 	_ "github.com/ximager/ximager/pkg/handlers/distribution/blob"
 	_ "github.com/ximager/ximager/pkg/handlers/distribution/manifest"
 	_ "github.com/ximager/ximager/pkg/handlers/distribution/upload"
@@ -61,7 +62,7 @@ func Serve() error {
 			return n
 		}
 	}))
-	e.Use(middleware.RequestID())
+	// e.Use(middleware.RequestID())
 	e.Use(middleware.CORS())
 	e.Use(middlewares.Healthz())
 

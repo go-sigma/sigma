@@ -1,0 +1,54 @@
+name: E2E CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  local-build:
+    name: local-build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        go: ["1.19"]
+        node: ["18"]
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+          cache-dependency-path: "web/yarn.lock"
+      - name: Build server
+        run: |
+          IP=`hostname -I | awk '{print $1}'`
+          echo '{"insecure-registries" : ["'$IP':3000"]}' | sudo tee /etc/docker/daemon.json
+          sudo service docker restart
+
+          ./scripts/run_all.sh
+
+          cd web
+          yarn install --frozen-lockfile
+          yarn build
+          cd ..
+          make build-release
+
+          ./bin/ximager server --config ./conf/ximager.yaml &
+
+          ./e2e/push.sh
+          curl https://github.com/grafana/k6/releases/download/v0.44.1/k6-v0.44.1-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+          ./k6 run e2e/sc.js
