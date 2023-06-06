@@ -46,6 +46,7 @@ func All(c echo.Context) error {
 			}
 			return fmt.Errorf("failed to initialize router factory index(%d): %v", index, err)
 		}
+		return nil
 	}
 
 	return c.NoContent(http.StatusMethodNotAllowed)
