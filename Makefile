@@ -7,7 +7,6 @@ SERVICE_PORT    ?= 3000
 DOCKER_REGISTRY ?= #if set it should finished by /
 EXPORT_RESULT   ?= false # for CI please set EXPORT_RESULT to true
 
-
 MIGRATION_NAME  ?=
 
 SHELL           := /bin/bash

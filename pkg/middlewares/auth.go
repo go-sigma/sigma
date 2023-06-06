@@ -112,11 +112,11 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
 			default:
-				c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
 				if config.DS {
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
 					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 				}
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 			}
 
 			userServiceFactory := dao.NewUserServiceFactory()
