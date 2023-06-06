@@ -20,6 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
@@ -38,6 +39,17 @@ import (
 func (h *handlers) PostNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.CreateNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
@@ -49,6 +61,7 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	namespace := &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
+		UserID:      user.ID,
 	}
 	err = namespaceService.Create(ctx, namespace)
 	if err != nil {

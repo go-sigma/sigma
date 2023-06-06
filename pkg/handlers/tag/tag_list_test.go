@@ -66,9 +66,14 @@ func TestListTag(t *testing.T) {
 	)
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		userServiceFactory := dao.NewUserServiceFactory()
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "new-runner", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
 		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
