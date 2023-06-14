@@ -63,13 +63,18 @@ func TestArtifactService(t *testing.T) {
 	namespaceServiceFactory := NewNamespaceServiceFactory()
 	repositoryServiceFactory := NewRepositoryServiceFactory()
 	artifactServiceFactory := NewArtifactServiceFactory()
-	// blobServiceFactory := NewBlobServiceFactory()
+	userServiceFactory := NewUserServiceFactory()
 
 	var artifactObj *models.Artifact
 	var tagObj1 *models.Tag
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test"}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
@@ -189,8 +194,13 @@ func TestArtifactService(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "artifact-service1", Password: "test", Email: "test1@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test1"}
+		namespaceObj := &models.Namespace{Name: "test1", UserID: userObj.ID}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 

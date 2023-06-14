@@ -29,4 +29,7 @@ type Namespace struct {
 
 	Name        string `gorm:"uniqueIndex"`
 	Description *string
+	UserID      uint64
+
+	User User `gorm:"foreignKey:UserID"`
 }

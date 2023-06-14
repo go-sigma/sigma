@@ -59,9 +59,16 @@ func TestReferenceService(t *testing.T) {
 	namespaceServiceFactory := NewNamespaceServiceFactory()
 	repositoryServiceFactory := NewRepositoryServiceFactory()
 	referenceServiceFactory := NewReferenceServiceFactory()
+	userServiceFactory := NewUserServiceFactory()
+
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "reference-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test"}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 

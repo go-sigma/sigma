@@ -28,9 +28,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
+	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
@@ -57,10 +59,19 @@ func TestPutNamespace(t *testing.T) {
 
 	namespaceHandler := handlerNew()
 
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+
+	ctx := context.Background()
+	userObj := &models.User{Username: "put-namespace", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
@@ -74,6 +85,7 @@ func TestPutNamespace(t *testing.T) {
 	c.SetParamValues(strconv.FormatUint(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
+	fmt.Println(rec.Body.String())
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"description":""}`))
