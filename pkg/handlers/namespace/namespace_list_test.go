@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
@@ -59,10 +60,19 @@ func TestListNamespace(t *testing.T) {
 
 	namespaceHandler := handlerNew()
 
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+
+	ctx := context.Background()
+	userObj := &models.User{Username: "list-namespace", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
@@ -77,7 +87,7 @@ func TestListNamespace(t *testing.T) {
 	err = namespaceHandler.ListNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
-	assert.Equal(t, gjson.GetBytes(rec.Body.Bytes(), "total").Uint(), uint64(2))
+	assert.Equal(t, gjson.GetBytes(rec.Body.Bytes(), "total").Uint(), uint64(1))
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

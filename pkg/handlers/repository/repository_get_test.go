@@ -68,8 +68,13 @@ func TestGetRepository(t *testing.T) {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		ctx := log.Logger.WithContext(context.Background())
 
+		userServiceFactory := dao.NewUserServiceFactory()
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "new-runner", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID}
 		err := namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			return err

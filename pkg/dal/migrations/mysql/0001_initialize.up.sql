@@ -1,10 +1,25 @@
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `username` varchar(64) NOT NULL UNIQUE,
+  `password` varchar(256) NOT NULL,
+  `email` varchar(256) NOT NULL UNIQUE,
+  `role` varchar(256) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`),
+  CONSTRAINT `users_unique_with_email` UNIQUE (`email`, `deleted_at`)
+);
+
 CREATE TABLE IF NOT EXISTS `namespaces` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL,
   `description` varchar(256),
+  `user_id` bigint unsigned NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
@@ -119,31 +134,6 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES blobs (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `username` varchar(64) NOT NULL UNIQUE,
-  `password` varchar(256) NOT NULL,
-  `email` varchar(256) NOT NULL UNIQUE,
-  `role` varchar(256) NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`),
-  CONSTRAINT `users_unique_with_email` UNIQUE (`email`, `deleted_at`)
-);
-
-INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
-  VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
-
-INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
-  VALUES ('p', 'root', '*', '*');
-
-INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
-  VALUES ('p', 'admin', '*', '*');
-
-INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
-  VALUES ('p', 'anonymous', 'blob', 'pull');
-
 CREATE TABLE IF NOT EXISTS `proxy_task_artifacts` (
   `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
   `repository` varchar(64) NOT NULL,
@@ -187,4 +177,13 @@ CREATE TABLE IF NOT EXISTS `proxy_task_tag_manifests` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`proxy_task_tag_id`) REFERENCES `proxy_task_tags` (`id`)
 );
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'root', '*', '*');
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'admin', '*', '*');
+
+INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`)
+  VALUES ('p', 'anonymous', 'blob', 'pull');
 

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/dal/dao"
@@ -30,10 +31,12 @@ func init() {
 }
 
 func initUser() error {
+	ctx := log.Logger.WithContext(context.Background())
+
 	passwordService := password.New()
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
-	userCount, err := userService.Count(context.Background())
+	userCount, err := userService.Count(ctx)
 	if err != nil {
 		return err
 	}
@@ -58,7 +61,7 @@ func initUser() error {
 		Email:    "internal-fake@gmail.com",
 		Role:     "root", // TODO: change to read-only role
 	}
-	err = userService.Create(context.Background(), internalUser)
+	err = userService.Create(ctx, internalUser)
 	if err != nil {
 		return err
 	}
@@ -85,7 +88,17 @@ func initUser() error {
 		Email:    adminUserEmail,
 		Role:     "root",
 	}
-	err = userService.Create(context.Background(), adminUser)
+	err = userService.Create(ctx, adminUser)
+	if err != nil {
+		return err
+	}
+
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceService := namespaceServiceFactory.New()
+	err = namespaceService.Create(ctx, &models.Namespace{
+		Name:   "library",
+		UserID: adminUser.ID,
+	})
 	if err != nil {
 		return err
 	}

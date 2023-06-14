@@ -33,6 +33,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
@@ -54,6 +55,21 @@ func TestNewRunner(t *testing.T) {
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
+
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+	userObj := &models.User{Username: "new-runner", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+	namespaceObj := &models.Namespace{
+		Name:        "library",
+		Description: ptr.Of(""),
+		UserID:      userObj.ID,
+	}
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceService := namespaceServiceFactory.New()
+	err = namespaceService.Create(ctx, namespaceObj)
+	assert.NoError(t, err)
 
 	proxyServiceFactory := dao.NewProxyTaskServiceFactory()
 	proxyService := proxyServiceFactory.New()

@@ -59,11 +59,18 @@ func TestNamespaceService(t *testing.T) {
 	ctx := log.Logger.WithContext(context.Background())
 
 	f := NewNamespaceServiceFactory()
+	userServiceFactory := NewUserServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
 		namespaceService := f.New(tx)
 
 		namespaceObj := &models.Namespace{
-			Name: "test",
+			Name:   "test",
+			UserID: userObj.ID,
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
