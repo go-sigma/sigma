@@ -17,18 +17,24 @@ package cmd
 import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/cmds/server"
 	"github.com/ximager/ximager/pkg/configs"
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/inits"
+	"github.com/ximager/ximager/pkg/logger"
 )
 
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start the XImager server",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		initConfig()
+		logger.SetLevel(viper.GetString("log.level"))
+	},
 	Run: func(_ *cobra.Command, _ []string) {
 		err := configs.Initialize()
 		if err != nil {
@@ -63,5 +69,6 @@ var serverCmd = &cobra.Command{
 }
 
 func init() {
+	serverCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
 	rootCmd.AddCommand(serverCmd)
 }
