@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/distribution/distribution/v3/reference"
@@ -27,6 +28,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
@@ -80,6 +82,8 @@ func (h *handler) HeadManifest(c echo.Context) error {
 		contentType = "application/vnd.docker.distribution.manifest.v2+json"
 	}
 	c.Response().Header().Set("Content-Type", contentType)
+	c.Response().Header().Set(echo.HeaderContentLength, strconv.FormatUint(artifact.Size, 10))
+	c.Response().Header().Set(consts.ContentDigest, artifact.Digest)
 
 	return c.NoContent(http.StatusOK)
 }

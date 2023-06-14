@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"path"
 	"strings"
 	"time"
@@ -193,7 +194,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return err
 	}
 
-	return nil
+	return c.NoContent(http.StatusCreated)
 }
 
 // nolint: unused
