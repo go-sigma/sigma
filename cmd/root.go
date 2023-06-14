@@ -23,8 +23,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/logger"
-
 	_ "github.com/golang/mock/mockgen/model"
 	_ "github.com/ximager/ximager/pkg/storage/cos"
 	_ "github.com/ximager/ximager/pkg/storage/filesystem"
@@ -44,10 +42,6 @@ which is designed to be a lightweight, easy-to-use, and easy-to-deploy,
 and can be used as a private registry or a public registry.
 XImager is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetLevel(viper.GetString("log.level"))
-		return nil
-	},
 }
 
 // Execute ...
@@ -57,12 +51,6 @@ func Execute() {
 		log.Error().Err(err).Msg("Execute root command with error")
 		os.Exit(1)
 	}
-}
-
-func init() {
-	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
