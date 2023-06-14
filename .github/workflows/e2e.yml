@@ -33,7 +33,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "yarn"
           cache-dependency-path: "web/yarn.lock"
-      - name: Build server
+      - name: Test
         run: |
           IP=`hostname -I | awk '{print $1}'`
           echo '{"insecure-registries" : ["'$IP':3000"]}' | sudo tee /etc/docker/daemon.json
