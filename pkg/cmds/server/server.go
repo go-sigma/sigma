@@ -30,6 +30,7 @@ import (
 	"github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/storage"
+	"github.com/ximager/ximager/pkg/utils/serializer"
 
 	_ "github.com/ximager/ximager/pkg/handlers/artifact"
 	_ "github.com/ximager/ximager/pkg/handlers/distribution/base"
@@ -48,6 +49,7 @@ func Serve() error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			n := next(c)
@@ -65,6 +67,7 @@ func Serve() error {
 	// e.Use(middleware.RequestID())
 	e.Use(middleware.CORS())
 	e.Use(middlewares.Healthz())
+	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
 	if viper.GetInt("log.level") < 1 {
 		pprof.Register(e)
