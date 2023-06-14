@@ -1,6 +1,6 @@
-ARG GOLANG_VERSION=1.19.9-alpine3.17
-ARG NODE_VERSION=18-alpine3.17
-ARG ALPINE_VERSION=3.17
+ARG GOLANG_VERSION=1.19.10-alpine3.18
+ARG NODE_VERSION=18-alpine3.18
+ARG ALPINE_VERSION=3.18
 
 FROM node:${NODE_VERSION} as web-builder
 
@@ -11,8 +11,6 @@ COPY ./web /web
 WORKDIR /web
 
 RUN set -eux && yarn install --frozen-lockfile && yarn build
-
-ARG ALPINE_VERSION=3.17
 
 FROM alpine:${ALPINE_VERSION} as syft
 

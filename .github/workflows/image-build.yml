@@ -29,13 +29,13 @@ jobs:
       #     registry: ghcr.io
       #     username: tosone
       #     password: ${{ secrets.GHCR_TOKEN }}
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx
+      # - name: Cache Docker layers
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: /tmp/.buildx-cache
+      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-buildx
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -46,9 +46,9 @@ jobs:
           tags: ghcr.io/ximager/ximager:latest
           provenance: false
           sbom: false
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          # cache-from: type=local,src=/tmp/.buildx-cache
+          # cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+      # - name: Move cache
+      #   run: |
+      #     rm -rf /tmp/.buildx-cache
+      #     mv /tmp/.buildx-cache-new /tmp/.buildx-cache
