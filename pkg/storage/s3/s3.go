@@ -144,13 +144,13 @@ func (a *awss3) sanitizePath(p string) string {
 
 // Move moves a file from sourcePath to destPath.
 func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) error {
-	sourcePath = a.sanitizePath(sourcePath)
-	destPath = a.sanitizePath(destPath)
-
 	fileInfo, err := a.Stat(ctx, sourcePath)
 	if err != nil {
 		return err
 	}
+
+	sourcePath = a.sanitizePath(sourcePath)
+	destPath = a.sanitizePath(destPath)
 
 	if fileInfo.Size() <= multipartCopyThresholdSize {
 		_, err := a.S3.CopyObject(&s3.CopyObjectInput{

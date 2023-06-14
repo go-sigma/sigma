@@ -17,17 +17,23 @@ package cmd
 import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/cmds/worker"
 	"github.com/ximager/ximager/pkg/configs"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/inits"
+	"github.com/ximager/ximager/pkg/logger"
 )
 
 // workerCmd represents the worker command
 var workerCmd = &cobra.Command{
 	Use:   "worker",
 	Short: "Start the XImager worker",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		initConfig()
+		logger.SetLevel(viper.GetString("log.level"))
+	},
 	Run: func(_ *cobra.Command, _ []string) {
 		err := configs.Initialize()
 		if err != nil {
@@ -56,5 +62,6 @@ var workerCmd = &cobra.Command{
 }
 
 func init() {
+	workerCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
 	rootCmd.AddCommand(workerCmd)
 }

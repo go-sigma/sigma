@@ -70,7 +70,7 @@ func TestBlobUploadService(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, err = blobUploadService.TotalEtagsByUploadID(ctx, "test1")
-		assert.Error(t, err)
+		assert.NoError(t, err)
 
 		blobUploadObj1 := &models.BlobUpload{
 			PartNumber: 2,

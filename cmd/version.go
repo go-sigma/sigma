@@ -22,7 +22,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const banner = `XXXXXXX       XXXXXXIIIIIIIIII
+const banner = `
+XXXXXXX       XXXXXXIIIIIIIIII
 X:::::X       X:::::I::::::::I
 X:::::X       X:::::I::::::::I
 X::::::X     X::::::II::::::II

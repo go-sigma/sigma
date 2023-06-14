@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -113,7 +112,7 @@ func (b *blobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID s
 		etags = append(etags, blobUpload.Etag)
 	}
 	if len(etags) == 1 {
-		return nil, fmt.Errorf("cannot find valid etags")
+		return []string{}, nil
 	}
 	return etags[1:], nil
 }
