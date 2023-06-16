@@ -68,6 +68,13 @@ jobs:
         run: |
           ./scripts/run_minio.sh
           sleep 5
+      - name: Download cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/go-build
+          key: ${{ runner.os }}-go-test-sqlite3-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-test-sqlite3-
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=sqlite3 go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
@@ -76,7 +83,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit-test-sqlite3
-
   unit-test-postgresql:
     name: unit-test-postgresql
     runs-on: ubuntu-22.04
@@ -126,7 +132,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "yarn"
           cache-dependency-path: "web/yarn.lock"
-      - name: Test
+      - name: Build web
         run: |
           cd web
           yarn install --frozen-lockfile
@@ -135,6 +141,13 @@ jobs:
         run: |
           ./scripts/run_minio.sh
           sleep 5
+      - name: Download cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/go-build
+          key: ${{ runner.os }}-go-test-postgresql-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-test-postgresql-
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=postgresql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
@@ -202,6 +215,13 @@ jobs:
         run: |
           ./scripts/run_minio.sh
           sleep 5
+      - name: Download cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/go-build
+          key: ${{ runner.os }}-go-test-mysql-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-test-mysql-
       - name: Run tests
         run: |
           CI_DATABASE_TYPE=mysql go test -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
