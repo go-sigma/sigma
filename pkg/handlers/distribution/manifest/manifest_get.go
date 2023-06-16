@@ -15,6 +15,7 @@
 package manifest
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -24,7 +25,9 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -34,7 +37,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 
 	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
-		log.Debug().Err(err).Str("ref", ref).Msg("not valid digest or tag")
+		log.Debug().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
 		return fmt.Errorf("not valid digest or tag")
 	}
 
@@ -42,62 +45,33 @@ func (h *handler) GetManifest(c echo.Context) error {
 
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var err error
-	var dgest digest.Digest
-	if dgest, err = digest.Parse(ref); err == nil {
-	} else {
+	var refs = h.parseRef(ref)
+
+	if refs.Tag != "" {
 		tagService := h.tagServiceFactory.New()
 		tag, err := tagService.GetByName(ctx, repository, ref)
 		if err != nil {
-			log.Error().Err(err).Str("ref", ref).Msg("Get tag failed")
-			if viper.GetBool("proxy.enabled") {
-				statusCode, header, bodyBytes, err := fallbackProxy(c)
-				if err != nil {
-					log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-				}
-				if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
-					c.Response().Header().Set("Docker-Content-Digest", header.Get("Docker-Content-Digest"))
-					c.Response().Header().Set("ETag", header.Get("ETag"))
-					err = h.proxyTaskTag(c, repository, ref, header.Get("Content-Type"), bodyBytes)
-					if err != nil {
-						log.Error().Err(err).Msg("Create proxy artifact task failed")
-					}
-					return c.Blob(http.StatusOK, header.Get("Content-Type"), bodyBytes)
-				}
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+				return h.getManifestFallbackProxy(c, repository, refs)
 			}
+			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
 		err = tagService.Incr(ctx, tag.ID)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")
 		}
-		dgest = digest.Digest(tag.Artifact.Digest)
+		refs.Digest = digest.Digest(tag.Artifact.Digest)
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	artifact, err := artifactService.GetByDigest(ctx, repository, dgest.String())
+	artifact, err := artifactService.GetByDigest(ctx, repository, refs.Digest.String())
 	if err != nil {
-		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
-		if viper.GetBool("proxy.enabled") {
-			statusCode, header, bodyBytes, err := fallbackProxy(c)
-			if err != nil {
-				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-			}
-			if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
-				c.Response().Header().Set("Docker-Content-Digest", header.Get("Docker-Content-Digest"))
-				c.Response().Header().Set("ETag", header.Get("ETag"))
-				err = h.proxyTaskArtifact(c, repository, header.Get("Docker-Content-Digest"), header.Get("Content-Type"), bodyBytes)
-				if err != nil {
-					log.Error().Err(err).Msg("Create proxy artifact task failed")
-				}
-				return c.Blob(http.StatusOK, header.Get("Content-Type"), bodyBytes)
-			}
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			return h.getManifestFallbackProxy(c, repository, refs)
 		}
-		return err
+		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
 	contentType := artifact.ContentType
@@ -106,4 +80,52 @@ func (h *handler) GetManifest(c echo.Context) error {
 	}
 
 	return c.Blob(http.StatusOK, contentType, []byte(artifact.Raw))
+}
+
+// Refs image tag and digest
+type Refs struct {
+	Tag    string
+	Digest digest.Digest
+}
+
+func (h *handler) parseRef(ref string) Refs {
+	var refs = Refs{}
+
+	digest, err := digest.Parse(ref)
+	if err != nil {
+		refs.Tag = ref
+	} else {
+		refs.Digest = digest
+	}
+
+	return refs
+}
+
+// getManifestFallbackProxy ...
+func (h *handler) getManifestFallbackProxy(c echo.Context, repository string, refs Refs) error {
+	statusCode, header, bodyBytes, err := fallbackProxy(c)
+	if err != nil {
+		log.Error().Err(err).Interface("refs", refs).Int("status", statusCode).Msg("Fallback proxy failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	if statusCode == http.StatusOK {
+		c.Response().Header().Set(consts.ContentDigest, header.Get(consts.ContentDigest))
+		c.Response().Header().Set("ETag", header.Get("ETag"))
+		if refs.Tag != "" {
+			err = h.proxyTaskTag(c, repository, refs.Tag, header.Get(echo.HeaderContentType), bodyBytes)
+			if err != nil {
+				log.Error().Err(err).Msg("Create proxy artifact task failed")
+			}
+		} else {
+			err = h.proxyTaskArtifact(c, repository, refs.Digest.String(), header.Get(echo.HeaderContentType), bodyBytes)
+			if err != nil {
+				log.Error().Err(err).Msg("Create proxy artifact task failed")
+			}
+		}
+		return c.Blob(http.StatusOK, header.Get(echo.HeaderContentType), bodyBytes)
+	} else if statusCode == http.StatusNotFound {
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestBlobUnknown)
+	}
+	log.Error().Interface("refs", refs).Int("statusCode", statusCode).Msg("Fallback proxy failed")
+	return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 }

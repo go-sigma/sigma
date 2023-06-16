@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.3
-	github.com/aws/aws-sdk-go v1.44.282
+	github.com/aws/aws-sdk-go v1.44.283
 	github.com/bytedance/sonic v1.9.1
-	github.com/casbin/casbin/v2 v2.70.0
+	github.com/casbin/casbin/v2 v2.71.0
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/distribution/distribution/v3 v3.0.0-20230611135314-6a57630cf401
 	github.com/docker/distribution v2.8.2+incompatible
@@ -46,7 +46,7 @@ require (
 	gorm.io/gorm v1.25.1
 	gorm.io/plugin/dbresolver v1.4.1
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/client-go v0.27.2
+	k8s.io/client-go v0.27.3
 )
 
 require (
@@ -167,8 +167,8 @@ require (
 	gorm.io/datatypes v1.2.0 // indirect
 	gorm.io/driver/sqlserver v1.5.1 // indirect
 	gorm.io/hints v1.1.2 // indirect
-	k8s.io/api v0.27.2 // indirect
-	k8s.io/apimachinery v0.27.2 // indirect
+	k8s.io/api v0.27.3 // indirect
+	k8s.io/apimachinery v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230524182850-78281498afbb // indirect
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
