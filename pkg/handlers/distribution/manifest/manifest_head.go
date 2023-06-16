@@ -29,13 +29,11 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // HeadManifest handles the head manifest request
 func (h *handler) HeadManifest(c echo.Context) error {
-	ctx := log.Logger.WithContext(c.Request().Context())
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
@@ -45,45 +43,52 @@ func (h *handler) HeadManifest(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("reference %s not valid", ref))
 	}
 
-	referenceServiceFactory := dao.NewReferenceServiceFactory()
-	referenceService := referenceServiceFactory.New()
-	reference, err := referenceService.Get(ctx, repository, ref)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
-			statusCode, header, _, err := fallbackProxy(c)
-			if err != nil {
-				log.Error().Err(err).Str("ref", ref).Int("status", statusCode).Msg("Fallback proxy")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-			}
-			c.Response().Header().Set("Content-Type", header.Get("Content-Type"))
-			if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
-				return c.NoContent(statusCode)
-			}
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-		}
-		log.Error().Err(err).Str("ref", ref).Msg("Get local reference failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
-	}
+	ctx := log.Logger.WithContext(c.Request().Context())
 
-	if reference.Artifact == nil {
-		log.Error().Err(err).Str("ref", ref).Msg("Artifact not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Artifact not found")
+	refs := h.parseRef(ref)
+
+	if refs.Tag != "" {
+		tagService := h.tagServiceFactory.New()
+		tag, err := tagService.GetByName(ctx, repository, ref)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+				return h.headManifestFallbackProxy(c)
+			}
+			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
+		}
+		err = tagService.Incr(ctx, tag.ID)
+		if err != nil {
+			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")
+		}
+		refs.Digest = digest.Digest(tag.Artifact.Digest)
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	artifact, err := artifactService.GetByDigest(ctx, repository, reference.Artifact.Digest)
+	artifact, err := artifactService.GetByDigest(ctx, repository, refs.Digest.String())
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	contentType := artifact.ContentType
-	if contentType == "" {
-		contentType = "application/vnd.docker.distribution.manifest.v2+json"
-	}
-	c.Response().Header().Set("Content-Type", contentType)
+	c.Response().Header().Set(echo.HeaderContentType, artifact.ContentType)
 	c.Response().Header().Set(echo.HeaderContentLength, strconv.FormatUint(artifact.Size, 10))
 	c.Response().Header().Set(consts.ContentDigest, artifact.Digest)
 
 	return c.NoContent(http.StatusOK)
+}
+
+// headManifestFallbackProxy ...
+func (h *handler) headManifestFallbackProxy(c echo.Context) error {
+	statusCode, header, _, err := fallbackProxy(c)
+	if err != nil {
+		log.Error().Err(err).Int("status", statusCode).Msg("Fallback proxy failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	c.Response().Header().Set(echo.HeaderContentType, header.Get(echo.HeaderContentType))
+	if statusCode == http.StatusOK || statusCode == http.StatusNotFound {
+		return c.NoContent(statusCode)
+	}
+	log.Error().Int("statusCode", statusCode).Msg("Fallback proxy failed")
+	return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 }

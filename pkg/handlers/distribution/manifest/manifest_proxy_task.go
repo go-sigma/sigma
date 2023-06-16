@@ -22,7 +22,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/utils/hash"
 )
@@ -30,8 +29,7 @@ import (
 func (h *handler) proxyTaskArtifact(c echo.Context, repository, digest, contentType string, manifestBytes []byte) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	proxyServiceFactory := dao.NewProxyTaskServiceFactory()
-	proxyService := proxyServiceFactory.New()
+	proxyTaskService := h.proxyTaskServiceFactory.New()
 
 	manifest, _, err := distribution.UnmarshalManifest(contentType, manifestBytes)
 	if err != nil {
@@ -43,7 +41,7 @@ func (h *handler) proxyTaskArtifact(c echo.Context, repository, digest, contentT
 		proxyArtifactBlobs = append(proxyArtifactBlobs, models.ProxyTaskArtifactBlob{Blob: desc.Digest.String()})
 	}
 
-	err = proxyService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
+	err = proxyTaskService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 		Repository:  repository,
 		Digest:      digest,
 		Size:        uint64(len(manifestBytes)),
@@ -61,8 +59,7 @@ func (h *handler) proxyTaskArtifact(c echo.Context, repository, digest, contentT
 func (h *handler) proxyTaskTag(c echo.Context, repository, reference, contentType string, manifestBytes []byte) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	proxyServiceFactory := dao.NewProxyTaskServiceFactory()
-	proxyService := proxyServiceFactory.New()
+	proxyTaskService := h.proxyTaskServiceFactory.New()
 
 	manifest, _, err := distribution.UnmarshalManifest(contentType, manifestBytes)
 	if err != nil {
@@ -83,7 +80,7 @@ func (h *handler) proxyTaskTag(c echo.Context, repository, reference, contentTyp
 		}
 	}
 
-	err = proxyService.SaveProxyTaskTag(ctx, &models.ProxyTaskTag{
+	err = proxyTaskService.SaveProxyTaskTag(ctx, &models.ProxyTaskTag{
 		Repository:  repository,
 		Reference:   reference,
 		Size:        uint64(len(manifestBytes)),

@@ -35,6 +35,11 @@ type Handlers interface {
 	PutManifest(ctx echo.Context) error
 	// DeleteManifest ...
 	DeleteManifest(ctx echo.Context) error
+
+	// HeadManifestFallbackProxy ...
+	// HeadManifestFallbackProxy(c echo.Context) error
+	// // GetManifestFallbackProxy ...
+	// GetManifestFallbackProxy(c echo.Context, repository string, refs Refs) error
 }
 
 var _ Handlers = &handler{}
@@ -44,6 +49,7 @@ type handler struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	proxyTaskServiceFactory  dao.ProxyTaskServiceFactory
 }
 
 type inject struct {
@@ -51,6 +57,7 @@ type inject struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	proxyTaskServiceFactory  dao.ProxyTaskServiceFactory
 }
 
 // New creates a new instance of the distribution manifest handlers
@@ -59,6 +66,7 @@ func handlerNew(injects ...inject) Handlers {
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
+	proxyTaskServiceFactory := dao.NewProxyTaskServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.artifactServiceFactory != nil {
@@ -73,12 +81,16 @@ func handlerNew(injects ...inject) Handlers {
 		if ij.tagServiceFactory != nil {
 			tagServiceFactory = ij.tagServiceFactory
 		}
+		if ij.proxyTaskServiceFactory != nil {
+			proxyTaskServiceFactory = ij.proxyTaskServiceFactory
+		}
 	}
 	return &handler{
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
 		blobServiceFactory:       blobServiceFactory,
+		proxyTaskServiceFactory:  proxyTaskServiceFactory,
 	}
 }
 
