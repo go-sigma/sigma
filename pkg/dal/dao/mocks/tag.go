@@ -66,6 +66,20 @@ func (mr *MockTagServiceMockRecorder) CountTag(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTag", reflect.TypeOf((*MockTagService)(nil).CountTag), arg0, arg1)
 }
 
+// Create mocks base method.
+func (m *MockTagService) Create(arg0 context.Context, arg1 *models.Tag) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockTagServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTagService)(nil).Create), arg0, arg1)
+}
+
 // DeleteByArtifactID mocks base method.
 func (m *MockTagService) DeleteByArtifactID(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
@@ -185,19 +199,4 @@ func (m *MockTagService) ListTag(arg0 context.Context, arg1 types.ListTagRequest
 func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1)
-}
-
-// Save mocks base method.
-func (m *MockTagService) Save(arg0 context.Context, arg1 *models.Tag) (*models.Tag, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", arg0, arg1)
-	ret0, _ := ret[0].(*models.Tag)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockTagServiceMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockTagService)(nil).Save), arg0, arg1)
 }

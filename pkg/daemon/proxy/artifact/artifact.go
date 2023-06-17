@@ -16,8 +16,6 @@ package artifact
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -96,7 +94,7 @@ func newRunner(injects ...inject) func(ctx context.Context, atask *asynq.Task) e
 				err := query.Q.Transaction(func(tx *query.Query) error {
 					repositoryService := repositoryServiceFactory.New(tx)
 					repository := &models.Repository{Name: task.Repository}
-					err := repositoryService.Save(ctx, repository)
+					err := repositoryService.Create(ctx, repository)
 					if err != nil {
 						return err
 					}
@@ -106,14 +104,11 @@ func newRunner(injects ...inject) func(ctx context.Context, atask *asynq.Task) e
 						Digest:       task.Digest,
 						Size:         task.Size,
 						ContentType:  task.ContentType,
-						Raw:          string(task.Raw),
-						PushedAt:     time.Now(),
-						PullTimes:    0,
-						LastPull:     sql.NullTime{},
+						Raw:          task.Raw,
 
 						Blobs: blobs,
 					}
-					err = artifactService.Save(ctx, artifact)
+					err = artifactService.Create(ctx, artifact)
 					if err != nil {
 						return err
 					}

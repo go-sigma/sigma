@@ -59,7 +59,7 @@ func TestDeleteTag(t *testing.T) {
 
 	const (
 		namespaceName  = "test"
-		repositoryName = "busybox"
+		repositoryName = "test/busybox"
 	)
 
 	var tagObj *models.Tag
@@ -82,12 +82,13 @@ func TestDeleteTag(t *testing.T) {
 		assert.NoError(t, err)
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New(tx)
-		artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: "test", PushedAt: time.Now()}
-		err = artifactService.Save(ctx, artifactObj)
+		artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now()}
+		err = artifactService.Create(ctx, artifactObj)
 		assert.NoError(t, err)
 		tagServiceFactory := dao.NewTagServiceFactory()
 		tagService := tagServiceFactory.New(tx)
-		tagObj, err = tagService.Save(ctx, &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()})
+		tagObj = &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
+		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
 		return nil
 	})

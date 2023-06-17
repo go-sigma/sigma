@@ -89,9 +89,9 @@ func TestArtifactService(t *testing.T) {
 			Digest:       "sha256:xxxx",
 			Size:         123,
 			ContentType:  "test",
-			Raw:          "test",
+			Raw:          []byte("test"),
 		}
-		err = artifactService.Save(ctx, artifactObj)
+		err = artifactService.Create(ctx, artifactObj)
 		assert.NoError(t, err)
 
 		tagService := tagServiceFactory.New(tx)
@@ -103,11 +103,12 @@ func TestArtifactService(t *testing.T) {
 				Digest:       "sha256:xxx",
 				Size:         123,
 				ContentType:  "test",
-				Raw:          "test",
+				Raw:          []byte("test"),
 			},
 		}
-		tagObj1, err = tagService.Save(ctx, tagObj)
+		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
+		tagObj1 = tagObj
 		assert.Equal(t, tagObj1.Name, tagObj.Name)
 
 		artifact1, err := artifactService.Get(ctx, artifactObj.ID)
@@ -214,10 +215,10 @@ func TestArtifactService(t *testing.T) {
 			Digest:       "sha256:xxxx",
 			Size:         123,
 			ContentType:  "test",
-			Raw:          "test",
+			Raw:          []byte("test"),
 		}
 		artifactService := artifactServiceFactory.New(tx)
-		err = artifactService.Save(ctx, artifactObj)
+		err = artifactService.Create(ctx, artifactObj)
 		assert.NoError(t, err)
 
 		sbomObj := &models.ArtifactSbom{ArtifactID: artifactObj.ID, Raw: []byte("test"), Status: enums.TaskCommonStatusPending}

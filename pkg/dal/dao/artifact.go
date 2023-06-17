@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -31,8 +32,8 @@ import (
 
 // ArtifactService is the interface that provides the artifact service methods.
 type ArtifactService interface {
-	// Save save a new artifact if conflict update.
-	Save(ctx context.Context, artifact *models.Artifact) error
+	// Create create a new artifact if conflict do nothing.
+	Create(ctx context.Context, artifact *models.Artifact) error
 	// Get gets the artifact with the specified artifact ID.
 	Get(ctx context.Context, id uint64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
@@ -91,9 +92,9 @@ func (f *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
 	}
 }
 
-// Save save a new artifact if conflict update.
-func (s *artifactService) Save(ctx context.Context, artifact *models.Artifact) error {
-	return s.tx.Artifact.WithContext(ctx).Save(artifact)
+// Create create a new artifact if conflict do nothing.
+func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact) error {
+	return s.tx.Artifact.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(artifact)
 }
 
 // Get gets the artifact with the specified artifact ID.
@@ -238,14 +239,14 @@ func (s *artifactService) DeleteByID(ctx context.Context, id uint64) error {
 	return nil
 }
 
-// SaveSbom save a new artifact sbom if conflict update.
+// SaveSbom save a new artifact sbom if conflict do nothing.
 func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
-	return s.tx.ArtifactSbom.WithContext(ctx).Save(sbom)
+	return s.tx.ArtifactSbom.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(sbom)
 }
 
-// SaveVulnerability save a new artifact vulnerability if conflict update.
+// SaveVulnerability save a new artifact vulnerability if conflict do nothing.
 func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
-	return s.tx.ArtifactVulnerability.WithContext(ctx).Save(vulnerability)
+	return s.tx.ArtifactVulnerability.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(vulnerability)
 }
 
 // UpdateSbomStatus update the artifact sbom status.

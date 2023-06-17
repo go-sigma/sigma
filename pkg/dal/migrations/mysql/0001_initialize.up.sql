@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `digest` varchar(256) NOT NULL,
   `size` bigint unsigned NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
-  `raw` longtext NOT NULL,
+  `raw` BLOB NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,

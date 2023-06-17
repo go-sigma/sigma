@@ -59,7 +59,7 @@ func TestDeleteArtifact(t *testing.T) {
 
 	const (
 		namespaceName  = "test"
-		repositoryName = "busybox"
+		repositoryName = "test/busybox"
 	)
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -86,14 +86,15 @@ func TestDeleteArtifact(t *testing.T) {
 			Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
 			Size:         1234,
 			ContentType:  "application/octet-stream",
-			Raw:          "test",
+			Raw:          []byte("test"),
 			Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
 		}
-		err = artifactService.Save(ctx, artifactObj)
+		err = artifactService.Create(ctx, artifactObj)
 		assert.NoError(t, err)
 		tagServiceFactory := dao.NewTagServiceFactory()
 		tagService := tagServiceFactory.New(tx)
-		_, err = tagService.Save(ctx, &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()})
+		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
+		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
 		return nil
 	})
