@@ -36,7 +36,7 @@ type ArtifactService interface {
 	// Get gets the artifact with the specified artifact ID.
 	Get(ctx context.Context, id uint64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
-	GetByDigest(ctx context.Context, repository, digest string) (*models.Artifact, error)
+	GetByDigest(ctx context.Context, repositoryID uint64, digest string) (*models.Artifact, error)
 	// GetByDigests gets the artifacts with the specified digests.
 	GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error)
 	// DeleteByDigest deletes the artifact with the specified digest.
@@ -106,12 +106,10 @@ func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact,
 }
 
 // GetByDigest gets the artifact with the specified digest.
-func (s *artifactService) GetByDigest(ctx context.Context, repository, digest string) (*models.Artifact, error) {
+func (s *artifactService) GetByDigest(ctx context.Context, repositoryID uint64, digest string) (*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
-		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
-		Where(s.tx.Repository.Name.Eq(repository)).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Where(s.tx.Artifact.Digest.Eq(digest)).
-		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
 		First()
 }
 

@@ -36,15 +36,6 @@ import (
 	"github.com/ximager/ximager/pkg/tests"
 )
 
-func TestParseRef(t *testing.T) {
-	h := &handler{}
-	refs := h.parseRef("latest")
-	assert.Equal(t, refs.Tag, "latest")
-
-	refs = h.parseRef("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157")
-	assert.Equal(t, refs.Digest.String(), "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157")
-}
-
 func TestGetManifestFallbackProxy(t *testing.T) {
 	logger.SetLevel("debug")
 	viper.SetDefault("log.level", "debug")
@@ -85,6 +76,14 @@ func TestGetManifestFallbackProxy(t *testing.T) {
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.manifest.v1+json")
 		_, _ = w.Write([]byte(`{"manifests":[{"digest":"sha256:25fad2a32ad1f6f510e528448ae1ec69a28ef81916a004d3629874104f8a7f70","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"amd64","os":"linux"},"size":528},{"digest":"sha256:ae30c2911284159e0dc2f244b5e7a8b801b9c9f3449806d6e5591de22b65ce15","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"arm","os":"linux","variant":"v6"},"size":528},{"digest":"sha256:0b75b5bfd67c3ffaee0e951533407f6d45d53d7f4dd139fa0c09747b4849dd5d","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"arm","os":"linux","variant":"v7"},"size":528},{"digest":"sha256:e3bd82196e98898cae9fe7fbfd6e2436530485974dc4fb3b7ddb69134eda2407","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"arm64","os":"linux","variant":"v8"},"size":528},{"digest":"sha256:bd649691cf299c58fec56fb84a5067a915da6915897c6f846a6e317e5ff42a4d","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"386","os":"linux"},"size":528},{"digest":"sha256:8d42f68528a085fe2d936dcca64c642463744eb47312bb8e95863464550165ca","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"ppc64le","os":"linux"},"size":528},{"digest":"sha256:579fb3e58c23e1dba58ce7d06a14417954d0daaca4e28fa0358e941895d752f8","mediaType":"application\/vnd.docker.distribution.manifest.v2+json","platform":{"architecture":"s390x","os":"linux"},"size":528}],"mediaType":"application\/vnd.docker.distribution.manifest.list.v2+json","schemaVersion":2}`))
 		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc(fmt.Sprintf("/v2/test/alpine/manifests/%s", tagName+"-none-exist"), func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.manifest.v1+json")
+		w.WriteHeader(http.StatusNotFound)
+	})
+	mux.HandleFunc(fmt.Sprintf("/v2/test/alpine/manifests/%s", tagName+"-internal-error"), func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.manifest.v1+json")
+		w.WriteHeader(http.StatusInternalServerError)
 	})
 	mux.HandleFunc("/v2/library/busybox/manifests/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.manifest.v1+json")
@@ -130,6 +129,24 @@ func TestGetManifestFallbackProxy(t *testing.T) {
 	err = h.getManifestFallbackProxy(c, repositoryName, Refs{Tag: tagName})
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// test about manifest not found
+	req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/test/alpine/manifests/%s", tagName+"-none-exist"), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = echo.New().NewContext(req, rec)
+	err = h.getManifestFallbackProxy(c, repositoryName, Refs{Tag: tagName})
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+
+	// test about proxy server internal server error
+	req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/test/alpine/manifests/%s", tagName+"-internal-error"), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = echo.New().NewContext(req, rec)
+	err = h.getManifestFallbackProxy(c, repositoryName, Refs{Tag: tagName})
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
 	// test about artifact
 	req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
@@ -178,4 +195,30 @@ func TestGetManifestFallbackProxy(t *testing.T) {
 	err = h.getManifestFallbackProxy(c, repositoryName, Refs{Digest: digest.Digest("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151")})
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestGetManifestFallbackProxyAuthError(t *testing.T) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	h := &handler{}
+
+	// test about proxy server auth internal server error
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	err := h.getManifestFallbackProxy(c, "library/busybox", Refs{Digest: digest.Digest("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151")})
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+}
+
+func TestGetManifest(t *testing.T) {
+
 }

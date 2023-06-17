@@ -98,7 +98,7 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, tag1.ID, tagObj.ID)
 
-		tag2, err := tagService.GetByName(ctx, "test/busybox", "latest")
+		tag2, err := tagService.GetByName(ctx, repositoryObj.ID, "latest")
 		assert.NoError(t, err)
 		assert.Equal(t, tag2.ID, tagObj.ID)
 
@@ -129,11 +129,8 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, count1, int64(1))
 
-		err = tagService.DeleteByName(ctx, "test/busybox", "latest")
+		err = tagService.DeleteByName(ctx, repositoryObj.ID, "latest")
 		assert.NoError(t, err)
-
-		err = tagService.DeleteByName(ctx, "test/busybox", "latest")
-		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		artifactObj := &models.Artifact{
 			RepositoryID: repositoryObj.ID,

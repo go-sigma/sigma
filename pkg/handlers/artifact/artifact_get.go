@@ -15,6 +15,8 @@
 package artifact
 
 import (
+	"errors"
+
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -36,8 +38,19 @@ func (h *handlers) GetArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.GetByName(ctx, req.Repository)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("repository", req.Repository).Msg("Cannot find repository")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+		}
+		log.Error().Err(err).Str("repository", req.Repository).Msg("Get repository failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
 	artifactService := h.artifactServiceFactory.New()
-	tag, err := artifactService.GetByDigest(ctx, req.Repository, req.Digest)
+	tag, err := artifactService.GetByDigest(ctx, repositoryObj.ID, req.Digest)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("Artifact not found")

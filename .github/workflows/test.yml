@@ -59,7 +59,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "yarn"
           cache-dependency-path: "web/yarn.lock"
-      - name: Test
+      - name: Build web
         run: |
           cd web
           yarn install --frozen-lockfile
@@ -206,7 +206,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "yarn"
           cache-dependency-path: "web/yarn.lock"
-      - name: Test
+      - name: Build web
         run: |
           cd web
           yarn install --frozen-lockfile
