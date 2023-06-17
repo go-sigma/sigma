@@ -16,6 +16,7 @@ package consts
 
 import (
 	"fmt"
+	"regexp"
 
 	pwdvalidate "github.com/wagslane/go-password-validator"
 )
@@ -72,4 +73,11 @@ var (
 	PwdStrength = pwdvalidate.GetEntropy("1923432198Aa@")
 	// Alphanum alphabet num
 	Alphanum = "abcdefghijklmnopqrstuvwxyz0123456789"
+)
+
+var (
+	// TagRegexp matches valid tag names. From [docker/docker:graph/tags.go].
+	//
+	// [docker/docker:graph/tags.go]: https://github.com/moby/moby/blob/v1.6.0/graph/tags.go#L26-L28
+	TagRegexp = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
 )

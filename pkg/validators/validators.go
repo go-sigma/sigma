@@ -22,6 +22,8 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+
+	"github.com/ximager/ximager/pkg/consts"
 )
 
 const (
@@ -82,5 +84,5 @@ func ValidateNamespace(field validator.FieldLevel) bool {
 
 // ValidateTag validates the tag
 func ValidateTag(field validator.FieldLevel) bool {
-	return reference.TagRegexp.MatchString(field.Field().String())
+	return consts.TagRegexp.MatchString(field.Field().String())
 }

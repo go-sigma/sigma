@@ -140,7 +140,7 @@ func (mr *MockArtifactServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.C
 }
 
 // GetByDigest mocks base method.
-func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1, arg2 string) (*models.Artifact, error) {
+func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1 uint64, arg2 string) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByDigest", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.Artifact)

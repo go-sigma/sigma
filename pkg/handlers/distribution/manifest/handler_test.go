@@ -35,12 +35,14 @@ func TestHandlerNew(t *testing.T) {
 	daoMockBlobServiceFactory := daomock.NewMockBlobServiceFactory(ctrl)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
 	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
+	daoMockProxyTaskServiceFactory := daomock.NewMockProxyTaskServiceFactory(ctrl)
 
 	handler := handlerNew(inject{
 		artifactServiceFactory:   daoMockArtifactServiceFactory,
 		blobServiceFactory:       daoMockBlobServiceFactory,
 		tagServiceFactory:        daoMockTagServiceFactory,
 		repositoryServiceFactory: daoMockRepositoryServiceFactory,
+		proxyTaskServiceFactory:  daoMockProxyTaskServiceFactory,
 	})
 	assert.NotNil(t, handler)
 

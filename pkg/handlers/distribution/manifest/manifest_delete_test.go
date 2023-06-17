@@ -33,75 +33,9 @@ import (
 	"github.com/ximager/ximager/pkg/tests"
 )
 
-func TestHeadManifestFallbackProxy(t *testing.T) {
+func TestDeleteManifest(t *testing.T) {
 	logger.SetLevel("debug")
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
-		w.WriteHeader(http.StatusOK)
-	})
-	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
-		w.WriteHeader(http.StatusInternalServerError)
-	})
-
-	s := httptest.NewServer(mux)
-	defer s.Close()
-
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
-	handler := &handler{}
-
-	req := httptest.NewRequest(http.MethodHead, "/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := echo.New().NewContext(req, rec)
-	err := handler.headManifestFallbackProxy(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-
-	req = httptest.NewRequest(http.MethodHead, "/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec = httptest.NewRecorder()
-	c = echo.New().NewContext(req, rec)
-	err = handler.headManifestFallbackProxy(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-}
-
-func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	})
-
-	s := httptest.NewServer(mux)
-	defer s.Close()
-
-	h := &handler{}
-
-	// test about proxy server auth internal server error
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := echo.New().NewContext(req, rec)
-	err := h.headManifestFallbackProxy(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-}
-
-func TestHeadManifest(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
-	logger.SetLevel("debug")
 	err := tests.Initialize()
 	assert.NoError(t, err)
 	err = tests.DB.Init()
@@ -113,14 +47,19 @@ func TestHeadManifest(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	ctx := log.Logger.WithContext(context.Background())
-
 	const (
 		namespaceName  = "test"
 		repositoryName = "test/busybox"
 		digestName     = "sha256:2776ee23722eaabcffed77dafd22b7a1da734971bf268a323b6819926dfe1ebd"
 		tagName        = "latest"
 	)
+
+	viper.Reset()
+	viper.SetDefault("log.level", "info")
+	// viper.SetDefault("proxy.endpoint", s.URL)
+	viper.SetDefault("proxy.tlsVerify", true)
+
+	ctx := log.Logger.WithContext(context.Background())
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
@@ -152,52 +91,64 @@ func TestHeadManifest(t *testing.T) {
 	_, err = tagService.Save(ctx, tagObj)
 	assert.NoError(t, err)
 
-	mux := http.NewServeMux()
+	h := &handler{
+		proxyTaskServiceFactory:  dao.NewProxyTaskServiceFactory(),
+		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+		tagServiceFactory:        dao.NewTagServiceFactory(),
+		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+	}
 
-	s := httptest.NewServer(mux)
-	defer s.Close()
-
-	handler := handlerNew()
-	assert.NotNil(t, handler)
-
-	req := httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, digestName), nil)
+	// test about delete tag
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
+	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, http.StatusAccepted, rec.Code)
 
-	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName), nil)
+	// test about delete artifact by digest
+	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, digestName), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
+	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, http.StatusAccepted, rec.Code)
 
-	// test about get artifact by invalid reference
-	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, "*&invalid-tag"), nil)
+	// test about delete artifact by invalid reference
+	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, "*&invalid-tag"), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
+	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 
-	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName+"-none-exist", tagName), nil)
+	// test about delete artifact not found the repository
+	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName+"-none-exist", tagName), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
+	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 
-	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName+"-none-exist"), nil)
+	// test about delete artifact not found the tag
+	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName+"-none-exist"), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
+	err = h.DeleteManifest(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+
+	// test about delete artifact not found the digest
+	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, digestName), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = echo.New().NewContext(req, rec)
+	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 }

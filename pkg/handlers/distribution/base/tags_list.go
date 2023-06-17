@@ -15,6 +15,7 @@
 package distribution
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -54,13 +55,24 @@ func (h *handlers) ListTags(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 	repository := strings.TrimSuffix(strings.TrimPrefix(uri, "/v2/"), "/tags/list")
 
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.GetByName(ctx, repository)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("repository", repository).Msg("Cannot find repository")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeNameUnknown)
+		}
+		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+
 	lastFound := false
 	var lastID uint64 = 0
 
 	tagService := h.tagServiceFactory.New()
 	var last = c.QueryParam("last")
 	if last != "" {
-		tagObj, err := tagService.GetByName(ctx, repository, last)
+		tagObj, err := tagService.GetByName(ctx, repositoryObj.ID, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("get tag by name")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

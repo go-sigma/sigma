@@ -31,11 +31,13 @@ func TestFactory(t *testing.T) {
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
 	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
 
 	handler := handlerNew(inject{
-		tagServiceFactory:       daoMockTagServiceFactory,
-		artifactServiceFactory:  daoMockArtifactServiceFactory,
-		namespaceServiceFactory: daoMockNamespaceServiceFactory,
+		tagServiceFactory:        daoMockTagServiceFactory,
+		artifactServiceFactory:   daoMockArtifactServiceFactory,
+		namespaceServiceFactory:  daoMockNamespaceServiceFactory,
+		repositoryServiceFactory: daoMockRepositoryServiceFactory,
 	})
 	assert.NotNil(t, handler)
 
