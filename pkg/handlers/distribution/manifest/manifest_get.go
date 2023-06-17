@@ -16,11 +16,9 @@ package manifest
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/distribution/distribution/v3/reference"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
@@ -36,20 +34,31 @@ func (h *handler) GetManifest(c echo.Context) error {
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 
-	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
-		log.Debug().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
-		return fmt.Errorf("not valid digest or tag")
+	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
+		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.GetByName(ctx, repository)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("repository", repository).Msg("Cannot find repository")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeNameUnknown)
+		}
+		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+
 	var refs = h.parseRef(ref)
 
 	if refs.Tag != "" {
 		tagService := h.tagServiceFactory.New()
-		tag, err := tagService.GetByName(ctx, repository, ref)
+		tag, err := tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
 				return h.getManifestFallbackProxy(c, repository, refs)
@@ -65,7 +74,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	artifact, err := artifactService.GetByDigest(ctx, repository, refs.Digest.String())
+	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
 			return h.getManifestFallbackProxy(c, repository, refs)
@@ -74,31 +83,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
-	contentType := artifact.ContentType
-	if contentType == "" {
-		contentType = "application/vnd.docker.distribution.manifest.v2+json"
-	}
-
-	return c.Blob(http.StatusOK, contentType, []byte(artifact.Raw))
-}
-
-// Refs image tag and digest
-type Refs struct {
-	Tag    string
-	Digest digest.Digest
-}
-
-func (h *handler) parseRef(ref string) Refs {
-	var refs = Refs{}
-
-	digest, err := digest.Parse(ref)
-	if err != nil {
-		refs.Tag = ref
-	} else {
-		refs.Digest = digest
-	}
-
-	return refs
+	return c.Blob(http.StatusOK, artifact.ContentType, []byte(artifact.Raw))
 }
 
 // getManifestFallbackProxy ...
@@ -124,7 +109,7 @@ func (h *handler) getManifestFallbackProxy(c echo.Context, repository string, re
 		}
 		return c.Blob(http.StatusOK, header.Get(echo.HeaderContentType), bodyBytes)
 	} else if statusCode == http.StatusNotFound {
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestBlobUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 	log.Error().Interface("refs", refs).Int("statusCode", statusCode).Msg("Fallback proxy failed")
 	return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

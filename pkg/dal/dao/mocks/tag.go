@@ -66,6 +66,20 @@ func (mr *MockTagServiceMockRecorder) CountTag(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTag", reflect.TypeOf((*MockTagService)(nil).CountTag), arg0, arg1)
 }
 
+// DeleteByArtifactID mocks base method.
+func (m *MockTagService) DeleteByArtifactID(arg0 context.Context, arg1 uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByArtifactID", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByArtifactID indicates an expected call of DeleteByArtifactID.
+func (mr *MockTagServiceMockRecorder) DeleteByArtifactID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByArtifactID", reflect.TypeOf((*MockTagService)(nil).DeleteByArtifactID), arg0, arg1)
+}
+
 // DeleteByID mocks base method.
 func (m *MockTagService) DeleteByID(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
@@ -81,7 +95,7 @@ func (mr *MockTagServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock
 }
 
 // DeleteByName mocks base method.
-func (m *MockTagService) DeleteByName(arg0 context.Context, arg1, arg2 string) error {
+func (m *MockTagService) DeleteByName(arg0 context.Context, arg1 uint64, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByName", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -110,7 +124,7 @@ func (mr *MockTagServiceMockRecorder) GetByID(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetByName mocks base method.
-func (m *MockTagService) GetByName(arg0 context.Context, arg1, arg2 string) (*models.Tag, error) {
+func (m *MockTagService) GetByName(arg0 context.Context, arg1 uint64, arg2 string) (*models.Tag, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByName", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.Tag)

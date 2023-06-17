@@ -140,11 +140,23 @@ func TestGetArtifact(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
+	q = make(url.Values)
+	q.Set("repository", "test/busybox-none-exist")
+	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("namespace", "digest")
+	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
+	err = artifactHandler.GetArtifact(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, c.Response().Status)
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	daoMockArtifactService := daomock.NewMockArtifactService(ctrl)
-	daoMockArtifactService.EXPECT().GetByDigest(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _, _ string) (*models.Artifact, error) {
+	daoMockArtifactService.EXPECT().GetByDigest(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64, _ string) (*models.Artifact, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
@@ -153,6 +165,29 @@ func TestGetArtifact(t *testing.T) {
 	}).Times(1)
 
 	artifactHandler = handlerNew(inject{artifactServiceFactory: daoMockArtifactServiceFactory})
+
+	q = make(url.Values)
+	q.Set("repository", "test/busybox")
+	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("namespace", "digest")
+	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
+	err = artifactHandler.GetArtifact(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+
+	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
+	daoMockRepositoryService.EXPECT().GetByName(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.Repository, error) {
+		return nil, fmt.Errorf("test")
+	}).Times(1)
+	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
+	daoMockRepositoryServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.RepositoryService {
+		return daoMockRepositoryService
+	}).Times(1)
+
+	artifactHandler = handlerNew(inject{repositoryServiceFactory: daoMockRepositoryServiceFactory})
 
 	q = make(url.Values)
 	q.Set("repository", "test/busybox")

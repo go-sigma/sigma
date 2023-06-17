@@ -35,9 +35,11 @@ type TagService interface {
 	// Get gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID uint64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
-	GetByName(ctx context.Context, repository, tag string) (*models.Tag, error)
+	GetByName(ctx context.Context, repositoryID uint64, tag string) (*models.Tag, error)
 	// DeleteByName deletes the tag with the specified tag name.
-	DeleteByName(ctx context.Context, repository string, tag string) error
+	DeleteByName(ctx context.Context, repositoryID uint64, tag string) error
+	// DeleteByArtifactID deletes the tag with the specified artifact ID.
+	DeleteByArtifactID(ctx context.Context, artifactID uint64) error
 	// Incr increases the pull times of the artifact.
 	Incr(ctx context.Context, id uint64) error
 	// ListByDtPagination lists the tags by the specified repository and pagination.
@@ -97,28 +99,23 @@ func (s *tagService) GetByID(ctx context.Context, tagID uint64) (*models.Tag, er
 }
 
 // GetByName gets the tag with the specified tag name.
-func (s *tagService) GetByName(ctx context.Context, repository, tag string) (*models.Tag, error) {
+func (s *tagService) GetByName(ctx context.Context, repositoryID uint64, tag string) (*models.Tag, error) {
 	return s.tx.Tag.WithContext(ctx).
-		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
-		Where(s.tx.Tag.Name.Eq(tag)).
-		Where(s.tx.Repository.Name.Eq(repository)).
+		Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).
 		Preload(s.tx.Tag.Artifact).
 		First()
 }
 
 // DeleteByName deletes the tag with the specified tag name.
-func (s *tagService) DeleteByName(ctx context.Context, repository, tag string) error {
-	repositoryObj, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(repository)).First()
-	if err != nil {
-		return err
-	}
-	result, err := s.tx.Tag.WithContext(ctx).Where(
-		s.tx.Tag.RepositoryID.Eq(repositoryObj.ID),
-		s.tx.Tag.Name.Eq(tag),
-	).Delete()
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
+func (s *tagService) DeleteByName(ctx context.Context, repositoryID uint64, tag string) error {
+	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).Delete()
+	return err
+}
+
+// DeleteByArtifactID deletes the tag with the specified artifact ID.
+func (s *tagService) DeleteByArtifactID(ctx context.Context, artifactID uint64) error {
+	// sql: update tags set deleted_at = now() where artifact_id = ?
+	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ArtifactID.Eq(artifactID)).Delete()
 	return err
 }
 

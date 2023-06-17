@@ -16,12 +16,10 @@ package manifest
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/distribution/distribution/v3/reference"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
@@ -38,18 +36,29 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 
-	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
-		log.Error().Err(err).Str("ref", ref).Msg("not valid digest or tag")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("reference %s not valid", ref))
+	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
+		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.GetByName(ctx, repository)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("repository", repository).Msg("Cannot find repository")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeNameUnknown)
+		}
+		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
 
 	refs := h.parseRef(ref)
 
 	if refs.Tag != "" {
 		tagService := h.tagServiceFactory.New()
-		tag, err := tagService.GetByName(ctx, repository, ref)
+		tag, err := tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
 				return h.headManifestFallbackProxy(c)
@@ -65,7 +74,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	artifact, err := artifactService.GetByDigest(ctx, repository, refs.Digest.String())
+	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

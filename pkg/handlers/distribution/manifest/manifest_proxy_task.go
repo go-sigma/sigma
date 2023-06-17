@@ -50,7 +50,7 @@ func (h *handler) proxyTaskArtifact(c echo.Context, repository, digest, contentT
 		Raw:         manifestBytes,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func (h *handler) proxyTaskTag(c echo.Context, repository, reference, contentTyp
 		Manifests:   proxyTaskTagManifest,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil
