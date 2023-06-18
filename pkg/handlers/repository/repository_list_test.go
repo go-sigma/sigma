@@ -62,7 +62,7 @@ func TestListRepository(t *testing.T) {
 
 	const (
 		namespaceName  = "test"
-		repositoryName = "busybox"
+		repositoryName = "test/busybox"
 	)
 
 	err = query.Q.Transaction(func(tx *query.Query) error {

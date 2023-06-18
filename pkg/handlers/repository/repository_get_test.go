@@ -60,7 +60,7 @@ func TestGetRepository(t *testing.T) {
 
 	const (
 		namespaceName  = "test"
-		repositoryName = "busybox"
+		repositoryName = "test/busybox"
 	)
 
 	var repoID uint64
@@ -70,7 +70,7 @@ func TestGetRepository(t *testing.T) {
 
 		userServiceFactory := dao.NewUserServiceFactory()
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "new-runner", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Username: "list-repository", Password: "test", Email: "test@gmail.com", Role: "admin"}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)

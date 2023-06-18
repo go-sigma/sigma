@@ -80,7 +80,7 @@ func TestRepositoryService(t *testing.T) {
 		namespaceObj1 := &models.Namespace{Name: "test1", UserID: userObj.ID}
 		err = namespaceService.Create(ctx, namespaceObj1)
 		assert.NoError(t, err)
-		err = repositoryService.Save(ctx, &models.Repository{Name: "test1/busybox"})
+		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox"})
 		assert.NoError(t, err)
 
 		count1, err := repositoryService.CountRepository(ctx, types.ListRepositoryRequest{

@@ -34,7 +34,7 @@ type Artifact struct {
 	Digest       string
 	Size         uint64
 	ContentType  string
-	Raw          string
+	Raw          []byte
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"autoCreateTime"`

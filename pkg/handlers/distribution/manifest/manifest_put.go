@@ -15,15 +15,16 @@
 package manifest
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/distribution/distribution/v3/manifest/schema2"
 	"github.com/distribution/distribution/v3/reference"
 	"github.com/labstack/echo/v4"
@@ -51,9 +52,9 @@ func (h *handler) PutManifest(c echo.Context) error {
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 
-	if _, err := digest.Parse(ref); err != nil && !reference.TagRegexp.MatchString(ref) {
-		log.Debug().Err(err).Str("ref", ref).Msg("not valid digest or tag")
-		return fmt.Errorf("not valid digest or tag")
+	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
+		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
 	contentType := c.Request().Header.Get("Content-Type")
@@ -70,55 +71,54 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 	size := countReader.Count()
 
-	var dgest digest.Digest
-	isTag := false
-	if dgest, err = digest.Parse(ref); err == nil {
-	} else {
-		isTag = true
-		dgest = digest.FromBytes(body)
-		c.Response().Header().Set(consts.ContentDigest, dgest.String())
-	}
+	refs := h.parseRef(ref)
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repoObj := &models.Repository{
 		Name: repository,
 	}
-	err = repositoryService.Save(ctx, repoObj)
+	err = repositoryService.Create(ctx, repoObj)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Create repository failed")
 		return err
 	}
 
+	manifestBuffer := &bytes.Buffer{}
+	err = json.Compact(manifestBuffer, body)
+	if err != nil {
+		log.Error().Err(err).Msg("Compact manifest failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	manifestBytes := manifestBuffer.Bytes()
+
+	refs.Digest = digest.FromBytes(manifestBytes)
+
+	c.Response().Header().Set(consts.ContentDigest, refs.Digest.String())
+
 	artifactService := h.artifactServiceFactory.New()
 	artifactObj := &models.Artifact{
 		RepositoryID: repoObj.ID,
-		Digest:       dgest.String(),
+		Digest:       refs.Digest.String(),
 		Size:         size,
 		ContentType:  contentType,
-		Raw:          string(body),
-		PushedAt:     time.Now(),
-		PullTimes:    0,
-		LastPull:     sql.NullTime{},
+		Raw:          manifestBytes,
 	}
-	err = artifactService.Save(ctx, artifactObj)
+	err = artifactService.Create(ctx, artifactObj)
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Create artifact failed")
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
 		return err
 	}
 
-	if isTag {
+	if refs.Tag != "" {
 		tag := ref
 		tagService := h.tagServiceFactory.New()
-		_, err = tagService.Save(ctx, &models.Tag{
+		err = tagService.Create(ctx, &models.Tag{
 			RepositoryID: repoObj.ID,
 			ArtifactID:   artifactObj.ID,
 			Name:         tag,
-			PushedAt:     time.Now(),
-			LastPull:     sql.NullTime{},
-			PullTimes:    0,
 		})
 		if err != nil {
-			log.Error().Err(err).Str("tag", tag).Str("digest", dgest.String()).Msg("Create tag failed")
+			log.Error().Err(err).Str("tag", tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
 			return err
 		}
 	}
@@ -126,7 +126,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	var manifest imgspecv1.Manifest
 	err = json.Unmarshal(body, &manifest)
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Unmarshal manifest failed")
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
 		return err
 	}
 	var digests = make([]string, 0, len(manifest.Layers)+1)
@@ -138,13 +138,13 @@ func (h *handler) PutManifest(c echo.Context) error {
 	blobService := h.blobServiceFactory.New()
 	bs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Find blobs failed")
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Find blobs failed")
 		return err
 	}
 
 	err = artifactService.AssociateBlobs(ctx, artifactObj, bs)
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Associate blobs failed")
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Associate blobs failed")
 		return err
 	}
 
@@ -153,14 +153,14 @@ func (h *handler) PutManifest(c echo.Context) error {
 		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save sbom failed")
-		return err
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Save sbom failed")
+		// return err
 	}
 
 	taskSbomPayload := types.TaskSbom{
 		ArtifactID: artifactObj.ID,
 	}
-	taskSbomPayloadBytes, err := json.Marshal(taskSbomPayload)
+	taskSbomPayloadBytes, err := sonic.Marshal(taskSbomPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
 		return err
@@ -176,14 +176,14 @@ func (h *handler) PutManifest(c echo.Context) error {
 		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Save vulnerability failed")
-		return err
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Save vulnerability failed")
+		// return err
 	}
 
 	taskVulnerabilityPayload := types.TaskVulnerability{
 		ArtifactID: artifactObj.ID,
 	}
-	taskVulnerabilityPayloadBytes, err := json.Marshal(taskVulnerabilityPayload)
+	taskVulnerabilityPayloadBytes, err := sonic.Marshal(taskVulnerabilityPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
 		return err
@@ -287,7 +287,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		repoObj := &models.Repository{
 			Name: repository,
 		}
-		err := repositoryService.Save(ctx, repoObj)
+		err := repositoryService.Create(ctx, repoObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Msg("Save repository failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -299,12 +299,9 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 			Digest:       dgest.String(),
 			Size:         uint64(len(bodyBytes)),
 			ContentType:  imageIndex.MediaType,
-			Raw:          string(bodyBytes),
-			PushedAt:     time.Now(),
-			PullTimes:    0,
-			LastPull:     sql.NullTime{},
+			Raw:          bodyBytes,
 		}
-		err = artifactService.Save(ctx, artifactObj)
+		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repository).Str("digest", dgest.String()).Msg("Save artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -313,7 +310,7 @@ func (h *handler) manifestList(c echo.Context, repository, ref string) error {
 		// Save the tag if it is a tag
 		if reference.TagRegexp.MatchString(ref) {
 			tagService := h.tagServiceFactory.New(tx)
-			_, err = tagService.Save(ctx, &models.Tag{
+			err = tagService.Create(ctx, &models.Tag{
 				RepositoryID: repoObj.ID,
 				ArtifactID:   artifactObj.ID,
 				Name:         ref,

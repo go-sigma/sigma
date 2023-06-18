@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -30,8 +31,8 @@ import (
 
 // TagService is the interface that provides the tag service methods.
 type TagService interface {
-	// Save save a new tag if conflict update.
-	Save(ctx context.Context, tag *models.Tag) (*models.Tag, error)
+	// Create save a new tag if conflict do nothing.
+	Create(ctx context.Context, tag *models.Tag) error
 	// Get gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID uint64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
@@ -80,17 +81,9 @@ func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
 	}
 }
 
-// Save save a new tag if conflict update.
-func (s *tagService) Save(ctx context.Context, tag *models.Tag) (*models.Tag, error) {
-	err := s.tx.Tag.WithContext(ctx).Save(tag)
-	if err != nil {
-		return nil, err
-	}
-	return s.tx.Tag.WithContext(ctx).Where(
-		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
-		s.tx.Tag.ArtifactID.Eq(tag.ArtifactID),
-		s.tx.Tag.Name.Eq(tag.Name),
-	).Preload(s.tx.Tag.Artifact).First()
+// Create save a new tag if conflict do nothing.
+func (s *tagService) Create(ctx context.Context, tag *models.Tag) error {
+	return s.tx.Tag.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(tag)
 }
 
 // Get gets the tag with the specified tag ID.
