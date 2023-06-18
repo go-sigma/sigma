@@ -10,8 +10,8 @@ on:
       - main
 
 jobs:
-  local-build:
-    name: local-build
+  e2e-test:
+    name: e2e-test
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -33,7 +33,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "yarn"
           cache-dependency-path: "web/yarn.lock"
-      - name: Test
+      - name: Build
         run: |
           IP=`hostname -I | awk '{print $1}'`
           echo '{"insecure-registries" : ["'$IP':3000"]}' | sudo tee /etc/docker/daemon.json
@@ -46,9 +46,12 @@ jobs:
           yarn build
           cd ..
           make build-release
-
+      - name: Test push
+        run: |
           ./bin/ximager server --config ./conf/ximager.yaml &
-
           ./e2e/push.sh
+      - name: Test e2e with k6
+        run: |
+          ./bin/ximager server --config ./conf/ximager.yaml &
           curl https://github.com/grafana/k6/releases/download/v0.44.1/k6-v0.44.1-linux-amd64.tar.gz -L | tar xvz --strip-components 1
           ./k6 run e2e/sc.js

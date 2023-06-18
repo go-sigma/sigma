@@ -115,7 +115,7 @@ func TestNewRunner(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, artifact.Digest, "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157")
 	assert.Equal(t, len(artifact.Blobs), 2)
-	assert.Equal(t, artifact.Raw, "test")
+	assert.Equal(t, artifact.Raw, []byte("test"))
 
 	err = runner(ctx, asynq.NewTask("test", []byte(`{"blob_digest": "sha256:345"}`)))
 	assert.NoError(t, err)
@@ -184,7 +184,7 @@ func TestNewRunner(t *testing.T) {
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
 	daoMockRepositoryServiceTimes := 0
-	daoMockRepositoryService.EXPECT().Save(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.Repository) error {
+	daoMockRepositoryService.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.Repository) error {
 		daoMockRepositoryServiceTimes++
 		if daoMockRepositoryServiceTimes == 1 {
 			return fmt.Errorf("test")
@@ -203,7 +203,7 @@ func TestNewRunner(t *testing.T) {
 	assert.Error(t, err)
 
 	daoMockArtifactService := daomock.NewMockArtifactService(ctrl)
-	daoMockArtifactService.EXPECT().Save(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.Artifact) error {
+	daoMockArtifactService.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.Artifact) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 

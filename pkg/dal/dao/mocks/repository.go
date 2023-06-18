@@ -143,17 +143,3 @@ func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1 interface
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), arg0, arg1)
 }
-
-// Save mocks base method.
-func (m *MockRepositoryService) Save(arg0 context.Context, arg1 *models.Repository) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockRepositoryServiceMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepositoryService)(nil).Save), arg0, arg1)
-}

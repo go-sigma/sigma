@@ -166,7 +166,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 
 	createResp, err := a.S3.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
-		Key:    aws.String(a.sanitizePath(destPath)),
+		Key:    aws.String(destPath),
 	})
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 
 	_, err = a.S3.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
-		Key:             aws.String(a.sanitizePath(destPath)),
+		Key:             aws.String(destPath),
 		UploadId:        createResp.UploadId,
 		MultipartUpload: &s3.CompletedMultipartUpload{Parts: completedParts},
 	})

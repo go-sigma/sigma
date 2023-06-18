@@ -59,7 +59,7 @@ func TestDeleteRepository(t *testing.T) {
 
 	const (
 		namespaceName  = "test"
-		repositoryName = "busybox"
+		repositoryName = "test/busybox"
 	)
 
 	var repoID uint64

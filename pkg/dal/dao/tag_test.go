@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -88,10 +87,10 @@ func TestTagService(t *testing.T) {
 				Digest:       "sha256:xxx",
 				Size:         123,
 				ContentType:  "test",
-				Raw:          "test",
+				Raw:          []byte("test"),
 			},
 		}
-		tagObj, err = tagService.Save(ctx, tagObj)
+		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
 
 		tag1, err := tagService.GetByID(ctx, tagObj.ID)
@@ -137,7 +136,7 @@ func TestTagService(t *testing.T) {
 			Digest:       "sha256:xxxxx",
 			Size:         123,
 			ContentType:  "test",
-			Raw:          "test",
+			Raw:          []byte("test"),
 		}
 		err = tx.Artifact.WithContext(ctx).Create(artifactObj)
 		assert.NoError(t, err)
@@ -147,7 +146,7 @@ func TestTagService(t *testing.T) {
 			Name:         "latest1",
 			Artifact:     artifactObj,
 		}
-		_, err = tagService.Save(ctx, tagObj1)
+		err = tagService.Create(ctx, tagObj1)
 		assert.NoError(t, err)
 
 		err = tagService.DeleteByID(ctx, tagObj1.ID)
@@ -161,7 +160,7 @@ func TestTagService(t *testing.T) {
 			Digest:       "sha256:xxxxxxxx",
 			Size:         123,
 			ContentType:  "test",
-			Raw:          "test",
+			Raw:          []byte("test"),
 		}
 		err = tx.Artifact.WithContext(ctx).Create(artifactObj2)
 		assert.NoError(t, err)
@@ -170,14 +169,13 @@ func TestTagService(t *testing.T) {
 			Name:         "latest1",
 			Artifact:     artifactObj2,
 		}
-		tagObj2, err = tagService.Save(ctx, tagObj2)
+		err = tagService.Create(ctx, tagObj2)
 		assert.NoError(t, err)
 
 		tags2, err := tagService.ListByDtPagination(ctx, "test/busybox", 10, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(tags2), int(1))
 
-		fmt.Printf("%+v\n", tagObj2)
 		tagCount1, err := tagService.CountByArtifact(ctx, []uint64{tagObj2.ArtifactID})
 		assert.NoError(t, err)
 		assert.Equal(t, len(tagCount1), int(1))

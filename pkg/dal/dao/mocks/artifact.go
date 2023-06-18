@@ -96,6 +96,20 @@ func (mr *MockArtifactServiceMockRecorder) CountByRepository(arg0, arg1 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockArtifactService)(nil).CountByRepository), arg0, arg1)
 }
 
+// Create mocks base method.
+func (m *MockArtifactService) Create(arg0 context.Context, arg1 *models.Artifact) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockArtifactServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockArtifactService)(nil).Create), arg0, arg1)
+}
+
 // DeleteByDigest mocks base method.
 func (m *MockArtifactService) DeleteByDigest(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -196,20 +210,6 @@ func (m *MockArtifactService) ListArtifact(arg0 context.Context, arg1 types.List
 func (mr *MockArtifactServiceMockRecorder) ListArtifact(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactService)(nil).ListArtifact), arg0, arg1)
-}
-
-// Save mocks base method.
-func (m *MockArtifactService) Save(arg0 context.Context, arg1 *models.Artifact) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockArtifactServiceMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockArtifactService)(nil).Save), arg0, arg1)
 }
 
 // SaveSbom mocks base method.

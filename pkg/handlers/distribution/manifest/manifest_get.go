@@ -83,7 +83,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
 
-	return c.Blob(http.StatusOK, artifact.ContentType, []byte(artifact.Raw))
+	return c.Blob(http.StatusOK, artifact.ContentType, artifact.Raw)
 }
 
 // getManifestFallbackProxy ...
