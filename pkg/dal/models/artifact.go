@@ -41,8 +41,10 @@ type Artifact struct {
 	PullTimes uint64    `gorm:"default:0"`
 
 	Repository Repository
-	Blobs      []*Blob `gorm:"many2many:artifact_blobs;"`
-	Tags       []*Tag  `gorm:"foreignKey:ArtifactID;"`
+
+	ArtifactIndexes []*Artifact `gorm:"many2many:artifact_artifacts;"`
+	Blobs           []*Blob     `gorm:"many2many:artifact_blobs;"`
+	Tags            []*Tag      `gorm:"foreignKey:ArtifactID;"`
 }
 
 // ArtifactSbom represents an artifact sbom

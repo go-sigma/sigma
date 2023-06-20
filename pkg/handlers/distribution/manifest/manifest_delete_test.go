@@ -54,11 +54,6 @@ func TestDeleteManifest(t *testing.T) {
 		tagName        = "latest"
 	)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	// viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	ctx := log.Logger.WithContext(context.Background())
 
 	userServiceFactory := dao.NewUserServiceFactory()

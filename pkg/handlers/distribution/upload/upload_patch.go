@@ -35,22 +35,21 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	uri := c.Request().URL.Path
 	protocol := c.Scheme()
 
-	id := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
-	c.Response().Header().Set(consts.UploadUUID, id)
-	location := fmt.Sprintf("%s://%s%s", protocol, host, uri)
-	c.Response().Header().Set("Location", location)
+	uploadID := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	c.Response().Header().Set(consts.UploadUUID, uploadID)
+	c.Response().Header().Set("Location", fmt.Sprintf("%s://%s%s", protocol, host, uri))
 
-	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
+	repository := h.getRepository(c)
 
 	ctx := log.Logger.WithContext(c.Request().Context())
 	blobUploadService := h.blobUploadServiceFactory.New()
-	upload, err := blobUploadService.GetLastPart(ctx, id)
+	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, id)
+	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -58,25 +57,25 @@ func (h *handler) PatchUpload(c echo.Context) error {
 
 	counterReader := counter.NewCounter(c.Request().Body)
 
-	path := fmt.Sprintf("%s/%s", consts.BlobUploads, upload.FileID)
-	etag, err := storage.Driver.UploadPart(ctx, path, upload.UploadID, int64(upload.PartNumber+1), counterReader)
+	path := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
+	etag, err := storage.Driver.UploadPart(ctx, path, uploadObj.UploadID, int64(uploadObj.PartNumber+1), counterReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload part failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
 	size := counterReader.Count()
 	err = blobUploadService.Create(ctx, &models.BlobUpload{
-		PartNumber: upload.PartNumber + 1,
-		UploadID:   id,
+		PartNumber: uploadObj.PartNumber + 1,
+		UploadID:   uploadID,
 		Etag:       strings.Trim(etag, "\""),
 		Repository: repository,
-		FileID:     upload.FileID,
+		FileID:     uploadObj.FileID,
 		Size:       size,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Save blob upload record failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	// Note that the HTTP Range header byte ranges are inclusive and that will be honored, even in non-standard use cases.
 	// See: https://docs.docker.com/registry/spec/api/#pushing-a-layer

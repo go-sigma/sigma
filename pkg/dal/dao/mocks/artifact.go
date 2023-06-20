@@ -37,6 +37,20 @@ func (m *MockArtifactService) EXPECT() *MockArtifactServiceMockRecorder {
 	return m.recorder
 }
 
+// AssociateArtifact mocks base method.
+func (m *MockArtifactService) AssociateArtifact(arg0 context.Context, arg1 *models.Artifact, arg2 []*models.Artifact) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AssociateArtifact", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AssociateArtifact indicates an expected call of AssociateArtifact.
+func (mr *MockArtifactServiceMockRecorder) AssociateArtifact(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateArtifact", reflect.TypeOf((*MockArtifactService)(nil).AssociateArtifact), arg0, arg1, arg2)
+}
+
 // AssociateBlobs mocks base method.
 func (m *MockArtifactService) AssociateBlobs(arg0 context.Context, arg1 *models.Artifact, arg2 []*models.Blob) error {
 	m.ctrl.T.Helper()

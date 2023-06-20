@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	gonanoid "github.com/matoous/go-nanoid"
@@ -30,6 +29,7 @@ import (
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/counter"
+	"github.com/ximager/ximager/pkg/xerrors"
 )
 
 // PostUpload creates a new upload.
@@ -39,8 +39,9 @@ func (h *handler) PostUpload(c echo.Context) error {
 	protocol := c.Scheme()
 
 	ctx := log.Logger.WithContext(c.Request().Context())
-	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
+	repository := h.getRepository(c)
 
+	// fileID is the filename that upload to the blob_uploads
 	fileID := gonanoid.MustGenerate(consts.Alphanum, 64)
 
 	// according to the docker registry api, if the digest is provided, the upload is complete
@@ -48,7 +49,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 		dgest, err := digest.Parse(c.QueryParam("digest"))
 		if err != nil {
 			log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadInvalid)
 		}
 		c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
@@ -58,19 +59,19 @@ func (h *handler) PostUpload(c echo.Context) error {
 		err = storage.Driver.Upload(ctx, srcPath, countReader)
 		if err != nil {
 			log.Error().Err(err).Msg("Upload blob failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadInvalid)
 		}
 		destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))
 		err = storage.Driver.Move(ctx, srcPath, destPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Move blob failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 
 		err = storage.Driver.Delete(ctx, srcPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete blob upload failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 
 		size := countReader.Count()
@@ -84,33 +85,31 @@ func (h *handler) PostUpload(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Save blob record failed")
-			return err
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 	}
 
-	id, err := storage.Driver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
+	uploadID, err := storage.Driver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
 	if err != nil {
 		log.Error().Err(err).Msg("Create blob upload id failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
-	c.Response().Header().Set("Docker-Upload-UUID", id)
-
-	location := fmt.Sprintf("%s://%s%s%s", protocol, host, uri, id)
-	c.Response().Header().Set("Location", location)
 
 	blobUploadService := h.blobUploadServiceFactory.New()
 	err = blobUploadService.Create(ctx, &models.BlobUpload{
 		PartNumber: 0,
-		UploadID:   id,
+		UploadID:   uploadID,
 		Etag:       "fake",
 		Repository: repository,
 		FileID:     fileID,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Save blob upload record failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
+	c.Response().Header().Set("Docker-Upload-UUID", uploadID)
+	c.Response().Header().Set("Location", fmt.Sprintf("%s://%s%s%s", protocol, host, uri, uploadID))
 	c.Response().Header().Set("Range", "0-0")
 
 	return c.NoContent(http.StatusAccepted)
