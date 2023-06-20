@@ -35,7 +35,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.Digest = field.NewString(tableName, "digest")
 	_artifact.Size = field.NewUint64(tableName, "size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
-	_artifact.Raw = field.NewString(tableName, "raw")
+	_artifact.Raw = field.NewBytes(tableName, "raw")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewUint64(tableName, "pull_times")
@@ -47,13 +47,24 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 			field.RelationField
 			Namespace struct {
 				field.RelationField
+				User struct {
+					field.RelationField
+				}
 			}
 		}{
 			RelationField: field.NewRelation("Tags.Repository", "models.Repository"),
 			Namespace: struct {
 				field.RelationField
+				User struct {
+					field.RelationField
+				}
 			}{
 				RelationField: field.NewRelation("Tags.Repository.Namespace", "models.Namespace"),
+				User: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Tags.Repository.Namespace.User", "models.User"),
+				},
 			},
 		},
 		Artifact: struct {
@@ -62,6 +73,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				field.RelationField
 			}
 			Tags struct {
+				field.RelationField
+			}
+			ArtifactIndexes struct {
 				field.RelationField
 			}
 			Blobs struct {
@@ -81,6 +95,11 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("Tags.Artifact.Tags", "models.Tag"),
+			},
+			ArtifactIndexes: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Tags.Artifact.ArtifactIndexes", "models.Artifact"),
 			},
 			Blobs: struct {
 				field.RelationField
@@ -102,6 +121,12 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Repository", "models.Repository"),
+	}
+
+	_artifact.ArtifactIndexes = artifactManyToManyArtifactIndexes{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("ArtifactIndexes", "models.Artifact"),
 	}
 
 	_artifact.Blobs = artifactManyToManyBlobs{
@@ -127,13 +152,15 @@ type artifact struct {
 	Digest       field.String
 	Size         field.Uint64
 	ContentType  field.String
-	Raw          field.String
+	Raw          field.Bytes
 	LastPull     field.Field
 	PushedAt     field.Time
 	PullTimes    field.Uint64
 	Tags         artifactHasManyTags
 
 	Repository artifactBelongsToRepository
+
+	ArtifactIndexes artifactManyToManyArtifactIndexes
 
 	Blobs artifactManyToManyBlobs
 
@@ -160,7 +187,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.Digest = field.NewString(table, "digest")
 	a.Size = field.NewUint64(table, "size")
 	a.ContentType = field.NewString(table, "content_type")
-	a.Raw = field.NewString(table, "raw")
+	a.Raw = field.NewBytes(table, "raw")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
 	a.PullTimes = field.NewUint64(table, "pull_times")
@@ -186,7 +213,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 15)
+	a.fieldMap = make(map[string]field.Expr, 16)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -221,6 +248,9 @@ type artifactHasManyTags struct {
 		field.RelationField
 		Namespace struct {
 			field.RelationField
+			User struct {
+				field.RelationField
+			}
 		}
 	}
 	Artifact struct {
@@ -229,6 +259,9 @@ type artifactHasManyTags struct {
 			field.RelationField
 		}
 		Tags struct {
+			field.RelationField
+		}
+		ArtifactIndexes struct {
 			field.RelationField
 		}
 		Blobs struct {
@@ -373,6 +406,77 @@ func (a artifactBelongsToRepositoryTx) Clear() error {
 }
 
 func (a artifactBelongsToRepositoryTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type artifactManyToManyArtifactIndexes struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a artifactManyToManyArtifactIndexes) Where(conds ...field.Expr) *artifactManyToManyArtifactIndexes {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a artifactManyToManyArtifactIndexes) WithContext(ctx context.Context) *artifactManyToManyArtifactIndexes {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactManyToManyArtifactIndexes) Session(session *gorm.Session) *artifactManyToManyArtifactIndexes {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a artifactManyToManyArtifactIndexes) Model(m *models.Artifact) *artifactManyToManyArtifactIndexesTx {
+	return &artifactManyToManyArtifactIndexesTx{a.db.Model(m).Association(a.Name())}
+}
+
+type artifactManyToManyArtifactIndexesTx struct{ tx *gorm.Association }
+
+func (a artifactManyToManyArtifactIndexesTx) Find() (result []*models.Artifact, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a artifactManyToManyArtifactIndexesTx) Append(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a artifactManyToManyArtifactIndexesTx) Replace(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a artifactManyToManyArtifactIndexesTx) Delete(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a artifactManyToManyArtifactIndexesTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a artifactManyToManyArtifactIndexesTx) Count() int64 {
 	return a.tx.Count()
 }
 

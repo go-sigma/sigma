@@ -124,6 +124,14 @@ CREATE TABLE IF NOT EXISTS "blob_uploads" (
   CONSTRAINT "blob_uploads_unique_with_upload_id_etag" UNIQUE ("upload_id", "etag", "deleted_at")
 );
 
+CREATE TABLE IF NOT EXISTS "artifact_artifacts" (
+  "artifact_id" bigserial NOT NULL,
+  "artifact_index_id" bigserial NOT NULL,
+  PRIMARY KEY ("artifact_id", "artifact_index_id"),
+  CONSTRAINT "fk_artifact_artifacts_artifact" FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
+  CONSTRAINT "fk_artifact_artifacts_artifact_index" FOREIGN KEY ("artifact_index_id") REFERENCES "artifacts" ("id")
+);
+
 CREATE TABLE IF NOT EXISTS "artifact_blobs" (
   "artifact_id" bigserial NOT NULL,
   "blob_id" bigserial NOT NULL,

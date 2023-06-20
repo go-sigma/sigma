@@ -37,6 +37,11 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Namespace", "models.Namespace"),
+		User: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Namespace.User", "models.User"),
+		},
 	}
 
 	_repository.fillFieldMap()
@@ -125,6 +130,10 @@ type repositoryBelongsToNamespace struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	User struct {
+		field.RelationField
+	}
 }
 
 func (a repositoryBelongsToNamespace) Where(conds ...field.Expr) *repositoryBelongsToNamespace {
