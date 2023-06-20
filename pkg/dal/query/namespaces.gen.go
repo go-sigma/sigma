@@ -33,6 +33,12 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.ID = field.NewUint64(tableName, "id")
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
+	_namespace.UserID = field.NewUint64(tableName, "user_id")
+	_namespace.User = namespaceBelongsToUser{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("User", "models.User"),
+	}
 
 	_namespace.fillFieldMap()
 
@@ -49,6 +55,8 @@ type namespace struct {
 	ID          field.Uint64
 	Name        field.String
 	Description field.String
+	UserID      field.Uint64
+	User        namespaceBelongsToUser
 
 	fieldMap map[string]field.Expr
 }
@@ -71,6 +79,7 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.ID = field.NewUint64(table, "id")
 	n.Name = field.NewString(table, "name")
 	n.Description = field.NewString(table, "description")
+	n.UserID = field.NewUint64(table, "user_id")
 
 	n.fillFieldMap()
 
@@ -95,13 +104,15 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 6)
+	n.fieldMap = make(map[string]field.Expr, 8)
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["name"] = n.Name
 	n.fieldMap["description"] = n.Description
+	n.fieldMap["user_id"] = n.UserID
+
 }
 
 func (n namespace) clone(db *gorm.DB) namespace {
@@ -112,6 +123,77 @@ func (n namespace) clone(db *gorm.DB) namespace {
 func (n namespace) replaceDB(db *gorm.DB) namespace {
 	n.namespaceDo.ReplaceDB(db)
 	return n
+}
+
+type namespaceBelongsToUser struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a namespaceBelongsToUser) Where(conds ...field.Expr) *namespaceBelongsToUser {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a namespaceBelongsToUser) WithContext(ctx context.Context) *namespaceBelongsToUser {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a namespaceBelongsToUser) Session(session *gorm.Session) *namespaceBelongsToUser {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a namespaceBelongsToUser) Model(m *models.Namespace) *namespaceBelongsToUserTx {
+	return &namespaceBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+type namespaceBelongsToUserTx struct{ tx *gorm.Association }
+
+func (a namespaceBelongsToUserTx) Find() (result *models.User, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a namespaceBelongsToUserTx) Append(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a namespaceBelongsToUserTx) Replace(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a namespaceBelongsToUserTx) Delete(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a namespaceBelongsToUserTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a namespaceBelongsToUserTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type namespaceDo struct{ gen.DO }

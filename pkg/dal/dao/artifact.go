@@ -44,6 +44,8 @@ type ArtifactService interface {
 	DeleteByDigest(ctx context.Context, repository, digest string) error
 	// AssociateBlobs associates the blobs with the artifact.
 	AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error
+	// AssociateArtifact associates the artifacts with the artifact.
+	AssociateArtifact(ctx context.Context, artifact *models.Artifact, artifacts []*models.Artifact) error
 	// CountByNamespace counts the artifacts by the specified namespace.
 	CountByNamespace(ctx context.Context, namespaceIDs []uint64) (map[uint64]int64, error)
 	// CountByRepository counts the artifacts by the specified repository.
@@ -148,8 +150,14 @@ func (s *artifactService) DeleteByDigest(ctx context.Context, repository, digest
 	return err
 }
 
+// AssociateBlobs ...
 func (s *artifactService) AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error {
 	return s.tx.Artifact.Blobs.WithContext(ctx).Model(artifact).Append(blobs...)
+}
+
+// AssociateArtifact ...
+func (s *artifactService) AssociateArtifact(ctx context.Context, artifact *models.Artifact, artifacts []*models.Artifact) error {
+	return s.tx.Artifact.ArtifactIndexes.WithContext(ctx).Model(artifact).Append(artifacts...)
 }
 
 // Incr increases the pull times of the artifact.

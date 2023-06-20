@@ -41,6 +41,73 @@ func TestArtifactServiceFactory(t *testing.T) {
 	assert.NotNil(t, artifactService)
 }
 
+func TestArtifactServiceAssociateArtifact(t *testing.T) {
+	viper.SetDefault("log.level", "debug")
+	logger.SetLevel("debug")
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	userServiceFactory := NewUserServiceFactory()
+	namespaceServiceFactory := NewNamespaceServiceFactory()
+	repositoryServiceFactory := NewRepositoryServiceFactory()
+
+	var repositoryObj *models.Repository
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
+		namespaceService := namespaceServiceFactory.New(tx)
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
+		err = namespaceService.Create(ctx, namespaceObj)
+		assert.NoError(t, err)
+
+		repositoryService := repositoryServiceFactory.New(tx)
+		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+		err = repositoryService.Create(ctx, repositoryObj)
+		assert.NoError(t, err)
+		return nil
+	})
+	assert.NoError(t, err)
+
+	artifactServiceFactory := NewArtifactServiceFactory()
+	artifactService := artifactServiceFactory.New()
+	artifactObj1 := &models.Artifact{
+		RepositoryID: repositoryObj.ID,
+		Digest:       "sha256:xxxx",
+		Size:         123,
+		ContentType:  "test",
+		Raw:          []byte("test"),
+	}
+	err = artifactService.Create(ctx, artifactObj1)
+	assert.NoError(t, err)
+
+	artifactObj2 := &models.Artifact{
+		RepositoryID: repositoryObj.ID,
+		Digest:       "sha256:xxxxx",
+		Size:         1234,
+		ContentType:  "test",
+		Raw:          []byte("test"),
+	}
+	err = artifactService.Create(ctx, artifactObj2)
+	assert.NoError(t, err)
+	err = artifactService.AssociateArtifact(ctx, artifactObj1, []*models.Artifact{artifactObj2})
+	assert.NoError(t, err)
+}
+
 func TestArtifactService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
