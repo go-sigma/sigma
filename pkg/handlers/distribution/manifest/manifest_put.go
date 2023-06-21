@@ -82,7 +82,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	c.Response().Header().Set(consts.ContentDigest, refs.Digest.String())
 	contentType := c.Request().Header.Get("Content-Type")
 
-	manifest, descriptor, err := distribution.UnmarshalManifest(contentType, bodyBytes)
+	manifest, _, err := distribution.UnmarshalManifest(contentType, bodyBytes)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
@@ -91,7 +91,6 @@ func (h *handler) PutManifest(c echo.Context) error {
 	for _, reference := range manifest.References() {
 		digests = append(digests, reference.Digest.String())
 	}
-	digests = append(digests, descriptor.Digest.String())
 
 	artifactObj := &models.Artifact{
 		RepositoryID: repositoryObj.ID,
@@ -156,7 +155,7 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return err.(*xerrors.DSErrCode)
 	}
 
-	h.putManifestAsyncTask(ctx, artifactObj, refs)
+	h.putManifestAsyncTask(ctx, artifactObj)
 
 	return nil
 }
@@ -202,14 +201,14 @@ func (h *handler) putManifestIndex(ctx context.Context, digests []string, reposi
 	return nil
 }
 
-func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *models.Artifact, refs Refs) {
+func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *models.Artifact) {
 	artifactService := h.artifactServiceFactory.New()
 	err := artifactService.SaveSbom(ctx, &models.ArtifactSbom{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
-		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Save sbom failed")
+		log.Error().Err(err).Msg("Save sbom failed")
 		return
 	}
 
@@ -228,14 +227,14 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 	}
 }
 
-func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact, refs Refs) {
+func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact) {
 	artifactService := h.artifactServiceFactory.New()
 	err := artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})
 	if err != nil {
-		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Save vulnerability failed")
+		log.Error().Err(err).Msg("Save vulnerability failed")
 		return
 	}
 
@@ -254,7 +253,7 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	}
 }
 
-func (h *handler) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact, refs Refs) {
-	h.putManifestAsyncTaskSbom(ctx, artifactObj, refs)
-	h.putManifestAsyncTaskVulnerability(ctx, artifactObj, refs)
+func (h *handler) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact) {
+	h.putManifestAsyncTaskSbom(ctx, artifactObj)
+	h.putManifestAsyncTaskVulnerability(ctx, artifactObj)
 }
