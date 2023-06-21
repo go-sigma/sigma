@@ -120,7 +120,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.DSErrCode {
+func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
 	blobService := h.blobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
@@ -152,7 +152,7 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return nil
 	})
 	if err != nil {
-		return err.(*xerrors.DSErrCode)
+		return err.(*xerrors.ErrCode)
 	}
 
 	h.putManifestAsyncTask(ctx, artifactObj)
@@ -164,7 +164,7 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.DSErrCode {
+func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
 	artifactService := h.artifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
@@ -195,7 +195,7 @@ func (h *handler) putManifestIndex(ctx context.Context, digests []string, reposi
 		return nil
 	})
 	if err != nil {
-		return err.(*xerrors.DSErrCode)
+		return err.(*xerrors.ErrCode)
 	}
 
 	return nil

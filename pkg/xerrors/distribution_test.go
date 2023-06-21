@@ -34,3 +34,8 @@ func TestNewDSError(t *testing.T) {
 	err := NewDSError(c, DSErrCodeBlobUnknown)
 	assert.NoError(t, err)
 }
+
+func TestDSErrCode(t *testing.T) {
+	e := ErrCode{Code: "title", Title: "message"}
+	assert.Equal(t, "title: message", e.Error())
+}
