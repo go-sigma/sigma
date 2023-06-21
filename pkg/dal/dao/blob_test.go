@@ -73,7 +73,7 @@ func TestBlobService(t *testing.T) {
 		assert.NoError(t, err)
 		blob1, err := blobService.FindByDigest(ctx, "sha256:123")
 		assert.NoError(t, err)
-		assert.Equal(t, blob1.Size, uint64(123))
+		assert.Equal(t, blob1.Size, int64(123))
 		blobs1, err := blobService.FindByDigests(ctx, []string{"sha256:123", "sha256:234"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(blobs1), int(2))

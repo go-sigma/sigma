@@ -62,7 +62,7 @@ func TestDeleteRepository(t *testing.T) {
 		repositoryName = "test/busybox"
 	)
 
-	var repoID uint64
+	var repoID int64
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		ctx := log.Logger.WithContext(context.Background())
@@ -99,7 +99,7 @@ func TestDeleteRepository(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID, 10))
+	c.SetParamValues(strconv.FormatInt(repoID, 10))
 	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
@@ -117,7 +117,7 @@ func TestDeleteRepository(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID, 10))
+	c.SetParamValues(strconv.FormatInt(repoID, 10))
 	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
@@ -126,7 +126,7 @@ func TestDeleteRepository(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
-	daoMockRepositoryService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) error {
+	daoMockRepositoryService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 
@@ -141,7 +141,7 @@ func TestDeleteRepository(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID, 10))
+	c.SetParamValues(strconv.FormatInt(repoID, 10))
 	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)

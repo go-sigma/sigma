@@ -26,15 +26,15 @@ type Tag struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
-	RepositoryID uint64
-	ArtifactID   uint64
+	RepositoryID int64
+	ArtifactID   int64
 	Name         string
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"autoCreateTime"`
-	PullTimes uint64    `gorm:"default:0"`
+	PullTimes int64     `gorm:"default:0"`
 
 	Repository *Repository
 	Artifact   *Artifact

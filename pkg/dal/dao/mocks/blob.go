@@ -50,7 +50,7 @@ func (mr *MockBlobServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // DeleteByID mocks base method.
-func (m *MockBlobService) DeleteByID(arg0 context.Context, arg1 uint64) error {
+func (m *MockBlobService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -109,7 +109,7 @@ func (mr *MockBlobServiceMockRecorder) FindByDigests(arg0, arg1 interface{}) *go
 }
 
 // Incr mocks base method.
-func (m *MockBlobService) Incr(arg0 context.Context, arg1 uint64) error {
+func (m *MockBlobService) Incr(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
 	ret0, _ := ret[0].(error)

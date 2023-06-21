@@ -73,7 +73,7 @@ func TestPostNamespace(t *testing.T) {
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
-	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Uint()
+	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Int()
 	assert.NotEqual(t, resultID, 0)
 
 	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))

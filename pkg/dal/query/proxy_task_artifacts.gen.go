@@ -30,10 +30,10 @@ func newProxyTaskArtifact(db *gorm.DB, opts ...gen.DOOption) proxyTaskArtifact {
 	_proxyTaskArtifact.CreatedAt = field.NewTime(tableName, "created_at")
 	_proxyTaskArtifact.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_proxyTaskArtifact.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_proxyTaskArtifact.ID = field.NewUint64(tableName, "id")
+	_proxyTaskArtifact.ID = field.NewInt64(tableName, "id")
 	_proxyTaskArtifact.Repository = field.NewString(tableName, "repository")
 	_proxyTaskArtifact.Digest = field.NewString(tableName, "digest")
-	_proxyTaskArtifact.Size = field.NewUint64(tableName, "size")
+	_proxyTaskArtifact.Size = field.NewInt64(tableName, "size")
 	_proxyTaskArtifact.ContentType = field.NewString(tableName, "content_type")
 	_proxyTaskArtifact.Raw = field.NewBytes(tableName, "raw")
 	_proxyTaskArtifact.Blobs = proxyTaskArtifactHasManyBlobs{
@@ -54,10 +54,10 @@ type proxyTaskArtifact struct {
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 	DeletedAt   field.Uint
-	ID          field.Uint64
+	ID          field.Int64
 	Repository  field.String
 	Digest      field.String
-	Size        field.Uint64
+	Size        field.Int64
 	ContentType field.String
 	Raw         field.Bytes
 	Blobs       proxyTaskArtifactHasManyBlobs
@@ -80,10 +80,10 @@ func (p *proxyTaskArtifact) updateTableName(table string) *proxyTaskArtifact {
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewUint(table, "deleted_at")
-	p.ID = field.NewUint64(table, "id")
+	p.ID = field.NewInt64(table, "id")
 	p.Repository = field.NewString(table, "repository")
 	p.Digest = field.NewString(table, "digest")
-	p.Size = field.NewUint64(table, "size")
+	p.Size = field.NewInt64(table, "size")
 	p.ContentType = field.NewString(table, "content_type")
 	p.Raw = field.NewBytes(table, "raw")
 

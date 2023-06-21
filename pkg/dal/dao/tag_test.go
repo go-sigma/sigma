@@ -105,7 +105,7 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 		tag3, err := tagService.GetByID(ctx, tagObj.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, tag3.PullTimes, uint64(1))
+		assert.Equal(t, tag3.PullTimes, int64(1))
 		assert.True(t, tag3.LastPull.Valid)
 
 		tags1, err := tagService.ListTag(ctx, types.ListTagRequest{
@@ -176,7 +176,7 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, len(tags2), int(1))
 
-		tagCount1, err := tagService.CountByArtifact(ctx, []uint64{tagObj2.ArtifactID})
+		tagCount1, err := tagService.CountByArtifact(ctx, []int64{tagObj2.ArtifactID})
 		assert.NoError(t, err)
 		assert.Equal(t, len(tagCount1), int(1))
 		assert.Equal(t, tagCount1[tagObj2.ArtifactID], int64(1))

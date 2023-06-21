@@ -63,7 +63,7 @@ func TestGetRepository(t *testing.T) {
 		repositoryName = "test/busybox"
 	)
 
-	var repoID uint64
+	var repoID int64
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		ctx := log.Logger.WithContext(context.Background())
@@ -100,7 +100,7 @@ func TestGetRepository(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID, 10))
+	c.SetParamValues(strconv.FormatInt(repoID, 10))
 	err = repositoryHandler.GetRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
@@ -111,7 +111,7 @@ func TestGetRepository(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID+1, 10))
+	c.SetParamValues(strconv.FormatInt(repoID+1, 10))
 	err = repositoryHandler.GetRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
@@ -128,7 +128,7 @@ func TestGetRepository(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
-	daoMockRepositoryService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) (*models.Repository, error) {
+	daoMockRepositoryService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Repository, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 
@@ -143,7 +143,7 @@ func TestGetRepository(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(repoID+1, 10))
+	c.SetParamValues(strconv.FormatInt(repoID+1, 10))
 	err = repositoryHandler.GetRepository(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)

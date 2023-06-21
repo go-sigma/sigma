@@ -35,9 +35,9 @@ type ArtifactService interface {
 	// Create create a new artifact if conflict do nothing.
 	Create(ctx context.Context, artifact *models.Artifact) error
 	// Get gets the artifact with the specified artifact ID.
-	Get(ctx context.Context, id uint64) (*models.Artifact, error)
+	Get(ctx context.Context, id int64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
-	GetByDigest(ctx context.Context, repositoryID uint64, digest string) (*models.Artifact, error)
+	GetByDigest(ctx context.Context, repositoryID int64, digest string) (*models.Artifact, error)
 	// GetByDigests gets the artifacts with the specified digests.
 	GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error)
 	// DeleteByDigest deletes the artifact with the specified digest.
@@ -47,25 +47,25 @@ type ArtifactService interface {
 	// AssociateArtifact associates the artifacts with the artifact.
 	AssociateArtifact(ctx context.Context, artifact *models.Artifact, artifacts []*models.Artifact) error
 	// CountByNamespace counts the artifacts by the specified namespace.
-	CountByNamespace(ctx context.Context, namespaceIDs []uint64) (map[uint64]int64, error)
+	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// CountByRepository counts the artifacts by the specified repository.
-	CountByRepository(ctx context.Context, repositoryIDs []uint64) (map[uint64]int64, error)
+	CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error)
 	// Incr increases the pull times of the artifact.
-	Incr(ctx context.Context, id uint64) error
+	Incr(ctx context.Context, id int64) error
 	// ListArtifact lists the artifacts by the specified request.
 	ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
 	// DeleteByID deletes the artifact with the specified artifact ID.
-	DeleteByID(ctx context.Context, id uint64) error
+	DeleteByID(ctx context.Context, id int64) error
 	// SaveSbom save a new artifact sbom if conflict update.
 	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error
 	// SaveVulnerability save a new artifact vulnerability if conflict update.
 	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error
 	// UpdateSbomStatus update the artifact sbom status.
-	UpdateSbomStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error
+	UpdateSbomStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error
 	// UpdateVulnerabilityStatus update the artifact vulnerability status.
-	UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error
+	UpdateVulnerabilityStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error
 }
 
 type artifactService struct {
@@ -100,7 +100,7 @@ func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact)
 }
 
 // Get gets the artifact with the specified artifact ID.
-func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact, error) {
+func (s *artifactService) Get(ctx context.Context, id int64) (*models.Artifact, error) {
 	// SELECT * FROM `repositories` WHERE `repositories`.`id` = 1 AND `repositories`.`deleted_at` = 0
 	// SELECT * FROM `artifacts` WHERE `artifacts`.`id` = 1 AND `artifacts`.`deleted_at` = 0 ORDER BY `artifacts`.`id` LIMIT 1
 	return s.tx.Artifact.WithContext(ctx).
@@ -109,7 +109,7 @@ func (s *artifactService) Get(ctx context.Context, id uint64) (*models.Artifact,
 }
 
 // GetByDigest gets the artifact with the specified digest.
-func (s *artifactService) GetByDigest(ctx context.Context, repositoryID uint64, digest string) (*models.Artifact, error) {
+func (s *artifactService) GetByDigest(ctx context.Context, repositoryID int64, digest string) (*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Where(s.tx.Artifact.Digest.Eq(digest)).
@@ -161,7 +161,7 @@ func (s *artifactService) AssociateArtifact(ctx context.Context, artifact *model
 }
 
 // Incr increases the pull times of the artifact.
-func (s *artifactService) Incr(ctx context.Context, id uint64) error {
+func (s *artifactService) Incr(ctx context.Context, id int64) error {
 	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
@@ -171,14 +171,14 @@ func (s *artifactService) Incr(ctx context.Context, id uint64) error {
 }
 
 // CountByNamespace counts the artifacts by the specified namespace.
-func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []uint64) (map[uint64]int64, error) {
-	artifactCount := make(map[uint64]int64)
+func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
+	artifactCount := make(map[int64]int64)
 	if len(namespaceIDs) == 0 {
 		return artifactCount, nil
 	}
 	var count []struct {
-		NamespaceID uint64 `gorm:"column:namespace_id"`
-		Count       int64  `gorm:"column:count"`
+		NamespaceID int64 `gorm:"column:namespace_id"`
+		Count       int64 `gorm:"column:count"`
 	}
 	err := s.tx.Artifact.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
@@ -196,14 +196,14 @@ func (s *artifactService) CountByNamespace(ctx context.Context, namespaceIDs []u
 }
 
 // CountByRepository counts the artifacts by the specified repository.
-func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs []uint64) (map[uint64]int64, error) {
-	artifactCount := make(map[uint64]int64)
+func (s *artifactService) CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
+	artifactCount := make(map[int64]int64)
 	if len(repositoryIDs) == 0 {
 		return artifactCount, nil
 	}
 	var count []struct {
-		RepositoryID uint64 `gorm:"column:repository_id"`
-		Count        int64  `gorm:"column:count"`
+		RepositoryID int64 `gorm:"column:repository_id"`
+		Count        int64 `gorm:"column:count"`
 	}
 	err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.In(repositoryIDs...)).
 		Group(s.tx.Artifact.RepositoryID).
@@ -236,7 +236,7 @@ func (s *artifactService) CountArtifact(ctx context.Context, req types.ListArtif
 }
 
 // DeleteByID deletes the artifact with the specified ID.
-func (s *artifactService) DeleteByID(ctx context.Context, id uint64) error {
+func (s *artifactService) DeleteByID(ctx context.Context, id int64) error {
 	matched, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).Delete()
 	if err != nil {
 		return err
@@ -258,7 +258,7 @@ func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *
 }
 
 // UpdateSbomStatus update the artifact sbom status.
-func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error {
+func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error {
 	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,
@@ -267,7 +267,7 @@ func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID uint6
 }
 
 // UpdateVulnerabilityStatus update the artifact vulnerability status.
-func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID uint64, status enums.TaskCommonStatus) error {
+func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error {
 	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).
 		UpdateColumns(map[string]interface{}{
 			"status": status,

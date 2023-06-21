@@ -42,7 +42,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New()
 
-		id := gjson.GetBytes(atask.Payload(), "artifact_id").Uint()
+		id := gjson.GetBytes(atask.Payload(), "artifact_id").Int()
 		artifact, err := artifactService.Get(ctx, id)
 		if err != nil {
 			return err

@@ -82,12 +82,12 @@ func (h *handler) GetBlob(c echo.Context) error {
 			pipeReader, pipeWriter := io.Pipe()
 			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
 			go func() {
-				blobSize, err := strconv.ParseUint(header.Get("Content-Length"), 10, 64)
+				blobSize, err := strconv.ParseInt(header.Get("Content-Length"), 10, 64)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
 					return
 				}
-				log.Info().Str("digest", dgest.String()).Uint64("length", blobSize).Msg("Proxy blob")
+				log.Info().Str("digest", dgest.String()).Int64("length", blobSize).Msg("Proxy blob")
 				ctx := context.Background()
 				err = storage.Driver.Upload(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), reader.LimitReader(pipeReader, blobSize))
 				if err != nil {

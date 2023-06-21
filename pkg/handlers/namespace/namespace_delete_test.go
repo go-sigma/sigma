@@ -75,14 +75,14 @@ func TestDeleteNamespace(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
 	bytes := rec.Body.Bytes()
-	resultID := gjson.GetBytes(bytes, "id").Uint()
+	resultID := gjson.GetBytes(bytes, "id").Int()
 
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(resultID, 10))
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
@@ -100,7 +100,7 @@ func TestDeleteNamespace(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(resultID, 10))
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
@@ -109,7 +109,7 @@ func TestDeleteNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) error {
+	daoMockNamespaceService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 
@@ -125,7 +125,7 @@ func TestDeleteNamespace(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(resultID, 10))
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)

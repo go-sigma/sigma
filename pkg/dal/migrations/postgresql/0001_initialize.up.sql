@@ -9,11 +9,18 @@ CREATE TABLE IF NOT EXISTS "users" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
+CREATE TYPE visibility AS ENUM (
+  'public',
+  'private'
+);
+
 CREATE TABLE IF NOT EXISTS "namespaces" (
   "id" bigserial PRIMARY KEY,
   "name" varchar(64) NOT NULL,
   "description" varchar(256),
   "user_id" bigserial NOT NULL,
+  "quota" bigint,
+  "visibility" visibility,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,

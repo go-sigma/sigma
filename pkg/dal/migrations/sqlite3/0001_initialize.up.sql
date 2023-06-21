@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `name` varchar(64) NOT NULL,
   `description` varchar(256),
   `user_id` integer NOT NULL,
+  `quota` integer,
+  `visibility` text CHECK (`visibility` IN ('public', 'private')),
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,

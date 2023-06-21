@@ -16,12 +16,12 @@ package types
 
 // TaskSbom is the task sbom struct
 type TaskSbom struct {
-	ArtifactID uint64 `json:"artifact_id"`
+	ArtifactID int64 `json:"artifact_id"`
 }
 
 // TaskVulnerability is the task scan struct
 type TaskVulnerability struct {
-	ArtifactID uint64 `json:"artifact_id"`
+	ArtifactID int64 `json:"artifact_id"`
 }
 
 // TaskProxyArtifact is the task proxy artifact

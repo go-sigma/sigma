@@ -30,10 +30,10 @@ func newProxyTaskTag(db *gorm.DB, opts ...gen.DOOption) proxyTaskTag {
 	_proxyTaskTag.CreatedAt = field.NewTime(tableName, "created_at")
 	_proxyTaskTag.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_proxyTaskTag.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_proxyTaskTag.ID = field.NewUint64(tableName, "id")
+	_proxyTaskTag.ID = field.NewInt64(tableName, "id")
 	_proxyTaskTag.Repository = field.NewString(tableName, "repository")
 	_proxyTaskTag.Reference = field.NewString(tableName, "reference")
-	_proxyTaskTag.Size = field.NewUint64(tableName, "size")
+	_proxyTaskTag.Size = field.NewInt64(tableName, "size")
 	_proxyTaskTag.ContentType = field.NewString(tableName, "content_type")
 	_proxyTaskTag.Raw = field.NewBytes(tableName, "raw")
 	_proxyTaskTag.Manifests = proxyTaskTagHasManyManifests{
@@ -54,10 +54,10 @@ type proxyTaskTag struct {
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 	DeletedAt   field.Uint
-	ID          field.Uint64
+	ID          field.Int64
 	Repository  field.String
 	Reference   field.String
-	Size        field.Uint64
+	Size        field.Int64
 	ContentType field.String
 	Raw         field.Bytes
 	Manifests   proxyTaskTagHasManyManifests
@@ -80,10 +80,10 @@ func (p *proxyTaskTag) updateTableName(table string) *proxyTaskTag {
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewUint(table, "deleted_at")
-	p.ID = field.NewUint64(table, "id")
+	p.ID = field.NewInt64(table, "id")
 	p.Repository = field.NewString(table, "repository")
 	p.Reference = field.NewString(table, "reference")
-	p.Size = field.NewUint64(table, "size")
+	p.Size = field.NewInt64(table, "size")
 	p.ContentType = field.NewString(table, "content_type")
 	p.Raw = field.NewBytes(table, "raw")
 

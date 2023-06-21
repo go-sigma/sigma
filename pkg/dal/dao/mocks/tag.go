@@ -37,10 +37,10 @@ func (m *MockTagService) EXPECT() *MockTagServiceMockRecorder {
 }
 
 // CountByArtifact mocks base method.
-func (m *MockTagService) CountByArtifact(arg0 context.Context, arg1 []uint64) (map[uint64]int64, error) {
+func (m *MockTagService) CountByArtifact(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByArtifact", arg0, arg1)
-	ret0, _ := ret[0].(map[uint64]int64)
+	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,7 +81,7 @@ func (mr *MockTagServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // DeleteByArtifactID mocks base method.
-func (m *MockTagService) DeleteByArtifactID(arg0 context.Context, arg1 uint64) error {
+func (m *MockTagService) DeleteByArtifactID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByArtifactID", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -95,7 +95,7 @@ func (mr *MockTagServiceMockRecorder) DeleteByArtifactID(arg0, arg1 interface{})
 }
 
 // DeleteByID mocks base method.
-func (m *MockTagService) DeleteByID(arg0 context.Context, arg1 uint64) error {
+func (m *MockTagService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -109,7 +109,7 @@ func (mr *MockTagServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock
 }
 
 // DeleteByName mocks base method.
-func (m *MockTagService) DeleteByName(arg0 context.Context, arg1 uint64, arg2 string) error {
+func (m *MockTagService) DeleteByName(arg0 context.Context, arg1 int64, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByName", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -123,7 +123,7 @@ func (mr *MockTagServiceMockRecorder) DeleteByName(arg0, arg1, arg2 interface{})
 }
 
 // GetByID mocks base method.
-func (m *MockTagService) GetByID(arg0 context.Context, arg1 uint64) (*models.Tag, error) {
+func (m *MockTagService) GetByID(arg0 context.Context, arg1 int64) (*models.Tag, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.Tag)
@@ -138,7 +138,7 @@ func (mr *MockTagServiceMockRecorder) GetByID(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetByName mocks base method.
-func (m *MockTagService) GetByName(arg0 context.Context, arg1 uint64, arg2 string) (*models.Tag, error) {
+func (m *MockTagService) GetByName(arg0 context.Context, arg1 int64, arg2 string) (*models.Tag, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByName", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.Tag)
@@ -153,7 +153,7 @@ func (mr *MockTagServiceMockRecorder) GetByName(arg0, arg1, arg2 interface{}) *g
 }
 
 // Incr mocks base method.
-func (m *MockTagService) Incr(arg0 context.Context, arg1 uint64) error {
+func (m *MockTagService) Incr(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -167,7 +167,7 @@ func (mr *MockTagServiceMockRecorder) Incr(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // ListByDtPagination mocks base method.
-func (m *MockTagService) ListByDtPagination(arg0 context.Context, arg1 string, arg2 int, arg3 ...uint64) ([]*models.Tag, error) {
+func (m *MockTagService) ListByDtPagination(arg0 context.Context, arg1 string, arg2 int, arg3 ...int64) ([]*models.Tag, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2}
 	for _, a := range arg3 {

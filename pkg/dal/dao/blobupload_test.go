@@ -97,7 +97,7 @@ func TestBlobUploadService(t *testing.T) {
 
 		size, err := blobUploadService.TotalSizeByUploadID(ctx, "test1")
 		assert.NoError(t, err)
-		assert.Equal(t, uint64(200), size)
+		assert.Equal(t, int64(200), size)
 
 		err = blobUploadService.DeleteByUploadID(ctx, "test1")
 		assert.NoError(t, err)

@@ -38,9 +38,9 @@ type BlobService interface {
 	// Exists checks if the blob with the specified digest exists.
 	Exists(ctx context.Context, digest string) (bool, error)
 	// Incr increases the pull times of the artifact.
-	Incr(ctx context.Context, id uint64) error
+	Incr(ctx context.Context, id int64) error
 	// DeleteByID deletes the blob with the specified blob ID.
-	DeleteByID(ctx context.Context, id uint64) error
+	DeleteByID(ctx context.Context, id int64) error
 }
 
 var _ BlobService = &blobService{}
@@ -97,7 +97,7 @@ func (b *blobService) Exists(ctx context.Context, digest string) (bool, error) {
 }
 
 // Incr increases the pull times of the artifact.
-func (s *blobService) Incr(ctx context.Context, id uint64) error {
+func (s *blobService) Incr(ctx context.Context, id int64) error {
 	_, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
@@ -107,7 +107,7 @@ func (s *blobService) Incr(ctx context.Context, id uint64) error {
 }
 
 // DeleteByID deletes the blob with the specified blob ID.
-func (s *blobService) DeleteByID(ctx context.Context, id uint64) error {
+func (s *blobService) DeleteByID(ctx context.Context, id int64) error {
 	matched, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.ID.Eq(id)).Delete()
 	if err != nil {
 		return err

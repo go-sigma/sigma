@@ -145,7 +145,7 @@ func TestGetTag(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagService.EXPECT().GetByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) (*models.Tag, error) {
+	daoMockTagService.EXPECT().GetByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Tag, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)

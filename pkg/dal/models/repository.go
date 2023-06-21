@@ -25,9 +25,9 @@ type Repository struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
-	NamespaceID uint64
+	NamespaceID int64
 	Name        string `gorm:"uniqueIndex"`
 
 	Namespace Namespace

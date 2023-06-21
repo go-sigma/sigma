@@ -33,7 +33,7 @@ type BlobUploadService interface {
 	// FindAllByUploadID find all blob uploads with the specified upload ID.
 	FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error)
 	// TotalSizeByUploadID gets the total size of the blob uploads with the specified upload ID.
-	TotalSizeByUploadID(ctx context.Context, uploadID string) (uint64, error)
+	TotalSizeByUploadID(ctx context.Context, uploadID string) (int64, error)
 	// TotalEtagsByUploadID gets the total etags of the blob uploads with the specified upload ID.
 	TotalEtagsByUploadID(ctx context.Context, uploadID string) ([]string, error)
 	// DeleteByUploadID deletes all blob uploads with the specified upload ID.
@@ -89,12 +89,12 @@ func (b *blobUploadService) FindAllByUploadID(ctx context.Context, uploadID stri
 }
 
 // TotalSizeByUploadID gets the total size of the blob uploads with the specified upload ID.
-func (b *blobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID string) (uint64, error) {
+func (b *blobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID string) (int64, error) {
 	blobUploads, err := b.FindAllByUploadID(ctx, uploadID)
 	if err != nil {
 		return 0, err
 	}
-	var totalSize uint64
+	var totalSize int64
 	for _, blobUpload := range blobUploads {
 		totalSize += blobUpload.Size
 	}

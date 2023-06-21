@@ -35,17 +35,17 @@ type RepositoryService interface {
 	// Save saves the repository.
 	Create(context.Context, *models.Repository) error
 	// Get gets the repository with the specified repository ID.
-	Get(context.Context, uint64) (*models.Repository, error)
+	Get(context.Context, int64) (*models.Repository, error)
 	// GetByName gets the repository with the specified repository name.
 	GetByName(context.Context, string) (*models.Repository, error)
 	// ListByDtPagination lists the repositories by the pagination.
-	ListByDtPagination(ctx context.Context, limit int, lastID ...uint64) ([]*models.Repository, error)
+	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
 	ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error)
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
-	DeleteByID(ctx context.Context, id uint64) error
+	DeleteByID(ctx context.Context, id int64) error
 }
 
 type repositoryService struct {
@@ -99,7 +99,7 @@ func (s *repositoryService) Create(ctx context.Context, repository *models.Repos
 }
 
 // Get gets the repository with the specified repository ID.
-func (s *repositoryService) Get(ctx context.Context, id uint64) (*models.Repository, error) {
+func (s *repositoryService) Get(ctx context.Context, id int64) (*models.Repository, error) {
 	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).First()
 }
 
@@ -109,7 +109,7 @@ func (s *repositoryService) GetByName(ctx context.Context, name string) (*models
 }
 
 // ListByDtPagination lists the repositories by the pagination.
-func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, lastID ...uint64) ([]*models.Repository, error) {
+func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error) {
 	do := s.tx.Repository.WithContext(ctx)
 	if len(lastID) > 0 {
 		do = do.Where(s.tx.Repository.ID.Gt(lastID[0]))
@@ -135,7 +135,7 @@ func (s *repositoryService) CountRepository(ctx context.Context, req types.ListR
 }
 
 // DeleteByID deletes the repository with the specified repository ID.
-func (s *repositoryService) DeleteByID(ctx context.Context, id uint64) error {
+func (s *repositoryService) DeleteByID(ctx context.Context, id int64) error {
 	matched, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
 	if err != nil {
 		return err

@@ -30,15 +30,15 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.CreatedAt = field.NewTime(tableName, "created_at")
 	_artifact.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_artifact.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_artifact.ID = field.NewUint64(tableName, "id")
-	_artifact.RepositoryID = field.NewUint64(tableName, "repository_id")
+	_artifact.ID = field.NewInt64(tableName, "id")
+	_artifact.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
-	_artifact.Size = field.NewUint64(tableName, "size")
+	_artifact.Size = field.NewInt64(tableName, "size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
 	_artifact.Raw = field.NewBytes(tableName, "raw")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
-	_artifact.PullTimes = field.NewUint64(tableName, "pull_times")
+	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
 	_artifact.Tags = artifactHasManyTags{
 		db: db.Session(&gorm.Session{}),
 
@@ -147,15 +147,15 @@ type artifact struct {
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	DeletedAt    field.Uint
-	ID           field.Uint64
-	RepositoryID field.Uint64
+	ID           field.Int64
+	RepositoryID field.Int64
 	Digest       field.String
-	Size         field.Uint64
+	Size         field.Int64
 	ContentType  field.String
 	Raw          field.Bytes
 	LastPull     field.Field
 	PushedAt     field.Time
-	PullTimes    field.Uint64
+	PullTimes    field.Int64
 	Tags         artifactHasManyTags
 
 	Repository artifactBelongsToRepository
@@ -182,15 +182,15 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.DeletedAt = field.NewUint(table, "deleted_at")
-	a.ID = field.NewUint64(table, "id")
-	a.RepositoryID = field.NewUint64(table, "repository_id")
+	a.ID = field.NewInt64(table, "id")
+	a.RepositoryID = field.NewInt64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
-	a.Size = field.NewUint64(table, "size")
+	a.Size = field.NewInt64(table, "size")
 	a.ContentType = field.NewString(table, "content_type")
 	a.Raw = field.NewBytes(table, "raw")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
-	a.PullTimes = field.NewUint64(table, "pull_times")
+	a.PullTimes = field.NewInt64(table, "pull_times")
 
 	a.fillFieldMap()
 
