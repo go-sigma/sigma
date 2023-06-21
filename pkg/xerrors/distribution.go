@@ -41,6 +41,11 @@ type DSErrCode struct {
 	HTTPStatusCode int
 }
 
+// Error ...
+func (d DSErrCode) Error() string {
+	panic("IPE")
+}
+
 // NewDSError generates a distribution-spec error response
 func NewDSError(c echo.Context, code DSErrCode) error {
 	return c.JSON(code.HTTPStatusCode,
