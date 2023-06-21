@@ -29,6 +29,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils/counter"
@@ -128,30 +129,31 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return ptr.Of(xerrors.DSErrCodeUnknown)
 	}
 
-	artifactService := h.artifactServiceFactory.New()
-	err = artifactService.Create(ctx, artifactObj)
-	if err != nil {
-		log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
-	}
+	artifactObj.Blobs = blobObjs
 
-	err = artifactService.AssociateBlobs(ctx, artifactObj, blobObjs)
-	if err != nil {
-		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Associate with blobs failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
-	}
-
-	if refs.Tag != "" {
-		tagService := h.tagServiceFactory.New()
-		err = tagService.Create(ctx, &models.Tag{
-			RepositoryID: repositoryObj.ID,
-			ArtifactID:   artifactObj.ID,
-			Name:         refs.Tag,
-		})
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		artifactService := h.artifactServiceFactory.New()
+		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
-			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
+			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
 			return ptr.Of(xerrors.DSErrCodeUnknown)
 		}
+		if refs.Tag != "" {
+			tagService := h.tagServiceFactory.New()
+			err = tagService.Create(ctx, &models.Tag{
+				RepositoryID: repositoryObj.ID,
+				ArtifactID:   artifactObj.ID,
+				Name:         refs.Tag,
+			})
+			if err != nil {
+				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
+				return ptr.Of(xerrors.DSErrCodeUnknown)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err.(*xerrors.DSErrCode)
 	}
 
 	h.putManifestAsyncTask(ctx, artifactObj, refs)
@@ -171,29 +173,30 @@ func (h *handler) putManifestIndex(ctx context.Context, digests []string, reposi
 		return ptr.Of(xerrors.DSErrCodeUnknown)
 	}
 
-	err = artifactService.Create(ctx, artifactObj)
-	if err != nil {
-		log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
-	}
+	artifactObj.ArtifactIndexes = artifactObjs
 
-	err = artifactService.AssociateArtifact(ctx, artifactObj, artifactObjs)
-	if err != nil {
-		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Associate with artifact failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
-	}
-
-	if refs.Tag != "" {
-		tagService := h.tagServiceFactory.New()
-		err = tagService.Create(ctx, &models.Tag{
-			RepositoryID: repositoryObj.ID,
-			ArtifactID:   artifactObj.ID,
-			Name:         refs.Tag,
-		})
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
-			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Save tag failed")
+			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
 			return ptr.Of(xerrors.DSErrCodeUnknown)
 		}
+		if refs.Tag != "" {
+			tagService := h.tagServiceFactory.New()
+			err = tagService.Create(ctx, &models.Tag{
+				RepositoryID: repositoryObj.ID,
+				ArtifactID:   artifactObj.ID,
+				Name:         refs.Tag,
+			})
+			if err != nil {
+				log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Create tag failed")
+				return ptr.Of(xerrors.DSErrCodeUnknown)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err.(*xerrors.DSErrCode)
 	}
 
 	return nil
