@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `username` varchar(64) NOT NULL UNIQUE,
   `password` varchar(256) NOT NULL,
   `email` varchar(256) NOT NULL UNIQUE,
@@ -12,10 +12,12 @@ CREATE TABLE IF NOT EXISTS `users` (
 );
 
 CREATE TABLE IF NOT EXISTS `namespaces` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL,
   `description` varchar(256),
-  `user_id` bigint unsigned NOT NULL,
+  `user_id` bigint NOT NULL,
+  `quota` bigint,
+  `visibility` ENUM ('public', 'private'),
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -24,9 +26,9 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
 );
 
 CREATE TABLE IF NOT EXISTS `repositories` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL UNIQUE,
-  `namespace_id` bigint unsigned NOT NULL,
+  `namespace_id` bigint NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -35,10 +37,10 @@ CREATE TABLE IF NOT EXISTS `repositories` (
 );
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `repository_id` bigint unsigned NOT NULL,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `repository_id` bigint NOT NULL,
   `digest` varchar(256) NOT NULL,
-  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `size` bigint NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,8 +54,8 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_sboms` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `artifact_id` bigint unsigned NOT NULL,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `artifact_id` bigint NOT NULL,
   `raw` BLOB,
   `status` varchar(64) NOT NULL,
   `stdout` BLOB,
@@ -67,8 +69,8 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `artifact_id` bigint unsigned NOT NULL,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `artifact_id` bigint NOT NULL,
   `metadata` BLOB,
   `raw` BLOB,
   `status` varchar(64) NOT NULL,
@@ -83,13 +85,13 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
 );
 
 CREATE TABLE IF NOT EXISTS `tags` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
-  `repository_id` bigint unsigned NOT NULL,
-  `artifact_id` bigint unsigned NOT NULL,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `repository_id` bigint NOT NULL,
+  `artifact_id` bigint NOT NULL,
   `name` varchar(64) NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
-  `pull_times` bigint unsigned NOT NULL DEFAULT 0,
+  `pull_times` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -99,13 +101,13 @@ CREATE TABLE IF NOT EXISTS `tags` (
 );
 
 CREATE TABLE IF NOT EXISTS `blobs` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `digest` varchar(256) NOT NULL UNIQUE,
-  `size` bigint unsigned NOT NULL,
+  `size` bigint NOT NULL,
   `content_type` varchar(256) NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
-  `pull_times` bigint unsigned NOT NULL DEFAULT 0,
+  `pull_times` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -113,13 +115,13 @@ CREATE TABLE IF NOT EXISTS `blobs` (
 );
 
 CREATE TABLE IF NOT EXISTS `blob_uploads` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `part_number` int NOT NULL,
   `upload_id` varchar(256) NOT NULL,
   `etag` varchar(256) NOT NULL,
   `repository` varchar(256) NOT NULL,
   `file_id` varchar(256) NOT NULL,
-  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `size` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -127,26 +129,26 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_artifacts` (
-  `artifact_id` bigint unsigned NOT NULL,
-  `artifact_index_id` bigint unsigned NOT NULL,
+  `artifact_id` bigint NOT NULL,
+  `artifact_index_id` bigint NOT NULL,
   PRIMARY KEY (`artifact_id`, `artifact_index_id`),
   CONSTRAINT `fk_artifact_artifacts_artifact` FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `fk_artifact_artifacts_artifact_index` FOREIGN KEY (`artifact_index_id`) REFERENCES `artifacts` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_blobs` (
-  `artifact_id` bigint unsigned NOT NULL,
-  `blob_id` bigint unsigned NOT NULL,
+  `artifact_id` bigint NOT NULL,
+  `blob_id` bigint NOT NULL,
   PRIMARY KEY (`artifact_id`, `blob_id`),
   CONSTRAINT `fk_artifact_blobs_artifact` FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES `blobs` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `proxy_task_artifacts` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository` varchar(64) NOT NULL,
   `digest` varchar(256) NOT NULL,
-  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `size` bigint NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB,
   `created_at` timestamp NOT NULL,
@@ -155,9 +157,9 @@ CREATE TABLE IF NOT EXISTS `proxy_task_artifacts` (
 );
 
 CREATE TABLE IF NOT EXISTS `proxy_task_artifact_blobs` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `blob` varchar(256) NOT NULL,
-  `proxy_task_artifact_id` bigint unsigned NOT NULL,
+  `proxy_task_artifact_id` bigint NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -165,10 +167,10 @@ CREATE TABLE IF NOT EXISTS `proxy_task_artifact_blobs` (
 );
 
 CREATE TABLE IF NOT EXISTS `proxy_task_tags` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository` varchar(64) NOT NULL,
   `reference` varchar(256) NOT NULL,
-  `size` bigint unsigned NOT NULL DEFAULT 0,
+  `size` bigint NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB,
   `created_at` timestamp NOT NULL,
@@ -177,9 +179,9 @@ CREATE TABLE IF NOT EXISTS `proxy_task_tags` (
 );
 
 CREATE TABLE IF NOT EXISTS `proxy_task_tag_manifests` (
-  `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `digest` varchar(256) NOT NULL,
-  `proxy_task_tag_id` bigint unsigned NOT NULL,
+  `proxy_task_tag_id` bigint NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,

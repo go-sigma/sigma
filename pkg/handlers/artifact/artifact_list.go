@@ -44,7 +44,7 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var artifactIDs = make([]uint64, 0, len(artifacts))
+	var artifactIDs = make([]int64, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		artifactIDs = append(artifactIDs, artifact.ID)
 	}

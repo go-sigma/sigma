@@ -87,7 +87,7 @@ func TestListNamespace(t *testing.T) {
 	err = namespaceHandler.ListNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
-	assert.Equal(t, gjson.GetBytes(rec.Body.Bytes(), "total").Uint(), uint64(1))
+	assert.Equal(t, gjson.GetBytes(rec.Body.Bytes(), "total").Int(), int64(1))
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

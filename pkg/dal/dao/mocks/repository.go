@@ -66,7 +66,7 @@ func (mr *MockRepositoryServiceMockRecorder) Create(arg0, arg1 interface{}) *gom
 }
 
 // DeleteByID mocks base method.
-func (m *MockRepositoryService) DeleteByID(arg0 context.Context, arg1 uint64) error {
+func (m *MockRepositoryService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -80,7 +80,7 @@ func (mr *MockRepositoryServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) 
 }
 
 // Get mocks base method.
-func (m *MockRepositoryService) Get(arg0 context.Context, arg1 uint64) (*models.Repository, error) {
+func (m *MockRepositoryService) Get(arg0 context.Context, arg1 int64) (*models.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(*models.Repository)
@@ -110,7 +110,7 @@ func (mr *MockRepositoryServiceMockRecorder) GetByName(arg0, arg1 interface{}) *
 }
 
 // ListByDtPagination mocks base method.
-func (m *MockRepositoryService) ListByDtPagination(arg0 context.Context, arg1 int, arg2 ...uint64) ([]*models.Repository, error) {
+func (m *MockRepositoryService) ListByDtPagination(arg0 context.Context, arg1 int, arg2 ...int64) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {

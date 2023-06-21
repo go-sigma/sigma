@@ -44,7 +44,7 @@ func (h *handlers) ListRepositories(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	lastFound := false
-	var lastID uint64 = 0
+	var lastID int64 = 0
 
 	repositoryService := h.repositoryServiceFactory.New()
 	var last = c.QueryParam("last")

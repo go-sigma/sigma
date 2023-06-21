@@ -30,8 +30,8 @@ func newProxyTaskArtifactBlob(db *gorm.DB, opts ...gen.DOOption) proxyTaskArtifa
 	_proxyTaskArtifactBlob.CreatedAt = field.NewTime(tableName, "created_at")
 	_proxyTaskArtifactBlob.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_proxyTaskArtifactBlob.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_proxyTaskArtifactBlob.ID = field.NewUint64(tableName, "id")
-	_proxyTaskArtifactBlob.ProxyTaskArtifactID = field.NewUint64(tableName, "proxy_task_artifact_id")
+	_proxyTaskArtifactBlob.ID = field.NewInt64(tableName, "id")
+	_proxyTaskArtifactBlob.ProxyTaskArtifactID = field.NewInt64(tableName, "proxy_task_artifact_id")
 	_proxyTaskArtifactBlob.Blob = field.NewString(tableName, "blob")
 
 	_proxyTaskArtifactBlob.fillFieldMap()
@@ -46,8 +46,8 @@ type proxyTaskArtifactBlob struct {
 	CreatedAt           field.Time
 	UpdatedAt           field.Time
 	DeletedAt           field.Uint
-	ID                  field.Uint64
-	ProxyTaskArtifactID field.Uint64
+	ID                  field.Int64
+	ProxyTaskArtifactID field.Int64
 	Blob                field.String
 
 	fieldMap map[string]field.Expr
@@ -68,8 +68,8 @@ func (p *proxyTaskArtifactBlob) updateTableName(table string) *proxyTaskArtifact
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewUint(table, "deleted_at")
-	p.ID = field.NewUint64(table, "id")
-	p.ProxyTaskArtifactID = field.NewUint64(table, "proxy_task_artifact_id")
+	p.ID = field.NewInt64(table, "id")
+	p.ProxyTaskArtifactID = field.NewInt64(table, "proxy_task_artifact_id")
 	p.Blob = field.NewString(table, "blob")
 
 	p.fillFieldMap()

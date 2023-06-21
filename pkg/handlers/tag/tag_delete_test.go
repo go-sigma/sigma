@@ -103,7 +103,7 @@ func TestDeleteTag(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("namespace", "id")
-	c.SetParamValues(namespaceName, strconv.FormatUint(tagObj.ID, 10))
+	c.SetParamValues(namespaceName, strconv.FormatInt(tagObj.ID, 10))
 	err = tagHandler.DeleteTag(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, rec.Code)
@@ -115,7 +115,7 @@ func TestDeleteTag(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(tagObj.ID, 10))
+	c.SetParamValues(strconv.FormatInt(tagObj.ID, 10))
 	err = tagHandler.DeleteTag(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -124,7 +124,7 @@ func TestDeleteTag(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64) error {
+	daoMockTagService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
@@ -141,7 +141,7 @@ func TestDeleteTag(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "id")
-	c.SetParamValues(namespaceName, strconv.FormatUint(tagObj.ID, 10))
+	c.SetParamValues(namespaceName, strconv.FormatInt(tagObj.ID, 10))
 	err = tagHandler.DeleteTag(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)

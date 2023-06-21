@@ -157,7 +157,7 @@ func TestGetArtifact(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockArtifactService := daomock.NewMockArtifactService(ctrl)
-	daoMockArtifactService.EXPECT().GetByDigest(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64, _ string) (*models.Artifact, error) {
+	daoMockArtifactService.EXPECT().GetByDigest(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ string) (*models.Artifact, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)

@@ -16,9 +16,9 @@ package types
 
 // ArtifactItem represents an artifact.
 type ArtifactItem struct {
-	ID        uint64   `json:"id"`
+	ID        int64    `json:"id"`
 	Digest    string   `json:"digest"`
-	Size      uint64   `json:"size"`
+	Size      int64    `json:"size"`
 	Tags      []string `json:"tags"`
 	TagCount  int64    `json:"tag_count"`
 	CreatedAt string   `json:"created_at"`

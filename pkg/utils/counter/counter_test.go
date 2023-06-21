@@ -30,14 +30,14 @@ import (
 
 func TestCounter(t *testing.T) {
 	type args struct {
-		do func(uint64)
+		do func(int64)
 	}
 	tests := []struct {
 		name            string
 		prepareFunc     func() (io.Reader, string)
-		prepareCallback func(*uint64) func(uint64)
+		prepareCallback func(*int64) func(int64)
 		args            args
-		expectFunc      func(*testing.T, *Counter, string, *uint64)
+		expectFunc      func(*testing.T, *Counter, string, *int64)
 		wantErr         bool
 	}{
 		{
@@ -49,9 +49,9 @@ func TestCounter(t *testing.T) {
 				return reader, h
 			},
 			args: args{
-				do: func(n uint64) {},
+				do: func(n int64) {},
 			},
-			expectFunc: func(t *testing.T, r *Counter, s string, _ *uint64) {
+			expectFunc: func(t *testing.T, r *Counter, s string, _ *int64) {
 				data, err := io.ReadAll(r)
 				assert.NoError(t, err)
 				h, err := hash.String(string(data))
@@ -76,9 +76,9 @@ func TestCounter(t *testing.T) {
 				return r, s
 			},
 			args: args{
-				do: func(n uint64) {},
+				do: func(n int64) {},
 			},
-			expectFunc: func(t *testing.T, r *Counter, s string, _ *uint64) {
+			expectFunc: func(t *testing.T, r *Counter, s string, _ *int64) {
 				var bigFile = "test-big-file-receive.bin"
 				file, err := os.Create(bigFile)
 				assert.NoError(t, err)
@@ -111,13 +111,13 @@ func TestCounter(t *testing.T) {
 				r, _ := os.Open(bigFile)
 				return r, s
 			},
-			prepareCallback: func(n *uint64) func(uint64) {
-				return func(i uint64) {
-					atomic.SwapUint64(n, i)
+			prepareCallback: func(n *int64) func(int64) {
+				return func(i int64) {
+					atomic.SwapInt64(n, i)
 				}
 			},
 			args: args{},
-			expectFunc: func(t *testing.T, r *Counter, s string, n *uint64) {
+			expectFunc: func(t *testing.T, r *Counter, s string, n *int64) {
 				var bigFile = "test-ticker-receive.bin"
 				file, err := os.Create(bigFile)
 				assert.NoError(t, err)
@@ -132,7 +132,7 @@ func TestCounter(t *testing.T) {
 				assert.NoError(t, err)
 				err = os.RemoveAll("test-ticker.bin")
 				assert.NoError(t, err)
-				assert.Equal(t, uint64(1000*1<<20), atomic.LoadUint64(n))
+				assert.Equal(t, int64(1000*1<<20), atomic.LoadInt64(n))
 			},
 			wantErr: false,
 		},
@@ -151,14 +151,14 @@ func TestCounter(t *testing.T) {
 				r, _ := os.Open(bigFile)
 				return r, s
 			},
-			prepareCallback: func(n *uint64) func(uint64) {
-				return func(i uint64) {
-					atomic.SwapUint64(n, i)
+			prepareCallback: func(n *int64) func(int64) {
+				return func(i int64) {
+					atomic.SwapInt64(n, i)
 					panic("panic")
 				}
 			},
 			args: args{},
-			expectFunc: func(t *testing.T, r *Counter, s string, n *uint64) {
+			expectFunc: func(t *testing.T, r *Counter, s string, n *int64) {
 				var bigFile = "test-ticker-receive.bin"
 				file, err := os.Create(bigFile)
 				assert.NoError(t, err)
@@ -173,7 +173,7 @@ func TestCounter(t *testing.T) {
 				assert.NoError(t, err)
 				err = os.RemoveAll("test-ticker.bin")
 				assert.NoError(t, err)
-				assert.Equal(t, uint64(1000*1<<20), r.Count())
+				assert.Equal(t, int64(1000*1<<20), r.Count())
 			},
 			wantErr: false,
 		},
@@ -181,7 +181,7 @@ func TestCounter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r, s := tt.prepareFunc()
-			n := uint64(0)
+			n := int64(0)
 			if tt.prepareCallback != nil {
 				tt.args.do = tt.prepareCallback(&n)
 			}

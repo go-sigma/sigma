@@ -44,7 +44,7 @@ func (h *handler) proxyTaskArtifact(c echo.Context, repository, digest, contentT
 	err = proxyTaskService.SaveProxyTaskArtifact(ctx, &models.ProxyTaskArtifact{
 		Repository:  repository,
 		Digest:      digest,
-		Size:        uint64(len(manifestBytes)),
+		Size:        int64(len(manifestBytes)),
 		ContentType: contentType,
 		Blobs:       proxyArtifactBlobs,
 		Raw:         manifestBytes,
@@ -83,7 +83,7 @@ func (h *handler) proxyTaskTag(c echo.Context, repository, reference, contentTyp
 	err = proxyTaskService.SaveProxyTaskTag(ctx, &models.ProxyTaskTag{
 		Repository:  repository,
 		Reference:   reference,
-		Size:        uint64(len(manifestBytes)),
+		Size:        int64(len(manifestBytes)),
 		ContentType: contentType,
 		Raw:         manifestBytes,
 		Manifests:   proxyTaskTagManifest,

@@ -30,8 +30,8 @@ func newProxyTaskTagManifest(db *gorm.DB, opts ...gen.DOOption) proxyTaskTagMani
 	_proxyTaskTagManifest.CreatedAt = field.NewTime(tableName, "created_at")
 	_proxyTaskTagManifest.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_proxyTaskTagManifest.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_proxyTaskTagManifest.ID = field.NewUint64(tableName, "id")
-	_proxyTaskTagManifest.ProxyTaskTagID = field.NewUint64(tableName, "proxy_task_tag_id")
+	_proxyTaskTagManifest.ID = field.NewInt64(tableName, "id")
+	_proxyTaskTagManifest.ProxyTaskTagID = field.NewInt64(tableName, "proxy_task_tag_id")
 	_proxyTaskTagManifest.Digest = field.NewString(tableName, "digest")
 
 	_proxyTaskTagManifest.fillFieldMap()
@@ -46,8 +46,8 @@ type proxyTaskTagManifest struct {
 	CreatedAt      field.Time
 	UpdatedAt      field.Time
 	DeletedAt      field.Uint
-	ID             field.Uint64
-	ProxyTaskTagID field.Uint64
+	ID             field.Int64
+	ProxyTaskTagID field.Int64
 	Digest         field.String
 
 	fieldMap map[string]field.Expr
@@ -68,8 +68,8 @@ func (p *proxyTaskTagManifest) updateTableName(table string) *proxyTaskTagManife
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewUint(table, "deleted_at")
-	p.ID = field.NewUint64(table, "id")
-	p.ProxyTaskTagID = field.NewUint64(table, "proxy_task_tag_id")
+	p.ID = field.NewInt64(table, "id")
+	p.ProxyTaskTagID = field.NewInt64(table, "proxy_task_tag_id")
 	p.Digest = field.NewString(table, "digest")
 
 	p.fillFieldMap()

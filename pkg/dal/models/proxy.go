@@ -25,11 +25,11 @@ type ProxyTaskArtifact struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
 	Repository  string
 	Digest      string
-	Size        uint64
+	Size        int64
 	ContentType string
 	Raw         []byte
 
@@ -41,9 +41,9 @@ type ProxyTaskArtifactBlob struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
-	ProxyTaskArtifactID uint64
+	ProxyTaskArtifactID int64
 	Blob                string
 }
 
@@ -52,11 +52,11 @@ type ProxyTaskTag struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
 	Repository  string
 	Reference   string
-	Size        uint64
+	Size        int64
 	ContentType string
 	Raw         []byte
 
@@ -68,8 +68,8 @@ type ProxyTaskTagManifest struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        uint64                `gorm:"primaryKey"`
+	ID        int64                 `gorm:"primaryKey"`
 
-	ProxyTaskTagID uint64
+	ProxyTaskTagID int64
 	Digest         string
 }

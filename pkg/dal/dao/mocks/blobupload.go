@@ -109,10 +109,10 @@ func (mr *MockBlobUploadServiceMockRecorder) TotalEtagsByUploadID(arg0, arg1 int
 }
 
 // TotalSizeByUploadID mocks base method.
-func (m *MockBlobUploadService) TotalSizeByUploadID(arg0 context.Context, arg1 string) (uint64, error) {
+func (m *MockBlobUploadService) TotalSizeByUploadID(arg0 context.Context, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TotalSizeByUploadID", arg0, arg1)
-	ret0, _ := ret[0].(uint64)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

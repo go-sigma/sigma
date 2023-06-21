@@ -30,8 +30,8 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 	_artifactVulnerability.CreatedAt = field.NewTime(tableName, "created_at")
 	_artifactVulnerability.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_artifactVulnerability.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_artifactVulnerability.ID = field.NewUint64(tableName, "id")
-	_artifactVulnerability.ArtifactID = field.NewUint64(tableName, "artifact_id")
+	_artifactVulnerability.ID = field.NewInt64(tableName, "id")
+	_artifactVulnerability.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_artifactVulnerability.Metadata = field.NewBytes(tableName, "metadata")
 	_artifactVulnerability.Raw = field.NewBytes(tableName, "raw")
 	_artifactVulnerability.Status = field.NewField(tableName, "status")
@@ -119,8 +119,8 @@ type artifactVulnerability struct {
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 	DeletedAt  field.Uint
-	ID         field.Uint64
-	ArtifactID field.Uint64
+	ID         field.Int64
+	ArtifactID field.Int64
 	Metadata   field.Bytes
 	Raw        field.Bytes
 	Status     field.Field
@@ -147,8 +147,8 @@ func (a *artifactVulnerability) updateTableName(table string) *artifactVulnerabi
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.DeletedAt = field.NewUint(table, "deleted_at")
-	a.ID = field.NewUint64(table, "id")
-	a.ArtifactID = field.NewUint64(table, "artifact_id")
+	a.ID = field.NewInt64(table, "id")
+	a.ArtifactID = field.NewInt64(table, "artifact_id")
 	a.Metadata = field.NewBytes(table, "metadata")
 	a.Raw = field.NewBytes(table, "raw")
 	a.Status = field.NewField(table, "status")

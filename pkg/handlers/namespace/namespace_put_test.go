@@ -75,14 +75,14 @@ func TestPutNamespace(t *testing.T) {
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
-	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Uint()
+	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Int()
 
 	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"description":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(resultID, 10))
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	fmt.Println(rec.Body.String())
@@ -93,7 +93,7 @@ func TestPutNamespace(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(resultID, 10))
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
@@ -112,7 +112,7 @@ func TestPutNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().UpdateByID(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ uint64, _ types.PutNamespaceRequest) error {
+	daoMockNamespaceService.EXPECT().UpdateByID(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ types.PutNamespaceRequest) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 

@@ -81,7 +81,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	}
 
 	c.Response().Header().Set(echo.HeaderContentType, artifact.ContentType)
-	c.Response().Header().Set(echo.HeaderContentLength, strconv.FormatUint(artifact.Size, 10))
+	c.Response().Header().Set(echo.HeaderContentLength, strconv.FormatInt(artifact.Size, 10))
 	c.Response().Header().Set(consts.ContentDigest, artifact.Digest)
 
 	return c.NoContent(http.StatusOK)

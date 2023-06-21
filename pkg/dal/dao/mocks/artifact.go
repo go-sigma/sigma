@@ -81,10 +81,10 @@ func (mr *MockArtifactServiceMockRecorder) CountArtifact(arg0, arg1 interface{})
 }
 
 // CountByNamespace mocks base method.
-func (m *MockArtifactService) CountByNamespace(arg0 context.Context, arg1 []uint64) (map[uint64]int64, error) {
+func (m *MockArtifactService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
-	ret0, _ := ret[0].(map[uint64]int64)
+	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -96,10 +96,10 @@ func (mr *MockArtifactServiceMockRecorder) CountByNamespace(arg0, arg1 interface
 }
 
 // CountByRepository mocks base method.
-func (m *MockArtifactService) CountByRepository(arg0 context.Context, arg1 []uint64) (map[uint64]int64, error) {
+func (m *MockArtifactService) CountByRepository(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByRepository", arg0, arg1)
-	ret0, _ := ret[0].(map[uint64]int64)
+	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -139,7 +139,7 @@ func (mr *MockArtifactServiceMockRecorder) DeleteByDigest(arg0, arg1, arg2 inter
 }
 
 // DeleteByID mocks base method.
-func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 uint64) error {
+func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -153,7 +153,7 @@ func (mr *MockArtifactServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *g
 }
 
 // Get mocks base method.
-func (m *MockArtifactService) Get(arg0 context.Context, arg1 uint64) (*models.Artifact, error) {
+func (m *MockArtifactService) Get(arg0 context.Context, arg1 int64) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(*models.Artifact)
@@ -168,7 +168,7 @@ func (mr *MockArtifactServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.C
 }
 
 // GetByDigest mocks base method.
-func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1 uint64, arg2 string) (*models.Artifact, error) {
+func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1 int64, arg2 string) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByDigest", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.Artifact)
@@ -198,7 +198,7 @@ func (mr *MockArtifactServiceMockRecorder) GetByDigests(arg0, arg1, arg2 interfa
 }
 
 // Incr mocks base method.
-func (m *MockArtifactService) Incr(arg0 context.Context, arg1 uint64) error {
+func (m *MockArtifactService) Incr(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -255,7 +255,7 @@ func (mr *MockArtifactServiceMockRecorder) SaveVulnerability(arg0, arg1 interfac
 }
 
 // UpdateSbomStatus mocks base method.
-func (m *MockArtifactService) UpdateSbomStatus(arg0 context.Context, arg1 uint64, arg2 enums.TaskCommonStatus) error {
+func (m *MockArtifactService) UpdateSbomStatus(arg0 context.Context, arg1 int64, arg2 enums.TaskCommonStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSbomStatus", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -269,7 +269,7 @@ func (mr *MockArtifactServiceMockRecorder) UpdateSbomStatus(arg0, arg1, arg2 int
 }
 
 // UpdateVulnerabilityStatus mocks base method.
-func (m *MockArtifactService) UpdateVulnerabilityStatus(arg0 context.Context, arg1 uint64, arg2 enums.TaskCommonStatus) error {
+func (m *MockArtifactService) UpdateVulnerabilityStatus(arg0 context.Context, arg1 int64, arg2 enums.TaskCommonStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateVulnerabilityStatus", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

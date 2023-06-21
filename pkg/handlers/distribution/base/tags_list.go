@@ -67,7 +67,7 @@ func (h *handlers) ListTags(c echo.Context) error {
 	}
 
 	lastFound := false
-	var lastID uint64 = 0
+	var lastID int64 = 0
 
 	tagService := h.tagServiceFactory.New()
 	var last = c.QueryParam("last")

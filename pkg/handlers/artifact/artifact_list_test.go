@@ -154,12 +154,12 @@ func TestListArtifact(t *testing.T) {
 
 	daoMockTagService := daomock.NewMockTagService(ctrl)
 	daoMockTagServiceTimes := 0
-	daoMockTagService.EXPECT().CountByArtifact(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ []uint64) (map[uint64]int64, error) {
+	daoMockTagService.EXPECT().CountByArtifact(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ []int64) (map[int64]int64, error) {
 		daoMockTagServiceTimes++
 		if daoMockTagServiceTimes == 1 {
 			return nil, fmt.Errorf("test")
 		}
-		return map[uint64]int64{1: 1}, nil
+		return map[int64]int64{1: 1}, nil
 	}).Times(2)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
 	daoMockTagServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.TagService {

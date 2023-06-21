@@ -30,13 +30,13 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 	_tag.CreatedAt = field.NewTime(tableName, "created_at")
 	_tag.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_tag.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_tag.ID = field.NewUint64(tableName, "id")
-	_tag.RepositoryID = field.NewUint64(tableName, "repository_id")
-	_tag.ArtifactID = field.NewUint64(tableName, "artifact_id")
+	_tag.ID = field.NewInt64(tableName, "id")
+	_tag.RepositoryID = field.NewInt64(tableName, "repository_id")
+	_tag.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_tag.Name = field.NewString(tableName, "name")
 	_tag.LastPull = field.NewField(tableName, "last_pull")
 	_tag.PushedAt = field.NewTime(tableName, "pushed_at")
-	_tag.PullTimes = field.NewUint64(tableName, "pull_times")
+	_tag.PullTimes = field.NewInt64(tableName, "pull_times")
 	_tag.Repository = tagBelongsToRepository{
 		db: db.Session(&gorm.Session{}),
 
@@ -118,13 +118,13 @@ type tag struct {
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	DeletedAt    field.Uint
-	ID           field.Uint64
-	RepositoryID field.Uint64
-	ArtifactID   field.Uint64
+	ID           field.Int64
+	RepositoryID field.Int64
+	ArtifactID   field.Int64
 	Name         field.String
 	LastPull     field.Field
 	PushedAt     field.Time
-	PullTimes    field.Uint64
+	PullTimes    field.Int64
 	Repository   tagBelongsToRepository
 
 	Artifact tagBelongsToArtifact
@@ -147,13 +147,13 @@ func (t *tag) updateTableName(table string) *tag {
 	t.CreatedAt = field.NewTime(table, "created_at")
 	t.UpdatedAt = field.NewTime(table, "updated_at")
 	t.DeletedAt = field.NewUint(table, "deleted_at")
-	t.ID = field.NewUint64(table, "id")
-	t.RepositoryID = field.NewUint64(table, "repository_id")
-	t.ArtifactID = field.NewUint64(table, "artifact_id")
+	t.ID = field.NewInt64(table, "id")
+	t.RepositoryID = field.NewInt64(table, "repository_id")
+	t.ArtifactID = field.NewInt64(table, "artifact_id")
 	t.Name = field.NewString(table, "name")
 	t.LastPull = field.NewField(table, "last_pull")
 	t.PushedAt = field.NewTime(table, "pushed_at")
-	t.PullTimes = field.NewUint64(table, "pull_times")
+	t.PullTimes = field.NewInt64(table, "pull_times")
 
 	t.fillFieldMap()
 

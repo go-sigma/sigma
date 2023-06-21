@@ -16,7 +16,7 @@ package types
 
 // TagItem represents an tag.
 type TagItem struct {
-	ID        uint64 `json:"id"`
+	ID        int64  `json:"id"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -32,14 +32,14 @@ type ListTagRequest struct {
 
 // DeleteTagRequest represents the request to delete a tag.
 type DeleteTagRequest struct {
-	ID         uint64 `param:"id" validate:"required,number"`
+	ID         int64  `param:"id" validate:"required,number"`
 	Namespace  string `param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
 	Repository string `query:"repository" validate:"required,is_valid_repository"`
 }
 
 // GetTagRequest represents the request to get a tag.
 type GetTagRequest struct {
-	ID         uint64 `json:"id" param:"id" validate:"required,number"`
+	ID         int64  `json:"id" param:"id" validate:"required,number"`
 	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
 	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository"`
 }

@@ -16,7 +16,7 @@ package types
 
 // RepositoryItem represents a repository.
 type RepositoryItem struct {
-	ID   uint64 `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 
 	ArtifactCount int64 `json:"artifact_count"`
@@ -34,10 +34,10 @@ type ListRepositoryRequest struct {
 
 // GetRepositoryRequest represents the request to get a repository.
 type GetRepositoryRequest struct {
-	ID uint64 `json:"name" param:"id" validate:"required,number"`
+	ID int64 `json:"name" param:"id" validate:"required,number"`
 }
 
 // DeleteRepositoryRequest represents the request to delete a repository.
 type DeleteRepositoryRequest struct {
-	ID uint64 `json:"id" param:"id" validate:"required,number"`
+	ID int64 `json:"id" param:"id" validate:"required,number"`
 }

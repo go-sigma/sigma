@@ -61,7 +61,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 	size := countReader.Count()
 	if size > maxManifestBodySize {
-		log.Error().Uint64("size", size).Msg("Manifest size exceeds the limit")
+		log.Error().Int64("size", size).Msg("Manifest size exceeds the limit")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
 	}
 

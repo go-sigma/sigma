@@ -191,24 +191,24 @@ func TestArtifactService(t *testing.T) {
 		artifact1, err = artifactService.Get(ctx, artifactObj.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, artifact1.ID, artifactObj.ID)
-		assert.Equal(t, artifact1.PullTimes, uint64(1))
+		assert.Equal(t, artifact1.PullTimes, int64(1))
 		assert.True(t, artifact1.LastPull.Valid)
 
-		nsCount1, err := artifactService.CountByNamespace(ctx, []uint64{namespaceObj.ID})
+		nsCount1, err := artifactService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 		assert.NoError(t, err)
 		assert.Equal(t, len(nsCount1), 1)
 		assert.Equal(t, nsCount1[namespaceObj.ID], int64(2))
 
-		nsCount2, err := artifactService.CountByNamespace(ctx, []uint64{})
+		nsCount2, err := artifactService.CountByNamespace(ctx, []int64{})
 		assert.NoError(t, err)
 		assert.Equal(t, len(nsCount2), 0)
 
-		repoCount1, err := artifactService.CountByRepository(ctx, []uint64{repositoryObj.ID})
+		repoCount1, err := artifactService.CountByRepository(ctx, []int64{repositoryObj.ID})
 		assert.NoError(t, err)
 		assert.Equal(t, len(repoCount1), 1)
 		assert.Equal(t, repoCount1[repositoryObj.ID], int64(2))
 
-		repoCount2, err := artifactService.CountByRepository(ctx, []uint64{})
+		repoCount2, err := artifactService.CountByRepository(ctx, []int64{})
 		assert.NoError(t, err)
 		assert.Equal(t, len(repoCount2), 0)
 

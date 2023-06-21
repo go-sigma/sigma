@@ -30,8 +30,8 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 	_artifactSbom.CreatedAt = field.NewTime(tableName, "created_at")
 	_artifactSbom.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_artifactSbom.DeletedAt = field.NewUint(tableName, "deleted_at")
-	_artifactSbom.ID = field.NewUint64(tableName, "id")
-	_artifactSbom.ArtifactID = field.NewUint64(tableName, "artifact_id")
+	_artifactSbom.ID = field.NewInt64(tableName, "id")
+	_artifactSbom.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_artifactSbom.Raw = field.NewBytes(tableName, "raw")
 	_artifactSbom.Status = field.NewField(tableName, "status")
 	_artifactSbom.Stdout = field.NewBytes(tableName, "stdout")
@@ -118,8 +118,8 @@ type artifactSbom struct {
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 	DeletedAt  field.Uint
-	ID         field.Uint64
-	ArtifactID field.Uint64
+	ID         field.Int64
+	ArtifactID field.Int64
 	Raw        field.Bytes
 	Status     field.Field
 	Stdout     field.Bytes
@@ -145,8 +145,8 @@ func (a *artifactSbom) updateTableName(table string) *artifactSbom {
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.DeletedAt = field.NewUint(table, "deleted_at")
-	a.ID = field.NewUint64(table, "id")
-	a.ArtifactID = field.NewUint64(table, "artifact_id")
+	a.ID = field.NewInt64(table, "id")
+	a.ArtifactID = field.NewInt64(table, "artifact_id")
 	a.Raw = field.NewBytes(table, "raw")
 	a.Status = field.NewField(table, "status")
 	a.Stdout = field.NewBytes(table, "stdout")
