@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.3
-	github.com/aws/aws-sdk-go v1.44.287
+	github.com/aws/aws-sdk-go v1.44.288
 	github.com/bytedance/sonic v1.9.1
 	github.com/casbin/casbin/v2 v2.71.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
@@ -22,7 +22,7 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230621212639-c76f05b4f40f
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230622180509-a73835700327
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -36,7 +36,7 @@ require (
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.10.0
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
-	golang.org/x/net v0.11.0
+	golang.org/x/net v0.11.0 // indirect
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gen v0.3.22
