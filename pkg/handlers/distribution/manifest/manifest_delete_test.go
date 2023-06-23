@@ -87,7 +87,6 @@ func TestDeleteManifest(t *testing.T) {
 	assert.NoError(t, err)
 
 	h := &handler{
-		proxyTaskServiceFactory:  dao.NewProxyTaskServiceFactory(),
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),
 		artifactServiceFactory:   dao.NewArtifactServiceFactory(),

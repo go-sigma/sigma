@@ -61,7 +61,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		tag, err := tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
-				return h.getManifestFallbackProxy(c, repository, refs)
+				return h.getManifestFallbackProxy(c, refs)
 			}
 			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
@@ -77,7 +77,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
-			return h.getManifestFallbackProxy(c, repository, refs)
+			return h.getManifestFallbackProxy(c, refs)
 		}
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
@@ -87,7 +87,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 }
 
 // getManifestFallbackProxy ...
-func (h *handler) getManifestFallbackProxy(c echo.Context, repository string, refs Refs) error {
+func (h *handler) getManifestFallbackProxy(c echo.Context, refs Refs) error {
 	statusCode, header, bodyBytes, err := fallbackProxy(c)
 	if err != nil {
 		log.Error().Err(err).Interface("refs", refs).Int("status", statusCode).Msg("Fallback proxy failed")
@@ -96,17 +96,6 @@ func (h *handler) getManifestFallbackProxy(c echo.Context, repository string, re
 	if statusCode == http.StatusOK {
 		c.Response().Header().Set(consts.ContentDigest, header.Get(consts.ContentDigest))
 		c.Response().Header().Set("ETag", header.Get("ETag"))
-		if refs.Tag != "" {
-			err = h.proxyTaskTag(c, repository, refs.Tag, header.Get(echo.HeaderContentType), bodyBytes)
-			if err != nil {
-				log.Error().Err(err).Msg("Create proxy artifact task failed")
-			}
-		} else {
-			err = h.proxyTaskArtifact(c, repository, refs.Digest.String(), header.Get(echo.HeaderContentType), bodyBytes)
-			if err != nil {
-				log.Error().Err(err).Msg("Create proxy artifact task failed")
-			}
-		}
 		return c.Blob(http.StatusOK, header.Get(echo.HeaderContentType), bodyBytes)
 	} else if statusCode == http.StatusNotFound {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
