@@ -25,6 +25,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -54,6 +55,7 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 		ID:          namespace.ID,
 		Name:        namespace.Name,
 		Description: namespace.Description,
+		Quota:       ptr.Of(namespace.Quota.Limit),
 		CreatedAt:   namespace.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:   namespace.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

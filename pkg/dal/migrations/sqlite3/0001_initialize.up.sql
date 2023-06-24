@@ -23,6 +23,18 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
+CREATE TABLE IF NOT EXISTS `namespace_quota` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `namespace_id` integer NOT NULL,
+  `limit` integer NOT NULL DEFAULT 0,
+  `usage` integer NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `namespace_quotas_unique_with_namespace` UNIQUE (`namespace_id`, `deleted_at`)
+);
+
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `name` varchar(64) NOT NULL UNIQUE,
@@ -34,11 +46,24 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
 );
 
+CREATE TABLE IF NOT EXISTS `repository_quota` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `repository_id` integer NOT NULL,
+  `limit` integer NOT NULL DEFAULT 0,
+  `usage` integer NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
+  CONSTRAINT `repository_quotas_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
+);
+
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `repository_id` integer NOT NULL,
   `digest` varchar(256) NOT NULL,
   `size` integer NOT NULL DEFAULT 0,
+  `blobs_size` integer NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

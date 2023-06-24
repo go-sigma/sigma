@@ -17,6 +17,8 @@ package models
 import (
 	"time"
 
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -31,4 +33,25 @@ type Repository struct {
 	Name        string `gorm:"uniqueIndex"`
 
 	Namespace Namespace
+}
+
+// RepositoryQuota ...
+type RepositoryQuota struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	RepositoryID int64
+	Limit        int64 `gorm:"default:0"`
+	Usage        int64 `gorm:"default:0"`
+
+	Repository Repository
+}
+
+func (r *Repository) AfterCreate(tx *gorm.DB) error {
+	if r == nil || r.ID == 0 {
+		return nil
+	}
+	return tx.Model(&RepositoryQuota{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&RepositoryQuota{RepositoryID: r.ID}).Error
 }

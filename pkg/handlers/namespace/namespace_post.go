@@ -15,15 +15,20 @@
 package namespace
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -58,15 +63,40 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
+	_, err = namespaceService.GetByName(ctx, req.Name)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Msg("Get namespace by name failed")
+			return xerrors.HTTPErrCodeInternalError
+		}
+	}
+	if err == nil {
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Namespace already exists")
+	}
+
 	namespace := &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
 		UserID:      user.ID,
 	}
-	err = namespaceService.Create(ctx, namespace)
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		namespaceService := h.namespaceServiceFactory.New(tx)
+		err = namespaceService.Create(ctx, namespace)
+		if err != nil {
+			log.Error().Err(err).Msg("Create namespace failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
+		}
+		if ptr.To(req.Quota) > 0 {
+			err = namespaceService.CreateQuota(ctx, &models.NamespaceQuota{Limit: ptr.To(req.Quota)})
+			if err != nil {
+				log.Error().Err(err).Msg("Create namespace quota failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace quota failed: %v", err))
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		log.Error().Err(err).Msg("Create namespace failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
 	return c.JSON(http.StatusCreated, types.CreateNamespaceResponse{ID: namespace.ID})

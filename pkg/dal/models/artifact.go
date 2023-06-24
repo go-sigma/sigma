@@ -16,8 +16,10 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/ximager/ximager/pkg/types/enums"
@@ -32,7 +34,8 @@ type Artifact struct {
 
 	RepositoryID int64
 	Digest       string
-	Size         int64
+	Size         int64 `gorm:"default:0"`
+	BlobsSize    int64 `gorm:"default:0"`
 	ContentType  string
 	Raw          []byte
 
@@ -45,6 +48,68 @@ type Artifact struct {
 	ArtifactIndexes []*Artifact `gorm:"many2many:artifact_artifacts;"`
 	Blobs           []*Blob     `gorm:"many2many:artifact_blobs;"`
 	Tags            []*Tag      `gorm:"foreignKey:ArtifactID;"`
+}
+
+// AfterCreate ...
+// if something err occurs, the create will be aborted
+func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
+	if a == nil {
+		return nil
+	}
+	var repositoryObj Repository
+	err := tx.Model(&Repository{}).Where(&Repository{ID: a.RepositoryID}).First(&repositoryObj).Error
+	if err != nil {
+		return err
+	}
+	var namespaceQuotaObj NamespaceQuota
+	err = tx.Model(&NamespaceQuota{}).Where(&NamespaceQuota{NamespaceID: repositoryObj.NamespaceID}).First(&namespaceQuotaObj).Error
+	if err != nil {
+		return err
+	}
+	if namespaceQuotaObj.Limit > 0 && namespaceQuotaObj.Usage+a.BlobsSize > namespaceQuotaObj.Limit {
+		return errors.New("namespace quota exceeded")
+	}
+	err = tx.Model(&NamespaceQuota{}).Where(&NamespaceQuota{NamespaceID: repositoryObj.ID}).UpdateColumn("usage", namespaceQuotaObj.Usage+a.BlobsSize).Error
+	if err != nil {
+		return err
+	}
+	var repositoryQuotaObj RepositoryQuota
+	err = tx.Model(&RepositoryQuota{}).Where(&RepositoryQuota{RepositoryID: repositoryObj.ID}).First(&repositoryQuotaObj).Error
+	if err != nil {
+		return err
+	}
+	if repositoryQuotaObj.Limit > 0 && repositoryQuotaObj.Usage+a.BlobsSize > repositoryQuotaObj.Limit {
+		return errors.New("repository quota exceeded")
+	}
+	err = tx.Model(&RepositoryQuota{}).Where(&RepositoryQuota{RepositoryID: repositoryObj.ID}).UpdateColumn("usage", repositoryQuotaObj.Usage+a.BlobsSize).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// BeforeDelete ...
+// if something err occurs, the delete will be aborted
+func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
+	if a == nil {
+		return nil
+	}
+	if a.DeletedAt != 0 {
+		var repositoryObj Repository
+		err := tx.Model(&Repository{}).Where("id = ?", a.RepositoryID).First(&repositoryObj).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Model(&NamespaceQuota{}).Where("namespace_id = ?", repositoryObj.NamespaceID).Update("usage", gorm.Expr("usage - ?", a.BlobsSize)).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Model(&RepositoryQuota{}).Where("repository_id = ?", a.RepositoryID).Update("usage", gorm.Expr("usage + ?", a.BlobsSize)).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ArtifactSbom represents an artifact sbom

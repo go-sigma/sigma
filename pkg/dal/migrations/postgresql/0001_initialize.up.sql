@@ -28,6 +28,18 @@ CREATE TABLE IF NOT EXISTS "namespaces" (
   CONSTRAINT "namespaces_unique_with_name" UNIQUE ("name", "deleted_at")
 );
 
+CREATE TABLE IF NOT EXISTS "namespace_quota" (
+  "id" bigserial PRIMARY KEY,
+  "namespace_id" bigserial NOT NULL,
+  "limit" bigint NOT NULL DEFAULT 0,
+  "usage" bigint NOT NULL DEFAULT 0,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
+  CONSTRAINT "namespace_quotas_unique_with_namespace" UNIQUE ("namespace_id", "deleted_at")
+);
+
 CREATE TABLE IF NOT EXISTS "repositories" (
   "id" bigserial PRIMARY KEY,
   "name" varchar(64) NOT NULL UNIQUE,
@@ -39,11 +51,24 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   CONSTRAINT "repositories_unique_with_namespace" UNIQUE ("namespace_id", "name", "deleted_at")
 );
 
+CREATE TABLE IF NOT EXISTS "repository_quota" (
+  "id" bigserial PRIMARY KEY,
+  "repository_id" bigserial NOT NULL,
+  "limit" bigint NOT NULL DEFAULT 0,
+  "usage" bigint NOT NULL DEFAULT 0,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
+  CONSTRAINT "repository_quotas_unique_with_repository" UNIQUE ("repository_id", "deleted_at")
+);
+
 CREATE TABLE IF NOT EXISTS "artifacts" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigserial NOT NULL,
   "digest" varchar(256) NOT NULL,
   "size" bigint NOT NULL DEFAULT 0,
+  "blobs_size" bigint NOT NULL DEFAULT 0,
   "content_type" varchar(256) NOT NULL,
   "raw" bytea NOT NULL,
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

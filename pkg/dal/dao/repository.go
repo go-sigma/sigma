@@ -90,8 +90,7 @@ func (s *repositoryService) Create(ctx context.Context, repository *models.Repos
 	if err != nil {
 		return err
 	}
-	rRepository, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID),
-		s.tx.Repository.Name.Eq(repository.Name)).First()
+	rRepository, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(repository.Name), s.tx.Repository.NamespaceID.Eq(nsObj.ID)).First()
 	if err != nil {
 		return err
 	}

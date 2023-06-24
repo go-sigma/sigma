@@ -65,6 +65,20 @@ func (mr *MockNamespaceServiceMockRecorder) Create(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNamespaceService)(nil).Create), arg0, arg1)
 }
 
+// CreateQuota mocks base method.
+func (m *MockNamespaceService) CreateQuota(arg0 context.Context, arg1 *models.NamespaceQuota) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateQuota", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateQuota indicates an expected call of CreateQuota.
+func (mr *MockNamespaceServiceMockRecorder) CreateQuota(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQuota", reflect.TypeOf((*MockNamespaceService)(nil).CreateQuota), arg0, arg1)
+}
+
 // DeleteByID mocks base method.
 func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -136,4 +150,18 @@ func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 int64, arg2
 func (mr *MockNamespaceServiceMockRecorder) UpdateByID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockNamespaceService)(nil).UpdateByID), arg0, arg1, arg2)
+}
+
+// UpdateQuota mocks base method.
+func (m *MockNamespaceService) UpdateQuota(arg0 context.Context, arg1, arg2 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateQuota", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateQuota indicates an expected call of UpdateQuota.
+func (mr *MockNamespaceServiceMockRecorder) UpdateQuota(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuota", reflect.TypeOf((*MockNamespaceService)(nil).UpdateQuota), arg0, arg1, arg2)
 }

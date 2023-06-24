@@ -26,6 +26,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"
@@ -110,10 +111,14 @@ func TestPostNamespace(t *testing.T) {
 		return fmt.Errorf("test")
 	}).Times(1)
 
+	daoMockNamespaceService.EXPECT().GetByName(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.Namespace, error) {
+		return nil, gorm.ErrRecordNotFound
+	}).Times(1)
+
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
-	}).Times(1)
+	}).Times(2)
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 
@@ -125,4 +130,5 @@ func TestPostNamespace(t *testing.T) {
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+	fmt.Println(rec.Body.String())
 }

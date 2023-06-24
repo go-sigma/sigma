@@ -20,6 +20,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
+
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 // ErrCode provides relevant information about a given error code.
@@ -45,6 +47,12 @@ type ErrCode struct {
 // Error ...
 func (e ErrCode) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Title)
+}
+
+// Detail ...
+func (e *ErrCode) Detail(desc string) ErrCode {
+	e.Description = desc
+	return ptr.To(e)
 }
 
 var _ error = ErrCode{}

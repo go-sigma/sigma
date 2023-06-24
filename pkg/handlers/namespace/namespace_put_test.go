@@ -115,11 +115,14 @@ func TestPutNamespace(t *testing.T) {
 	daoMockNamespaceService.EXPECT().UpdateByID(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ types.PutNamespaceRequest) error {
 		return fmt.Errorf("test")
 	}).Times(1)
+	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
+		return &models.Namespace{Name: "test", Quota: models.NamespaceQuota{Limit: 100}}, nil
+	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
-	}).Times(1)
+	}).Times(2)
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 

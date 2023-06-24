@@ -34,6 +34,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
 	_artifact.Size = field.NewInt64(tableName, "size")
+	_artifact.BlobsSize = field.NewInt64(tableName, "blobs_size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
 	_artifact.Raw = field.NewBytes(tableName, "raw")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
@@ -50,6 +51,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				User struct {
 					field.RelationField
 				}
+				Quota struct {
+					field.RelationField
+				}
 			}
 		}{
 			RelationField: field.NewRelation("Tags.Repository", "models.Repository"),
@@ -58,12 +62,20 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				User struct {
 					field.RelationField
 				}
+				Quota struct {
+					field.RelationField
+				}
 			}{
 				RelationField: field.NewRelation("Tags.Repository.Namespace", "models.Namespace"),
 				User: struct {
 					field.RelationField
 				}{
 					RelationField: field.NewRelation("Tags.Repository.Namespace.User", "models.User"),
+				},
+				Quota: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Tags.Repository.Namespace.Quota", "models.NamespaceQuota"),
 				},
 			},
 		},
@@ -151,6 +163,7 @@ type artifact struct {
 	RepositoryID field.Int64
 	Digest       field.String
 	Size         field.Int64
+	BlobsSize    field.Int64
 	ContentType  field.String
 	Raw          field.Bytes
 	LastPull     field.Field
@@ -186,6 +199,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.RepositoryID = field.NewInt64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
 	a.Size = field.NewInt64(table, "size")
+	a.BlobsSize = field.NewInt64(table, "blobs_size")
 	a.ContentType = field.NewString(table, "content_type")
 	a.Raw = field.NewBytes(table, "raw")
 	a.LastPull = field.NewField(table, "last_pull")
@@ -213,7 +227,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 16)
+	a.fieldMap = make(map[string]field.Expr, 17)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -221,6 +235,7 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["repository_id"] = a.RepositoryID
 	a.fieldMap["digest"] = a.Digest
 	a.fieldMap["size"] = a.Size
+	a.fieldMap["blobs_size"] = a.BlobsSize
 	a.fieldMap["content_type"] = a.ContentType
 	a.fieldMap["raw"] = a.Raw
 	a.fieldMap["last_pull"] = a.LastPull
@@ -249,6 +264,9 @@ type artifactHasManyTags struct {
 		Namespace struct {
 			field.RelationField
 			User struct {
+				field.RelationField
+			}
+			Quota struct {
 				field.RelationField
 			}
 		}
