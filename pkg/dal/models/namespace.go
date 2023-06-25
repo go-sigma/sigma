@@ -17,6 +17,8 @@ package models
 import (
 	"time"
 
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -31,5 +33,25 @@ type Namespace struct {
 	Description *string
 	UserID      int64
 
-	User User `gorm:"foreignKey:UserID"`
+	User  User           `gorm:"foreignKey:UserID"`
+	Quota NamespaceQuota `gorm:"foreignKey:NamespaceID"`
+}
+
+// NamespaceQuota ...
+type NamespaceQuota struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID int64
+	Limit       int64 `gorm:"default:0"`
+	Usage       int64 `gorm:"default:0"`
+}
+
+func (n *Namespace) AfterCreate(tx *gorm.DB) error {
+	if n == nil || n.ID == 0 {
+		return nil
+	}
+	return tx.Model(&NamespaceQuota{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&NamespaceQuota{NamespaceID: n.ID}).Error
 }

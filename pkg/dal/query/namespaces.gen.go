@@ -34,6 +34,12 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
 	_namespace.UserID = field.NewInt64(tableName, "user_id")
+	_namespace.Quota = namespaceHasOneQuota{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Quota", "models.NamespaceQuota"),
+	}
+
 	_namespace.User = namespaceBelongsToUser{
 		db: db.Session(&gorm.Session{}),
 
@@ -56,7 +62,9 @@ type namespace struct {
 	Name        field.String
 	Description field.String
 	UserID      field.Int64
-	User        namespaceBelongsToUser
+	Quota       namespaceHasOneQuota
+
+	User namespaceBelongsToUser
 
 	fieldMap map[string]field.Expr
 }
@@ -104,7 +112,7 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 8)
+	n.fieldMap = make(map[string]field.Expr, 9)
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
@@ -123,6 +131,77 @@ func (n namespace) clone(db *gorm.DB) namespace {
 func (n namespace) replaceDB(db *gorm.DB) namespace {
 	n.namespaceDo.ReplaceDB(db)
 	return n
+}
+
+type namespaceHasOneQuota struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a namespaceHasOneQuota) Where(conds ...field.Expr) *namespaceHasOneQuota {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a namespaceHasOneQuota) WithContext(ctx context.Context) *namespaceHasOneQuota {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a namespaceHasOneQuota) Session(session *gorm.Session) *namespaceHasOneQuota {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a namespaceHasOneQuota) Model(m *models.Namespace) *namespaceHasOneQuotaTx {
+	return &namespaceHasOneQuotaTx{a.db.Model(m).Association(a.Name())}
+}
+
+type namespaceHasOneQuotaTx struct{ tx *gorm.Association }
+
+func (a namespaceHasOneQuotaTx) Find() (result *models.NamespaceQuota, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a namespaceHasOneQuotaTx) Append(values ...*models.NamespaceQuota) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a namespaceHasOneQuotaTx) Replace(values ...*models.NamespaceQuota) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a namespaceHasOneQuotaTx) Delete(values ...*models.NamespaceQuota) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a namespaceHasOneQuotaTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a namespaceHasOneQuotaTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type namespaceBelongsToUser struct {

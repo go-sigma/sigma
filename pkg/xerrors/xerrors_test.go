@@ -33,4 +33,7 @@ func TestNewHTTPError(t *testing.T) {
 	c := e.NewContext(req, rec)
 	err := NewHTTPError(c, HTTPErrCodeBadRequest, "Bad Request")
 	assert.NoError(t, err)
+
+	e1 := HTTPErrCodeBadRequest.Detail("Bad Request")
+	assert.Equal(t, e1.Description, "Bad Request")
 }

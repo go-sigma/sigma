@@ -16,6 +16,7 @@ package manifest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -87,15 +88,20 @@ func (h *handler) PutManifest(c echo.Context) error {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
 	}
+	var blobsSize int64
 	var digests = make([]string, 0, len(manifest.References())+1)
 	for _, reference := range manifest.References() {
 		digests = append(digests, reference.Digest.String())
+		blobsSize += reference.Size
 	}
+
+	fmt.Printf("98: %+v\n", repositoryObj)
 
 	artifactObj := &models.Artifact{
 		RepositoryID: repositoryObj.ID,
 		Digest:       refs.Digest.String(),
 		Size:         size,
+		BlobsSize:    blobsSize,
 		ContentType:  contentType,
 		Raw:          bodyBytes,
 	}

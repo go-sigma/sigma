@@ -23,6 +23,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -58,6 +59,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 			ID:          ns.ID,
 			Name:        ns.Name,
 			Description: ns.Description,
+			Quota:       ptr.Of(ns.Quota.Limit),
 			CreatedAt:   ns.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:   ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

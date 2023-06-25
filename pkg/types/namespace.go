@@ -17,8 +17,9 @@ package types
 // NamespaceItem represents a namespace.
 type NamespaceItem struct {
 	ID          int64   `json:"id"`
-	Name        string  `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
-	Description *string `json:"description" validate:"max=30"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Quota       *int64  `json:"quota"`
 
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -41,7 +42,8 @@ type ListNamespaceResponse struct {
 // CreateNamespaceRequest represents the request to create a namespace.
 type CreateNamespaceRequest struct {
 	Name        string  `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
-	Description *string `json:"description" validate:"max=30"`
+	Description *string `json:"description,omitempty" validate:"max=30"`
+	Quota       *int64  `json:"quota,omitempty" validate:"omitempty,numeric"`
 }
 
 // CreateNamespaceResponse represents the response to create a namespace.
@@ -59,6 +61,7 @@ type GetNamespaceResponse struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
+	Quota       *int64  `json:"quota"`
 
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -73,5 +76,6 @@ type DeleteNamespaceRequest struct {
 type PutNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number"`
 
-	Description *string `json:"description" validate:"max=30,min=2"`
+	Quota       *int64  `json:"quota,omitempty" validate:"omitempty,numeric"`
+	Description *string `json:"description,omitempty" validate:"omitempty,min=2,max=30"`
 }

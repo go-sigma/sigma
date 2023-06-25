@@ -29,7 +29,9 @@ func main() {
 
 	g.ApplyBasic(
 		models.Namespace{},
+		models.NamespaceQuota{},
 		models.Repository{},
+		models.RepositoryQuota{},
 		models.Artifact{},
 		models.ArtifactSbom{},
 		models.ArtifactVulnerability{},

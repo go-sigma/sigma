@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -33,6 +34,10 @@ import (
 type NamespaceService interface {
 	// Create creates a new namespace.
 	Create(ctx context.Context, namespace *models.Namespace) error
+	// CreateQuota creates a new namespace quota.
+	CreateQuota(ctx context.Context, namespaceQuota *models.NamespaceQuota) error
+	// UpdateQuota updates the namespace quota.
+	UpdateQuota(ctx context.Context, namespaceID, limit int64) error
 	// Get gets the namespace with the specified namespace ID.
 	Get(ctx context.Context, id int64) (*models.Namespace, error)
 	// GetByName gets the namespace with the specified namespace name.
@@ -79,18 +84,28 @@ func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Name
 	return s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
 }
 
+// CreateQuota creates a new namespace quota.
+func (s *namespaceService) CreateQuota(ctx context.Context, namespaceQuota *models.NamespaceQuota) error {
+	return s.tx.NamespaceQuota.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(namespaceQuota)
+}
+
+// UpdateQuota updates the namespace quota.
+func (s *namespaceService) UpdateQuota(ctx context.Context, namespaceID, limit int64) error {
+	result, err := s.tx.NamespaceQuota.WithContext(ctx).Where(s.tx.NamespaceQuota.NamespaceID.Eq(namespaceID)).Update(s.tx.NamespaceQuota.Limit, limit)
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return err
+}
+
 // Get gets the namespace with the specified namespace ID.
 func (s *namespaceService) Get(ctx context.Context, id int64) (*models.Namespace, error) {
-	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).First()
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Preload(s.tx.Namespace.Quota).First()
 }
 
 // GetByName gets the namespace with the specified namespace name.
 func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.Namespace, error) {
-	ns, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(name)).First()
-	if err != nil {
-		return nil, err
-	}
-	return ns, nil
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(name)).First()
 }
 
 // ListNamespace lists all namespaces.
@@ -99,6 +114,7 @@ func (s *namespaceService) ListNamespace(ctx context.Context, req types.ListName
 	if req.Name != nil {
 		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
 	}
+	query.Preload(s.tx.Namespace.Quota)
 	return query.Find()
 }
 

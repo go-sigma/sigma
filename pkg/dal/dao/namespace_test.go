@@ -62,7 +62,7 @@ func TestNamespaceService(t *testing.T) {
 	userServiceFactory := NewUserServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Username: "namespace-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
@@ -115,6 +115,56 @@ func TestNamespaceService(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = namespaceService.DeleteByID(ctx, 10)
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+
+		return nil
+	})
+	assert.NoError(t, err)
+}
+
+func TestNamespaceServiceQuota(t *testing.T) {
+	viper.SetDefault("log.level", "debug")
+	logger.SetLevel("debug")
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	namespaceServiceFactory := NewNamespaceServiceFactory()
+	userServiceFactory := NewUserServiceFactory()
+
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		userService := userServiceFactory.New(tx)
+		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		err = userService.Create(ctx, userObj)
+		assert.NoError(t, err)
+
+		namespaceService := namespaceServiceFactory.New(tx)
+
+		namespaceObj := &models.Namespace{
+			Name:   "test",
+			UserID: userObj.ID,
+		}
+		err := namespaceService.Create(ctx, namespaceObj)
+		assert.NoError(t, err)
+
+		err = namespaceService.CreateQuota(ctx, &models.NamespaceQuota{NamespaceID: namespaceObj.ID, Limit: 10})
+		assert.NoError(t, err)
+
+		err = namespaceService.UpdateQuota(ctx, namespaceObj.ID, 100)
+		assert.NoError(t, err)
+
+		err = namespaceService.UpdateQuota(ctx, 10, 100)
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		return nil

@@ -16,14 +16,17 @@ package namespace
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -39,14 +42,48 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	err = namespaceService.UpdateByID(ctx, req.ID, req)
+	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Delete namespace from db failed")
+			log.Error().Err(err).Msg("Namespace not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
 		}
-		log.Error().Err(err).Msg("Delete namespace from db failed")
+		log.Error().Err(err).Msg("Find namespace failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
+	if req.Quota != nil && namespaceObj.Quota.Limit > ptr.To(req.Quota) {
+		log.Error().Err(err).Msg("Namespace quota is less than the before limit")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
+	}
+
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		namespaceService := h.namespaceServiceFactory.New(tx)
+		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, req)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Msg("Update namespace failed")
+				return xerrors.HTTPErrCodeNotFound.Detail("Namespace not found")
+			}
+			log.Error().Err(err).Msg("Update namespace failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace failed: %v", err))
+		}
+
+		if req.Quota != nil {
+			err = namespaceService.UpdateQuota(ctx, namespaceObj.ID, ptr.To(req.Quota))
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Error().Err(err).Msg("Namespace quota not found")
+					return xerrors.HTTPErrCodeNotFound.Detail("Namespace quota not found")
+				}
+				log.Error().Err(err).Msg("Update namespace quota failed")
+				return xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Update namespace quota failed: %v", err))
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
