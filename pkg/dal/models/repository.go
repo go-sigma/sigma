@@ -20,6 +20,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // Repository represents a repository
@@ -31,6 +33,7 @@ type Repository struct {
 
 	NamespaceID int64
 	Name        string `gorm:"uniqueIndex"`
+	Visibility  *enums.Visibility
 
 	Namespace Namespace
 }

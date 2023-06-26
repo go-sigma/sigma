@@ -39,3 +39,9 @@ type Database string
 // Gc
 // )
 type Daemon string
+
+// Visibility x ENUM(
+// private,
+// public,
+// )
+type Visibility string

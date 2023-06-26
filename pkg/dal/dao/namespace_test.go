@@ -29,6 +29,7 @@ import (
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
@@ -69,8 +70,9 @@ func TestNamespaceService(t *testing.T) {
 		namespaceService := f.New(tx)
 
 		namespaceObj := &models.Namespace{
-			Name:   "test",
-			UserID: userObj.ID,
+			Name:       "test",
+			UserID:     userObj.ID,
+			Visibility: ptr.Of(enums.VisibilityPrivate),
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
@@ -152,8 +154,9 @@ func TestNamespaceServiceQuota(t *testing.T) {
 		namespaceService := namespaceServiceFactory.New(tx)
 
 		namespaceObj := &models.Namespace{
-			Name:   "test",
-			UserID: userObj.ID,
+			Name:       "test",
+			UserID:     userObj.ID,
+			Visibility: ptr.Of(enums.VisibilityPrivate),
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
