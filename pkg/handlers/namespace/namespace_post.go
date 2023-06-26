@@ -27,6 +27,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
@@ -78,6 +79,7 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 		Name:        req.Name,
 		Description: req.Description,
 		UserID:      user.ID,
+		Visibility:  ptr.Of(enums.VisibilityPrivate),
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := h.namespaceServiceFactory.New(tx)

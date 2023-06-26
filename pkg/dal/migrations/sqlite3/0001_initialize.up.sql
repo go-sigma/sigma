@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `description` varchar(256),
   `user_id` integer NOT NULL,
   `quota` integer,
-  `visibility` text CHECK (`visibility` IN ('public', 'private')),
+  `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `namespace_quota` (
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `name` varchar(64) NOT NULL UNIQUE,
+  `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
   `namespace_id` integer NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,

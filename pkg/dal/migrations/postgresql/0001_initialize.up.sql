@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS "namespaces" (
   "description" varchar(256),
   "user_id" bigserial NOT NULL,
   "quota" bigint,
-  "visibility" visibility,
+  "visibility" visibility NOT NULL DEFAULT 'private',
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS "namespace_quota" (
 CREATE TABLE IF NOT EXISTS "repositories" (
   "id" bigserial PRIMARY KEY,
   "name" varchar(64) NOT NULL UNIQUE,
+  "visibility" visibility NOT NULL DEFAULT 'private',
   "namespace_id" bigserial NOT NULL,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,

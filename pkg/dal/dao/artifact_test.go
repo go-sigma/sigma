@@ -31,6 +31,7 @@ import (
 	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func TestArtifactServiceFactory(t *testing.T) {
@@ -71,12 +72,12 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		return nil
@@ -141,12 +142,12 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 
@@ -268,12 +269,12 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test1", UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: "test1", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID}
+		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 

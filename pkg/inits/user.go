@@ -23,7 +23,9 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils/password"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func init() {
@@ -96,8 +98,9 @@ func initUser() error {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	namespaceService := namespaceServiceFactory.New()
 	err = namespaceService.Create(ctx, &models.Namespace{
-		Name:   "library",
-		UserID: adminUser.ID,
+		Name:       "library",
+		UserID:     adminUser.ID,
+		Visibility: ptr.Of(enums.VisibilityPrivate),
 	})
 	if err != nil {
 		return err

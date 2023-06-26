@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `description` varchar(256),
   `user_id` bigint NOT NULL,
   `quota` bigint,
-  `visibility` ENUM ('public', 'private'),
+  `visibility` ENUM ('public', 'private') NOT NULL DEFAULT 'private',
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS `namespace_quota` (
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL UNIQUE,
+  `visibility` ENUM ('public', 'private') NOT NULL DEFAULT 'private',
   `namespace_id` bigint NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,

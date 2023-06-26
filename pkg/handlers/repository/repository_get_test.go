@@ -35,6 +35,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
@@ -74,14 +76,14 @@ func TestGetRepository(t *testing.T) {
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err := namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			return err
 		}
 
 		repositoryService := repositoryFactory.New(tx)
-		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName}
+		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		if err != nil {
 			return err

@@ -20,6 +20,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // Namespace represents a namespace
@@ -31,6 +33,7 @@ type Namespace struct {
 
 	Name        string `gorm:"uniqueIndex"`
 	Description *string
+	Visibility  *enums.Visibility
 	UserID      int64
 
 	User  User           `gorm:"foreignKey:UserID"`

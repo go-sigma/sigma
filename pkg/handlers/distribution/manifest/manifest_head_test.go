@@ -31,6 +31,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func TestHeadManifestFallbackProxy(t *testing.T) {
@@ -130,13 +132,13 @@ func TestHeadManifest(t *testing.T) {
 
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	namespaceService := namespaceServiceFactory.New()
-	namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID}
+	namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 	err = namespaceService.Create(ctx, namespaceObj)
 	assert.NoError(t, err)
 
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	repositoryService := repositoryServiceFactory.New()
-	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName}
+	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: ptr.Of(enums.VisibilityPrivate)}
 	err = repositoryService.Create(ctx, repositoryObj)
 	assert.NoError(t, err)
 

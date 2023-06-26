@@ -31,6 +31,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
@@ -66,13 +68,13 @@ func TestListTags(t *testing.T) {
 		assert.NoError(t, err)
 		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
 		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
+		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		artifactServiceFactory := dao.NewArtifactServiceFactory()

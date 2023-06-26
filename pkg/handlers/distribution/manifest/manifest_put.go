@@ -16,7 +16,6 @@ package manifest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -70,7 +69,8 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{
-		Name: repository,
+		Name:       repository,
+		Visibility: ptr.Of(enums.VisibilityPrivate),
 	}
 	err = repositoryService.Create(ctx, repositoryObj)
 	if err != nil {
@@ -94,8 +94,6 @@ func (h *handler) PutManifest(c echo.Context) error {
 		digests = append(digests, reference.Digest.String())
 		blobsSize += reference.Size
 	}
-
-	fmt.Printf("98: %+v\n", repositoryObj)
 
 	artifactObj := &models.Artifact{
 		RepositoryID: repositoryObj.ID,

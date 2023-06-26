@@ -278,3 +278,86 @@ func (x *TaskCommonStatus) Scan(value interface{}) (err error) {
 func (x TaskCommonStatus) Value() (driver.Value, error) {
 	return x.String(), nil
 }
+
+const (
+	// VisibilityPrivate is a Visibility of type private.
+	VisibilityPrivate Visibility = "private"
+	// VisibilityPublic is a Visibility of type public.
+	VisibilityPublic Visibility = "public"
+)
+
+var ErrInvalidVisibility = errors.New("not a valid Visibility")
+
+// String implements the Stringer interface.
+func (x Visibility) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x Visibility) IsValid() bool {
+	_, err := ParseVisibility(string(x))
+	return err == nil
+}
+
+var _VisibilityValue = map[string]Visibility{
+	"private": VisibilityPrivate,
+	"public":  VisibilityPublic,
+}
+
+// ParseVisibility attempts to convert a string to a Visibility.
+func ParseVisibility(name string) (Visibility, error) {
+	if x, ok := _VisibilityValue[name]; ok {
+		return x, nil
+	}
+	return Visibility(""), fmt.Errorf("%s is %w", name, ErrInvalidVisibility)
+}
+
+// MustParseVisibility converts a string to a Visibility, and panics if is not valid.
+func MustParseVisibility(name string) Visibility {
+	val, err := ParseVisibility(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errVisibilityNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *Visibility) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = Visibility("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseVisibility(v)
+	case []byte:
+		*x, err = ParseVisibility(string(v))
+	case Visibility:
+		*x = v
+	case *Visibility:
+		if v == nil {
+			return errVisibilityNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errVisibilityNilPtr
+		}
+		*x, err = ParseVisibility(*v)
+	default:
+		return errors.New("invalid type for Visibility")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x Visibility) Value() (driver.Value, error) {
+	return x.String(), nil
+}

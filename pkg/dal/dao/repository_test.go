@@ -29,6 +29,8 @@ import (
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func TestRepositoryServiceFactory(t *testing.T) {
@@ -68,19 +70,19 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 
-		namespaceObj1 := &models.Namespace{Name: "test1", UserID: userObj.ID}
+		namespaceObj1 := &models.Namespace{Name: "test1", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
 		err = namespaceService.Create(ctx, namespaceObj1)
 		assert.NoError(t, err)
-		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox"})
+		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: ptr.Of(enums.VisibilityPrivate)})
 		assert.NoError(t, err)
 
 		count1, err := repositoryService.CountRepository(ctx, types.ListRepositoryRequest{
