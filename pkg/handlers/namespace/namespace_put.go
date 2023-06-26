@@ -52,38 +52,25 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	if req.Quota != nil && namespaceObj.Quota.Limit > ptr.To(req.Quota) {
+	if req.Limit != nil && namespaceObj.Limit > ptr.To(req.Limit) {
 		log.Error().Err(err).Msg("Namespace quota is less than the before limit")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
 	}
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceService := h.namespaceServiceFactory.New(tx)
-		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, req)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Msg("Update namespace failed")
-				return xerrors.HTTPErrCodeNotFound.Detail("Namespace not found")
-			}
-			log.Error().Err(err).Msg("Update namespace failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace failed: %v", err))
-		}
-
-		if req.Quota != nil {
-			err = namespaceService.UpdateQuota(ctx, namespaceObj.ID, ptr.To(req.Quota))
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					log.Error().Err(err).Msg("Namespace quota not found")
-					return xerrors.HTTPErrCodeNotFound.Detail("Namespace quota not found")
-				}
-				log.Error().Err(err).Msg("Update namespace quota failed")
-				return xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Update namespace quota failed: %v", err))
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+	updates := make(map[string]interface{}, 5)
+	if req.Limit != nil {
+		updates[query.Namespace.Limit.ColumnName().String()] = ptr.To(req.Limit)
 	}
+	if req.Description != nil {
+		updates[query.Namespace.Description.ColumnName().String()] = ptr.To(req.Description)
+	}
+	if len(updates) > 0 {
+		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, updates)
+		if err != nil {
+			log.Error().Err(err).Msg("Update namespace failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update namespace failed: %v", err))
+		}
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }

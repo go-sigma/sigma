@@ -33,13 +33,10 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.ID = field.NewInt64(tableName, "id")
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
+	_namespace.Visibility = field.NewField(tableName, "visibility")
+	_namespace.Limit = field.NewInt64(tableName, "limit")
+	_namespace.Usage = field.NewInt64(tableName, "usage")
 	_namespace.UserID = field.NewInt64(tableName, "user_id")
-	_namespace.Quota = namespaceHasOneQuota{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Quota", "models.NamespaceQuota"),
-	}
-
 	_namespace.User = namespaceBelongsToUser{
 		db: db.Session(&gorm.Session{}),
 
@@ -61,10 +58,11 @@ type namespace struct {
 	ID          field.Int64
 	Name        field.String
 	Description field.String
+	Visibility  field.Field
+	Limit       field.Int64
+	Usage       field.Int64
 	UserID      field.Int64
-	Quota       namespaceHasOneQuota
-
-	User namespaceBelongsToUser
+	User        namespaceBelongsToUser
 
 	fieldMap map[string]field.Expr
 }
@@ -87,6 +85,9 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.ID = field.NewInt64(table, "id")
 	n.Name = field.NewString(table, "name")
 	n.Description = field.NewString(table, "description")
+	n.Visibility = field.NewField(table, "visibility")
+	n.Limit = field.NewInt64(table, "limit")
+	n.Usage = field.NewInt64(table, "usage")
 	n.UserID = field.NewInt64(table, "user_id")
 
 	n.fillFieldMap()
@@ -112,13 +113,16 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 9)
+	n.fieldMap = make(map[string]field.Expr, 11)
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["name"] = n.Name
 	n.fieldMap["description"] = n.Description
+	n.fieldMap["visibility"] = n.Visibility
+	n.fieldMap["limit"] = n.Limit
+	n.fieldMap["usage"] = n.Usage
 	n.fieldMap["user_id"] = n.UserID
 
 }
@@ -131,77 +135,6 @@ func (n namespace) clone(db *gorm.DB) namespace {
 func (n namespace) replaceDB(db *gorm.DB) namespace {
 	n.namespaceDo.ReplaceDB(db)
 	return n
-}
-
-type namespaceHasOneQuota struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a namespaceHasOneQuota) Where(conds ...field.Expr) *namespaceHasOneQuota {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a namespaceHasOneQuota) WithContext(ctx context.Context) *namespaceHasOneQuota {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a namespaceHasOneQuota) Session(session *gorm.Session) *namespaceHasOneQuota {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a namespaceHasOneQuota) Model(m *models.Namespace) *namespaceHasOneQuotaTx {
-	return &namespaceHasOneQuotaTx{a.db.Model(m).Association(a.Name())}
-}
-
-type namespaceHasOneQuotaTx struct{ tx *gorm.Association }
-
-func (a namespaceHasOneQuotaTx) Find() (result *models.NamespaceQuota, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a namespaceHasOneQuotaTx) Append(values ...*models.NamespaceQuota) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a namespaceHasOneQuotaTx) Replace(values ...*models.NamespaceQuota) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a namespaceHasOneQuotaTx) Delete(values ...*models.NamespaceQuota) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a namespaceHasOneQuotaTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a namespaceHasOneQuotaTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type namespaceBelongsToUser struct {

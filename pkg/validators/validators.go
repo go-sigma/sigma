@@ -24,6 +24,7 @@ import (
 	"github.com/opencontainers/go-digest"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 const (
@@ -61,6 +62,7 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_repository", ValidateRepository) // nolint:errcheck
 	v.RegisterValidation("is_valid_digest", ValidateDigest)         // nolint:errcheck
 	v.RegisterValidation("is_valid_tag", ValidateTag)               // nolint:errcheck
+	v.RegisterValidation("is_valid_visibility", ValidateVisibility) // nolint:errcheck
 }
 
 // ValidateRepository validates the repository name
@@ -85,4 +87,11 @@ func ValidateNamespace(field validator.FieldLevel) bool {
 // ValidateTag validates the tag
 func ValidateTag(field validator.FieldLevel) bool {
 	return consts.TagRegexp.MatchString(field.Field().String())
+}
+
+// ValidateVisibility validates the visibility
+func ValidateVisibility(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseVisibility(v)
+	return err == nil
 }

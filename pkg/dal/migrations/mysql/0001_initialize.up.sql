@@ -16,8 +16,9 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `name` varchar(64) NOT NULL,
   `description` varchar(256),
   `user_id` bigint NOT NULL,
-  `quota` bigint,
   `visibility` ENUM ('public', 'private') NOT NULL DEFAULT 'private',
+  `limit` bigint NOT NULL DEFAULT 0,
+  `usage` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -25,40 +26,18 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `namespace_quota` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
-  `namespace_id` bigint NOT NULL,
-  `limit` bigint NOT NULL DEFAULT 0,
-  `usage` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `namespace_quotas_unique_with_namespace` UNIQUE (`namespace_id`, `deleted_at`)
-);
-
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(64) NOT NULL UNIQUE,
   `visibility` ENUM ('public', 'private') NOT NULL DEFAULT 'private',
+  `limit` bigint NOT NULL DEFAULT 0,
+  `usage` bigint NOT NULL DEFAULT 0,
   `namespace_id` bigint NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
-);
-
-CREATE TABLE IF NOT EXISTS `repository_quota` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
-  `repository_id` bigint NOT NULL,
-  `limit` bigint NOT NULL DEFAULT 0,
-  `usage` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
-  CONSTRAINT `repository_quotas_unique_with_repo` UNIQUE (`repository_id`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifacts` (

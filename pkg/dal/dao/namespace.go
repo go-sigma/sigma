@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
@@ -34,8 +33,6 @@ import (
 type NamespaceService interface {
 	// Create creates a new namespace.
 	Create(ctx context.Context, namespace *models.Namespace) error
-	// CreateQuota creates a new namespace quota.
-	CreateQuota(ctx context.Context, namespaceQuota *models.NamespaceQuota) error
 	// UpdateQuota updates the namespace quota.
 	UpdateQuota(ctx context.Context, namespaceID, limit int64) error
 	// Get gets the namespace with the specified namespace ID.
@@ -49,7 +46,7 @@ type NamespaceService interface {
 	// DeleteByID deletes the namespace with the specified namespace ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// UpdateByID updates the namespace with the specified namespace ID.
-	UpdateByID(ctx context.Context, id int64, req types.PutNamespaceRequest) error
+	UpdateByID(ctx context.Context, id int64, req map[string]interface{}) error
 }
 
 type namespaceService struct {
@@ -84,14 +81,9 @@ func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Name
 	return s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
 }
 
-// CreateQuota creates a new namespace quota.
-func (s *namespaceService) CreateQuota(ctx context.Context, namespaceQuota *models.NamespaceQuota) error {
-	return s.tx.NamespaceQuota.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(namespaceQuota)
-}
-
 // UpdateQuota updates the namespace quota.
 func (s *namespaceService) UpdateQuota(ctx context.Context, namespaceID, limit int64) error {
-	result, err := s.tx.NamespaceQuota.WithContext(ctx).Where(s.tx.NamespaceQuota.NamespaceID.Eq(namespaceID)).Update(s.tx.NamespaceQuota.Limit, limit)
+	result, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(namespaceID)).Update(s.tx.Namespace.Limit, limit)
 	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
@@ -100,7 +92,7 @@ func (s *namespaceService) UpdateQuota(ctx context.Context, namespaceID, limit i
 
 // Get gets the namespace with the specified namespace ID.
 func (s *namespaceService) Get(ctx context.Context, id int64) (*models.Namespace, error) {
-	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Preload(s.tx.Namespace.Quota).First()
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).First()
 }
 
 // GetByName gets the namespace with the specified namespace name.
@@ -114,7 +106,6 @@ func (s *namespaceService) ListNamespace(ctx context.Context, req types.ListName
 	if req.Name != nil {
 		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
 	}
-	query.Preload(s.tx.Namespace.Quota)
 	return query.Find()
 }
 
@@ -140,14 +131,8 @@ func (s *namespaceService) DeleteByID(ctx context.Context, id int64) error {
 }
 
 // UpdateByID updates the namespace with the specified namespace ID.
-func (s *namespaceService) UpdateByID(ctx context.Context, id int64, req types.PutNamespaceRequest) error {
-	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id))
-
-	var update = make(map[string]interface{})
-	if req.Description != nil {
-		update[string(s.tx.Namespace.Description.ColumnName())] = ptr.To(req.Description)
-	}
-	matched, err := query.Updates(update)
+func (s *namespaceService) UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error {
+	matched, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Updates(updates)
 	if err != nil {
 		return err
 	}
