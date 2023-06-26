@@ -59,7 +59,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 			ID:          ns.ID,
 			Name:        ns.Name,
 			Description: ns.Description,
-			Quota:       ptr.Of(ns.Quota.Limit),
+			Limit:       ptr.Of(ns.Limit),
 			CreatedAt:   ns.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:   ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

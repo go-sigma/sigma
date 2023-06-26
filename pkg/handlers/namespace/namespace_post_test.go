@@ -77,7 +77,37 @@ func TestPostNamespace(t *testing.T) {
 	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Int()
 	assert.NotEqual(t, resultID, 0)
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
+	// create with conflict
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, c.Response().Status)
+
+	// create with quota
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test-quota","limit": 10000}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, c.Response().Status)
+
+	// create with visibility
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test-visibility","visibility": "private"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, c.Response().Status)
+
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -85,7 +115,7 @@ func TestPostNamespace(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -94,7 +124,7 @@ func TestPostNamespace(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"t","description":""}`))
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"t"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -122,7 +152,7 @@ func TestPostNamespace(t *testing.T) {
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -130,5 +160,55 @@ func TestPostNamespace(t *testing.T) {
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-	fmt.Println(rec.Body.String())
+}
+
+// TestPostNamespaceCreateFailed1 get name failed
+func TestPostNamespaceCreateFailed1(t *testing.T) {
+	logger.SetLevel("debug")
+	e := echo.New()
+	validators.Initialize(e)
+	err := tests.Initialize()
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
+
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+
+	ctx := context.Background()
+	userObj := &models.User{Username: "post-namespace", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService.EXPECT().GetByName(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.Namespace, error) {
+		return nil, fmt.Errorf("test")
+	}).Times(1)
+
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
+		return daoMockNamespaceService
+	}).Times(1)
+
+	namespaceHandler := handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

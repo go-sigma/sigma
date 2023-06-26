@@ -14,12 +14,14 @@
 
 package types
 
+import "github.com/ximager/ximager/pkg/types/enums"
+
 // NamespaceItem represents a namespace.
 type NamespaceItem struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
-	Quota       *int64  `json:"quota"`
+	Limit       *int64  `json:"limit"`
 
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -41,9 +43,10 @@ type ListNamespaceResponse struct {
 
 // CreateNamespaceRequest represents the request to create a namespace.
 type CreateNamespaceRequest struct {
-	Name        string  `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
-	Description *string `json:"description,omitempty" validate:"max=30"`
-	Quota       *int64  `json:"quota,omitempty" validate:"omitempty,numeric"`
+	Name        string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
+	Description *string           `json:"description,omitempty" validate:"omitempty,max=30"`
+	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric"`
+	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility"`
 }
 
 // CreateNamespaceResponse represents the response to create a namespace.
@@ -76,6 +79,7 @@ type DeleteNamespaceRequest struct {
 type PutNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number"`
 
-	Quota       *int64  `json:"quota,omitempty" validate:"omitempty,numeric"`
-	Description *string `json:"description,omitempty" validate:"omitempty,min=2,max=30"`
+	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric"`
+	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility"`
+	Description *string           `json:"description,omitempty" validate:"omitempty,max=30"`
 }

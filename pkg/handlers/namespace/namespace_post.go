@@ -68,32 +68,31 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace by name failed")
-			return xerrors.HTTPErrCodeInternalError
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get namespace by name failed")
 		}
 	}
 	if err == nil {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Namespace already exists")
 	}
 
-	namespace := &models.Namespace{
+	namespaceObj := &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
 		UserID:      user.ID,
 		Visibility:  ptr.Of(enums.VisibilityPrivate),
 	}
+	if req.Visibility != nil {
+		namespaceObj.Visibility = req.Visibility
+	}
+	if ptr.To(req.Limit) > 0 {
+		namespaceObj.Limit = ptr.To(req.Limit)
+	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := h.namespaceServiceFactory.New(tx)
-		err = namespaceService.Create(ctx, namespace)
+		err = namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
-		}
-		if ptr.To(req.Quota) > 0 {
-			err = namespaceService.CreateQuota(ctx, &models.NamespaceQuota{Limit: ptr.To(req.Quota)})
-			if err != nil {
-				log.Error().Err(err).Msg("Create namespace quota failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace quota failed: %v", err))
-			}
 		}
 		return nil
 	})
@@ -101,5 +100,5 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
-	return c.JSON(http.StatusCreated, types.CreateNamespaceResponse{ID: namespace.ID})
+	return c.JSON(http.StatusCreated, types.CreateNamespaceResponse{ID: namespaceObj.ID})
 }

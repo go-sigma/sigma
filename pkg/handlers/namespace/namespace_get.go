@@ -55,7 +55,7 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 		ID:          namespace.ID,
 		Name:        namespace.Name,
 		Description: namespace.Description,
-		Quota:       ptr.Of(namespace.Quota.Limit),
+		Quota:       ptr.Of(namespace.Limit),
 		CreatedAt:   namespace.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:   namespace.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

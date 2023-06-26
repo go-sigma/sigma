@@ -33,6 +33,9 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.ID = field.NewInt64(tableName, "id")
 	_repository.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_repository.Name = field.NewString(tableName, "name")
+	_repository.Visibility = field.NewField(tableName, "visibility")
+	_repository.Limit = field.NewInt64(tableName, "limit")
+	_repository.Usage = field.NewInt64(tableName, "usage")
 	_repository.Namespace = repositoryBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -41,11 +44,6 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 			field.RelationField
 		}{
 			RelationField: field.NewRelation("Namespace.User", "models.User"),
-		},
-		Quota: struct {
-			field.RelationField
-		}{
-			RelationField: field.NewRelation("Namespace.Quota", "models.NamespaceQuota"),
 		},
 	}
 
@@ -64,6 +62,9 @@ type repository struct {
 	ID          field.Int64
 	NamespaceID field.Int64
 	Name        field.String
+	Visibility  field.Field
+	Limit       field.Int64
+	Usage       field.Int64
 	Namespace   repositoryBelongsToNamespace
 
 	fieldMap map[string]field.Expr
@@ -87,6 +88,9 @@ func (r *repository) updateTableName(table string) *repository {
 	r.ID = field.NewInt64(table, "id")
 	r.NamespaceID = field.NewInt64(table, "namespace_id")
 	r.Name = field.NewString(table, "name")
+	r.Visibility = field.NewField(table, "visibility")
+	r.Limit = field.NewInt64(table, "limit")
+	r.Usage = field.NewInt64(table, "usage")
 
 	r.fillFieldMap()
 
@@ -111,13 +115,16 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *repository) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 7)
+	r.fieldMap = make(map[string]field.Expr, 10)
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
 	r.fieldMap["id"] = r.ID
 	r.fieldMap["namespace_id"] = r.NamespaceID
 	r.fieldMap["name"] = r.Name
+	r.fieldMap["visibility"] = r.Visibility
+	r.fieldMap["limit"] = r.Limit
+	r.fieldMap["usage"] = r.Usage
 
 }
 
@@ -137,9 +144,6 @@ type repositoryBelongsToNamespace struct {
 	field.RelationField
 
 	User struct {
-		field.RelationField
-	}
-	Quota struct {
 		field.RelationField
 	}
 }

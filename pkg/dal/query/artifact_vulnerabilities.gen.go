@@ -49,9 +49,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 				User struct {
 					field.RelationField
 				}
-				Quota struct {
-					field.RelationField
-				}
 			}
 		}{
 			RelationField: field.NewRelation("Artifact.Repository", "models.Repository"),
@@ -60,20 +57,12 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 				User struct {
 					field.RelationField
 				}
-				Quota struct {
-					field.RelationField
-				}
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Namespace", "models.Namespace"),
 				User: struct {
 					field.RelationField
 				}{
 					RelationField: field.NewRelation("Artifact.Repository.Namespace.User", "models.User"),
-				},
-				Quota: struct {
-					field.RelationField
-				}{
-					RelationField: field.NewRelation("Artifact.Repository.Namespace.Quota", "models.NamespaceQuota"),
 				},
 			},
 		},
@@ -225,9 +214,6 @@ type artifactVulnerabilityBelongsToArtifact struct {
 		Namespace struct {
 			field.RelationField
 			User struct {
-				field.RelationField
-			}
-			Quota struct {
 				field.RelationField
 			}
 		}

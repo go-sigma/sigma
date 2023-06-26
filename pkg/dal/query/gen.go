@@ -23,9 +23,7 @@ var (
 	Blob                  *blob
 	BlobUpload            *blobUpload
 	Namespace             *namespace
-	NamespaceQuota        *namespaceQuota
 	Repository            *repository
-	RepositoryQuota       *repositoryQuota
 	Tag                   *tag
 	User                  *user
 )
@@ -38,9 +36,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	Namespace = &Q.Namespace
-	NamespaceQuota = &Q.NamespaceQuota
 	Repository = &Q.Repository
-	RepositoryQuota = &Q.RepositoryQuota
 	Tag = &Q.Tag
 	User = &Q.User
 }
@@ -54,9 +50,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
 		Namespace:             newNamespace(db, opts...),
-		NamespaceQuota:        newNamespaceQuota(db, opts...),
 		Repository:            newRepository(db, opts...),
-		RepositoryQuota:       newRepositoryQuota(db, opts...),
 		Tag:                   newTag(db, opts...),
 		User:                  newUser(db, opts...),
 	}
@@ -71,9 +65,7 @@ type Query struct {
 	Blob                  blob
 	BlobUpload            blobUpload
 	Namespace             namespace
-	NamespaceQuota        namespaceQuota
 	Repository            repository
-	RepositoryQuota       repositoryQuota
 	Tag                   tag
 	User                  user
 }
@@ -89,9 +81,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
 		Namespace:             q.Namespace.clone(db),
-		NamespaceQuota:        q.NamespaceQuota.clone(db),
 		Repository:            q.Repository.clone(db),
-		RepositoryQuota:       q.RepositoryQuota.clone(db),
 		Tag:                   q.Tag.clone(db),
 		User:                  q.User.clone(db),
 	}
@@ -114,9 +104,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
 		Namespace:             q.Namespace.replaceDB(db),
-		NamespaceQuota:        q.NamespaceQuota.replaceDB(db),
 		Repository:            q.Repository.replaceDB(db),
-		RepositoryQuota:       q.RepositoryQuota.replaceDB(db),
 		Tag:                   q.Tag.replaceDB(db),
 		User:                  q.User.replaceDB(db),
 	}
@@ -129,9 +117,7 @@ type queryCtx struct {
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
 	Namespace             *namespaceDo
-	NamespaceQuota        *namespaceQuotaDo
 	Repository            *repositoryDo
-	RepositoryQuota       *repositoryQuotaDo
 	Tag                   *tagDo
 	User                  *userDo
 }
@@ -144,9 +130,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
 		Namespace:             q.Namespace.WithContext(ctx),
-		NamespaceQuota:        q.NamespaceQuota.WithContext(ctx),
 		Repository:            q.Repository.WithContext(ctx),
-		RepositoryQuota:       q.RepositoryQuota.WithContext(ctx),
 		Tag:                   q.Tag.WithContext(ctx),
 		User:                  q.User.WithContext(ctx),
 	}

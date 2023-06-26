@@ -66,7 +66,7 @@ func (mr *MockNamespaceServiceMockRecorder) Create(arg0, arg1 interface{}) *gomo
 }
 
 // CreateQuota mocks base method.
-func (m *MockNamespaceService) CreateQuota(arg0 context.Context, arg1 *models.NamespaceQuota) error {
+func (m *MockNamespaceService) CreateQuota(arg0 context.Context, arg1 *models.Namespace) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateQuota", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -139,7 +139,7 @@ func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1 interface{}
 }
 
 // UpdateByID mocks base method.
-func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 int64, arg2 types.PutNamespaceRequest) error {
+func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateByID", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

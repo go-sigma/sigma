@@ -107,10 +107,10 @@ func TestNamespaceService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, count, int64(1))
 
-		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, types.PutNamespaceRequest{Description: ptr.Of("test")})
+		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, map[string]interface{}{query.Namespace.Description.ColumnName().String(): "test"})
 		assert.NoError(t, err)
 
-		err = namespaceService.UpdateByID(ctx, 10, types.PutNamespaceRequest{Description: ptr.Of("test")})
+		err = namespaceService.UpdateByID(ctx, 10, map[string]interface{}{query.Namespace.Description.ColumnName().String(): "test"})
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		err = namespaceService.DeleteByID(ctx, namespaceObj.ID)
@@ -159,9 +159,6 @@ func TestNamespaceServiceQuota(t *testing.T) {
 			Visibility: ptr.Of(enums.VisibilityPrivate),
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
-		assert.NoError(t, err)
-
-		err = namespaceService.CreateQuota(ctx, &models.NamespaceQuota{NamespaceID: namespaceObj.ID, Limit: 10})
 		assert.NoError(t, err)
 
 		err = namespaceService.UpdateQuota(ctx, namespaceObj.ID, 100)

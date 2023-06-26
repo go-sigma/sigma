@@ -61,27 +61,22 @@ func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	var namespaceQuotaObj NamespaceQuota
-	err = tx.Model(&NamespaceQuota{}).Where(&NamespaceQuota{NamespaceID: repositoryObj.NamespaceID}).First(&namespaceQuotaObj).Error
+	var namespaceObj Namespace
+	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).First(&namespaceObj).Error
 	if err != nil {
 		return err
 	}
-	if namespaceQuotaObj.Limit > 0 && namespaceQuotaObj.Usage+a.BlobsSize > namespaceQuotaObj.Limit {
+	if namespaceObj.Limit > 0 && namespaceObj.Usage+a.BlobsSize > namespaceObj.Limit {
 		return errors.New("namespace quota exceeded")
 	}
-	err = tx.Model(&NamespaceQuota{}).Where(&NamespaceQuota{NamespaceID: repositoryObj.ID}).UpdateColumn("usage", namespaceQuotaObj.Usage+a.BlobsSize).Error
+	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumn("usage", namespaceObj.Usage+a.BlobsSize).Error
 	if err != nil {
 		return err
 	}
-	var repositoryQuotaObj RepositoryQuota
-	err = tx.Model(&RepositoryQuota{}).Where(&RepositoryQuota{RepositoryID: repositoryObj.ID}).First(&repositoryQuotaObj).Error
-	if err != nil {
-		return err
-	}
-	if repositoryQuotaObj.Limit > 0 && repositoryQuotaObj.Usage+a.BlobsSize > repositoryQuotaObj.Limit {
+	if repositoryObj.Limit > 0 && repositoryObj.Usage+a.BlobsSize > repositoryObj.Limit {
 		return errors.New("repository quota exceeded")
 	}
-	err = tx.Model(&RepositoryQuota{}).Where(&RepositoryQuota{RepositoryID: repositoryObj.ID}).UpdateColumn("usage", repositoryQuotaObj.Usage+a.BlobsSize).Error
+	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumn("usage", repositoryObj.Usage+a.BlobsSize).Error
 	if err != nil {
 		return err
 	}
@@ -100,11 +95,11 @@ func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
 		if err != nil {
 			return err
 		}
-		err = tx.Model(&NamespaceQuota{}).Where("namespace_id = ?", repositoryObj.NamespaceID).Update("usage", gorm.Expr("usage - ?", a.BlobsSize)).Error
+		err = tx.Model(&Namespace{}).Where("namespace_id = ?", repositoryObj.NamespaceID).Update("usage", gorm.Expr("usage - ?", a.BlobsSize)).Error
 		if err != nil {
 			return err
 		}
-		err = tx.Model(&RepositoryQuota{}).Where("repository_id = ?", a.RepositoryID).Update("usage", gorm.Expr("usage + ?", a.BlobsSize)).Error
+		err = tx.Model(&Repository{}).Where("repository_id = ?", a.RepositoryID).Update("usage", gorm.Expr("usage + ?", a.BlobsSize)).Error
 		if err != nil {
 			return err
 		}
