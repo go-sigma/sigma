@@ -53,19 +53,22 @@ var UserAgent = fmt.Sprintf("XImager/%s (https://github.com/ximager/ximager)", A
 
 const (
 	// AuthModel represents the auth model
+	// policy_effect: it means at least one matched policy rule of allow, and there is no matched policy rule of deny. So in this way, both the allow and deny authorizations are supported, and the deny overrides.
 	AuthModel = `
 	[request_definition]
-	r = sub, obj, act
+	r = sub, ns, url, visibility, method
 
 	[policy_definition]
-	p = sub, obj, act
+	p = sub, ns, url, visibility, method, eft
+
+	[role_definition]
+	g = _, _, _
 
 	[policy_effect]
-	e = some(where (p.eft == allow))
+	e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 	[matchers]
-	m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
-	`
+	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && regexMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) || r.sub == "admin"`
 )
 
 var (

@@ -52,6 +52,17 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
+
+	err = setAuthModel(DB)
+	if err != nil {
+		return err
+	}
+
+	err = AuthEnforcer.LoadPolicy()
+	if err != nil {
+		return err
+	}
+
 	logLevel := viper.GetString("log.level")
 	if logLevel == "debug" {
 		query.SetDefault(DB.Debug())
@@ -80,17 +91,7 @@ func connectMysql() error {
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	err = setAuthModel(db)
-	if err != nil {
-		return err
-	}
-
 	err = migrateMysql(dsn)
-	if err != nil {
-		return err
-	}
-
-	err = AuthEnforcer.LoadPolicy()
 	if err != nil {
 		return err
 	}
@@ -116,18 +117,8 @@ func connectPostgres() error {
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	err = setAuthModel(db)
-	if err != nil {
-		return err
-	}
-
 	migrateDsn := fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
 	err = migratePostgres(migrateDsn)
-	if err != nil {
-		return err
-	}
-
-	err = AuthEnforcer.LoadPolicy()
 	if err != nil {
 		return err
 	}
@@ -147,17 +138,7 @@ func connectSqlite3() error {
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	err = setAuthModel(db)
-	if err != nil {
-		return err
-	}
-
 	err = migrateSqlite(dbname)
-	if err != nil {
-		return err
-	}
-
-	err = AuthEnforcer.LoadPolicy()
 	if err != nil {
 		return err
 	}
