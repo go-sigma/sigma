@@ -76,11 +76,13 @@ type factory struct{}
 func (f factory) Initialize(c echo.Context) error {
 	method := c.Request().Method
 	uri := c.Request().RequestURI
-	urix := uri[:strings.LastIndex(uri, "/")]
+
 	blobUploadHandler := handlerNew()
 	if method == http.MethodPost && strings.HasSuffix(uri, "blobs/uploads/") {
 		return blobUploadHandler.PostUpload(c)
 	}
+
+	urix := uri[:strings.LastIndex(uri, "/")]
 	if strings.HasSuffix(urix, "/blobs/uploads") {
 		switch method {
 		case http.MethodGet:
