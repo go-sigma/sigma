@@ -35,8 +35,6 @@ var topics = map[enums.Daemon]string{
 	enums.DaemonSbom:          consts.TopicSbom,
 	enums.DaemonVulnerability: consts.TopicVulnerability,
 	enums.DaemonGc:            consts.TopicGc,
-	enums.DaemonProxyArtifact: consts.TopicProxyArtifact,
-	enums.DaemonProxyTag:      consts.TopicProxyTag,
 }
 
 var (

@@ -164,12 +164,48 @@ CREATE TABLE IF NOT EXISTS "artifact_blobs" (
   CONSTRAINT "fk_artifact_blobs_blob" FOREIGN KEY ("blob_id") REFERENCES "blobs" ("id")
 );
 
-INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2")
-  VALUES ('p', 'root', '*', '*');
+CREATE TABLE "casbin_rules" (
+  "id" bigserial PRIMARY KEY,
+  "ptype" varchar(100),
+  "v0" varchar(100),
+  "v1" varchar(100),
+  "v2" varchar(500),
+  "v3" varchar(100),
+  "v4" varchar(100),
+  "v5" varchar(100)
+  -- CONSTRAINT "idx_casbin_rules" UNIQUE ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+);
 
-INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2")
-  VALUES ('p', 'admin', '*', '*');
+-- ptype type
+-- v0 sub
+-- v1 dom
+-- v2 url
+-- v3 attr
+-- v4 method
+-- v5 allow or deny
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'admin', '*', '*', '*', '*', 'allow');
 
-INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2")
-  VALUES ('p', 'anonymous', 'blob', 'pull');
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'anonymous', '/*', '/v2/', 'public|private', 'GET', 'allow');
+
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'anonymous', '/*', '/v2/(?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*/blobs/[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+', 'public', 'GET|HEAD', 'allow');
+
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'anonymous', '/*', '/v2/(?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*/manifests/[\w][\w.-]{0,127}|[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+', 'public', 'GET|HEAD', 'allow');
+
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") -- manifests
+  VALUES ('p', 'namespace_reader', '/*', '/v2/(?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*/manifests/[\w][\w.-]{0,127}|[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+', 'public|private', 'GET|HEAD', 'allow');
+
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") -- blobs
+  VALUES ('p', 'namespace_reader', '/*', '/v2/(?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*/blobs/[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+', 'public|private', 'GET|HEAD', 'allow');
+
+-- TODO
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
+
+-- TODO
+INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+  VALUES ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow');
 

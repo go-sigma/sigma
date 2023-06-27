@@ -15,8 +15,10 @@
 package models
 
 import (
+	"strings"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/ximager/ximager/pkg/types/enums"
@@ -37,4 +39,28 @@ type Namespace struct {
 	UserID      int64
 
 	User User `gorm:"foreignKey:UserID"`
+}
+
+var policyStatement1 = "INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`) VALUES ('p', '^_^Namespace^_^_admin', '/namespaces/^_^Namespace^_^', '*', 'allow');"
+
+var policyStatements = []string{}
+
+func init() {
+	policyStatements = append(policyStatements, policyStatement1)
+}
+
+func policyStatement(namespaceName string) string {
+	var result string
+	for _, p := range policyStatements {
+		result += strings.ReplaceAll(p, "^_^Namespace^_^", namespaceName)
+	}
+	return result
+}
+
+// BeforeCreate ...
+func (n *Namespace) BeforeCreate(tx *gorm.DB) error {
+	if n == nil || n.ID == 0 {
+		return nil
+	}
+	return tx.Exec(policyStatement(n.Name)).Error
 }

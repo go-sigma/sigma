@@ -24,3 +24,5 @@ DROP TABLE IF EXISTS `proxy_artifact_blobs`;
 
 DROP TABLE IF EXISTS `proxy_tag_tasks`;
 
+DROP TABLE IF EXISTS `casbin_rules`;
+
