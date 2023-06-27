@@ -16,7 +16,9 @@ package dal
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"reflect"
 	"testing"
 
 	gonanoid "github.com/matoous/go-nanoid"
@@ -36,17 +38,126 @@ func TestAuth(t *testing.T) {
 	err := Initialize()
 	assert.NoError(t, err)
 
-	added, _ := AuthEnforcer.AddPolicy("library_reader", "library", `/v2/(?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*/manifests/[\w][\w.-]{0,127}|[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+`, "public", "(GET)|(HEAD)", "allow")
+	added, _ := AuthEnforcer.AddPolicy("library_reader", "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 	added, _ = AuthEnforcer.AddRoleForUser("alice", "library_reader", "library")
 	assert.True(t, added)
 
-	passed, err := AuthEnforcer.Enforce("alice", "library", "/v2/xxx/xxx/manifests/ssss", "public", "GET")
+	passed, err := AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
 	assert.NoError(t, err)
 	assert.True(t, passed)
-	passed, err = AuthEnforcer.Enforce("alice", "library", "/v2/xxx/xxx/manifests1/sha256:xxx", "public", "GET")
+	passed, err = AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
 	assert.NoError(t, err)
 	assert.True(t, passed)
+	passed, err = AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "POST")
+	assert.NoError(t, err)
+	assert.False(t, passed)
 
 	assert.NoError(t, os.Remove(dbPath))
+}
+
+func TestUrlMatchFunc(t *testing.T) {
+	q := make(url.Values)
+	q.Set("repository", "library/busybox")
+
+	type args struct {
+		args []any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    any
+		wantErr bool
+	}{
+		{
+			name: "normal-ds",
+			args: args{
+				args: []any{"/v2/?test=1", "DS$v2"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "parse-url-failed",
+			args: args{
+				args: []any{"::::////v2/?test=1", "DS$v2"},
+			},
+			want:    false,
+			wantErr: true,
+		}, {
+			name: "normal-api-1",
+			args: args{
+				args: []any{"/api/namespaces/", "API$namespaces/"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "normal-api-2",
+			args: args{
+				args: []any{"/api/namespaces/10?" + q.Encode(), "API$*/**$namespaces/*"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "no-match",
+			args: args{
+				args: []any{"/v3/api/namespaces/10", ""},
+			},
+			want:    false,
+			wantErr: false,
+		}, {
+			name: "catalog",
+			args: args{
+				args: []any{"/v2/_catalog", "DS$catalog"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "tags",
+			args: args{
+				args: []any{"/v2/library/busybox/tags/list", "DS$library/busybox$tags"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "blob_uploads",
+			args: args{
+				args: []any{"/v2/library/busybox/blobs/uploads/", "DS$library/busybox$blob_uploads"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "blobs",
+			args: args{
+				args: []any{"/v2/library/busybox/blobs/sha256:xxx", "DS$library/busybox$blobs$*"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "manifests",
+			args: args{
+				args: []any{"/v2/library/busybox/manifests/sha256:xxx", "DS$library/busybox$manifests$*"},
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "blob_uploads",
+			args: args{
+				args: []any{"/v2/library/busybox/blobs/uploads/sha256:xxx", "DS$library/busybox$blob_uploads$*"},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := urlMatchFunc(tt.args.args...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("urlMatchFunc() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("urlMatchFunc() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

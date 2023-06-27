@@ -59,7 +59,7 @@ const (
 	r = sub, ns, url, visibility, method
 
 	[policy_definition]
-	p = sub, ns, url, visibility, method, eft
+	p = sub, ns, url, visibility, method, effect
 
 	[role_definition]
 	g = _, _, _
@@ -68,7 +68,7 @@ const (
 	e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 	[matchers]
-	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && regexMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) || r.sub == "admin"`
+	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && urlMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin"`
 )
 
 var (

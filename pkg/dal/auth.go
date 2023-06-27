@@ -15,6 +15,11 @@
 package dal
 
 import (
+	"fmt"
+	"net/url"
+	"path/filepath"
+	"strings"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -40,5 +45,66 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	AuthEnforcer.AddFunction("urlMatch", urlMatchFunc)
 	return nil
+}
+
+const (
+	delimiter = "$"
+)
+
+// urlMatchFunc ...
+// DS${repository}$tags
+// DS$catalog
+// DS${repository}$(blobs)|(manifest)|(blob_uploads)${reference}
+// DS${repository}$blob_uploads
+// API${repository}${url}
+func urlMatchFunc(args ...any) (any, error) {
+	request := args[0].(string)
+	policy := args[1].(string)
+
+	uRequest, err := url.Parse(request)
+	if err != nil {
+		return false, err
+	}
+
+	if strings.HasPrefix(request, "/v2/") {
+		request = uRequest.Path
+		if request == "/v2/" && policy == fmt.Sprintf("DS%sv2", delimiter) { // nolint: gocritic
+			return true, nil
+		} else if strings.HasSuffix(request, "/_catalog") {
+			return policy == fmt.Sprintf("DS%scatalog", delimiter), nil
+		} else if strings.HasSuffix(request, "tags/list") {
+			repository := strings.TrimPrefix(strings.TrimSuffix(request, "/tags/list"), "/v2/")
+			return pathPattern(fmt.Sprintf("DS$%s$tags", repository), policy)
+		} else if strings.HasSuffix(request, "/blobs/uploads/") {
+			repository := strings.TrimPrefix(strings.TrimSuffix(request, "/blobs/uploads/"), "/v2/")
+			return pathPattern(fmt.Sprintf("DS$%s$blob_uploads", repository), policy)
+		} else {
+			rRequest := request[:strings.LastIndex(request, "/")]
+			ref := strings.TrimPrefix(request[strings.LastIndex(request, "/"):], "/")
+			if strings.HasSuffix(rRequest, "/manifests") { // nolint: gocritic
+				repository := strings.TrimPrefix(strings.TrimSuffix(rRequest, "/manifests"), "/v2/")
+				return pathPattern(fmt.Sprintf("DS$%s$manifests$%s", repository, ref), policy)
+			} else if strings.HasSuffix(rRequest, "/blobs") {
+				repository := strings.TrimPrefix(strings.TrimSuffix(rRequest, "/blobs"), "/v2/")
+				return pathPattern(fmt.Sprintf("DS$%s$blobs$%s", repository, ref), policy)
+			} else if strings.HasSuffix(rRequest, "/blobs/uploads") {
+				repository := strings.TrimPrefix(strings.TrimSuffix(rRequest, "/blobs/uploads"), "/v2/")
+				return pathPattern(fmt.Sprintf("DS$%s$blob_uploads$%s", repository, ref), policy)
+			}
+		}
+	} else if strings.HasPrefix(request, "/api/") {
+		repository := uRequest.Query().Get("repository")
+		if repository != "" {
+			return pathPattern(fmt.Sprintf("API$%s$%s", repository, strings.TrimPrefix(request, "/api/")), policy)
+		} else {
+			return pathPattern(fmt.Sprintf("API$%s", strings.TrimPrefix(request, "/api/")), policy)
+		}
+	}
+	return false, nil
+}
+
+func pathPattern(request, policy string) (bool, error) {
+	return filepath.Match(strings.Join(strings.Split(policy, "$"), "/"), strings.Join(strings.Split(request, "$"), "/"))
 }
