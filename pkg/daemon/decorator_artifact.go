@@ -39,6 +39,8 @@ type DecoratorArtifactStatus struct {
 // DecoratorArtifact is a decorator for daemon task runners
 func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan DecoratorArtifactStatus) error) func(context.Context, *asynq.Task) error {
 	return func(ctx context.Context, atask *asynq.Task) error {
+		log.Info().Msg("got a task")
+
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New()
 

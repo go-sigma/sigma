@@ -79,6 +79,21 @@ func (mr *MockRepositoryServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRepositoryService)(nil).DeleteByID), arg0, arg1)
 }
 
+// FindAll mocks base method.
+func (m *MockRepositoryService) FindAll(arg0 context.Context, arg1, arg2, arg3 int64) ([]*models.Repository, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAll", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*models.Repository)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAll indicates an expected call of FindAll.
+func (mr *MockRepositoryServiceMockRecorder) FindAll(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockRepositoryService)(nil).FindAll), arg0, arg1, arg2, arg3)
+}
+
 // Get mocks base method.
 func (m *MockRepositoryService) Get(arg0 context.Context, arg1 int64) (*models.Repository, error) {
 	m.ctrl.T.Helper()

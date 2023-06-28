@@ -33,6 +33,8 @@ import (
 type NamespaceService interface {
 	// Create creates a new namespace.
 	Create(ctx context.Context, namespace *models.Namespace) error
+	// FindAll ...
+	FindAll(ctx context.Context) ([]*models.Namespace, error)
 	// UpdateQuota updates the namespace quota.
 	UpdateQuota(ctx context.Context, namespaceID, limit int64) error
 	// Get gets the namespace with the specified namespace ID.
@@ -79,6 +81,11 @@ func (f *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
 // Create creates a new namespace.
 func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Namespace) error {
 	return s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
+}
+
+// FindAll ...
+func (s *namespaceService) FindAll(ctx context.Context) ([]*models.Namespace, error) {
+	return s.tx.Namespace.WithContext(ctx).Find()
 }
 
 // UpdateQuota updates the namespace quota.

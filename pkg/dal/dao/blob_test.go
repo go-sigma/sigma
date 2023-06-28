@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -50,8 +51,7 @@ func TestBlobService(t *testing.T) {
 		assert.NoError(t, err)
 		err = conn.Close()
 		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -77,6 +77,19 @@ func TestBlobService(t *testing.T) {
 		blobs1, err := blobService.FindByDigests(ctx, []string{"sha256:123", "sha256:234"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(blobs1), int(2))
+
+		time.Sleep(time.Second * 3)
+		blobFindWithLastPull, err := blobService.FindWithLastPull(ctx, time.Now(), 0, 1000)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(blobFindWithLastPull))
+
+		var ids []int64
+		for _, blob := range blobFindWithLastPull {
+			ids = append(ids, blob.ID)
+		}
+		rIds, err := blobService.FindAssociateWithArtifact(ctx, ids)
+		assert.NoError(t, err)
+		log.Info().Interface("ids", rIds).Msg("")
 
 		exist, err := blobService.Exists(ctx, "sha256:123")
 		assert.NoError(t, err)

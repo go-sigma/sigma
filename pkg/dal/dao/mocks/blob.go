@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
@@ -78,6 +79,21 @@ func (mr *MockBlobServiceMockRecorder) Exists(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockBlobService)(nil).Exists), arg0, arg1)
 }
 
+// FindAssociateWithArtifact mocks base method.
+func (m *MockBlobService) FindAssociateWithArtifact(arg0 context.Context, arg1 []int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", arg0, arg1)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAssociateWithArtifact indicates an expected call of FindAssociateWithArtifact.
+func (mr *MockBlobServiceMockRecorder) FindAssociateWithArtifact(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockBlobService)(nil).FindAssociateWithArtifact), arg0, arg1)
+}
+
 // FindByDigest mocks base method.
 func (m *MockBlobService) FindByDigest(arg0 context.Context, arg1 string) (*models.Blob, error) {
 	m.ctrl.T.Helper()
@@ -106,6 +122,21 @@ func (m *MockBlobService) FindByDigests(arg0 context.Context, arg1 []string) ([]
 func (mr *MockBlobServiceMockRecorder) FindByDigests(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDigests", reflect.TypeOf((*MockBlobService)(nil).FindByDigests), arg0, arg1)
+}
+
+// FindWithLastPull mocks base method.
+func (m *MockBlobService) FindWithLastPull(arg0 context.Context, arg1 time.Time, arg2, arg3 int64) ([]*models.Blob, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*models.Blob)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindWithLastPull indicates an expected call of FindWithLastPull.
+func (mr *MockBlobServiceMockRecorder) FindWithLastPull(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockBlobService)(nil).FindWithLastPull), arg0, arg1, arg2, arg3)
 }
 
 // Incr mocks base method.

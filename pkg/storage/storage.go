@@ -23,6 +23,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+//go:generate mockgen -destination=mocks/storage_driver.go -package=mocks github.com/ximager/ximager/pkg/storage StorageDriver
+//go:generate mockgen -destination=mocks/storage_driver_factory.go -package=mocks github.com/ximager/ximager/pkg/storage StorageDriverFactory
+
 // FileInfo returns information about a given path. Inspired by os.FileInfo,
 // it elides the base name method for a full path instead.
 type FileInfo interface {
@@ -98,6 +101,24 @@ func RegisterDriverFactory(name string, factory Factory) error {
 
 // Driver is the storage driver
 var Driver StorageDriver
+
+// StorageDriverFactory ...
+type StorageDriverFactory interface {
+	// New new storage driver
+	New() StorageDriver
+}
+
+type storageDriverFactory struct{}
+
+// NewStorageDriverFactory ...
+func NewStorageDriverFactory() StorageDriverFactory {
+	return &storageDriverFactory{}
+}
+
+// New new storage driver
+func (s *storageDriverFactory) New() StorageDriver {
+	return Driver
+}
 
 // Initialize initializes the storage driver
 func Initialize() error {
