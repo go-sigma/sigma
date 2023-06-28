@@ -47,6 +47,7 @@ func TestInitializeServer(t *testing.T) {
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("daemon.gc.cron", "0 2 * * 6")
 
 	err := InitializeServer()
 	assert.NoError(t, err)

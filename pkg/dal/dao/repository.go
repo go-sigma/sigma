@@ -34,6 +34,8 @@ import (
 type RepositoryService interface {
 	// Save saves the repository.
 	Create(context.Context, *models.Repository) error
+	// FindAll ...
+	FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error)
 	// Get gets the repository with the specified repository ID.
 	Get(context.Context, int64) (*models.Repository, error)
 	// GetByName gets the repository with the specified repository name.
@@ -95,6 +97,11 @@ func (s *repositoryService) Create(ctx context.Context, repository *models.Repos
 		return err
 	}
 	return copier.Copy(repository, rRepository)
+}
+
+// FindAll ...
+func (s *repositoryService) FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error) {
+	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Gt(last), s.tx.Repository.NamespaceID.Eq(namespaceID)).Limit(int(limit)).Find()
 }
 
 // Get gets the repository with the specified repository ID.

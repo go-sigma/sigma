@@ -17,6 +17,7 @@ package daemon
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -42,6 +43,8 @@ var (
 	asynqCli *asynq.Client
 	// asyncSrv asynq server
 	asyncSrv *asynq.Server
+	// asyncPeriodicTaskManager async periodic task manager
+	asyncPeriodicTaskManager *asynq.PeriodicTaskManager
 )
 
 // RegisterTask registers a daemon task
@@ -89,6 +92,22 @@ func InitializeServer() error {
 		}
 	}()
 
+	asyncPeriodicTaskManager, err = asynq.NewPeriodicTaskManager(
+		asynq.PeriodicTaskManagerOpts{
+			RedisConnOpt:               redisOpt,
+			PeriodicTaskConfigProvider: &cronTaskConfigProvider{},
+			SyncInterval:               10 * time.Second,
+		})
+	if err != nil {
+		log.Fatal().Err(err).Msg("New periodic task manager failed")
+	}
+	go func() {
+		err := asyncPeriodicTaskManager.Run()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Run periodic task manager failed")
+		}
+	}()
+
 	return nil
 }
 
@@ -96,6 +115,7 @@ func InitializeServer() error {
 func DeinitServer() {
 	asyncSrv.Stop()
 	asyncSrv.Shutdown()
+	asyncPeriodicTaskManager.Shutdown()
 }
 
 // InitializeClient initializes the daemon client
@@ -121,4 +141,24 @@ func Enqueue(topic string, payload []byte) error {
 		return fmt.Errorf("asynqCli.Enqueue error: %v", err)
 	}
 	return nil
+}
+
+// var defaultPeriodicTask = []*asynq.PeriodicTaskConfig{
+// 	{
+// 		Cronspec: viper.GetString("daemon.gc.cron"),
+// 		Task:     asynq.NewTask(consts.TopicGc, []byte(`{"target": "blobsAndArtifacts"}`)),
+// 	},
+// }
+
+// cronTaskConfigProvider ...
+type cronTaskConfigProvider struct{}
+
+// GetConfigs ...
+func (c *cronTaskConfigProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
+	return []*asynq.PeriodicTaskConfig{
+		{
+			Cronspec: viper.GetString("daemon.gc.cron"),
+			Task:     asynq.NewTask(consts.TopicGc, []byte(`{"target": "blobsAndArtifacts"}`)),
+		},
+	}, nil
 }

@@ -191,6 +191,89 @@ func (x Database) Value() (driver.Value, error) {
 }
 
 const (
+	// GcTargetBlobsAndArtifacts is a GcTarget of type blobsAndArtifacts.
+	GcTargetBlobsAndArtifacts GcTarget = "blobsAndArtifacts"
+	// GcTargetArtifacts is a GcTarget of type artifacts.
+	GcTargetArtifacts GcTarget = "artifacts"
+)
+
+var ErrInvalidGcTarget = errors.New("not a valid GcTarget")
+
+// String implements the Stringer interface.
+func (x GcTarget) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x GcTarget) IsValid() bool {
+	_, err := ParseGcTarget(string(x))
+	return err == nil
+}
+
+var _GcTargetValue = map[string]GcTarget{
+	"blobsAndArtifacts": GcTargetBlobsAndArtifacts,
+	"artifacts":         GcTargetArtifacts,
+}
+
+// ParseGcTarget attempts to convert a string to a GcTarget.
+func ParseGcTarget(name string) (GcTarget, error) {
+	if x, ok := _GcTargetValue[name]; ok {
+		return x, nil
+	}
+	return GcTarget(""), fmt.Errorf("%s is %w", name, ErrInvalidGcTarget)
+}
+
+// MustParseGcTarget converts a string to a GcTarget, and panics if is not valid.
+func MustParseGcTarget(name string) GcTarget {
+	val, err := ParseGcTarget(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errGcTargetNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *GcTarget) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = GcTarget("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseGcTarget(v)
+	case []byte:
+		*x, err = ParseGcTarget(string(v))
+	case GcTarget:
+		*x = v
+	case *GcTarget:
+		if v == nil {
+			return errGcTargetNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errGcTargetNilPtr
+		}
+		*x, err = ParseGcTarget(*v)
+	default:
+		return errors.New("invalid type for GcTarget")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x GcTarget) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// TaskCommonStatusPending is a TaskCommonStatus of type Pending.
 	TaskCommonStatusPending TaskCommonStatus = "Pending"
 	// TaskCommonStatusDoing is a TaskCommonStatus of type Doing.

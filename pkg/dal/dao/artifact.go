@@ -16,8 +16,10 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -34,6 +36,12 @@ import (
 type ArtifactService interface {
 	// Create create a new artifact if conflict do nothing.
 	Create(ctx context.Context, artifact *models.Artifact) error
+	// FindWithLastPull ...
+	FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error)
+	// FindAssociateWithTag ...
+	FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error)
+	// FindAssociateWithArtifact ...
+	FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error)
 	// Get gets the artifact with the specified artifact ID.
 	Get(ctx context.Context, id int64) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified digest.
@@ -58,6 +66,8 @@ type ArtifactService interface {
 	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
 	// DeleteByID deletes the artifact with the specified artifact ID.
 	DeleteByID(ctx context.Context, id int64) error
+	// DeleteByID deletes the artifact with the specified artifact ID.
+	DeleteByIDs(ctx context.Context, ids []int64) error
 	// SaveSbom save a new artifact sbom if conflict update.
 	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error
 	// SaveVulnerability save a new artifact vulnerability if conflict update.
@@ -97,6 +107,39 @@ func (f *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
 // Create create a new artifact if conflict do nothing.
 func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact) error {
 	return s.tx.Artifact.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(artifact)
+}
+
+// FindAll ...
+func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error) {
+	return s.tx.Artifact.WithContext(ctx).
+		Where(s.tx.Artifact.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
+		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before)).
+		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Limit(int(limit)).Find()
+}
+
+// FindAssociateWithTag ...
+func (b *artifactService) FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error) {
+	var result []int64
+	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM tags WHERE artifact_id in (?)", ids).Scan(&result).Error
+	return result, err
+}
+
+// FindAssociateWithArtifact ...
+func (b *artifactService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
+	var artifacts []int64
+	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM artifact_artifacts WHERE artifact_id in (?)", ids).Scan(&artifacts).Error
+	if err != nil {
+		return nil, err
+	}
+	var artifactIndexes []int64
+	err = b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_index_id FROM artifact_artifacts WHERE artifact_index_id in (?)", ids).Scan(&artifactIndexes).Error
+	if err != nil {
+		return nil, err
+	}
+	resultSet := mapset.NewSet(artifacts...)
+	resultSet.Append(artifactIndexes...)
+	return resultSet.ToSlice(), err
 }
 
 // Get gets the artifact with the specified artifact ID.
@@ -245,6 +288,15 @@ func (s *artifactService) DeleteByID(ctx context.Context, id int64) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// DeleteByIDs deletes the artifact with the specified ID.
+func (s *artifactService) DeleteByIDs(ctx context.Context, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.In(ids...)).Delete()
+	return err
 }
 
 // SaveSbom save a new artifact sbom if conflict do nothing.

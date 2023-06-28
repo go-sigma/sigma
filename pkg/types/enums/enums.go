@@ -45,3 +45,9 @@ type Daemon string
 // public,
 // )
 type Visibility string
+
+// GcTarget x ENUM(
+// blobsAndArtifacts,
+// artifacts,
+// )
+type GcTarget string

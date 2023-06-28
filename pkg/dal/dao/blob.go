@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"gorm.io/gorm"
@@ -31,6 +32,10 @@ import (
 type BlobService interface {
 	// Create creates a new blob.
 	Create(ctx context.Context, blob *models.Blob) error
+	// FindWithLastPull find with last pull
+	FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error)
+	// FindAssociateWithArtifact ...
+	FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error)
 	// FindByDigest finds the blob with the specified digest.
 	FindByDigest(ctx context.Context, digest string) (*models.Blob, error)
 	// FindByDigests finds the blobs with the specified digests.
@@ -75,6 +80,21 @@ func (f *blobServiceFactory) New(txs ...*query.Query) BlobService {
 // Create creates a new blob.
 func (b *blobService) Create(ctx context.Context, blob *models.Blob) error {
 	return b.tx.Blob.WithContext(ctx).Create(blob)
+}
+
+// FindWithLastPull ...
+func (b *blobService) FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error) {
+	return b.tx.Blob.WithContext(ctx).
+		Where(b.tx.Blob.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
+		Or(b.tx.Blob.LastPull.IsNull(), b.tx.Blob.UpdatedAt.Lt(before)).
+		Where(b.tx.Blob.ID.Gt(last)).Find()
+}
+
+// FindAssociateWithArtifact ...
+func (b *blobService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
+	var result []int64
+	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT blob_id FROM artifact_blobs WHERE blob_id in (?)", ids).Scan(&result).Error
+	return result, err
 }
 
 // FindByDigest finds the blob with the specified digest.

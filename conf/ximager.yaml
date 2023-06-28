@@ -43,6 +43,12 @@ proxy:
   tlsVerify: true
   username: ""
   password: ""
+daemon:
+  gc:
+    # if blob not associate with artifact
+    retention: 72h
+    # At 02:00 on Saturday
+    cron: 0 2 * * 6
 auth:
   internalUser:
     username: internal-ximager

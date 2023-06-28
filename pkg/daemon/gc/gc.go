@@ -16,20 +16,59 @@ package gc
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog/log"
 
 	"github.com/ximager/ximager/pkg/daemon"
+	"github.com/ximager/ximager/pkg/dal/dao"
+	"github.com/ximager/ximager/pkg/storage"
+	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func init() {
 	utils.PanicIf(daemon.RegisterTask(enums.DaemonGc, runner))
 }
 
-// when a new blob is pulled bypass the proxy or pushed a new blob to the registry, the proxy will be notified
+const pagination = 1000
 
-func runner(ctx context.Context, _ *asynq.Task) error {
-	return nil
+type gc struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
+	storageDriverFactory     storage.StorageDriverFactory
+}
+
+func runner(ctx context.Context, task *asynq.Task) error {
+	var payload types.DaemonGcPayload
+	err := sonic.Unmarshal(task.Payload(), &payload)
+	if err != nil {
+		return err
+	}
+	var g = gc{
+		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+		blobServiceFactory:       dao.NewBlobServiceFactory(),
+		storageDriverFactory:     storage.NewStorageDriverFactory(),
+	}
+	ctx = log.Logger.WithContext(ctx)
+	switch payload.Target {
+	case enums.GcTargetBlobsAndArtifacts:
+		err = g.gcArtifact(ctx, ptr.To(payload.Scope))
+		if err != nil {
+			return err
+		}
+		return g.gcBlobs(ctx)
+	case enums.GcTargetArtifacts:
+		return g.gcArtifact(ctx, ptr.To(payload.Scope))
+	default:
+		return fmt.Errorf("payload target is not valid: %s", payload.Target.String())
+	}
 }

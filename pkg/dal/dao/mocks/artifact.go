@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
@@ -150,6 +151,65 @@ func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 int64) error
 func (mr *MockArtifactServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockArtifactService)(nil).DeleteByID), arg0, arg1)
+}
+
+// DeleteByIDs mocks base method.
+func (m *MockArtifactService) DeleteByIDs(arg0 context.Context, arg1 []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByIDs", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByIDs indicates an expected call of DeleteByIDs.
+func (mr *MockArtifactServiceMockRecorder) DeleteByIDs(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByIDs", reflect.TypeOf((*MockArtifactService)(nil).DeleteByIDs), arg0, arg1)
+}
+
+// FindAssociateWithArtifact mocks base method.
+func (m *MockArtifactService) FindAssociateWithArtifact(arg0 context.Context, arg1 []int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", arg0, arg1)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAssociateWithArtifact indicates an expected call of FindAssociateWithArtifact.
+func (mr *MockArtifactServiceMockRecorder) FindAssociateWithArtifact(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithArtifact), arg0, arg1)
+}
+
+// FindAssociateWithTag mocks base method.
+func (m *MockArtifactService) FindAssociateWithTag(arg0 context.Context, arg1 []int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAssociateWithTag", arg0, arg1)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAssociateWithTag indicates an expected call of FindAssociateWithTag.
+func (mr *MockArtifactServiceMockRecorder) FindAssociateWithTag(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithTag", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithTag), arg0, arg1)
+}
+
+// FindWithLastPull mocks base method.
+func (m *MockArtifactService) FindWithLastPull(arg0 context.Context, arg1 int64, arg2 time.Time, arg3, arg4 int64) ([]*models.Artifact, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*models.Artifact)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindWithLastPull indicates an expected call of FindWithLastPull.
+func (mr *MockArtifactServiceMockRecorder) FindWithLastPull(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockArtifactService)(nil).FindWithLastPull), arg0, arg1, arg2, arg3, arg4)
 }
 
 // Get mocks base method.

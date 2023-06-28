@@ -14,6 +14,8 @@
 
 package types
 
+import "github.com/ximager/ximager/pkg/types/enums"
+
 // TaskSbom is the task sbom struct
 type TaskSbom struct {
 	ArtifactID int64 `json:"artifact_id"`
@@ -27,4 +29,10 @@ type TaskVulnerability struct {
 // TaskProxyArtifact is the task proxy artifact
 type TaskProxyArtifact struct {
 	BlobDigest string `json:"blob_digest"`
+}
+
+// DaemonGcPayload is the gc daemon payload
+type DaemonGcPayload struct {
+	Target enums.GcTarget `json:"target"`
+	Scope  *string        `json:"scope,omitempty"`
 }

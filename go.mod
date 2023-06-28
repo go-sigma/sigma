@@ -4,11 +4,12 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.3
-	github.com/aws/aws-sdk-go v1.44.288
-	github.com/bytedance/sonic v1.9.1
+	github.com/aws/aws-sdk-go v1.44.291
+	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.71.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
-	github.com/distribution/distribution/v3 v3.0.0-20230621170613-87b280718d38
+	github.com/deckarep/golang-set/v2 v2.3.0
+	github.com/distribution/distribution/v3 v3.0.0-20230627210631-71a6c56fbf6c
 	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
@@ -22,7 +23,7 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230622180509-a73835700327
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230627160154-46cff1914f8b
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -35,7 +36,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.10.0
-	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gen v0.3.22
@@ -124,7 +125,7 @@ require (
 	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

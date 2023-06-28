@@ -65,20 +65,6 @@ func (mr *MockNamespaceServiceMockRecorder) Create(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNamespaceService)(nil).Create), arg0, arg1)
 }
 
-// CreateQuota mocks base method.
-func (m *MockNamespaceService) CreateQuota(arg0 context.Context, arg1 *models.Namespace) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateQuota", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateQuota indicates an expected call of CreateQuota.
-func (mr *MockNamespaceServiceMockRecorder) CreateQuota(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQuota", reflect.TypeOf((*MockNamespaceService)(nil).CreateQuota), arg0, arg1)
-}
-
 // DeleteByID mocks base method.
 func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -91,6 +77,21 @@ func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 int64) erro
 func (mr *MockNamespaceServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockNamespaceService)(nil).DeleteByID), arg0, arg1)
+}
+
+// FindAll mocks base method.
+func (m *MockNamespaceService) FindAll(arg0 context.Context) ([]*models.Namespace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAll", arg0)
+	ret0, _ := ret[0].([]*models.Namespace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAll indicates an expected call of FindAll.
+func (mr *MockNamespaceServiceMockRecorder) FindAll(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockNamespaceService)(nil).FindAll), arg0)
 }
 
 // Get mocks base method.
