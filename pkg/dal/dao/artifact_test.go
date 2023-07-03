@@ -45,7 +45,7 @@ func TestArtifactServiceFactory(t *testing.T) {
 func TestArtifactServiceAssociateArtifact(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 	var repositoryObj *models.Repository
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "artifact-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
@@ -112,7 +112,7 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 func TestArtifactService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -137,7 +137,7 @@ func TestArtifactService(t *testing.T) {
 	var tagObj1 *models.Tag
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "artifact-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
@@ -264,7 +264,7 @@ func TestArtifactService(t *testing.T) {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "artifact-service1", Password: "test", Email: "test1@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "artifact-service1", Password: ptr.Of("test"), Email: ptr.Of("test1@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 

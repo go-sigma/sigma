@@ -93,7 +93,7 @@ func (s *tokenService) New(user *models.User, expire time.Duration) (string, err
 	now := time.Now()
 	claims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.Role,
+			Subject:   user.Username,
 			Issuer:    consts.AppName,
 			ExpiresAt: jwt.NewNumericDate(now.Add(expire)),
 			NotBefore: jwt.NewNumericDate(now),

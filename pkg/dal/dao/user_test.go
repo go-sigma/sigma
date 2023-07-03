@@ -27,6 +27,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func TestUserServiceFactory(t *testing.T) {
@@ -40,7 +42,7 @@ func TestUserServiceFactory(t *testing.T) {
 func TestUserGetByUsername(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -60,11 +62,11 @@ func TestUserGetByUsername(t *testing.T) {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := f.New(tx)
 		assert.NotNil(t, userService)
-		err := userService.Create(ctx, &models.User{Username: "test-case", Password: "test-case", Email: "email", Role: "admin"})
+		err := userService.Create(ctx, &models.User{Provider: enums.ProviderLocal, Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")})
 		assert.NoError(t, err)
 		testUser, err := userService.GetByUsername(ctx, "test-case")
 		assert.NoError(t, err)
-		assert.Equal(t, testUser.Password, "test-case")
+		assert.Equal(t, ptr.To(testUser.Password), "test-case")
 		total, err := userService.Count(ctx)
 		assert.NoError(t, err)
 		assert.Equal(t, total, int64(1))

@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/glebarez/sqlite"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -33,11 +34,16 @@ import (
 var (
 	// DB is the global database connection
 	DB *gorm.DB
+	// RedisCli ...
+	RedisCli redis.UniversalClient
 )
 
 // Initialize initializes the database connection
 func Initialize() error {
-	var err error
+	err := connectRedis()
+	if err != nil {
+		return err
+	}
 	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
 	switch dbType {
 	case enums.DatabaseMysql:
@@ -69,6 +75,15 @@ func Initialize() error {
 	} else {
 		query.SetDefault(DB)
 	}
+	return nil
+}
+
+func connectRedis() error {
+	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
+	if err != nil {
+		return err
+	}
+	RedisCli = redis.NewClient(redisOpt)
 	return nil
 }
 

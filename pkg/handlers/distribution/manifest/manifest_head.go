@@ -76,6 +76,9 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	artifactService := h.artifactServiceFactory.New()
 	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			return h.headManifestFallbackProxy(c)
+		}
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}

@@ -79,7 +79,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 			pipeReader, pipeWriter := io.Pipe()
 			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
 			go func() {
-				blobSize, err := strconv.ParseInt(header.Get("Content-Length"), 10, 64)
+				blobSize, err := strconv.ParseInt(header.Get(echo.HeaderContentLength), 10, 64)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
 					return
@@ -99,14 +99,14 @@ func (h *handler) GetBlob(c echo.Context) error {
 					return
 				}
 			}()
-			c.Response().Header().Set("Content-Length", header.Get("Content-Length"))
+			c.Response().Header().Set(echo.HeaderContentLength, header.Get(echo.HeaderContentLength))
 			return c.Stream(http.StatusOK, contentType, newBodyReader)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
-	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
+	c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", blob.Size))
 
 	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), 0)
 	if err != nil {

@@ -104,7 +104,7 @@ func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
 func TestHeadManifest(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -126,7 +126,7 @@ func TestHeadManifest(t *testing.T) {
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
-	userObj := &models.User{Username: "head-manifest", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 

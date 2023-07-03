@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -34,6 +35,8 @@ func TestAuth(t *testing.T) {
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
 	viper.SetDefault("database.type", "sqlite3")
 	viper.SetDefault("database.sqlite3.path", dbPath)
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
 	err := Initialize()
 	assert.NoError(t, err)

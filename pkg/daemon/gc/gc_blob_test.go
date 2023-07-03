@@ -37,7 +37,7 @@ func TestGcBlobs(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	viper.SetDefault("daemon.gc.retention", "72h")
 	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize())
+	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()

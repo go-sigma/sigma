@@ -274,6 +274,89 @@ func (x GcTarget) Value() (driver.Value, error) {
 }
 
 const (
+	// ProviderLocal is a Provider of type local.
+	ProviderLocal Provider = "local"
+	// ProviderGithub is a Provider of type github.
+	ProviderGithub Provider = "github"
+)
+
+var ErrInvalidProvider = errors.New("not a valid Provider")
+
+// String implements the Stringer interface.
+func (x Provider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x Provider) IsValid() bool {
+	_, err := ParseProvider(string(x))
+	return err == nil
+}
+
+var _ProviderValue = map[string]Provider{
+	"local":  ProviderLocal,
+	"github": ProviderGithub,
+}
+
+// ParseProvider attempts to convert a string to a Provider.
+func ParseProvider(name string) (Provider, error) {
+	if x, ok := _ProviderValue[name]; ok {
+		return x, nil
+	}
+	return Provider(""), fmt.Errorf("%s is %w", name, ErrInvalidProvider)
+}
+
+// MustParseProvider converts a string to a Provider, and panics if is not valid.
+func MustParseProvider(name string) Provider {
+	val, err := ParseProvider(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errProviderNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *Provider) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = Provider("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseProvider(v)
+	case []byte:
+		*x, err = ParseProvider(string(v))
+	case Provider:
+		*x = v
+	case *Provider:
+		if v == nil {
+			return errProviderNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errProviderNilPtr
+		}
+		*x, err = ParseProvider(*v)
+	default:
+		return errors.New("invalid type for Provider")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x Provider) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// TaskCommonStatusPending is a TaskCommonStatus of type Pending.
 	TaskCommonStatusPending TaskCommonStatus = "Pending"
 	// TaskCommonStatusDoing is a TaskCommonStatus of type Doing.

@@ -26,11 +26,12 @@ import (
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
 	"github.com/ximager/ximager/pkg/utils/password"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 func TestInitInternalUser(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -57,7 +58,7 @@ func TestInitInternalUser(t *testing.T) {
 
 func TestInitAdminUser1(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -80,7 +81,7 @@ func TestInitAdminUser1(t *testing.T) {
 
 func TestInitAdminUser2(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -113,12 +114,10 @@ func TestInitAdminUser2(t *testing.T) {
 	user, err := userService.GetByUsername(ctx, "ximager")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.True(t, passwordService.Verify("ximager", user.Password))
-	assert.Equal(t, user.Role, "root")
+	assert.True(t, passwordService.Verify("ximager", ptr.To(user.Password)))
 
 	user, err = userService.GetByUsername(ctx, "internal-ximager")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.True(t, passwordService.Verify("internal-ximager", user.Password))
-	assert.Equal(t, user.Role, "root")
+	assert.True(t, passwordService.Verify("internal-ximager", ptr.To(user.Password)))
 }

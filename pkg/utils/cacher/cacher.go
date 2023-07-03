@@ -75,9 +75,12 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 	content, err := c.redisCli.Get(ctx, c.key(key)).Result()
 	if err != nil {
 		if err == redis.Nil {
+			if c.fetcher == nil {
+				return result, err
+			}
 			result, err = c.fetcher(key)
 			if err != nil {
-				return result, fmt.Errorf("fetch value failed: %w", err)
+				return result, err
 			}
 			err = c.Set(ctx, key, result)
 			if err != nil {

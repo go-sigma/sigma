@@ -12,48 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package enums
+package blob
 
-//go:generate go-enum --sql --mustparse
+import "testing"
 
-// TaskCommonStatus x ENUM(
-// Pending,
-// Doing,
-// Success,
-// Failed
-// )
-type TaskCommonStatus string
+func TestDeleteBlob(t *testing.T) {
 
-// Database x ENUM(
-// postgresql,
-// mysql,
-// sqlite3,
-// )
-type Database string
-
-// Daemon x ENUM(
-// Vulnerability,
-// Sbom,
-// ProxyArtifact,
-// ProxyTag,
-// Gc
-// )
-type Daemon string
-
-// Visibility x ENUM(
-// private,
-// public,
-// )
-type Visibility string
-
-// GcTarget x ENUM(
-// blobsAndArtifacts,
-// artifacts,
-// )
-type GcTarget string
-
-// Provider x ENUM(
-// local,
-// github,
-// )
-type Provider string
+}

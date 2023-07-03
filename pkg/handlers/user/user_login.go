@@ -23,6 +23,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -44,7 +45,7 @@ func (h *handlers) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 	}
 
-	verify := h.passwordService.Verify(req.Password, user.Password)
+	verify := h.passwordService.Verify(req.Password, ptr.To(user.Password))
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")
@@ -65,5 +66,8 @@ func (h *handlers) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.PostUserLoginResponse{
 		RefreshToken: refreshToken,
 		Token:        token,
+		ID:           user.ID,
+		Email:        ptr.To(user.Email),
+		Username:     user.Username,
 	})
 }

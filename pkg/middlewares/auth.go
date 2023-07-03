@@ -28,6 +28,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	"github.com/ximager/ximager/pkg/utils/password"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/utils/token"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
@@ -91,7 +92,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				}
 
 				passwordService := password.New()
-				verify := passwordService.Verify(pwd, user.Password)
+				verify := passwordService.Verify(pwd, ptr.To(user.Password))
 				if !verify {
 					log.Error().Err(err).Msg("Verify password failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))

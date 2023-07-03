@@ -3,13 +3,13 @@ module github.com/ximager/ximager
 go 1.19
 
 require (
-	github.com/alicebob/miniredis/v2 v2.30.3
-	github.com/aws/aws-sdk-go v1.44.291
+	github.com/alicebob/miniredis/v2 v2.30.4
+	github.com/aws/aws-sdk-go v1.44.295
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.71.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230627210631-71a6c56fbf6c
+	github.com/distribution/distribution/v3 v3.0.0-20230629214736-bac7f02e02a1
 	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/echo-swagger v1.4.0
 	github.com/swaggo/swag v1.16.1
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.41
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/tidwall/gjson v1.14.4
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.10.0
@@ -40,7 +40,7 @@ require (
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gen v0.3.22
-	gorm.io/gorm v1.25.1
+	gorm.io/gorm v1.25.2
 	gorm.io/plugin/dbresolver v1.4.1
 	gorm.io/plugin/soft_delete v1.2.1
 )

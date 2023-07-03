@@ -17,7 +17,9 @@ package tests
 import (
 	"fmt"
 	"strings"
+	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/types/enums"
@@ -50,9 +52,12 @@ func RegisterCIDatabaseFactory(name string, factory Factory) error {
 // DB is the database for ci tests
 var DB CIDatabase
 
-func Initialize() error {
+func Initialize(t *testing.T) error {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
 	typ := viper.GetString("ci.database.type")
 	if typ == "" {

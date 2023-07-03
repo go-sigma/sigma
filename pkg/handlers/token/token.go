@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -43,7 +44,7 @@ func (h *handlers) Token(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
-	verify := h.passwordService.Verify(pwd, user.Password)
+	verify := h.passwordService.Verify(pwd, ptr.To(user.Password))
 	if !verify {
 		log.Error().Err(err).Msg("Verify password failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
