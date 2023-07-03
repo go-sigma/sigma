@@ -115,7 +115,7 @@ export default function Home({ localServer }: { localServer: string }) {
           <title>XImager - Home</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen flex overflow-hidden bg-white min-w-1600">
         <Menu item="Home" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>

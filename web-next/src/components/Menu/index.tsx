@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-
-
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { IconType } from "react-icons";
 import { useClickAway } from 'react-use';
+import Link from 'next/link';
+import { useSession, signIn, signOut } from "next-auth/react";
 
 import { AiOutlineHome, AiOutlineMenu, AiOutlineClockCircle } from "react-icons/ai";
 
@@ -37,6 +36,8 @@ const menuList: IMenu[] = [
 export default function Menu({ item }: { item: string }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [menuActive, setMenuActive] = useState(item === "" ? menuList[0].text : item);
+
+  const { data: session } = useSession()
 
   const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   useClickAway(ref, () => {
@@ -57,7 +58,7 @@ export default function Menu({ item }: { item: string }) {
               <button type="button" className="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500" onClick={() => { setShowProfileMenu(!showProfileMenu) }}>
                 <span className="flex w-full justify-between items-center">
                   <span className="flex min-w-0 items-center justify-between space-x-3">
-                    <img className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=256&amp;h=256&amp;q=80" alt="" />
+                    {/* <img className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=256&amp;h=256&amp;q=80" alt="" /> */}
                     <span className="flex min-w-0 flex-col">
                       <span className="text-gray-900 text-sm font-medium truncate">Tosone</span>
                     </span>
@@ -75,12 +76,12 @@ export default function Menu({ item }: { item: string }) {
                   <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Settings</div>
                   <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Notifications</div>
                 </div>
-                <div className="py-1">
+                {/* <div className="py-1">
                   <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Get desktop app</div>
                   <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Support</div>
-                </div>
+                </div> */}
                 <div className="py-1">
-                  <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Logout</div>
+                  <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" onClick={() => { signOut() }}>Logout</div>
                 </div>
               </div>
             </div>
@@ -90,7 +91,7 @@ export default function Menu({ item }: { item: string }) {
               {
                 menuList.map(m => {
                   return (
-                    <Link to={`/${m.text.toLowerCase()}`} key={m.text} className={`text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === m.text ? "bg-gray-200" : "text-gray-700"}`} onClick={() => {
+                    <Link href={`/${m.text.toLowerCase()}`} key={m.text} className={`text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === m.text ? "bg-gray-200" : "text-gray-700"}`} onClick={() => {
                       setMenuActive(m.text);
                     }}>
                       <m.icon className="text-gray-500 mr-3 h-6 w-6" />

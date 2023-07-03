@@ -21,6 +21,7 @@ import { Routes, Route, HashRouter as Router } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import Namespace from "./pages/Namespace";
 import Repository from "./pages/Repository";
 import Artifact from "./pages/Artifact";
@@ -50,6 +51,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home localServer={localServer} />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/home" element={<Home localServer={localServer} />} />
           <Route path="/namespace" element={<Namespace localServer={localServer} />} />
           <Route path="/namespace/:namespace/repository" element={<Repository localServer={localServer} />} />
