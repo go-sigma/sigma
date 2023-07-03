@@ -229,6 +229,15 @@ var (
 		HTTPStatusCode: http.StatusNotFound,
 	}
 
+	// DSErrCodeBlobAssociated is returned when a blob upload is attempted
+	// for a blob that is already referenced by another manifest.
+	DSErrCodeBlobAssociated = ErrCode{
+		Code:           "BLOB_ASSOCIATED",
+		Title:          "blob associated with multiple manifests",
+		Description:    `This error is returned when a blob is uploaded that is already referenced by another manifest in the repository.`,
+		HTTPStatusCode: http.StatusBadRequest,
+	}
+
 	// DSErrCodeBlobUploadUnknown is returned when an upload is unknown.
 	DSErrCodeBlobUploadUnknown = ErrCode{
 		Code:           "BLOB_UPLOAD_UNKNOWN",

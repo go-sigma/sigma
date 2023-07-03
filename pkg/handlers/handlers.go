@@ -23,15 +23,12 @@ import (
 	"github.com/ximager/ximager/pkg/handlers/distribution"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/validators"
-	"github.com/ximager/ximager/web"
 
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
 // Initialize ...
 func Initialize(e *echo.Echo) error {
-	web.RegisterHandlers(e)
-
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validators.Initialize(e)

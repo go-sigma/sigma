@@ -14,6 +14,26 @@
  * limitations under the License.
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import axios from 'axios';
+import { redirect } from "react-router-dom";
+
+const instance = axios.create({
+  timeout: 20000,
+  withCredentials: true,
+});
+
+instance.interceptors.request.use(function (config: any) {
+  const token = localStorage.getItem('token');
+  token && (config.headers.Authorization = token);
+  return config;
+})
+
+instance.interceptors.response.use(function (response) {
+  return response;
+}, function (error) {
+  console.log(error);
+  redirect("/login");
+  return Promise.reject(error);
+});
+
+export default instance;

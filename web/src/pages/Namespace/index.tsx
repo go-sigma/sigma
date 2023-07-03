@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-
-
 import axios from "axios";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from '@headlessui/react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
+import request from "../../utils/request";
 
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
@@ -49,7 +48,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
     if (searchNamespace !== "") {
       url += `&name=${searchNamespace}`;
     }
-    axios.get(url)
+    request.get(url)
       .then((response) => {
         if (response.status === 200) {
           const namespaceList = response.data as INamespaceList;
