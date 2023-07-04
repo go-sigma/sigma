@@ -35,7 +35,7 @@ import (
 func TestGcArtifact(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize())
+	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
@@ -52,7 +52,7 @@ func TestGcArtifact(t *testing.T) {
 	userServiceFactory := dao.NewUserServiceFactory()
 
 	userService := userServiceFactory.New()
-	userObj := &models.User{Username: "gc-artifact", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err := userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 

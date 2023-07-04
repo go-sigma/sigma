@@ -44,7 +44,7 @@ func TestTagServiceFactory(t *testing.T) {
 func TestTagService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -66,7 +66,7 @@ func TestTagService(t *testing.T) {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "tag-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "tag-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 

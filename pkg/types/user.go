@@ -24,6 +24,9 @@ type PostUserLoginRequest struct {
 type PostUserLoginResponse struct {
 	RefreshToken string `json:"refresh_token"`
 	Token        string `json:"token"`
+	ID           int64  `json:"id"`
+	Email        string `json:"email"`
+	Username     string `json:"username"`
 }
 
 // PostUserTokenRequest ...

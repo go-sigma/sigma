@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 // User is the model for the user table.
@@ -27,8 +29,12 @@ type User struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Username string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
-	Email    string `gorm:"uniqueIndex;not null"`
-	Role     string `gorm:"not null"`
+	Provider          enums.Provider
+	Username          string `gorm:"uniqueIndex;not null"`
+	Password          *string
+	Email             *string
+	ProviderAccountID *string
+	RefreshToken      *string
+	AccessToken       *string
+	ExpiresAt         *string
 }

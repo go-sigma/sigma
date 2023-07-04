@@ -31,10 +31,14 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_user.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_user.ID = field.NewInt64(tableName, "id")
+	_user.Provider = field.NewField(tableName, "provider")
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Email = field.NewString(tableName, "email")
-	_user.Role = field.NewString(tableName, "role")
+	_user.ProviderAccountID = field.NewString(tableName, "provider_account_id")
+	_user.RefreshToken = field.NewString(tableName, "refresh_token")
+	_user.AccessToken = field.NewString(tableName, "access_token")
+	_user.ExpiresAt = field.NewString(tableName, "expires_at")
 
 	_user.fillFieldMap()
 
@@ -44,15 +48,19 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	Username  field.String
-	Password  field.String
-	Email     field.String
-	Role      field.String
+	ALL               field.Asterisk
+	CreatedAt         field.Time
+	UpdatedAt         field.Time
+	DeletedAt         field.Uint
+	ID                field.Int64
+	Provider          field.Field
+	Username          field.String
+	Password          field.String
+	Email             field.String
+	ProviderAccountID field.String
+	RefreshToken      field.String
+	AccessToken       field.String
+	ExpiresAt         field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -73,10 +81,14 @@ func (u *user) updateTableName(table string) *user {
 	u.UpdatedAt = field.NewTime(table, "updated_at")
 	u.DeletedAt = field.NewUint(table, "deleted_at")
 	u.ID = field.NewInt64(table, "id")
+	u.Provider = field.NewField(table, "provider")
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Email = field.NewString(table, "email")
-	u.Role = field.NewString(table, "role")
+	u.ProviderAccountID = field.NewString(table, "provider_account_id")
+	u.RefreshToken = field.NewString(table, "refresh_token")
+	u.AccessToken = field.NewString(table, "access_token")
+	u.ExpiresAt = field.NewString(table, "expires_at")
 
 	u.fillFieldMap()
 
@@ -99,15 +111,19 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 8)
+	u.fieldMap = make(map[string]field.Expr, 12)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
 	u.fieldMap["id"] = u.ID
+	u.fieldMap["provider"] = u.Provider
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["email"] = u.Email
-	u.fieldMap["role"] = u.Role
+	u.fieldMap["provider_account_id"] = u.ProviderAccountID
+	u.fieldMap["refresh_token"] = u.RefreshToken
+	u.fieldMap["access_token"] = u.AccessToken
+	u.fieldMap["expires_at"] = u.ExpiresAt
 }
 
 func (u user) clone(db *gorm.DB) user {

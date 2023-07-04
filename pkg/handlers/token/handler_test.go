@@ -40,7 +40,7 @@ func TestFactory(t *testing.T) {
 	e.HideBanner = true
 	e.HidePort = true
 	validators.Initialize(e)
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)

@@ -84,3 +84,10 @@ var (
 	// [docker/docker:graph/tags.go]: https://github.com/moby/moby/blob/v1.6.0/graph/tags.go#L26-L28
 	TagRegexp = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
 )
+
+const (
+	// CacherBlob ...
+	CacherBlob = "blob"
+	// CacherManifest ...
+	CacherManifest = "manifest"
+)

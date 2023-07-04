@@ -26,6 +26,7 @@ import (
 
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/logger"
+	"github.com/ximager/ximager/pkg/types/enums"
 )
 
 const (
@@ -56,7 +57,7 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, tokenService)
 
-	token, err := tokenService.New(&models.User{Username: "test", Role: "root"}, time.Second*30)
+	token, err := tokenService.New(&models.User{Provider: enums.ProviderLocal, Username: "test"}, time.Second*30)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 

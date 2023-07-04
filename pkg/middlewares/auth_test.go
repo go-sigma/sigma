@@ -75,7 +75,7 @@ func TestAuthWithConfig(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)

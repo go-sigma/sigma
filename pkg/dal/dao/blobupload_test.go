@@ -40,7 +40,7 @@ func TestBlobUploadServiceFactory(t *testing.T) {
 func TestBlobUploadService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)

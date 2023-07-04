@@ -47,7 +47,7 @@ func TestListTag(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -70,7 +70,7 @@ func TestListTag(t *testing.T) {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userServiceFactory := dao.NewUserServiceFactory()
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "new-runner", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceServiceFactory := dao.NewNamespaceServiceFactory()

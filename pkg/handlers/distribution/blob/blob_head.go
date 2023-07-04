@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -27,7 +28,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
+	"github.com/ximager/ximager/pkg/dal"
+	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	"github.com/ximager/ximager/pkg/utils/cacher"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -38,7 +42,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))
 	if err != nil {
 		log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
-		return err
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	log.Debug().Str("digest", dgest.String()).Str("repository", repository).Msg("Blob info")
@@ -47,31 +51,61 @@ func (h *handler) HeadBlob(c echo.Context) error {
 
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
-	blobService := h.blobServiceFactory.New()
-	blob, err := blobService.FindByDigest(ctx, dgest.String())
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
-			f := clients.NewClientsFactory()
-			cli, err := f.New()
-			if err != nil {
-				log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-			}
-			statusCode, header, _, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
-			if err != nil {
-				log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-			}
-			if statusCode != http.StatusOK {
-				log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-			}
-			c.Response().Header().Set("Content-Length", header.Get("Content-Length"))
-			return c.NoContent(http.StatusOK)
+	blob, err := cacher.New(dal.RedisCli, consts.CacherBlob, func(key string) (*models.Blob, error) {
+		dgest, err := digest.Parse(key)
+		if err != nil {
+			log.Error().Err(err).Str("digest", key).Msg("Parse digest failed")
+			return nil, xerrors.DSErrCodeUnknown
 		}
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		blobService := h.blobServiceFactory.New()
+		blob, err := blobService.FindByDigest(ctx, dgest.String())
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if !viper.GetBool("proxy.enabled") {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Blob not found")
+					return nil, xerrors.DSErrCodeBlobUnknown
+				}
+				f := clients.NewClientsFactory()
+				cli, err := f.New()
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
+					return nil, xerrors.DSErrCodeUnknown
+				}
+				statusCode, header, _, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
+					return nil, xerrors.DSErrCodeUnknown
+				}
+				if statusCode != http.StatusOK {
+					log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
+					return nil, xerrors.DSErrCodeUnknown
+				}
+				contentLength, err := strconv.ParseInt(header.Get(echo.HeaderContentLength), 10, 64)
+				if err != nil {
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
+					return nil, xerrors.DSErrCodeUnknown
+				}
+				blob = &models.Blob{
+					Digest:      dgest.String(),
+					Size:        contentLength,
+					ContentType: header.Get(echo.HeaderContentType),
+				}
+				c.Response().Header().Set("Content-Length", header.Get(echo.HeaderContentLength))
+				return blob, nil
+			}
+			log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
+			return nil, xerrors.DSErrCodeBlobUnknown
+		}
+		return blob, nil
+	}).Get(ctx, dgest.String())
+	if err != nil {
+		if err, ok := err.(xerrors.ErrCode); ok {
+			return xerrors.NewDSError(c, err)
+		}
+		log.Error().Err(err).Msg("Head blob failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
+
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
 	return c.NoContent(http.StatusOK)
 }

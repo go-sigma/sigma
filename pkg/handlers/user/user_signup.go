@@ -26,7 +26,9 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -60,9 +62,10 @@ func (h *handlers) Signup(c echo.Context) error {
 	}
 
 	user := &models.User{
+		Provider: enums.ProviderLocal,
 		Username: req.Username,
-		Password: pwdHash,
-		Email:    req.Email,
+		Password: ptr.Of(pwdHash),
+		Email:    ptr.Of(req.Email),
 	}
 	err = userService.Create(ctx, user)
 	if err != nil {

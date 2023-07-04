@@ -36,6 +36,8 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/logger"
 	"github.com/ximager/ximager/pkg/tests"
+	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
@@ -43,7 +45,7 @@ func TestPostNamespace(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -62,7 +64,7 @@ func TestPostNamespace(t *testing.T) {
 	userService := userServiceFactory.New()
 
 	ctx := context.Background()
-	userObj := &models.User{Username: "post-namespace", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
@@ -167,7 +169,7 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -184,7 +186,7 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 	userService := userServiceFactory.New()
 
 	ctx := context.Background()
-	userObj := &models.User{Username: "post-namespace", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 

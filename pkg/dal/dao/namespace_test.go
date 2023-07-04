@@ -44,7 +44,7 @@ func TestNamespaceServiceFactory(t *testing.T) {
 func TestNamespaceService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestNamespaceService(t *testing.T) {
 	userServiceFactory := NewUserServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "namespace-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "namespace-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
@@ -127,7 +127,7 @@ func TestNamespaceService(t *testing.T) {
 func TestNamespaceServiceQuota(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -147,7 +147,7 @@ func TestNamespaceServiceQuota(t *testing.T) {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "artifact-service", Password: "test", Email: "test@gmail.com", Role: "admin"}
+		userObj := &models.User{Provider: enums.ProviderLocal, Username: "artifact-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 

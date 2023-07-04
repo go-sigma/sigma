@@ -58,10 +58,10 @@ func initUser() error {
 		return err
 	}
 	internalUser := &models.User{
+		Provider: enums.ProviderLocal,
 		Username: internalUserUsername,
-		Password: internalUserPasswordHashed,
-		Email:    "internal-fake@gmail.com",
-		Role:     "root", // TODO: change to read-only role
+		Password: ptr.Of(internalUserPasswordHashed),
+		Email:    ptr.Of("internal-fake@gmail.com"),
 	}
 	err = userService.Create(ctx, internalUser)
 	if err != nil {
@@ -85,10 +85,10 @@ func initUser() error {
 		adminUserEmail = "fake@gmail.com"
 	}
 	adminUser := &models.User{
+		Provider: enums.ProviderLocal,
 		Username: adminUserUsername,
-		Password: adminUserPasswordHashed,
-		Email:    adminUserEmail,
-		Role:     "root",
+		Password: ptr.Of(adminUserPasswordHashed),
+		Email:    ptr.Of(adminUserEmail),
 	}
 	err = userService.Create(ctx, adminUser)
 	if err != nil {

@@ -44,7 +44,7 @@ import (
 func TestPutManifestAsyncTask(t *testing.T) {
 	logger.SetLevel("debug")
 	viper.SetDefault("log.level", "debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -86,7 +86,7 @@ func TestPutManifestAsyncTask(t *testing.T) {
 func TestPutManifest(t *testing.T) {
 	logger.SetLevel("debug")
 	viper.SetDefault("log.level", "debug")
-	err := tests.Initialize()
+	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
 	assert.NoError(t, err)
@@ -113,7 +113,7 @@ func TestPutManifest(t *testing.T) {
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
-	userObj := &models.User{Username: "head-manifest", Password: "test", Email: "test@gmail.com", Role: "admin"}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
