@@ -44,6 +44,8 @@ type RepositoryService interface {
 	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
 	ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error)
+	// UpdateRepository update specific repository
+	UpdateRepository(ctx context.Context, id int64, updates models.Repository) error
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
@@ -129,6 +131,25 @@ func (s *repositoryService) ListRepository(ctx context.Context, req types.ListRe
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.ID.EqCol(s.tx.Repository.NamespaceID)).
 		Where(s.tx.Namespace.Name.Eq(req.Namespace)).
 		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
+}
+
+// UpdateRepository ...
+func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, repository models.Repository) error {
+	var updates = make(map[string]any)
+	if repository.Description != nil {
+		updates[s.tx.Repository.Description.ColumnName().String()] = repository.Description
+	}
+	if repository.Overview != nil {
+		updates[s.tx.Repository.Overview.ColumnName().String()] = repository.Overview
+	}
+	result, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).UpdateColumns(updates)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // CountRepository counts all repositories.

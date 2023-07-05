@@ -33,9 +33,17 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.ID = field.NewInt64(tableName, "id")
 	_repository.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_repository.Name = field.NewString(tableName, "name")
+	_repository.Description = field.NewString(tableName, "description")
+	_repository.Overview = field.NewBytes(tableName, "overview")
 	_repository.Visibility = field.NewField(tableName, "visibility")
 	_repository.Limit = field.NewInt64(tableName, "limit")
 	_repository.Usage = field.NewInt64(tableName, "usage")
+	_repository.Tags = repositoryHasManyTags{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Tags", "models.RepositoryTag"),
+	}
+
 	_repository.Namespace = repositoryBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -62,10 +70,14 @@ type repository struct {
 	ID          field.Int64
 	NamespaceID field.Int64
 	Name        field.String
+	Description field.String
+	Overview    field.Bytes
 	Visibility  field.Field
 	Limit       field.Int64
 	Usage       field.Int64
-	Namespace   repositoryBelongsToNamespace
+	Tags        repositoryHasManyTags
+
+	Namespace repositoryBelongsToNamespace
 
 	fieldMap map[string]field.Expr
 }
@@ -88,6 +100,8 @@ func (r *repository) updateTableName(table string) *repository {
 	r.ID = field.NewInt64(table, "id")
 	r.NamespaceID = field.NewInt64(table, "namespace_id")
 	r.Name = field.NewString(table, "name")
+	r.Description = field.NewString(table, "description")
+	r.Overview = field.NewBytes(table, "overview")
 	r.Visibility = field.NewField(table, "visibility")
 	r.Limit = field.NewInt64(table, "limit")
 	r.Usage = field.NewInt64(table, "usage")
@@ -115,13 +129,15 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *repository) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 10)
+	r.fieldMap = make(map[string]field.Expr, 13)
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
 	r.fieldMap["id"] = r.ID
 	r.fieldMap["namespace_id"] = r.NamespaceID
 	r.fieldMap["name"] = r.Name
+	r.fieldMap["description"] = r.Description
+	r.fieldMap["overview"] = r.Overview
 	r.fieldMap["visibility"] = r.Visibility
 	r.fieldMap["limit"] = r.Limit
 	r.fieldMap["usage"] = r.Usage
@@ -136,6 +152,77 @@ func (r repository) clone(db *gorm.DB) repository {
 func (r repository) replaceDB(db *gorm.DB) repository {
 	r.repositoryDo.ReplaceDB(db)
 	return r
+}
+
+type repositoryHasManyTags struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a repositoryHasManyTags) Where(conds ...field.Expr) *repositoryHasManyTags {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a repositoryHasManyTags) WithContext(ctx context.Context) *repositoryHasManyTags {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a repositoryHasManyTags) Session(session *gorm.Session) *repositoryHasManyTags {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a repositoryHasManyTags) Model(m *models.Repository) *repositoryHasManyTagsTx {
+	return &repositoryHasManyTagsTx{a.db.Model(m).Association(a.Name())}
+}
+
+type repositoryHasManyTagsTx struct{ tx *gorm.Association }
+
+func (a repositoryHasManyTagsTx) Find() (result []*models.RepositoryTag, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a repositoryHasManyTagsTx) Append(values ...*models.RepositoryTag) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a repositoryHasManyTagsTx) Replace(values ...*models.RepositoryTag) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a repositoryHasManyTagsTx) Delete(values ...*models.RepositoryTag) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a repositoryHasManyTagsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a repositoryHasManyTagsTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type repositoryBelongsToNamespace struct {

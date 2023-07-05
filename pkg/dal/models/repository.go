@@ -30,10 +30,24 @@ type Repository struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	NamespaceID int64
-	Name        string `gorm:"uniqueIndex"`
+	Name        string
+	Description *string
+	Overview    []byte
 	Visibility  *enums.Visibility
 	Limit       int64 `gorm:"default:0"`
 	Usage       int64 `gorm:"default:0"`
 
 	Namespace Namespace
+	Tags      []*RepositoryTag
+}
+
+// RepositoryTag represents repository tags
+type RepositoryTag struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	Name         string
+	RepositoryID int64
 }

@@ -49,6 +49,9 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 					field.RelationField
 				}
 			}
+			Tags struct {
+				field.RelationField
+			}
 		}{
 			RelationField: field.NewRelation("Artifact.Repository", "models.Repository"),
 			Namespace: struct {
@@ -63,6 +66,11 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 				}{
 					RelationField: field.NewRelation("Artifact.Repository.Namespace.User", "models.User"),
 				},
+			},
+			Tags: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Repository.Tags", "models.RepositoryTag"),
 			},
 		},
 		Tags: struct {
@@ -212,6 +220,9 @@ type artifactSbomBelongsToArtifact struct {
 			User struct {
 				field.RelationField
 			}
+		}
+		Tags struct {
+			field.RelationField
 		}
 	}
 	Tags struct {
