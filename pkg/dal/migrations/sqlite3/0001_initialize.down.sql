@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS `namespaces`;
 
 DROP TABLE IF EXISTS `repositories`;
 
+DROP TABLE IF EXISTS `repository_tags`;
+
 DROP TABLE IF EXISTS `artifacts`;
 
 DROP TABLE IF EXISTS `tags`;

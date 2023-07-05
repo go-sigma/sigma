@@ -52,7 +52,9 @@ CREATE TABLE IF NOT EXISTS "namespace_quota" (
 
 CREATE TABLE IF NOT EXISTS "repositories" (
   "id" bigserial PRIMARY KEY,
-  "name" varchar(64) NOT NULL UNIQUE,
+  "name" varchar(64) NOT NULL,
+  "description" varchar(255),
+  "overview" bytea,
   "visibility" visibility NOT NULL DEFAULT 'private',
   "limit" bigint NOT NULL DEFAULT 0,
   "usage" bigint NOT NULL DEFAULT 0,
@@ -62,6 +64,17 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   CONSTRAINT "repositories_unique_with_namespace" UNIQUE ("namespace_id", "name", "deleted_at")
+);
+
+CREATE TABLE IF NOT EXISTS "repository_tags" (
+  "id" bigserial PRIMARY KEY,
+  "name" varchar(64) NOT NULL,
+  "repository_id" bigint NOT NULL,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
+  CONSTRAINT "repository_tags_unique_with_repository" UNIQUE ("repository_id", "name", "deleted_at")
 );
 
 CREATE TABLE IF NOT EXISTS "artifacts" (

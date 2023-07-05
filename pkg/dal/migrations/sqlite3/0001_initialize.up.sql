@@ -30,16 +30,29 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
 
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `name` varchar(64) NOT NULL UNIQUE,
+  `name` varchar(64) NOT NULL,
+  `description` varchar(255),
+  `overview` BLOB,
   `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
   `limit` integer NOT NULL DEFAULT 0,
   `usage` integer NOT NULL DEFAULT 0,
   `namespace_id` integer NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
+  `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
+);
+
+CREATE TABLE IF NOT EXISTS `repository_tags` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `name` varchar(64) NOT NULL,
+  `repository_id` integer NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
+  CONSTRAINT `repository_tags_unique_with_repository` UNIQUE (`repository_id`, `name`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
