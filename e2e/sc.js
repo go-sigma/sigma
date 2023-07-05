@@ -20,7 +20,7 @@ export default function () {
 
   const token = JSON.parse(response.body).token;
 
-  response = http.post(`${host}/namespace/`, JSON.stringify({ "name": "test", "description": "test" }), {
+  response = http.post(`${host}/namespaces/`, JSON.stringify({ "name": "test", "description": "test" }), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -31,7 +31,7 @@ export default function () {
   });
   const namespaceId = JSON.parse(response.body).id;
 
-  response = http.del(`${host}/namespace/${namespaceId}`, null, {
+  response = http.del(`${host}/namespaces/${namespaceId}`, null, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -43,7 +43,7 @@ export default function () {
 
   let page_size = 100;
   let page_num = 1;
-  response = http.get(`${host}/namespace/?page_size=${page_size}&page_num=${page_num}`, {
+  response = http.get(`${host}/namespaces/?page_size=${page_size}&page_num=${page_num}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,

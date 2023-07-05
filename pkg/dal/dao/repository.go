@@ -25,6 +25,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils/imagerefs"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 //go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryService
@@ -130,7 +131,7 @@ func (s *repositoryService) ListRepository(ctx context.Context, req types.ListRe
 	return s.tx.Repository.WithContext(ctx).
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.ID.EqCol(s.tx.Repository.NamespaceID)).
 		Where(s.tx.Namespace.Name.Eq(req.Namespace)).
-		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
+		Where(s.tx.Repository.ID.Gt(ptr.To(req.Last))).Limit(ptr.To(req.Limit)).Find()
 }
 
 // UpdateRepository ...

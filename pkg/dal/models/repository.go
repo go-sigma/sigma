@@ -33,9 +33,9 @@ type Repository struct {
 	Name        string
 	Description *string
 	Overview    []byte
-	Visibility  *enums.Visibility
-	Limit       int64 `gorm:"default:0"`
-	Usage       int64 `gorm:"default:0"`
+	Visibility  enums.Visibility `gorm:"default:public"`
+	Limit       int64            `gorm:"default:0"`
+	Usage       int64            `gorm:"default:0"`
 
 	Namespace Namespace
 	Tags      []*RepositoryTag

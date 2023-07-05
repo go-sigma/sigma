@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package namespaces
 
 import (
 	"bytes"
@@ -41,7 +41,7 @@ import (
 	"github.com/ximager/ximager/pkg/validators"
 )
 
-func TestGetNamespace(t *testing.T) {
+func TestDeleteNamespace(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
@@ -85,15 +85,15 @@ func TestGetNamespace(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
-	err = namespaceHandler.GetNamespace(c)
+	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, c.Response().Status)
+	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	err = namespaceHandler.GetNamespace(c)
+	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
@@ -102,8 +102,8 @@ func TestGetNamespace(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(3, 10))
-	err = namespaceHandler.GetNamespace(c)
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
+	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
@@ -111,8 +111,8 @@ func TestGetNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
-		return nil, fmt.Errorf("test")
+	daoMockNamespaceService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
+		return fmt.Errorf("test")
 	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
@@ -127,8 +127,8 @@ func TestGetNamespace(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatUint(3, 10))
-	err = namespaceHandler.GetNamespace(c)
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
+	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

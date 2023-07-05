@@ -73,13 +73,13 @@ func TestGetTag(t *testing.T) {
 		assert.NoError(t, err)
 		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
 		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		artifactServiceFactory := dao.NewArtifactServiceFactory()

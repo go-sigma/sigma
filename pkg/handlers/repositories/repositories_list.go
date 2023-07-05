@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repository
+package repositories
 
 import (
 	"net/http"
@@ -27,6 +27,18 @@ import (
 )
 
 // ListRepository handles the list repository request
+// @Summary List repository
+// @Tags Repository
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Router /namespaces/{namespace}/repositories/ [get]
+// @Param page_size query int64 true "page size" minimum(10) maximum(100) default(10)
+// @Param page_num query int64 true "page number" minimum(1) default(1)
+// @Param namespace path string true "namespace"
+// @Success 200 {object} types.CommonList{items=[]types.RepositoryItem}
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) ListRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -36,6 +48,7 @@ func (h *handlers) ListRepository(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
+	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repositories, err := repositoryService.ListRepository(ctx, req)

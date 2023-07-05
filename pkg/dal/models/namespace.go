@@ -33,9 +33,9 @@ type Namespace struct {
 
 	Name        string `gorm:"uniqueIndex"`
 	Description *string
-	Visibility  *enums.Visibility
-	Limit       int64 `gorm:"default:0"`
-	Usage       int64 `gorm:"default:0"`
+	Visibility  enums.Visibility `gorm:"default:public"`
+	Limit       int64            `gorm:"default:0"`
+	Usage       int64            `gorm:"default:0"`
 	UserID      int64
 
 	User User `gorm:"foreignKey:UserID"`

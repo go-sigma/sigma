@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repository
+package repositories
 
 import (
 	"context"
@@ -76,14 +76,14 @@ func TestGetRepository(t *testing.T) {
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err := namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			return err
 		}
 
 		repositoryService := repositoryFactory.New(tx)
-		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		if err != nil {
 			return err

@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repository
+package namespaces
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -25,10 +26,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
@@ -42,7 +43,7 @@ import (
 	"github.com/ximager/ximager/pkg/validators"
 )
 
-func TestListRepository(t *testing.T) {
+func TestListNamespace(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
@@ -59,89 +60,60 @@ func TestListRepository(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	repositoryFactory := dao.NewRepositoryServiceFactory()
-	namespaceFactory := dao.NewNamespaceServiceFactory()
+	namespaceHandler := handlerNew()
 
-	const (
-		namespaceName  = "test"
-		repositoryName = "test/busybox"
-	)
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		ctx := log.Logger.WithContext(context.Background())
-
-		userServiceFactory := dao.NewUserServiceFactory()
-		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-		err = userService.Create(ctx, userObj)
-		assert.NoError(t, err)
-		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
-		err := namespaceService.Create(ctx, namespaceObj)
-		if err != nil {
-			return err
-		}
-
-		repositoryService := repositoryFactory.New(tx)
-		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: ptr.Of(enums.VisibilityPrivate)}
-		err = repositoryService.Create(ctx, repositoryObj)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	ctx := context.Background()
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "list-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
-	repositoryHandler := handlerNew()
-
-	q := make(url.Values)
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
-	req := httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("namespace")
-	c.SetParamValues(namespaceName)
-	err = repositoryHandler.ListRepository(c)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, c.Response().Status)
-	assert.Equal(t, int64(1), gjson.GetBytes(rec.Body.Bytes(), "total").Int())
+	assert.Equal(t, http.StatusCreated, c.Response().Status)
 
-	q = make(url.Values)
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
+	q := make(url.Values)
+	q.Set("limit", strconv.Itoa(100))
+	q.Set("last", strconv.Itoa(0))
 	req = httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	err = repositoryHandler.ListRepository(c)
+	err = namespaceHandler.ListNamespace(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
+	assert.Equal(t, http.StatusOK, c.Response().Status)
+	assert.Equal(t, gjson.GetBytes(rec.Body.Bytes(), "total").Int(), int64(1))
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
-	var listRepositoryTimes int
-	daoMockRepositoryService.EXPECT().ListRepository(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListRepositoryRequest) ([]*models.Repository, error) {
-		listRepositoryTimes++
-		if listRepositoryTimes == 1 {
+	var listNamespaceTimes int
+	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService.EXPECT().ListNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListNamespaceRequest) ([]*models.Namespace, error) {
+		listNamespaceTimes++
+		if listNamespaceTimes == 1 {
 			return nil, fmt.Errorf("test")
 		}
-		return []*models.Repository{}, nil
+		return []*models.Namespace{}, nil
 	}).Times(2)
-	daoMockRepositoryService.EXPECT().CountRepository(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListRepositoryRequest) (int64, error) {
+	daoMockNamespaceService.EXPECT().CountNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListNamespaceRequest) (int64, error) {
 		return 0, fmt.Errorf("test")
 	}).Times(1)
 
-	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.RepositoryService {
-		return daoMockRepositoryService
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
+		return daoMockNamespaceService
 	}).Times(2)
 
-	repositoryHandler = handlerNew(inject{repositoryServiceFactory: daoMockRepositoryServiceFactory})
+	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
+
 	q = make(url.Values)
 	q.Set("page_size", strconv.Itoa(100))
 	q.Set("page_num", strconv.Itoa(1))
@@ -149,9 +121,7 @@ func TestListRepository(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	c.SetParamNames("namespace")
-	c.SetParamValues(namespaceName)
-	err = repositoryHandler.ListRepository(c)
+	err = namespaceHandler.ListNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 
@@ -162,9 +132,7 @@ func TestListRepository(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	c.SetParamNames("namespace")
-	c.SetParamValues(namespaceName)
-	err = repositoryHandler.ListRepository(c)
+	err = namespaceHandler.ListNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

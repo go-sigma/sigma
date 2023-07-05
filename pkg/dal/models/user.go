@@ -29,8 +29,8 @@ type User struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Provider          enums.Provider
-	Username          string `gorm:"uniqueIndex;not null"`
+	Provider          enums.Provider `gorm:"default:local"`
+	Username          string         `gorm:"uniqueIndex;not null"`
 	Password          *string
 	Email             *string
 	ProviderAccountID *string

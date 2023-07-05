@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package namespaces
 
 import (
 	"errors"
@@ -22,21 +22,26 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// DeleteNamespace handles the delete namespace request
-// @Summary Delete namespace
+// GetNamespace handles the get namespace request
+// @Summary Get namespace
+// @security BasicAuth
+// @Tags Namespace
 // @Accept json
 // @Produce json
-// @Router /namespace/{id} [delete]
-// @Success 204
-func (h *handlers) DeleteNamespace(c echo.Context) error {
+// @Router /namespaces/{id} [get]
+// @Param id path string true "Namespace ID"
+// @Success 200 {object} types.GetNamespaceResponse
+func (h *handlers) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.DeleteNamespaceRequest
+	var req types.GetNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -44,15 +49,22 @@ func (h *handlers) DeleteNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	err = namespaceService.DeleteByID(ctx, req.ID)
+	namespace, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Delete namespace from db failed")
+			log.Error().Err(err).Msg("Get namespace from db failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
 		}
-		log.Error().Err(err).Msg("Delete namespace from db failed")
+		log.Error().Err(err).Msg("Get namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, types.GetNamespaceResponse{
+		ID:          namespace.ID,
+		Name:        namespace.Name,
+		Description: namespace.Description,
+		Quota:       ptr.Of(namespace.Limit),
+		CreatedAt:   namespace.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:   namespace.UpdatedAt.Format(consts.DefaultTimePattern),
+	})
 }

@@ -29,19 +29,19 @@ type ErrCode struct {
 	// Code provides a unique, string key, often capitalized with
 	// underscores, to identify the error code. This value is used as the
 	// keyed value when serializing api errors.
-	Code string
+	Code string `json:"code" example:"UNAUTHORIZED"`
 
 	// Title is a short, human readable description of the error condition
 	// included in API responses.
-	Title string
+	Title string `json:"title" example:"authentication required"`
 
 	// Description provides a complete account of the errors purpose, suitable
 	// for use in documentation.
-	Description string
+	Description string `json:"description" example:"The access controller was unable to authenticate the client. Often this will be accompanied by a Www-Authenticate HTTP response header indicating how to authenticate."`
 
 	// HTTPStatusCode provides the http status code that is associated with
 	// this error condition.
-	HTTPStatusCode int
+	HTTPStatusCode int `json:"httpStatusCode" example:"401"`
 }
 
 // Error ...

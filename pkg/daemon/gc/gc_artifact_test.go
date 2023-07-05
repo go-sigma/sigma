@@ -57,12 +57,12 @@ func TestGcArtifact(t *testing.T) {
 	assert.NoError(t, err)
 
 	namespaceService := namespaceServiceFactory.New()
-	namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+	namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 	err = namespaceService.Create(ctx, namespaceObj)
 	assert.NoError(t, err)
 
 	repositoryService := repositoryServiceFactory.New()
-	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 	err = repositoryService.Create(ctx, repositoryObj)
 	assert.NoError(t, err)
 

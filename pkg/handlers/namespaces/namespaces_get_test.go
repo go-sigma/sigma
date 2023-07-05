@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repository
+package namespaces
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -24,9 +25,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
@@ -39,7 +41,7 @@ import (
 	"github.com/ximager/ximager/pkg/validators"
 )
 
-func TestDeleteRepository(t *testing.T) {
+func TestGetNamespace(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
@@ -56,61 +58,42 @@ func TestDeleteRepository(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	repositoryFactory := dao.NewRepositoryServiceFactory()
-	namespaceFactory := dao.NewNamespaceServiceFactory()
+	namespaceHandler := handlerNew()
 
-	const (
-		namespaceName  = "test"
-		repositoryName = "test/busybox"
-	)
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
 
-	var repoID int64
-
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		ctx := log.Logger.WithContext(context.Background())
-
-		userServiceFactory := dao.NewUserServiceFactory()
-		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-		err = userService.Create(ctx, userObj)
-		assert.NoError(t, err)
-		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
-		err := namespaceService.Create(ctx, namespaceObj)
-		if err != nil {
-			return err
-		}
-
-		repositoryService := repositoryFactory.New(tx)
-		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: ptr.Of(enums.VisibilityPrivate)}
-		err = repositoryService.Create(ctx, repositoryObj)
-		if err != nil {
-			return err
-		}
-
-		repoID = repositoryObj.ID
-
-		return nil
-	})
+	ctx := context.Background()
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "list-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
-	repositoryHandler := handlerNew()
-
-	req := httptest.NewRequest(http.MethodDelete, "/", nil)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatInt(repoID, 10))
-	err = repositoryHandler.DeleteRepository(c)
+	c.Set(consts.ContextUser, userObj)
+	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusNoContent, c.Response().Status)
+	assert.Equal(t, http.StatusCreated, c.Response().Status)
+	bytes := rec.Body.Bytes()
+	resultID := gjson.GetBytes(bytes, "id").Int()
 
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	err = repositoryHandler.DeleteRepository(c)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
+	err = namespaceHandler.GetNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, c.Response().Status)
+
+	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	err = namespaceHandler.GetNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
@@ -119,32 +102,33 @@ func TestDeleteRepository(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatInt(repoID, 10))
-	err = repositoryHandler.DeleteRepository(c)
+	c.SetParamValues(strconv.FormatUint(3, 10))
+	err = namespaceHandler.GetNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
-	daoMockRepositoryService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
-		return fmt.Errorf("test")
+	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
+		return nil, fmt.Errorf("test")
 	}).Times(1)
 
-	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.RepositoryService {
-		return daoMockRepositoryService
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
+		return daoMockNamespaceService
 	}).Times(1)
 
-	repositoryHandler = handlerNew(inject{repositoryServiceFactory: daoMockRepositoryServiceFactory})
+	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
+
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatInt(repoID, 10))
-	err = repositoryHandler.DeleteRepository(c)
+	c.SetParamValues(strconv.FormatUint(3, 10))
+	err = namespaceHandler.GetNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

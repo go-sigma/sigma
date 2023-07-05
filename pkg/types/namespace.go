@@ -18,13 +18,13 @@ import "github.com/ximager/ximager/pkg/types/enums"
 
 // NamespaceItem represents a namespace.
 type NamespaceItem struct {
-	ID          int64   `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	Limit       *int64  `json:"limit"`
+	ID          int64   `json:"id" example:"1"`
+	Name        string  `json:"name" example:"test"`
+	Description *string `json:"description" example:"i am just description"`
+	Limit       *int64  `json:"limit" example:"10000"`
 
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // ListNamespaceRequest represents the request to list namespaces.
@@ -35,23 +35,17 @@ type ListNamespaceRequest struct {
 	Name *string `json:"name" query:"name"`
 }
 
-// ListNamespaceResponse represents the response to list namespaces.
-type ListNamespaceResponse struct {
-	Total int64           `json:"total"`
-	Items []NamespaceItem `json:"items"`
+// PostNamespaceRequest represents the request to create a namespace.
+type PostNamespaceRequest struct {
+	Name        string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
+	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 }
 
-// CreateNamespaceRequest represents the request to create a namespace.
-type CreateNamespaceRequest struct {
-	Name        string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30"`
-	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility"`
-}
-
-// CreateNamespaceResponse represents the response to create a namespace.
-type CreateNamespaceResponse struct {
-	ID int64 `json:"id"`
+// PostNamespaceResponse represents the response to create a namespace.
+type PostNamespaceResponse struct {
+	ID int64 `json:"id" example:"21911"`
 }
 
 // GetNamespaceRequest represents the request to get a namespace.
@@ -61,25 +55,32 @@ type GetNamespaceRequest struct {
 
 // GetNamespaceResponse represents the response to get a namespace.
 type GetNamespaceResponse struct {
-	ID          int64   `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	Quota       *int64  `json:"quota"`
+	ID          int64   `json:"id" example:"1"`
+	Name        string  `json:"name" example:"test"`
+	Description *string `json:"description" example:"i am just description"`
+	Quota       *int64  `json:"quota" example:"10000"`
 
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // DeleteNamespaceRequest represents the request to delete a namespace.
 type DeleteNamespaceRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number"`
+	ID int64 `json:"id" param:"id" validate:"required,number" example:"1"`
 }
 
 // PutNamespaceRequest represents the request to update a namespace.
 type PutNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number"`
 
-	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30"`
+	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
+	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+}
+
+// PutNamespaceRequestSwagger represents the request to update a namespace.
+type PutNamespaceRequestSwagger struct {
+	Limit       *int64            `json:"limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
+	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 }

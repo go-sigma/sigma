@@ -72,7 +72,7 @@ func TestNamespaceService(t *testing.T) {
 		namespaceObj := &models.Namespace{
 			Name:       "test",
 			UserID:     userObj.ID,
-			Visibility: ptr.Of(enums.VisibilityPrivate),
+			Visibility: enums.VisibilityPrivate,
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
@@ -89,8 +89,8 @@ func TestNamespaceService(t *testing.T) {
 
 		namespaceList, err := namespaceService.ListNamespace(ctx, types.ListNamespaceRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Name: ptr.Of("t"),
 		})
@@ -99,8 +99,8 @@ func TestNamespaceService(t *testing.T) {
 
 		count, err := namespaceService.CountNamespace(ctx, types.ListNamespaceRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Name: ptr.Of("t"),
 		})
@@ -154,9 +154,8 @@ func TestNamespaceServiceQuota(t *testing.T) {
 		namespaceService := namespaceServiceFactory.New(tx)
 
 		namespaceObj := &models.Namespace{
-			Name:       "test",
-			UserID:     userObj.ID,
-			Visibility: ptr.Of(enums.VisibilityPrivate),
+			Name:   "test",
+			UserID: userObj.ID,
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)

@@ -71,12 +71,12 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 
@@ -112,8 +112,8 @@ func TestTagService(t *testing.T) {
 
 		tags1, err := tagService.ListTag(ctx, types.ListTagRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Repository: "test/busybox",
 		})
@@ -122,8 +122,8 @@ func TestTagService(t *testing.T) {
 
 		count1, err := tagService.CountTag(ctx, types.ListTagRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Repository: "test/busybox",
 		})

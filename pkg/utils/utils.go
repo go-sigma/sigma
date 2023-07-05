@@ -22,6 +22,9 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+
+	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 // GetContentLength returns the content length of the request.
@@ -72,4 +75,15 @@ func Inject(target any, source any) error {
 		return nil
 	}
 	return copier.Copy(target, source)
+}
+
+// NormalizePagination normalizes the pagination
+func NormalizePagination(in types.Pagination) types.Pagination {
+	if in.Last == nil || ptr.To(in.Last) < 0 {
+		in.Last = ptr.Of(int64(0))
+	}
+	if in.Limit == nil || ptr.To(in.Limit) > 100 || ptr.To(in.Limit) <= 0 {
+		in.Limit = ptr.Of(int(10))
+	}
+	return in
 }
