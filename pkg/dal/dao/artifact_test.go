@@ -72,12 +72,12 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 		return nil
@@ -142,12 +142,12 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 
@@ -215,8 +215,8 @@ func TestArtifactService(t *testing.T) {
 
 		artifacts2, err := artifactService.ListArtifact(ctx, types.ListArtifactRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Namespace:  namespaceObj.Name,
 			Repository: repositoryObj.Name,
@@ -228,8 +228,8 @@ func TestArtifactService(t *testing.T) {
 
 		artifactCount1, err := artifactService.CountArtifact(ctx, types.ListArtifactRequest{
 			Pagination: types.Pagination{
-				PageSize: 100,
-				PageNum:  1,
+				Limit: ptr.Of(int(100)),
+				Last:  ptr.Of(int64(0)),
 			},
 			Namespace:  namespaceObj.Name,
 			Repository: repositoryObj.Name,
@@ -269,12 +269,12 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test1", UserID: userObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		namespaceObj := &models.Namespace{Name: "test1", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID, Visibility: ptr.Of(enums.VisibilityPrivate)}
+		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 

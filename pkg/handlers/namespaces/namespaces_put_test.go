@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package namespaces
 
 import (
 	"bytes"
@@ -41,7 +41,7 @@ import (
 	"github.com/ximager/ximager/pkg/validators"
 )
 
-func TestDeleteNamespace(t *testing.T) {
+func TestPutNamespace(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
@@ -64,11 +64,11 @@ func TestDeleteNamespace(t *testing.T) {
 	userService := userServiceFactory.New()
 
 	ctx := context.Background()
-	userObj := &models.User{Provider: enums.ProviderLocal, Username: "list-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "put-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","limit":10}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -76,34 +76,57 @@ func TestDeleteNamespace(t *testing.T) {
 	err = namespaceHandler.PostNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, c.Response().Status)
-	bytes := rec.Body.Bytes()
-	resultID := gjson.GetBytes(bytes, "id").Int()
+	resultID := gjson.GetBytes(rec.Body.Bytes(), "id").Int()
 
-	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"description":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
-	err = namespaceHandler.DeleteNamespace(c)
+	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
+	fmt.Println(rec.Body.String())
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"limit":101}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	err = namespaceHandler.DeleteNamespace(c)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
+	err = namespaceHandler.PutNamespace(c)
+	assert.NoError(t, err)
+	fmt.Println(rec.Body.String())
+	assert.Equal(t, http.StatusNoContent, c.Response().Status)
+
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"visibility":"test"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatInt(resultID, 10))
+	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"limit":1}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
-	err = namespaceHandler.DeleteNamespace(c)
+	err = namespaceHandler.PutNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
+
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"description":"test"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatUint(3, 10))
+	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
@@ -111,8 +134,11 @@ func TestDeleteNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
+	daoMockNamespaceService.EXPECT().UpdateByID(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ map[string]any) error {
 		return fmt.Errorf("test")
+	}).Times(1)
+	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
+		return &models.Namespace{Name: "test", Limit: 100}, nil
 	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
@@ -122,13 +148,44 @@ func TestDeleteNamespace(t *testing.T) {
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 
-	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"description":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatInt(resultID, 10))
-	err = namespaceHandler.DeleteNamespace(c)
+	c.SetParamValues(strconv.FormatUint(3, 10))
+	err = namespaceHandler.PutNamespace(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+}
+
+func TestPutNamespaceFailed1(t *testing.T) {
+	logger.SetLevel("debug")
+	e := echo.New()
+	validators.Initialize(e)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
+		return nil, fmt.Errorf("test")
+	}).Times(1)
+
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
+		return daoMockNamespaceService
+	}).Times(1)
+
+	namespaceHandler := handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"limit":10}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatUint(3, 10))
+	err := namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

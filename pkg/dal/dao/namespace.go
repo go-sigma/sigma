@@ -109,7 +109,7 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 
 // ListNamespace lists all namespaces.
 func (s *namespaceService) ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error) {
-	query := s.tx.Namespace.WithContext(ctx).Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize)
+	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(ptr.To(req.Last))).Limit(ptr.To(req.Limit))
 	if req.Name != nil {
 		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
 	}

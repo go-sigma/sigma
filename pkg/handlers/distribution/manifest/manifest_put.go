@@ -70,7 +70,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	repositoryService := h.repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{
 		Name:       repository,
-		Visibility: ptr.Of(enums.VisibilityPrivate),
+		Visibility: enums.VisibilityPrivate,
 	}
 	err = repositoryService.Create(ctx, repositoryObj)
 	if err != nil {

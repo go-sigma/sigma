@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tag
+package repositories
 
 import (
 	"context"
@@ -21,7 +21,6 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -40,7 +39,7 @@ import (
 	"github.com/ximager/ximager/pkg/validators"
 )
 
-func TestDeleteTag(t *testing.T) {
+func TestDeleteRepository(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
@@ -57,94 +56,99 @@ func TestDeleteTag(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	ctx := context.Background()
+	repositoryFactory := dao.NewRepositoryServiceFactory()
+	namespaceFactory := dao.NewNamespaceServiceFactory()
 
 	const (
 		namespaceName  = "test"
 		repositoryName = "test/busybox"
 	)
 
-	var tagObj *models.Tag
+	var repoID int64
+
+	var namespaceObj *models.Namespace
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		ctx := log.Logger.WithContext(context.Background())
+
 		userServiceFactory := dao.NewUserServiceFactory()
 		userService := userServiceFactory.New(tx)
 		userObj := &models.User{Provider: enums.ProviderLocal, Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
-		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+		namespaceService := namespaceFactory.New(tx)
+		namespaceObj = &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
 		err := namespaceService.Create(ctx, namespaceObj)
-		assert.NoError(t, err)
-		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
-		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		if err != nil {
+			return err
+		}
+
+		repositoryService := repositoryFactory.New(tx)
+		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
 		err = repositoryService.Create(ctx, repositoryObj)
-		assert.NoError(t, err)
-		artifactServiceFactory := dao.NewArtifactServiceFactory()
-		artifactService := artifactServiceFactory.New(tx)
-		artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now()}
-		err = artifactService.Create(ctx, artifactObj)
-		assert.NoError(t, err)
-		tagServiceFactory := dao.NewTagServiceFactory()
-		tagService := tagServiceFactory.New(tx)
-		tagObj = &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
-		err = tagService.Create(ctx, tagObj)
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
+
+		repoID = repositoryObj.ID
+
 		return nil
 	})
 	assert.NoError(t, err)
 
-	tagHandler := handlerNew()
+	repositoryHandler := handlerNew()
 
 	req := httptest.NewRequest(http.MethodDelete, "/", nil)
-	q := req.URL.Query()
-	q.Add("repository", repositoryName)
-	req.URL.RawQuery = q.Encode()
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("namespace", "id")
-	c.SetParamValues(namespaceName, strconv.FormatInt(tagObj.ID, 10))
-	err = tagHandler.DeleteTag(c)
+	c.SetParamValues(namespaceName, strconv.FormatInt(repoID, 10))
+	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusNoContent, rec.Code)
+	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
-	q = req.URL.Query()
-	q.Add("repository", repositoryName)
-	req.URL.RawQuery = q.Encode()
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.FormatInt(tagObj.ID, 10))
-	err = tagHandler.DeleteTag(c)
+	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
+
+	req = httptest.NewRequest(http.MethodDelete, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetParamNames("namespace", "id")
+	c.SetParamValues(namespaceName, strconv.FormatInt(repoID, 10))
+	err = repositoryHandler.DeleteRepository(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
+	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
+	daoMockRepositoryService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
 		return fmt.Errorf("test")
 	}).Times(1)
-	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
-	daoMockTagServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.TagService {
-		return daoMockTagService
+	daoMockRepositoryService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Repository, error) {
+		return &models.Repository{NamespaceID: namespaceObj.ID}, nil
 	}).Times(1)
 
-	tagHandler = handlerNew(inject{tagServiceFactory: daoMockTagServiceFactory})
+	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
+	daoMockRepositoryServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.RepositoryService {
+		return daoMockRepositoryService
+	}).Times(1)
 
+	repositoryHandler = handlerNew(inject{repositoryServiceFactory: daoMockRepositoryServiceFactory})
 	req = httptest.NewRequest(http.MethodDelete, "/", nil)
-	q = req.URL.Query()
-	q.Add("repository", repositoryName)
-	req.URL.RawQuery = q.Encode()
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "id")
-	c.SetParamValues(namespaceName, strconv.FormatInt(tagObj.ID, 10))
-	err = tagHandler.DeleteTag(c)
+	c.SetParamValues(namespaceName, strconv.FormatInt(repoID, 10))
+	err = repositoryHandler.DeleteRepository(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

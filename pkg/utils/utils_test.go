@@ -19,12 +19,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/validators"
 )
 
@@ -109,4 +112,49 @@ func TestInject(t *testing.T) {
 	err = Inject(&a, &b)
 	assert.Equal(t, 2, a)
 	assert.NoError(t, err)
+}
+
+func TestNormalizePagination(t *testing.T) {
+	type args struct {
+		in types.Pagination
+	}
+	tests := []struct {
+		name string
+		args args
+		want types.Pagination
+	}{
+		{
+			name: "test 1",
+			args: args{
+				in: types.Pagination{
+					Last:  ptr.Of(int64(0)),
+					Limit: ptr.Of(int(0)),
+				},
+			},
+			want: types.Pagination{
+				Last:  ptr.Of(int64(0)),
+				Limit: ptr.Of(int(10)),
+			},
+		},
+		{
+			name: "test 2",
+			args: args{
+				in: types.Pagination{
+					Last:  ptr.Of(int64(-1)),
+					Limit: ptr.Of(int(0)),
+				},
+			},
+			want: types.Pagination{
+				Last:  ptr.Of(int64(0)),
+				Limit: ptr.Of(int(10)),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NormalizePagination(tt.args.in); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NormalizePagination() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

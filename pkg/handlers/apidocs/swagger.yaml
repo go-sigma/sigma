@@ -1,33 +1,182 @@
 basePath: /
 definitions:
-  types.ListNamespaceResponse:
+  enums.Visibility:
+    enum:
+    - private
+    - public
+    type: string
+    x-enum-varnames:
+    - VisibilityPrivate
+    - VisibilityPublic
+  types.CommonList:
     properties:
       items:
-        items:
-          $ref: '#/definitions/types.NamespaceItem'
+        items: {}
         type: array
       total:
+        example: 1
         type: integer
     type: object
+  types.GetNamespaceResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      description:
+        example: i am just description
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: test
+        type: string
+      quota:
+        example: 10000
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
   types.NamespaceItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      description:
+        example: i am just description
+        type: string
+      id:
+        example: 1
+        type: integer
+      limit:
+        example: 10000
+        type: integer
+      name:
+        example: test
+        type: string
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.PostNamespaceRequest:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
+      limit:
+        example: 10000
+        type: integer
+      name:
+        example: test
+        maxLength: 20
+        minLength: 2
+        type: string
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
+    required:
+    - name
+    type: object
+  types.PostNamespaceResponse:
+    properties:
+      id:
+        example: 21911
+        type: integer
+    type: object
+  types.PostRepositoryRequestSwagger:
+    properties:
+      name:
+        example: test
+        type: string
+    required:
+    - name
+    type: object
+  types.PostRepositoryResponse:
+    properties:
+      id:
+        example: 21911
+        type: integer
+    type: object
+  types.PutNamespaceRequestSwagger:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
+      limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
+    type: object
+  types.PutRepositoryRequestSwagger:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 300
+        type: string
+      overview:
+        example: i am just overview
+        maxLength: 3000
+        type: string
+    type: object
+  types.PutRepositoryResponse:
+    properties:
+      id:
+        example: 21911
+        type: integer
+    type: object
+  types.RepositoryItem:
     properties:
       artifact_count:
         type: integer
       created_at:
-        type: string
-      description:
-        maxLength: 30
+        example: "2006-01-02 15:04:05"
         type: string
       id:
+        example: 1
         type: integer
       name:
-        maxLength: 20
-        minLength: 2
+        example: busybox
         type: string
       updated_at:
+        example: "2006-01-02 15:04:05"
         type: string
-    required:
-    - name
+    type: object
+  xerrors.ErrCode:
+    properties:
+      code:
+        description: |-
+          Code provides a unique, string key, often capitalized with
+          underscores, to identify the error code. This value is used as the
+          keyed value when serializing api errors.
+        example: UNAUTHORIZED
+        type: string
+      description:
+        description: |-
+          Description provides a complete account of the errors purpose, suitable
+          for use in documentation.
+        example: The access controller was unable to authenticate the client. Often
+          this will be accompanied by a Www-Authenticate HTTP response header indicating
+          how to authenticate.
+        type: string
+      httpStatusCode:
+        description: |-
+          HTTPStatusCode provides the http status code that is associated with
+          this error condition.
+        example: 401
+        type: integer
+      title:
+        description: |-
+          Title is a short, human readable description of the error condition
+          included in API responses.
+        example: authentication required
+        type: string
     type: object
 info:
   contact:
@@ -40,7 +189,7 @@ info:
   title: XImager API
   version: "1.0"
 paths:
-  /namespace/:
+  /namespaces/:
     get:
       consumes:
       - application/json
@@ -70,32 +219,46 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ListNamespaceResponse'
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.NamespaceItem'
+                  type: array
+              type: object
+      security:
+      - BasicAuth: []
       summary: List namespace
+      tags:
+      - Namespace
     post:
       consumes:
       - application/json
       parameters:
-      - description: Namespace name
+      - description: Namespace object
         in: body
-        name: name
+        name: message
         required: true
         schema:
-          type: string
-      - description: Namespace description
-        in: body
-        name: description
-        schema:
-          type: string
+          $ref: '#/definitions/types.PostNamespaceRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
+          schema:
+            $ref: '#/definitions/types.PostNamespaceResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
       summary: Create namespace
-  /namespace/{id}:
+      tags:
+      - Namespace
+  /namespaces/{id}:
     delete:
       consumes:
       - application/json
@@ -104,15 +267,252 @@ paths:
       responses:
         "204":
           description: No Content
+      security:
+      - BasicAuth: []
       summary: Delete namespace
-  /repository/{id}:
+      tags:
+      - Namespace
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetNamespaceResponse'
+      security:
+      - BasicAuth: []
+      summary: Get namespace
+      tags:
+      - Namespace
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutNamespaceRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetNamespaceResponse'
+      security:
+      - BasicAuth: []
+      summary: Update namespace
+      tags:
+      - Namespace
+  /namespaces/{namespace}/repositories/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: page size
+        in: query
+        maximum: 100
+        minimum: 10
+        name: page_size
+        required: true
+        type: integer
+      - default: 1
+        description: page number
+        in: query
+        minimum: 1
+        name: page_num
+        required: true
+        type: integer
+      - description: namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.RepositoryItem'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List repository
+      tags:
+      - Repository
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Repository object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostRepositoryRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.PostRepositoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create repository
+      tags:
+      - Repository
+  /namespaces/{namespace}/repositories/{id}:
     delete:
       consumes:
       - application/json
+      parameters:
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "204":
           description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
       summary: Delete repository
+      tags:
+      - Repository
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.RepositoryItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get repository
+      tags:
+      - Repository
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Repository id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Repository object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutRepositoryRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.PutRepositoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update repository
+      tags:
+      - Repository
+securityDefinitions:
+  BasicAuth:
+    type: basic
 swagger: "2.0"

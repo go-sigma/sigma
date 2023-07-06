@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package repositories
 
 import (
 	"path"
@@ -26,48 +26,56 @@ import (
 	"github.com/ximager/ximager/pkg/utils"
 )
 
-// Handlers is the interface for the namespace handlers
+// Handlers is the interface for the repository handlers
 type Handlers interface {
-	// PostNamespace handles the post namespace request
-	PostNamespace(c echo.Context) error
-	// ListNamespace handles the list namespace request
-	ListNamespace(c echo.Context) error
-	// GetNamespace handles the get namespace request
-	GetNamespace(c echo.Context) error
-	// DeleteNamespace handles the delete namespace request
-	DeleteNamespace(c echo.Context) error
-	// PutNamespace handles the put namespace request
-	PutNamespace(c echo.Context) error
+	// PostRepository handles the post repository request
+	PostRepository(c echo.Context) error
+	// PutRepository handles the put repository request
+	PutRepository(c echo.Context) error
+	// GetRepository handles the get repository request
+	GetRepository(c echo.Context) error
+	// ListNamespace handles the list repository request
+	ListRepository(c echo.Context) error
+	// DeleteRepository handles the delete repository request
+	DeleteRepository(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
 
 type handlers struct {
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	artifactServiceFactory  dao.ArtifactServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 type inject struct {
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	artifactServiceFactory  dao.ArtifactServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
+// nolint: unparam
 func handlerNew(injects ...inject) Handlers {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.namespaceServiceFactory != nil {
 			namespaceServiceFactory = ij.namespaceServiceFactory
 		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
 	}
 	return &handlers{
-		namespaceServiceFactory: namespaceServiceFactory,
-		artifactServiceFactory:  artifactServiceFactory,
+		namespaceServiceFactory:  namespaceServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
+		artifactServiceFactory:   artifactServiceFactory,
 	}
 }
 
@@ -75,13 +83,11 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	namespaceGroup := e.Group("/namespace", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	namespaceHandler := handlerNew()
-	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
-	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
-	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
-	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
-	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
+	repositoryGroup := e.Group("/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	repositoryHandler := handlerNew()
+	repositoryGroup.GET("/", repositoryHandler.ListRepository)
+	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
+	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
 	return nil
 }
 

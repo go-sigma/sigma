@@ -12,16 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
-
-// CommonList is the common list struct
-type CommonList struct {
-	Total int64 `json:"total" example:"1"`
-	Items []any `json:"items"`
-}
-
-// Pagination is the pagination struct
-type Pagination struct {
-	Last  *int64 `json:"last" query:"last" example:"1"`
-	Limit *int   `json:"limit" query:"limit" example:"10"`
-}
+package repositories

@@ -28,6 +28,10 @@ import "github.com/ximager/ximager/cmd"
 
 // @BasePath /
 
+// @securityDefinitions.basic BasicAuth
+// @in header
+// @name Authorization
+
 func main() {
 	cmd.Execute()
 }

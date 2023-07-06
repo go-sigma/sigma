@@ -12,29 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package namespaces
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// PutNamespace handles the put namespace request
-func (h *handlers) PutNamespace(c echo.Context) error {
+// DeleteNamespace handles the delete namespace request
+// @Summary Delete namespace
+// @security BasicAuth
+// @Tags Namespace
+// @Accept json
+// @Produce json
+// @Router /namespaces/{id} [delete]
+// @Success 204
+func (h *handlers) DeleteNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.PutNamespaceRequest
+	var req types.DeleteNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -42,34 +46,14 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.Get(ctx, req.ID)
+	err = namespaceService.DeleteByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Namespace not found")
+			log.Error().Err(err).Msg("Delete namespace from db failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
 		}
-		log.Error().Err(err).Msg("Find namespace failed")
+		log.Error().Err(err).Msg("Delete namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	if req.Limit != nil && namespaceObj.Limit > ptr.To(req.Limit) {
-		log.Error().Err(err).Msg("Namespace quota is less than the before limit")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
-	}
-
-	updates := make(map[string]interface{}, 5)
-	if req.Limit != nil {
-		updates[query.Namespace.Limit.ColumnName().String()] = ptr.To(req.Limit)
-	}
-	if req.Description != nil {
-		updates[query.Namespace.Description.ColumnName().String()] = ptr.To(req.Description)
-	}
-	if len(updates) > 0 {
-		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, updates)
-		if err != nil {
-			log.Error().Err(err).Msg("Update namespace failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update namespace failed: %v", err))
-		}
 	}
 
 	return c.NoContent(http.StatusNoContent)

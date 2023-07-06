@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespace
+package namespaces
 
 import (
 	"net/http"
@@ -29,13 +29,15 @@ import (
 
 // ListNamespace handles the list namespace request
 // @Summary List namespace
+// @security BasicAuth
+// @Tags Namespace
 // @Accept json
 // @Produce json
-// @Router /namespace/ [get]
+// @Router /namespaces/ [get]
 // @Param page_size query int64 true "page size" minimum(10) maximum(100) default(10)
 // @Param page_num query int64 true "page number" minimum(1) default(1)
 // @Param name query string false "search namespace with name"
-// @Success 200	{object} types.ListNamespaceResponse
+// @Success 200	{object} types.CommonList{items=[]types.NamespaceItem}
 func (h *handlers) ListNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -45,6 +47,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
+	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	namespaceService := h.namespaceServiceFactory.New()
 	namespaces, err := namespaceService.ListNamespace(ctx, req)

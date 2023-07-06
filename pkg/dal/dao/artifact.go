@@ -27,6 +27,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
 //go:generate mockgen -destination=mocks/artifact.go -package=mocks github.com/ximager/ximager/pkg/dal/dao ArtifactService
@@ -267,7 +268,8 @@ func (s *artifactService) ListArtifact(ctx context.Context, req types.ListArtifa
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID), s.tx.Repository.Name.Eq(req.Repository)).
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.Name.EqCol(s.tx.Repository.Name), s.tx.Namespace.Name.Eq(req.Namespace)).
 		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
-		Offset(req.PageSize * (req.PageNum - 1)).Limit(req.PageSize).Find()
+		Where(s.tx.Artifact.ID.Gt(ptr.To(req.Last))).
+		Limit(ptr.To(req.Limit)).Find()
 }
 
 // CountArtifact counts the artifacts by the specified request.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package repository
+package repositories
 
 import (
 	"net/http"
@@ -28,6 +28,16 @@ import (
 )
 
 // GetRepository handles the get repository request
+// @Summary Get repository
+// @Tags Repository
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Router /namespaces/{namespace}/repositories/{id} [get]
+// @Param namespace path string true "Namespace"
+// @Success 200 {object} types.RepositoryItem
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) GetRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
