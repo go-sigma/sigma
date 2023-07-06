@@ -60,7 +60,10 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		err = server.Serve()
+		err = server.Serve(server.ServerConfig{
+			WithoutDistribution: withoutDistribution,
+			WithoutWorker:       withoutWorker,
+		})
 		if err != nil {
 			log.Error().Err(err).Msg("Serve with error")
 			return
@@ -68,7 +71,12 @@ var serverCmd = &cobra.Command{
 	},
 }
 
+var withoutDistribution bool
+var withoutWorker bool
+
 func init() {
 	serverCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
+	serverCmd.PersistentFlags().BoolVar(&withoutDistribution, "without-distribution", false, "server without distribution service")
+	serverCmd.PersistentFlags().BoolVar(&withoutWorker, "without-worker", false, "server without worker service")
 	rootCmd.AddCommand(serverCmd)
 }

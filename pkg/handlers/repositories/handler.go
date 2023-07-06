@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
@@ -83,7 +84,7 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	repositoryGroup := e.Group("/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	repositoryHandler := handlerNew()
 	repositoryGroup.GET("/", repositoryHandler.ListRepository)
 	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)

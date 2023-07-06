@@ -19,14 +19,13 @@ import "github.com/ximager/ximager/cmd"
 // @title XImager API
 // @version 1.0
 
-// @contact.name tosone
-// @contact.url https://github.com/tosone
-// @contact.email ximager@tosone.cn
+// @contact.name XImager
+// @contact.url https://github.com/ximager/ximager
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0
 
-// @BasePath /
+// @BasePath /api/v1
 
 // @securityDefinitions.basic BasicAuth
 // @in header

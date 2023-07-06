@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   enums.Visibility:
     enum:
@@ -180,9 +180,8 @@ definitions:
     type: object
 info:
   contact:
-    email: ximager@tosone.cn
-    name: tosone
-    url: https://github.com/tosone
+    name: XImager
+    url: https://github.com/ximager/ximager
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -195,18 +194,18 @@ paths:
       - application/json
       parameters:
       - default: 10
-        description: page size
+        description: limit
         in: query
         maximum: 100
         minimum: 10
-        name: page_size
+        name: limit
         required: true
         type: integer
-      - default: 1
-        description: page number
+      - default: 0
+        description: last
         in: query
-        minimum: 1
-        name: page_num
+        minimum: 0
+        name: last
         required: true
         type: integer
       - description: search namespace with name
@@ -321,18 +320,18 @@ paths:
       - application/json
       parameters:
       - default: 10
-        description: page size
+        description: limit
         in: query
         maximum: 100
         minimum: 10
-        name: page_size
+        name: limit
         required: true
         type: integer
-      - default: 1
-        description: page number
+      - default: 0
+        description: last
         in: query
-        minimum: 1
-        name: page_num
+        minimum: 0
+        name: last
         required: true
         type: integer
       - description: namespace

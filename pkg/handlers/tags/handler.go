@@ -20,8 +20,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal/dao"
 	rhandlers "github.com/ximager/ximager/pkg/handlers"
+	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/utils"
 )
 
@@ -83,8 +85,8 @@ func handlerNew(injects ...inject) Handlers {
 type factory struct{}
 
 func (f factory) Initialize(e *echo.Echo) error {
-	tagGroup := e.Group("/namespace/:namespace/tag")
 	tagHandler := handlerNew()
+	tagGroup := e.Group(consts.APIV1+"/namespace/:namespace/tag", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	tagGroup.GET("/", tagHandler.ListTag)
 	tagGroup.GET("/:id", tagHandler.GetTag)
 	tagGroup.DELETE("/:id", tagHandler.DeleteTag)
