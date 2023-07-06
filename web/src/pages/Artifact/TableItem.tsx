@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 import { useRef, useState } from "react";
 import { useClickAway } from 'react-use';
 import { useNavigate } from 'react-router-dom';
