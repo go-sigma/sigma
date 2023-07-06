@@ -11,7 +11,7 @@ const password = 'ximager';
 const host = "http://127.0.0.1:3000";
 
 export default function () {
-  let response = http.post(`${host}/user/login`, JSON.stringify({ username, password }), {
+  let response = http.post(`${host}/api/v1/users/login`, JSON.stringify({ username, password }), {
     headers: { 'Content-Type': 'application/json' },
   });
   check(response, {
@@ -20,7 +20,7 @@ export default function () {
 
   const token = JSON.parse(response.body).token;
 
-  response = http.post(`${host}/namespaces/`, JSON.stringify({ "name": "test", "description": "test" }), {
+  response = http.post(`${host}/api/v1/namespaces/`, JSON.stringify({ "name": "test", "description": "test" }), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -31,7 +31,7 @@ export default function () {
   });
   const namespaceId = JSON.parse(response.body).id;
 
-  response = http.del(`${host}/namespaces/${namespaceId}`, null, {
+  response = http.del(`${host}/api/v1/namespaces/${namespaceId}`, null, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -41,9 +41,9 @@ export default function () {
     'delete namespace status is 204': (r) => r.status === 204,
   });
 
-  let page_size = 100;
-  let page_num = 1;
-  response = http.get(`${host}/namespaces/?page_size=${page_size}&page_num=${page_num}`, {
+  let limit = 100;
+  let last = 0;
+  response = http.get(`${host}/api/v1/namespaces/?limit=${limit}&last=${last}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,

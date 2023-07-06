@@ -11,9 +11,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "tosone",
-            "url": "https://github.com/tosone",
-            "email": "ximager@tosone.cn"
+            "name": "XImager",
+            "url": "https://github.com/ximager/ximager"
         },
         "license": {
             "name": "Apache 2.0",
@@ -47,17 +46,17 @@ const docTemplate = `{
                         "minimum": 10,
                         "type": "integer",
                         "default": 10,
-                        "description": "page size",
-                        "name": "page_size",
+                        "description": "limit",
+                        "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer",
-                        "default": 1,
-                        "description": "page number",
-                        "name": "page_num",
+                        "default": 0,
+                        "description": "last",
+                        "name": "last",
                         "in": "query",
                         "required": true
                     },
@@ -252,17 +251,17 @@ const docTemplate = `{
                         "minimum": 10,
                         "type": "integer",
                         "default": 10,
-                        "description": "page size",
-                        "name": "page_size",
+                        "description": "limit",
+                        "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer",
-                        "default": 1,
-                        "description": "page number",
-                        "name": "page_num",
+                        "default": 0,
+                        "description": "last",
+                        "name": "last",
                         "in": "query",
                         "required": true
                     },
@@ -790,7 +789,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "/",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "XImager API",
 	Description:      "",

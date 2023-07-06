@@ -91,3 +91,8 @@ const (
 	// CacherManifest ...
 	CacherManifest = "manifest"
 )
+
+const (
+	// APIV1 api v1 for api router
+	APIV1 = "/api/v1"
+)

@@ -34,8 +34,8 @@ import (
 // @Accept json
 // @Produce json
 // @Router /namespaces/ [get]
-// @Param page_size query int64 true "page size" minimum(10) maximum(100) default(10)
-// @Param page_num query int64 true "page number" minimum(1) default(1)
+// @Param limit query int64 true "limit" minimum(10) maximum(100) default(10)
+// @Param last query int64 true "last" minimum(0) default(0)
 // @Param name query string false "search namespace with name"
 // @Success 200	{object} types.CommonList{items=[]types.NamespaceItem}
 func (h *handlers) ListNamespace(c echo.Context) error {

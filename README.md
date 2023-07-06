@@ -33,11 +33,11 @@ cd web && yarn && yarn build && cd .. && make build
 - [x] Support OCI artifact such as helm and so on.
 - [x] Support OCI sbom.
 - [x] Support Image security scan.
-- [ ] Support registry proxy.
-- [ ] Support Namespace quota.
+- [x] Support registry proxy.
+- [x] Support Namespace quota.
+- [x] Support Image automatic garbage collection.
+- [x] Support Multi-tenancy.
 - [ ] Support Image replication.
 - [ ] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image sign.
-- [ ] Support Image automatic garbage collection.
-- [ ] Support Multi-tenancy.
 - [ ] Support helm chart search and index.json.

@@ -27,13 +27,16 @@ import (
 	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 )
 
+// InitializeDistribution ...
+func InitializeDistribution(e *echo.Echo) {
+	e.Any("/v2/*", distribution.All, middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
+}
+
 // Initialize ...
 func Initialize(e *echo.Echo) error {
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validators.Initialize(e)
-
-	e.Any("/v2/*", distribution.All, middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
 
 	for name, factory := range routerFactories {
 		if err := factory.Initialize(e); err != nil {

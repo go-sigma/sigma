@@ -23,10 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	_ "github.com/golang/mock/mockgen/model"
-	_ "github.com/ximager/ximager/pkg/storage/cos"
-	_ "github.com/ximager/ximager/pkg/storage/filesystem"
-	_ "github.com/ximager/ximager/pkg/storage/s3"
+	_ "github.com/ximager/ximager/cmd/imports"
 )
 
 var cfgFile string

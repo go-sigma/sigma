@@ -1,18 +1,4 @@
-// Copyright 2023 XImager
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package server
+package distribution
 
 import (
 	"context"
@@ -27,21 +13,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/daemon"
 	"github.com/ximager/ximager/pkg/handlers"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils/serializer"
 )
 
-// ServerConfig ...
-type ServerConfig struct {
-	WithoutDistribution bool
-	WithoutWorker       bool
-}
-
-// Serve starts the server
-func Serve(config ServerConfig) error {
+func Serve() error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -69,22 +47,8 @@ func Serve(config ServerConfig) error {
 		pprof.Register(e)
 	}
 
-	if !config.WithoutDistribution {
-		handlers.InitializeDistribution(e)
-	}
-	if !config.WithoutWorker {
-		err := daemon.InitializeServer()
-		if err != nil {
-			return err
-		}
-	}
-
-	err := handlers.Initialize(e)
-	if err != nil {
-		return err
-	}
-
-	err = storage.Initialize()
+	handlers.InitializeDistribution(e)
+	err := storage.Initialize()
 	if err != nil {
 		return err
 	}
