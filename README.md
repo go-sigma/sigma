@@ -1,4 +1,9 @@
-# ximager
+<p align="center">
+  <a href="https://github.com/ximager/ximager">
+    <img alt="XImager" src="https://media.githubusercontent.com/media/ximager/ximager/main/assets/sigema.svg" width="220"/>
+  </a>
+</p>
+<h1 align="center">XImager</h1>
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ximager/ximager/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/ximager/ximager?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/ximager/ximager?style=for-the-badge)
 

@@ -1,0 +1,4 @@
+assets/sigema.ai filter=lfs diff=lfs merge=lfs -text
+assets/sigema.png filter=lfs diff=lfs merge=lfs -text
+assets/sigema.svg filter=lfs diff=lfs merge=lfs -text
+assets/sigema-low.png filter=lfs diff=lfs merge=lfs -text
