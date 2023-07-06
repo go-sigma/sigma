@@ -37,14 +37,14 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceText, setNamespaceText] = useState("");
   const [descriptionText, setDescriptionText] = useState("");
   const [refresh, setRefresh] = useState({});
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const [searchNamespace, setSearchNamespace] = useState("");
   const [total, setTotal] = useState(0);
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
-  useEffect(() => {
-    let url = localServer + `/namespace/?page_size=${Settings.PageSize}&page_num=${pageNum}`;
+  const fetchNamespace = () => {
+    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&last=${pageNum}`;
     if (searchNamespace !== "") {
       url += `&name=${searchNamespace}`;
     }
@@ -56,7 +56,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
           setTotal(namespaceList.total);
         }
       });
-  }, [refresh, pageNum]);
+  }
+
+  useEffect(() => {
+    fetchNamespace()
+  }, [refresh, pageNum])
 
   const createNamespace = (namespace: string, description: string) => {
     setCreateNamespaceModal(false);

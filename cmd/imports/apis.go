@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
 	_ "github.com/ximager/ximager/pkg/handlers/artifacts"
 	_ "github.com/ximager/ximager/pkg/handlers/namespaces"
 	_ "github.com/ximager/ximager/pkg/handlers/repositories"

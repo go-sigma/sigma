@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 export default {
   PageSize: 15,
 };

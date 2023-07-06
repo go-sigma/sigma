@@ -86,7 +86,7 @@ func handlerNew(injects ...inject) (Handlers, error) {
 
 type factory struct{}
 
-var skipAuths = []string{"post:/user/login", "get:/user/token", "get:/user/signup", "get:/user/create"}
+var skipAuths = []string{"post:/api/v1/users/login", "get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
 func (f factory) Initialize(e *echo.Echo) error {
 	userGroup := e.Group(consts.APIV1 + "/users")

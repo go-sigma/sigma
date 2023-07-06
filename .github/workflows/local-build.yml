@@ -40,17 +40,3 @@ jobs:
           yarn build
           cd ..
           make build-release
-      - name: Cache FE
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-      - name: Build FE
-        run: |
-          cd web-next
-          yarn install --frozen-lockfile
-          yarn build
