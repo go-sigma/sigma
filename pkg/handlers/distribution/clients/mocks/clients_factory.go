@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	clients "github.com/ximager/ximager/pkg/handlers/distribution/clients"
 )
 

@@ -7,9 +7,9 @@ package mocks
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	dao "github.com/ximager/ximager/pkg/dal/dao"
 	query "github.com/ximager/ximager/pkg/dal/query"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockBlobServiceFactory is a mock of BlobServiceFactory interface.

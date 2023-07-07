@@ -22,10 +22,10 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/logger"

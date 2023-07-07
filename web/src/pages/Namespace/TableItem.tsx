@@ -25,7 +25,7 @@ import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
 
 dayjs.extend(relativeTime);
 
-export default function TableItem({ index, name, description, artifact_count, created_at, updated_at }: { index: number, name: string, description: string, artifact_count: number, created_at: string, updated_at: string }) {
+export default function TableItem({ index, name, description, size, repository_count, tag_count, created_at, updated_at }: { index: number, name: string, description: string, size: number, repository_count: number, tag_count: number, created_at: string, updated_at: string }) {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
 
@@ -55,7 +55,13 @@ export default function TableItem({ index, name, description, artifact_count, cr
         </div>
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {artifact_count}
+        {size}
+      </td>
+      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+        {repository_count}
+      </td>
+      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+        {tag_count}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs().to(dayjs(created_at))}

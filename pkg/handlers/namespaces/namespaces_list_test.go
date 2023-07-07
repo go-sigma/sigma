@@ -24,10 +24,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/dal"

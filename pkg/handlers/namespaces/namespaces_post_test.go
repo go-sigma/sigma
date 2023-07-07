@@ -22,10 +22,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
+	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"

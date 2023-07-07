@@ -11,7 +11,7 @@ import (
 	reflect "reflect"
 
 	distribution "github.com/distribution/distribution/v3"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	digest "github.com/opencontainers/go-digest"
 )
 

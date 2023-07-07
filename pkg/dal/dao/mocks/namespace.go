@@ -8,9 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockNamespaceService is a mock of NamespaceService interface.

@@ -8,9 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRepositoryService is a mock of RepositoryService interface.
@@ -34,6 +34,21 @@ func NewMockRepositoryService(ctrl *gomock.Controller) *MockRepositoryService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepositoryService) EXPECT() *MockRepositoryServiceMockRecorder {
 	return m.recorder
+}
+
+// CountByNamespace mocks base method.
+func (m *MockRepositoryService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
+	ret0, _ := ret[0].(map[int64]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByNamespace indicates an expected call of CountByNamespace.
+func (mr *MockRepositoryServiceMockRecorder) CountByNamespace(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockRepositoryService)(nil).CountByNamespace), arg0, arg1)
 }
 
 // CountRepository mocks base method.

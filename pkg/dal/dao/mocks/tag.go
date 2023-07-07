@@ -8,9 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockTagService is a mock of TagService interface.
@@ -49,6 +49,21 @@ func (m *MockTagService) CountByArtifact(arg0 context.Context, arg1 []int64) (ma
 func (mr *MockTagServiceMockRecorder) CountByArtifact(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByArtifact", reflect.TypeOf((*MockTagService)(nil).CountByArtifact), arg0, arg1)
+}
+
+// CountByNamespace mocks base method.
+func (m *MockTagService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
+	ret0, _ := ret[0].(map[int64]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByNamespace indicates an expected call of CountByNamespace.
+func (mr *MockTagServiceMockRecorder) CountByNamespace(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockTagService)(nil).CountByNamespace), arg0, arg1)
 }
 
 // CountTag mocks base method.

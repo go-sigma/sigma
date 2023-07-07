@@ -18,10 +18,13 @@ import "github.com/ximager/ximager/pkg/types/enums"
 
 // NamespaceItem represents a namespace.
 type NamespaceItem struct {
-	ID          int64   `json:"id" example:"1"`
-	Name        string  `json:"name" example:"test"`
-	Description *string `json:"description" example:"i am just description"`
-	Limit       *int64  `json:"limit" example:"10000"`
+	ID              int64   `json:"id" example:"1"`
+	Name            string  `json:"name" example:"test"`
+	Description     *string `json:"description" example:"i am just description"`
+	RepositoryCount int64   `json:"repository_count" example:"10"`
+	TagCount        int64   `json:"tag_count" example:"10"`
+	Usage           *int64  `json:"usage" example:"10000"`
+	Limit           *int64  `json:"limit" example:"10000"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
@@ -55,10 +58,13 @@ type GetNamespaceRequest struct {
 
 // GetNamespaceResponse represents the response to get a namespace.
 type GetNamespaceResponse struct {
-	ID          int64   `json:"id" example:"1"`
-	Name        string  `json:"name" example:"test"`
-	Description *string `json:"description" example:"i am just description"`
-	Quota       *int64  `json:"quota" example:"10000"`
+	ID              int64   `json:"id" example:"1"`
+	Name            string  `json:"name" example:"test"`
+	Description     *string `json:"description" example:"i am just description"`
+	RepositoryCount int64   `json:"repository_count" example:"10"`
+	TagCount        int64   `json:"tag_count" example:"10"`
+	Usage           *int64  `json:"usage" example:"10000"`
+	Limit           *int64  `json:"limit" example:"10000"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

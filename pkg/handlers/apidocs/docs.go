@@ -578,17 +578,29 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "name": {
                     "type": "string",
                     "example": "test"
                 },
-                "quota": {
+                "repository_count": {
                     "type": "integer",
-                    "example": 10000
+                    "example": 10
+                },
+                "tag_count": {
+                    "type": "integer",
+                    "example": 10
                 },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
+                },
+                "usage": {
+                    "type": "integer",
+                    "example": 10000
                 }
             }
         },
@@ -615,9 +627,21 @@ const docTemplate = `{
                     "type": "string",
                     "example": "test"
                 },
+                "repository_count": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "tag_count": {
+                    "type": "integer",
+                    "example": 10
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
+                },
+                "usage": {
+                    "type": "integer",
+                    "example": 10000
                 }
             }
         },

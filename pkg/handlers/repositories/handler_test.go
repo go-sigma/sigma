@@ -17,9 +17,9 @@ package repositories
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
 )

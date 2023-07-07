@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ximager/ximager/pkg/dal"
 	"github.com/ximager/ximager/pkg/dal/dao"

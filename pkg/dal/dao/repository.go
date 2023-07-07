@@ -49,6 +49,8 @@ type RepositoryService interface {
 	UpdateRepository(ctx context.Context, id int64, updates models.Repository) error
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error)
+	// CountByNamespace counts the repositories by the namespace ID.
+	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
 	DeleteByID(ctx context.Context, id int64) error
 }
@@ -172,4 +174,25 @@ func (s *repositoryService) DeleteByID(ctx context.Context, id int64) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// CountByNamespace counts the repositories by the namespace IDs.
+func (s *repositoryService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
+	tagCount := make(map[int64]int64)
+	var count []struct {
+		NamespaceID int64 `gorm:"column:namespace_id"`
+		Count       int64 `gorm:"column:count"`
+	}
+	err := s.tx.Repository.WithContext(ctx).
+		Where(s.tx.Repository.NamespaceID.In(namespaceIDs...)).
+		Group(s.tx.Repository.NamespaceID).
+		Select(s.tx.Repository.NamespaceID, s.tx.Repository.ID.Count().As("count")).
+		Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range count {
+		tagCount[c.NamespaceID] = c.Count
+	}
+	return tagCount, nil
 }
