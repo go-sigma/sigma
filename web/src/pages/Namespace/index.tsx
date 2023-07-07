@@ -92,47 +92,96 @@ export default function Namespace({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
         <Menu item="Namespace" />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title="Namespace" props={
-              <button className="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                onClick={() => { setCreateNamespaceModal(true) }}
-              >Create</button>
-            } />
-            <div className="hidden sm:block">
-              <div className="align-middle inline-block min-w-full border-b border-gray-200">
-                <table className="min-w-full">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <span className="lg:pl-2">Namespace</span>
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                        Artifact Count
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Create
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Update
-                      </th>
-                      <th className="pr-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {
-                      namespaceList.items?.map(m => {
-                        return (
-                          <TableItem key={m.id} name={m.name} description={m.description} artifact_count={m.artifact_count} created_at={m.created_at} updated_at={m.updated_at} />
-                        );
-                      })
-                    }
-                  </tbody>
-                </table>
+        <div className="flex flex-col flex-1 max-h-screen">
+          <main className="relative z-0 focus:outline-none" tabIndex={0}>
+            <Header title="Namespace" />
+            <div className="pt-2 pb-2 flex justify-between">
+              <div className="pr-2 pl-2">
+                <div className="flex gap-4">
+                  <div className="relative mt-2 flex items-center">
+                    <label
+                      htmlFor="namespaceSearch"
+                      className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900"
+                    >
+                      Namespace
+                    </label>
+                    <input
+                      type="text"
+                      id="namespaceSearch"
+                      placeholder="search namespace"
+                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                      <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">
+                        enter
+                      </kbd>
+                    </div>
+                  </div>
+                  <div className="relative mt-2 flex items-center">
+                    <label
+                      htmlFor="labelSearch"
+                      className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900"
+                    >
+                      Label
+                    </label>
+                    <input
+                      type="text"
+                      id="labelSearch"
+                      placeholder="search label"
+                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                      <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">
+                        enter
+                      </kbd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="pr-2 pl-2 flex flex-col">
+                <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                  onClick={() => { setCreateNamespaceModal(true) }}
+                >Create</button>
               </div>
             </div>
           </main>
-          <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} />
+          <div className="flex flex-1 overflow-y-auto">
+            <div className="align-middle inline-block min-w-full border-b border-gray-200">
+              <table className="min-w-full flex-1">
+                <thead>
+                  <tr>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Namespace</span>
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Tag count
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Created at
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Updated at
+                    </th>
+                    <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100 max-h-max">
+                  {
+                    namespaceList.items?.map((namespace, index) => {
+                      return (
+                        <TableItem key={namespace.id} index={index} name={namespace.name} description={namespace.description} artifact_count={namespace.artifact_count} created_at={namespace.created_at} updated_at={namespace.updated_at} />
+                      );
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style={{ marginTop: "auto" }}>
+            <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} />
+          </div>
         </div>
       </div>
       <Transition.Root show={createNamespaceModal} as={Fragment}>

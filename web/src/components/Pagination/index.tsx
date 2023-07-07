@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 export default function ({ page_size, page_num, total, setPageNum }: { page_size: number, page_num: number, total: number, setPageNum: (page_num: number) => void }) {
   return (
     <div

@@ -23,7 +23,6 @@ import (
 	"github.com/ximager/ximager/pkg/handlers/distribution"
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/validators"
-	"github.com/ximager/ximager/web"
 )
 
 // InitializeDistribution ...
@@ -33,7 +32,6 @@ func InitializeDistribution(e *echo.Echo) {
 
 // Initialize ...
 func Initialize(e *echo.Echo) error {
-	web.RegisterHandlers(e)
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
 
 	validators.Initialize(e)

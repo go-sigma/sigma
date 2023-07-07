@@ -32,12 +32,14 @@ import (
 	"github.com/ximager/ximager/pkg/middlewares"
 	"github.com/ximager/ximager/pkg/storage"
 	"github.com/ximager/ximager/pkg/utils/serializer"
+	"github.com/ximager/ximager/web"
 )
 
 // ServerConfig ...
 type ServerConfig struct {
 	WithoutDistribution bool
 	WithoutWorker       bool
+	WithoutWeb          bool
 }
 
 // Serve starts the server
@@ -77,6 +79,9 @@ func Serve(config ServerConfig) error {
 		if err != nil {
 			return err
 		}
+	}
+	if !config.WithoutWeb {
+		web.RegisterHandlers(e)
 	}
 
 	err := handlers.Initialize(e)
