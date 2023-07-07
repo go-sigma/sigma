@@ -50,6 +50,8 @@ type TagService interface {
 	ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
+	// CountByNamespace counts the tags by the specified namespace.
+	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// DeleteByID deletes the tag with the specified tag ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// CountByArtifact counts the tags by the specified artifact.
@@ -181,6 +183,28 @@ func (s *tagService) CountByArtifact(ctx context.Context, artifactIDs []int64) (
 	}
 	for _, c := range count {
 		tagCount[c.ArtifactID] = c.Count
+	}
+	return tagCount, nil
+}
+
+// CountByNamespace counts the tags by the specified namespace.
+func (s *tagService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
+	tagCount := make(map[int64]int64)
+	var count []struct {
+		NamespaceID int64 `gorm:"column:namespace_id"`
+		Count       int64 `gorm:"column:count"`
+	}
+	err := s.tx.Tag.WithContext(ctx).
+		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Tag.RepositoryID)).
+		Where(s.tx.Repository.NamespaceID.In(namespaceIDs...)).
+		Group(s.tx.Repository.NamespaceID).
+		Select(s.tx.Repository.NamespaceID, s.tx.Tag.ID.Count().As("count")).
+		Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range count {
+		tagCount[c.NamespaceID] = c.Count
 	}
 	return tagCount, nil
 }

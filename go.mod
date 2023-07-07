@@ -15,7 +15,6 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/jackc/pgx/v4 v4.18.1
@@ -35,6 +34,7 @@ require (
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/tidwall/gjson v1.14.4
 	github.com/wagslane/go-password-validator v0.3.0
+	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.11.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gorm.io/driver/mysql v1.5.1

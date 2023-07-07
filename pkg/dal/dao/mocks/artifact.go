@@ -9,10 +9,10 @@ import (
 	reflect "reflect"
 	time "time"
 
-	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
 	types "github.com/ximager/ximager/pkg/types"
 	enums "github.com/ximager/ximager/pkg/types/enums"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockArtifactService is a mock of ArtifactService interface.

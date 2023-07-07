@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	models "github.com/ximager/ximager/pkg/dal/models"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockBlobUploadService is a mock of BlobUploadService interface.

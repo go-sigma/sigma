@@ -32,7 +32,9 @@ export interface INamespace {
   id: number;
   name: string;
   description: string;
-  artifact_count: number;
+  size: number;
+  repository_count: number;
+  tag_count: number;
   created_at: string;
   updated_at: string;
 }

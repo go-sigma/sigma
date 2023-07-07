@@ -60,11 +60,14 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.GetNamespaceResponse{
-		ID:          namespace.ID,
-		Name:        namespace.Name,
-		Description: namespace.Description,
-		Quota:       ptr.Of(namespace.Limit),
-		CreatedAt:   namespace.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:   namespace.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:              namespace.ID,
+		Name:            namespace.Name,
+		Description:     namespace.Description,
+		Usage:           ptr.Of(namespace.Usage),
+		Limit:           ptr.Of(namespace.Limit),
+		RepositoryCount: 0,
+		TagCount:        0,
+		CreatedAt:       namespace.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:       namespace.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }

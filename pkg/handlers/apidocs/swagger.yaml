@@ -28,15 +28,24 @@ definitions:
       id:
         example: 1
         type: integer
+      limit:
+        example: 10000
+        type: integer
       name:
         example: test
         type: string
-      quota:
-        example: 10000
+      repository_count:
+        example: 10
+        type: integer
+      tag_count:
+        example: 10
         type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
+      usage:
+        example: 10000
+        type: integer
     type: object
   types.NamespaceItem:
     properties:
@@ -55,9 +64,18 @@ definitions:
       name:
         example: test
         type: string
+      repository_count:
+        example: 10
+        type: integer
+      tag_count:
+        example: 10
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
+      usage:
+        example: 10000
+        type: integer
     type: object
   types.PostNamespaceRequest:
     properties:

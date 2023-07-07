@@ -154,6 +154,12 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       <span className="lg:pl-2">Namespace</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Size
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Repository count
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Tag count
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
@@ -171,7 +177,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   {
                     namespaceList.items?.map((namespace, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} name={namespace.name} description={namespace.description} artifact_count={namespace.artifact_count} created_at={namespace.created_at} updated_at={namespace.updated_at} />
+                        <TableItem key={namespace.id} index={index} name={namespace.name} description={namespace.description} size={namespace.size} repository_count={namespace.repository_count} tag_count={namespace.tag_count} created_at={namespace.created_at} updated_at={namespace.updated_at} />
                       );
                     })
                   }

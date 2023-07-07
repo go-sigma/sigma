@@ -59,12 +59,15 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 	var resp = make([]any, 0, len(namespaces))
 	for _, ns := range namespaces {
 		resp = append(resp, types.NamespaceItem{
-			ID:          ns.ID,
-			Name:        ns.Name,
-			Description: ns.Description,
-			Limit:       ptr.Of(ns.Limit),
-			CreatedAt:   ns.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:   ns.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:              ns.ID,
+			Name:            ns.Name,
+			Description:     ns.Description,
+			Usage:           ptr.Of(ns.Usage),
+			Limit:           ptr.Of(ns.Limit),
+			RepositoryCount: 0,
+			TagCount:        0,
+			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 
