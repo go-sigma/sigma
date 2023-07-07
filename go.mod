@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.4
-	github.com/aws/aws-sdk-go v1.44.295
+	github.com/aws/aws-sdk-go v1.44.297
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.71.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230629214736-bac7f02e02a1
+	github.com/distribution/distribution/v3 v3.0.0-20230706062936-ac79c0d94a03
 	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
@@ -23,7 +23,7 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230627160154-46cff1914f8b
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230706164930-51c53ef2bd0f
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -35,7 +35,7 @@ require (
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/tidwall/gjson v1.14.4
 	github.com/wagslane/go-password-validator v0.3.0
-	golang.org/x/crypto v0.10.0
+	golang.org/x/crypto v0.11.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
@@ -54,10 +54,10 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/docker/docker v24.0.2+incompatible // indirect
+	github.com/docker/docker v24.0.3+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.1 // indirect
+	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
@@ -120,11 +120,11 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.10.0 // indirect
+	golang.org/x/tools v0.11.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

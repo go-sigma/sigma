@@ -15,5 +15,5 @@
  */
 
 export default {
-  PageSize: 15,
+  PageSize: 20,
 };
