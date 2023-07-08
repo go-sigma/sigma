@@ -32,26 +32,25 @@ import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces/inter
 export default function Repository({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
   const [refresh, setRefresh] = useState({});
-  const [pageNum, setPageNum] = useState(1);
+  const [last, setLast] = useState(0);
   const [searchRepository, setSearchRepository] = useState("");
   const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
 
   useEffect(() => {
-    let url = localServer + `/namespace/${namespace}/repository/?page_size=${Settings.PageSize}&page_num=${pageNum}`;
+    let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&last=${last}`;
     if (searchRepository !== "") {
       url += `&name=${searchRepository}`;
     }
-    axios.get(url)
-      .then((response) => {
-        if (response.status === 200) {
-          const repositoryList = response.data as IRepositoryList;
-          setRepositoryList(repositoryList);
-          setTotal(repositoryList.total);
-        }
-      });
-  }, [refresh, pageNum]);
+    axios.get(url).then(response => {
+      if (response?.status === 200) {
+        const repositoryList = response.data as IRepositoryList;
+        setRepositoryList(repositoryList);
+        setTotal(repositoryList.total);
+      }
+    });
+  }, [refresh, last]);
 
   return (
     <Fragment>
@@ -70,26 +69,31 @@ export default function Repository({ localServer }: { localServer: string }) {
                 <table className="min-w-full">
                   <thead>
                     <tr className="border-gray-200">
-                      <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                         <span className="lg:pl-2">Repository</span>
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                        Artifact Count
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                        Size
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Create
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                        Tag count
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Update
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                        Created at
                       </th>
-                      <th className="pr-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                        Updated at
+                      </th>
+                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {
-                      repositoryList.items?.map(m => {
+                      repositoryList.items?.map((repository, index) => {
                         return (
-                          <TableItem key={m.id} id={m.id} namespace={namespace} name={m.name} artifact_count={m.artifact_count} created_at={m.created_at} updated_at={m.updated_at} />
+                          <TableItem key={index} index={index} namespace={namespace || ""} repository={repository} />
                         );
                       })
                     }
@@ -98,7 +102,7 @@ export default function Repository({ localServer }: { localServer: string }) {
               </div>
             </div>
           </main>
-          <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} />
+          <Pagination limit={Settings.PageSize} last={last} setLast={setLast} total={total} />
         </div>
       </div>
     </Fragment >

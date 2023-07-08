@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package models
 
-import (
-	_ "github.com/ximager/ximager/pkg/handlers/distribution/base"
-	_ "github.com/ximager/ximager/pkg/handlers/distribution/blob"
-	_ "github.com/ximager/ximager/pkg/handlers/distribution/manifest"
-	_ "github.com/ximager/ximager/pkg/handlers/distribution/upload"
-)
+// CasbinRule represents a casbin rule.
+type CasbinRule struct {
+	ID    int64   `gorm:"primaryKey"`
+	PType *string `gorm:"column:ptype"`
+	V0    *string `gorm:"column:v0"`
+	V1    *string `gorm:"column:v1"`
+	V2    *string `gorm:"column:v2"`
+	V3    *string `gorm:"column:v3"`
+	V4    *string `gorm:"column:v4"`
+	V5    *string `gorm:"column:v5"`
+}

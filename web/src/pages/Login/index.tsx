@@ -18,8 +18,6 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
 
-import request from "../../utils/request";
-
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");

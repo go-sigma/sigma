@@ -71,7 +71,6 @@ func TestNamespaceService(t *testing.T) {
 
 		namespaceObj := &models.Namespace{
 			Name:       "test",
-			UserID:     userObj.ID,
 			Visibility: enums.VisibilityPrivate,
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
@@ -154,8 +153,7 @@ func TestNamespaceServiceQuota(t *testing.T) {
 		namespaceService := namespaceServiceFactory.New(tx)
 
 		namespaceObj := &models.Namespace{
-			Name:   "test",
-			UserID: userObj.ID,
+			Name: "test",
 		}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)

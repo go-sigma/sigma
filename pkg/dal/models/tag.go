@@ -16,8 +16,10 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -38,4 +40,91 @@ type Tag struct {
 
 	Repository *Repository
 	Artifact   *Artifact
+}
+
+// AfterCreate ...
+// if something err occurs, the create will be aborted
+func (a *Tag) BeforeCreate(tx *gorm.DB) error {
+	if a == nil {
+		return nil
+	}
+	var repositoryObj Repository
+	err := tx.Model(&Repository{}).Where(&Repository{ID: a.RepositoryID}).First(&repositoryObj).Error
+	if err != nil {
+		return err
+	}
+	var namespaceObj Namespace
+	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).First(&namespaceObj).Error
+	if err != nil {
+		return err
+	}
+
+	if namespaceObj.TagLimit > 0 && namespaceObj.TagCount+1 > namespaceObj.TagLimit {
+		return errors.New("namespace's tag quota exceeded")
+	}
+	if repositoryObj.TagLimit > 0 && repositoryObj.TagCount+1 > repositoryObj.TagLimit {
+		return errors.New("repository's tag quota exceeded")
+	}
+
+	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumns(
+		map[string]any{
+			"tag_count": namespaceObj.TagCount + 1,
+		}).Error
+	if err != nil {
+		return err
+	}
+	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumns(map[string]any{
+		"tag_count": repositoryObj.TagCount + 1,
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// BeforeUpdate ...
+func (a *Tag) BeforeUpdate(tx *gorm.DB) error {
+	if a == nil {
+		return nil
+	}
+	var repositoryObj Repository
+	err := tx.Model(&Repository{}).Where(&Repository{ID: a.RepositoryID}).First(&repositoryObj).Error
+	if err != nil {
+		return err
+	}
+
+	err = tx.Exec(`UPDATE
+  namespaces
+SET
+  tag_count = (
+    SELECT
+      COUNT(tags.id)
+    FROM
+      repositories
+      INNER JOIN tags ON repositories.id = tags.repository_id
+    WHERE
+      repositories.namespace_id = ?)
+WHERE
+  id = ?`, repositoryObj.NamespaceID, repositoryObj.NamespaceID).Error
+	if err != nil {
+		return err
+	}
+
+	tx.Exec(`UPDATE
+  repositories
+SET
+  tag_count = (
+    SELECT
+      count(tags.name)
+    FROM
+      tags
+    WHERE
+      tags.repository_id = ?)
+WHERE
+  id = ?`, repositoryObj.ID, repositoryObj.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

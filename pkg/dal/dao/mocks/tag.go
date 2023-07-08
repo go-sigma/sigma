@@ -66,6 +66,21 @@ func (mr *MockTagServiceMockRecorder) CountByNamespace(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockTagService)(nil).CountByNamespace), arg0, arg1)
 }
 
+// CountByRepository mocks base method.
+func (m *MockTagService) CountByRepository(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByRepository", arg0, arg1)
+	ret0, _ := ret[0].(map[int64]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByRepository indicates an expected call of CountByRepository.
+func (mr *MockTagServiceMockRecorder) CountByRepository(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockTagService)(nil).CountByRepository), arg0, arg1)
+}
+
 // CountTag mocks base method.
 func (m *MockTagService) CountTag(arg0 context.Context, arg1 types.ListTagRequest) (int64, error) {
 	m.ctrl.T.Helper()

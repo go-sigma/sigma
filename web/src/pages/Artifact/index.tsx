@@ -103,7 +103,7 @@ export default function Artifact({ localServer }: { localServer: string }) {
               </div>
             </div>
           </main>
-          <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} />
+          {/* <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} /> */}
         </div>
       </div>
     </Fragment >

@@ -31,14 +31,15 @@ type Namespace struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Name        string `gorm:"uniqueIndex"`
-	Description *string
-	Visibility  enums.Visibility `gorm:"default:public"`
-	Limit       int64            `gorm:"default:0"`
-	Usage       int64            `gorm:"default:0"`
-	UserID      int64
-
-	User User `gorm:"foreignKey:UserID"`
+	Name            string `gorm:"uniqueIndex"`
+	Description     *string
+	Visibility      enums.Visibility `gorm:"default:public"`
+	TagLimit        int64            `gorm:"default:0"`
+	TagCount        int64            `gorm:"default:0"`
+	RepositoryLimit int64            `gorm:"default:0"`
+	RepositoryCount int64            `gorm:"default:0"`
+	SizeLimit       int64            `gorm:"default:0"`
+	Size            int64            `gorm:"default:0"`
 }
 
 var policyStatement1 = "INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`) VALUES ('p', '^_^Namespace^_^_admin', '/namespaces/^_^Namespace^_^', '*', 'allow');"

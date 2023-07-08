@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 export interface INotification {
   level?: string;
   title: string;
@@ -33,8 +31,11 @@ export interface INamespace {
   name: string;
   description: string;
   size: number;
+  size_limit: number;
   repository_count: number;
+  repository_limit: number;
   tag_count: number;
+  tag_limit: number;
   created_at: string;
   updated_at: string;
 }
@@ -47,7 +48,10 @@ export interface INamespaceList {
 export interface IRepository {
   id: number;
   name: string;
-  artifact_count: number;
+  tag_count: number;
+  tag_limit: number;
+  size_limit: number;
+  size: number;
   created_at: string;
   updated_at: string;
 }

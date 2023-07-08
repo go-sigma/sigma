@@ -119,7 +119,7 @@ func TestPutManifest(t *testing.T) {
 
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	namespaceService := namespaceServiceFactory.New()
-	namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
 	err = namespaceService.Create(ctx, namespaceObj)
 	assert.NoError(t, err)
 

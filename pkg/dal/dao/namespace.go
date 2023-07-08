@@ -90,7 +90,7 @@ func (s *namespaceService) FindAll(ctx context.Context) ([]*models.Namespace, er
 
 // UpdateQuota updates the namespace quota.
 func (s *namespaceService) UpdateQuota(ctx context.Context, namespaceID, limit int64) error {
-	result, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(namespaceID)).Update(s.tx.Namespace.Limit, limit)
+	result, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(namespaceID)).Update(s.tx.Namespace.SizeLimit, limit)
 	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}

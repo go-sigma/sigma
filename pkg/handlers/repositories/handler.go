@@ -46,12 +46,14 @@ var _ Handlers = &handlers{}
 type handlers struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 type inject struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
@@ -60,6 +62,7 @@ type inject struct {
 func handlerNew(injects ...inject) Handlers {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
@@ -69,6 +72,9 @@ func handlerNew(injects ...inject) Handlers {
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
+		}
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
@@ -76,6 +82,7 @@ func handlerNew(injects ...inject) Handlers {
 	return &handlers{
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
+		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
 	}
 }

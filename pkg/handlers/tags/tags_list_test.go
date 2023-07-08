@@ -75,7 +75,7 @@ func TestListTag(t *testing.T) {
 		assert.NoError(t, err)
 		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+		namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
 		err := namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")

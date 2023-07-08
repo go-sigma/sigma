@@ -68,7 +68,7 @@ func TestPutNamespace(t *testing.T) {
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","limit":10}`))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","size_limit":10}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -89,7 +89,7 @@ func TestPutNamespace(t *testing.T) {
 	fmt.Println(rec.Body.String())
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"limit":101}`))
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"size_limit":101}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -110,7 +110,7 @@ func TestPutNamespace(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"limit":1}`))
+	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"size_limit":1}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -138,7 +138,7 @@ func TestPutNamespace(t *testing.T) {
 		return fmt.Errorf("test")
 	}).Times(1)
 	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
-		return &models.Namespace{Name: "test", Limit: 100}, nil
+		return &models.Namespace{Name: "test", SizeLimit: 100}, nil
 	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
