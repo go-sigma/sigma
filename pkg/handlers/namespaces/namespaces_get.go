@@ -79,7 +79,9 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 		Size:            namespace.Size,
 		SizeLimit:       namespace.SizeLimit,
 		RepositoryCount: repositoryMapCount[namespace.ID],
+		RepositoryLimit: namespace.RepositoryLimit,
 		TagCount:        tagMapCount[namespace.ID],
+		TagLimit:        namespace.TagLimit,
 		CreatedAt:       namespace.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:       namespace.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

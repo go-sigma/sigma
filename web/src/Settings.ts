@@ -15,5 +15,7 @@
  */
 
 export default {
+  // QuotaThreshold turn green when quota is less than this value
+  QuotaThreshold: 0.8,
   PageSize: 20,
 };

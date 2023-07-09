@@ -586,6 +586,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10
+                },
                 "size": {
                     "type": "integer",
                     "example": 10000
@@ -631,6 +635,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10
+                },
                 "size": {
                     "type": "integer",
                     "example": 10000
@@ -640,6 +648,10 @@ const docTemplate = `{
                     "example": 10000
                 },
                 "tag_count": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "tag_limit": {
                     "type": "integer",
                     "example": 10
                 },
