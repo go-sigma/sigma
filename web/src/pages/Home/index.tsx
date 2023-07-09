@@ -82,6 +82,10 @@ export default function Home({ localServer }: { localServer: string }) {
                 ))}
               </div>
             </div>
+            <div className="mb-1 text-base font-medium text-red-700 dark:text-red-500">Red</div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
+              <div className="bg-red-600 h-2.5 rounded-full dark:bg-red-500" style={{ width: "45%" }}></div>
+            </div>
             <Tags
               settings={settings}
               defaultValue="a,b,c"

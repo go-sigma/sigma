@@ -15,7 +15,6 @@
  */
 
 import dayjs from 'dayjs';
-import humanFormat from 'human-format';
 import { useClickAway } from 'react-use';
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState, Fragment } from "react";
@@ -23,7 +22,10 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 
-import { INamespace, INamespaceList, IHTTPError } from "../../interfaces/interfaces";
+import { INamespace } from "../../interfaces/interfaces";
+
+import Quota from "../../components/Quota";
+import QuotaSimple from "../../components/QuotaSimple";
 
 dayjs.extend(relativeTime);
 
@@ -39,12 +41,12 @@ export default function TableItem({ index, namespace }: { index: number, namespa
   });
 
   return (
-    <tr className="cursor-pointer"
+    <tr className="cursor-pointer align-middle"
       onClick={() => {
         navigate(`/namespace/${namespace.name}/repository`);
       }}
     >
-      <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
+      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900">
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
@@ -54,19 +56,19 @@ export default function TableItem({ index, namespace }: { index: number, namespa
           </div>
         </div>
       </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {humanFormat(namespace.size)}
+      <td className="px-6 py-4 w-1/6 whitespace-nowrap text-gray-500">
+        <Quota current={namespace.size} limit={namespace.size_limit} />
       </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {namespace.repository_count}
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+        <QuotaSimple current={namespace.repository_count} limit={namespace.repository_limit} />
       </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {namespace.tag_count}
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+        <QuotaSimple current={namespace.tag_count} limit={namespace.tag_limit} />
       </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs().to(dayjs(namespace.created_at))}
       </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs().to(dayjs(namespace.updated_at))}
       </td>
       <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
