@@ -66,17 +66,24 @@ func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	if namespaceObj.Limit > 0 && namespaceObj.Usage+a.BlobsSize > namespaceObj.Limit {
-		return errors.New("namespace quota exceeded")
+	if namespaceObj.SizeLimit > 0 && namespaceObj.Size+a.BlobsSize > namespaceObj.SizeLimit {
+		return errors.New("namespace's size quota exceeded")
 	}
-	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumn("usage", namespaceObj.Usage+a.BlobsSize).Error
+	if repositoryObj.SizeLimit > 0 && repositoryObj.Size+a.BlobsSize > repositoryObj.SizeLimit {
+		return errors.New("repository's size quota exceeded")
+	}
+
+	// we should check all the checker here, and update the size and tag count
+	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumns(
+		map[string]any{
+			"size": namespaceObj.Size + a.BlobsSize,
+		}).Error
 	if err != nil {
 		return err
 	}
-	if repositoryObj.Limit > 0 && repositoryObj.Usage+a.BlobsSize > repositoryObj.Limit {
-		return errors.New("repository quota exceeded")
-	}
-	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumn("usage", repositoryObj.Usage+a.BlobsSize).Error
+	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumns(map[string]any{
+		"size": repositoryObj.Size + a.BlobsSize,
+	}).Error
 	if err != nil {
 		return err
 	}
@@ -89,20 +96,42 @@ func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
 	if a == nil {
 		return nil
 	}
-	if a.DeletedAt != 0 {
-		var repositoryObj Repository
-		err := tx.Model(&Repository{}).Where("id = ?", a.RepositoryID).First(&repositoryObj).Error
-		if err != nil {
-			return err
-		}
-		err = tx.Model(&Namespace{}).Where("namespace_id = ?", repositoryObj.NamespaceID).Update("usage", gorm.Expr("usage - ?", a.BlobsSize)).Error
-		if err != nil {
-			return err
-		}
-		err = tx.Model(&Repository{}).Where("repository_id = ?", a.RepositoryID).Update("usage", gorm.Expr("usage + ?", a.BlobsSize)).Error
-		if err != nil {
-			return err
-		}
+	var repositoryObj Repository
+	err := tx.Model(&Repository{}).Where("id = ?", a.RepositoryID).First(&repositoryObj).Error
+	if err != nil {
+		return err
+	}
+
+	err = tx.Exec(`UPDATE
+  namespaces
+SET
+  size = (
+    SELECT
+      SUM(artifacts.blobs_size)
+    FROM
+      repositories
+      INNER JOIN artifacts ON repositories.id = artifacts.repository_id
+    WHERE
+      repositories.namespace_id = ?)
+WHERE
+  id = ?`, repositoryObj.NamespaceID, repositoryObj.NamespaceID).Error
+	if err != nil {
+		return err
+	}
+	err = tx.Exec(`UPDATE
+  repositories
+SET
+  size = (
+    SELECT
+      SUM(size)
+    FROM
+      artifacts
+    WHERE
+		  artifacts.repository_id = ?)
+WHERE
+  id = ?`, repositoryObj.ID, repositoryObj.ID).Error
+	if err != nil {
+		return err
 	}
 	return nil
 }

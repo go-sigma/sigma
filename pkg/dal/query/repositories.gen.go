@@ -36,8 +36,10 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.Description = field.NewString(tableName, "description")
 	_repository.Overview = field.NewBytes(tableName, "overview")
 	_repository.Visibility = field.NewField(tableName, "visibility")
-	_repository.Limit = field.NewInt64(tableName, "limit")
-	_repository.Usage = field.NewInt64(tableName, "usage")
+	_repository.TagLimit = field.NewInt64(tableName, "tag_limit")
+	_repository.TagCount = field.NewInt64(tableName, "tag_count")
+	_repository.SizeLimit = field.NewInt64(tableName, "size_limit")
+	_repository.Size = field.NewInt64(tableName, "size")
 	_repository.Tags = repositoryHasManyTags{
 		db: db.Session(&gorm.Session{}),
 
@@ -48,11 +50,6 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Namespace", "models.Namespace"),
-		User: struct {
-			field.RelationField
-		}{
-			RelationField: field.NewRelation("Namespace.User", "models.User"),
-		},
 	}
 
 	_repository.fillFieldMap()
@@ -73,8 +70,10 @@ type repository struct {
 	Description field.String
 	Overview    field.Bytes
 	Visibility  field.Field
-	Limit       field.Int64
-	Usage       field.Int64
+	TagLimit    field.Int64
+	TagCount    field.Int64
+	SizeLimit   field.Int64
+	Size        field.Int64
 	Tags        repositoryHasManyTags
 
 	Namespace repositoryBelongsToNamespace
@@ -103,8 +102,10 @@ func (r *repository) updateTableName(table string) *repository {
 	r.Description = field.NewString(table, "description")
 	r.Overview = field.NewBytes(table, "overview")
 	r.Visibility = field.NewField(table, "visibility")
-	r.Limit = field.NewInt64(table, "limit")
-	r.Usage = field.NewInt64(table, "usage")
+	r.TagLimit = field.NewInt64(table, "tag_limit")
+	r.TagCount = field.NewInt64(table, "tag_count")
+	r.SizeLimit = field.NewInt64(table, "size_limit")
+	r.Size = field.NewInt64(table, "size")
 
 	r.fillFieldMap()
 
@@ -129,7 +130,7 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *repository) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 13)
+	r.fieldMap = make(map[string]field.Expr, 15)
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
@@ -139,8 +140,10 @@ func (r *repository) fillFieldMap() {
 	r.fieldMap["description"] = r.Description
 	r.fieldMap["overview"] = r.Overview
 	r.fieldMap["visibility"] = r.Visibility
-	r.fieldMap["limit"] = r.Limit
-	r.fieldMap["usage"] = r.Usage
+	r.fieldMap["tag_limit"] = r.TagLimit
+	r.fieldMap["tag_count"] = r.TagCount
+	r.fieldMap["size_limit"] = r.SizeLimit
+	r.fieldMap["size"] = r.Size
 
 }
 
@@ -229,10 +232,6 @@ type repositoryBelongsToNamespace struct {
 	db *gorm.DB
 
 	field.RelationField
-
-	User struct {
-		field.RelationField
-	}
 }
 
 func (a repositoryBelongsToNamespace) Where(conds ...field.Expr) *repositoryBelongsToNamespace {

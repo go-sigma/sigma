@@ -34,14 +34,12 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
 	_namespace.Visibility = field.NewField(tableName, "visibility")
-	_namespace.Limit = field.NewInt64(tableName, "limit")
-	_namespace.Usage = field.NewInt64(tableName, "usage")
-	_namespace.UserID = field.NewInt64(tableName, "user_id")
-	_namespace.User = namespaceBelongsToUser{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("User", "models.User"),
-	}
+	_namespace.TagLimit = field.NewInt64(tableName, "tag_limit")
+	_namespace.TagCount = field.NewInt64(tableName, "tag_count")
+	_namespace.RepositoryLimit = field.NewInt64(tableName, "repository_limit")
+	_namespace.RepositoryCount = field.NewInt64(tableName, "repository_count")
+	_namespace.SizeLimit = field.NewInt64(tableName, "size_limit")
+	_namespace.Size = field.NewInt64(tableName, "size")
 
 	_namespace.fillFieldMap()
 
@@ -51,18 +49,20 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 type namespace struct {
 	namespaceDo namespaceDo
 
-	ALL         field.Asterisk
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
-	DeletedAt   field.Uint
-	ID          field.Int64
-	Name        field.String
-	Description field.String
-	Visibility  field.Field
-	Limit       field.Int64
-	Usage       field.Int64
-	UserID      field.Int64
-	User        namespaceBelongsToUser
+	ALL             field.Asterisk
+	CreatedAt       field.Time
+	UpdatedAt       field.Time
+	DeletedAt       field.Uint
+	ID              field.Int64
+	Name            field.String
+	Description     field.String
+	Visibility      field.Field
+	TagLimit        field.Int64
+	TagCount        field.Int64
+	RepositoryLimit field.Int64
+	RepositoryCount field.Int64
+	SizeLimit       field.Int64
+	Size            field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -86,9 +86,12 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.Name = field.NewString(table, "name")
 	n.Description = field.NewString(table, "description")
 	n.Visibility = field.NewField(table, "visibility")
-	n.Limit = field.NewInt64(table, "limit")
-	n.Usage = field.NewInt64(table, "usage")
-	n.UserID = field.NewInt64(table, "user_id")
+	n.TagLimit = field.NewInt64(table, "tag_limit")
+	n.TagCount = field.NewInt64(table, "tag_count")
+	n.RepositoryLimit = field.NewInt64(table, "repository_limit")
+	n.RepositoryCount = field.NewInt64(table, "repository_count")
+	n.SizeLimit = field.NewInt64(table, "size_limit")
+	n.Size = field.NewInt64(table, "size")
 
 	n.fillFieldMap()
 
@@ -113,7 +116,7 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 11)
+	n.fieldMap = make(map[string]field.Expr, 13)
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
@@ -121,10 +124,12 @@ func (n *namespace) fillFieldMap() {
 	n.fieldMap["name"] = n.Name
 	n.fieldMap["description"] = n.Description
 	n.fieldMap["visibility"] = n.Visibility
-	n.fieldMap["limit"] = n.Limit
-	n.fieldMap["usage"] = n.Usage
-	n.fieldMap["user_id"] = n.UserID
-
+	n.fieldMap["tag_limit"] = n.TagLimit
+	n.fieldMap["tag_count"] = n.TagCount
+	n.fieldMap["repository_limit"] = n.RepositoryLimit
+	n.fieldMap["repository_count"] = n.RepositoryCount
+	n.fieldMap["size_limit"] = n.SizeLimit
+	n.fieldMap["size"] = n.Size
 }
 
 func (n namespace) clone(db *gorm.DB) namespace {
@@ -135,77 +140,6 @@ func (n namespace) clone(db *gorm.DB) namespace {
 func (n namespace) replaceDB(db *gorm.DB) namespace {
 	n.namespaceDo.ReplaceDB(db)
 	return n
-}
-
-type namespaceBelongsToUser struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a namespaceBelongsToUser) Where(conds ...field.Expr) *namespaceBelongsToUser {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a namespaceBelongsToUser) WithContext(ctx context.Context) *namespaceBelongsToUser {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a namespaceBelongsToUser) Session(session *gorm.Session) *namespaceBelongsToUser {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a namespaceBelongsToUser) Model(m *models.Namespace) *namespaceBelongsToUserTx {
-	return &namespaceBelongsToUserTx{a.db.Model(m).Association(a.Name())}
-}
-
-type namespaceBelongsToUserTx struct{ tx *gorm.Association }
-
-func (a namespaceBelongsToUserTx) Find() (result *models.User, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a namespaceBelongsToUserTx) Append(values ...*models.User) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a namespaceBelongsToUserTx) Replace(values ...*models.User) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a namespaceBelongsToUserTx) Delete(values ...*models.User) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a namespaceBelongsToUserTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a namespaceBelongsToUserTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type namespaceDo struct{ gen.DO }

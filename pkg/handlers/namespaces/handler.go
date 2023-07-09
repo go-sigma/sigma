@@ -44,31 +44,52 @@ type Handlers interface {
 var _ Handlers = &handlers{}
 
 type handlers struct {
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	artifactServiceFactory  dao.ArtifactServiceFactory
+	authServiceFactory       dao.AuthServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 type inject struct {
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	artifactServiceFactory  dao.ArtifactServiceFactory
+	authServiceFactory       dao.AuthServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handlers {
+	authServiceFactory := dao.NewAuthServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
 		if ij.namespaceServiceFactory != nil {
 			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
 		}
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
 	}
 	return &handlers{
-		namespaceServiceFactory: namespaceServiceFactory,
-		artifactServiceFactory:  artifactServiceFactory,
+		authServiceFactory:       authServiceFactory,
+		namespaceServiceFactory:  namespaceServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
+		tagServiceFactory:        tagServiceFactory,
+		artifactServiceFactory:   artifactServiceFactory,
 	}
 }
 

@@ -19,8 +19,6 @@ import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from '@headlessui/react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-import request from "../../utils/request";
-
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
@@ -37,30 +35,27 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceText, setNamespaceText] = useState("");
   const [descriptionText, setDescriptionText] = useState("");
   const [refresh, setRefresh] = useState({});
-  const [pageNum, setPageNum] = useState(0);
+  const [last, setLast] = useState(0);
   const [searchNamespace, setSearchNamespace] = useState("");
   const [total, setTotal] = useState(0);
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
   const fetchNamespace = () => {
-    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&last=${pageNum}`;
+    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&last=${last}`;
     if (searchNamespace !== "") {
       url += `&name=${searchNamespace}`;
     }
-    request.get(url)
-      .then((response) => {
-        if (response.status === 200) {
-          const namespaceList = response.data as INamespaceList;
-          setNamespaceList(namespaceList);
-          setTotal(namespaceList.total);
-        }
-      });
+    axios.get(url).then((response) => {
+      if (response?.status === 200) {
+        const namespaceList = response.data as INamespaceList;
+        setNamespaceList(namespaceList);
+        setTotal(namespaceList.total);
+      }
+    });
   }
 
-  useEffect(() => {
-    fetchNamespace()
-  }, [refresh, pageNum])
+  useEffect(() => { fetchNamespace() }, [refresh, last]);
 
   const createNamespace = (namespace: string, description: string) => {
     setCreateNamespaceModal(false);
@@ -109,6 +104,13 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       type="text"
                       id="namespaceSearch"
                       placeholder="search namespace"
+                      value={searchNamespace}
+                      onChange={e => { setSearchNamespace(e.target.value); }}
+                      onKeyDown={e => {
+                        if (e.key == "Enter") {
+
+                        }
+                      }}
                       className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     />
                     <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
@@ -177,7 +179,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   {
                     namespaceList.items?.map((namespace, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} name={namespace.name} description={namespace.description} size={namespace.size} repository_count={namespace.repository_count} tag_count={namespace.tag_count} created_at={namespace.created_at} updated_at={namespace.updated_at} />
+                        <TableItem key={namespace.id} index={index} namespace={namespace} />
                       );
                     })
                   }
@@ -186,7 +188,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
             </div>
           </div>
           <div style={{ marginTop: "auto" }}>
-            <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} />
+            <Pagination limit={Settings.PageSize} last={last} setLast={setLast} total={total} />
           </div>
         </div>
       </div>

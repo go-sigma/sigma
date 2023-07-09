@@ -60,18 +60,22 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	if req.Limit != nil && namespaceObj.Limit > ptr.To(req.Limit) {
+	if req.SizeLimit != nil && namespaceObj.SizeLimit > ptr.To(req.SizeLimit) {
 		log.Error().Err(err).Msg("Namespace quota is less than the before limit")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
 	}
 
 	updates := make(map[string]interface{}, 5)
-	if req.Limit != nil {
-		updates[query.Namespace.Limit.ColumnName().String()] = ptr.To(req.Limit)
+	if req.SizeLimit != nil {
+		updates[query.Namespace.SizeLimit.ColumnName().String()] = ptr.To(req.SizeLimit)
+	}
+	if req.TagLimit != nil {
+		updates[query.Namespace.TagLimit.ColumnName().String()] = ptr.To(req.TagLimit)
 	}
 	if req.Description != nil {
 		updates[query.Namespace.Description.ColumnName().String()] = ptr.To(req.Description)
 	}
+
 	if len(updates) > 0 {
 		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, updates)
 		if err != nil {

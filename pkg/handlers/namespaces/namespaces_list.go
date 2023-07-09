@@ -23,7 +23,6 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -56,16 +55,35 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
+	var namespaceIDs = make([]int64, 0, len(namespaces))
+	for _, ns := range namespaces {
+		namespaceIDs = append(namespaceIDs, ns.ID)
+	}
+
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, namespaceIDs)
+	if err != nil {
+		log.Error().Err(err).Msg("Count repository failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
+	tagService := h.tagServiceFactory.New()
+	tagMapCount, err := tagService.CountByNamespace(ctx, namespaceIDs)
+	if err != nil {
+		log.Error().Err(err).Msg("Count tag failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
 	var resp = make([]any, 0, len(namespaces))
 	for _, ns := range namespaces {
 		resp = append(resp, types.NamespaceItem{
 			ID:              ns.ID,
 			Name:            ns.Name,
 			Description:     ns.Description,
-			Usage:           ptr.Of(ns.Usage),
-			Limit:           ptr.Of(ns.Limit),
-			RepositoryCount: 0,
-			TagCount:        0,
+			Size:            ns.Size,
+			SizeLimit:       ns.SizeLimit,
+			RepositoryCount: repositoryMapCount[ns.ID],
+			TagCount:        tagMapCount[ns.ID],
 			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

@@ -37,6 +37,7 @@ func main() {
 		models.Blob{},
 		models.BlobUpload{},
 		models.User{},
+		models.CasbinRule{},
 	)
 
 	g.Execute()

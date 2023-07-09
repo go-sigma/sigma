@@ -25,7 +25,6 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -59,14 +58,28 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, []int64{namespace.ID})
+	if err != nil {
+		log.Error().Err(err).Msg("Count repository failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
+	tagService := h.tagServiceFactory.New()
+	tagMapCount, err := tagService.CountByNamespace(ctx, []int64{namespace.ID})
+	if err != nil {
+		log.Error().Err(err).Msg("Count tag failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
 	return c.JSON(http.StatusOK, types.GetNamespaceResponse{
 		ID:              namespace.ID,
 		Name:            namespace.Name,
 		Description:     namespace.Description,
-		Usage:           ptr.Of(namespace.Usage),
-		Limit:           ptr.Of(namespace.Limit),
-		RepositoryCount: 0,
-		TagCount:        0,
+		Size:            namespace.Size,
+		SizeLimit:       namespace.SizeLimit,
+		RepositoryCount: repositoryMapCount[namespace.ID],
+		TagCount:        tagMapCount[namespace.ID],
 		CreatedAt:       namespace.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:       namespace.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

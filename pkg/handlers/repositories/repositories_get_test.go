@@ -76,7 +76,7 @@ func TestGetRepository(t *testing.T) {
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+		namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
 		err := namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			return err

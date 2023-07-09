@@ -95,15 +95,5 @@ func initUser() error {
 		return err
 	}
 
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	namespaceService := namespaceServiceFactory.New()
-	err = namespaceService.Create(ctx, &models.Namespace{
-		Name:   "library",
-		UserID: adminUser.ID,
-	})
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

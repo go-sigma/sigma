@@ -15,36 +15,21 @@
  */
 
 import axios from 'axios';
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 
-const instance = axios.create({
-  timeout: 20000,
-  withCredentials: false,
-});
-
-instance.interceptors.request.use((config: any) => {
+axios.interceptors.request.use((config: any) => {
   const token = localStorage.getItem('token');
   token && (config.headers.Authorization = "Bearer " + token);
   return config;
 });
 
-const AxiosInterceptor = ({ children }: { children: any }) => {
-  const navigate = useNavigate();
-  useEffect(() => {
-    const interceptor = instance.interceptors.response.use(response => {
-      return response;
-    }, error => {
-      if (error?.response?.status === 401) {
-        navigate('/login');
-      }
+export const setupResponseInterceptor = (navigate: any) => {
+  axios.interceptors.response.use(response => {
+    return response;
+  }, error => {
+    if (error?.response?.status === 401) {
+      navigate('/login');
+    } else {
       return Promise.reject(error);
-    });
-    return () => instance.interceptors.response.eject(interceptor);
-  }, [navigate]);
-  return children;
+    }
+  })
 }
-
-export default instance;
-
-export { AxiosInterceptor };

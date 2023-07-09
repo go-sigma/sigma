@@ -70,7 +70,7 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 
 		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+		namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj)
 		assert.NoError(t, err)
 
@@ -79,7 +79,7 @@ func TestRepositoryService(t *testing.T) {
 		err = repositoryService.Create(ctx, repositoryObj)
 		assert.NoError(t, err)
 
-		namespaceObj1 := &models.Namespace{Name: "test1", UserID: userObj.ID, Visibility: enums.VisibilityPrivate}
+		namespaceObj1 := &models.Namespace{Name: "test1", Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj1)
 		assert.NoError(t, err)
 		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: enums.VisibilityPrivate})

@@ -17,14 +17,16 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `name` varchar(64) NOT NULL,
   `description` varchar(256),
-  `user_id` integer NOT NULL,
   `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
-  `limit` integer NOT NULL DEFAULT 0,
-  `usage` integer NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `size_limit` integer NOT NULL DEFAULT 0,
+  `size` integer NOT NULL DEFAULT 0,
+  `repository_limit` integer NOT NULL DEFAULT 0,
+  `repository_count` integer NOT NULL DEFAULT 0,
+  `tag_limit` integer NOT NULL DEFAULT 0,
+  `tag_count` integer NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
@@ -34,11 +36,13 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   `description` varchar(255),
   `overview` BLOB,
   `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
-  `limit` integer NOT NULL DEFAULT 0,
-  `usage` integer NOT NULL DEFAULT 0,
+  `size_limit` integer NOT NULL DEFAULT 0,
+  `size` integer NOT NULL DEFAULT 0,
+  `tag_limit` integer NOT NULL DEFAULT 0,
+  `tag_count` integer NOT NULL DEFAULT 0,
   `namespace_id` integer NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
@@ -197,4 +201,7 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
   ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
   ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
+
+INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
+  VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
 

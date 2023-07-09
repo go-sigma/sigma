@@ -15,17 +15,19 @@
  */
 
 import dayjs from 'dayjs';
-import { Fragment } from 'react';
-import { useRef, useState } from "react";
+import humanFormat from 'human-format';
 import { useClickAway } from 'react-use';
 import { useNavigate } from 'react-router-dom';
+import { useRef, useState, Fragment } from "react";
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Menu, Transition } from '@headlessui/react'
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
+import { Menu, Transition } from '@headlessui/react';
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+
+import { INamespace, INamespaceList, IHTTPError } from "../../interfaces/interfaces";
 
 dayjs.extend(relativeTime);
 
-export default function TableItem({ index, name, description, size, repository_count, tag_count, created_at, updated_at }: { index: number, name: string, description: string, size: number, repository_count: number, tag_count: number, created_at: string, updated_at: string }) {
+export default function TableItem({ index, namespace }: { index: number, namespace: INamespace }) {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
 
@@ -36,38 +38,36 @@ export default function TableItem({ index, name, description, size, repository_c
     }
   });
 
-  console.log(description)
-
   return (
     <tr className="cursor-pointer"
       onClick={() => {
-        navigate(`/namespace/${name}/repository`);
+        navigate(`/namespace/${namespace.name}/repository`);
       }}
     >
       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
-              {name}
-              <span className="text-gray-500 font-normal ml-4">{description}</span>
+              {namespace.name}
+              <span className="text-gray-500 font-normal ml-4">{namespace.description}</span>
             </span>
           </div>
         </div>
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {size}
+        {humanFormat(namespace.size)}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {repository_count}
+        {namespace.repository_count}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {tag_count}
+        {namespace.tag_count}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(created_at))}
+        {dayjs().to(dayjs(namespace.created_at))}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(updated_at))}
+        {dayjs().to(dayjs(namespace.updated_at))}
       </td>
       <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
         e.stopPropagation();

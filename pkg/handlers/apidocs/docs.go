@@ -578,10 +578,6 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
                 "name": {
                     "type": "string",
                     "example": "test"
@@ -590,17 +586,25 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
+                "size": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "tag_count": {
                     "type": "integer",
                     "example": 10
                 },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
-                },
-                "usage": {
-                    "type": "integer",
-                    "example": 10000
                 }
             }
         },
@@ -619,10 +623,6 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
                 "name": {
                     "type": "string",
                     "example": "test"
@@ -631,6 +631,14 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
+                "size": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "tag_count": {
                     "type": "integer",
                     "example": 10
@@ -638,10 +646,6 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
-                },
-                "usage": {
-                    "type": "integer",
-                    "example": 10000
                 }
             }
         },
@@ -656,15 +660,19 @@ const docTemplate = `{
                     "maxLength": 30,
                     "example": "i am just description"
                 },
-                "limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
                 "name": {
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 2,
                     "example": "test"
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
                 },
                 "visibility": {
                     "allOf": [
@@ -714,7 +722,11 @@ const docTemplate = `{
                     "maxLength": 30,
                     "example": "i am just description"
                 },
-                "limit": {
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
                     "type": "integer",
                     "example": 10000
                 },
@@ -755,9 +767,6 @@ const docTemplate = `{
         "types.RepositoryItem": {
             "type": "object",
             "properties": {
-                "artifact_count": {
-                    "type": "integer"
-                },
                 "created_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -769,6 +778,22 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "busybox"
+                },
+                "size": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_count": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 1000
                 },
                 "updated_at": {
                     "type": "string",

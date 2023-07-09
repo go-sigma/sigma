@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -82,13 +83,12 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	namespaceObj := &models.Namespace{
 		Name:        req.Name,
 		Description: req.Description,
-		UserID:      user.ID,
 	}
 	if req.Visibility != nil {
 		namespaceObj.Visibility = ptr.To(req.Visibility)
 	}
-	if ptr.To(req.Limit) > 0 {
-		namespaceObj.Limit = ptr.To(req.Limit)
+	if ptr.To(req.SizeLimit) > 0 {
+		namespaceObj.SizeLimit = ptr.To(req.SizeLimit)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := h.namespaceServiceFactory.New(tx)
@@ -96,6 +96,12 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msg("Create namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
+		}
+		authService := h.authServiceFactory.New(tx)
+		err = authService.AddRoleForUser(ctx, strconv.FormatInt(user.ID, 10), "namespace_admin", namespaceObj.Name)
+		if err != nil {
+			log.Error().Err(err).Msg("Add role for user failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add role for user failed: %v", err))
 		}
 		return nil
 	})

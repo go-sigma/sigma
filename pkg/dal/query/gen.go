@@ -22,6 +22,7 @@ var (
 	ArtifactVulnerability *artifactVulnerability
 	Blob                  *blob
 	BlobUpload            *blobUpload
+	CasbinRule            *casbinRule
 	Namespace             *namespace
 	Repository            *repository
 	Tag                   *tag
@@ -35,6 +36,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ArtifactVulnerability = &Q.ArtifactVulnerability
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
+	CasbinRule = &Q.CasbinRule
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
 	Tag = &Q.Tag
@@ -49,6 +51,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ArtifactVulnerability: newArtifactVulnerability(db, opts...),
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
+		CasbinRule:            newCasbinRule(db, opts...),
 		Namespace:             newNamespace(db, opts...),
 		Repository:            newRepository(db, opts...),
 		Tag:                   newTag(db, opts...),
@@ -64,6 +67,7 @@ type Query struct {
 	ArtifactVulnerability artifactVulnerability
 	Blob                  blob
 	BlobUpload            blobUpload
+	CasbinRule            casbinRule
 	Namespace             namespace
 	Repository            repository
 	Tag                   tag
@@ -80,6 +84,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ArtifactVulnerability: q.ArtifactVulnerability.clone(db),
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
+		CasbinRule:            q.CasbinRule.clone(db),
 		Namespace:             q.Namespace.clone(db),
 		Repository:            q.Repository.clone(db),
 		Tag:                   q.Tag.clone(db),
@@ -103,6 +108,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ArtifactVulnerability: q.ArtifactVulnerability.replaceDB(db),
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
+		CasbinRule:            q.CasbinRule.replaceDB(db),
 		Namespace:             q.Namespace.replaceDB(db),
 		Repository:            q.Repository.replaceDB(db),
 		Tag:                   q.Tag.replaceDB(db),
@@ -116,6 +122,7 @@ type queryCtx struct {
 	ArtifactVulnerability *artifactVulnerabilityDo
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
+	CasbinRule            *casbinRuleDo
 	Namespace             *namespaceDo
 	Repository            *repositoryDo
 	Tag                   *tagDo
@@ -129,6 +136,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ArtifactVulnerability: q.ArtifactVulnerability.WithContext(ctx),
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
+		CasbinRule:            q.CasbinRule.WithContext(ctx),
 		Namespace:             q.Namespace.WithContext(ctx),
 		Repository:            q.Repository.WithContext(ctx),
 		Tag:                   q.Tag.WithContext(ctx),

@@ -28,24 +28,27 @@ definitions:
       id:
         example: 1
         type: integer
-      limit:
-        example: 10000
-        type: integer
       name:
         example: test
         type: string
       repository_count:
         example: 10
         type: integer
+      size:
+        example: 10000
+        type: integer
+      size_limit:
+        example: 10000
+        type: integer
       tag_count:
         example: 10
+        type: integer
+      tag_limit:
+        example: 10000
         type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
-      usage:
-        example: 10000
-        type: integer
     type: object
   types.NamespaceItem:
     properties:
@@ -58,14 +61,17 @@ definitions:
       id:
         example: 1
         type: integer
-      limit:
-        example: 10000
-        type: integer
       name:
         example: test
         type: string
       repository_count:
         example: 10
+        type: integer
+      size:
+        example: 10000
+        type: integer
+      size_limit:
+        example: 10000
         type: integer
       tag_count:
         example: 10
@@ -73,9 +79,6 @@ definitions:
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
-      usage:
-        example: 10000
-        type: integer
     type: object
   types.PostNamespaceRequest:
     properties:
@@ -83,14 +86,17 @@ definitions:
         example: i am just description
         maxLength: 30
         type: string
-      limit:
-        example: 10000
-        type: integer
       name:
         example: test
         maxLength: 20
         minLength: 2
         type: string
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
       visibility:
         allOf:
         - $ref: '#/definitions/enums.Visibility'
@@ -124,7 +130,10 @@ definitions:
         example: i am just description
         maxLength: 30
         type: string
-      limit:
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
         example: 10000
         type: integer
       visibility:
@@ -151,8 +160,6 @@ definitions:
     type: object
   types.RepositoryItem:
     properties:
-      artifact_count:
-        type: integer
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -162,6 +169,18 @@ definitions:
       name:
         example: busybox
         type: string
+      size:
+        example: 10000
+        type: integer
+      size_limit:
+        example: 10000
+        type: integer
+      tag_count:
+        example: 100
+        type: integer
+      tag_limit:
+        example: 1000
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
