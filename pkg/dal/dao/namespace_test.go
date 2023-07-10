@@ -86,23 +86,24 @@ func TestNamespaceService(t *testing.T) {
 		assert.Equal(t, ns1.ID, namespaceObj.ID)
 		assert.Equal(t, ns1.Name, namespaceObj.Name)
 
-		namespaceList, err := namespaceService.ListNamespace(ctx, types.ListNamespaceRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
-			},
-			Name: ptr.Of("t"),
+		namespaceList, err := namespaceService.ListNamespace(ctx, ptr.Of("t"), types.Pagination{
+			Limit: ptr.Of(int(100)),
+			Last:  ptr.Of(int64(0)),
+		}, types.Sortable{})
+		assert.NoError(t, err)
+		assert.Equal(t, len(namespaceList), int(1))
+
+		namespaceList, err = namespaceService.ListNamespace(ctx, ptr.Of("t"), types.Pagination{
+			Limit: ptr.Of(int(100)),
+			Last:  ptr.Of(int64(0)),
+		}, types.Sortable{
+			Sort:   ptr.Of("created_at"),
+			Method: ptr.Of(enums.SortMethodDesc),
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, len(namespaceList), int(1))
 
-		count, err := namespaceService.CountNamespace(ctx, types.ListNamespaceRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
-			},
-			Name: ptr.Of("t"),
-		})
+		count, err := namespaceService.CountNamespace(ctx, ptr.Of("t"))
 		assert.NoError(t, err)
 		assert.Equal(t, count, int64(1))
 

@@ -125,14 +125,14 @@ func TestListRepository(t *testing.T) {
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
 	var listRepositoryTimes int
-	daoMockRepositoryService.EXPECT().ListRepository(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListRepositoryRequest) ([]*models.Repository, error) {
+	daoMockRepositoryService.EXPECT().ListRepository(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Repository, error) {
 		listRepositoryTimes++
 		if listRepositoryTimes == 1 {
 			return nil, fmt.Errorf("test")
 		}
 		return []*models.Repository{}, nil
 	}).Times(2)
-	daoMockRepositoryService.EXPECT().CountRepository(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListRepositoryRequest) (int64, error) {
+	daoMockRepositoryService.EXPECT().CountRepository(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string) (int64, error) {
 		return 0, fmt.Errorf("test")
 	}).Times(1)
 

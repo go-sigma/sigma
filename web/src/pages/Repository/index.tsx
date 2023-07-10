@@ -27,7 +27,7 @@ import Settings from "../../Settings";
 import TableItem from "./TableItem";
 import "./index.css";
 
-import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces/interfaces";
+import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);

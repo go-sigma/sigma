@@ -89,3 +89,9 @@ export interface ITagList {
   items: ITag[];
   total: number;
 }
+
+export enum IOrder {
+  Asc = "asc",
+  Desc = "desc",
+  None = "none",
+};

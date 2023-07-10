@@ -22,7 +22,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 
-import { INamespace } from "../../interfaces/interfaces";
+import { INamespace } from "../../interfaces";
 
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";

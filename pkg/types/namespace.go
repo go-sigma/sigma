@@ -35,6 +35,7 @@ type NamespaceItem struct {
 // ListNamespaceRequest represents the request to list namespaces.
 type ListNamespaceRequest struct {
 	Pagination
+	Sortable
 
 	// Name query the namespace by name.
 	Name *string `json:"name" query:"name"`

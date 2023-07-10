@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -24,6 +25,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils/imagerefs"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
@@ -44,11 +46,11 @@ type RepositoryService interface {
 	// ListByDtPagination lists the repositories by the pagination.
 	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
-	ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error)
+	ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, error)
+	// CountRepository counts all repositories.
+	CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error)
 	// UpdateRepository update specific repository
 	UpdateRepository(ctx context.Context, id int64, updates models.Repository) error
-	// CountRepository counts all repositories.
-	CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error)
 	// CountByNamespace counts the repositories by the namespace ID.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
@@ -129,11 +131,22 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 }
 
 // ListRepository lists all repositories.
-func (s *repositoryService) ListRepository(ctx context.Context, req types.ListRepositoryRequest) ([]*models.Repository, error) {
-	return s.tx.Repository.WithContext(ctx).
-		LeftJoin(s.tx.Namespace, s.tx.Namespace.ID.EqCol(s.tx.Repository.NamespaceID)).
-		Where(s.tx.Namespace.Name.Eq(req.Namespace)).
-		Where(s.tx.Repository.ID.Gt(ptr.To(req.Last))).Limit(ptr.To(req.Limit)).Find()
+func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, error) {
+	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID)).Where(s.tx.Repository.ID.Gt(ptr.To(pagination.Last)))
+	if name != nil {
+		query = query.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query.Order(field)
+		}
+	}
+	query.Limit(ptr.To(pagination.Limit))
+	return query.Find()
 }
 
 // UpdateRepository ...
@@ -156,12 +169,12 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, repo
 }
 
 // CountRepository counts all repositories.
-func (s *repositoryService) CountRepository(ctx context.Context, req types.ListRepositoryRequest) (int64, error) {
-	nsObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(req.Namespace)).First()
-	if err != nil {
-		return 0, err
+func (s *repositoryService) CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error) {
+	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	if name != nil {
+		query = query.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
-	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(nsObj.ID)).Count()
+	return query.Count()
 }
 
 // DeleteByID deletes the repository with the specified repository ID.

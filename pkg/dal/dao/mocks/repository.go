@@ -52,18 +52,18 @@ func (mr *MockRepositoryServiceMockRecorder) CountByNamespace(arg0, arg1 interfa
 }
 
 // CountRepository mocks base method.
-func (m *MockRepositoryService) CountRepository(arg0 context.Context, arg1 types.ListRepositoryRequest) (int64, error) {
+func (m *MockRepositoryService) CountRepository(arg0 context.Context, arg1 int64, arg2 *string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountRepository", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountRepository", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountRepository indicates an expected call of CountRepository.
-func (mr *MockRepositoryServiceMockRecorder) CountRepository(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) CountRepository(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountRepository", reflect.TypeOf((*MockRepositoryService)(nil).CountRepository), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountRepository", reflect.TypeOf((*MockRepositoryService)(nil).CountRepository), arg0, arg1, arg2)
 }
 
 // Create mocks base method.
@@ -160,18 +160,18 @@ func (mr *MockRepositoryServiceMockRecorder) ListByDtPagination(arg0, arg1 inter
 }
 
 // ListRepository mocks base method.
-func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 types.ListRepositoryRequest) ([]*models.Repository, error) {
+func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRepository", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListRepository", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*models.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListRepository indicates an expected call of ListRepository.
-func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), arg0, arg1, arg2, arg3, arg4)
 }
 
 // UpdateRepository mocks base method.

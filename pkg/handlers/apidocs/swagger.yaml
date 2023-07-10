@@ -245,15 +245,24 @@ paths:
         maximum: 100
         minimum: 10
         name: limit
-        required: true
         type: integer
       - default: 0
         description: last
         in: query
         minimum: 0
         name: last
-        required: true
         type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
       - description: search namespace with name
         in: query
         name: name
@@ -371,19 +380,32 @@ paths:
         maximum: 100
         minimum: 10
         name: limit
-        required: true
         type: integer
       - default: 0
         description: last
         in: query
         minimum: 0
         name: last
-        required: true
         type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
       - description: namespace
         in: path
         name: namespace
         required: true
+        type: string
+      - description: search repository with name
+        in: query
+        name: name
         type: string
       produces:
       - application/json
