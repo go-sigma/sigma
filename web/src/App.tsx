@@ -20,8 +20,11 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 
-import Namespace from "./pages/Namespace";
-import Repository from "./pages/Repository";
+import Namespaces from "./pages/Namespace";
+import Repositories from "./pages/Repository";
+import NamespaceUsers from "./pages/Namespace/Users";
+import NamespaceWebhooks from "./pages/Namespace/Webhook";
+import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 import Tag from "./pages/Tag";
 import Artifact from "./pages/Artifact";
 
@@ -55,10 +58,13 @@ export default function App() {
         <Route path="/" element={<Home localServer={localServer} />} />
         <Route path="/login" element={<Login localServer={localServer} />} />
         <Route path="/home" element={<Home localServer={localServer} />} />
-        <Route path="/namespace" element={<Namespace localServer={localServer} />} />
-        <Route path="/namespace/:namespace/repository" element={<Repository localServer={localServer} />} />
-        <Route path="/namespace/:namespace/artifact" element={<Artifact localServer={localServer} />} />
-        <Route path="/namespace/:namespace/tag" element={<Tag localServer={localServer} />} />
+        <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/artifact" element={<Artifact localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/tag" element={<Tag localServer={localServer} />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </>

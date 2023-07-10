@@ -14,7 +14,7 @@ RUN set -eux && yarn install --frozen-lockfile && yarn build
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.82.0
+ARG SYFT_VERSION=0.84.1
 
 ARG TARGETARCH
 
@@ -28,7 +28,7 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
-ARG TRIVY_VERSION=0.42.0
+ARG TRIVY_VERSION=0.43.1
 ARG ORAS_VERSION=1.0.0
 
 ARG TARGETARCH
