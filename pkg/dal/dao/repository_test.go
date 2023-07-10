@@ -85,13 +85,7 @@ func TestRepositoryService(t *testing.T) {
 		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: enums.VisibilityPrivate})
 		assert.NoError(t, err)
 
-		count1, err := repositoryService.CountRepository(ctx, types.ListRepositoryRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
-			},
-			Namespace: "test",
-		})
+		count1, err := repositoryService.CountRepository(ctx, namespaceObj.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, count1, int64(1))
 
@@ -103,13 +97,10 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, repositoryObj.ID, repository2.ID)
 
-		repositories1, err := repositoryService.ListRepository(ctx, types.ListRepositoryRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
-			},
-			Namespace: "test",
-		})
+		repositories1, err := repositoryService.ListRepository(ctx, namespaceObj.ID, nil, types.Pagination{
+			Limit: ptr.Of(int(100)),
+			Last:  ptr.Of(int64(0)),
+		}, types.Sortable{Sort: ptr.Of("created_at"), Method: ptr.Of(enums.SortMethodAsc)})
 		assert.NoError(t, err)
 		assert.Equal(t, len(repositories1), int(1))
 

@@ -57,3 +57,9 @@ type GcTarget string
 // github,
 // )
 type Provider string
+
+// SortMethod x ENUM(
+// asc,
+// desc,
+// )
+type SortMethod string

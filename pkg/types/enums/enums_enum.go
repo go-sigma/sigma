@@ -357,6 +357,89 @@ func (x Provider) Value() (driver.Value, error) {
 }
 
 const (
+	// SortMethodAsc is a SortMethod of type asc.
+	SortMethodAsc SortMethod = "asc"
+	// SortMethodDesc is a SortMethod of type desc.
+	SortMethodDesc SortMethod = "desc"
+)
+
+var ErrInvalidSortMethod = errors.New("not a valid SortMethod")
+
+// String implements the Stringer interface.
+func (x SortMethod) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x SortMethod) IsValid() bool {
+	_, err := ParseSortMethod(string(x))
+	return err == nil
+}
+
+var _SortMethodValue = map[string]SortMethod{
+	"asc":  SortMethodAsc,
+	"desc": SortMethodDesc,
+}
+
+// ParseSortMethod attempts to convert a string to a SortMethod.
+func ParseSortMethod(name string) (SortMethod, error) {
+	if x, ok := _SortMethodValue[name]; ok {
+		return x, nil
+	}
+	return SortMethod(""), fmt.Errorf("%s is %w", name, ErrInvalidSortMethod)
+}
+
+// MustParseSortMethod converts a string to a SortMethod, and panics if is not valid.
+func MustParseSortMethod(name string) SortMethod {
+	val, err := ParseSortMethod(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errSortMethodNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *SortMethod) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = SortMethod("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseSortMethod(v)
+	case []byte:
+		*x, err = ParseSortMethod(string(v))
+	case SortMethod:
+		*x = v
+	case *SortMethod:
+		if v == nil {
+			return errSortMethodNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errSortMethodNilPtr
+		}
+		*x, err = ParseSortMethod(*v)
+	default:
+		return errors.New("invalid type for SortMethod")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x SortMethod) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// TaskCommonStatusPending is a TaskCommonStatus of type Pending.
 	TaskCommonStatusPending TaskCommonStatus = "Pending"
 	// TaskCommonStatusDoing is a TaskCommonStatus of type Doing.

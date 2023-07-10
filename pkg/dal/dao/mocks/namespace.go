@@ -37,7 +37,7 @@ func (m *MockNamespaceService) EXPECT() *MockNamespaceServiceMockRecorder {
 }
 
 // CountNamespace mocks base method.
-func (m *MockNamespaceService) CountNamespace(arg0 context.Context, arg1 types.ListNamespaceRequest) (int64, error) {
+func (m *MockNamespaceService) CountNamespace(arg0 context.Context, arg1 *string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountNamespace", arg0, arg1)
 	ret0, _ := ret[0].(int64)
@@ -125,18 +125,18 @@ func (mr *MockNamespaceServiceMockRecorder) GetByName(arg0, arg1 interface{}) *g
 }
 
 // ListNamespace mocks base method.
-func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 types.ListNamespaceRequest) ([]*models.Namespace, error) {
+func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListNamespace", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListNamespace", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListNamespace indicates an expected call of ListNamespace.
-func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespace", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespace", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespace), arg0, arg1, arg2, arg3)
 }
 
 // UpdateByID mocks base method.

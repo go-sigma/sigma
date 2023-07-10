@@ -33,10 +33,6 @@ import (
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
-// @Param description body string false "Namespace description"
-// @Param visibility body string false "Namespace visibility" Enums(public, private)
-// @Param limit body int false "Namespace limit" minimum(0) SchemaExample("1000")
-
 // PostNamespace handles the post namespace request
 // @Summary Create namespace
 // @Tags Namespace

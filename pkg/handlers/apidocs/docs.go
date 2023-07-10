@@ -48,8 +48,7 @@ const docTemplate = `{
                         "default": 10,
                         "description": "limit",
                         "name": "limit",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "minimum": 0,
@@ -57,8 +56,23 @@ const docTemplate = `{
                         "default": 0,
                         "description": "last",
                         "name": "last",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -253,8 +267,7 @@ const docTemplate = `{
                         "default": 10,
                         "description": "limit",
                         "name": "limit",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "minimum": 0,
@@ -262,8 +275,23 @@ const docTemplate = `{
                         "default": 0,
                         "description": "last",
                         "name": "last",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -271,6 +299,12 @@ const docTemplate = `{
                         "name": "namespace",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "search repository with name",
+                        "name": "name",
+                        "in": "query"
                     }
                 ],
                 "responses": {

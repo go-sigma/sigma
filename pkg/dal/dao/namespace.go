@@ -23,6 +23,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
+	"github.com/ximager/ximager/pkg/types/enums"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
@@ -42,9 +43,9 @@ type NamespaceService interface {
 	// GetByName gets the namespace with the specified namespace name.
 	GetByName(ctx context.Context, name string) (*models.Namespace, error)
 	// ListNamespace lists all namespaces.
-	ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error)
+	ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, error)
 	// CountNamespace counts all namespaces.
-	CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error)
+	CountNamespace(ctx context.Context, name *string) (int64, error)
 	// DeleteByID deletes the namespace with the specified namespace ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// UpdateByID updates the namespace with the specified namespace ID.
@@ -108,19 +109,29 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 }
 
 // ListNamespace lists all namespaces.
-func (s *namespaceService) ListNamespace(ctx context.Context, req types.ListNamespaceRequest) ([]*models.Namespace, error) {
-	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(ptr.To(req.Last))).Limit(ptr.To(req.Limit))
-	if req.Name != nil {
-		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
+func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, error) {
+	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(ptr.To(pagination.Last)))
+	if name != nil {
+		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
+	field, ok := s.tx.Namespace.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query.Order(field)
+		}
+	}
+	query.Limit(ptr.To(pagination.Limit))
 	return query.Find()
 }
 
 // CountNamespace counts all namespaces.
-func (s *namespaceService) CountNamespace(ctx context.Context, req types.ListNamespaceRequest) (int64, error) {
+func (s *namespaceService) CountNamespace(ctx context.Context, name *string) (int64, error) {
 	query := s.tx.Namespace.WithContext(ctx)
-	if req.Name != nil {
-		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(req.Name))))
+	if name != nil {
+		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	return query.Count()
 }

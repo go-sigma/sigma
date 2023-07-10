@@ -96,14 +96,14 @@ func TestListNamespace(t *testing.T) {
 
 	var listNamespaceTimes int
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().ListNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListNamespaceRequest) ([]*models.Namespace, error) {
+	daoMockNamespaceService.EXPECT().ListNamespace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Namespace, error) {
 		listNamespaceTimes++
 		if listNamespaceTimes == 1 {
 			return nil, fmt.Errorf("test")
 		}
 		return []*models.Namespace{}, nil
 	}).Times(2)
-	daoMockNamespaceService.EXPECT().CountNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListNamespaceRequest) (int64, error) {
+	daoMockNamespaceService.EXPECT().CountNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *string) (int64, error) {
 		return 0, fmt.Errorf("test")
 	}).Times(1)
 

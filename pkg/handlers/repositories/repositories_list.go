@@ -15,10 +15,13 @@
 package repositories
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
@@ -34,9 +37,12 @@ import (
 // @Accept json
 // @Produce json
 // @Router /namespaces/{namespace}/repositories/ [get]
-// @Param limit query int64 true "limit" minimum(10) maximum(100) default(10)
-// @Param last query int64 true "last" minimum(0) default(0)
+// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
+// @Param last query int64 false "last" minimum(0) default(0)
+// @Param sort query string false "sort field"
+// @Param method query string false "sort method" Enums(asc, desc)
 // @Param namespace path string true "namespace"
+// @Param name query string false "search repository with name"
 // @Success 200 {object} types.CommonList{items=[]types.RepositoryItem}
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
@@ -51,8 +57,19 @@ func (h *handlers) ListRepository(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
+	namespaceService := h.namespaceServiceFactory.New()
+	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
+		}
+		log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+	}
+
 	repositoryService := h.repositoryServiceFactory.New()
-	repositories, err := repositoryService.ListRepository(ctx, req)
+	repositories, err := repositoryService.ListRepository(ctx, namespaceObj.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List repository from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -82,7 +99,7 @@ func (h *handlers) ListRepository(c echo.Context) error {
 			UpdatedAt: repository.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
-	total, err := repositoryService.CountRepository(ctx, req)
+	total, err := repositoryService.CountRepository(ctx, namespaceObj.ID, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Count repository from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

@@ -23,7 +23,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 
-import { IRepository } from "../../interfaces/interfaces";
+import { IRepository } from "../../interfaces";
 
 dayjs.extend(relativeTime);
 

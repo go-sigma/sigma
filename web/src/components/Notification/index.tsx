@@ -17,7 +17,7 @@
 import { toast } from 'react-toastify';
 import { InboxIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-import { INotification } from "../../interfaces/interfaces";
+import { INotification } from "../../interfaces";
 
 import "./index.css";
 

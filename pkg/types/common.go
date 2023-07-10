@@ -14,6 +14,8 @@
 
 package types
 
+import "github.com/ximager/ximager/pkg/types/enums"
+
 // CommonList is the common list struct
 type CommonList struct {
 	Total int64 `json:"total" example:"1"`
@@ -24,4 +26,10 @@ type CommonList struct {
 type Pagination struct {
 	Last  *int64 `json:"last" query:"last" example:"1"`
 	Limit *int   `json:"limit" query:"limit" example:"10"`
+}
+
+// Sortable is the sort struct
+type Sortable struct {
+	Sort   *string           `json:"sort" query:"sort" example:"created_at"`
+	Method *enums.SortMethod `json:"method" query:"method" example:"desc"`
 }

@@ -28,7 +28,7 @@ import Settings from "../../Settings";
 import TableItem from "./TableItem";
 import "./index.css";
 
-import { IArtifact, IArtifactList, IHTTPError } from "../../interfaces/interfaces";
+import { IArtifact, IArtifactList, IHTTPError } from "../../interfaces";
 
 export default function Artifact({ localServer }: { localServer: string }) {
   const [artifactList, setArtifactList] = useState<IArtifactList>({} as IArtifactList);

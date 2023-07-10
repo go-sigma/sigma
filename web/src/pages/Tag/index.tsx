@@ -30,7 +30,7 @@ import Settings from "../../Settings";
 import TableItem from "./TableItem";
 import "./index.css";
 
-import { ITag, ITagList, IHTTPError } from "../../interfaces/interfaces";
+import { ITag, ITagList, IHTTPError } from "../../interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);

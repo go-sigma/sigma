@@ -16,19 +16,20 @@
 
 import axios from "axios";
 import { Fragment, useEffect, useState } from "react";
-import { Dialog, Transition } from '@headlessui/react';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Dialog, Transition } from "@headlessui/react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
+import Settings from "../../Settings";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
-import Settings from "../../Settings";
+import OrderHeader from "../../components/OrderHeader";
 
 import TableItem from "./TableItem";
 import "./index.css";
 
-import { INamespace, INamespaceList, IHTTPError } from "../../interfaces/interfaces";
+import { INamespace, INamespaceList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
@@ -38,6 +39,22 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [last, setLast] = useState(0);
   const [searchNamespace, setSearchNamespace] = useState("");
   const [total, setTotal] = useState(0);
+
+  const [sizeOrder, setSizeOrder] = useState(IOrder.None);
+  const [repositoryCountOrder, setRepositoryOrder] = useState(IOrder.None);
+  const [tagCountOrder, setTagCountOrder] = useState(IOrder.None);
+  const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
+  const [updatedAtOrder, setUpdatedAtOrder] = useState(IOrder.None);
+  const [sortOrder, setSortOrder] = useState(IOrder.None);
+  const [sortName, setSortName] = useState("");
+
+  const resetOrder = () => {
+    setSizeOrder(IOrder.None);
+    setRepositoryOrder(IOrder.None);
+    setTagCountOrder(IOrder.None);
+    setCreatedAtOrder(IOrder.None);
+    setUpdatedAtOrder(IOrder.None);
+  }
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
@@ -55,7 +72,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
     });
   }
 
-  useEffect(() => { fetchNamespace() }, [refresh, last]);
+  useEffect(() => { fetchNamespace() }, [refresh, last, sortOrder, sortName]);
 
   const createNamespace = (namespace: string, description: string) => {
     setCreateNamespaceModal(false);
@@ -156,19 +173,44 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       <span className="lg:pl-2">Namespace</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Size
+                      <OrderHeader text={"Size"} orderStatus={sizeOrder} setOrder={(e) => {
+                        resetOrder();
+                        setSizeOrder(e);
+                        setSortOrder(e);
+                        setSortName("size");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Repository count
+                      <OrderHeader text={"Repository count"} orderStatus={repositoryCountOrder} setOrder={(e) => {
+                        resetOrder();
+                        setRepositoryOrder(e);
+                        setSortOrder(e);
+                        setSortName("repository_count");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Tag count
+                      <OrderHeader text={"Tag count"} orderStatus={tagCountOrder} setOrder={(e) => {
+                        resetOrder();
+                        setTagCountOrder(e);
+                        setSortOrder(e);
+                        setSortName("tag_count");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Created at
+                      <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
+                        resetOrder();
+                        setCreatedAtOrder(e);
+                        setSortOrder(e);
+                        setSortName("created_at");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Updated at
+                      <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
+                        resetOrder();
+                        setUpdatedAtOrder(e);
+                        setSortOrder(e);
+                        setSortName("updated_at");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Action

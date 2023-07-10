@@ -31,8 +31,11 @@ type RepositoryItem struct {
 // ListRepositoryRequest represents the request to list repositories.
 type ListRepositoryRequest struct {
 	Pagination
+	Sortable
 
 	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
+
+	Name *string `json:"name" query:"name"`
 }
 
 // GetRepositoryRequest represents the request to get a repository.
