@@ -36,6 +36,7 @@ export interface INamespace {
   repository_limit: number;
   tag_count: number;
   tag_limit: number;
+  visibility: string;
   created_at: string;
   updated_at: string;
 }

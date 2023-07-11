@@ -82,6 +82,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 			ID:              ns.ID,
 			Name:            ns.Name,
 			Description:     ns.Description,
+			Visibility:      ns.Visibility,
 			Size:            ns.Size,
 			SizeLimit:       ns.SizeLimit,
 			RepositoryLimit: ns.RepositoryLimit,

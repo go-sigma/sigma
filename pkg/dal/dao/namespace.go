@@ -121,6 +121,8 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 			query.Order(field.Desc())
 		case enums.SortMethodAsc:
 			query.Order(field)
+		default:
+			query.Order(field)
 		}
 	}
 	query.Limit(ptr.To(pagination.Limit))

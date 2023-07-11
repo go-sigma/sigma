@@ -18,11 +18,11 @@ import { ReactNode } from 'react';
 
 export default function Header({ title, props }: { title: string, props?: ReactNode }) {
   return (
-    <div className="border-gray-200 border-b px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
-      <div className="flex-1 min-w-0">
+    <div className="border-gray-200 border-b px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16">
+      <div className="flex-1 min-w-0 my-4">
         <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate">{title}</h1>
       </div>
-      <div className="mt-4 flex sm:mt-0 sm:ml-4">
+      <div className="flex h-16">
         {props}
       </div>
     </div>

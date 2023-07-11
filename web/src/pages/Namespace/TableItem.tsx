@@ -43,7 +43,7 @@ export default function TableItem({ index, namespace }: { index: number, namespa
   return (
     <tr className="cursor-pointer align-middle"
       onClick={() => {
-        navigate(`/namespace/${namespace.name}/repository`);
+        navigate(`/namespaces/${namespace.name}/repositories`);
       }}
     >
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -64,6 +64,9 @@ export default function TableItem({ index, namespace }: { index: number, namespa
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         <QuotaSimple current={namespace.tag_count} limit={namespace.tag_limit} />
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+        <span className='capitalize'>{namespace.visibility}</span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs().to(dayjs(namespace.created_at))}

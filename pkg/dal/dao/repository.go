@@ -143,6 +143,8 @@ func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int6
 			query.Order(field.Desc())
 		case enums.SortMethodAsc:
 			query.Order(field)
+		default:
+			query.Order(field)
 		}
 	}
 	query.Limit(ptr.To(pagination.Limit))

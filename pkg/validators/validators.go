@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	namespaceRegex = regexp.MustCompile(`^[a-z][a-z-]{0,20}$`)
+	namespaceRegex = regexp.MustCompile(`^[a-z0-9][0-9a-z-]{0,20}$`)
 )
 
 // CustomValidator is a custom validator for echo

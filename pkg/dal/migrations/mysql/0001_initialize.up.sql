@@ -204,6 +204,6 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
   ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
   ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
 
-INSERT INTO `namespaces` (`name`, `created_at`, `updated_at`)
-  VALUES ('library', '2020-01-01 00:00:00', '2020-01-01 00:00:00');
+INSERT INTO `namespaces` (`name`, `visibility`)
+  VALUES ('library', 'public');
 

@@ -33,8 +33,39 @@ import { INamespace, INamespaceList, IHTTPError, IOrder } from "../../interfaces
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
+
   const [namespaceText, setNamespaceText] = useState("");
+  const [namespaceTextValid, setNamespaceTextValid] = useState(true);
+  useEffect(() => { namespaceText != "" && setNamespaceTextValid(/^[a-z0-9][0-9a-z-]{0,20}$/.test(namespaceText)) }, [namespaceText])
   const [descriptionText, setDescriptionText] = useState("");
+  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
+  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  const [repositoryCountLimit, setRepositoryCountLimit] = useState(0);
+  const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
+  useEffect(() => { setRepositoryCountLimitValid(repositoryCountLimit >= 0) }, [repositoryCountLimit])
+  const [tagCountLimit, setTagCountLimit] = useState(0);
+  const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
+  useEffect(() => { setTagCountLimitValid(tagCountLimit >= 0) }, [tagCountLimit])
+  const [realSizeLimit, setRealSizeLimit] = useState(0);
+  const [sizeLimit, setSizeLimit] = useState(0);
+  const [sizeLimitValid, setSizeLimitValid] = useState(true);
+  const [sizeLimitUnit, setSizeLimitUnit] = useState("");
+  useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit])
+  useEffect(() => {
+    switch (sizeLimitUnit) {
+      case "MiB":
+        setRealSizeLimit(sizeLimit * 1 << 20);
+        break;
+      case "GiB":
+        setRealSizeLimit(sizeLimit * 1 << 30);
+        break;
+      case "TiB":
+        setRealSizeLimit(sizeLimit * 1 << 40);
+        break;
+    }
+  }, [sizeLimit, sizeLimitUnit])
+  const [namespaceVisibility, setNamespaceVisibility] = useState("private");
+
   const [refresh, setRefresh] = useState({});
   const [last, setLast] = useState(0);
   const [searchNamespace, setSearchNamespace] = useState("");
@@ -63,6 +94,9 @@ export default function Namespace({ localServer }: { localServer: string }) {
     if (searchNamespace !== "") {
       url += `&name=${searchNamespace}`;
     }
+    if (sortName !== "") {
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`
+    }
     axios.get(url).then((response) => {
       if (response?.status === 200) {
         const namespaceList = response.data as INamespaceList;
@@ -78,9 +112,13 @@ export default function Namespace({ localServer }: { localServer: string }) {
     setCreateNamespaceModal(false);
     setNamespaceText("");
     setDescriptionText("");
-    axios.post(localServer + '/namespace/', {
+    axios.post(localServer + '/api/v1/namespaces/', {
       name: namespace,
       description: description,
+      size_limit: realSizeLimit,
+      repository_limit: repositoryCountLimit,
+      tag_limit: tagCountLimit,
+      visibility: namespaceVisibility,
     } as INamespace, {}).then(response => {
       console.log(response);
       if (response.status === 201) {
@@ -125,7 +163,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       onChange={e => { setSearchNamespace(e.target.value); }}
                       onKeyDown={e => {
                         if (e.key == "Enter") {
-
+                          fetchNamespace()
                         }
                       }}
                       className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -197,6 +235,9 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      Visibility
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
                         resetOrder();
                         setCreatedAtOrder(e);
@@ -260,34 +301,224 @@ export default function Namespace({ localServer }: { localServer: string }) {
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                  <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
-                      Namespace
-                    </label>
+                  <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
+                    <span className="text-red-600">*</span>Name
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
                     <input
                       type="text"
                       name="namespace"
-                      placeholder="2-20 characters"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="2-20 lowercase characters"
+                      className={(namespaceTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                       value={namespaceText}
-                      onChange={(e) => {
+                      onChange={e => {
                         setNamespaceText(e.target.value);
                       }}
                     />
+                    {
+                      namespaceTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
                   </div>
-                  <div className="col-span-6 sm:col-span-3 mt-5">
-                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
-                      Description
-                    </label>
+                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                    {
+                      namespaceTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid namespace name, 2-20 lowercase characters.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
                     <input
                       type="text"
                       name="description"
                       placeholder="30 characters"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                       value={descriptionText}
                       onChange={e => setDescriptionText(e.target.value)}
                     />
+                    {
+                      descriptionTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
                   </div>
+                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                    {
+                      descriptionTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid description, max 30 characters.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="namespace_visibility" className="block text-sm font-medium text-gray-700">
+                    Visibility
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <select
+                      id="namespace_visibility"
+                      name="namespace_visibility"
+                      className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      value={namespaceVisibility}
+                      onChange={e => { setNamespaceVisibility(e.target.value) }}
+                    >
+                      <option value="private">Private</option>
+                      <option value="public">Public</option>
+                    </select>
+                  </div>
+                  <label htmlFor="size_limit" className="block text-sm font-medium text-gray-700 mt-2">
+                    Size limit
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="number"
+                      id="size_limit"
+                      name="size_limit"
+                      placeholder="0 means no limit"
+                      className={(sizeLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={sizeLimit}
+                      onChange={e => setSizeLimit(parseInt(e.target.value))}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center">
+                      <label htmlFor="size_limit_unit" className="sr-only">
+                        Size limit unit
+                      </label>
+                      <select
+                        id="size_limit_unit"
+                        name="size_limit_unit"
+                        className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        value={sizeLimitUnit}
+                        onChange={e => { setSizeLimitUnit(e.target.value) }}
+                      >
+                        <option value="MiB">MiB</option>
+                        <option value="GiB">GiB</option>
+                        <option value="TiB">TiB</option>
+                      </select>
+                    </div>
+                    {/* {
+                      sizeLimitValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    } */}
+                  </div>
+                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                    {
+                      sizeLimitValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid size limit, should be non-negative integer.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-1">
+                      <label htmlFor="repository_count_limit" className="block text-sm font-medium text-gray-700">
+                        Repository count limit
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <input
+                          type="number"
+                          id="repository_count_limit"
+                          name="repository_count_limit"
+                          placeholder="0 means no limit"
+                          className={(repositoryCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                          value={repositoryCountLimit}
+                          onChange={e => setRepositoryCountLimit(parseInt(e.target.value))}
+                        />
+                        {
+                          repositoryCountLimitValid ? (
+                            <div></div>
+                          ) : (
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                              </svg>
+                            </div>
+                          )
+                        }
+                      </div>
+                      <p className="mt-1 text-sm text-red-600" id="email-error">
+                        {
+                          repositoryCountLimitValid ? (
+                            <span></span>
+                          ) : (
+                            <span>
+                              Not a valid repository count limit, should be non-negative integer.
+                            </span>
+                          )
+                        }
+                      </p>
+                    </div>
+                    <div className="col-span-1">
+                      <label htmlFor="tag_count_limit" className="block text-sm font-medium text-gray-700">
+                        Tag count limit
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <input
+                          type="number"
+                          id="tag_count_limit"
+                          name="tag_count_limit"
+                          placeholder="0 means no limit"
+                          className={(tagCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                          value={tagCountLimit}
+                          onChange={e => setTagCountLimit(parseInt(e.target.value))}
+                        />
+                        {
+                          tagCountLimitValid ? (
+                            <div></div>
+                          ) : (
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                              </svg>
+                            </div>
+                          )
+                        }
+                      </div>
+                      <p className="mt-1 text-sm text-red-600" id="email-error">
+                        {
+                          tagCountLimitValid ? (
+                            <span></span>
+                          ) : (
+                            <span>
+                              Not a valid tag count limit, should be non-negative integer.
+                            </span>
+                          )
+                        }
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button
                       type="button"

@@ -13,5 +13,5 @@ DOCKER=${DOCKER:-docker}
   --health-interval 10s \
   --health-timeout 5s \
   --health-retries 10 \
-  quay.io/minio/minio:RELEASE.2023-02-22T18-23-45Z \
+  quay.io/minio/minio:RELEASE.2023-07-07T07-13-57Z \
   sh -c 'mkdir -p /data/ximager && minio server /data --console-address ":9001"'

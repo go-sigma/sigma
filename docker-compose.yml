@@ -39,7 +39,7 @@ services:
       timeout: 5s
       retries: 10
   minio:
-    image: quay.io/minio/minio:RELEASE.2023-03-09T23-16-13Z
+    image: quay.io/minio/minio:RELEASE.2023-07-07T07-13-57Z
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -84,7 +84,7 @@ services:
       timeout: 5s
       retries: 10
   pgadmin:
-    image: dpage/pgadmin4:6.21
+    image: dpage/pgadmin4:7.4
     ports:
       - "5050:80"
     environment:
