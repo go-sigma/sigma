@@ -36,7 +36,9 @@ import (
 // @Produce json
 // @Router /namespaces/{id} [get]
 // @Param id path string true "Namespace ID"
-// @Success 200 {object} types.GetNamespaceResponse
+// @Success 200 {object} types.NamespaceItem
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -72,10 +74,11 @@ func (h *handlers) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, types.GetNamespaceResponse{
+	return c.JSON(http.StatusOK, types.NamespaceItem{
 		ID:              namespace.ID,
 		Name:            namespace.Name,
 		Description:     namespace.Description,
+		Visibility:      namespace.Visibility,
 		Size:            namespace.Size,
 		SizeLimit:       namespace.SizeLimit,
 		RepositoryCount: repositoryMapCount[namespace.ID],

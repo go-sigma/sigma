@@ -38,7 +38,7 @@ import (
 // @Produce json
 // @Router /namespaces/{id} [put]
 // @Param message body types.PutNamespaceRequestSwagger true "Namespace object"
-// @Success 200 {object} types.GetNamespaceResponse
+// @Success 204
 func (h *handlers) PutNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

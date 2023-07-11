@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import { Fragment, useCallback } from "react";
+import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import Tags from '@yaireo/tagify/dist/react.tagify';
-import "@yaireo/tagify/dist/tagify.css";
 
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
@@ -33,20 +31,7 @@ const cards = [
   { name: 'Account balance4', href: '#', icon: ScaleIcon, amount: '$30,659.45' },
 ];
 
-const settings = {
-  pattern: /^[a-z_-]{1,15}$/,
-  maxTags: 10,
-  templates: {}
-}
-
 export default function Home({ localServer }: { localServer: string }) {
-  const onChange = useCallback((e: any) => {
-    console.log("CHANGED:"
-      , e.detail.tagify.value // Array where each tag includes tagify's (needed) extra properties
-      , e.detail.tagify.getCleanValue() // Same as above, without the extra properties
-      , e.detail.value // a string representing the tags
-    )
-  }, [])
   return (
     <Fragment>
       <HelmetProvider>
@@ -82,13 +67,6 @@ export default function Home({ localServer }: { localServer: string }) {
                 ))}
               </div>
             </div>
-            <Tags
-              settings={settings}
-              defaultValue="a,b,c"
-              autoFocus={false}
-              placeholder="please type your tags"
-              onChange={onChange}
-            />
           </main>
         </div>
       </div>

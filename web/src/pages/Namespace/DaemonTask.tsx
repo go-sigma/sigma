@@ -56,7 +56,7 @@ export default function Repository({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Repository</title>
+          <title>XImager - Namespace Daemon Task</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

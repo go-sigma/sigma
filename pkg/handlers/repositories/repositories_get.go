@@ -24,6 +24,7 @@ import (
 	"github.com/ximager/ximager/pkg/consts"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -60,9 +61,15 @@ func (h *handlers) GetRepository(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.RepositoryItem{
-		ID:        repository.ID,
-		Name:      repository.Name,
-		CreatedAt: repository.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: repository.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:          repository.ID,
+		Name:        repository.Name,
+		Description: repository.Description,
+		Overview:    ptr.Of(string(repository.Overview)),
+		Visibility:  repository.Visibility,
+		SizeLimit:   ptr.Of(repository.Size),
+		Size:        ptr.Of(repository.Size),
+		TagCount:    repository.TagCount,
+		CreatedAt:   repository.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:   repository.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }

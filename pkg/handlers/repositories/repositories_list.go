@@ -75,28 +75,19 @@ func (h *handlers) ListRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var repositoryIDs = make([]int64, 0, len(repositories))
-	for _, repository := range repositories {
-		repositoryIDs = append(repositoryIDs, repository.ID)
-	}
-
-	tagService := h.tagServiceFactory.New()
-	tagMapCount, err := tagService.CountByRepository(ctx, repositoryIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count tag from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var resp = make([]any, 0, len(repositories))
 	for _, repository := range repositories {
 		resp = append(resp, types.RepositoryItem{
-			ID:        repository.ID,
-			Name:      repository.Name,
-			SizeLimit: ptr.Of(repository.Size),
-			Size:      ptr.Of(repository.Size),
-			TagCount:  tagMapCount[repository.ID],
-			CreatedAt: repository.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: repository.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:          repository.ID,
+			Name:        repository.Name,
+			Description: repository.Description,
+			Overview:    ptr.Of(string(repository.Overview)),
+			Visibility:  repository.Visibility,
+			SizeLimit:   ptr.Of(repository.Size),
+			Size:        ptr.Of(repository.Size),
+			TagCount:    repository.TagCount,
+			CreatedAt:   repository.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:   repository.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	total, err := repositoryService.CountRepository(ctx, namespaceObj.ID, req.Name)

@@ -42,7 +42,8 @@ export default function App() {
 
   return (
     <>
-      <ToastContainer position="top-right"
+      <ToastContainer
+        position="top-right"
         autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}

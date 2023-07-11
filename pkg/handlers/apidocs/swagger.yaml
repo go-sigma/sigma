@@ -17,42 +17,6 @@ definitions:
         example: 1
         type: integer
     type: object
-  types.GetNamespaceResponse:
-    properties:
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      description:
-        example: i am just description
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: test
-        type: string
-      repository_count:
-        example: 10
-        type: integer
-      repository_limit:
-        example: 10
-        type: integer
-      size:
-        example: 10000
-        type: integer
-      size_limit:
-        example: 10000
-        type: integer
-      tag_count:
-        example: 10
-        type: integer
-      tag_limit:
-        example: 10000
-        type: integer
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-    type: object
   types.NamespaceItem:
     properties:
       created_at:
@@ -88,6 +52,10 @@ definitions:
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: private
     type: object
   types.PostNamespaceRequest:
     properties:
@@ -121,9 +89,27 @@ definitions:
     type: object
   types.PostRepositoryRequestSwagger:
     properties:
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
       name:
         example: test
         type: string
+      overview:
+        example: i am just overview
+        maxLength: 3000
+        type: string
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
     required:
     - name
     type: object
@@ -160,6 +146,16 @@ definitions:
         example: i am just overview
         maxLength: 3000
         type: string
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
     type: object
   types.PutRepositoryResponse:
     properties:
@@ -172,11 +168,19 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
       id:
         example: 1
         type: integer
       name:
         example: busybox
+        type: string
+      overview:
+        example: i am just overview
+        maxLength: 3000
         type: string
       size:
         example: 10000
@@ -193,6 +197,10 @@ definitions:
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: private
     type: object
   xerrors.ErrCode:
     properties:
@@ -341,7 +349,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.GetNamespaceResponse'
+            $ref: '#/definitions/types.NamespaceItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
       summary: Get namespace
@@ -360,10 +376,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.GetNamespaceResponse'
+        "204":
+          description: No Content
       security:
       - BasicAuth: []
       summary: Update namespace

@@ -39,6 +39,7 @@ import (
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param name query string false "search namespace with name"
 // @Success 200	{object} types.CommonList{items=[]types.NamespaceItem}
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) ListNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -57,25 +58,6 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var namespaceIDs = make([]int64, 0, len(namespaces))
-	for _, ns := range namespaces {
-		namespaceIDs = append(namespaceIDs, ns.ID)
-	}
-
-	repositoryService := h.repositoryServiceFactory.New()
-	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, namespaceIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	tagService := h.tagServiceFactory.New()
-	tagMapCount, err := tagService.CountByNamespace(ctx, namespaceIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count tag failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var resp = make([]any, 0, len(namespaces))
 	for _, ns := range namespaces {
 		resp = append(resp, types.NamespaceItem{
@@ -86,9 +68,9 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 			Size:            ns.Size,
 			SizeLimit:       ns.SizeLimit,
 			RepositoryLimit: ns.RepositoryLimit,
-			RepositoryCount: repositoryMapCount[ns.ID],
+			RepositoryCount: ns.RepositoryCount,
 			TagLimit:        ns.TagLimit,
-			TagCount:        tagMapCount[ns.ID],
+			TagCount:        ns.TagCount,
 			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
