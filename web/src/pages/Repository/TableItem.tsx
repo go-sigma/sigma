@@ -15,10 +15,9 @@
  */
 
 import dayjs from 'dayjs';
+import { Fragment } from "react";
 import humanFormat from 'human-format';
-import { useClickAway } from 'react-use';
 import { useNavigate } from 'react-router-dom';
-import { useRef, useState, Fragment } from "react";
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
@@ -29,22 +28,16 @@ dayjs.extend(relativeTime);
 
 export default function TableItem({ index, namespace, repository }: { index: number, namespace: string, repository: IRepository }) {
   const navigate = useNavigate();
-  const [show, setShow] = useState(false);
-
-  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
-  useClickAway(ref, () => {
-    if (show) {
-      setShow(!show);
-    }
-  });
 
   return (
-    <tr className="cursor-pointer" onClick={() => {
-      navigate(`/namespace/${namespace}/artifact?repository=${repository.name}`);
-    }}>
-      <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
+    <tr>
+      <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+        onClick={() => {
+          navigate(`/namespace/${namespace}/artifact?repository=${repository.name}`);
+        }}
+      >
         <div className="flex items-center space-x-3 lg:pl-2">
-          <div className="cursor-pointer truncate hover:text-gray-600">
+          <div className="truncate hover:text-gray-600">
             {repository.name}
           </div>
         </div>
@@ -54,6 +47,9 @@ export default function TableItem({ index, namespace, repository }: { index: num
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {repository.tag_count}
+      </td>
+      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right capitalize">
+        {repository.visibility}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs().to(dayjs(repository.created_at))}
@@ -84,7 +80,7 @@ export default function TableItem({ index, namespace, repository }: { index: num
                   <div
                     className={
                       (active ? 'bg-gray-100' : '') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
                     }
                   >
                     Update
@@ -95,7 +91,7 @@ export default function TableItem({ index, namespace, repository }: { index: num
                 {({ active }) => (
                   <div
                     className={
-                      (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600'
+                      (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
                     }
                   >
                     Delete

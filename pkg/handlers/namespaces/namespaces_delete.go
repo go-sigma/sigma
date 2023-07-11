@@ -35,6 +35,7 @@ import (
 // @Produce json
 // @Router /namespaces/{id} [delete]
 // @Success 204
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) DeleteNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

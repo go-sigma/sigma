@@ -30,7 +30,6 @@ export default function (noti: INotification) {
     closeButton: false,
     pauseOnHover: true,
     draggable: true,
-    progress: 1,
     theme: "light",
     className: "fake-toast",
   });

@@ -178,7 +178,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.GetNamespaceResponse"
+                            "$ref": "#/definitions/types.NamespaceItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
                         }
                     }
                 }
@@ -211,11 +223,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetNamespaceResponse"
-                        }
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             },
@@ -597,55 +606,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GetNamespaceResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "i am just description"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "test"
-                },
-                "repository_count": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "repository_limit": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "size": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "size_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "tag_count": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "tag_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                }
-            }
-        },
         "types.NamespaceItem": {
             "type": "object",
             "properties": {
@@ -692,6 +652,14 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "private"
                 }
             }
         },
@@ -745,9 +713,35 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "example": "i am just description"
+                },
                 "name": {
                     "type": "string",
                     "example": "test"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 3000,
+                    "example": "i am just overview"
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
                 }
             }
         },
@@ -798,6 +792,22 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 3000,
                     "example": "i am just overview"
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
                 }
             }
         },
@@ -817,6 +827,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "description": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "example": "i am just description"
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -824,6 +839,11 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "busybox"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 3000,
+                    "example": "i am just overview"
                 },
                 "size": {
                     "type": "integer",
@@ -844,6 +864,14 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "private"
                 }
             }
         },

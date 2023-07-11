@@ -49,6 +49,9 @@ export interface INamespaceList {
 export interface IRepository {
   id: number;
   name: string;
+  description: string;
+  overview: string;
+  visibility: string;
   tag_count: number;
   tag_limit: number;
   size_limit: number;
