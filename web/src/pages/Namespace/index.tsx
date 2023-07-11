@@ -32,11 +32,13 @@ import "./index.css";
 import { INamespace, INamespaceList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function Namespace({ localServer }: { localServer: string }) {
+  const [updateNamespaceModal, setUpdateNamespaceModal] = useState(false);
+
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
 
   const [namespaceText, setNamespaceText] = useState("");
   const [namespaceTextValid, setNamespaceTextValid] = useState(true);
-  useEffect(() => { namespaceText != "" && setNamespaceTextValid(/^[a-z0-9][0-9a-z-]{0,20}$/.test(namespaceText)) }, [namespaceText])
+  useEffect(() => { namespaceText != "" && setNamespaceTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(namespaceText)) }, [namespaceText])
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
@@ -108,20 +110,23 @@ export default function Namespace({ localServer }: { localServer: string }) {
 
   useEffect(() => { fetchNamespace() }, [refresh, last, sortOrder, sortName]);
 
-  const createNamespace = (namespace: string, description: string) => {
+  const createNamespace = () => {
     setCreateNamespaceModal(false);
-    setNamespaceText("");
-    setDescriptionText("");
     axios.post(localServer + '/api/v1/namespaces/', {
-      name: namespace,
-      description: description,
+      name: namespaceText,
+      description: descriptionText,
       size_limit: realSizeLimit,
       repository_limit: repositoryCountLimit,
       tag_limit: tagCountLimit,
       visibility: namespaceVisibility,
     } as INamespace, {}).then(response => {
-      console.log(response);
       if (response.status === 201) {
+        setNamespaceText("");
+        setDescriptionText("");
+        setNamespaceVisibility("private")
+        setRepositoryCountLimit(0);
+        setTagCountLimit(0);
+        setSizeLimit(0);
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
@@ -262,7 +267,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   {
                     namespaceList.items?.map((namespace, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} namespace={namespace} />
+                        <TableItem key={namespace.id} index={index} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -523,7 +528,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                     <button
                       type="button"
                       className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                      onClick={() => createNamespace(namespaceText, descriptionText)}
+                      onClick={() => createNamespace()}
                     >
                       Create
                     </button>
