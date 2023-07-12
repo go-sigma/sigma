@@ -125,39 +125,23 @@ func TestListRepository(t *testing.T) {
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
 	var listRepositoryTimes int
-	daoMockRepositoryService.EXPECT().ListRepository(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Repository, error) {
+	daoMockRepositoryService.EXPECT().ListRepository(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Repository, int64, error) {
 		listRepositoryTimes++
 		if listRepositoryTimes == 1 {
-			return nil, fmt.Errorf("test")
+			return nil, 0, fmt.Errorf("test")
 		}
-		return []*models.Repository{}, nil
-	}).Times(2)
-	daoMockRepositoryService.EXPECT().CountRepository(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string) (int64, error) {
-		return 0, fmt.Errorf("test")
+		return []*models.Repository{}, 0, nil
 	}).Times(1)
 
 	daoMockRepositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
 	daoMockRepositoryServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.RepositoryService {
 		return daoMockRepositoryService
-	}).Times(2)
+	}).Times(1)
 
 	repositoryHandler = handlerNew(inject{repositoryServiceFactory: daoMockRepositoryServiceFactory})
 	q = make(url.Values)
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
-	req = httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	c.SetParamNames("namespace")
-	c.SetParamValues(namespaceName)
-	err = repositoryHandler.ListRepository(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-
-	q = make(url.Values)
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
+	q.Set("limit", strconv.Itoa(100))
+	q.Set("page", strconv.Itoa(1))
 	req = httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()

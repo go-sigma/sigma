@@ -67,7 +67,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceVisibility, setNamespaceVisibility] = useState("private");
 
   const [refresh, setRefresh] = useState({});
-  const [last, setLast] = useState(0);
+  const [page, setPage] = useState(1);
   const [searchNamespace, setSearchNamespace] = useState("");
   const [total, setTotal] = useState(0);
 
@@ -90,7 +90,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
   const fetchNamespace = () => {
-    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&last=${last}`;
+    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&page=${page}`;
     if (searchNamespace !== "") {
       url += `&name=${searchNamespace}`;
     }
@@ -112,7 +112,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
     });
   }
 
-  useEffect(() => { fetchNamespace() }, [refresh, last, sortOrder, sortName]);
+  useEffect(() => { fetchNamespace() }, [refresh, page, sortOrder, sortName]);
 
   const createNamespace = () => {
     setCreateNamespaceModal(false);
@@ -261,7 +261,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
             </div>
           </div>
           <div style={{ marginTop: "auto" }}>
-            <Pagination limit={Settings.PageSize} last={last} setLast={setLast} total={total} />
+            <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
           </div>
         </div>
       </div>

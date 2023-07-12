@@ -144,7 +144,7 @@ func (s *tagService) ListTag(ctx context.Context, req types.ListTagRequest) ([]*
 	return s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
 		Where(s.tx.Repository.Name.Eq(req.Repository)).
-		Where(s.tx.Tag.ID.Gt(ptr.To(req.Last))).Limit(ptr.To(req.Limit)).Find()
+		Where(s.tx.Tag.ID.Gt(int64(ptr.To(req.Page)))).Limit(ptr.To(req.Limit)).Find()
 }
 
 // CountArtifact counts the artifacts by the specified request.

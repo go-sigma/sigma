@@ -24,8 +24,8 @@ type CommonList struct {
 
 // Pagination is the pagination struct
 type Pagination struct {
-	Last  *int64 `json:"last" query:"last" example:"1"`
-	Limit *int   `json:"limit" query:"limit" example:"10"`
+	Page  *int `json:"page" query:"page" example:"1"`
+	Limit *int `json:"limit" query:"limit" example:"10"`
 }
 
 // Sortable is the sort struct

@@ -216,7 +216,7 @@ func TestArtifactService(t *testing.T) {
 		artifacts2, err := artifactService.ListArtifact(ctx, types.ListArtifactRequest{
 			Pagination: types.Pagination{
 				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(0)),
 			},
 			Namespace:  namespaceObj.Name,
 			Repository: repositoryObj.Name,
@@ -229,7 +229,7 @@ func TestArtifactService(t *testing.T) {
 		artifactCount1, err := artifactService.CountArtifact(ctx, types.ListArtifactRequest{
 			Pagination: types.Pagination{
 				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(0)),
 			},
 			Namespace:  namespaceObj.Name,
 			Repository: repositoryObj.Name,

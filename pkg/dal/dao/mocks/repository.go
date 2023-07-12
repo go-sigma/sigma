@@ -160,12 +160,13 @@ func (mr *MockRepositoryServiceMockRecorder) ListByDtPagination(arg0, arg1 inter
 }
 
 // ListRepository mocks base method.
-func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Repository, error) {
+func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Repository, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRepository", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*models.Repository)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListRepository indicates an expected call of ListRepository.

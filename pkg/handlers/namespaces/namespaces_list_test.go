@@ -96,34 +96,20 @@ func TestListNamespace(t *testing.T) {
 
 	var listNamespaceTimes int
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
-	daoMockNamespaceService.EXPECT().ListNamespace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Namespace, error) {
+	daoMockNamespaceService.EXPECT().ListNamespace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Namespace, int64, error) {
 		listNamespaceTimes++
 		if listNamespaceTimes == 1 {
-			return nil, fmt.Errorf("test")
+			return nil, 0, fmt.Errorf("test")
 		}
-		return []*models.Namespace{}, nil
-	}).Times(2)
-	daoMockNamespaceService.EXPECT().CountNamespace(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *string) (int64, error) {
-		return 0, fmt.Errorf("test")
+		return []*models.Namespace{}, 0, nil
 	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
-	}).Times(2)
+	}).Times(1)
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
-
-	q = make(url.Values)
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
-	req = httptest.NewRequest(http.MethodGet, "/?"+q.Encode(), nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	err = namespaceHandler.ListNamespace(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 
 	q = make(url.Values)
 	q.Set("page_size", strconv.Itoa(100))

@@ -125,12 +125,13 @@ func (mr *MockNamespaceServiceMockRecorder) GetByName(arg0, arg1 interface{}) *g
 }
 
 // ListNamespace mocks base method.
-func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.Namespace, error) {
+func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.Namespace, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListNamespace", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*models.Namespace)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListNamespace indicates an expected call of ListNamespace.

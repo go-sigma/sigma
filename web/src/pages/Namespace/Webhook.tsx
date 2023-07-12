@@ -32,14 +32,14 @@ import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces";
 export default function Repository({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
   const [refresh, setRefresh] = useState({});
-  const [last, setLast] = useState(0);
+  const [page, setPage] = useState(1);
   const [searchRepository, setSearchRepository] = useState("");
   const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
 
   useEffect(() => {
-    let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&last=${last}`;
+    let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&last=${page}`;
     if (searchRepository !== "") {
       url += `&name=${searchRepository}`;
     }
@@ -50,7 +50,7 @@ export default function Repository({ localServer }: { localServer: string }) {
         setTotal(repositoryList.total);
       }
     });
-  }, [refresh, last]);
+  }, [refresh, page]);
 
   return (
     <Fragment>
@@ -131,7 +131,7 @@ export default function Repository({ localServer }: { localServer: string }) {
               </div>
             </div>
           </main>
-          <Pagination limit={Settings.PageSize} last={last} setLast={setLast} total={total} />
+          <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
     </Fragment >

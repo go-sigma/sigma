@@ -254,11 +254,11 @@ paths:
         minimum: 10
         name: limit
         type: integer
-      - default: 0
-        description: last
+      - default: 1
+        description: page
         in: query
-        minimum: 0
-        name: last
+        minimum: 1
+        name: page
         type: integer
       - description: sort field
         in: query
@@ -289,6 +289,10 @@ paths:
                     $ref: '#/definitions/types.NamespaceItem'
                   type: array
               type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
       summary: List namespace
@@ -315,6 +319,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
       summary: Create namespace
@@ -329,6 +337,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
       summary: Delete namespace
@@ -395,11 +407,11 @@ paths:
         minimum: 10
         name: limit
         type: integer
-      - default: 0
-        description: last
+      - default: 1
+        description: page
         in: query
-        minimum: 0
-        name: last
+        minimum: 1
+        name: page
         type: integer
       - description: sort field
         in: query

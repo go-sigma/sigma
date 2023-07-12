@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-
-export default function ({ limit, last, total, setLast }: { limit: number, last: number, total: number, setLast: (last: number) => void }) {
-  const [lastArr, setLastArr] = useState<number[]>([]);
-  const [pageNum, setPageNum] = useState(1);
+export default function ({ limit, page, total, setPage }: { limit: number, page: number, total: number, setPage: (page: number) => void }) {
   return (
     <div
       className="flex flex-2 items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100"
@@ -26,7 +22,7 @@ export default function ({ limit, last, total, setLast }: { limit: number, last:
     >
       <div className="hidden sm:block">
         <p className="text-sm text-gray-700">
-          Showing <span className="font-medium">{(pageNum - 1) * limit + 1 > total ? total : (pageNum - 1) * limit + 1}</span> to <span className="font-medium">{total > pageNum * limit ? pageNum * limit : total}</span> of{' '}
+          Showing <span className="font-medium">{(page - 1) * limit + 1 > total ? total : (page - 1) * limit + 1}</span> to <span className="font-medium">{total > page * limit ? page * limit : total}</span> of{' '}
           <span className="font-medium">{total}</span> results
         </p>
       </div>
@@ -34,13 +30,10 @@ export default function ({ limit, last, total, setLast }: { limit: number, last:
         <button
           className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           onClick={() => {
-            if (lastArr.length == 0) {
+            if (page <= 1) {
               return;
             } else {
-              setPageNum(pageNum - 1);
-              let last = lastArr.pop() || 0;
-              setLastArr(lastArr);
-              setLast(last);
+              setPage(page - 1)
             }
           }}
         >
@@ -49,12 +42,10 @@ export default function ({ limit, last, total, setLast }: { limit: number, last:
         <button
           className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           onClick={() => {
-            if (total <= last) {
+            if (total / limit < page) {
               return;
             } else {
-              setPageNum(pageNum + 1);
-              lastArr.push(last);
-              setLastArr(lastArr);
+              setPage(page + 1)
             }
           }}
         >

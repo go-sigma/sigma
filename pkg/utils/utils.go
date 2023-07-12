@@ -79,8 +79,8 @@ func Inject(target any, source any) error {
 
 // NormalizePagination normalizes the pagination
 func NormalizePagination(in types.Pagination) types.Pagination {
-	if in.Last == nil || ptr.To(in.Last) < 0 {
-		in.Last = ptr.Of(int64(0))
+	if in.Page == nil || ptr.To(in.Page) < 1 {
+		in.Page = ptr.Of(int(1))
 	}
 	if in.Limit == nil || ptr.To(in.Limit) > 100 || ptr.To(in.Limit) <= 0 {
 		in.Limit = ptr.Of(int(10))

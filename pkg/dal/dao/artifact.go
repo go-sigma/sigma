@@ -268,7 +268,7 @@ func (s *artifactService) ListArtifact(ctx context.Context, req types.ListArtifa
 		LeftJoin(s.tx.Repository, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID), s.tx.Repository.Name.Eq(req.Repository)).
 		LeftJoin(s.tx.Namespace, s.tx.Namespace.Name.EqCol(s.tx.Repository.Name), s.tx.Namespace.Name.Eq(req.Namespace)).
 		Preload(s.tx.Artifact.Tags.Order(s.tx.Tag.UpdatedAt.Desc()).Limit(10)).
-		Where(s.tx.Artifact.ID.Gt(ptr.To(req.Last))).
+		Where(s.tx.Artifact.ID.Gt(int64(ptr.To(req.Page)))).
 		Limit(ptr.To(req.Limit)).Find()
 }
 

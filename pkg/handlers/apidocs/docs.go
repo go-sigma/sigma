@@ -51,11 +51,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "minimum": 0,
+                        "minimum": 1,
                         "type": "integer",
-                        "default": 0,
-                        "description": "last",
-                        "name": "last",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
                         "in": "query"
                     },
                     {
@@ -102,6 +102,12 @@ const docTemplate = `{
                                 }
                             ]
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
                     }
                 }
             },
@@ -141,6 +147,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/xerrors.ErrCode"
                         }
@@ -247,6 +259,12 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
                     }
                 }
             }
@@ -279,11 +297,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "minimum": 0,
+                        "minimum": 1,
                         "type": "integer",
-                        "default": 0,
-                        "description": "last",
-                        "name": "last",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
                         "in": "query"
                     },
                     {
