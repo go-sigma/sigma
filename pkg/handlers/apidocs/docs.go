@@ -597,6 +597,45 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/validators/reference": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validator"
+                ],
+                "summary": "validate reference",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reference",
+                        "name": "reference",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

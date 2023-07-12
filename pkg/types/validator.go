@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package types
 
-import (
-	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
-	_ "github.com/ximager/ximager/pkg/handlers/artifacts"
-	_ "github.com/ximager/ximager/pkg/handlers/namespaces"
-	_ "github.com/ximager/ximager/pkg/handlers/repositories"
-	_ "github.com/ximager/ximager/pkg/handlers/tags"
-	_ "github.com/ximager/ximager/pkg/handlers/tokens"
-	_ "github.com/ximager/ximager/pkg/handlers/users"
-	_ "github.com/ximager/ximager/pkg/handlers/validators"
-)
+// GetValidatorReferenceRequest ...
+type GetValidatorReferenceRequest struct {
+	Reference string `json:"reference" query:"reference" validate:"required"`
+}

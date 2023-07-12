@@ -51,7 +51,7 @@ type RepositoryService interface {
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error)
 	// UpdateRepository update specific repository
-	UpdateRepository(ctx context.Context, id int64, updates models.Repository) error
+	UpdateRepository(ctx context.Context, id int64, updates map[string]any) error
 	// CountByNamespace counts the repositories by the namespace ID.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
@@ -148,18 +148,16 @@ func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int6
 		default:
 			query.Order(s.tx.Repository.UpdatedAt.Desc())
 		}
+	} else {
+		query.Order(s.tx.Repository.UpdatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // UpdateRepository ...
-func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, repository models.Repository) error {
-	var updates = make(map[string]any)
-	if repository.Description != nil {
-		updates[s.tx.Repository.Description.ColumnName().String()] = repository.Description
-	}
-	if repository.Overview != nil {
-		updates[s.tx.Repository.Overview.ColumnName().String()] = repository.Overview
+func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, updates map[string]any) error {
+	if len(updates) == 0 {
+		return nil
 	}
 	result, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).UpdateColumns(updates)
 	if err != nil {

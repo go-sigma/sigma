@@ -7,8 +7,6 @@ import HomepageFeatures from '@site/src/components/HomepageFeatures';
 
 import styles from './index.module.css';
 
-// background-image: url(/img/janko-ferlic-sfL_QOnmy00-unsplash.jpg);
-
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (

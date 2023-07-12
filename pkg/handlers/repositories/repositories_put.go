@@ -22,7 +22,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/ptr"
@@ -39,7 +39,7 @@ import (
 // @Param namespace path string true "Namespace name"
 // @Param id path string true "Repository id"
 // @Param message body types.PutRepositoryRequestSwagger true "Repository object"
-// @Success 201 {object} types.PutRepositoryResponse
+// @Success 204
 // @Failure 400 {object} xerrors.ErrCode
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
@@ -79,11 +79,30 @@ func (h *handlers) PutRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
 	}
 
-	err = repositoryService.UpdateRepository(ctx, repositoryObj.ID, models.Repository{Description: req.Description, Overview: []byte(ptr.To(req.Overview))})
-	if err != nil {
-		log.Error().Err(err).Int64("id", repositoryObj.ID).Msg("Repository update failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	updates := make(map[string]interface{}, 5)
+	if req.SizeLimit != nil {
+		updates[query.Namespace.SizeLimit.ColumnName().String()] = ptr.To(req.SizeLimit)
+	}
+	if req.TagLimit != nil {
+		updates[query.Namespace.TagLimit.ColumnName().String()] = ptr.To(req.TagLimit)
+	}
+	if req.Description != nil {
+		updates[query.Namespace.Description.ColumnName().String()] = ptr.To(req.Description)
+	}
+	if req.Overview != nil {
+		updates[query.Repository.Overview.ColumnName().String()] = []byte(ptr.To(req.Overview))
+	}
+	if req.Visibility != nil {
+		updates[query.Repository.Visibility.ColumnName().String()] = ptr.To(req.Visibility)
 	}
 
-	return c.JSON(http.StatusOK, types.PutRepositoryResponse{ID: repositoryObj.ID})
+	if len(updates) > 0 {
+		err = repositoryService.UpdateRepository(ctx, repositoryObj.ID, updates)
+		if err != nil {
+			log.Error().Err(err).Int64("id", repositoryObj.ID).Msg("Repository update failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		}
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

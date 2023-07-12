@@ -30,27 +30,10 @@ import "./index.css";
 import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
-  const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
-  const [refresh, setRefresh] = useState({});
-  const [page, setPage] = useState(1);
-  const [searchRepository, setSearchRepository] = useState("");
-  const [total, setTotal] = useState(0);
-
   const { namespace } = useParams<{ namespace: string }>();
 
-  useEffect(() => {
-    let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&last=${page}`;
-    if (searchRepository !== "") {
-      url += `&name=${searchRepository}`;
-    }
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        const repositoryList = response.data as IRepositoryList;
-        setRepositoryList(repositoryList);
-        setTotal(repositoryList.total);
-      }
-    });
-  }, [refresh, page]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   return (
     <Fragment>
@@ -95,39 +78,6 @@ export default function Repository({ localServer }: { localServer: string }) {
             } />
             <div>
               <div className="align-middle inline-block min-w-full border-b border-gray-200">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-gray-200">
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Repository</span>
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        Size
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        Tag count
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        Created at
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        Updated at
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {
-                      repositoryList.items?.map((repository, index) => {
-                        return (
-                          <TableItem key={index} index={index} namespace={namespace || ""} repository={repository} />
-                        );
-                      })
-                    }
-                  </tbody>
-                </table>
               </div>
             </div>
           </main>

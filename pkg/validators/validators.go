@@ -17,6 +17,7 @@ package validators
 import (
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/distribution/distribution/v3/reference"
 	"github.com/go-playground/validator"
@@ -67,7 +68,11 @@ func register(v *validator.Validate) {
 
 // ValidateRepository validates the repository name
 func ValidateRepository(field validator.FieldLevel) bool {
-	_, err := reference.ParseNormalizedNamed(field.Field().String())
+	repository := field.Field().String()
+	if len(strings.Split(repository, "/")) < 2 {
+		return false
+	}
+	_, err := reference.ParseNormalizedNamed(repository)
 	return err == nil
 }
 

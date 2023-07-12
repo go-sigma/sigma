@@ -29,9 +29,10 @@ func TestValidateRepository(t *testing.T) {
 	}
 
 	var tests = []Test{
-		{"my-repo", true},
+		{"my-repo", false},
 		{"my/repo", true},
-		{"my_repo", true},
+		{"my_repo", false},
+		{"library/my_repo", true},
 		{"%invalid:repo:latest$", false},
 	}
 

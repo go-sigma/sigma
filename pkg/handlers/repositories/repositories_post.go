@@ -26,6 +26,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/models"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/utils"
+	"github.com/ximager/ximager/pkg/utils/ptr"
 	"github.com/ximager/ximager/pkg/xerrors"
 )
 
@@ -63,9 +64,15 @@ func (h *handlers) PostRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
 	}
 
+	log.Info().Interface("req", req).Send()
 	repositoryObj := &models.Repository{
 		NamespaceID: namespaceObj.ID,
 		Name:        req.Name,
+		Description: req.Description,
+		Overview:    []byte(ptr.To(req.Overview)),
+		Visibility:  ptr.To(req.Visibility),
+		TagLimit:    ptr.To(req.TagLimit),
+		SizeLimit:   ptr.To(req.SizeLimit),
 	}
 	repositoryService := h.repositoryServiceFactory.New()
 	err = repositoryService.Create(ctx, repositoryObj)

@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.4
-	github.com/aws/aws-sdk-go v1.44.298
+	github.com/aws/aws-sdk-go v1.44.299
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.71.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230706062936-ac79c0d94a03
+	github.com/distribution/distribution/v3 v3.0.0-20230711080520-40ef2353fa4f
 	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
@@ -22,7 +22,7 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/matoous/go-nanoid v1.5.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230706164930-51c53ef2bd0f
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230711190608-85b910a62028
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -36,10 +36,10 @@ require (
 	github.com/wagslane/go-password-validator v0.3.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.11.0
-	golang.org/x/exp v0.0.0-20230711005742-c3f37128e5a4
+	golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
-	gorm.io/gen v0.3.22
+	gorm.io/gen v0.3.23
 	gorm.io/gorm v1.25.2
 	gorm.io/plugin/dbresolver v1.4.1
 	gorm.io/plugin/soft_delete v1.2.1
@@ -82,7 +82,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
-	github.com/jackc/pgx/v5 v5.4.1 // indirect
+	github.com/jackc/pgx/v5 v5.4.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -135,5 +135,5 @@ require (
 	modernc.org/libc v1.24.1 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.6.0 // indirect
-	modernc.org/sqlite v1.23.1 // indirect
+	modernc.org/sqlite v1.24.0 // indirect
 )

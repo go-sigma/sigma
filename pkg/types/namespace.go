@@ -44,11 +44,12 @@ type ListNamespaceRequest struct {
 
 // PostNamespaceRequest represents the request to create a namespace.
 type PostNamespaceRequest struct {
-	Name        string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
+	Name            string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
+	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	RepositoryLimit int64             `json:"repository_limit" validate:"omitempty,numeric" example:"10000"`
+	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 }
 
 // PostNamespaceResponse represents the response to create a namespace.
@@ -70,10 +71,11 @@ type DeleteNamespaceRequest struct {
 type PutNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number"`
 
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	RepositoryLimit *int64            `json:"repository_limit" validate:"omitempty,numeric" example:"10000"`
+	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
+	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 }
 
 // PutNamespaceRequestSwagger represents the request to update a namespace.

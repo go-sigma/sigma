@@ -108,10 +108,10 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, len(repositories2), int(1))
 
-		err = repositoryService.UpdateRepository(ctx, repository1.ID, models.Repository{Description: ptr.Of("test"), Overview: []byte("test")})
+		err = repositoryService.UpdateRepository(ctx, repository1.ID, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")})
 		assert.NoError(t, err)
 
-		err = repositoryService.UpdateRepository(ctx, 10, models.Repository{Description: ptr.Of("test"), Overview: []byte("test")})
+		err = repositoryService.UpdateRepository(ctx, 10, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")})
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		err = repositoryService.DeleteByID(ctx, repositoryObj.ID)

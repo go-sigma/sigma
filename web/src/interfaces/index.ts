@@ -23,7 +23,7 @@ export interface INotification {
 export interface IHTTPError {
   code: number;
   title: string;
-  message: string;
+  description: string;
 }
 
 export interface INamespace {
@@ -99,3 +99,8 @@ export enum IOrder {
   Desc = "desc",
   None = "none",
 };
+
+export interface ISizeWithUnit {
+  unit: string;
+  size: number;
+}

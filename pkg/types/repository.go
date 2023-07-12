@@ -56,7 +56,7 @@ type DeleteRepositoryRequest struct {
 // PostRepositoryRequest represents the request to create a repository.
 type PostRepositoryRequest struct {
 	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
-	Name        string            `json:"name" validate:"required" example:"test"`
+	Name        string            `json:"name" validate:"required,is_valid_repository" example:"test"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
 	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
@@ -97,9 +97,4 @@ type PutRepositoryRequestSwagger struct {
 	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
-}
-
-// PutRepositoryResponse represents the response to update a repository.
-type PutRepositoryResponse struct {
-	ID int64 `json:"id" example:"21911"`
 }
