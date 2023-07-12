@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import humanFormat from 'human-format';
+import humanFormat from "human-format";
 
 import Settings from "../../Settings";
 

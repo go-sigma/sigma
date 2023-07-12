@@ -176,7 +176,7 @@ func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1, arg2, ar
 }
 
 // UpdateRepository mocks base method.
-func (m *MockRepositoryService) UpdateRepository(arg0 context.Context, arg1 int64, arg2 models.Repository) error {
+func (m *MockRepositoryService) UpdateRepository(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRepository", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

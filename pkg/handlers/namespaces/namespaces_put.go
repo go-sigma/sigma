@@ -69,11 +69,17 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 	if req.SizeLimit != nil {
 		updates[query.Namespace.SizeLimit.ColumnName().String()] = ptr.To(req.SizeLimit)
 	}
+	if req.RepositoryLimit != nil {
+		updates[query.Namespace.RepositoryLimit.ColumnName().String()] = ptr.To(req.RepositoryLimit)
+	}
 	if req.TagLimit != nil {
 		updates[query.Namespace.TagLimit.ColumnName().String()] = ptr.To(req.TagLimit)
 	}
 	if req.Description != nil {
 		updates[query.Namespace.Description.ColumnName().String()] = ptr.To(req.Description)
+	}
+	if req.Visibility != nil {
+		updates[query.Namespace.Visibility.ColumnName().String()] = ptr.To(req.Visibility)
 	}
 
 	if len(updates) > 0 {

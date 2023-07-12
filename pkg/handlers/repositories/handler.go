@@ -58,7 +58,6 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-// nolint: unparam
 func handlerNew(injects ...inject) Handlers {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
@@ -91,10 +90,12 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	repositoryHandler := handlerNew()
+	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	repositoryGroup.GET("/", repositoryHandler.ListRepository)
+	repositoryGroup.POST("/", repositoryHandler.PostRepository)
 	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
+	repositoryGroup.PUT("/:id", repositoryHandler.PutRepository)
 	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
 	return nil
 }

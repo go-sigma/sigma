@@ -31,7 +31,7 @@ import QuotaSimple from "../../components/QuotaSimple";
 
 dayjs.extend(relativeTime);
 
-export default function TableItem({ index, namespace, localServer, setRefresh }: { index: number, namespace: INamespace, localServer: string, setRefresh: (param: any) => void }) {
+export default function TableItem({ localServer, index, namespace, setRefresh }: { localServer: string, index: number, namespace: INamespace, setRefresh: (param: any) => void }) {
   const navigate = useNavigate();
 
   const [updateNamespaceModal, setUpdateNamespaceModal] = useState(false);
@@ -88,11 +88,11 @@ export default function TableItem({ index, namespace, localServer, setRefresh }:
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -102,11 +102,11 @@ export default function TableItem({ index, namespace, localServer, setRefresh }:
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -225,7 +225,7 @@ export default function TableItem({ index, namespace, localServer, setRefresh }:
                 >
                   <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                     <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
-                      <span className="text-red-600">*</span>Name
+                      Name
                     </label>
                     <div className="relative mt-2 rounded-md shadow-sm">
                       <input

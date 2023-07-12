@@ -50,7 +50,7 @@ type NamespaceService interface {
 	// DeleteByID deletes the namespace with the specified namespace ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// UpdateByID updates the namespace with the specified namespace ID.
-	UpdateByID(ctx context.Context, id int64, req map[string]interface{}) error
+	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 }
 
 type namespaceService struct {
@@ -126,6 +126,8 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 		default:
 			query.Order(s.tx.Namespace.UpdatedAt.Desc())
 		}
+	} else {
+		query.Order(s.tx.Namespace.UpdatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
@@ -153,6 +155,9 @@ func (s *namespaceService) DeleteByID(ctx context.Context, id int64) error {
 
 // UpdateByID updates the namespace with the specified namespace ID.
 func (s *namespaceService) UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return nil
+	}
 	matched, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Updates(updates)
 	if err != nil {
 		return err

@@ -15,19 +15,22 @@
  */
 
 import axios from "axios";
+import { useDebounce } from "react-use";
 import { useParams, Link } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 import Settings from "../../Settings";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
+import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 
 import "./index.css";
 import TableItem from "./TableItem";
 
-import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces";
+import { IRepository, IRepositoryList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
@@ -35,28 +38,114 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [page, setPage] = useState(1);
   const [searchRepository, setSearchRepository] = useState("");
   const [total, setTotal] = useState(0);
+  const [sortOrder, setSortOrder] = useState(IOrder.None);
+  const [sortName, setSortName] = useState("");
 
   const { namespace } = useParams<{ namespace: string }>();
 
+  const [repositoryText, setRepositoryText] = useState("");
+  const [repositoryTextValid, setRepositoryTextValid] = useState(true);
+  useEffect(() => { repositoryText != "" && setRepositoryTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(repositoryText)) }, [repositoryText])
+  const [descriptionText, setDescriptionText] = useState("");
+  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
+  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  const [tagCountLimit, setTagCountLimit] = useState(0);
+  const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
+  useEffect(() => { setTagCountLimitValid(tagCountLimit >= 0) }, [tagCountLimit])
+  const [realSizeLimit, setRealSizeLimit] = useState(0);
+  const [sizeLimit, setSizeLimit] = useState(0);
+  const [sizeLimitValid, setSizeLimitValid] = useState(true);
+  const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
+  useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit])
   useEffect(() => {
+    switch (sizeLimitUnit) {
+      case "MiB":
+        setRealSizeLimit(sizeLimit * 1 << 20);
+        break;
+      case "GiB":
+        setRealSizeLimit(sizeLimit * 1 << 30);
+        break;
+      case "TiB":
+        setRealSizeLimit(sizeLimit * 1 << 40);
+        break;
+    }
+  }, [sizeLimit, sizeLimitUnit]);
+  const [repositoryVisibility, setRepositoryVisibility] = useState("private");
+  const [createRepositoryModal, setCreateRepositoryModal] = useState(false);
+
+  const createRepository = () => {
+    setCreateRepositoryModal(false);
+    axios.post(localServer + `/api/v1/namespaces/${namespace}/repositories/`, {
+      name: namespace + "/" + repositoryText,
+      description: descriptionText,
+      size_limit: realSizeLimit,
+      tag_limit: tagCountLimit,
+      visibility: repositoryVisibility,
+    } as IRepository, {}).then(response => {
+      if (response.status === 201) {
+        setRepositoryText("");
+        setDescriptionText("");
+        setRepositoryVisibility("private")
+        setTagCountLimit(0);
+        setSizeLimit(0);
+        setRefresh({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    })
+  }
+
+  const validateRepository = () => {
+    if (repositoryText === "") {
+      return;
+    }
+    let url = localServer + `/api/v1/validators/reference?reference=${namespace}/${repositoryText}`
+    axios.get(url).then(response => {
+      if (response?.status === 204) {
+        setRepositoryTextValid(true);
+      } else {
+        setRepositoryTextValid(false);
+      }
+    }).catch(error => {
+      setRepositoryTextValid(false);
+    });
+  }
+  useDebounce(validateRepository, 500, [repositoryText]);
+
+  const fetchRepository = () => {
     let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&page=${page}`;
     if (searchRepository !== "") {
       url += `&name=${searchRepository}`;
+    }
+    if (sortName !== "") {
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
         const repositoryList = response.data as IRepositoryList;
         setRepositoryList(repositoryList);
         setTotal(repositoryList.total);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [refresh, page]);
+  }
+
+  useEffect(fetchRepository, [refresh, page]);
 
   return (
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Repository</title>
+          <title>XImager - Repositories</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
@@ -111,7 +200,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       onChange={e => { setSearchRepository(e.target.value); }}
                       onKeyDown={e => {
                         if (e.key == "Enter") {
-                          // fetchNamespace()
+                          fetchRepository()
                         }
                       }}
                       className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -126,7 +215,7 @@ export default function Repository({ localServer }: { localServer: string }) {
               </div>
               <div className="pr-2 pl-2 flex flex-col">
                 <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                // onClick={() => { setCreateNamespaceModal(true) }}
+                  onClick={() => { setCreateRepositoryModal(true) }}
                 >Create</button>
               </div>
             </div>
@@ -163,7 +252,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                   {
                     repositoryList.items?.map((repository, index) => {
                       return (
-                        <TableItem key={index} index={index} namespace={namespace || ""} repository={repository} />
+                        <TableItem key={index} localServer={localServer} index={index} namespace={namespace || ""} repository={repository} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -171,10 +260,224 @@ export default function Repository({ localServer }: { localServer: string }) {
               </table>
             </div>
           </div>
-
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
+      <Transition.Root show={createRepositoryModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setCreateRepositoryModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
+                    <span className="text-red-600">*</span>Name
+                  </label>
+                  <div className="relative mt-2 flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 px-2 text-gray-500 sm:text-sm">
+                      {namespace}/
+                    </span>
+                    <input
+                      type="text"
+                      name="namespace"
+                      placeholder="2-20 lowercase characters"
+                      className={(repositoryTextValid ? "block w-full rounded-r-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-r-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={repositoryText}
+                      onChange={e => {
+                        setRepositoryText(e.target.value);
+                      }}
+                    />
+                    {
+                      repositoryTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600" id="email-error">
+                    {
+                      repositoryTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid repository name, please check again.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mt-1">
+                    Description
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      name="description"
+                      id="description"
+                      placeholder="30 characters"
+                      className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={descriptionText}
+                      onChange={e => setDescriptionText(e.target.value)}
+                    />
+                    {
+                      descriptionTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                    {
+                      descriptionTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid description, max 30 characters.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="namespace_visibility" className="block text-sm font-medium text-gray-700">
+                    Visibility
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <select
+                      id="namespace_visibility"
+                      name="namespace_visibility"
+                      className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      value={repositoryVisibility}
+                      onChange={e => { setRepositoryVisibility(e.target.value) }}
+                    >
+                      <option value="private">Private</option>
+                      <option value="public">Public</option>
+                    </select>
+                  </div>
+                  <label htmlFor="size_limit" className="block text-sm font-medium text-gray-700 mt-2">
+                    Size limit
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="number"
+                      id="size_limit"
+                      name="size_limit"
+                      placeholder="0 means no limit"
+                      className={(sizeLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={sizeLimit}
+                      onChange={e => setSizeLimit(parseInt(e.target.value))}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center">
+                      <label htmlFor="size_limit_unit" className="sr-only">
+                        Size limit unit
+                      </label>
+                      <select
+                        id="size_limit_unit"
+                        name="size_limit_unit"
+                        className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        value={sizeLimitUnit}
+                        onChange={e => { setSizeLimitUnit(e.target.value) }}
+                      >
+                        <option value="MiB">MiB</option>
+                        <option value="GiB">GiB</option>
+                        <option value="TiB">TiB</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                    {
+                      sizeLimitValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid size limit, should be non-negative integer.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="tag_count_limit" className="block text-sm font-medium text-gray-700">
+                    Tag count limit
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="number"
+                      id="tag_count_limit"
+                      name="tag_count_limit"
+                      placeholder="0 means no limit"
+                      className={(tagCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={tagCountLimit}
+                      onChange={e => setTagCountLimit(parseInt(e.target.value))}
+                    />
+                    {
+                      tagCountLimitValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                    {
+                      tagCountLimitValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid tag count limit, should be non-negative integer.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => createRepository()}
+                    >
+                      Create
+                    </button>
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                      onClick={() => setCreateRepositoryModal(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </Fragment >
   )
 }

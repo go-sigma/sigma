@@ -49,7 +49,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [realSizeLimit, setRealSizeLimit] = useState(0);
   const [sizeLimit, setSizeLimit] = useState(0);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
-  const [sizeLimitUnit, setSizeLimitUnit] = useState("");
+  const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
   useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit])
   useEffect(() => {
     switch (sizeLimitUnit) {
@@ -104,11 +104,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setTotal(namespaceList.total);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 
@@ -134,11 +134,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.message });
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -146,7 +146,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Namespace</title>
+          <title>XImager - Namespaces</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

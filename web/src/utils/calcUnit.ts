@@ -14,9 +14,28 @@
  * limitations under the License.
  */
 
-export default {
-  // QuotaThreshold turn green when quota is less than this value
-  QuotaThreshold: 0.8,
-  PageSize: 20,
-  MaxSizeLimit: 102400 * (1 << 40),
-};
+import { ISizeWithUnit } from "../interfaces";
+
+export default function (size: number): ISizeWithUnit {
+  let unit = "MiB";
+  let result = 0;
+  let m = (size / (1 << 20));
+  if (m < 1024) {
+    unit = "MiB";
+    result = m;
+  } else {
+    m = (size / (1 << 30));
+    if (m < 1024) {
+      unit = "GiB"
+      result = m;
+    } else {
+      m = (size / (1 << 40));
+      unit = "TiB"
+      result = m;
+    }
+  }
+  return {
+    unit: unit,
+    size: result,
+  }
+}

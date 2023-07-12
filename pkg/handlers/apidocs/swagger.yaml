@@ -605,6 +605,30 @@ paths:
       summary: Update repository
       tags:
       - Repository
+  /validators/reference:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reference
+        in: query
+        name: reference
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: validate reference
+      tags:
+      - Validator
 securityDefinitions:
   BasicAuth:
     type: basic
