@@ -127,12 +127,12 @@ func TestNormalizePagination(t *testing.T) {
 			name: "test 1",
 			args: args{
 				in: types.Pagination{
-					Last:  ptr.Of(int64(0)),
+					Page:  ptr.Of(int(0)),
 					Limit: ptr.Of(int(0)),
 				},
 			},
 			want: types.Pagination{
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(1)),
 				Limit: ptr.Of(int(10)),
 			},
 		},
@@ -140,12 +140,12 @@ func TestNormalizePagination(t *testing.T) {
 			name: "test 2",
 			args: args{
 				in: types.Pagination{
-					Last:  ptr.Of(int64(-1)),
+					Page:  ptr.Of(int(-1)),
 					Limit: ptr.Of(int(0)),
 				},
 			},
 			want: types.Pagination{
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(1)),
 				Limit: ptr.Of(int(10)),
 			},
 		},

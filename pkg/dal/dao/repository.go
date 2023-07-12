@@ -26,6 +26,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/imagerefs"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
@@ -46,7 +47,7 @@ type RepositoryService interface {
 	// ListByDtPagination lists the repositories by the pagination.
 	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
-	ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, error)
+	ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error)
 	// UpdateRepository update specific repository
@@ -131,8 +132,9 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 }
 
 // ListRepository lists all repositories.
-func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, error) {
-	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID)).Where(s.tx.Repository.ID.Gt(ptr.To(pagination.Last)))
+func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
 		query = query.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
@@ -144,11 +146,10 @@ func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int6
 		case enums.SortMethodAsc:
 			query.Order(field)
 		default:
-			query.Order(field)
+			query.Order(s.tx.Repository.UpdatedAt.Desc())
 		}
 	}
-	query.Limit(ptr.To(pagination.Limit))
-	return query.Find()
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // UpdateRepository ...

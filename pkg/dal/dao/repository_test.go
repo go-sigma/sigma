@@ -97,12 +97,12 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, repositoryObj.ID, repository2.ID)
 
-		repositories1, err := repositoryService.ListRepository(ctx, namespaceObj.ID, nil, types.Pagination{
+		repositories1, count, err := repositoryService.ListRepository(ctx, namespaceObj.ID, nil, types.Pagination{
 			Limit: ptr.Of(int(100)),
-			Last:  ptr.Of(int64(0)),
+			Page:  ptr.Of(int(1)),
 		}, types.Sortable{Sort: ptr.Of("created_at"), Method: ptr.Of(enums.SortMethodAsc)})
 		assert.NoError(t, err)
-		assert.Equal(t, len(repositories1), int(1))
+		assert.Equal(t, int64(len(repositories1)), count)
 
 		repositories2, err := repositoryService.ListByDtPagination(ctx, 100, 1)
 		assert.NoError(t, err)

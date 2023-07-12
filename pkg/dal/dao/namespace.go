@@ -24,6 +24,7 @@ import (
 	"github.com/ximager/ximager/pkg/dal/query"
 	"github.com/ximager/ximager/pkg/types"
 	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/ximager/ximager/pkg/utils"
 	"github.com/ximager/ximager/pkg/utils/ptr"
 )
 
@@ -43,7 +44,7 @@ type NamespaceService interface {
 	// GetByName gets the namespace with the specified namespace name.
 	GetByName(ctx context.Context, name string) (*models.Namespace, error)
 	// ListNamespace lists all namespaces.
-	ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, error)
+	ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
 	// CountNamespace counts all namespaces.
 	CountNamespace(ctx context.Context, name *string) (int64, error)
 	// DeleteByID deletes the namespace with the specified namespace ID.
@@ -109,8 +110,9 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 }
 
 // ListNamespace lists all namespaces.
-func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, error) {
-	query := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(ptr.To(pagination.Last)))
+func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.Namespace.WithContext(ctx)
 	if name != nil {
 		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
@@ -122,11 +124,10 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 		case enums.SortMethodAsc:
 			query.Order(field)
 		default:
-			query.Order(field)
+			query.Order(s.tx.Namespace.UpdatedAt.Desc())
 		}
 	}
-	query.Limit(ptr.To(pagination.Limit))
-	return query.Find()
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // CountNamespace counts all namespaces.

@@ -113,7 +113,7 @@ func TestTagService(t *testing.T) {
 		tags1, err := tagService.ListTag(ctx, types.ListTagRequest{
 			Pagination: types.Pagination{
 				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(0)),
 			},
 			Repository: "test/busybox",
 		})
@@ -123,7 +123,7 @@ func TestTagService(t *testing.T) {
 		count1, err := tagService.CountTag(ctx, types.ListTagRequest{
 			Pagination: types.Pagination{
 				Limit: ptr.Of(int(100)),
-				Last:  ptr.Of(int64(0)),
+				Page:  ptr.Of(int(0)),
 			},
 			Repository: "test/busybox",
 		})

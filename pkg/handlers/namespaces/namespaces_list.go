@@ -34,7 +34,7 @@ import (
 // @Produce json
 // @Router /namespaces/ [get]
 // @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param last query int64 false "last" minimum(0) default(0)
+// @Param page query int64 false "page" minimum(1) default(1)
 // @Param sort query string false "sort field"
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param name query string false "search namespace with name"
@@ -52,7 +52,7 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaces, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
+	namespaces, total, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -74,12 +74,6 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
-	}
-
-	total, err := namespaceService.CountNamespace(ctx, req.Name)
-	if err != nil {
-		log.Error().Err(err).Msg("Count namespace from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})

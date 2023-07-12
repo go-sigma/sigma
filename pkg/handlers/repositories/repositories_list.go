@@ -38,7 +38,7 @@ import (
 // @Produce json
 // @Router /namespaces/{namespace}/repositories/ [get]
 // @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param last query int64 false "last" minimum(0) default(0)
+// @Param page query int64 false "page" minimum(1) default(1)
 // @Param sort query string false "sort field"
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param namespace path string true "namespace"
@@ -69,9 +69,9 @@ func (h *handlers) ListRepository(c echo.Context) error {
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositories, err := repositoryService.ListRepository(ctx, namespaceObj.ID, req.Name, req.Pagination, req.Sortable)
+	repositories, total, err := repositoryService.ListRepository(ctx, namespaceObj.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Msg("List repository from db failed")
+		log.Error().Err(err).Msg("List repository failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
@@ -89,11 +89,6 @@ func (h *handlers) ListRepository(c echo.Context) error {
 			CreatedAt:   repository.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:   repository.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
-	}
-	total, err := repositoryService.CountRepository(ctx, namespaceObj.ID, req.Name)
-	if err != nil {
-		log.Error().Err(err).Msg("Count repository from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
