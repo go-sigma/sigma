@@ -4,3 +4,9 @@ assets/sigema.svg filter=lfs diff=lfs merge=lfs -text
 assets/sigema-low.png filter=lfs diff=lfs merge=lfs -text
 assets/title.ai filter=lfs diff=lfs merge=lfs -text
 assets/title.svg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/header.jpg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/logo.svg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/undraw_docusaurus_mountain.svg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/undraw_docusaurus_react.svg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/undraw_docusaurus_tree.svg filter=lfs diff=lfs merge=lfs -text
+docs/static/img/favicon.svg filter=lfs diff=lfs merge=lfs -text
