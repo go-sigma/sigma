@@ -40,27 +40,31 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
-  const [repositoryCountLimit, setRepositoryCountLimit] = useState(0);
+  const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(0);
   const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
-  useEffect(() => { setRepositoryCountLimitValid(repositoryCountLimit >= 0) }, [repositoryCountLimit])
-  const [tagCountLimit, setTagCountLimit] = useState(0);
+  useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit])
+  const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(tagCountLimit >= 0) }, [tagCountLimit])
+  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
   const [realSizeLimit, setRealSizeLimit] = useState(0);
-  const [sizeLimit, setSizeLimit] = useState(0);
+  const [sizeLimit, setSizeLimit] = useState<string | number>(0);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
   const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
-  useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit])
+  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
   useEffect(() => {
+    let sl = 0;
+    if (Number.isInteger(sizeLimit)) {
+      sl = parseInt(sizeLimit.toString());
+    }
     switch (sizeLimitUnit) {
       case "MiB":
-        setRealSizeLimit(sizeLimit * 1 << 20);
+        setRealSizeLimit(sl * 1 << 20);
         break;
       case "GiB":
-        setRealSizeLimit(sizeLimit * 1 << 30);
+        setRealSizeLimit(sl * 1 << 30);
         break;
       case "TiB":
-        setRealSizeLimit(sizeLimit * 1 << 40);
+        setRealSizeLimit(sl * 1 << 40);
         break;
     }
   }, [sizeLimit, sizeLimitUnit])
@@ -115,6 +119,10 @@ export default function Namespace({ localServer }: { localServer: string }) {
   useEffect(() => { fetchNamespace() }, [refresh, page, sortOrder, sortName]);
 
   const createNamespace = () => {
+    if (!(namespaceTextValid && descriptionTextValid && sizeLimitValid && repositoryCountLimitValid && tagCountLimitValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
     setCreateNamespaceModal(false);
     axios.post(localServer + '/api/v1/namespaces/', {
       name: namespaceText,
@@ -317,7 +325,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       )
                     }
                   </div>
-                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       namespaceTextValid ? (
                         <span></span>
@@ -352,7 +360,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       )
                     }
                   </div>
-                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       descriptionTextValid ? (
                         <span></span>
@@ -389,7 +397,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                       placeholder="0 means no limit"
                       className={(sizeLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                       value={sizeLimit}
-                      onChange={e => setSizeLimit(parseInt(e.target.value))}
+                      onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
                       <label htmlFor="size_limit_unit" className="sr-only">
@@ -407,19 +415,8 @@ export default function Namespace({ localServer }: { localServer: string }) {
                         <option value="TiB">TiB</option>
                       </select>
                     </div>
-                    {/* {
-                      sizeLimitValid ? (
-                        <div></div>
-                      ) : (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                          </svg>
-                        </div>
-                      )
-                    } */}
                   </div>
-                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       sizeLimitValid ? (
                         <span></span>
@@ -443,7 +440,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                           placeholder="0 means no limit"
                           className={(repositoryCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                           value={repositoryCountLimit}
-                          onChange={e => setRepositoryCountLimit(parseInt(e.target.value))}
+                          onChange={e => setRepositoryCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                         />
                         {
                           repositoryCountLimitValid ? (
@@ -457,7 +454,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                           )
                         }
                       </div>
-                      <p className="mt-1 text-sm text-red-600" id="email-error">
+                      <p className="mt-1 text-xs text-red-600">
                         {
                           repositoryCountLimitValid ? (
                             <span></span>
@@ -481,7 +478,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                           placeholder="0 means no limit"
                           className={(tagCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                           value={tagCountLimit}
-                          onChange={e => setTagCountLimit(parseInt(e.target.value))}
+                          onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                         />
                         {
                           tagCountLimitValid ? (
@@ -495,7 +492,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                           )
                         }
                       </div>
-                      <p className="mt-1 text-sm text-red-600" id="email-error">
+                      <p className="mt-1 text-xs text-red-600">
                         {
                           tagCountLimitValid ? (
                             <span></span>
