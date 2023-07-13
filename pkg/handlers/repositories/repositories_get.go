@@ -36,6 +36,7 @@ import (
 // @Produce json
 // @Router /namespaces/{namespace}/repositories/{id} [get]
 // @Param namespace path string true "Namespace"
+// @Param id path string true "Repository ID"
 // @Success 200 {object} types.RepositoryItem
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode

@@ -141,37 +141,15 @@ func TestListTag(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagServiceTimes := 0
-	daoMockTagService.EXPECT().ListTag(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListTagRequest) ([]*models.Tag, error) {
-		daoMockTagServiceTimes++
-		if daoMockTagServiceTimes == 1 {
-			return nil, fmt.Errorf("test")
-		}
-		return []*models.Tag{}, nil
-	}).Times(2)
-	daoMockTagService.EXPECT().CountTag(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListTagRequest) (int64, error) {
-		return 0, fmt.Errorf("test")
+	daoMockTagService.EXPECT().ListTag(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Tag, int64, error) {
+		return nil, 0, fmt.Errorf("test")
 	}).Times(1)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
 	daoMockTagServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.TagService {
 		return daoMockTagService
-	}).Times(2)
+	}).Times(1)
 
 	tagHandler = handlerNew(inject{tagServiceFactory: daoMockTagServiceFactory})
-
-	q = make(url.Values)
-	q.Set("repository", "test/busybox")
-	q.Set("page_size", strconv.Itoa(100))
-	q.Set("page_num", strconv.Itoa(1))
-	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	c.SetParamNames("namespace", "id")
-	c.SetParamValues(namespaceName, "1")
-	err = tagHandler.ListTag(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 
 	q = make(url.Values)
 	q.Set("repository", "test/busybox")

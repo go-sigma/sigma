@@ -86,7 +86,7 @@ type factory struct{}
 
 func (f factory) Initialize(e *echo.Echo) error {
 	tagHandler := handlerNew()
-	tagGroup := e.Group(consts.APIV1+"/namespace/:namespace/tag", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	tagGroup.GET("/", tagHandler.ListTag)
 	tagGroup.GET("/:id", tagHandler.GetTag)
 	tagGroup.DELETE("/:id", tagHandler.DeleteTag)

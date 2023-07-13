@@ -18,6 +18,7 @@ export interface INotification {
   level?: string;
   title: string;
   message: string;
+  autoClose?: number;
 }
 
 export interface IHTTPError {
@@ -85,6 +86,9 @@ export interface ITag {
   name: string;
   digest: string;
   size: number;
+  last_pull: string;
+  pull_times: number;
+  pushed_at: string;
   created_at: string;
   updated_at: string;
 }

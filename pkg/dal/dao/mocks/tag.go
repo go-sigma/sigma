@@ -217,16 +217,17 @@ func (mr *MockTagServiceMockRecorder) ListByDtPagination(arg0, arg1, arg2 interf
 }
 
 // ListTag mocks base method.
-func (m *MockTagService) ListTag(arg0 context.Context, arg1 types.ListTagRequest) ([]*models.Tag, error) {
+func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Tag, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTag", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListTag", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*models.Tag)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListTag indicates an expected call of ListTag.
-func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1, arg2, arg3, arg4)
 }

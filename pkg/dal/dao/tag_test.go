@@ -110,13 +110,10 @@ func TestTagService(t *testing.T) {
 		assert.Equal(t, tag3.PullTimes, int64(1))
 		assert.True(t, tag3.LastPull.Valid)
 
-		tags1, err := tagService.ListTag(ctx, types.ListTagRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Page:  ptr.Of(int(0)),
-			},
-			Repository: "test/busybox",
-		})
+		tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, types.Pagination{
+			Limit: ptr.Of(int(100)),
+			Page:  ptr.Of(int(0)),
+		}, types.Sortable{})
 		assert.NoError(t, err)
 		assert.Equal(t, len(tags1), int(1))
 

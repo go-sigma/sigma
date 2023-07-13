@@ -79,8 +79,8 @@ func (a *Repository) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// BeforeUpdate ...
-func (a *Repository) BeforeUpdate(tx *gorm.DB) error {
+// AfterUpdate ...
+func (a *Repository) AfterUpdate(tx *gorm.DB) error {
 	if a == nil {
 		return nil
 	}

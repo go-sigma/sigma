@@ -1,11 +1,11 @@
 <p align="center">
-  <a href="https://github.com/ximager/ximager">
-    <img alt="XImager" src="https://media.githubusercontent.com/media/ximager/ximager/main/assets/sigema.svg" width="220"/>
+  <a href="https://github.com/go-sigma/sigma">
+    <img alt="sigma" src="https://media.githubusercontent.com/media/go-sigma/sigma/main/assets/sigma.svg" width="220"/>
   </a>
 </p>
-<h1 align="center">XImager</h1>
+<h1 align="center">sigma</h1>
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ximager/ximager/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/ximager/ximager?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/ximager/ximager?style=for-the-badge)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
 Yet another harbor OCI artifact manager. Harbor is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager and well tested. And it never depends on [distribution](https://github.com/distribution/distribution) like harbor.
 
@@ -19,11 +19,11 @@ Wait for me to complete draw the architecture.
 
 ## Quick Start
 
-Now ximager is under very early development, so it's not easy to use. But you can try it.
+Now sigma is under very early development, so it's not easy to use. But you can try it.
 
 ``` bash
 cd web && yarn && yarn build && cd .. && make build
-./bin/ximager -c ./conf/ximager.yaml
+./bin/sigma -c ./conf/config.yaml
 ```
 
 ## Features

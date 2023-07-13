@@ -24,12 +24,12 @@ import "./index.css";
 export default function (noti: INotification) {
   const id = toast('fake-toast', {
     position: "top-right",
-    autoClose: 5000,
+    autoClose: noti.autoClose || 3000,
     hideProgressBar: true,
     closeOnClick: true,
     closeButton: false,
-    pauseOnHover: true,
-    draggable: true,
+    pauseOnHover: false,
+    draggable: false,
     theme: "light",
     className: "fake-toast",
   });
@@ -37,7 +37,7 @@ export default function (noti: INotification) {
   const renderWithLevel = () => {
     switch (noti.level) {
       case "info":
-        return <InboxIcon className="h-6 w-6 text-red-400" aria-hidden="true" />
+        return <InboxIcon className="h-6 w-6 text-blue-400" aria-hidden="true" />
       case "success":
         return <InboxIcon className="h-6 w-6 text-gray-400" aria-hidden="true" />
       case "warning":

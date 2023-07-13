@@ -22,10 +22,11 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import dayjs from 'dayjs';
 
+import Settings from "../../Settings";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
+import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
-import Settings from "../../Settings";
 
 import TableItem from "./TableItem";
 import "./index.css";
@@ -35,7 +36,7 @@ import { ITag, ITagList, IHTTPError } from "../../interfaces";
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
   const [refresh, setRefresh] = useState({});
-  const [pageNum, setPageNum] = useState(1);
+  const [page, setPage] = useState(1);
   const [searchRepository, setSearchRepository] = useState("");
   const [total, setTotal] = useState(0);
 
@@ -44,19 +45,24 @@ export default function Tag({ localServer }: { localServer: string }) {
   const repository = searchParams.get('repository');
 
   useEffect(() => {
-    let url = localServer + `/namespace/${namespace}/tag/?repository=${repository}&page_size=${Settings.PageSize}&page_num=${pageNum}`;
+    let url = localServer + `/api/v1/namespaces/${namespace}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}`;
     if (searchRepository !== "") {
       url += `&name=${searchRepository}`;
     }
-    axios.get(url)
-      .then((response) => {
-        if (response.status === 200) {
-          const tagList = response.data as ITagList;
-          setTagList(tagList);
-          setTotal(tagList.total);
-        }
-      });
-  }, [refresh, pageNum]);
+    axios.get(url).then(response => {
+      if (response.status === 200) {
+        const tagList = response.data as ITagList;
+        setTagList(tagList);
+        setTotal(tagList.total);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [refresh, page]);
 
   return (
     <Fragment>
@@ -75,29 +81,35 @@ export default function Tag({ localServer }: { localServer: string }) {
                 <table className="min-w-full">
                   <thead>
                     <tr className="border-gray-200">
-                      <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 tracking-wider capitalize">
                         <span className="lg:pl-2">Tag</span>
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
                         Digest
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
                         Size
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Create
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
+                        Last pull
                       </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Update
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
+                        Pull Times
                       </th>
-                      <th className="pr-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
+                        Pushed At
+                      </th>
+                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
+                        Command
+                      </th>
+                      <th className="pr-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider">Action</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {
-                      tagList.items?.map(m => {
+                      tagList.items?.map((tag, index) => {
                         return (
-                          <TableItem key={m.id} id={m.id} namespace={namespace} repository={repository} name={m.name} digest={m.digest} size={m.size} created_at={m.created_at} updated_at={m.updated_at} />
+                          <TableItem key={tag.id} localServer={localServer} index={index} namespace={namespace as string} repository={repository as string} tag={tag} setRefresh={setRefresh} />
                         );
                       })
                     }
@@ -106,7 +118,7 @@ export default function Tag({ localServer }: { localServer: string }) {
               </div>
             </div>
           </main>
-          {/* <Pagination page_size={Settings.PageSize} page_num={pageNum} setPageNum={setPageNum} total={total} /> */}
+          <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
     </Fragment >

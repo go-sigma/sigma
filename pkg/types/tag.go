@@ -18,6 +18,11 @@ package types
 type TagItem struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
+	LastPull  string `json:"last_pull"`
+	PushedAt  string `json:"pushed_at"`
+	PullTimes int64  `json:"pull_times"`
+	Digest    string `json:"digest"`
+	Size      int64  `json:"size"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
@@ -25,9 +30,12 @@ type TagItem struct {
 // ListTagRequest represents the request to list tags.
 type ListTagRequest struct {
 	Pagination
+	Sortable
 
-	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
-	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository"`
+	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"library"`
+	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository" example:"library/busybox"`
+
+	Name *string `json:"name" query:"name"`
 }
 
 // DeleteTagRequest represents the request to delete a tag.
