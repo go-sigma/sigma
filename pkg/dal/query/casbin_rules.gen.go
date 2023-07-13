@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newCasbinRule(db *gorm.DB, opts ...gen.DOOption) casbinRule {
@@ -90,6 +90,8 @@ func (c *casbinRule) WithContext(ctx context.Context) *casbinRuleDo {
 func (c casbinRule) TableName() string { return c.casbinRuleDo.TableName() }
 
 func (c casbinRule) Alias() string { return c.casbinRuleDo.Alias() }
+
+func (c casbinRule) Columns(cols ...field.Expr) gen.Columns { return c.casbinRuleDo.Columns(cols...) }
 
 func (c *casbinRule) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := c.fieldMap[fieldName]
@@ -166,10 +168,6 @@ func (c casbinRuleDo) Select(conds ...field.Expr) *casbinRuleDo {
 
 func (c casbinRuleDo) Where(conds ...gen.Condition) *casbinRuleDo {
 	return c.withDO(c.DO.Where(conds...))
-}
-
-func (c casbinRuleDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *casbinRuleDo {
-	return c.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (c casbinRuleDo) Order(conds ...field.Expr) *casbinRuleDo {

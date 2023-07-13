@@ -60,10 +60,10 @@ FROM golang:${GOLANG_VERSION} as builder
 RUN set -eux && \
   apk add --no-cache make bash ncurses build-base git git-lfs
 
-COPY . /go/src/github.com/ximager/ximager
-COPY --from=web-builder /web/dist /go/src/github.com/ximager/ximager/web/dist
+COPY . /go/src/github.com/go-sigma/sigma
+COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
-WORKDIR /go/src/github.com/ximager/ximager
+WORKDIR /go/src/github.com/go-sigma/sigma
 
 RUN make build-release
 
@@ -72,7 +72,7 @@ FROM alpine:${ALPINE_VERSION}
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
-COPY ./conf/ximager.yaml /etc/ximager/ximager.yaml
-COPY --from=builder /go/src/github.com/ximager/ximager/bin/ximager /usr/local/bin/ximager
+COPY ./conf/config.yaml /etc/sigma/config.yaml
+COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 
-ENTRYPOINT ["/usr/local/bin/ximager"]
+ENTRYPOINT ["/usr/local/bin/sigma"]

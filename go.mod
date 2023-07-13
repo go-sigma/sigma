@@ -1,4 +1,4 @@
-module github.com/ximager/ximager
+module github.com/go-sigma/sigma
 
 go 1.19
 

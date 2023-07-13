@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
+	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 )
 
 func TestFactory(t *testing.T) {

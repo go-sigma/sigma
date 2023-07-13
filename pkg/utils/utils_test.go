@@ -26,9 +26,9 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/ptr"
-	"github.com/ximager/ximager/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 func TestPanicIf(t *testing.T) {

@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/logger"
 )
 
 func TestAuth(t *testing.T) {

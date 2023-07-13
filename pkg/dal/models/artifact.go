@@ -22,7 +22,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Artifact represents an artifact

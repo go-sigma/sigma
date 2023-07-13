@@ -10,7 +10,7 @@ import (
 	time "time"
 
 	gomock "go.uber.org/mock/gomock"
-	models "github.com/ximager/ximager/pkg/dal/models"
+	models "github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 // MockTokenService is a mock of TokenService interface.

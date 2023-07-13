@@ -23,9 +23,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func (g gc) gcBlobs(ctx context.Context) error {

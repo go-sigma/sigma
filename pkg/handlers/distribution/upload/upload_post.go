@@ -24,12 +24,12 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/counter"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/counter"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PostUpload creates a new upload.

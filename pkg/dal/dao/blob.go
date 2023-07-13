@@ -21,12 +21,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=mocks/blob.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobService
-//go:generate mockgen -destination=mocks/blob_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobServiceFactory
+//go:generate mockgen -destination=mocks/blob.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobService
+//go:generate mockgen -destination=mocks/blob_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobServiceFactory
 
 // BlobService defines the operations related to blobs
 type BlobService interface {

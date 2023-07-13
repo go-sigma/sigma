@@ -17,13 +17,13 @@ package dao
 import (
 	"context"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/auth.go -package=mocks github.com/ximager/ximager/pkg/dal/dao AuthService
-//go:generate mockgen -destination=mocks/auth_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao AuthServiceFactory
+//go:generate mockgen -destination=mocks/auth.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuthService
+//go:generate mockgen -destination=mocks/auth_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuthServiceFactory
 
 // AuthRole defines the role of the user.
 type AuthService interface {

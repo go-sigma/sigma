@@ -24,8 +24,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/logger"
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestRegisterTask(t *testing.T) {

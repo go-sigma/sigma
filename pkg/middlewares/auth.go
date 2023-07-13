@@ -25,12 +25,12 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
-	"github.com/ximager/ximager/pkg/utils/password"
-	"github.com/ximager/ximager/pkg/utils/ptr"
-	"github.com/ximager/ximager/pkg/utils/token"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // AuthConfig is the configuration for the Auth middleware.

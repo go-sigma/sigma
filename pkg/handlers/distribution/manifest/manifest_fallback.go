@@ -21,7 +21,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
 )
 
 // fallbackProxy cannot found the manifest, proxy to the origin registry

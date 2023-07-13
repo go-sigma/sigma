@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
-	clients "github.com/ximager/ximager/pkg/handlers/distribution/clients"
+	clients "github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
 )
 
 // MockClientsFactory is a mock of ClientsFactory interface.

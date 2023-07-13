@@ -24,8 +24,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 const (

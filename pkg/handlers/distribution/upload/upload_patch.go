@@ -22,11 +22,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/utils/counter"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils/counter"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PatchUpload handles the patch upload request

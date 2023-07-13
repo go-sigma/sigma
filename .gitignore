@@ -23,7 +23,7 @@ vendor/
 !3rdparty/distribution/vendor
 
 # Binaries for programs
-bin/ximager
+bin/sigma
 
 ### Node ###
 # Logs

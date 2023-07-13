@@ -17,7 +17,7 @@ package main
 import (
 	"gorm.io/gen"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func main() {

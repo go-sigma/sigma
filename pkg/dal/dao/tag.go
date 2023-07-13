@@ -21,14 +21,14 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/tag.go -package=mocks github.com/ximager/ximager/pkg/dal/dao TagService
-//go:generate mockgen -destination=mocks/tag_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao TagServiceFactory
+//go:generate mockgen -destination=mocks/tag.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao TagService
+//go:generate mockgen -destination=mocks/tag_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao TagServiceFactory
 
 // TagService is the interface that provides the tag service methods.
 type TagService interface {

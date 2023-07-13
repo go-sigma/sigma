@@ -20,9 +20,9 @@ import (
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
-	"github.com/ximager/ximager/pkg/handlers/distribution"
-	"github.com/ximager/ximager/pkg/middlewares"
-	"github.com/ximager/ximager/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 // InitializeDistribution ...

@@ -14,13 +14,13 @@
 
 package main
 
-import "github.com/ximager/ximager/cmd"
+import "github.com/go-sigma/sigma/cmd"
 
-// @title XImager API
+// @title sigma API
 // @version 1.0
 
-// @contact.name XImager
-// @contact.url https://github.com/ximager/ximager
+// @contact.name sigma
+// @contact.url https://github.com/go-sigma/sigma
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0

@@ -31,8 +31,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/types"
 
 	_ "github.com/distribution/distribution/v3/manifest/manifestlist"
 	_ "github.com/distribution/distribution/v3/manifest/ocischema"

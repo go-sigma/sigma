@@ -25,7 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/utils/hash"
+	"github.com/go-sigma/sigma/pkg/utils/hash"
 )
 
 func TestCounter(t *testing.T) {

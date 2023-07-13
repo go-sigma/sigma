@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
-	"github.com/ximager/ximager/pkg/handlers/distribution"
+	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 )
 
 func TestHandlerNew(t *testing.T) {

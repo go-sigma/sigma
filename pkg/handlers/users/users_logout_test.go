@@ -27,9 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/logger"
-	tokenmock "github.com/ximager/ximager/pkg/utils/token/mocks"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/logger"
+	tokenmock "github.com/go-sigma/sigma/pkg/utils/token/mocks"
 )
 
 func TestLogout(t *testing.T) {

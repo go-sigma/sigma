@@ -20,9 +20,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
-	"github.com/ximager/ximager/pkg/handlers/distribution"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handlers is the interface for the distribution manifest handlers

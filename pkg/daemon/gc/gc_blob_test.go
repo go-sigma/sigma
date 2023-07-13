@@ -24,13 +24,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"github.com/ximager/ximager/pkg/dal"
-	"github.com/ximager/ximager/pkg/dal/dao"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/logger"
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/storage/mocks"
-	"github.com/ximager/ximager/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/storage/mocks"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestGcBlobs(t *testing.T) {

@@ -49,7 +49,7 @@ COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY --from=trivy /opt/trivy/metadata.json /opt/trivy/db/metadata.json
-COPY ./conf/ximager.yaml /etc/ximager/ximager.yaml
-COPY ./bin/ximager /usr/local/bin/ximager
+COPY ./conf/config.yaml /etc/sigma/config.yaml
+COPY ./bin/sigma /usr/local/bin/sigma
 
-ENTRYPOINT ["/usr/local/bin/ximager"]
+ENTRYPOINT ["/usr/local/bin/sigma"]

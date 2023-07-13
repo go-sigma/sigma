@@ -25,7 +25,7 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/consts"
 )
 
 // AuthEnforcer is the global casbin enforcer

@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnerability {
@@ -165,6 +165,10 @@ func (a *artifactVulnerability) WithContext(ctx context.Context) *artifactVulner
 func (a artifactVulnerability) TableName() string { return a.artifactVulnerabilityDo.TableName() }
 
 func (a artifactVulnerability) Alias() string { return a.artifactVulnerabilityDo.Alias() }
+
+func (a artifactVulnerability) Columns(cols ...field.Expr) gen.Columns {
+	return a.artifactVulnerabilityDo.Columns(cols...)
+}
 
 func (a *artifactVulnerability) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := a.fieldMap[fieldName]
@@ -344,10 +348,6 @@ func (a artifactVulnerabilityDo) Select(conds ...field.Expr) *artifactVulnerabil
 
 func (a artifactVulnerabilityDo) Where(conds ...gen.Condition) *artifactVulnerabilityDo {
 	return a.withDO(a.DO.Where(conds...))
-}
-
-func (a artifactVulnerabilityDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *artifactVulnerabilityDo {
-	return a.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (a artifactVulnerabilityDo) Order(conds ...field.Expr) *artifactVulnerabilityDo {

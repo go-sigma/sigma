@@ -25,5 +25,5 @@ linters-settings:
       - standard
       - blank
       - default
-      - prefix(github.com/ximager/ximager)
+      - prefix(github.com/go-sigma/sigma)
       - dot

@@ -26,9 +26,9 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/logger"
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 var (

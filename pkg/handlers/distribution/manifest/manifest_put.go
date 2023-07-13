@@ -26,15 +26,15 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils/counter"
-	"github.com/ximager/ximager/pkg/utils/ptr"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/daemon"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/counter"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // maxManifestBodySize ...

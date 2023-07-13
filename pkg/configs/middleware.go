@@ -27,9 +27,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 
-	_ "github.com/ximager/ximager/pkg/dal"
+	_ "github.com/go-sigma/sigma/pkg/dal"
 )
 
 func init() {

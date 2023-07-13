@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
@@ -106,6 +106,8 @@ func (n namespace) TableName() string { return n.namespaceDo.TableName() }
 
 func (n namespace) Alias() string { return n.namespaceDo.Alias() }
 
+func (n namespace) Columns(cols ...field.Expr) gen.Columns { return n.namespaceDo.Columns(cols...) }
+
 func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := n.fieldMap[fieldName]
 	if !ok || _f == nil {
@@ -186,10 +188,6 @@ func (n namespaceDo) Select(conds ...field.Expr) *namespaceDo {
 
 func (n namespaceDo) Where(conds ...gen.Condition) *namespaceDo {
 	return n.withDO(n.DO.Where(conds...))
-}
-
-func (n namespaceDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *namespaceDo {
-	return n.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (n namespaceDo) Order(conds ...field.Expr) *namespaceDo {

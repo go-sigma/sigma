@@ -31,13 +31,13 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/reader"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/reader"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetBlob returns the blob's size and digest.

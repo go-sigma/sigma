@@ -27,10 +27,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/handlers"
-	"github.com/ximager/ximager/pkg/middlewares"
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/utils/serializer"
+	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils/serializer"
 )
 
 func Serve() error {

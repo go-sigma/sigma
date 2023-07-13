@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	_ "github.com/ximager/ximager/pkg/storage/cos"
-	_ "github.com/ximager/ximager/pkg/storage/filesystem"
-	_ "github.com/ximager/ximager/pkg/storage/s3"
+	_ "github.com/go-sigma/sigma/pkg/storage/cos"
+	_ "github.com/go-sigma/sigma/pkg/storage/filesystem"
+	_ "github.com/go-sigma/sigma/pkg/storage/s3"
 )

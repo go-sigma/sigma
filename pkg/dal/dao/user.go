@@ -17,12 +17,12 @@ package dao
 import (
 	"context"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=mocks/user.go -package=mocks github.com/ximager/ximager/pkg/dal/dao UserService
-//go:generate mockgen -destination=mocks/user_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao UserServiceFactory
+//go:generate mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
+//go:generate mockgen -destination=mocks/user_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserServiceFactory
 
 // UserService is the interface that provides the user service methods.
 type UserService interface {

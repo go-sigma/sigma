@@ -25,8 +25,8 @@ import (
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/storage"
 )
 
 const (

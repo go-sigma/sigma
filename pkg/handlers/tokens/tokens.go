@@ -22,9 +22,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/ptr"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Token generate token for docker client

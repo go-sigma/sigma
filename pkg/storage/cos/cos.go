@@ -27,8 +27,8 @@ import (
 	"github.com/spf13/viper"
 	cos "github.com/tencentyun/cos-go-sdk-v5"
 
-	"github.com/ximager/ximager/pkg/storage"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func init() {

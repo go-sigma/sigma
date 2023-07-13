@@ -21,11 +21,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal/dao"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils/password"
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {

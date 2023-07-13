@@ -21,7 +21,7 @@ import (
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // ErrCode provides relevant information about a given error code.

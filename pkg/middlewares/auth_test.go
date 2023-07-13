@@ -26,13 +26,13 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/dal"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/inits"
-	"github.com/ximager/ximager/pkg/logger"
-	"github.com/ximager/ximager/pkg/tests"
-	"github.com/ximager/ximager/pkg/utils/token"
-	"github.com/ximager/ximager/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/inits"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/utils/token"
+	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 const (

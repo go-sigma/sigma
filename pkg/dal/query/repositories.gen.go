@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
@@ -119,6 +119,8 @@ func (r *repository) WithContext(ctx context.Context) *repositoryDo {
 func (r repository) TableName() string { return r.repositoryDo.TableName() }
 
 func (r repository) Alias() string { return r.repositoryDo.Alias() }
+
+func (r repository) Columns(cols ...field.Expr) gen.Columns { return r.repositoryDo.Columns(cols...) }
 
 func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := r.fieldMap[fieldName]
@@ -343,10 +345,6 @@ func (r repositoryDo) Select(conds ...field.Expr) *repositoryDo {
 
 func (r repositoryDo) Where(conds ...gen.Condition) *repositoryDo {
 	return r.withDO(r.DO.Where(conds...))
-}
-
-func (r repositoryDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *repositoryDo {
-	return r.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (r repositoryDo) Order(conds ...field.Expr) *repositoryDo {

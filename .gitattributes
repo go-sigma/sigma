@@ -1,7 +1,7 @@
-assets/sigema.ai filter=lfs diff=lfs merge=lfs -text
-assets/sigema.png filter=lfs diff=lfs merge=lfs -text
-assets/sigema.svg filter=lfs diff=lfs merge=lfs -text
-assets/sigema-low.png filter=lfs diff=lfs merge=lfs -text
+assets/sigma.ai filter=lfs diff=lfs merge=lfs -text
+assets/sigma.png filter=lfs diff=lfs merge=lfs -text
+assets/sigma.svg filter=lfs diff=lfs merge=lfs -text
+assets/sigma-low.png filter=lfs diff=lfs merge=lfs -text
 assets/title.ai filter=lfs diff=lfs merge=lfs -text
 assets/title.svg filter=lfs diff=lfs merge=lfs -text
 docs/static/img/header.jpg filter=lfs diff=lfs merge=lfs -text

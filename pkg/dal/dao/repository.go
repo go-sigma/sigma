@@ -22,17 +22,17 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/types/enums"
-	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/imagerefs"
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryService
-//go:generate mockgen -destination=mocks/repository_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao RepositoryServiceFactory
+//go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryService
+//go:generate mockgen -destination=mocks/repository_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryServiceFactory
 
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
