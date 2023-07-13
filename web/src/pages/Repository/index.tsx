@@ -26,6 +26,7 @@ import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
+import OrderHeader from "../../components/OrderHeader";
 
 import "./index.css";
 import TableItem from "./TableItem";
@@ -38,8 +39,6 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [page, setPage] = useState(1);
   const [searchRepository, setSearchRepository] = useState("");
   const [total, setTotal] = useState(0);
-  const [sortOrder, setSortOrder] = useState(IOrder.None);
-  const [sortName, setSortName] = useState("");
 
   const { namespace } = useParams<{ namespace: string }>();
 
@@ -49,24 +48,28 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
-  const [tagCountLimit, setTagCountLimit] = useState(0);
+  const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(tagCountLimit >= 0) }, [tagCountLimit])
+  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
   const [realSizeLimit, setRealSizeLimit] = useState(0);
-  const [sizeLimit, setSizeLimit] = useState(0);
+  const [sizeLimit, setSizeLimit] = useState<string | number>(0);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
   const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
-  useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit])
+  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
   useEffect(() => {
+    let sl = 0;
+    if (Number.isInteger(sizeLimit)) {
+      sl = parseInt(sizeLimit.toString());
+    }
     switch (sizeLimitUnit) {
       case "MiB":
-        setRealSizeLimit(sizeLimit * 1 << 20);
+        setRealSizeLimit(sl * 1 << 20);
         break;
       case "GiB":
-        setRealSizeLimit(sizeLimit * 1 << 30);
+        setRealSizeLimit(sl * 1 << 30);
         break;
       case "TiB":
-        setRealSizeLimit(sizeLimit * 1 << 40);
+        setRealSizeLimit(sl * 1 << 40);
         break;
     }
   }, [sizeLimit, sizeLimitUnit]);
@@ -74,6 +77,10 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [createRepositoryModal, setCreateRepositoryModal] = useState(false);
 
   const createRepository = () => {
+    if (!(repositoryTextValid && descriptionTextValid && sizeLimitValid && tagCountLimitValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
     setCreateRepositoryModal(false);
     axios.post(localServer + `/api/v1/namespaces/${namespace}/repositories/`, {
       name: namespace + "/" + repositoryText,
@@ -114,7 +121,21 @@ export default function Repository({ localServer }: { localServer: string }) {
       setRepositoryTextValid(false);
     });
   }
-  useDebounce(validateRepository, 500, [repositoryText]);
+  useDebounce(validateRepository, 300, [repositoryText]);
+
+  const [sizeOrder, setSizeOrder] = useState(IOrder.None);
+  const [tagCountOrder, setTagCountOrder] = useState(IOrder.None);
+  const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
+  const [updatedAtOrder, setUpdatedAtOrder] = useState(IOrder.None);
+  const [sortOrder, setSortOrder] = useState(IOrder.None);
+  const [sortName, setSortName] = useState("");
+
+  const resetOrder = () => {
+    setSizeOrder(IOrder.None);
+    setTagCountOrder(IOrder.None);
+    setCreatedAtOrder(IOrder.None);
+    setUpdatedAtOrder(IOrder.None);
+  }
 
   const fetchRepository = () => {
     let url = localServer + `/api/v1/namespaces/${namespace}/repositories/?limit=${Settings.PageSize}&page=${page}`;
@@ -229,19 +250,39 @@ export default function Repository({ localServer }: { localServer: string }) {
                       <span className="lg:pl-2">Repository</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Size
+                      <OrderHeader text={"Size"} orderStatus={sizeOrder} setOrder={e => {
+                        resetOrder();
+                        setSizeOrder(e);
+                        setSortOrder(e);
+                        setSortName("size");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Tag count
+                      <OrderHeader text={"Tag count"} orderStatus={tagCountOrder} setOrder={e => {
+                        resetOrder();
+                        setTagCountOrder(e);
+                        setSortOrder(e);
+                        setSortName("tag_count");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Visibility
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Created at
+                      <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={e => {
+                        resetOrder();
+                        setCreatedAtOrder(e);
+                        setSortOrder(e);
+                        setSortName("created_at");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Updated at
+                      <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={e => {
+                        resetOrder();
+                        setUpdatedAtOrder(e);
+                        setSortOrder(e);
+                        setSortName("updated_at");
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Action
@@ -317,7 +358,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       )
                     }
                   </div>
-                  <p className="mt-1 text-xs text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       repositoryTextValid ? (
                         <span></span>
@@ -353,7 +394,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       )
                     }
                   </div>
-                  <p className="mt-2 text-sm text-red-600" id="email-error">
+                  <p className="mt-2 text-xs text-red-600">
                     {
                       descriptionTextValid ? (
                         <span></span>
@@ -390,7 +431,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       placeholder="0 means no limit"
                       className={(sizeLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                       value={sizeLimit}
-                      onChange={e => setSizeLimit(parseInt(e.target.value))}
+                      onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
                       <label htmlFor="size_limit_unit" className="sr-only">
@@ -409,7 +450,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       </select>
                     </div>
                   </div>
-                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       sizeLimitValid ? (
                         <span></span>
@@ -431,7 +472,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       placeholder="0 means no limit"
                       className={(tagCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                       value={tagCountLimit}
-                      onChange={e => setTagCountLimit(parseInt(e.target.value))}
+                      onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
                     {
                       tagCountLimitValid ? (
@@ -445,7 +486,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       )
                     }
                   </div>
-                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-xs text-red-600">
                     {
                       tagCountLimitValid ? (
                         <span></span>

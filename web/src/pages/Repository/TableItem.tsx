@@ -40,27 +40,30 @@ export default function TableItem({ localServer, index, namespace, repository, s
   const [descriptionText, setDescriptionText] = useState(repository.description);
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
-  const [tagCountLimit, setTagCountLimit] = useState(repository.tag_limit);
+  const [tagCountLimit, setTagCountLimit] = useState<string | number>(repository.tag_limit);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(tagCountLimit >= 0) }, [tagCountLimit])
+  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
   const [realSizeLimit, setRealSizeLimit] = useState(repository.size_limit);
   let calcUnitObj = calcUnit(repository.size_limit);
-  const [sizeLimit, setSizeLimit] = useState(calcUnitObj.size);
+  const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
-  console.log(calcUnitObj)
 
-  useEffect(() => { setSizeLimitValid(sizeLimit >= 0) }, [sizeLimit]);
+  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit]);
   useEffect(() => {
+    let sl = 0;
+    if (Number.isInteger(sizeLimit)) {
+      sl = parseInt(sizeLimit.toString());
+    }
     switch (sizeLimitUnit) {
       case "MiB":
-        setRealSizeLimit(sizeLimit * 1 << 20);
+        setRealSizeLimit(sl * 1 << 20);
         break;
       case "GiB":
-        setRealSizeLimit(sizeLimit * 1 << 30);
+        setRealSizeLimit(sl * 1 << 30);
         break;
       case "TiB":
-        setRealSizeLimit(sizeLimit * 1 << 40);
+        setRealSizeLimit(sl * 1 << 40);
         break;
     }
   }, [sizeLimit, sizeLimitUnit]);
@@ -68,6 +71,10 @@ export default function TableItem({ localServer, index, namespace, repository, s
   const [updateRepositoryModal, setUpdateRepositoryModal] = useState(false);
 
   const updateRepository = () => {
+    if (!(descriptionTextValid && sizeLimitValid && tagCountLimitValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
     setUpdateRepositoryModal(false);
     axios.put(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository.id}`, {
       description: descriptionText,
@@ -76,11 +83,6 @@ export default function TableItem({ localServer, index, namespace, repository, s
       visibility: repositoryVisibility,
     } as IRepository, {}).then(response => {
       if (response.status === 204) {
-        setRepositoryText("");
-        setDescriptionText("");
-        setRepositoryVisibility("private")
-        setTagCountLimit(0);
-        setSizeLimit(0);
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
@@ -271,7 +273,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         )
                       }
                     </div>
-                    <p className="mt-2 text-sm text-red-600" id="email-error">
+                    <p className="mt-1 text-xs text-red-600" id="email-error">
                       {
                         descriptionTextValid ? (
                           <span></span>
@@ -308,7 +310,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         placeholder="0 means no limit"
                         className={(sizeLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                         value={sizeLimit}
-                        onChange={e => setSizeLimit(parseInt(e.target.value))}
+                        onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center">
                         <label htmlFor="size_limit_unit" className="sr-only">
@@ -327,7 +329,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         </select>
                       </div>
                     </div>
-                    <p className="mt-1 text-sm text-red-600" id="email-error">
+                    <p className="mt-1 text-xs text-red-600" id="email-error">
                       {
                         sizeLimitValid ? (
                           <span></span>
@@ -349,7 +351,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         placeholder="0 means no limit"
                         className={(tagCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                         value={tagCountLimit}
-                        onChange={e => setTagCountLimit(parseInt(e.target.value))}
+                        onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                       />
                       {
                         tagCountLimitValid ? (
@@ -363,7 +365,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         )
                       }
                     </div>
-                    <p className="mt-1 text-sm text-red-600" id="email-error">
+                    <p className="mt-1 text-xs text-red-600" id="email-error">
                       {
                         tagCountLimitValid ? (
                           <span></span>
@@ -380,7 +382,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={() => updateRepository()}
                       >
-                        Create
+                        Update
                       </button>
                       <button
                         type="button"
