@@ -65,7 +65,7 @@ export default function App() {
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/artifact" element={<Artifact localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/tag" element={<Tag localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/tags" element={<Tag localServer={localServer} />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </>

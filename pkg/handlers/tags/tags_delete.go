@@ -26,6 +26,17 @@ import (
 )
 
 // DeleteTag handles the delete tag request
+// @Summary Delete tag
+// @Tags Tag
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Router /namespaces/{namespace}/tags/{id} [delete]
+// @Param namespace path string true "Namespace"
+// @Param id path string true "Tag ID"
+// @Success 204
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) DeleteTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

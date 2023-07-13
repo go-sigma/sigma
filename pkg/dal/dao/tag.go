@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -24,6 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -47,7 +50,7 @@ type TagService interface {
 	// ListByDtPagination lists the tags by the specified repository and pagination.
 	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...int64) ([]*models.Tag, error)
 	// ListTag lists the tags by the specified request.
-	ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error)
+	ListTag(ctx context.Context, repositoryID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
@@ -106,8 +109,19 @@ func (s *tagService) GetByName(ctx context.Context, repositoryID int64, tag stri
 
 // DeleteByName deletes the tag with the specified tag name.
 func (s *tagService) DeleteByName(ctx context.Context, repositoryID int64, tag string) error {
-	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).Delete()
-	return err
+	tagObj, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).First()
+	if err != nil {
+		return err
+	}
+	delTagObj := &models.Tag{ID: tagObj.ID}
+	matched, err := s.tx.Tag.WithContext(ctx).Delete(delTagObj)
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // DeleteByArtifactID deletes the tag with the specified artifact ID.
@@ -140,11 +154,27 @@ func (s *tagService) ListByDtPagination(ctx context.Context, repository string, 
 }
 
 // ListTag lists the tags by the specified request.
-func (s *tagService) ListTag(ctx context.Context, req types.ListTagRequest) ([]*models.Tag, error) {
-	return s.tx.Tag.WithContext(ctx).
-		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
-		Where(s.tx.Repository.Name.Eq(req.Repository)).
-		Where(s.tx.Tag.ID.Gt(int64(ptr.To(req.Page)))).Limit(ptr.To(req.Limit)).Find()
+func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
+	if name != nil {
+		query = query.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	field, ok := s.tx.Tag.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query.Order(field)
+		default:
+			query.Order(s.tx.Tag.UpdatedAt.Desc())
+		}
+	} else {
+		query.Order(s.tx.Tag.UpdatedAt.Desc())
+	}
+	query.Preload(s.tx.Tag.Artifact)
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // CountArtifact counts the artifacts by the specified request.
@@ -157,7 +187,8 @@ func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (in
 
 // DeleteByID deletes the tag with the specified tag ID.
 func (s *tagService) DeleteByID(ctx context.Context, id int64) error {
-	matched, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).Delete()
+	t := &models.Tag{ID: id}
+	matched, err := s.tx.Tag.WithContext(ctx).Delete(t)
 	if err != nil {
 		return err
 	}

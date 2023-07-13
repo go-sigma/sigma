@@ -16,6 +16,7 @@ package manifest
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -25,6 +26,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
@@ -102,6 +104,18 @@ func (h *handler) PutManifest(c echo.Context) error {
 		BlobsSize:    blobsSize,
 		ContentType:  contentType,
 		Raw:          bodyBytes,
+	}
+
+	artifactService := h.artifactServiceFactory.New()
+	tryFindArtifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Find artifact failed")
+			return ptr.Of(xerrors.DSErrCodeUnknown)
+		}
+	}
+	if tryFindArtifactObj != nil {
+		artifactObj.ID = tryFindArtifactObj.ID
 	}
 
 	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||

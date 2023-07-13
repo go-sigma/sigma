@@ -199,6 +199,27 @@ definitions:
         - $ref: '#/definitions/enums.Visibility'
         example: private
     type: object
+  types.TagItem:
+    properties:
+      created_at:
+        type: string
+      digest:
+        type: string
+      id:
+        type: integer
+      last_pull:
+        type: string
+      name:
+        type: string
+      pull_times:
+        type: integer
+      pushed_at:
+        type: string
+      size:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   xerrors.ErrCode:
     properties:
       code:
@@ -538,6 +559,11 @@ paths:
         name: namespace
         required: true
         type: string
+      - description: Repository ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -600,6 +626,146 @@ paths:
       summary: Update repository
       tags:
       - Repository
+  /namespaces/{namespace}/tags/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: repository
+        in: query
+        name: repository
+        type: string
+      - description: search repository with name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.TagItem'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List tag
+      tags:
+      - Tag
+  /namespaces/{namespace}/tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete tag
+      tags:
+      - Tag
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: repository
+        in: query
+        name: repository
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.TagItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get tag
+      tags:
+      - Tag
   /validators/reference:
     get:
       consumes:
