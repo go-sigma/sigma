@@ -21,12 +21,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/dao"
-	rhandlers "github.com/ximager/ximager/pkg/handlers"
-	"github.com/ximager/ximager/pkg/utils"
-	"github.com/ximager/ximager/pkg/utils/password"
-	"github.com/ximager/ximager/pkg/utils/token"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
 // Handlers is the interface for the tag handlers

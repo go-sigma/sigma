@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
@@ -202,6 +202,8 @@ func (a *artifact) WithContext(ctx context.Context) *artifactDo { return a.artif
 func (a artifact) TableName() string { return a.artifactDo.TableName() }
 
 func (a artifact) Alias() string { return a.artifactDo.Alias() }
+
+func (a artifact) Columns(cols ...field.Expr) gen.Columns { return a.artifactDo.Columns(cols...) }
 
 func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := a.fieldMap[fieldName]
@@ -596,10 +598,6 @@ func (a artifactDo) Select(conds ...field.Expr) *artifactDo {
 
 func (a artifactDo) Where(conds ...gen.Condition) *artifactDo {
 	return a.withDO(a.DO.Where(conds...))
-}
-
-func (a artifactDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *artifactDo {
-	return a.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (a artifactDo) Order(conds ...field.Expr) *artifactDo {

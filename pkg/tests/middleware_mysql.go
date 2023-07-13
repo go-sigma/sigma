@@ -21,7 +21,7 @@ import (
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal"
 )
 
 func init() {

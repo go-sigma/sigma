@@ -22,7 +22,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // CIDatabase is the interface for the database in ci tests

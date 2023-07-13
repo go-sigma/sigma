@@ -27,12 +27,12 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/handlers/distribution/clients"
-	"github.com/ximager/ximager/pkg/utils/cacher"
-	"github.com/ximager/ximager/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
+	"github.com/go-sigma/sigma/pkg/utils/cacher"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // HeadBlob returns the blob's size and digest.

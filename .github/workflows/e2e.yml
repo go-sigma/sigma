@@ -46,12 +46,9 @@ jobs:
           yarn build
           cd ..
           make build-release
-      - name: Test push
+      - name: Test push and e2e with k6
         run: |
-          ./bin/ximager server --config ./conf/ximager.yaml &
+          ./bin/sigma server --config ./conf/config.yaml &
           ./e2e/push.sh
-      - name: Test e2e with k6
-        run: |
-          ./bin/ximager server --config ./conf/ximager.yaml &
-          curl https://github.com/grafana/k6/releases/download/v0.44.1/k6-v0.44.1-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+          curl https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
           ./k6 run e2e/sc.js

@@ -23,8 +23,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 
-	"github.com/ximager/ximager/pkg/types"
-	"github.com/ximager/ximager/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // GetContentLength returns the content length of the request.

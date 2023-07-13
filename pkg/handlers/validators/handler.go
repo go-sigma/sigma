@@ -20,10 +20,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/ximager/ximager/pkg/consts"
-	rhandlers "github.com/ximager/ximager/pkg/handlers"
-	"github.com/ximager/ximager/pkg/middlewares"
-	"github.com/ximager/ximager/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/consts"
+	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handlers ...

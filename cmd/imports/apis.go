@@ -15,12 +15,12 @@
 package cmd
 
 import (
-	_ "github.com/ximager/ximager/pkg/handlers/apidocs"
-	_ "github.com/ximager/ximager/pkg/handlers/artifacts"
-	_ "github.com/ximager/ximager/pkg/handlers/namespaces"
-	_ "github.com/ximager/ximager/pkg/handlers/repositories"
-	_ "github.com/ximager/ximager/pkg/handlers/tags"
-	_ "github.com/ximager/ximager/pkg/handlers/tokens"
-	_ "github.com/ximager/ximager/pkg/handlers/users"
-	_ "github.com/ximager/ximager/pkg/handlers/validators"
+	_ "github.com/go-sigma/sigma/pkg/handlers/apidocs"
+	_ "github.com/go-sigma/sigma/pkg/handlers/artifacts"
+	_ "github.com/go-sigma/sigma/pkg/handlers/namespaces"
+	_ "github.com/go-sigma/sigma/pkg/handlers/repositories"
+	_ "github.com/go-sigma/sigma/pkg/handlers/tags"
+	_ "github.com/go-sigma/sigma/pkg/handlers/tokens"
+	_ "github.com/go-sigma/sigma/pkg/handlers/users"
+	_ "github.com/go-sigma/sigma/pkg/handlers/validators"
 )

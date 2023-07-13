@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
@@ -162,6 +162,8 @@ func (t *tag) WithContext(ctx context.Context) *tagDo { return t.tagDo.WithConte
 func (t tag) TableName() string { return t.tagDo.TableName() }
 
 func (t tag) Alias() string { return t.tagDo.Alias() }
+
+func (t tag) Columns(cols ...field.Expr) gen.Columns { return t.tagDo.Columns(cols...) }
 
 func (t *tag) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := t.fieldMap[fieldName]
@@ -412,10 +414,6 @@ func (t tagDo) Select(conds ...field.Expr) *tagDo {
 
 func (t tagDo) Where(conds ...gen.Condition) *tagDo {
 	return t.withDO(t.DO.Where(conds...))
-}
-
-func (t tagDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *tagDo {
-	return t.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (t tagDo) Order(conds ...field.Expr) *tagDo {

@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
-	storage "github.com/ximager/ximager/pkg/storage"
+	storage "github.com/go-sigma/sigma/pkg/storage"
 )
 
 // MockStorageDriverFactory is a mock of StorageDriverFactory interface.

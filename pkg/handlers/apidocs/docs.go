@@ -11,8 +11,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "XImager",
-            "url": "https://github.com/ximager/ximager"
+            "name": "sigma",
+            "url": "https://github.com/go-sigma/sigma"
         },
         "license": {
             "name": "Apache 2.0",
@@ -521,11 +521,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/types.PutRepositoryResponse"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -737,6 +734,10 @@ const docTemplate = `{
                     "minLength": 2,
                     "example": "test"
                 },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "size_limit": {
                     "type": "integer",
                     "example": 10000
@@ -868,15 +869,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutRepositoryResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "example": 21911
-                }
-            }
-        },
         "types.RepositoryItem": {
             "type": "object",
             "properties": {
@@ -971,7 +963,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "XImager API",
+	Title:            "sigma API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

@@ -1,10 +1,10 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "XImager API",
+        "title": "sigma API",
         "contact": {
-            "name": "XImager",
-            "url": "https://github.com/ximager/ximager"
+            "name": "sigma",
+            "url": "https://github.com/go-sigma/sigma"
         },
         "license": {
             "name": "Apache 2.0",
@@ -512,11 +512,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/types.PutRepositoryResponse"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -728,6 +725,10 @@
                     "minLength": 2,
                     "example": "test"
                 },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
                 "size_limit": {
                     "type": "integer",
                     "example": 10000
@@ -856,15 +857,6 @@
                         }
                     ],
                     "example": "public"
-                }
-            }
-        },
-        "types.PutRepositoryResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "example": 21911
                 }
             }
         },

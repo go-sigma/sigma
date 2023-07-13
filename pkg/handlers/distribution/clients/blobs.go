@@ -27,7 +27,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 
-	"github.com/ximager/ximager/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/consts"
 )
 
 // GetBlob ...

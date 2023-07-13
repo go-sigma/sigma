@@ -19,7 +19,7 @@ import (
 
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/ximager/ximager/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // User is the model for the user table.

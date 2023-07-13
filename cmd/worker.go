@@ -19,11 +19,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/cmds/worker"
-	"github.com/ximager/ximager/pkg/configs"
-	"github.com/ximager/ximager/pkg/dal"
-	"github.com/ximager/ximager/pkg/inits"
-	"github.com/ximager/ximager/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/cmds/worker"
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/inits"
+	"github.com/go-sigma/sigma/pkg/logger"
 )
 
 // workerCmd represents the worker command

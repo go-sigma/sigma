@@ -23,19 +23,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	_ "github.com/ximager/ximager/cmd/imports"
+	_ "github.com/go-sigma/sigma/cmd/imports"
 )
 
 var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ximager",
-	Short: "XImager is an OCI artifact storage and distribution system",
-	Long: `XImager is an OCI artifact storage and distribution system,
+	Use:   "sigma",
+	Short: "sigma is an OCI artifact storage and distribution system",
+	Long: `sigma is an OCI artifact storage and distribution system,
 which is designed to be a lightweight, easy-to-use, and easy-to-deploy,
 and can be used as a private registry or a public registry.
-XImager is a cloud-native, distributed, and highly available system,
+sigma is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 }
 
@@ -55,11 +55,11 @@ func initConfig() {
 	} else {
 		pwd, err := os.Getwd()
 		cobra.CheckErr(err)
-		viper.AddConfigPath("/etc/ximager")
-		viper.AddConfigPath("$HOME/.ximager")
+		viper.AddConfigPath("/etc/sigma")
+		viper.AddConfigPath("$HOME/.sigma")
 		viper.AddConfigPath(path.Join(pwd, "conf"))
 		viper.SetConfigType("yaml")
-		viper.SetConfigName("ximager.yaml")
+		viper.SetConfigName("config.yaml")
 	}
 
 	viper.AutomaticEnv()

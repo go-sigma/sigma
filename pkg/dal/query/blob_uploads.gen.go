@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 func newBlobUpload(db *gorm.DB, opts ...gen.DOOption) blobUpload {
@@ -97,6 +97,8 @@ func (b blobUpload) TableName() string { return b.blobUploadDo.TableName() }
 
 func (b blobUpload) Alias() string { return b.blobUploadDo.Alias() }
 
+func (b blobUpload) Columns(cols ...field.Expr) gen.Columns { return b.blobUploadDo.Columns(cols...) }
+
 func (b *blobUpload) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := b.fieldMap[fieldName]
 	if !ok || _f == nil {
@@ -174,10 +176,6 @@ func (b blobUploadDo) Select(conds ...field.Expr) *blobUploadDo {
 
 func (b blobUploadDo) Where(conds ...gen.Condition) *blobUploadDo {
 	return b.withDO(b.DO.Where(conds...))
-}
-
-func (b blobUploadDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) *blobUploadDo {
-	return b.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (b blobUploadDo) Order(conds ...field.Expr) *blobUploadDo {

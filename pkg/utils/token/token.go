@@ -26,8 +26,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/consts"
-	"github.com/ximager/ximager/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 //go:generate mockgen -destination=mocks/token.go -package=mocks github.com/ximager/ximager/pkg/utils/token TokenService

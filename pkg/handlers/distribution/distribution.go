@@ -22,7 +22,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/ximager/ximager/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/consts"
 )
 
 var (

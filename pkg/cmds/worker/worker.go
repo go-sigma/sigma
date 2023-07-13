@@ -26,12 +26,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/ximager/ximager/pkg/daemon"
-	"github.com/ximager/ximager/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/daemon"
+	"github.com/go-sigma/sigma/pkg/middlewares"
 
-	_ "github.com/ximager/ximager/pkg/daemon/gc"
-	_ "github.com/ximager/ximager/pkg/daemon/sbom"
-	_ "github.com/ximager/ximager/pkg/daemon/vulnerability"
+	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
+	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
+	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
 )
 
 // Worker is the worker initialization

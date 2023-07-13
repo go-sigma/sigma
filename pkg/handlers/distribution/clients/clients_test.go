@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ximager/ximager/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types"
 )
 
 func TestBasicAuthToken(t *testing.T) {

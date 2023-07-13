@@ -17,12 +17,12 @@ package dao
 import (
 	"context"
 
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=mocks/blobupload.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobUploadService
-//go:generate mockgen -destination=mocks/blobupload_factory.go -package=mocks github.com/ximager/ximager/pkg/dal/dao BlobUploadServiceFactory
+//go:generate mockgen -destination=mocks/blobupload.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobUploadService
+//go:generate mockgen -destination=mocks/blobupload_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobUploadServiceFactory
 
 // BlobUploadService is the interface for the blob upload service.
 type BlobUploadService interface {

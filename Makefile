@@ -1,7 +1,7 @@
 GOCMD            = go
 GOTEST           = $(GOCMD) test
 GOVET            = $(GOCMD) vet
-BINARY_NAME      = ximager
+BINARY_NAME      = sigma
 VERSION         ?= 0.0.0
 SERVICE_PORT    ?= 3000
 DOCKER_REGISTRY ?= #if set it should finished by /
@@ -17,9 +17,9 @@ WHITE           := $(shell tput -Txterm setaf 7)
 CYAN            := $(shell tput -Txterm setaf 6)
 RESET           := $(shell tput -Txterm sgr0)
 
-GOLDFLAGS       += -X github.com/ximager/ximager/cmd.version=$(shell git describe --tags --dirty --always)
-GOLDFLAGS       += -X github.com/ximager/ximager/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
-GOLDFLAGS       += -X github.com/ximager/ximager/cmd.gitHash=$(shell git rev-parse --short HEAD)
+GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.version=$(shell git describe --tags --dirty --always)
+GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.gitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS          = -ldflags '-extldflags "-static" -s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor
@@ -123,12 +123,13 @@ swagen: ## Generate swagger from code comments
 	@swag init --output pkg/handlers/apidocs
 
 addlicense: ## Add license to all go files
-	@find pkg -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "XImager" -v
-	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "XImager"
-	@addlicense -l apache -y 2023 -c "XImager" main.go
-	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2023 -c "XImager"
-	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2023 -c "XImager"
-	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "XImager"
+	@find pkg -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "sigma"
+	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "sigma"
+	@addlicense -l apache -y 2023 -c "sigma" main.go
+	@addlicense -l apache -y 2023 -c "sigma" web/web.go
+	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2023 -c "sigma"
+	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2023 -c "sigma"
+	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "sigma"
 
 ## Help:
 help: ## Show this help.

@@ -14,7 +14,7 @@
 
 package types
 
-import "github.com/ximager/ximager/pkg/types/enums"
+import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // TaskSbom is the task sbom struct
 type TaskSbom struct {

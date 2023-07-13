@@ -28,17 +28,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"github.com/ximager/ximager/pkg/dal"
-	"github.com/ximager/ximager/pkg/dal/dao"
-	daomock "github.com/ximager/ximager/pkg/dal/dao/mocks"
-	"github.com/ximager/ximager/pkg/dal/models"
-	"github.com/ximager/ximager/pkg/dal/query"
-	"github.com/ximager/ximager/pkg/inits"
-	"github.com/ximager/ximager/pkg/logger"
-	"github.com/ximager/ximager/pkg/tests"
-	passwordmock "github.com/ximager/ximager/pkg/utils/password/mocks"
-	tokenmock "github.com/ximager/ximager/pkg/utils/token/mocks"
-	"github.com/ximager/ximager/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/inits"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/tests"
+	passwordmock "github.com/go-sigma/sigma/pkg/utils/password/mocks"
+	tokenmock "github.com/go-sigma/sigma/pkg/utils/token/mocks"
+	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 func TestToken(t *testing.T) {

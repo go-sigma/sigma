@@ -14,7 +14,7 @@
 
 package types
 
-import "github.com/ximager/ximager/pkg/types/enums"
+import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // CommonList is the common list struct
 type CommonList struct {
