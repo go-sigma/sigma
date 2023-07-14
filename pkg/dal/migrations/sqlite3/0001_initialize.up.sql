@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `blobs_size` integer NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB NOT NULL,
+  `config_raw` BLOB,
+  `config_media_type` varchar(256),
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,

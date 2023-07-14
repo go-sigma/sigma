@@ -32,12 +32,14 @@ type Artifact struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	RepositoryID int64
-	Digest       string
-	Size         int64 `gorm:"default:0"`
-	BlobsSize    int64 `gorm:"default:0"`
-	ContentType  string
-	Raw          []byte
+	RepositoryID    int64
+	Digest          string
+	Size            int64 `gorm:"default:0"`
+	BlobsSize       int64 `gorm:"default:0"`
+	ContentType     string
+	Raw             []byte
+	ConfigRaw       []byte
+	ConfigMediaType *string
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"autoCreateTime"`

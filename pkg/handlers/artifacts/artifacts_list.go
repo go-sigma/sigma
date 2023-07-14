@@ -44,17 +44,6 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var artifactIDs = make([]int64, 0, len(artifacts))
-	for _, artifact := range artifacts {
-		artifactIDs = append(artifactIDs, artifact.ID)
-	}
-	tagService := h.tagServiceFactory.New()
-	tagCountRef, err := tagService.CountByArtifact(ctx, artifactIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Count tag from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var resp = make([]any, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		tags := make([]string, 0, len(artifact.Tags))
@@ -65,8 +54,6 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 			ID:        artifact.ID,
 			Digest:    artifact.Digest,
 			Size:      artifact.Size,
-			Tags:      tags,
-			TagCount:  tagCountRef[artifact.ID],
 			CreatedAt: artifact.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: artifact.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

@@ -18,11 +18,9 @@ package types
 type TagItem struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
-	LastPull  string `json:"last_pull"`
-	PushedAt  string `json:"pushed_at"`
-	PullTimes int64  `json:"pull_times"`
 	Digest    string `json:"digest"`
-	Size      int64  `json:"size"`
+	PushedAt  string `json:"pushed_at"`
+	Raw       string `json:"raw"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }

@@ -19,6 +19,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/bytedance/sonic"
@@ -32,8 +33,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -125,6 +128,24 @@ func (h *handler) PutManifest(c echo.Context) error {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
 	} else {
+		for _, reference := range manifest.References() {
+			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" {
+				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)), 0)
+				if err != nil {
+					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
+				configRaw, err := io.ReadAll(configRawReader)
+				if err != nil {
+					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
+				artifactObj.ConfigMediaType = ptr.Of(reference.MediaType)
+				artifactObj.ConfigRaw = configRaw
+			}
+			digests = append(digests, reference.Digest.String())
+		}
+
 		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))

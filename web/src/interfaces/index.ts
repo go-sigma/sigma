@@ -69,9 +69,12 @@ export interface IRepositoryList {
 export interface IArtifact {
   id: number;
   digest: string;
+  config_raw: string;
   size: number;
-  tag_count: number;
-  tags: string[];
+  blob_size: number;
+  last_pull: string;
+  pushed_at: string;
+  pull_times: number;
   created_at: string;
   updated_at: string;
 }
@@ -85,10 +88,8 @@ export interface ITag {
   id: number;
   name: string;
   digest: string;
-  size: number;
-  last_pull: string;
-  pull_times: number;
   pushed_at: string;
+  raw: string;
   created_at: string;
   updated_at: string;
 }

@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "blobs_size" bigint NOT NULL DEFAULT 0,
   "content_type" varchar(256) NOT NULL,
   "raw" bytea NOT NULL,
+  "config_raw" bytea,
+  "config_media_type" varchar(256),
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,

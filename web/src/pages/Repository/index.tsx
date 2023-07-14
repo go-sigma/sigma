@@ -172,10 +172,16 @@ export default function Repository({ localServer }: { localServer: string }) {
       <div className="min-h-screen flex overflow-hidden bg-white">
         <Menu item="Repository" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="relative z-0 focus:outline-none" tabIndex={0}>
+          <main className="relative z-0 focus:outline-none">
             <Header title="Repository" props={
               (
                 <div className="sm:flex sm:space-x-8">
+                  <Link
+                    to={`/namespaces/${namespace}/namespace-summary`}
+                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                  >
+                    Summary
+                  </Link>
                   <Link
                     to="#"
                     className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
@@ -183,10 +189,10 @@ export default function Repository({ localServer }: { localServer: string }) {
                     Repository list
                   </Link>
                   <Link
-                    to={`/namespaces/${namespace}/namespace-users`}
+                    to={`/namespaces/${namespace}/namespace-members`}
                     className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                   >
-                    Users
+                    Members
                   </Link>
                   <Link
                     to={`/namespaces/${namespace}/namespace-webhooks`}
