@@ -50,17 +50,6 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `repository_tags` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
-  `name` varchar(64) NOT NULL,
-  `repository_id` bigint NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
-  CONSTRAINT `repository_tags_unique_with_repository` UNIQUE (`repository_id`, `name`, `deleted_at`)
-);
-
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint NOT NULL,

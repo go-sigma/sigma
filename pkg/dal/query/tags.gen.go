@@ -46,11 +46,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 		}{
 			RelationField: field.NewRelation("Repository.Namespace", "models.Namespace"),
 		},
-		Tags: struct {
-			field.RelationField
-		}{
-			RelationField: field.NewRelation("Repository.Tags", "models.RepositoryTag"),
-		},
 	}
 
 	_tag.Artifact = tagBelongsToArtifact{
@@ -205,9 +200,6 @@ type tagBelongsToRepository struct {
 	field.RelationField
 
 	Namespace struct {
-		field.RelationField
-	}
-	Tags struct {
 		field.RelationField
 	}
 }
