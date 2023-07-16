@@ -31,6 +31,7 @@ type DecoratorArtifactStatus struct {
 	Daemon  enums.Daemon
 	Status  enums.TaskCommonStatus
 	Raw     []byte
+	Result  []byte
 	Stdout  []byte
 	Stderr  []byte
 	Message string
@@ -40,6 +41,7 @@ type DecoratorArtifactStatus struct {
 func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan DecoratorArtifactStatus) error) func(context.Context, *asynq.Task) error {
 	return func(ctx context.Context, atask *asynq.Task) error {
 		log.Info().Msg("got a task")
+		ctx = log.Logger.WithContext(ctx)
 
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New()
@@ -59,6 +61,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 					err = artifactService.SaveVulnerability(context.Background(), &models.ArtifactVulnerability{
 						ArtifactID: id,
 						Raw:        status.Raw,
+						Result:     status.Result,
 						Status:     status.Status,
 						Stdout:     status.Stdout,
 						Stderr:     status.Stderr,
@@ -68,6 +71,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 					err = artifactService.SaveSbom(context.Background(), &models.ArtifactSbom{
 						ArtifactID: id,
 						Raw:        status.Raw,
+						Result:     status.Result,
 						Status:     status.Status,
 						Stdout:     status.Stdout,
 						Stderr:     status.Stderr,
