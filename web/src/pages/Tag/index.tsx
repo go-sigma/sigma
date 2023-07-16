@@ -17,12 +17,12 @@
 import axios from "axios";
 import dayjs from 'dayjs';
 import { Tooltip } from 'flowbite';
+import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { useCopyToClipboard } from 'react-use';
 import { useSearchParams } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import relativeTime from 'dayjs/plugin/relativeTime';
 
 import Settings from "../../Settings";
 import Menu from "../../components/Menu";
@@ -33,7 +33,7 @@ import Pagination from "../../components/Pagination";
 import "./index.css";
 import TableItem from "./TableItem";
 
-import { ITag, ITagList, IHTTPError } from "../../interfaces";
+import { ITagList, IHTTPError } from "../../interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
@@ -98,7 +98,39 @@ export default function Tag({ localServer }: { localServer: string }) {
         <Menu item="Tag" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
           <main className="">
-            <Header title="Tag" />
+            <Header title="Tag"
+              breadcrumb={
+                (
+                  <nav className="flex" aria-label="Breadcrumb">
+                    <ol className="inline-flex items-center space-x-1 md:space-x-0">
+                      <li className="inline-flex items-center">
+                        <Link to={""} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                          <svg className="w-3 h-3 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+                          </svg>
+                        </Link>
+                      </li>
+                      <li className="inline-flex items-center">
+                        <span className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                          <Link to={`/namespaces/${namespace}/repositories`} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                            {namespace}
+                          </Link>
+                        </span>
+                      </li>
+                      <li>
+                        <div className="flex items-center">
+                          <span className="text-gray-500 text-sm ml-1">/</span>
+                          <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {repository?.substring((namespace?.length || 0) + 1)}
+                          </span>
+                          <span className="text-gray-500 text-sm ml-1">/</span>
+                        </div>
+                      </li>
+                    </ol>
+                  </nav>
+                )
+              }
+            />
             <div className="pt-2 pb-2 flex">
               <div className="pr-2 pl-2">
                 <div className="flex gap-4">
@@ -170,6 +202,9 @@ export default function Tag({ localServer }: { localServer: string }) {
                             </th>
                             <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Os/Arch
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Distro
                             </th>
                             <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Size

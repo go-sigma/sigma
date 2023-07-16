@@ -17,6 +17,7 @@
 import dayjs from 'dayjs';
 import humanFormat from "human-format";
 
+import distros, { distroName } from '../../utils/distros';
 import { IArtifact, IVuln, ISbom, IImageConfig } from "../../interfaces";
 
 function skipManifest(raw: string) {
@@ -66,8 +67,6 @@ function DetailItem1({ artifact }: { artifact: IArtifact }) {
   let sbomObj = JSON.parse(artifact.sbom) as ISbom;
   let vulnerabilityObj = JSON.parse(artifact.vulnerability) as IVuln;
   let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;
-  console.log(artifact.sbom);
-  console.log(artifact.vulnerability);
   return (
     <tr className="hover:bg-gray-50 cursor-pointer">
       <td className="px-2 text-left">
@@ -76,7 +75,13 @@ function DetailItem1({ artifact }: { artifact: IArtifact }) {
         </code>
       </td>
       <td className="text-right text-xs">
-        <span>{imageConfigObj.os}/{imageConfigObj.architecture}</span>
+        <span>  {imageConfigObj.os}/{imageConfigObj.architecture}</span>
+      </td>
+      <td className="text-right text-xs">
+        {distros(sbomObj.distro.name) === "" ? "" : (
+          <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative mr-1" />
+        )}
+        {distroName(sbomObj.distro.name) === "" ? "-" : distroName(sbomObj.distro.name) + " " + sbomObj.distro.version}
       </td>
       <td className="text-right text-xs">
         {humanFormat(artifact.blob_size || 0)}

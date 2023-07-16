@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 import { ReactNode } from 'react';
 
-export default function Header({ title, props }: { title: string, props?: ReactNode }) {
+export default function Header({ title, breadcrumb, props }: { title: string, breadcrumb?: ReactNode, props?: ReactNode }) {
   return (
-    <div className="border-gray-200 border-b px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16">
-      <div className="flex-1 min-w-0 my-4">
-        <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate">{title}</h1>
+    <div className={breadcrumb === undefined ? "" : "border-gray-200 border-b"}>
+      <div className="border-gray-200 border-b px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16">
+        <div className="flex-1 min-w-0 my-4">
+          <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate mr-8">{title}</h1>
+        </div>
+        <div className="flex h-16">
+          {props}
+        </div>
       </div>
-      <div className="flex h-16">
-        {props}
+      <div className={breadcrumb === undefined ? "" : "px-4 py-3"}>
+        {breadcrumb}
       </div>
     </div>
   );

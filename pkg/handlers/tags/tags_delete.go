@@ -34,6 +34,7 @@ import (
 // @Router /namespaces/{namespace}/tags/{id} [delete]
 // @Param namespace path string true "Namespace"
 // @Param id path string true "Tag ID"
+// @Param repository query string false "repository"
 // @Success 204
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode

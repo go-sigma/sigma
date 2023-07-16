@@ -17,15 +17,14 @@
 import { ToastContainer } from 'react-toastify';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
+import Tag from "./pages/Tag";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-
 import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
 import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
-import Tag from "./pages/Tag";
 
 import { setupResponseInterceptor } from './utils/request'
 
