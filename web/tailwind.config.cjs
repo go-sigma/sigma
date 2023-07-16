@@ -1,7 +1,7 @@
 /** @type {import("tailwindcss").Config} */
 module.exports = {
   darkMode: "class",
-  content: ["./src/**/*.{html,js,tsx,scss}", "./index.html"],
+  content: ["./src/**/*.{html,js,tsx,scss}", "./index.html", "./node_modules/flowbite/**/*.js"],
   theme: {
     extend: {},
   },
@@ -9,5 +9,6 @@ module.exports = {
     require("@tailwindcss/typography"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/aspect-ratio"),
+    require('flowbite/plugin'),
   ],
 }

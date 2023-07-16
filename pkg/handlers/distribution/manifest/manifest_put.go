@@ -19,6 +19,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/bytedance/sonic"
@@ -32,8 +33,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -85,7 +88,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	c.Response().Header().Set(consts.ContentDigest, refs.Digest.String())
 	contentType := c.Request().Header.Get("Content-Type")
 
-	manifest, _, err := distribution.UnmarshalManifest(contentType, bodyBytes)
+	manifest, descriptor, err := distribution.UnmarshalManifest(contentType, bodyBytes)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
@@ -120,12 +123,30 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
 		contentType == "application/vnd.oci.image.index.v1+json" {
-		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs)
+		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
 	} else {
-		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs)
+		for _, reference := range manifest.References() {
+			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" {
+				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)), 0)
+				if err != nil {
+					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
+				configRaw, err := io.ReadAll(configRawReader)
+				if err != nil {
+					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
+					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				}
+				artifactObj.ConfigMediaType = ptr.Of(reference.MediaType)
+				artifactObj.ConfigRaw = configRaw
+			}
+			digests = append(digests, reference.Digest.String())
+		}
+
+		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
@@ -138,7 +159,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
+func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) *xerrors.ErrCode {
 	blobService := h.blobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
@@ -173,16 +194,29 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return err.(*xerrors.ErrCode)
 	}
 
-	h.putManifestAsyncTask(ctx, artifactObj)
+	if !skipScan(manifest, descriptor) {
+		h.putManifestAsyncTask(ctx, artifactObj)
+	}
 
 	return nil
+}
+
+func skipScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
+	if len(manifest.References()) == 2 {
+		descriptor := manifest.References()[1]
+		if descriptor.MediaType == "application/vnd.in-toto+json" &&
+			descriptor.Annotations != nil && descriptor.Annotations["in-toto.io/predicate-type"] != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // putManifestIndex handles the manifest index request
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
+func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) *xerrors.ErrCode {
 	artifactService := h.artifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {

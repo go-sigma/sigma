@@ -303,12 +303,12 @@ func (s *artifactService) DeleteByIDs(ctx context.Context, ids []int64) error {
 
 // SaveSbom save a new artifact sbom if conflict do nothing.
 func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
-	return s.tx.ArtifactSbom.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(sbom)
+	return s.tx.ArtifactSbom.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(sbom)
 }
 
 // SaveVulnerability save a new artifact vulnerability if conflict do nothing.
 func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
-	return s.tx.ArtifactVulnerability.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(vulnerability)
+	return s.tx.ArtifactVulnerability.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(vulnerability)
 }
 
 // UpdateSbomStatus update the artifact sbom status.

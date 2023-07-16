@@ -42,7 +42,7 @@ import (
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param namespace path string true "namespace"
 // @Param repository query string false "repository"
-// @Param name query string false "search repository with name"
+// @Param name query string false "search tag with name"
 // @Success 200 {object} types.CommonList{items=[]types.TagItem}
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
@@ -94,14 +94,42 @@ func (h *handlers) ListTag(c echo.Context) error {
 		if tag.Artifact == nil {
 			log.Error().Str("image", fmt.Sprintf("%s:%s", repositoryObj.Name, tag.Name)).Msg("Some tag's artifact reference invalid")
 		}
+		var artifacts []types.TagItemArtifact
+		for _, item := range tag.Artifact.ArtifactIndexes {
+			artifacts = append(artifacts, types.TagItemArtifact{
+				ID:            item.ID,
+				Digest:        item.Digest,
+				Raw:           string(item.Raw),
+				ConfigRaw:     string(item.ConfigRaw),
+				Size:          item.Size,
+				BlobSize:      item.BlobsSize,
+				LastPull:      item.LastPull.Time.Format(consts.DefaultTimePattern),
+				PushedAt:      item.PushedAt.Format(consts.DefaultTimePattern),
+				Vulnerability: string(item.Vulnerability.Result),
+				Sbom:          string(item.Sbom.Result),
+				CreatedAt:     item.CreatedAt.Format(consts.DefaultTimePattern),
+				UpdatedAt:     item.UpdatedAt.Format(consts.DefaultTimePattern),
+			})
+		}
 		resp = append(resp, types.TagItem{
-			ID:        tag.ID,
-			Name:      tag.Name,
-			LastPull:  tag.LastPull.Time.Format(consts.DefaultTimePattern),
-			PullTimes: tag.PullTimes,
+			ID:   tag.ID,
+			Name: tag.Name,
+			Artifact: types.TagItemArtifact{
+				ID:            tag.Artifact.ID,
+				Digest:        tag.Artifact.Digest,
+				Raw:           string(tag.Artifact.Raw),
+				ConfigRaw:     string(tag.Artifact.ConfigRaw),
+				Size:          tag.Artifact.Size,
+				BlobSize:      tag.Artifact.BlobsSize,
+				LastPull:      tag.Artifact.LastPull.Time.Format(consts.DefaultTimePattern),
+				PushedAt:      tag.Artifact.PushedAt.Format(consts.DefaultTimePattern),
+				Vulnerability: string(tag.Artifact.Vulnerability.Result),
+				Sbom:          string(tag.Artifact.Sbom.Result),
+				CreatedAt:     tag.Artifact.CreatedAt.Format(consts.DefaultTimePattern),
+				UpdatedAt:     tag.Artifact.UpdatedAt.Format(consts.DefaultTimePattern),
+			},
+			Artifacts: artifacts,
 			PushedAt:  tag.PushedAt.Format(consts.DefaultTimePattern),
-			Digest:    tag.Artifact.Digest,
-			Size:      tag.Artifact.BlobsSize,
 			CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

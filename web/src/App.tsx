@@ -26,7 +26,6 @@ import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 import Tag from "./pages/Tag";
-import Artifact from "./pages/Artifact";
 
 import { setupResponseInterceptor } from './utils/request'
 
@@ -64,7 +63,6 @@ export default function App() {
         <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/artifact" element={<Artifact localServer={localServer} />} />
         <Route path="/namespaces/:namespace/tags" element={<Tag localServer={localServer} />} />
         <Route path="/about" element={<About />} />
       </Routes>

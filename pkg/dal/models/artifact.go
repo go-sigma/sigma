@@ -32,18 +32,22 @@ type Artifact struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	RepositoryID int64
-	Digest       string
-	Size         int64 `gorm:"default:0"`
-	BlobsSize    int64 `gorm:"default:0"`
-	ContentType  string
-	Raw          []byte
+	RepositoryID    int64
+	Digest          string
+	Size            int64 `gorm:"default:0"`
+	BlobsSize       int64 `gorm:"default:0"`
+	ContentType     string
+	Raw             []byte
+	ConfigRaw       []byte
+	ConfigMediaType *string
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"autoCreateTime"`
 	PullTimes int64     `gorm:"default:0"`
 
-	Repository Repository
+	Repository    Repository
+	Vulnerability ArtifactVulnerability `gorm:"foreignKey:ArtifactID;"`
+	Sbom          ArtifactSbom          `gorm:"foreignKey:ArtifactID;"`
 
 	ArtifactIndexes []*Artifact `gorm:"many2many:artifact_artifacts;"`
 	Blobs           []*Blob     `gorm:"many2many:artifact_blobs;"`
@@ -145,6 +149,7 @@ type ArtifactSbom struct {
 
 	ArtifactID int64
 	Raw        []byte
+	Result     []byte
 	Status     enums.TaskCommonStatus
 	Stdout     []byte
 	Stderr     []byte
@@ -163,6 +168,7 @@ type ArtifactVulnerability struct {
 	ArtifactID int64
 	Metadata   []byte // is the trivy db metadata
 	Raw        []byte
+	Result     []byte
 	Status     enums.TaskCommonStatus
 	Stdout     []byte
 	Stderr     []byte

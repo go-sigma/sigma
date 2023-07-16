@@ -48,17 +48,6 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `repository_tags` (
-  `id` integer PRIMARY KEY AUTOINCREMENT,
-  `name` varchar(64) NOT NULL,
-  `repository_id` integer NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
-  `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
-  CONSTRAINT `repository_tags_unique_with_repository` UNIQUE (`repository_id`, `name`, `deleted_at`)
-);
-
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `repository_id` integer NOT NULL,
@@ -67,6 +56,8 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `blobs_size` integer NOT NULL DEFAULT 0,
   `content_type` varchar(256) NOT NULL,
   `raw` BLOB NOT NULL,
+  `config_raw` BLOB,
+  `config_media_type` varchar(256),
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
@@ -81,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `artifact_id` integer NOT NULL,
   `raw` BLOB,
+  `result` BLOB,
   `status` varchar(64) NOT NULL,
   `stdout` BLOB,
   `stderr` BLOB,
@@ -97,6 +89,7 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `artifact_id` integer NOT NULL,
   `metadata` BLOB,
   `raw` BLOB,
+  `result` BLOB,
   `status` varchar(64) NOT NULL,
   `stdout` BLOB,
   `stderr` BLOB,

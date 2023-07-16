@@ -15,12 +15,14 @@
  */
 
 import axios from "axios";
+import dayjs from 'dayjs';
+import { Tooltip } from 'flowbite';
 import { useParams } from 'react-router-dom';
+import { useCopyToClipboard } from 'react-use';
 import { useSearchParams } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import dayjs from 'dayjs';
 
 import Settings from "../../Settings";
 import Menu from "../../components/Menu";
@@ -28,8 +30,8 @@ import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 
-import TableItem from "./TableItem";
 import "./index.css";
+import TableItem from "./TableItem";
 
 import { ITag, ITagList, IHTTPError } from "../../interfaces";
 
@@ -37,17 +39,19 @@ export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
   const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);
-  const [searchRepository, setSearchRepository] = useState("");
+  const [searchTag, setSearchTag] = useState("");
   const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository = searchParams.get('repository');
 
-  useEffect(() => {
+  const [, copyToClipboard] = useCopyToClipboard();
+
+  const fetchTags = () => {
     let url = localServer + `/api/v1/namespaces/${namespace}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}`;
-    if (searchRepository !== "") {
-      url += `&name=${searchRepository}`;
+    if (searchTag !== "") {
+      url += `&name=${searchTag}`;
     }
     axios.get(url).then(response => {
       if (response.status === 200) {
@@ -62,7 +66,19 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [refresh, page]);
+  }
+
+  useEffect(fetchTags, [refresh, page]);
+
+  const imageDomain = () => {
+    if (localServer.startsWith("http://")) {
+      return localServer.substring(7);
+    } else if (localServer.startsWith("https://")) {
+      return localServer.substring(8)
+    } else {
+      return localServer;
+    }
+  }
 
   return (
     <Fragment>
@@ -71,56 +87,116 @@ export default function Tag({ localServer }: { localServer: string }) {
           <title>XImager - Tag</title>
         </Helmet>
       </HelmetProvider>
+      <div
+        id={"tooltip-top-content"}
+        role="tooltip"
+        className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+        Copied!
+        <div className="tooltip-arrow" data-popper-arrow></div>
+      </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
         <Menu item="Tag" />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
+        <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
+          <main className="">
             <Header title="Tag" />
-            <div className="hidden sm:block">
-              <div className="align-middle inline-block min-w-full border-b border-gray-200">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-gray-200">
-                      <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 tracking-wider capitalize">
-                        <span className="lg:pl-2">Tag</span>
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Digest
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Size
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Last pull
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Pull Times
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Pushed At
-                      </th>
-                      <th className="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider whitespace-nowrap">
-                        Command
-                      </th>
-                      <th className="pr-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 capitalize tracking-wider">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {
-                      tagList.items?.map((tag, index) => {
-                        return (
-                          <TableItem key={tag.id} localServer={localServer} index={index} namespace={namespace as string} repository={repository as string} tag={tag} setRefresh={setRefresh} />
-                        );
-                      })
-                    }
-                  </tbody>
-                </table>
+            <div className="pt-2 pb-2 flex">
+              <div className="pr-2 pl-2">
+                <div className="flex gap-4">
+                  <div className="relative mt-2 flex items-center">
+                    <label
+                      htmlFor="tagSearch"
+                      className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900"
+                    >
+                      Tag
+                    </label>
+                    <input
+                      type="text"
+                      id="tagSearch"
+                      placeholder="search tag"
+                      value={searchTag}
+                      onChange={e => { setSearchTag(e.target.value); }}
+                      onKeyDown={e => { if (e.key == "Enter") { fetchTags() } }}
+                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                      <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">
+                        enter
+                      </kbd>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </main>
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex flex-col border-b border-gray-200">
+              {
+                tagList.items?.map((tag, index) => {
+                  return (
+                    <div key={tag.id} className="p-4 border-t border-gray-200 hover:shadow-md last:hover:shadow-none">
+                      {/* first row begin */}
+                      <div className="flex">
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-600">
+                            {tag.name}
+                          </span>
+                        </div>
+                        <div>
+                          <code className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
+                            id={"tooltip-top-btn-" + index}
+                            onClick={e => {
+                              copyToClipboard(`docker pull ${imageDomain()}/${repository}:${tag.name}`);
+                              let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
+                                document.getElementById("tooltip-top-btn-" + index.toString()), { triggerType: "click" });
+                              tooltip.show();
+                            }}
+                          >docker pull {imageDomain()}/{repository}:{tag.name}</code>
+                        </div>
+                      </div>
+                      {/* first row end */}
+
+                      {/* second row begin */}
+                      <div className="text-sm text-gray-600">
+                        Last pushed <span className="font-semibold">{dayjs().to(dayjs(tag.pushed_at))}</span>
+                      </div>
+                      {/* second row end */}
+
+                      {/* third row begin */}
+                      <table className="min-w-full">
+                        <thead>
+                          <tr className="">
+                            <th className="pt-5 pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Digest
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Os/Arch
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Size
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Last pull
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Pull Times
+                            </th>
+                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Vulnerabilities
+                            </th>
+                          </tr>
+                        </thead>
+                        <TableItem namespace={namespace || ""} repository={repository || ""} artifact={tag.artifact} artifacts={tag.artifacts} />
+                      </table>
+                      {/* third row end */}
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
-    </Fragment >
+    </Fragment>
   )
 }

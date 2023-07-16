@@ -86,11 +86,11 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	artifactGroup := e.Group(consts.APIV1+"/namespace/:namespace/artifact", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	artifactGroup := e.Group(consts.APIV1+"/namespaces/:namespace/artifacts", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	artifactHandler := handlerNew()
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
-	artifactGroup.GET("/:id", artifactHandler.GetArtifact)
-	artifactGroup.DELETE("/:id", artifactHandler.DeleteArtifact)
+	artifactGroup.GET("/:digest", artifactHandler.GetArtifact)
+	artifactGroup.DELETE("/:digest", artifactHandler.DeleteArtifact)
 	return nil
 }
 

@@ -46,9 +46,6 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 			Namespace struct {
 				field.RelationField
 			}
-			Tags struct {
-				field.RelationField
-			}
 		}{
 			RelationField: field.NewRelation("Artifacts.Repository", "models.Repository"),
 			Namespace: struct {
@@ -56,10 +53,31 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 			}{
 				RelationField: field.NewRelation("Artifacts.Repository.Namespace", "models.Namespace"),
 			},
-			Tags: struct {
+		},
+		Vulnerability: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifacts.Vulnerability", "models.ArtifactVulnerability"),
+			Artifact: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Artifacts.Repository.Tags", "models.RepositoryTag"),
+				RelationField: field.NewRelation("Artifacts.Vulnerability.Artifact", "models.Artifact"),
+			},
+		},
+		Sbom: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifacts.Sbom", "models.ArtifactSbom"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifacts.Sbom.Artifact", "models.Artifact"),
 			},
 		},
 		Tags: struct {
@@ -207,7 +225,16 @@ type blobManyToManyArtifacts struct {
 		Namespace struct {
 			field.RelationField
 		}
-		Tags struct {
+	}
+	Vulnerability struct {
+		field.RelationField
+		Artifact struct {
+			field.RelationField
+		}
+	}
+	Sbom struct {
+		field.RelationField
+		Artifact struct {
 			field.RelationField
 		}
 	}

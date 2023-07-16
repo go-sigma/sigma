@@ -37,41 +37,40 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.BlobsSize = field.NewInt64(tableName, "blobs_size")
 	_artifact.ContentType = field.NewString(tableName, "content_type")
 	_artifact.Raw = field.NewBytes(tableName, "raw")
+	_artifact.ConfigRaw = field.NewBytes(tableName, "config_raw")
+	_artifact.ConfigMediaType = field.NewString(tableName, "config_media_type")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
-	_artifact.Tags = artifactHasManyTags{
+	_artifact.Vulnerability = artifactHasOneVulnerability{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Tags", "models.Tag"),
-		Repository: struct {
-			field.RelationField
-			Namespace struct {
-				field.RelationField
-			}
-			Tags struct {
-				field.RelationField
-			}
-		}{
-			RelationField: field.NewRelation("Tags.Repository", "models.Repository"),
-			Namespace: struct {
-				field.RelationField
-			}{
-				RelationField: field.NewRelation("Tags.Repository.Namespace", "models.Namespace"),
-			},
-			Tags: struct {
-				field.RelationField
-			}{
-				RelationField: field.NewRelation("Tags.Repository.Tags", "models.RepositoryTag"),
-			},
-		},
+		RelationField: field.NewRelation("Vulnerability", "models.ArtifactVulnerability"),
 		Artifact: struct {
 			field.RelationField
 			Repository struct {
 				field.RelationField
+				Namespace struct {
+					field.RelationField
+				}
+			}
+			Vulnerability struct {
+				field.RelationField
+			}
+			Sbom struct {
+				field.RelationField
+				Artifact struct {
+					field.RelationField
+				}
 			}
 			Tags struct {
 				field.RelationField
+				Repository struct {
+					field.RelationField
+				}
+				Artifact struct {
+					field.RelationField
+				}
 			}
 			ArtifactIndexes struct {
 				field.RelationField
@@ -83,21 +82,63 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				}
 			}
 		}{
-			RelationField: field.NewRelation("Tags.Artifact", "models.Artifact"),
+			RelationField: field.NewRelation("Vulnerability.Artifact", "models.Artifact"),
 			Repository: struct {
 				field.RelationField
+				Namespace struct {
+					field.RelationField
+				}
 			}{
-				RelationField: field.NewRelation("Tags.Artifact.Repository", "models.Repository"),
+				RelationField: field.NewRelation("Vulnerability.Artifact.Repository", "models.Repository"),
+				Namespace: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Namespace", "models.Namespace"),
+				},
+			},
+			Vulnerability: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Vulnerability.Artifact.Vulnerability", "models.ArtifactVulnerability"),
+			},
+			Sbom: struct {
+				field.RelationField
+				Artifact struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Vulnerability.Artifact.Sbom", "models.ArtifactSbom"),
+				Artifact: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Vulnerability.Artifact.Sbom.Artifact", "models.Artifact"),
+				},
 			},
 			Tags: struct {
 				field.RelationField
+				Repository struct {
+					field.RelationField
+				}
+				Artifact struct {
+					field.RelationField
+				}
 			}{
-				RelationField: field.NewRelation("Tags.Artifact.Tags", "models.Tag"),
+				RelationField: field.NewRelation("Vulnerability.Artifact.Tags", "models.Tag"),
+				Repository: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Vulnerability.Artifact.Tags.Repository", "models.Repository"),
+				},
+				Artifact: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Vulnerability.Artifact.Tags.Artifact", "models.Artifact"),
+				},
 			},
 			ArtifactIndexes: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Tags.Artifact.ArtifactIndexes", "models.Artifact"),
+				RelationField: field.NewRelation("Vulnerability.Artifact.ArtifactIndexes", "models.Artifact"),
 			},
 			Blobs: struct {
 				field.RelationField
@@ -105,14 +146,26 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					field.RelationField
 				}
 			}{
-				RelationField: field.NewRelation("Tags.Artifact.Blobs", "models.Blob"),
+				RelationField: field.NewRelation("Vulnerability.Artifact.Blobs", "models.Blob"),
 				Artifacts: struct {
 					field.RelationField
 				}{
-					RelationField: field.NewRelation("Tags.Artifact.Blobs.Artifacts", "models.Artifact"),
+					RelationField: field.NewRelation("Vulnerability.Artifact.Blobs.Artifacts", "models.Artifact"),
 				},
 			},
 		},
+	}
+
+	_artifact.Sbom = artifactHasOneSbom{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Sbom", "models.ArtifactSbom"),
+	}
+
+	_artifact.Tags = artifactHasManyTags{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Tags", "models.Tag"),
 	}
 
 	_artifact.Repository = artifactBelongsToRepository{
@@ -141,21 +194,27 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 type artifact struct {
 	artifactDo artifactDo
 
-	ALL          field.Asterisk
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
-	DeletedAt    field.Uint
-	ID           field.Int64
-	RepositoryID field.Int64
-	Digest       field.String
-	Size         field.Int64
-	BlobsSize    field.Int64
-	ContentType  field.String
-	Raw          field.Bytes
-	LastPull     field.Field
-	PushedAt     field.Time
-	PullTimes    field.Int64
-	Tags         artifactHasManyTags
+	ALL             field.Asterisk
+	CreatedAt       field.Time
+	UpdatedAt       field.Time
+	DeletedAt       field.Uint
+	ID              field.Int64
+	RepositoryID    field.Int64
+	Digest          field.String
+	Size            field.Int64
+	BlobsSize       field.Int64
+	ContentType     field.String
+	Raw             field.Bytes
+	ConfigRaw       field.Bytes
+	ConfigMediaType field.String
+	LastPull        field.Field
+	PushedAt        field.Time
+	PullTimes       field.Int64
+	Vulnerability   artifactHasOneVulnerability
+
+	Sbom artifactHasOneSbom
+
+	Tags artifactHasManyTags
 
 	Repository artifactBelongsToRepository
 
@@ -188,6 +247,8 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.BlobsSize = field.NewInt64(table, "blobs_size")
 	a.ContentType = field.NewString(table, "content_type")
 	a.Raw = field.NewBytes(table, "raw")
+	a.ConfigRaw = field.NewBytes(table, "config_raw")
+	a.ConfigMediaType = field.NewString(table, "config_media_type")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
 	a.PullTimes = field.NewInt64(table, "pull_times")
@@ -215,7 +276,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 17)
+	a.fieldMap = make(map[string]field.Expr, 21)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -226,6 +287,8 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["blobs_size"] = a.BlobsSize
 	a.fieldMap["content_type"] = a.ContentType
 	a.fieldMap["raw"] = a.Raw
+	a.fieldMap["config_raw"] = a.ConfigRaw
+	a.fieldMap["config_media_type"] = a.ConfigMediaType
 	a.fieldMap["last_pull"] = a.LastPull
 	a.fieldMap["pushed_at"] = a.PushedAt
 	a.fieldMap["pull_times"] = a.PullTimes
@@ -242,27 +305,36 @@ func (a artifact) replaceDB(db *gorm.DB) artifact {
 	return a
 }
 
-type artifactHasManyTags struct {
+type artifactHasOneVulnerability struct {
 	db *gorm.DB
 
 	field.RelationField
 
-	Repository struct {
-		field.RelationField
-		Namespace struct {
-			field.RelationField
-		}
-		Tags struct {
-			field.RelationField
-		}
-	}
 	Artifact struct {
 		field.RelationField
 		Repository struct {
 			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
+		}
+		Vulnerability struct {
+			field.RelationField
+		}
+		Sbom struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
 		}
 		Tags struct {
 			field.RelationField
+			Repository struct {
+				field.RelationField
+			}
+			Artifact struct {
+				field.RelationField
+			}
 		}
 		ArtifactIndexes struct {
 			field.RelationField
@@ -274,6 +346,148 @@ type artifactHasManyTags struct {
 			}
 		}
 	}
+}
+
+func (a artifactHasOneVulnerability) Where(conds ...field.Expr) *artifactHasOneVulnerability {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a artifactHasOneVulnerability) WithContext(ctx context.Context) *artifactHasOneVulnerability {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactHasOneVulnerability) Session(session *gorm.Session) *artifactHasOneVulnerability {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a artifactHasOneVulnerability) Model(m *models.Artifact) *artifactHasOneVulnerabilityTx {
+	return &artifactHasOneVulnerabilityTx{a.db.Model(m).Association(a.Name())}
+}
+
+type artifactHasOneVulnerabilityTx struct{ tx *gorm.Association }
+
+func (a artifactHasOneVulnerabilityTx) Find() (result *models.ArtifactVulnerability, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a artifactHasOneVulnerabilityTx) Append(values ...*models.ArtifactVulnerability) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a artifactHasOneVulnerabilityTx) Replace(values ...*models.ArtifactVulnerability) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a artifactHasOneVulnerabilityTx) Delete(values ...*models.ArtifactVulnerability) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a artifactHasOneVulnerabilityTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a artifactHasOneVulnerabilityTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type artifactHasOneSbom struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a artifactHasOneSbom) Where(conds ...field.Expr) *artifactHasOneSbom {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a artifactHasOneSbom) WithContext(ctx context.Context) *artifactHasOneSbom {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactHasOneSbom) Session(session *gorm.Session) *artifactHasOneSbom {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a artifactHasOneSbom) Model(m *models.Artifact) *artifactHasOneSbomTx {
+	return &artifactHasOneSbomTx{a.db.Model(m).Association(a.Name())}
+}
+
+type artifactHasOneSbomTx struct{ tx *gorm.Association }
+
+func (a artifactHasOneSbomTx) Find() (result *models.ArtifactSbom, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a artifactHasOneSbomTx) Append(values ...*models.ArtifactSbom) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a artifactHasOneSbomTx) Replace(values ...*models.ArtifactSbom) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a artifactHasOneSbomTx) Delete(values ...*models.ArtifactSbom) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a artifactHasOneSbomTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a artifactHasOneSbomTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type artifactHasManyTags struct {
+	db *gorm.DB
+
+	field.RelationField
 }
 
 func (a artifactHasManyTags) Where(conds ...field.Expr) *artifactHasManyTags {

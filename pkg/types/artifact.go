@@ -16,13 +16,16 @@ package types
 
 // ArtifactItem represents an artifact.
 type ArtifactItem struct {
-	ID        int64    `json:"id"`
-	Digest    string   `json:"digest"`
-	Size      int64    `json:"size"`
-	Tags      []string `json:"tags"`
-	TagCount  int64    `json:"tag_count"`
-	CreatedAt string   `json:"created_at"`
-	UpdatedAt string   `json:"updated_at"`
+	ID        int64  `json:"id"`
+	Digest    string `json:"digest"`
+	ConfigRaw string `json:"config_raw"`
+	Size      int64  `json:"size"`
+	BlobSize  int64  `json:"blob_size"`
+	LastPull  string `json:"last_pull"`
+	PushedAt  string `json:"pushed_at"`
+	PullTimes int64  `json:"pull_times"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 // ListArtifactRequest represents the request to list artifacts.

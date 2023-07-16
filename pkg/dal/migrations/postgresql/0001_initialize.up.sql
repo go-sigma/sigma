@@ -58,17 +58,6 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   CONSTRAINT "repositories_unique_with_namespace" UNIQUE ("namespace_id", "name", "deleted_at")
 );
 
-CREATE TABLE IF NOT EXISTS "repository_tags" (
-  "id" bigserial PRIMARY KEY,
-  "name" varchar(64) NOT NULL,
-  "repository_id" bigint NOT NULL,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
-  "deleted_at" bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
-  CONSTRAINT "repository_tags_unique_with_repository" UNIQUE ("repository_id", "name", "deleted_at")
-);
-
 CREATE TABLE IF NOT EXISTS "artifacts" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigserial NOT NULL,
@@ -77,6 +66,8 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "blobs_size" bigint NOT NULL DEFAULT 0,
   "content_type" varchar(256) NOT NULL,
   "raw" bytea NOT NULL,
+  "config_raw" bytea,
+  "config_media_type" varchar(256),
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,
@@ -91,6 +82,7 @@ CREATE TABLE IF NOT EXISTS "artifact_sboms" (
   "id" bigserial PRIMARY KEY,
   "artifact_id" bigserial NOT NULL,
   "raw" bytea,
+  "result" bytea,
   "status" varchar(64) NOT NULL,
   "stdout" bytea,
   "stderr" bytea,
@@ -107,6 +99,7 @@ CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   "artifact_id" bigserial NOT NULL,
   "metadata" bytea,
   "raw" bytea,
+  "result" bytea,
   "status" varchar(64) NOT NULL,
   "stdout" bytea,
   "stderr" bytea,

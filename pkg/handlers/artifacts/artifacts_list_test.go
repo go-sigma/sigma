@@ -148,27 +148,13 @@ func TestListArtifact(t *testing.T) {
 	}).Times(3)
 	daoMockArtifactService.EXPECT().CountArtifact(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ types.ListArtifactRequest) (int64, error) {
 		return 0, fmt.Errorf("test")
-	}).Times(1)
+	}).Times(2)
 	daoMockArtifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
 	daoMockArtifactServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.ArtifactService {
 		return daoMockArtifactService
 	}).Times(3)
 
-	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagServiceTimes := 0
-	daoMockTagService.EXPECT().CountByArtifact(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ []int64) (map[int64]int64, error) {
-		daoMockTagServiceTimes++
-		if daoMockTagServiceTimes == 1 {
-			return nil, fmt.Errorf("test")
-		}
-		return map[int64]int64{1: 1}, nil
-	}).Times(2)
-	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
-	daoMockTagServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.TagService {
-		return daoMockTagService
-	}).Times(2)
-
-	artifactHandler = handlerNew(inject{artifactServiceFactory: daoMockArtifactServiceFactory, tagServiceFactory: daoMockTagServiceFactory})
+	artifactHandler = handlerNew(inject{artifactServiceFactory: daoMockArtifactServiceFactory})
 
 	q = make(url.Values)
 	q.Set("repository", "test/busybox")

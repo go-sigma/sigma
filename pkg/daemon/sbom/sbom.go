@@ -17,10 +17,13 @@ package sbom
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 
+	syftTypes "github.com/anchore/syft/syft/formats/syftjson/model"
+	"github.com/anchore/syft/syft/source"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
@@ -35,15 +38,38 @@ func init() {
 	utils.PanicIf(daemon.RegisterTask(enums.DaemonSbom, daemon.DecoratorArtifact(runner)))
 }
 
+// ReportDistro ...
+type ReportDistro struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+// Report ...
+type Report struct {
+	Distro       ReportDistro `json:"distro"`
+	Os           string       `json:"os"`
+	Architecture string       `json:"architecture"`
+}
+
 func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
 	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
-	image := fmt.Sprintf("192.168.31.198:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
+	image := fmt.Sprintf("192.168.31.200:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
 	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, image)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+
+	log.Info().Str("artifactDigest", artifact.Digest).Msg("Start sbom artifact")
+
+	defer func() {
+		err := os.Remove(filename)
+		if err != nil {
+			log.Warn().Err(err).Msg("Remove file failed")
+		}
+	}()
+
 	err := cmd.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Run syft failed")
@@ -57,12 +83,48 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 		return err
 	}
 
-	defer func() {
-		err := os.Remove(filename)
-		if err != nil {
-			log.Warn().Err(err).Msg("Remove file failed")
+	var syftObj syftTypes.Document
+	fileContent, err := os.Open(filename)
+	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Open sbom file failed")
+		statusChan <- daemon.DecoratorArtifactStatus{
+			Daemon:  enums.DaemonSbom,
+			Status:  enums.TaskCommonStatusFailed,
+			Stdout:  []byte(""),
+			Stderr:  []byte(""),
+			Message: fmt.Sprintf("Open sbom file(%s) failed: %v", filename, err),
 		}
-	}()
+		return err
+	}
+	err = json.NewDecoder(fileContent).Decode(&syftObj)
+	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Decode sbom file failed")
+		statusChan <- daemon.DecoratorArtifactStatus{
+			Daemon:  enums.DaemonSbom,
+			Status:  enums.TaskCommonStatusFailed,
+			Stdout:  []byte(""),
+			Stderr:  []byte(""),
+			Message: fmt.Sprintf("Decode sbom file(%s) failed: %v", filename, err),
+		}
+		return err
+	}
+	var report = Report{
+		Distro: ReportDistro{
+			Name:    syftObj.Distro.ID,
+			Version: syftObj.Distro.VersionID,
+		},
+	}
+	syftMetadata, ok := syftObj.Source.Metadata.(source.StereoscopeImageSourceMetadata)
+	if ok {
+		report.Os = syftMetadata.OS
+		report.Architecture = syftMetadata.Architecture
+	}
+	reportBytes, err := json.Marshal(report)
+	if err != nil {
+		log.Error().Err(err).Msg("Marshal report failed")
+		statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonVulnerability, Status: enums.TaskCommonStatusFailed, Message: err.Error()}
+		return err
+	}
 
 	compressed, err := compress.Compress(filename)
 	if err != nil {
@@ -71,7 +133,9 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 		return err
 	}
 
-	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusSuccess, Message: "", Raw: compressed}
+	log.Info().Str("artifactDigest", artifact.Digest).Msg("Success sbom artifact")
+
+	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusSuccess, Message: "", Raw: compressed, Result: reportBytes}
 
 	return nil
 }

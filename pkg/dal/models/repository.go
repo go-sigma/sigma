@@ -42,18 +42,6 @@ type Repository struct {
 	Size        int64            `gorm:"default:0"`
 
 	Namespace Namespace
-	Tags      []*RepositoryTag
-}
-
-// RepositoryTag represents repository tags
-type RepositoryTag struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        int64                 `gorm:"primaryKey"`
-
-	Name         string
-	RepositoryID int64
 }
 
 // BeforeCreate ...

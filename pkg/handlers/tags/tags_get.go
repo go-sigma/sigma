@@ -60,9 +60,43 @@ func (h *handlers) GetTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
+	var artifacts = make([]types.TagItemArtifact, 0, len(tag.Artifact.ArtifactIndexes))
+	for _, item := range tag.Artifact.ArtifactIndexes {
+		artifacts = append(artifacts, types.TagItemArtifact{
+			ID:            item.ID,
+			Digest:        item.Digest,
+			Raw:           string(item.Raw),
+			ConfigRaw:     string(item.ConfigRaw),
+			Size:          item.Size,
+			BlobSize:      item.BlobsSize,
+			LastPull:      item.LastPull.Time.Format(consts.DefaultTimePattern),
+			PushedAt:      item.PushedAt.Format(consts.DefaultTimePattern),
+			Vulnerability: string(item.Vulnerability.Result),
+			Sbom:          string(item.Sbom.Result),
+			CreatedAt:     item.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:     item.UpdatedAt.Format(consts.DefaultTimePattern),
+		})
+	}
+
 	return c.JSON(200, types.TagItem{
-		ID:        tag.ID,
-		Name:      tag.Name,
+		ID:   tag.ID,
+		Name: tag.Name,
+		Artifact: types.TagItemArtifact{
+			ID:            tag.Artifact.ID,
+			Digest:        tag.Artifact.Digest,
+			Raw:           string(tag.Artifact.Raw),
+			ConfigRaw:     string(tag.Artifact.ConfigRaw),
+			Size:          tag.Artifact.Size,
+			BlobSize:      tag.Artifact.BlobsSize,
+			LastPull:      tag.Artifact.LastPull.Time.Format(consts.DefaultTimePattern),
+			PushedAt:      tag.Artifact.PushedAt.Format(consts.DefaultTimePattern),
+			Vulnerability: string(tag.Artifact.Vulnerability.Result),
+			Sbom:          string(tag.Artifact.Sbom.Result),
+			CreatedAt:     tag.Artifact.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:     tag.Artifact.UpdatedAt.Format(consts.DefaultTimePattern),
+		},
+		Artifacts: artifacts,
+		PushedAt:  tag.PushedAt.Format(consts.DefaultTimePattern),
 		CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

@@ -88,16 +88,8 @@ func (a *Tag) AfterDelete(tx *gorm.DB) error {
 		return nil
 	}
 
-	var filter = &Tag{}
-	if a.ID != 0 {
-		filter.ID = a.ID
-	} else if a.Name != "" && a.RepositoryID != 0 {
-		filter.Name = a.Name
-		filter.RepositoryID = a.RepositoryID
-	}
-
 	var tagObj Tag
-	err := tx.Unscoped().Model(&Tag{}).Where(filter).First(&tagObj).Error
+	err := tx.Unscoped().Model(&Tag{}).Where(&Repository{ID: a.RepositoryID}).First(&tagObj).Error
 	if err != nil {
 		return err
 	}

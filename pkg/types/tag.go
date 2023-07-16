@@ -14,17 +14,32 @@
 
 package types
 
+// TagItemArtifact ...
+type TagItemArtifact struct {
+	ID            int64  `json:"id"`
+	Digest        string `json:"digest"`
+	Raw           string `json:"raw"`
+	ConfigRaw     string `json:"config_raw"`
+	Size          int64  `json:"size"`
+	BlobSize      int64  `json:"blob_size"`
+	LastPull      string `json:"last_pull"`
+	PushedAt      string `json:"pushed_at"`
+	PullTimes     int64  `json:"pull_times"`
+	Vulnerability string `json:"vulnerability"`
+	Sbom          string `json:"sbom"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
 // TagItem represents an tag.
 type TagItem struct {
-	ID        int64  `json:"id"`
-	Name      string `json:"name"`
-	LastPull  string `json:"last_pull"`
-	PushedAt  string `json:"pushed_at"`
-	PullTimes int64  `json:"pull_times"`
-	Digest    string `json:"digest"`
-	Size      int64  `json:"size"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID        int64             `json:"id"`
+	Name      string            `json:"name"`
+	PushedAt  string            `json:"pushed_at"`
+	Artifact  TagItemArtifact   `json:"artifact"`
+	Artifacts []TagItemArtifact `json:"artifacts"`
+	CreatedAt string            `json:"created_at"`
+	UpdatedAt string            `json:"updated_at"`
 }
 
 // ListTagRequest represents the request to list tags.

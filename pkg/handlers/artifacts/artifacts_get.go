@@ -50,7 +50,7 @@ func (h *handlers) GetArtifact(c echo.Context) error {
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	tag, err := artifactService.GetByDigest(ctx, repositoryObj.ID, req.Digest)
+	artifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, req.Digest)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("Artifact not found")
@@ -61,10 +61,15 @@ func (h *handlers) GetArtifact(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.ArtifactItem{
-		ID:        tag.ID,
-		Digest:    tag.Digest,
-		Size:      tag.Size,
-		CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:        artifactObj.ID,
+		Digest:    artifactObj.Digest,
+		ConfigRaw: string(artifactObj.ConfigRaw),
+		Size:      artifactObj.Size,
+		BlobSize:  artifactObj.BlobsSize,
+		PullTimes: artifactObj.PullTimes,
+		LastPull:  artifactObj.LastPull.Time.Format(consts.DefaultTimePattern),
+		PushedAt:  artifactObj.PushedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: artifactObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt: artifactObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
