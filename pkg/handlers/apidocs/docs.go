@@ -668,7 +668,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "search repository with name",
+                        "description": "search tag with name",
                         "name": "name",
                         "in": "query"
                     }
@@ -1153,6 +1153,41 @@ const docTemplate = `{
         "types.TagItem": {
             "type": "object",
             "properties": {
+                "artifact": {
+                    "$ref": "#/definitions/types.TagItemArtifact"
+                },
+                "artifacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.TagItemArtifact"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pushed_at": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.TagItemArtifact": {
+            "type": "object",
+            "properties": {
+                "blob_size": {
+                    "type": "integer"
+                },
+                "config_raw": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -1165,19 +1200,25 @@ const docTemplate = `{
                 "last_pull": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                },
                 "pull_times": {
                     "type": "integer"
                 },
                 "pushed_at": {
                     "type": "string"
                 },
+                "raw": {
+                    "type": "string"
+                },
+                "sbom": {
+                    "type": "string"
+                },
                 "size": {
                     "type": "integer"
                 },
                 "updated_at": {
+                    "type": "string"
+                },
+                "vulnerability": {
                     "type": "string"
                 }
             }

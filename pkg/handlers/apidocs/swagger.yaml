@@ -201,6 +201,29 @@ definitions:
     type: object
   types.TagItem:
     properties:
+      artifact:
+        $ref: '#/definitions/types.TagItemArtifact'
+      artifacts:
+        items:
+          $ref: '#/definitions/types.TagItemArtifact'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      pushed_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  types.TagItemArtifact:
+    properties:
+      blob_size:
+        type: integer
+      config_raw:
+        type: string
       created_at:
         type: string
       digest:
@@ -209,15 +232,19 @@ definitions:
         type: integer
       last_pull:
         type: string
-      name:
-        type: string
       pull_times:
         type: integer
       pushed_at:
         type: string
+      raw:
+        type: string
+      sbom:
+        type: string
       size:
         type: integer
       updated_at:
+        type: string
+      vulnerability:
         type: string
     type: object
   xerrors.ErrCode:
@@ -664,7 +691,7 @@ paths:
         in: query
         name: repository
         type: string
-      - description: search repository with name
+      - description: search tag with name
         in: query
         name: name
         type: string
