@@ -34,6 +34,7 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 	_artifactVulnerability.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_artifactVulnerability.Metadata = field.NewBytes(tableName, "metadata")
 	_artifactVulnerability.Raw = field.NewBytes(tableName, "raw")
+	_artifactVulnerability.Result = field.NewBytes(tableName, "result")
 	_artifactVulnerability.Status = field.NewField(tableName, "status")
 	_artifactVulnerability.Stdout = field.NewBytes(tableName, "stdout")
 	_artifactVulnerability.Stderr = field.NewBytes(tableName, "stderr")
@@ -53,6 +54,32 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Namespace", "models.Namespace"),
+			},
+		},
+		Vulnerability: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Vulnerability", "models.ArtifactVulnerability"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Vulnerability.Artifact", "models.Artifact"),
+			},
+		},
+		Sbom: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Sbom", "models.ArtifactSbom"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Sbom.Artifact", "models.Artifact"),
 			},
 		},
 		Tags: struct {
@@ -112,6 +139,7 @@ type artifactVulnerability struct {
 	ArtifactID field.Int64
 	Metadata   field.Bytes
 	Raw        field.Bytes
+	Result     field.Bytes
 	Status     field.Field
 	Stdout     field.Bytes
 	Stderr     field.Bytes
@@ -140,6 +168,7 @@ func (a *artifactVulnerability) updateTableName(table string) *artifactVulnerabi
 	a.ArtifactID = field.NewInt64(table, "artifact_id")
 	a.Metadata = field.NewBytes(table, "metadata")
 	a.Raw = field.NewBytes(table, "raw")
+	a.Result = field.NewBytes(table, "result")
 	a.Status = field.NewField(table, "status")
 	a.Stdout = field.NewBytes(table, "stdout")
 	a.Stderr = field.NewBytes(table, "stderr")
@@ -172,7 +201,7 @@ func (a *artifactVulnerability) GetFieldByName(fieldName string) (field.OrderExp
 }
 
 func (a *artifactVulnerability) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 12)
+	a.fieldMap = make(map[string]field.Expr, 13)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -180,6 +209,7 @@ func (a *artifactVulnerability) fillFieldMap() {
 	a.fieldMap["artifact_id"] = a.ArtifactID
 	a.fieldMap["metadata"] = a.Metadata
 	a.fieldMap["raw"] = a.Raw
+	a.fieldMap["result"] = a.Result
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["stdout"] = a.Stdout
 	a.fieldMap["stderr"] = a.Stderr
@@ -205,6 +235,18 @@ type artifactVulnerabilityBelongsToArtifact struct {
 	Repository struct {
 		field.RelationField
 		Namespace struct {
+			field.RelationField
+		}
+	}
+	Vulnerability struct {
+		field.RelationField
+		Artifact struct {
+			field.RelationField
+		}
+	}
+	Sbom struct {
+		field.RelationField
+		Artifact struct {
 			field.RelationField
 		}
 	}

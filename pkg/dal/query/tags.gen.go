@@ -57,6 +57,32 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 		}{
 			RelationField: field.NewRelation("Artifact.Repository", "models.Repository"),
 		},
+		Vulnerability: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Vulnerability", "models.ArtifactVulnerability"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Vulnerability.Artifact", "models.Artifact"),
+			},
+		},
+		Sbom: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Sbom", "models.ArtifactSbom"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Sbom.Artifact", "models.Artifact"),
+			},
+		},
 		Tags: struct {
 			field.RelationField
 			Repository struct {
@@ -276,6 +302,18 @@ type tagBelongsToArtifact struct {
 
 	Repository struct {
 		field.RelationField
+	}
+	Vulnerability struct {
+		field.RelationField
+		Artifact struct {
+			field.RelationField
+		}
+	}
+	Sbom struct {
+		field.RelationField
+		Artifact struct {
+			field.RelationField
+		}
 	}
 	Tags struct {
 		field.RelationField

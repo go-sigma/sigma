@@ -33,6 +33,7 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 	_artifactSbom.ID = field.NewInt64(tableName, "id")
 	_artifactSbom.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_artifactSbom.Raw = field.NewBytes(tableName, "raw")
+	_artifactSbom.Result = field.NewBytes(tableName, "result")
 	_artifactSbom.Status = field.NewField(tableName, "status")
 	_artifactSbom.Stdout = field.NewBytes(tableName, "stdout")
 	_artifactSbom.Stderr = field.NewBytes(tableName, "stderr")
@@ -52,6 +53,32 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Namespace", "models.Namespace"),
+			},
+		},
+		Vulnerability: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Vulnerability", "models.ArtifactVulnerability"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Vulnerability.Artifact", "models.Artifact"),
+			},
+		},
+		Sbom: struct {
+			field.RelationField
+			Artifact struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Artifact.Sbom", "models.ArtifactSbom"),
+			Artifact: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Artifact.Sbom.Artifact", "models.Artifact"),
 			},
 		},
 		Tags: struct {
@@ -110,6 +137,7 @@ type artifactSbom struct {
 	ID         field.Int64
 	ArtifactID field.Int64
 	Raw        field.Bytes
+	Result     field.Bytes
 	Status     field.Field
 	Stdout     field.Bytes
 	Stderr     field.Bytes
@@ -137,6 +165,7 @@ func (a *artifactSbom) updateTableName(table string) *artifactSbom {
 	a.ID = field.NewInt64(table, "id")
 	a.ArtifactID = field.NewInt64(table, "artifact_id")
 	a.Raw = field.NewBytes(table, "raw")
+	a.Result = field.NewBytes(table, "result")
 	a.Status = field.NewField(table, "status")
 	a.Stdout = field.NewBytes(table, "stdout")
 	a.Stderr = field.NewBytes(table, "stderr")
@@ -169,13 +198,14 @@ func (a *artifactSbom) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (a *artifactSbom) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 11)
+	a.fieldMap = make(map[string]field.Expr, 12)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["artifact_id"] = a.ArtifactID
 	a.fieldMap["raw"] = a.Raw
+	a.fieldMap["result"] = a.Result
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["stdout"] = a.Stdout
 	a.fieldMap["stderr"] = a.Stderr
@@ -201,6 +231,18 @@ type artifactSbomBelongsToArtifact struct {
 	Repository struct {
 		field.RelationField
 		Namespace struct {
+			field.RelationField
+		}
+	}
+	Vulnerability struct {
+		field.RelationField
+		Artifact struct {
+			field.RelationField
+		}
+	}
+	Sbom struct {
+		field.RelationField
+		Artifact struct {
 			field.RelationField
 		}
 	}
