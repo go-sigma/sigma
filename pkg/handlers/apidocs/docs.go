@@ -800,6 +800,12 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "repository",
+                        "name": "repository",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -808,6 +814,45 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/tokens": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Token"
+                ],
+                "summary": "Generate token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.PostUserTokenResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/xerrors.ErrCode"
                         }
@@ -1038,6 +1083,23 @@ const docTemplate = `{
                 }
             }
         },
+        "types.PostUserTokenResponse": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "issued_at": {
+                    "type": "string",
+                    "example": "2023-07-16T17:51:51+08:00"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJYSW1hZ2VyIiwic3ViIjoieGltYWdlciIsImV4cCI6MTY4OTUwNDcxMSwibmJmIjoxNjg5NTAxMTExLCJpYXQiOjE2ODk1MDExMTEsImp0aSI6ImIxYTRmMGQ1LWNlNTUtNGU3ZS1hYjY1LWRhNTZiMDhhNjg2YSIsImRhdCI6InhpbWFnZXIifQ.cjuIJVnLl9yFB9zhv0KPZUq_M1Mb-tiyjHQXYowRAROEdu5t6HHYnFnl348IYFg51vGDh7ROBp1-pZIQJ5gCyM4rTuoYZneS7NPtb8sFjch3dDotVDXSpbppdkXZAPvEIwXKDKcmyMCsAAgep4A6gVeQ07RthUbITahCG3-ssF9NTojDgIyKysReju3BV5FOh_lbBwNXmfBnRUV11w8eApAuLEJhdNM_W50BdoHvUHAbwblDmanNonc9zAkzcQQZqndCNZJJ2hee7ZqOSByWDtxnLB5zbvLBV76BJf6EAW8zTYDW9fxWwSydhvmo5bSxgcI4LFzloUXO-Mj1TWVg2Lvjf3vAkmdYUxD8fhxE7x49i02TN4ohwtr3jI27vOh4Jv4FgMbu2SkZTVrfQ7ySpcWgX-UC2egXSs2fwpwoPyDZn4LmnDTZX4_PLqz7IgoeusrpFzHnfKD_mf3q-xq1ugJoNQRFWXFpF9fhWmYPsefoKlU349ZVqHg19QT2sFnSJBHWqL92NAr75vzUxxmxN61ZpXU70xZ54-qXMsu1V2jyGQl2wlFDPPb8jUWEh9cY_EmEarFAJPCBTAaxhdTpe8lR7b4WcbHtGu2zDQYpDvNOL7NKTLzjzn1COewvE2jkf0m9fL-u3RzrEIfo4eLBSBbUrrnpFit7CQFzxUZF5u9IWaSuicqwy7KoFt3PazsvQNYi9DYoGi5TVuI2EtdWYCSA09J5rL3GKkUkwZT0yMrea21xR9tpBU4LvJLM00bXYXLQGwISoSQ30pLGJiOskDADMrF-Wfg7JZi1KiUyA8jNgNebOw9VVBYxR7h33vKNDJPI2dZsqOYAwXqaTQTdJAm888yrpBRt22s2lsWhUBmvRgHpDFUHKUQHTFNZNOi_CeL4YTaoWhcS9j6ydtrteDz3gw783hY9_kSnER0GiYZNyMPMJYcQTteeESwCP0_eRgZDtc7jFU2ZDFSWshzWk7M53YQvuSw9j3r5l3yJ88qYLgJoqnLgGBHOfdz5zkzJkECEXzbmb05JB7cnJUNgg_AJSpI38P7906JBXsBmgXpjqDyFdYn89NbqGZqwcyKEquvEtDfdSAIAqlbVT-g8lkC14T3YD-CJwhK7u3lB-bFAASOdb4xjz5hcL9C7KoElMNGxuK0r-7bDYBVqQVSt_jqbAPufx3fgpz8D-S-43DkN7ZIZTCaLrocNZjgT74KXlCzBYnPgTAOvPxOPzOUxrwgXLKbloKSWSAr8eOEgR2bdF8WFI7NG6WunlJp55v9yc5KTTeuaoDQGZhuVzAH5A05NtDDerT7KHeoiI2_q9s_VrY6J1er6bWq2VI46iYl339ozgje10RCDWCbWzWiGeg"
+                }
+            }
+        },
         "types.PutNamespaceRequestSwagger": {
             "type": "object",
             "properties": {
@@ -1163,19 +1225,24 @@ const docTemplate = `{
                     }
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "latest"
                 },
                 "pushed_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 }
             }
         },
@@ -1183,43 +1250,56 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "blob_size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 100210
                 },
                 "config_raw": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "{\"architecture\":\"amd64\",\"config\":{\"Hostname\":\"\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\"],\"Image\":\"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":null},\"container\":\"bfc8078c169637d70e40ce591b5c2fe8d26329918dafcb96ebc9304ddff162ea\",\"container_config\":{\"Hostname\":\"bfc8078c1696\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\",\"-c\",\"#(nop) \",\"CMD [\\\"/bin/sh\\\"]\"],\"Image\":\"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"created\":\"2023-06-14T20:41:59.079795125Z\",\"docker_version\":\"20.10.23\",\"history\":[{\"created\":\"2023-06-14T20:41:58.950178204Z\",\"created_by\":\"/bin/sh -c #(nop) ADD file:1da756d12551a0e3e793e02ef87432d69d4968937bd11bed0af215db19dd94cd in / \"},{\"created\":\"2023-06-14T20:41:59.079795125Z\",\"created_by\":\"/bin/sh -c #(nop)  CMD [\\\"/bin/sh\\\"]\",\"empty_layer\":true}],\"os\":\"linux\",\"rootfs\":{\"type\":\"layers\",\"diff_ids\":[\"sha256:78a822fe2a2d2c84f3de4a403188c45f623017d6a4521d23047c9fbb0801794c\"]}}"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "digest": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "last_pull": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "pull_times": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 10
                 },
                 "pushed_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "raw": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "{\n   \"schemaVersion\": 2,\n   \"mediaType\": \"application/vnd.docker.distribution.manifest.v2+json\",\n   \"config\": {\n      \"mediaType\": \"application/vnd.docker.container.image.v1+json\",\n      \"size\": 1472,\n      \"digest\": \"sha256:c1aabb73d2339c5ebaa3681de2e9d9c18d57485045a4e311d9f8004bec208d67\"\n   },\n   \"layers\": [\n      {\n         \"mediaType\": \"application/vnd.docker.image.rootfs.diff.tar.gzip\",\n         \"size\": 3397879,\n         \"digest\": \"sha256:31e352740f534f9ad170f75378a84fe453d6156e40700b882d737a8f4a6988a3\"\n      }\n   ]\n}"
                 },
                 "sbom": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "{\"distro\":{\"name\":\"alpine\",\"version\":\"3.18.2\"},\"os\":\"linux\",\"architecture\":\"amd64\"}"
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 10201
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 },
                 "vulnerability": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "{\"critical\":0,\"high\":0,\"medium\":0,\"low\":0}"
                 }
             }
         },
