@@ -96,7 +96,13 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag) error {
 
 // Get gets the tag with the specified tag ID.
 func (s *tagService) GetByID(ctx context.Context, tagID int64) (*models.Tag, error) {
-	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID)).First()
+	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	query.Preload(s.tx.Tag.Artifact.Vulnerability)
+	query.Preload(s.tx.Tag.Artifact.Sbom)
+	return query.First()
 }
 
 // GetByName gets the tag with the specified tag name.
@@ -173,7 +179,11 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 	} else {
 		query.Order(s.tx.Tag.UpdatedAt.Desc())
 	}
-	query.Preload(s.tx.Tag.Artifact)
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	query.Preload(s.tx.Tag.Artifact.Vulnerability)
+	query.Preload(s.tx.Tag.Artifact.Sbom)
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 

@@ -88,7 +88,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	c.Response().Header().Set(consts.ContentDigest, refs.Digest.String())
 	contentType := c.Request().Header.Get("Content-Type")
 
-	manifest, _, err := distribution.UnmarshalManifest(contentType, bodyBytes)
+	manifest, descriptor, err := distribution.UnmarshalManifest(contentType, bodyBytes)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
@@ -123,7 +123,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
 		contentType == "application/vnd.oci.image.index.v1+json" {
-		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs)
+		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
@@ -146,7 +146,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 			digests = append(digests, reference.Digest.String())
 		}
 
-		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs)
+		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
@@ -159,7 +159,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
+func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) *xerrors.ErrCode {
 	blobService := h.blobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
@@ -194,16 +194,29 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return err.(*xerrors.ErrCode)
 	}
 
-	h.putManifestAsyncTask(ctx, artifactObj)
+	if !skipScan(manifest, descriptor) {
+		h.putManifestAsyncTask(ctx, artifactObj)
+	}
 
 	return nil
+}
+
+func skipScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
+	if len(manifest.References()) == 2 {
+		descriptor := manifest.References()[1]
+		if descriptor.MediaType == "application/vnd.in-toto+json" &&
+			descriptor.Annotations != nil && descriptor.Annotations["in-toto.io/predicate-type"] != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // putManifestIndex handles the manifest index request
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs) *xerrors.ErrCode {
+func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) *xerrors.ErrCode {
 	artifactService := h.artifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {

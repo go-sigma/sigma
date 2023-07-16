@@ -46,10 +46,6 @@ func (h *handlers) ListArtifact(c echo.Context) error {
 
 	var resp = make([]any, 0, len(artifacts))
 	for _, artifact := range artifacts {
-		tags := make([]string, 0, len(artifact.Tags))
-		for _, tag := range artifact.Tags {
-			tags = append(tags, tag.Name)
-		}
 		resp = append(resp, types.ArtifactItem{
 			ID:        artifact.ID,
 			Digest:    artifact.Digest,

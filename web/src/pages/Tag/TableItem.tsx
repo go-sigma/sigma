@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-import axios from "axios";
 import dayjs from 'dayjs';
 import humanFormat from "human-format";
-import { useNavigate } from 'react-router-dom';
-import { useState, Fragment, useEffect } from "react";
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { Dialog, Menu, Transition } from "@headlessui/react";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
-import Toast from "../../components/Notification";
-import { ITag, IHTTPError, IArtifact } from "../../interfaces";
+import { IArtifact, IVuln, ISbom, IImageConfig } from "../../interfaces";
 
-dayjs.extend(relativeTime);
+function skipManifest(raw: string) {
+  let artifactObj = JSON.parse(raw);
+  if (artifactObj["config"]["mediaType"] === "application/vnd.oci.image.config.v1+json") {
+    if (artifactObj["layers"].length === 1 && artifactObj["layers"][0]["mediaType"] === "application/vnd.in-toto+json" && artifactObj["layers"][0]["annotations"]["in-toto.io/predicate-type"] !== "") {
+      return true;
+    }
+  }
+  return false;
+}
 
-export default function ({ localServer, namespace, repository, artifactDigest, artifact }: { localServer: string, namespace: string, repository: string, artifactDigest: string, artifact: string }) {
-  const artifactObj = JSON.parse(artifact);
+export default function ({ namespace, repository, artifact, artifacts }: { namespace: string, repository: string, artifact: IArtifact, artifacts: IArtifact[] }) {
+  const artifactObj = JSON.parse(artifact.raw);
 
   return (
     <tbody>
       {
         artifactObj.mediaType === "application/vnd.oci.image.manifest.v1+json" || artifactObj.mediaType === "application/vnd.docker.distribution.manifest.v2+json" ? (
-          <DetailItem localServer={localServer} namespace={namespace} repository={repository} digest={artifactDigest} mediaType={artifactObj.mediaType} />
+          <DetailItem1 artifact={artifact} />
         ) : artifactObj.mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" || artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
-          artifactObj.manifests.map((manifest: { digest: string, annotations?: any }, index: number) => {
+          artifacts.map((artifact: IArtifact, index: number) => {
             return (
-              manifest.annotations?.["vnd.docker.reference.type"] === "attestation-manifest" ? (
-                <tr key={index} className="hidden"></tr>
-              ) : (
-                <DetailItem key={index} localServer={localServer} namespace={namespace} repository={repository} digest={manifest.digest} mediaType={artifactObj.mediaType} />
+              !skipManifest(artifact.raw) && (
+                <DetailItem1 key={index} artifact={artifact} />
               )
             )
           })
@@ -55,23 +53,7 @@ export default function ({ localServer, namespace, repository, artifactDigest, a
   );
 }
 
-function DetailItem({ localServer, namespace, repository, digest, mediaType }: { localServer: string, namespace: string, repository: string, digest: string, mediaType: string }) {
-  const [artifact, setArtifact] = useState<IArtifact>({} as IArtifact);
-  const fetchArtifact = () => {
-    let url = localServer + `/api/v1/namespaces/${namespace}/artifacts/${digest}?repository=${repository}`;
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        setArtifact(response.data as IArtifact)
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
-  useEffect(fetchArtifact, []);
+function DetailItem1({ artifact }: { artifact: IArtifact }) {
   const cutDigest = (digest: string) => {
     if (digest === undefined) {
       return "";
@@ -81,24 +63,20 @@ function DetailItem({ localServer, namespace, repository, digest, mediaType }: {
     }
     return digest.substring(digest.indexOf(":") + 1, digest.indexOf(":") + 13);
   }
-  const configObj = JSON.parse(artifact.config_raw === undefined ? "{}" : artifact.config_raw)
+  let sbomObj = JSON.parse(artifact.sbom) as ISbom;
+  let vulnerabilityObj = JSON.parse(artifact.vulnerability) as IVuln;
+  let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;
+  console.log(artifact.sbom);
+  console.log(artifact.vulnerability);
   return (
-    <tr className="hover:bg-gray-100">
-      <td className="px-2 text-left cursor-pointer">
+    <tr className="hover:bg-gray-50 cursor-pointer">
+      <td className="px-2 text-left">
         <code className="text-xs underline underline-offset-1 text-blue-600 hover:text-blue-500">
           {cutDigest(artifact.digest)}
         </code>
       </td>
       <td className="text-right text-xs">
-        {
-          (mediaType === "application/vnd.oci.image.manifest.v1+json" || mediaType === "application/vnd.docker.distribution.manifest.v2+json") ? (
-            <span>{configObj?.os}/{configObj?.architecture}</span>
-          ) : (mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" || mediaType === "application/vnd.oci.image.index.v1+json") ? (
-            <span></span>
-          ) : (
-            <span></span>
-          )
-        }
+        <span>{imageConfigObj.os}/{imageConfigObj.architecture}</span>
       </td>
       <td className="text-right text-xs">
         {humanFormat(artifact.blob_size || 0)}
@@ -110,10 +88,10 @@ function DetailItem({ localServer, namespace, repository, digest, mediaType }: {
         {artifact.pull_times}
       </td>
       <td className="text-right text-xs">
-        {dayjs().to(dayjs(artifact.pushed_at))}
-      </td>
-      <td className="px-2 text-right text-xs">
-        {humanFormat(artifact.blob_size || 0)}
+        <span className="bg-red-800 text-white text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300"><span>{vulnerabilityObj.critical || 0}</span> C</span>
+        <span className="bg-red-300 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.high || 0} H</span>
+        <span className="bg-amber-400 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.medium || 0} M</span>
+        <span className="bg-amber-200 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} H</span>
       </td>
     </tr>
   );

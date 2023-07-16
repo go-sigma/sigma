@@ -66,30 +66,33 @@ export interface IRepositoryList {
   total: number;
 }
 
+export interface IArtifactList {
+  items: IArtifact[];
+  total: number;
+}
+
 export interface IArtifact {
   id: number;
   digest: string;
+  raw: string;
   config_raw: string;
   size: number;
   blob_size: number;
   last_pull: string;
   pushed_at: string;
   pull_times: number;
+  vulnerability: string;
+  sbom: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface IArtifactList {
-  items: IArtifact[];
-  total: number;
 }
 
 export interface ITag {
   id: number;
   name: string;
-  digest: string;
+  artifact: IArtifact;
+  artifacts: IArtifact[];
   pushed_at: string;
-  raw: string;
   created_at: string;
   updated_at: string;
 }
@@ -108,4 +111,27 @@ export enum IOrder {
 export interface ISizeWithUnit {
   unit: string;
   size: number;
+}
+
+export interface IVuln {
+  critical: string;
+  high: string;
+  medium: string;
+  low: string;
+}
+
+export interface IDistro {
+  name: string;
+  version: string;
+}
+
+export interface ISbom {
+  distro: IDistro;
+  os: string;
+  architecture: string;
+}
+
+export interface IImageConfig {
+  architecture: string;
+  os: string;
 }

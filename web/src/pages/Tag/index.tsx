@@ -142,14 +142,13 @@ export default function Tag({ localServer }: { localServer: string }) {
                           </span>
                         </div>
                         <div>
-                          <code className="block text-xs bg-gray-700 p-2 text-gray-200 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
+                          <code className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
                             id={"tooltip-top-btn-" + index}
                             onClick={e => {
                               copyToClipboard(`docker pull ${imageDomain()}/${repository}:${tag.name}`);
                               let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
                                 document.getElementById("tooltip-top-btn-" + index.toString()), { triggerType: "click" });
                               tooltip.show();
-                              setTimeout(() => { tooltip.hide() }, 1500)
                             }}
                           >docker pull {imageDomain()}/{repository}:{tag.name}</code>
                         </div>
@@ -182,14 +181,11 @@ export default function Tag({ localServer }: { localServer: string }) {
                               Pull Times
                             </th>
                             <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                              Command
-                            </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Vulnerabilities
                             </th>
                           </tr>
                         </thead>
-                        <TableItem localServer={localServer} namespace={namespace || ""} repository={repository || ""} artifactDigest={tag.digest} artifact={tag.raw} />
+                        <TableItem namespace={namespace || ""} repository={repository || ""} artifact={tag.artifact} artifacts={tag.artifacts} />
                       </table>
                       {/* third row end */}
                     </div>
