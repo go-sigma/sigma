@@ -22,8 +22,8 @@ Wait for me to complete draw the architecture.
 Now sigma is under very early development, so it's not easy to use. But you can try it.
 
 ``` bash
-cd web && yarn && yarn build && cd .. && make build
-./bin/sigma -c ./conf/config.yaml
+cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
+./bin/sigma server -c ./conf/config.yaml
 ```
 
 ## Features
