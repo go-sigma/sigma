@@ -17,6 +17,12 @@ definitions:
         example: 1
         type: integer
     type: object
+  types.GetEndpointResponse:
+    properties:
+      endpoint:
+        example: https://example.com:3000
+        type: string
+    type: object
   types.NamespaceItem:
     properties:
       created_at:
@@ -847,6 +853,20 @@ paths:
       summary: Get tag
       tags:
       - Tag
+  /systems/endpoint:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetEndpointResponse'
+      summary: Get endpoint
+      tags:
+      - Systems
   /tokens:
     get:
       consumes:

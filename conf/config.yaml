@@ -22,8 +22,18 @@ database:
 redis:
   url: redis://:ximager@localhost:6379/0
 http:
-  server: 0.0.0.0:3000
-  worker: 0.0.0.0:3001
+  # endpoint can be a domain or domain with port, eg: http://sigma.test.io, https://sigma.test.io:30080, http://127.0.0.1:3000
+  # this endpoint will be used to generate the token service url in auth middleware,
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default,
+  # because the front page need show this endpoint.
+  endpoint:
+  # in some cases, daemon may pull image and scan it, but we don't want to pull image from public registry domain,
+  # so use this internal domain to pull image from registry.
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
+  # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
+  # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
+  # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
+  internalEndpoint:
 storage:
   rootdirectory: ./storage
   type: s3

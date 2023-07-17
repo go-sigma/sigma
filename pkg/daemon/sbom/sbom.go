@@ -26,6 +26,7 @@ import (
 	"github.com/anchore/syft/syft/source"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -53,7 +54,7 @@ type Report struct {
 
 func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
 	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
-	image := fmt.Sprintf("192.168.31.200:3000/%s@%s", artifact.Repository.Name, artifact.Digest)
+	image := fmt.Sprintf("%s/%s@%s", utils.TrimHTTP(viper.GetString("server.internalEndpoint")), artifact.Repository.Name, artifact.Digest)
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
 	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, image)
 	var stdout bytes.Buffer

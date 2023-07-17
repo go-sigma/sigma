@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
@@ -84,6 +85,16 @@ func NormalizePagination(in types.Pagination) types.Pagination {
 	}
 	if in.Limit == nil || ptr.To(in.Limit) > 100 || ptr.To(in.Limit) <= 0 {
 		in.Limit = ptr.Of(int(10))
+	}
+	return in
+}
+
+// TrimHTTP ...
+func TrimHTTP(in string) string {
+	if strings.HasPrefix(in, "http://") {
+		return strings.TrimPrefix(in, "http://")
+	} else if strings.HasPrefix(in, "https://") {
+		return strings.TrimPrefix(in, "https://")
 	}
 	return in
 }

@@ -158,3 +158,43 @@ func TestNormalizePagination(t *testing.T) {
 		})
 	}
 }
+
+func TestTrimHTTP(t *testing.T) {
+	type args struct {
+		in string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "common",
+			args: args{
+				in: "http://localhost:8080",
+			},
+			want: "localhost:8080",
+		},
+		{
+			name: "common-1",
+			args: args{
+				in: "https://localhost:8080",
+			},
+			want: "localhost:8080",
+		},
+		{
+			name: "common-2",
+			args: args{
+				in: "localhost:8080",
+			},
+			want: "localhost:8080",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := TrimHTTP(tt.args.in); got != tt.want {
+				t.Errorf("TrimHTTP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

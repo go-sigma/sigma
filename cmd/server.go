@@ -77,7 +77,7 @@ var withoutWorker bool
 var withoutWeb bool
 
 func init() {
-	serverCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
+	serverCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/sigma/config.yaml)")
 	serverCmd.PersistentFlags().BoolVar(&withoutDistribution, "without-distribution", false, "server without distribution service")
 	serverCmd.PersistentFlags().BoolVar(&withoutWorker, "without-worker", false, "server without worker service")
 	serverCmd.PersistentFlags().BoolVar(&withoutWeb, "without-web", false, "server without web service")

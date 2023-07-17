@@ -96,3 +96,10 @@ const (
 	// APIV1 api v1 for api router
 	APIV1 = "/api/v1"
 )
+
+const (
+	// ServerPort server port
+	ServerPort = "0.0.0.0:3000"
+	// WorkerPort worker port
+	WorkerPort = "0.0.0.0:3001"
+)
