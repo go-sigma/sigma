@@ -22,6 +22,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
+import Summary from './pages/Repository/Summary';
 import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
@@ -58,11 +59,12 @@ export default function App() {
         <Route path="/login" element={<Login localServer={localServer} />} />
         <Route path="/home" element={<Home localServer={localServer} />} />
         <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/tags" element={<Tag localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </>

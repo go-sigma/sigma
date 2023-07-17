@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import axios from "axios";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
@@ -23,10 +24,10 @@ import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 import Quota from "../../components/Quota";
+import calcUnit from "../../utils/calcUnit";
 import Toast from "../../components/Notification";
 import QuotaSimple from "../../components/QuotaSimple";
 import { IRepository, IHTTPError } from "../../interfaces";
-import calcUnit from "../../utils/calcUnit";
 
 dayjs.extend(relativeTime);
 
@@ -112,7 +113,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
     <tr>
       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          navigate(`/namespaces/${namespace}/tags?repository=${repository.name}`);
+          navigate(`/namespaces/${namespace}/repository/summary?repository=${repository.name}&repository_id=${repository.id}`);
         }}
       >
         <div className="flex items-center space-x-3 lg:pl-2">

@@ -84,7 +84,7 @@ type PutRepositoryRequest struct {
 	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
 	ID          int64             `json:"id" param:"id" validate:"required,number" example:"1"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
-	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
+	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`
 	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`

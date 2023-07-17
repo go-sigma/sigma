@@ -10,6 +10,8 @@
     "server": "json-server --watch db.json --port 3001"
   },
   "dependencies": {
+    "@bytemd/plugin-gfm": "^1.21.0",
+    "@bytemd/react": "^1.21.0",
     "@headlessui/react": "^1.7.15",
     "@heroicons/react": "^2.0.18",
     "@tailwindcss/aspect-ratio": "^0.4.2",
@@ -19,6 +21,7 @@
     "axios": "^1.4.0",
     "dayjs": "^1.11.9",
     "flowbite": "^1.7.0",
+    "github-markdown-css": "^5.2.0",
     "human-format": "^1.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
