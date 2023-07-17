@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package types
 
-import (
-	_ "github.com/go-sigma/sigma/pkg/handlers/apidocs"
-	_ "github.com/go-sigma/sigma/pkg/handlers/artifacts"
-	_ "github.com/go-sigma/sigma/pkg/handlers/namespaces"
-	_ "github.com/go-sigma/sigma/pkg/handlers/repositories"
-	_ "github.com/go-sigma/sigma/pkg/handlers/systems"
-	_ "github.com/go-sigma/sigma/pkg/handlers/tags"
-	_ "github.com/go-sigma/sigma/pkg/handlers/tokens"
-	_ "github.com/go-sigma/sigma/pkg/handlers/users"
-	_ "github.com/go-sigma/sigma/pkg/handlers/validators"
-)
+type GetEndpointResponse struct {
+	Endpoint string `json:"endpoint" example:"https://example.com:3000"`
+}

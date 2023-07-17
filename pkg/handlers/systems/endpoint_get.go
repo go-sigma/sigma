@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configs
+package systems
 
 import (
-	"time"
+	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
+
+	"github.com/go-sigma/sigma/pkg/types"
 )
 
-func defaultSettings() {
-	viper.SetDefault("auth.jwt.type", "RS256")            // the jwt token type
-	viper.SetDefault("auth.jwt.ttl", time.Hour)           // the jwt token ttl
-	viper.SetDefault("auth.jwt.refreshTtl", time.Hour*24) // the refresh token ttl
-
-	viper.SetDefault("storage.rootDirectory", "/var/lib/ximager") // the root directory for filesystem storage
-
-	viper.SetDefault("server.endpoint", "http://127.0.0.1:3000")
-	viper.SetDefault("server.internalEndpoint", "http://127.0.0.1:3000")
+// GetEndpoint handles the get endpoint request
+// @Summary Get endpoint
+// @Tags Systems
+// @Accept json
+// @Produce json
+// @Router /systems/endpoint [get]
+// @Success 200 {object} types.GetEndpointResponse
+func (h *handlers) GetEndpoint(c echo.Context) error {
+	return c.JSON(http.StatusOK, types.GetEndpointResponse{
+		Endpoint: viper.GetString("server.endpoint"),
+	})
 }

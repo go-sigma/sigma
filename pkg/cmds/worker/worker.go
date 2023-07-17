@@ -26,6 +26,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 
@@ -50,8 +51,8 @@ func Worker() error {
 	}
 
 	go func() {
-		log.Info().Str("addr", viper.GetString("http.worker")).Msg("Server listening")
-		err = e.Start(viper.GetString("http.worker"))
+		log.Info().Str("addr", consts.WorkerPort).Msg("Server listening")
+		err = e.Start(consts.WorkerPort)
 		if err != http.ErrServerClosed {
 			log.Fatal().Err(err).Msg("Listening on interface failed")
 		}
