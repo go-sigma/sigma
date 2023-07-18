@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-.menu-action-top {
-  margin-top: -7rem;
-}
-
-.editor > div {
-  height: 100%;
-}
-
-.editor > div > div {
-  height: 100%;
+export function trimHTTP(str: string) {
+  if (str.startsWith("http://")) {
+    return str.substring(7);
+  } else if (str.startsWith("https://")) {
+    return str.substring(8);
+  }
+  return str;
 }

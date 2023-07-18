@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import TableItem from "./TableItem";
 
 import { IRepository, IRepositoryList, IHTTPError, IOrder } from "../../interfaces";
 
-export default function Repository({ localServer }: { localServer: string }) {
+export default function ({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
   const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 import axios from "axios";
 import dayjs from 'dayjs';
 import { Tooltip } from 'flowbite';
-import { Link } from "react-router-dom";
-import { useParams } from 'react-router-dom';
 import { useCopyToClipboard } from 'react-use';
-import { useSearchParams } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
 
 import Settings from "../../Settings";
+import { trimHTTP } from "../../utils";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
@@ -33,7 +32,7 @@ import Pagination from "../../components/Pagination";
 import "./index.css";
 import TableItem from "./TableItem";
 
-import { ITagList, IHTTPError } from "../../interfaces";
+import { ITagList, IHTTPError, IEndpoint } from "../../interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
@@ -45,8 +44,27 @@ export default function Tag({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository = searchParams.get('repository');
+  const repository_id = searchParams.get('repository_id');
 
   const [, copyToClipboard] = useCopyToClipboard();
+
+  const [endpoint, setEndpoint] = useState("");
+
+  useEffect(() => {
+    let url = localServer + `/api/v1/systems/endpoint`;
+    axios.get(url).then(response => {
+      if (response.status === 200) {
+        let e = response.data as IEndpoint;
+        setEndpoint(e.endpoint);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [namespace, repository])
 
   const fetchTags = () => {
     let url = localServer + `/api/v1/namespaces/${namespace}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}`;
@@ -130,6 +148,23 @@ export default function Tag({ localServer }: { localServer: string }) {
                   </nav>
                 )
               }
+              props={
+                (
+                  <div className="sm:flex sm:space-x-8">
+                    <Link
+                      to={`/namespaces/${namespace}/repository/summary/?repository=${repository}&repository_id=${repository_id}`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Summary
+                    </Link>
+                    <span
+                      className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
+                    >
+                      Tag list
+                    </span>
+                  </div>
+                )
+              }
             />
             <div className="pt-2 pb-2 flex">
               <div className="pr-2 pl-2">
@@ -177,12 +212,12 @@ export default function Tag({ localServer }: { localServer: string }) {
                           <code className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
                             id={"tooltip-top-btn-" + index}
                             onClick={e => {
-                              copyToClipboard(`docker pull ${imageDomain()}/${repository}:${tag.name}`);
+                              copyToClipboard(`docker pull ${trimHTTP(endpoint)}/${repository}:${tag.name}`);
                               let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
                                 document.getElementById("tooltip-top-btn-" + index.toString()), { triggerType: "click" });
                               tooltip.show();
                             }}
-                          >docker pull {imageDomain()}/{repository}:{tag.name}</code>
+                          >docker pull {trimHTTP(endpoint)}/{repository}:{tag.name}</code>
                         </div>
                       </div>
                       {/* first row end */}

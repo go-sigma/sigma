@@ -20,7 +20,7 @@ export default function ({ limit, page, total, setPage }: { limit: number, page:
       className="flex flex-2 items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100"
       aria-label="Pagination"
     >
-      <div className="hidden sm:block">
+      <div>
         <p className="text-sm text-gray-700">
           Showing <span className="font-medium">{(page - 1) * limit + 1 > total ? total : (page - 1) * limit + 1}</span> to <span className="font-medium">{total > page * limit ? page * limit : total}</span> of{' '}
           <span className="font-medium">{total}</span> results

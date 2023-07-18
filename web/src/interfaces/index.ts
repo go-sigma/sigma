@@ -135,3 +135,7 @@ export interface IImageConfig {
   architecture: string;
   os: string;
 }
+
+export interface IEndpoint {
+  endpoint: string;
+}
