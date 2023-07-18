@@ -1284,6 +1284,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 100210
                 },
+                "config_media_type": {
+                    "type": "string",
+                    "example": "application/vnd.oci.image.config.v1+json"
+                },
                 "config_raw": {
                     "type": "string",
                     "example": "{\"architecture\":\"amd64\",\"config\":{\"Hostname\":\"\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\"],\"Image\":\"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":null},\"container\":\"bfc8078c169637d70e40ce591b5c2fe8d26329918dafcb96ebc9304ddff162ea\",\"container_config\":{\"Hostname\":\"bfc8078c1696\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\",\"-c\",\"#(nop) \",\"CMD [\\\"/bin/sh\\\"]\"],\"Image\":\"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"created\":\"2023-06-14T20:41:59.079795125Z\",\"docker_version\":\"20.10.23\",\"history\":[{\"created\":\"2023-06-14T20:41:58.950178204Z\",\"created_by\":\"/bin/sh -c #(nop) ADD file:1da756d12551a0e3e793e02ef87432d69d4968937bd11bed0af215db19dd94cd in / \"},{\"created\":\"2023-06-14T20:41:59.079795125Z\",\"created_by\":\"/bin/sh -c #(nop)  CMD [\\\"/bin/sh\\\"]\",\"empty_layer\":true}],\"os\":\"linux\",\"rootfs\":{\"type\":\"layers\",\"diff_ids\":[\"sha256:78a822fe2a2d2c84f3de4a403188c45f623017d6a4521d23047c9fbb0801794c\"]}}"
@@ -1323,6 +1327,10 @@ const docTemplate = `{
                 "size": {
                     "type": "integer",
                     "example": 10201
+                },
+                "type": {
+                    "type": "string",
+                    "example": "image"
                 },
                 "updated_at": {
                     "type": "string",

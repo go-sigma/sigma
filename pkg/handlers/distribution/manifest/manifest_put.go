@@ -123,13 +123,14 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
 		contentType == "application/vnd.oci.image.index.v1+json" {
+		artifactObj.Type = enums.ArtifactTypeImageIndex
 		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
 	} else {
 		for _, reference := range manifest.References() {
-			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" {
+			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" || reference.MediaType == "application/vnd.cncf.helm.config.v1+json" {
 				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)), 0)
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
@@ -146,6 +147,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 			digests = append(digests, reference.Digest.String())
 		}
 
+		artifactObj.Type = h.getArtifactType(descriptor, manifest)
 		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
@@ -194,18 +196,18 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 		return err.(*xerrors.ErrCode)
 	}
 
-	if !skipScan(manifest, descriptor) {
+	if needScan(manifest, descriptor) {
 		h.putManifestAsyncTask(ctx, artifactObj)
 	}
 
 	return nil
 }
 
-func skipScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
-	if len(manifest.References()) == 2 {
-		descriptor := manifest.References()[1]
-		if descriptor.MediaType == "application/vnd.in-toto+json" &&
-			descriptor.Annotations != nil && descriptor.Annotations["in-toto.io/predicate-type"] != "" {
+func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
+	if len(manifest.References()) > 0 {
+		ref := manifest.References()[0]
+		// only image can be scanned
+		if ref.MediaType == "application/vnd.docker.container.image.v1+json" || ref.MediaType == "application/vnd.oci.image.config.v1+json" {
 			return true
 		}
 	}
@@ -308,4 +310,33 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 func (h *handler) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact) {
 	h.putManifestAsyncTaskSbom(ctx, artifactObj)
 	h.putManifestAsyncTaskVulnerability(ctx, artifactObj)
+}
+
+func (h *handler) getArtifactType(descriptor distribution.Descriptor, manifest distribution.Manifest) enums.ArtifactType {
+	if descriptor.MediaType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
+		descriptor.MediaType == "application/vnd.oci.image.index.v1+json" {
+		return enums.ArtifactTypeImage
+	}
+	references := manifest.References()
+	for _, descriptor := range references {
+		if descriptor.MediaType == "application/vnd.in-toto+json" {
+			return enums.ArtifactTypeProvenance
+		}
+	}
+	var mediaType string
+	if len(references) == 0 {
+		return enums.ArtifactTypeUnknown
+	}
+	mediaType = references[0].MediaType
+	switch mediaType {
+	case "application/vnd.oci.image.config.v1+json", "application/vnd.docker.container.image.v1+json":
+		return enums.ArtifactTypeImage
+	case "application/vnd.cnab.manifest.v1":
+		return enums.ArtifactTypeCnab
+	case "application/vnd.wasm.config.v1+json":
+		return enums.ArtifactTypeWasm
+	case "application/vnd.cncf.helm.config.v1+json":
+		return enums.ArtifactTypeChart
+	}
+	return enums.ArtifactTypeUnknown
 }

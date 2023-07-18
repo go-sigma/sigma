@@ -37,7 +37,7 @@ export default function Repository({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Namespace Users</title>
+          <title>sigma - Namespace Users</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

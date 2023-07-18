@@ -13,6 +13,104 @@ import (
 )
 
 const (
+	// ArtifactTypeImage is a ArtifactType of type image.
+	ArtifactTypeImage ArtifactType = "image"
+	// ArtifactTypeImageIndex is a ArtifactType of type imageIndex.
+	ArtifactTypeImageIndex ArtifactType = "imageIndex"
+	// ArtifactTypeChart is a ArtifactType of type chart.
+	ArtifactTypeChart ArtifactType = "chart"
+	// ArtifactTypeCnab is a ArtifactType of type cnab.
+	ArtifactTypeCnab ArtifactType = "cnab"
+	// ArtifactTypeWasm is a ArtifactType of type wasm.
+	ArtifactTypeWasm ArtifactType = "wasm"
+	// ArtifactTypeProvenance is a ArtifactType of type provenance.
+	ArtifactTypeProvenance ArtifactType = "provenance"
+	// ArtifactTypeUnknown is a ArtifactType of type unknown.
+	ArtifactTypeUnknown ArtifactType = "unknown"
+)
+
+var ErrInvalidArtifactType = errors.New("not a valid ArtifactType")
+
+// String implements the Stringer interface.
+func (x ArtifactType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ArtifactType) IsValid() bool {
+	_, err := ParseArtifactType(string(x))
+	return err == nil
+}
+
+var _ArtifactTypeValue = map[string]ArtifactType{
+	"image":      ArtifactTypeImage,
+	"imageIndex": ArtifactTypeImageIndex,
+	"chart":      ArtifactTypeChart,
+	"cnab":       ArtifactTypeCnab,
+	"wasm":       ArtifactTypeWasm,
+	"provenance": ArtifactTypeProvenance,
+	"unknown":    ArtifactTypeUnknown,
+}
+
+// ParseArtifactType attempts to convert a string to a ArtifactType.
+func ParseArtifactType(name string) (ArtifactType, error) {
+	if x, ok := _ArtifactTypeValue[name]; ok {
+		return x, nil
+	}
+	return ArtifactType(""), fmt.Errorf("%s is %w", name, ErrInvalidArtifactType)
+}
+
+// MustParseArtifactType converts a string to a ArtifactType, and panics if is not valid.
+func MustParseArtifactType(name string) ArtifactType {
+	val, err := ParseArtifactType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errArtifactTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *ArtifactType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = ArtifactType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseArtifactType(v)
+	case []byte:
+		*x, err = ParseArtifactType(string(v))
+	case ArtifactType:
+		*x = v
+	case *ArtifactType:
+		if v == nil {
+			return errArtifactTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errArtifactTypeNilPtr
+		}
+		*x, err = ParseArtifactType(*v)
+	default:
+		return errors.New("invalid type for ArtifactType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x ArtifactType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// DaemonVulnerability is a Daemon of type Vulnerability.
 	DaemonVulnerability Daemon = "Vulnerability"
 	// DaemonSbom is a Daemon of type Sbom.

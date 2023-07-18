@@ -246,6 +246,9 @@ definitions:
       blob_size:
         example: 100210
         type: integer
+      config_media_type:
+        example: application/vnd.oci.image.config.v1+json
+        type: string
       config_raw:
         example: '{"architecture":"amd64","config":{"Hostname":"","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],"Cmd":["/bin/sh"],"Image":"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":null},"container":"bfc8078c169637d70e40ce591b5c2fe8d26329918dafcb96ebc9304ddff162ea","container_config":{"Hostname":"bfc8078c1696","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],"Cmd":["/bin/sh","-c","#(nop)
           ","CMD [\"/bin/sh\"]"],"Image":"sha256:5b8658701c96acefe1cd3a21b2a80220badf9124891ad440d95a7fa500d48765","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":{}},"created":"2023-06-14T20:41:59.079795125Z","docker_version":"20.10.23","history":[{"created":"2023-06-14T20:41:58.950178204Z","created_by":"/bin/sh
@@ -296,6 +299,9 @@ definitions:
       size:
         example: 10201
         type: integer
+      type:
+        example: image
+        type: string
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string

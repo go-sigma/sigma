@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -97,9 +97,26 @@ func Serve(config ServerConfig) error {
 
 	go func() {
 		log.Info().Str("addr", consts.ServerPort).Msg("Server listening")
-		err = e.Start(consts.ServerPort)
-		if err != http.ErrServerClosed {
-			log.Fatal().Err(err).Msg("Listening on interface failed")
+		if viper.GetBool("http.tls.enabled") {
+			crtBytes, err := os.ReadFile(viper.GetString("http.tls.certificate"))
+			if err != nil {
+				log.Fatal().Err(err).Str("certificate", viper.GetString("http.tls.certificate")).Msgf("Read certificate failed")
+				return
+			}
+			keyBytes, err := os.ReadFile(viper.GetString("http.tls.key"))
+			if err != nil {
+				log.Fatal().Err(err).Str("key", viper.GetString("http.tls.key")).Msgf("Read key failed")
+				return
+			}
+			err = e.StartTLS(consts.ServerPort, crtBytes, keyBytes)
+			if err != http.ErrServerClosed {
+				log.Fatal().Err(err).Msg("Listening on interface failed")
+			}
+		} else {
+			err = e.Start(consts.ServerPort)
+			if err != http.ErrServerClosed {
+				log.Fatal().Err(err).Msg("Listening on interface failed")
+			}
 		}
 	}()
 
