@@ -36,7 +36,7 @@ export default function Home({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Home</title>
+          <title>sigma - Home</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white min-w-1600">

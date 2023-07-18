@@ -166,7 +166,7 @@ export default function ({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Repositories</title>
+          <title>sigma - Repositories</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

@@ -39,7 +39,7 @@ export default function Repository({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Namespace Webhook</title>
+          <title>sigma - Namespace Webhook</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

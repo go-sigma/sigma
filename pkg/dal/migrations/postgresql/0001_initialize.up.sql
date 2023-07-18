@@ -58,6 +58,16 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   CONSTRAINT "repositories_unique_with_namespace" UNIQUE ("namespace_id", "name", "deleted_at")
 );
 
+CREATE TYPE artifact_type AS ENUM (
+  'image',
+  'imageIndex',
+  'chart',
+  'cnab',
+  'wasm',
+  'provenance',
+  'unknown'
+);
+
 CREATE TABLE IF NOT EXISTS "artifacts" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigserial NOT NULL,
@@ -68,6 +78,7 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "raw" bytea NOT NULL,
   "config_raw" bytea,
   "config_media_type" varchar(256),
+  "type" artifact_type NOT NULL DEFAULT 'unknown',
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,

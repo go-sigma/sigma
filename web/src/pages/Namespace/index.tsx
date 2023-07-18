@@ -154,7 +154,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Namespaces</title>
+          <title>sigma - Namespaces</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">

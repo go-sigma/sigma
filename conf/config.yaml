@@ -34,6 +34,10 @@ http:
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
   internalEndpoint:
+  tls:
+    enabled: false
+    certificate: ./conf/sigma.test.io.crt
+    key: ./conf/sigma.test.io.key
 storage:
   rootdirectory: ./storage
   type: s3

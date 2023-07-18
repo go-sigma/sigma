@@ -102,7 +102,7 @@ export default function Tag({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>XImager - Tag</title>
+          <title>sigma - Tag</title>
         </Helmet>
       </HelmetProvider>
       <div

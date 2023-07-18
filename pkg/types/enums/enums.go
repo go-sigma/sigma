@@ -63,3 +63,14 @@ type Provider string
 // desc,
 // )
 type SortMethod string
+
+// ArtifactType x ENUM(
+// image,
+// imageIndex,
+// chart
+// cnab,
+// wasm,
+// provenance,
+// unknown,
+// )
+type ArtifactType string
