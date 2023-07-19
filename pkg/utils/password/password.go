@@ -35,7 +35,7 @@ type password struct {
 
 const (
 	// DefaultCost is the default cost for bcrypt
-	DefaultCost = 15
+	DefaultCost = 10
 )
 
 // New returns a new password instance

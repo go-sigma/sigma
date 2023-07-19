@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ximager.fullname" . }}
+  name: {{ include "sigma.fullname" . }}
   labels:
-    {{- include "ximager.labels" . | nindent 4 }}
+    {{- include "sigma.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "ximager.selectorLabels" . | nindent 6 }}
+      {{- include "sigma.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "ximager.selectorLabels" . | nindent 8 }}
+        {{- include "sigma.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "ximager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -48,9 +47,9 @@ spec:
               path: /
               port: http
           volumeMounts:
-            - name: "configmap"
-              mountPath: "/etc/ximager/ximager.yaml"
-              subPath: "ximager.yaml"
+            - name: "config"
+              mountPath: "/etc/sigma/config.yaml"
+              subPath: "config.yaml"
               readOnly: false
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -74,16 +73,16 @@ spec:
               path: /
               port: http
           volumeMounts:
-            - name: "configmap"
-              mountPath: "/etc/ximager/ximager.yaml"
-              subPath: "ximager.yaml"
+            - name: "config"
+              mountPath: "/etc/sigma/config.yaml"
+              subPath: "config.yaml"
               readOnly: false
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: "configmap"
+        - name: "config"
           configMap:
-            name: "ximager-configmap"
+            name: {{ printf "%s-configmap" .Chart.Name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
