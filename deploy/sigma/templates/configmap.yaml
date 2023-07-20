@@ -4,16 +4,16 @@ metadata:
   name: {{ printf "%s-configmap" .Chart.Name }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "ximager.labels" . | nindent 4 }}
+    {{- include "sigma.labels" . | nindent 4 }}
 data:
   {{- if eq .Values.middleware.type "internal" }}
-  ximager.yaml: |-
+  config.yaml: |-
     log:
       level: debug
     database:
       type: mysql
       sqlite3:
-        path: ximager.db
+        path: {{ .Chart.Name }}.db
       mysql:
         host: {{ .Release.Name }}-mysql
         port: 3306
@@ -32,6 +32,12 @@ data:
     http:
       server: 0.0.0.0:3000
       worker: 0.0.0.0:3001
+    daemon:
+      gc:
+        # if blob not associate with artifact
+        retention: 72h
+        # At 02:00 on Saturday
+        cron: 0 2 * * 6
     storage:
       rootdirectory: ./storage
       type: s3
@@ -65,7 +71,7 @@ data:
       jwt:
         ttl: 1h
         refreshTtl: 24h
-        privateKey: {{ randAlphaNum 32 | b64enc }}
+        privateKey: {{ genPrivateKey "rsa" | b64enc }}
   {{- else if eq .Values.middleware.type "external" }}
   ximager.yaml: |-
     {{ .Values.config | toYaml | nindent 4 }}

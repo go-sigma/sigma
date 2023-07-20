@@ -4,7 +4,7 @@ metadata:
   name: {{ printf "%s-secret" .Chart.Name }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "ximager.labels" . | nindent 4 }}
+    {{- include "sigma.labels" . | nindent 4 }}
 data:
   {{ $privateKey := (genPrivateKey "rsa" | b64enc) }}
   AUTH_JWT_PRIVATEKEY: {{ .Values.config.auth.jwt.privateKey | default $privateKey | quote }}

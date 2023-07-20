@@ -6,9 +6,9 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.85.0
 	github.com/aquasecurity/trivy v0.43.1
-	github.com/aws/aws-sdk-go v1.44.300
+	github.com/aws/aws-sdk-go v1.44.301
 	github.com/bytedance/sonic v1.9.2
-	github.com/casbin/casbin/v2 v2.71.1
+	github.com/casbin/casbin/v2 v2.72.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
 	github.com/distribution/distribution/v3 v3.0.0-20230714152834-003dd5aaa1f3
