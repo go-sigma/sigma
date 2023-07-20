@@ -21,6 +21,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/jackc/pgx/v4"
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
@@ -32,6 +33,9 @@ import (
 
 func TestInitialize(t *testing.T) {
 	logger.SetLevel("debug")
+
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
 	viper.SetDefault("database.type", "sqlite3")
@@ -100,6 +104,9 @@ func TestInitialize1(t *testing.T) {
 	viper.SetDefault("database.type", "sqlite3")
 	viper.SetDefault("database.sqlite3.path", dbPath)
 
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+
 	err := Initialize()
 	assert.NoError(t, err)
 
@@ -116,6 +123,10 @@ func TestInitialize2(t *testing.T) {
 		err := recover()
 		assert.NotNil(t, err)
 	}()
+
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+
 	viper.SetDefault("database.type", "unknown")
 	err := Initialize()
 	assert.Error(t, err)

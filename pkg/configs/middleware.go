@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	checkers = append(checkers, checkRedis, checkDatabase, checkS3)
+	checkers = append(checkers, checkRedis, checkDatabase, checkStorage)
 }
 
 func checkRedis() error {
@@ -115,7 +115,18 @@ func checkPostgresql() error {
 	return nil
 }
 
-func checkS3() error {
+func checkStorage() error {
+	switch viper.GetString("storage.type") {
+	case "filesystem":
+		return nil
+	case "s3":
+		return checkStorageS3()
+	default:
+		return fmt.Errorf("Not support storage type")
+	}
+}
+
+func checkStorageS3() error {
 	endpoint := viper.GetString("storage.s3.endpoint")
 	region := viper.GetString("storage.s3.region")
 	ak := viper.GetString("storage.s3.ak")

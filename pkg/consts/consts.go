@@ -103,3 +103,13 @@ const (
 	// WorkerPort worker port
 	WorkerPort = "0.0.0.0:3001"
 )
+
+const (
+	// RedisPid ...
+	RedisPid = "/var/run/redis.pid"
+)
+
+const (
+	// LockerMigration ...
+	LockerMigration = "locker-migration"
+)

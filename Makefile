@@ -20,7 +20,7 @@ RESET           := $(shell tput -Txterm sgr0)
 GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.version=$(shell git describe --tags --dirty --always)
 GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GOLDFLAGS       += -X github.com/go-sigma/sigma/cmd.gitHash=$(shell git rev-parse --short HEAD)
-GOFLAGS          = -ldflags '-extldflags "-static" -s -w $(GOLDFLAGS)'
+GOFLAGS          = -ldflags '-s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor
 
@@ -29,14 +29,14 @@ all: build
 ## Build:
 build: ## Build your project and put the output binary in ./bin
 	@$(GOCMD) mod download
-	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-release: ## Build your project for release and put the output binary in ./bin
 	@$(GOCMD) mod download
-	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-linux: ## Build your project for linux and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=1 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 clean: ## Remove build related file
 	rm -fr ./bin
@@ -97,7 +97,7 @@ docker-build-local: build-linux ## Build the container with the local binary
 	docker build -f build/local.Dockerfile --rm --tag $(BINARY_NAME) .
 
 docker-build-dev: ## Build the dev container
-	docker build -f build/dev.Dockerfile --rm --tag $(BINARY_NAME) .
+	docker build -f build/Dockerfile --rm --tag $(BINARY_NAME) .
 
 docker-release: ## Release the container with tag latest and version
 	docker tag $(BINARY_NAME) $(DOCKER_REGISTRY)$(BINARY_NAME):latest

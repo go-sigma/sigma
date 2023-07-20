@@ -20,6 +20,8 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
+	"reflect"
 	"strings"
 
 	gonanoid "github.com/matoous/go-nanoid"
@@ -27,6 +29,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 const (
@@ -39,9 +42,36 @@ type fs struct {
 	rootDirectory string
 }
 
+func init() {
+	utils.PanicIf(storage.RegisterDriverFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+}
+
+type factory struct{}
+
+var _ storage.Factory = factory{}
+
 // New returns a new filesystem storage driver
-func New() storage.StorageDriver {
-	return &fs{rootDirectory: viper.GetString("storage.rootDirectory")}
+func (f factory) New() (storage.StorageDriver, error) {
+	driver := &fs{rootDirectory: path.Join(viper.GetString("storage.filesystem.path"), viper.GetString("storage.rootDirectory"))}
+	if !utils.IsExist(driver.rootDirectory) {
+		err := os.MkdirAll(driver.rootDirectory, 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !utils.IsExist(path.Join(driver.rootDirectory, consts.BlobUploads)) {
+		err := os.MkdirAll(path.Join(driver.rootDirectory, consts.BlobUploads), 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !utils.IsExist(path.Join(driver.rootDirectory, consts.Blobs)) {
+		err := os.MkdirAll(path.Join(driver.rootDirectory, consts.Blobs), 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return driver, nil
 }
 
 func (f *fs) sanitizePath(p string) string {
@@ -55,6 +85,12 @@ func (f *fs) Stat(ctx context.Context, path string) (storage.FileInfo, error) {
 
 // Move moves a file from sourcePath to destPath
 func (f *fs) Move(ctx context.Context, sourcePath string, destPath string) error {
+	if !utils.IsExist(filepath.Dir(f.sanitizePath(destPath))) {
+		err := os.MkdirAll(filepath.Dir(f.sanitizePath(destPath)), 0755)
+		if err != nil {
+			return err
+		}
+	}
 	return os.Rename(f.sanitizePath(sourcePath), f.sanitizePath(destPath))
 }
 
@@ -110,7 +146,7 @@ func (f *fs) CommitUpload(ctx context.Context, rPath, uploadID string, parts []s
 		return err
 	}
 	for _, part := range parts {
-		partPath := path.Join(tmpDir, uploadID, part)
+		partPath := f.sanitizePath(path.Join(tmpDir, uploadID, part))
 		partFP, err := os.Open(partPath)
 		if err != nil {
 			fp.Close() // nolint: errcheck
@@ -125,11 +161,11 @@ func (f *fs) CommitUpload(ctx context.Context, rPath, uploadID string, parts []s
 	}
 	err = fp.Close()
 	if err != nil {
-		return nil
+		return err
 	}
 	err = os.RemoveAll(f.sanitizePath(path.Join(tmpDir, uploadID)))
 	if err != nil {
-		return nil
+		return err
 	}
 	return os.Rename(fake, rPath)
 }

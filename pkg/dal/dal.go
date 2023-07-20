@@ -17,15 +17,19 @@ package dal
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/glebarez/sqlite"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -44,6 +48,18 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
+	pool := goredis.NewPool(RedisCli)
+	rs := redsync.New(pool)
+	mutex := rs.NewMutex(consts.LockerMigration, redsync.WithRetryDelay(time.Second*3), redsync.WithTries(10), redsync.WithExpiry(time.Second*30))
+	err = mutex.Lock()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if ok, err := mutex.Unlock(); !ok || err != nil {
+			log.Fatal().Err(err).Msg("Unlock the migration key failed")
+		}
+	}()
 	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
 	switch dbType {
 	case enums.DatabaseMysql:

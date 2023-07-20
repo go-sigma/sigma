@@ -1,7 +1,7 @@
 version: '2'
 services:
   ximager:
-    image: ximager:latest
+    image: sigma:latest
     ports:
       - "3000:3000"
     command: server
@@ -32,9 +32,9 @@ services:
     image: redis:7.0-alpine
     ports:
       - "6379:6379"
-    command: redis-server --requirepass ximager
+    command: redis-server --requirepass sigma
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "ximager", "ping"]
+      test: ["CMD", "redis-cli", "-a", "sigma", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10

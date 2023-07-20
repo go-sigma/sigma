@@ -257,7 +257,7 @@ func (h *handler) putManifestIndex(ctx context.Context, digests []string, reposi
 
 func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *models.Artifact) {
 	artifactService := h.artifactServiceFactory.New()
-	err := artifactService.SaveSbom(ctx, &models.ArtifactSbom{
+	err := artifactService.CreateSbom(ctx, &models.ArtifactSbom{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})
@@ -283,7 +283,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 
 func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact) {
 	artifactService := h.artifactServiceFactory.New()
-	err := artifactService.SaveVulnerability(ctx, &models.ArtifactVulnerability{
+	err := artifactService.CreateVulnerability(ctx, &models.ArtifactVulnerability{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
 	})

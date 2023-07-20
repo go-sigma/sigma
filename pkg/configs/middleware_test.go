@@ -112,12 +112,13 @@ func TestCheckS3(t *testing.T) {
 	viper.SetDefault("storage.s3.sk", "ximager-ximager")
 	viper.SetDefault("storage.s3.bucket", "ximager")
 	viper.SetDefault("storage.s3.forcePathStyle", true)
+	viper.SetDefault("storage.type", "s3")
 
-	err := checkS3()
+	err := checkStorage()
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.s3.endpoint", "http://localhost:9011")
 
-	err = checkS3()
+	err = checkStorage()
 	assert.Error(t, err)
 }

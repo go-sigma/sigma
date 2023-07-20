@@ -26,7 +26,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -69,14 +68,14 @@ type ArtifactService interface {
 	DeleteByID(ctx context.Context, id int64) error
 	// DeleteByID deletes the artifact with the specified artifact ID.
 	DeleteByIDs(ctx context.Context, ids []int64) error
-	// SaveSbom save a new artifact sbom if conflict update.
-	SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error
-	// SaveVulnerability save a new artifact vulnerability if conflict update.
-	SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error
-	// UpdateSbomStatus update the artifact sbom status.
-	UpdateSbomStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error
-	// UpdateVulnerabilityStatus update the artifact vulnerability status.
-	UpdateVulnerabilityStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error
+	// CreateSbom create a new artifact sbom.
+	CreateSbom(ctx context.Context, sbom *models.ArtifactSbom) error
+	// CreateVulnerability save a new artifact vulnerability.
+	CreateVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error
+	// UpdateSbom update the artifact sbom.
+	UpdateSbom(ctx context.Context, artifactID int64, updates map[string]any) error
+	// UpdateVulnerability update the artifact vulnerability.
+	UpdateVulnerability(ctx context.Context, artifactID int64, updates map[string]any) error
 }
 
 type artifactService struct {
@@ -301,30 +300,30 @@ func (s *artifactService) DeleteByIDs(ctx context.Context, ids []int64) error {
 	return err
 }
 
-// SaveSbom save a new artifact sbom if conflict do nothing.
-func (s *artifactService) SaveSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
-	return s.tx.ArtifactSbom.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(sbom)
+// CreateSbom save a new artifact sbom.
+func (s *artifactService) CreateSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
+	return s.tx.ArtifactSbom.WithContext(ctx).Create(sbom)
 }
 
-// SaveVulnerability save a new artifact vulnerability if conflict do nothing.
-func (s *artifactService) SaveVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
-	return s.tx.ArtifactVulnerability.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(vulnerability)
+// CreateVulnerability save a new artifact vulnerability.
+func (s *artifactService) CreateVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
+	return s.tx.ArtifactVulnerability.WithContext(ctx).Create(vulnerability)
 }
 
-// UpdateSbomStatus update the artifact sbom status.
-func (s *artifactService) UpdateSbomStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error {
-	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).
-		UpdateColumns(map[string]interface{}{
-			"status": status,
-		})
+// UpdateSbom update the artifact sbom.
+func (s *artifactService) UpdateSbom(ctx context.Context, artifactID int64, updates map[string]any) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).UpdateColumns(updates)
 	return err
 }
 
-// UpdateVulnerabilityStatus update the artifact vulnerability status.
-func (s *artifactService) UpdateVulnerabilityStatus(ctx context.Context, artifactID int64, status enums.TaskCommonStatus) error {
-	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).
-		UpdateColumns(map[string]interface{}{
-			"status": status,
-		})
+// UpdateVulnerability update the artifact vulnerability.
+func (s *artifactService) UpdateVulnerability(ctx context.Context, artifactID int64, updates map[string]any) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).UpdateColumns(updates)
 	return err
 }

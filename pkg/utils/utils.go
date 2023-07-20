@@ -17,6 +17,7 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -97,4 +98,31 @@ func TrimHTTP(in string) string {
 		return strings.TrimPrefix(in, "https://")
 	}
 	return in
+}
+
+// IsDir returns true if given path is a directory,
+// or returns false when it's a file or does not exist.
+func IsDir(dir string) bool {
+	f, e := os.Stat(dir)
+	if e != nil {
+		return false
+	}
+	return f.IsDir()
+}
+
+// IsFile returns true if given path is a file,
+// or returns false when it's a directory or does not exist.
+func IsFile(filePath string) bool {
+	f, e := os.Stat(filePath)
+	if e != nil {
+		return false
+	}
+	return !f.IsDir()
+}
+
+// IsExist checks whether a file or directory exists.
+// It returns false when the file or directory does not exist.
+func IsExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
 }
