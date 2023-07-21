@@ -6,16 +6,14 @@ CREATE TYPE provider AS ENUM (
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "provider" provider NOT NULL DEFAULT 'local',
+  "provider_account_id" varchar(256),
   "username" varchar(64) NOT NULL UNIQUE,
   "password" varchar(256) NOT NULL,
   "email" varchar(256),
-  "provider_account_id" varchar(256),
-  "refresh_token" varchar(256),
-  "access_token" varchar(256),
-  "expires_at" bigint,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
-  "deleted_at" bigint NOT NULL DEFAULT 0
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
 
 CREATE TYPE visibility AS ENUM (

@@ -13,10 +13,6 @@ jobs:
   e2e-test:
     name: e2e-test
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        go: ["1.19"]
-        node: ["18"]
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3

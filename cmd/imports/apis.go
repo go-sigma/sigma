@@ -18,6 +18,7 @@ import (
 	_ "github.com/go-sigma/sigma/pkg/handlers/apidocs"
 	_ "github.com/go-sigma/sigma/pkg/handlers/artifacts"
 	_ "github.com/go-sigma/sigma/pkg/handlers/namespaces"
+	_ "github.com/go-sigma/sigma/pkg/handlers/oauth2"
 	_ "github.com/go-sigma/sigma/pkg/handlers/repositories"
 	_ "github.com/go-sigma/sigma/pkg/handlers/systems"
 	_ "github.com/go-sigma/sigma/pkg/handlers/tags"

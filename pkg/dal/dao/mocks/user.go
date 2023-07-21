@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
+	enums "github.com/go-sigma/sigma/pkg/types/enums"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -62,6 +63,21 @@ func (m *MockUserService) Create(arg0 context.Context, arg1 *models.User) error 
 func (mr *MockUserServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserService)(nil).Create), arg0, arg1)
+}
+
+// GetByProvider mocks base method.
+func (m *MockUserService) GetByProvider(arg0 context.Context, arg1 enums.Provider, arg2 string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByProvider", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByProvider indicates an expected call of GetByProvider.
+func (mr *MockUserServiceMockRecorder) GetByProvider(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProvider", reflect.TypeOf((*MockUserService)(nil).GetByProvider), arg0, arg1, arg2)
 }
 
 // GetByUsername mocks base method.

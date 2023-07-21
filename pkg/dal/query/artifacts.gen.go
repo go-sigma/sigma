@@ -39,6 +39,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.Raw = field.NewBytes(tableName, "raw")
 	_artifact.ConfigRaw = field.NewBytes(tableName, "config_raw")
 	_artifact.ConfigMediaType = field.NewString(tableName, "config_media_type")
+	_artifact.Type = field.NewField(tableName, "type")
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
@@ -207,6 +208,7 @@ type artifact struct {
 	Raw             field.Bytes
 	ConfigRaw       field.Bytes
 	ConfigMediaType field.String
+	Type            field.Field
 	LastPull        field.Field
 	PushedAt        field.Time
 	PullTimes       field.Int64
@@ -249,6 +251,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.Raw = field.NewBytes(table, "raw")
 	a.ConfigRaw = field.NewBytes(table, "config_raw")
 	a.ConfigMediaType = field.NewString(table, "config_media_type")
+	a.Type = field.NewField(table, "type")
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
 	a.PullTimes = field.NewInt64(table, "pull_times")
@@ -276,7 +279,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 21)
+	a.fieldMap = make(map[string]field.Expr, 22)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -289,6 +292,7 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["raw"] = a.Raw
 	a.fieldMap["config_raw"] = a.ConfigRaw
 	a.fieldMap["config_media_type"] = a.ConfigMediaType
+	a.fieldMap["type"] = a.Type
 	a.fieldMap["last_pull"] = a.LastPull
 	a.fieldMap["pushed_at"] = a.PushedAt
 	a.fieldMap["pull_times"] = a.PullTimes

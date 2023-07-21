@@ -30,11 +30,8 @@ type User struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	Provider          enums.Provider `gorm:"default:local"`
+	ProviderAccountID *string
 	Username          string
 	Password          *string
 	Email             *string
-	ProviderAccountID *string
-	RefreshToken      *string
-	AccessToken       *string
-	ExpiresAt         *string
 }

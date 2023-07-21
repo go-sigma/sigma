@@ -1,18 +1,14 @@
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `provider` ENUM ('local', 'github') NOT NULL DEFAULT 'local',
+  `provider_account_id` varchar(256),
   `username` varchar(64) NOT NULL UNIQUE,
   `password` varchar(256),
   `email` varchar(256),
-  `provider_account_id` varchar(256),
-  `refresh_token` varchar(256),
-  `access_token` varchar(256),
-  `expires_at` bigint,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`),
-  CONSTRAINT `users_unique_with_email` UNIQUE (`email`, `deleted_at`)
+  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `namespaces` (

@@ -147,11 +147,10 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 }
 
 func genWwwAuthenticate(host, schema string) string {
-	hostname := host
 	if viper.GetString("server.domain") != "" {
-		hostname = viper.GetString("server.domain")
+		host = viper.GetString("server.domain")
 	}
-	realm := fmt.Sprintf("%s://%s%s/tokens", schema, hostname, consts.APIV1)
+	realm := fmt.Sprintf("%s://%s%s/tokens", schema, host, consts.APIV1)
 	rRealm := viper.GetString("auth.token.realm")
 	if rRealm != "" {
 		realm = rRealm
