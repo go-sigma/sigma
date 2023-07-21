@@ -63,10 +63,10 @@ func TestPutManifestAsyncTask(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockArtifactService := daomock.NewMockArtifactService(ctrl)
-	daoMockArtifactService.EXPECT().SaveSbom(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.ArtifactSbom) error {
+	daoMockArtifactService.EXPECT().CreateSbom(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.ArtifactSbom) error {
 		return fmt.Errorf("test")
 	}).Times(1)
-	daoMockArtifactService.EXPECT().SaveVulnerability(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.ArtifactVulnerability) error {
+	daoMockArtifactService.EXPECT().CreateVulnerability(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.ArtifactVulnerability) error {
 		return fmt.Errorf("test")
 	}).Times(1)
 

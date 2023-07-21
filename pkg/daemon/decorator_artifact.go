@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -58,25 +59,28 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 			for status := range statusChan {
 				switch status.Daemon {
 				case enums.DaemonVulnerability:
-					err = artifactService.SaveVulnerability(context.Background(), &models.ArtifactVulnerability{
-						ArtifactID: id,
-						Raw:        status.Raw,
-						Result:     status.Result,
-						Status:     status.Status,
-						Stdout:     status.Stdout,
-						Stderr:     status.Stderr,
-						Message:    status.Message,
-					})
+					err = artifactService.UpdateVulnerability(context.Background(), id,
+						map[string]any{
+							query.ArtifactVulnerability.Raw.ColumnName().String():     status.Raw,
+							query.ArtifactVulnerability.Result.ColumnName().String():  status.Result,
+							query.ArtifactVulnerability.Status.ColumnName().String():  status.Status,
+							query.ArtifactVulnerability.Stdout.ColumnName().String():  status.Stdout,
+							query.ArtifactVulnerability.Stderr.ColumnName().String():  status.Stderr,
+							query.ArtifactVulnerability.Message.ColumnName().String(): status.Message,
+						},
+					)
 				case enums.DaemonSbom:
-					err = artifactService.SaveSbom(context.Background(), &models.ArtifactSbom{
-						ArtifactID: id,
-						Raw:        status.Raw,
-						Result:     status.Result,
-						Status:     status.Status,
-						Stdout:     status.Stdout,
-						Stderr:     status.Stderr,
-						Message:    status.Message,
-					})
+					err = artifactService.UpdateSbom(context.Background(),
+						id,
+						map[string]any{
+							query.ArtifactSbom.Raw.ColumnName().String():     status.Raw,
+							query.ArtifactSbom.Result.ColumnName().String():  status.Result,
+							query.ArtifactSbom.Status.ColumnName().String():  status.Status,
+							query.ArtifactSbom.Stdout.ColumnName().String():  status.Stdout,
+							query.ArtifactSbom.Stderr.ColumnName().String():  status.Stderr,
+							query.ArtifactSbom.Message.ColumnName().String(): status.Message,
+						},
+					)
 				default:
 					continue
 				}

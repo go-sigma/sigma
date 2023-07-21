@@ -11,7 +11,6 @@ import (
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	types "github.com/go-sigma/sigma/pkg/types"
-	enums "github.com/go-sigma/sigma/pkg/types/enums"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -123,6 +122,34 @@ func (m *MockArtifactService) Create(arg0 context.Context, arg1 *models.Artifact
 func (mr *MockArtifactServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockArtifactService)(nil).Create), arg0, arg1)
+}
+
+// CreateSbom mocks base method.
+func (m *MockArtifactService) CreateSbom(arg0 context.Context, arg1 *models.ArtifactSbom) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSbom", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateSbom indicates an expected call of CreateSbom.
+func (mr *MockArtifactServiceMockRecorder) CreateSbom(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSbom", reflect.TypeOf((*MockArtifactService)(nil).CreateSbom), arg0, arg1)
+}
+
+// CreateVulnerability mocks base method.
+func (m *MockArtifactService) CreateVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateVulnerability", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateVulnerability indicates an expected call of CreateVulnerability.
+func (mr *MockArtifactServiceMockRecorder) CreateVulnerability(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).CreateVulnerability), arg0, arg1)
 }
 
 // DeleteByDigest mocks base method.
@@ -286,58 +313,30 @@ func (mr *MockArtifactServiceMockRecorder) ListArtifact(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactService)(nil).ListArtifact), arg0, arg1)
 }
 
-// SaveSbom mocks base method.
-func (m *MockArtifactService) SaveSbom(arg0 context.Context, arg1 *models.ArtifactSbom) error {
+// UpdateSbom mocks base method.
+func (m *MockArtifactService) UpdateSbom(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveSbom", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateSbom", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveSbom indicates an expected call of SaveSbom.
-func (mr *MockArtifactServiceMockRecorder) SaveSbom(arg0, arg1 interface{}) *gomock.Call {
+// UpdateSbom indicates an expected call of UpdateSbom.
+func (mr *MockArtifactServiceMockRecorder) UpdateSbom(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSbom", reflect.TypeOf((*MockArtifactService)(nil).SaveSbom), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSbom", reflect.TypeOf((*MockArtifactService)(nil).UpdateSbom), arg0, arg1, arg2)
 }
 
-// SaveVulnerability mocks base method.
-func (m *MockArtifactService) SaveVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) error {
+// UpdateVulnerability mocks base method.
+func (m *MockArtifactService) UpdateVulnerability(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveVulnerability", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateVulnerability", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveVulnerability indicates an expected call of SaveVulnerability.
-func (mr *MockArtifactServiceMockRecorder) SaveVulnerability(arg0, arg1 interface{}) *gomock.Call {
+// UpdateVulnerability indicates an expected call of UpdateVulnerability.
+func (mr *MockArtifactServiceMockRecorder) UpdateVulnerability(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveVulnerability", reflect.TypeOf((*MockArtifactService)(nil).SaveVulnerability), arg0, arg1)
-}
-
-// UpdateSbomStatus mocks base method.
-func (m *MockArtifactService) UpdateSbomStatus(arg0 context.Context, arg1 int64, arg2 enums.TaskCommonStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSbomStatus", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateSbomStatus indicates an expected call of UpdateSbomStatus.
-func (mr *MockArtifactServiceMockRecorder) UpdateSbomStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSbomStatus", reflect.TypeOf((*MockArtifactService)(nil).UpdateSbomStatus), arg0, arg1, arg2)
-}
-
-// UpdateVulnerabilityStatus mocks base method.
-func (m *MockArtifactService) UpdateVulnerabilityStatus(arg0 context.Context, arg1 int64, arg2 enums.TaskCommonStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateVulnerabilityStatus", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateVulnerabilityStatus indicates an expected call of UpdateVulnerabilityStatus.
-func (mr *MockArtifactServiceMockRecorder) UpdateVulnerabilityStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVulnerabilityStatus", reflect.TypeOf((*MockArtifactService)(nil).UpdateVulnerabilityStatus), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).UpdateVulnerability), arg0, arg1, arg2)
 }

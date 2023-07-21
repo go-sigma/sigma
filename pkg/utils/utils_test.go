@@ -24,6 +24,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/types"
@@ -197,4 +198,46 @@ func TestTrimHTTP(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsDir(t *testing.T) {
+	convey.Convey("Check if given path is a directory", t, func() {
+		convey.Convey("Pass a file name", func() {
+			convey.So(IsDir("file.go"), convey.ShouldEqual, false)
+		})
+		convey.Convey("Pass a directory name", func() {
+			convey.So(IsDir("ptr"), convey.ShouldEqual, true)
+		})
+		convey.Convey("Pass a invalid path", func() {
+			convey.So(IsDir("foo"), convey.ShouldEqual, false)
+		})
+	})
+}
+
+func TestIsFile(t *testing.T) {
+	if !IsFile("utils.go") {
+		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", true, false)
+	}
+
+	if IsFile("ptr") {
+		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", false, true)
+	}
+
+	if IsFile("files.go") {
+		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", false, true)
+	}
+}
+
+func TestIsExist(t *testing.T) {
+	convey.Convey("Check if file or directory exists", t, func() {
+		convey.Convey("Pass a file name that exists", func() {
+			convey.So(IsExist("utils.go"), convey.ShouldEqual, true)
+		})
+		convey.Convey("Pass a directory name that exists", func() {
+			convey.So(IsExist("ptr"), convey.ShouldEqual, true)
+		})
+		convey.Convey("Pass a directory name that does not exist", func() {
+			convey.So(IsExist(".hg"), convey.ShouldEqual, false)
+		})
+	})
 }

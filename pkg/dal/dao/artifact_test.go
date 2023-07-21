@@ -290,15 +290,19 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		sbomObj := &models.ArtifactSbom{ArtifactID: artifactObj.ID, Raw: []byte("test"), Status: enums.TaskCommonStatusPending}
-		err = artifactService.SaveSbom(ctx, sbomObj)
+		err = artifactService.CreateSbom(ctx, sbomObj)
 		assert.NoError(t, err)
-		err = artifactService.UpdateSbomStatus(ctx, artifactObj.ID, enums.TaskCommonStatusSuccess)
+		err = artifactService.UpdateSbom(ctx, artifactObj.ID, map[string]any{
+			query.ArtifactSbom.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
+		})
 		assert.NoError(t, err)
 
 		vulnObj := &models.ArtifactVulnerability{ArtifactID: artifactObj.ID, Raw: []byte("test"), Status: enums.TaskCommonStatusPending}
-		err = artifactService.SaveVulnerability(ctx, vulnObj)
+		err = artifactService.CreateVulnerability(ctx, vulnObj)
 		assert.NoError(t, err)
-		err = artifactService.UpdateVulnerabilityStatus(ctx, artifactObj.ID, enums.TaskCommonStatusSuccess)
+		err = artifactService.UpdateVulnerability(ctx, artifactObj.ID, map[string]any{
+			query.ArtifactVulnerability.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
+		})
 		assert.NoError(t, err)
 		return nil
 	})

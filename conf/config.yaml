@@ -3,7 +3,7 @@ log:
   proxyLevel: info
 database:
   # The database type to use. Supported types are: sqlite3, mysql, postgresql
-  type: mysql
+  type: sqlite3
   sqlite3:
     path: sigma.db
   mysql:
@@ -19,8 +19,28 @@ database:
     password: ximager
     dbname: ximager
     sslmode: disable
+
+# deploy avaliable: single, replica
+# replica should use external redis
+deploy: single
+
 redis:
-  url: redis://:ximager@localhost:6379/0
+  # redis type avaliable: internal, external
+  type: internal
+  url: redis://:sigma@localhost:6379/0
+
+cache:
+  # the cache type avaliable is: redis
+  type: redis
+  # please attation in multi
+  inmemory: {}
+  redis: {}
+
+workqueue:
+  # the workqueue type avaliable: redis
+  type: redis
+  redis: {}
+
 http:
   # endpoint can be a domain or domain with port, eg: http://sigma.test.io, https://sigma.test.io:30080, http://127.0.0.1:3000
   # this endpoint will be used to generate the token service url in auth middleware,
@@ -40,9 +60,9 @@ http:
     key: ./conf/sigma.test.io.key
 storage:
   rootdirectory: ./storage
-  type: s3
+  type: filesystem
   filesystem:
-    path: /
+    path: /var/lib/sigma/oci/
   s3:
     ak: ximager
     sk: ximager-ximager

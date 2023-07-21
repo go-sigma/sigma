@@ -3,8 +3,7 @@ ARG ALPINE_VERSION=3.18
 FROM alpine:${ALPINE_VERSION} as syft
 
 ARG SYFT_VERSION=0.84.1
-
-ARG TARGETARCH
+ARG TARGETARCH=amd64
 
 RUN set -eux && \
   sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
@@ -18,8 +17,7 @@ FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG TRIVY_VERSION=0.43.1
 ARG ORAS_VERSION=1.0.0
-
-ARG TARGETARCH
+ARG TARGETARCH=amd64
 
 RUN set -eux && \
   sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
@@ -45,11 +43,19 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION}
 
+RUN set -eux && \
+  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  apk add --no-cache redis yq
+
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY --from=trivy /opt/trivy/metadata.json /opt/trivy/db/metadata.json
+COPY ./conf/redis.conf /etc/sigma/redis.conf
 COPY ./conf/config.yaml /etc/sigma/config.yaml
+COPY ./build/entrypoint.sh /entrypoint.sh
 COPY ./bin/sigma /usr/local/bin/sigma
 
-ENTRYPOINT ["/usr/local/bin/sigma"]
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["sigma", "server"]
