@@ -84,7 +84,7 @@ func TestListRepository(t *testing.T) {
 
 		repositoryService := repositoryFactory.New(tx)
 		repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj)
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		if err != nil {
 			return err
 		}

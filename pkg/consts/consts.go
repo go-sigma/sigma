@@ -23,7 +23,7 @@ import (
 
 const (
 	// AppName represents the app name
-	AppName = "XImager"
+	AppName = "sigma"
 	// APIVersion represents the API version
 	APIVersion = "v2"
 	// APIVersionKey represents the API version key
@@ -49,7 +49,7 @@ const (
 )
 
 // UserAgent represents the user agent
-var UserAgent = fmt.Sprintf("XImager/%s (https://github.com/ximager/ximager)", APIVersion)
+var UserAgent = fmt.Sprintf("sigma/%s (https://github.com/go-sigma/sigma)", APIVersion)
 
 const (
 	// AuthModel represents the auth model

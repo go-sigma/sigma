@@ -82,7 +82,7 @@ func TestListTag(t *testing.T) {
 		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj)
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New(tx)

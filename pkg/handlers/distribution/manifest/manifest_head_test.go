@@ -139,7 +139,7 @@ func TestHeadManifest(t *testing.T) {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	repositoryService := repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj)
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 	assert.NoError(t, err)
 
 	artifactServiceFactory := dao.NewArtifactServiceFactory()

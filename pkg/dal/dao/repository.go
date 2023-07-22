@@ -16,11 +16,11 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -37,7 +37,7 @@ import (
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
 	// Save saves the repository.
-	Create(context.Context, *models.Repository) error
+	Create(ctx context.Context, repositoryObj *models.Repository, autoCreateNamespace AutoCreateNamespace) error
 	// FindAll ...
 	FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error)
 	// Get gets the repository with the specified repository ID.
@@ -85,26 +85,75 @@ func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	}
 }
 
+type AutoCreateNamespace struct {
+	AutoCreate bool
+	Visibility enums.Visibility
+	UserID     int64
+}
+
 // Create creates a new repository.
-func (s *repositoryService) Create(ctx context.Context, repository *models.Repository) error {
-	_, ns, _, _, err := imagerefs.Parse(repository.Name)
+func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Repository, autoCreateNamespace AutoCreateNamespace) error {
+	_, ns, _, _, err := imagerefs.Parse(repositoryObj.Name)
 	if err != nil {
 		return err
 	}
-	nsObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(ns)).First()
+	namespaceObj, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.Name.Eq(ns)).First()
 	if err != nil {
-		return err
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if !autoCreateNamespace.AutoCreate {
+			return fmt.Errorf("namespace %s not found", ns)
+		}
+		namespaceObj = &models.Namespace{
+			Name:       ns,
+			Visibility: autoCreateNamespace.Visibility,
+		}
+		if !namespaceObj.Visibility.IsValid() {
+			namespaceObj.Visibility = enums.VisibilityPrivate
+		}
+		err = s.tx.Namespace.WithContext(ctx).Create(namespaceObj)
+		if err != nil {
+			return err
+		}
+		err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
+			UserID:       autoCreateNamespace.UserID,
+			NamespaceID:  namespaceObj.ID,
+			Action:       enums.AuditActionCreate,
+			ResourceType: enums.AuditResourceTypeNamespace,
+			Resource:     namespaceObj.Name,
+		})
+		if err != nil {
+			return err
+		}
 	}
-	repository.NamespaceID = nsObj.ID
-	err = s.tx.Repository.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(repository)
+	repositoryObj.NamespaceID = namespaceObj.ID
+
+	findRepositoryObj, err := s.GetByName(ctx, repositoryObj.Name)
 	if err != nil {
-		return err
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if !repositoryObj.Visibility.IsValid() {
+			repositoryObj.Visibility = namespaceObj.Visibility
+		}
+		err = s.tx.Repository.WithContext(ctx).Create(repositoryObj)
+		if err != nil {
+			return err
+		}
+		err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
+			UserID:       autoCreateNamespace.UserID,
+			NamespaceID:  namespaceObj.ID,
+			Action:       enums.AuditActionCreate,
+			ResourceType: enums.AuditResourceTypeRepository,
+			Resource:     repositoryObj.Name,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	rRepository, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(repository.Name), s.tx.Repository.NamespaceID.Eq(nsObj.ID)).First()
-	if err != nil {
-		return err
-	}
-	return copier.Copy(repository, rRepository)
+	return copier.Copy(repositoryObj, findRepositoryObj)
 }
 
 // FindAll ...

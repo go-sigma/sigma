@@ -219,6 +219,15 @@ var (
 		HTTPStatusCode: http.StatusBadRequest,
 	}
 
+	// DSErrCodeManifestWithNamespace is returned when a manifest name is
+	// invalid because it must contain a valid namespace.
+	DSErrCodeManifestWithNamespace = ErrCode{
+		Code:           "MANIFEST_WITH_NAMESPACE",
+		Title:          "manifest name must contain a namespace",
+		Description:    `This error may be returned when a manifest name is invalid because it is not contain a valid namespace, the image name must be like 'test.com/library/nginx:latest' or 'test.com/public/busybox:latest', but 'test.com/nginx:latest' is not allowed.`,
+		HTTPStatusCode: http.StatusBadRequest,
+	}
+
 	// DSErrCodeBlobUnknown is returned when a blob is unknown to the
 	// registry. This can happen when the manifest references a nonexistent
 	// layer or the result is not found by a blob fetch.

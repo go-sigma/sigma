@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -36,7 +37,7 @@ import (
 // TagService is the interface that provides the tag service methods.
 type TagService interface {
 	// Create save a new tag if conflict do nothing.
-	Create(ctx context.Context, tag *models.Tag) error
+	Create(ctx context.Context, tag *models.Tag, options ...Option) error
 	// Get gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID int64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
@@ -90,8 +91,42 @@ func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
 }
 
 // Create save a new tag if conflict do nothing.
-func (s *tagService) Create(ctx context.Context, tag *models.Tag) error {
-	return s.tx.Tag.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(tag)
+func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Option) error {
+	var c config
+	for _, o := range options {
+		o(&c)
+	}
+	findTagObj, err := s.tx.Tag.WithContext(ctx).Where(
+		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
+		s.tx.Tag.ArtifactID.Eq(tag.ArtifactID),
+		s.tx.Tag.Name.Eq(tag.Name)).First()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		repositoryObj, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(tag.RepositoryID)).First()
+		if err != nil {
+			return fmt.Errorf("get repository failed: %w", err)
+		}
+		err = s.tx.Tag.WithContext(ctx).Create(tag)
+		if err != nil {
+			return err
+		}
+		if c.AuditUserID != 0 {
+			err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
+				UserID:       c.AuditUserID,
+				NamespaceID:  repositoryObj.NamespaceID,
+				Action:       enums.AuditActionCreate,
+				ResourceType: enums.AuditResourceTypeTag,
+				Resource:     fmt.Sprintf("%s:%s", repositoryObj.Name, tag.Name),
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return copier.Copy(findTagObj, tag)
 }
 
 // Get gets the tag with the specified tag ID.

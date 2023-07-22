@@ -48,3 +48,18 @@ func (mr *MockAuditServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAuditService)(nil).Create), arg0, arg1)
 }
+
+// HotNamespace mocks base method.
+func (m *MockAuditService) HotNamespace(arg0 context.Context, arg1 int64, arg2 int) ([]*models.Namespace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HotNamespace", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.Namespace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HotNamespace indicates an expected call of HotNamespace.
+func (mr *MockAuditServiceMockRecorder) HotNamespace(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HotNamespace", reflect.TypeOf((*MockAuditService)(nil).HotNamespace), arg0, arg1, arg2)
+}

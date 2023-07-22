@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -86,6 +87,7 @@ func TestPutManifestAsyncTask(t *testing.T) {
 func TestPutManifest(t *testing.T) {
 	logger.SetLevel("debug")
 	viper.SetDefault("log.level", "debug")
+	viper.SetDefault("namespace.visibility", "public")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
@@ -126,7 +128,7 @@ func TestPutManifest(t *testing.T) {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	repositoryService := repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj)
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{AutoCreate: false, Visibility: enums.VisibilityPrivate, UserID: userObj.ID})
 	assert.NoError(t, err)
 
 	blobServiceFactory := dao.NewBlobServiceFactory()
@@ -150,6 +152,7 @@ func TestPutManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, "application/vnd.oci.image.manifest.v1+json")
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.PutManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)

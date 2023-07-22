@@ -27,10 +27,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/storage"
@@ -56,7 +58,23 @@ func (h *handler) PutManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
+	if !strings.Contains(repository, "/") {
+		log.Error().Str("repository", repository).Msg("Invalid repository, repository name should have a namespace as prefix")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	countReader := counter.NewCounter(c.Request().Body)
 	bodyBytes, err := io.ReadAll(countReader)
@@ -77,7 +95,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 		Name:       repository,
 		Visibility: enums.VisibilityPrivate,
 	}
-	err = repositoryService.Create(ctx, repositoryObj)
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{
+		AutoCreate: viper.GetBool("namespace.autoCreate"),
+		Visibility: enums.MustParseVisibility(viper.GetString("namespace.visibility")),
+		UserID:     user.ID,
+	})
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Create repository failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -124,7 +146,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	if contentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
 		contentType == "application/vnd.oci.image.index.v1+json" {
 		artifactObj.Type = enums.ArtifactTypeImageIndex
-		err := h.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
+		err := h.putManifestIndex(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
@@ -148,7 +170,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		}
 
 		artifactObj.Type = h.getArtifactType(descriptor, manifest)
-		err := h.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
+		err := h.putManifestManifest(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
 			return xerrors.NewDSError(c, ptr.To(err))
 		}
@@ -161,7 +183,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (h *handler) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) *xerrors.ErrCode {
+func (h *handler) putManifestManifest(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) *xerrors.ErrCode {
 	blobService := h.blobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
@@ -184,7 +206,7 @@ func (h *handler) putManifestManifest(ctx context.Context, digests []string, rep
 				RepositoryID: repositoryObj.ID,
 				ArtifactID:   artifactObj.ID,
 				Name:         refs.Tag,
-			})
+			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
 				return ptr.Of(xerrors.DSErrCodeUnknown)
@@ -218,7 +240,7 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (h *handler) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) *xerrors.ErrCode {
+func (h *handler) putManifestIndex(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) *xerrors.ErrCode {
 	artifactService := h.artifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
@@ -229,18 +251,19 @@ func (h *handler) putManifestIndex(ctx context.Context, digests []string, reposi
 	artifactObj.ArtifactIndexes = artifactObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		artifactService := h.artifactServiceFactory.New(tx)
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
 			return ptr.Of(xerrors.DSErrCodeUnknown)
 		}
 		if refs.Tag != "" {
-			tagService := h.tagServiceFactory.New()
+			tagService := h.tagServiceFactory.New(tx)
 			err = tagService.Create(ctx, &models.Tag{
 				RepositoryID: repositoryObj.ID,
 				ArtifactID:   artifactObj.ID,
 				Name:         refs.Tag,
-			})
+			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Create tag failed")
 				return ptr.Of(xerrors.DSErrCodeUnknown)

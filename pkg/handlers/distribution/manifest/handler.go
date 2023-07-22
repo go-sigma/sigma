@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,11 +35,6 @@ type Handlers interface {
 	PutManifest(ctx echo.Context) error
 	// DeleteManifest ...
 	DeleteManifest(ctx echo.Context) error
-
-	// HeadManifestFallbackProxy ...
-	// HeadManifestFallbackProxy(c echo.Context) error
-	// // GetManifestFallbackProxy ...
-	// GetManifestFallbackProxy(c echo.Context, repository string, refs Refs) error
 }
 
 var _ Handlers = &handler{}
@@ -49,6 +44,7 @@ type handler struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
 }
 
 type inject struct {
@@ -56,6 +52,7 @@ type inject struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
 }
 
 // New creates a new instance of the distribution manifest handlers
@@ -64,6 +61,7 @@ func handlerNew(injects ...inject) Handlers {
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.artifactServiceFactory != nil {
@@ -78,12 +76,16 @@ func handlerNew(injects ...inject) Handlers {
 		if ij.tagServiceFactory != nil {
 			tagServiceFactory = ij.tagServiceFactory
 		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
 	}
 	return &handler{
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
 		blobServiceFactory:       blobServiceFactory,
+		auditServiceFactory:      auditServiceFactory,
 	}
 }
 
