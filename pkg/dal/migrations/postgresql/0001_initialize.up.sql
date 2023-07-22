@@ -38,6 +38,34 @@ CREATE TABLE IF NOT EXISTS "namespaces" (
   CONSTRAINT "namespaces_unique_with_name" UNIQUE ("name", "deleted_at")
 );
 
+CREATE TYPE audit_action AS ENUM (
+  'create',
+  'update',
+  'delete',
+  'pull',
+  'push'
+);
+
+CREATE TYPE audit_resource_type AS ENUM (
+  'namespace',
+  'repository',
+  'tag'
+);
+
+CREATE TABLE IF NOT EXISTS "audits" (
+  "id" bigserial PRIMARY KEY,
+  "user_id" bigint NOT NULL,
+  "namespace_id" bigint NOT NULL,
+  "action" audit_action NOT NULL,
+  "resource_type" audit_resource_type NOT NULL,
+  "resource" varchar(256) NOT NULL,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
+);
+
 CREATE TABLE IF NOT EXISTS "repositories" (
   "id" bigserial PRIMARY KEY,
   "name" varchar(64) NOT NULL,

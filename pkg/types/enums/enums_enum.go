@@ -111,6 +111,187 @@ func (x ArtifactType) Value() (driver.Value, error) {
 }
 
 const (
+	// AuditActionCreate is a AuditAction of type create.
+	AuditActionCreate AuditAction = "create"
+	// AuditActionUpdate is a AuditAction of type update.
+	AuditActionUpdate AuditAction = "update"
+	// AuditActionDelete is a AuditAction of type delete.
+	AuditActionDelete AuditAction = "delete"
+	// AuditActionPull is a AuditAction of type pull.
+	AuditActionPull AuditAction = "pull"
+	// AuditActionPush is a AuditAction of type push.
+	AuditActionPush AuditAction = "push"
+)
+
+var ErrInvalidAuditAction = errors.New("not a valid AuditAction")
+
+// String implements the Stringer interface.
+func (x AuditAction) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuditAction) IsValid() bool {
+	_, err := ParseAuditAction(string(x))
+	return err == nil
+}
+
+var _AuditActionValue = map[string]AuditAction{
+	"create": AuditActionCreate,
+	"update": AuditActionUpdate,
+	"delete": AuditActionDelete,
+	"pull":   AuditActionPull,
+	"push":   AuditActionPush,
+}
+
+// ParseAuditAction attempts to convert a string to a AuditAction.
+func ParseAuditAction(name string) (AuditAction, error) {
+	if x, ok := _AuditActionValue[name]; ok {
+		return x, nil
+	}
+	return AuditAction(""), fmt.Errorf("%s is %w", name, ErrInvalidAuditAction)
+}
+
+// MustParseAuditAction converts a string to a AuditAction, and panics if is not valid.
+func MustParseAuditAction(name string) AuditAction {
+	val, err := ParseAuditAction(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuditActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuditAction) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuditAction("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuditAction(v)
+	case []byte:
+		*x, err = ParseAuditAction(string(v))
+	case AuditAction:
+		*x = v
+	case *AuditAction:
+		if v == nil {
+			return errAuditActionNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuditActionNilPtr
+		}
+		*x, err = ParseAuditAction(*v)
+	default:
+		return errors.New("invalid type for AuditAction")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuditAction) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuditResourceTypeNamespace is a AuditResourceType of type namespace.
+	AuditResourceTypeNamespace AuditResourceType = "namespace"
+	// AuditResourceTypeRepository is a AuditResourceType of type repository.
+	AuditResourceTypeRepository AuditResourceType = "repository"
+	// AuditResourceTypeArtifact is a AuditResourceType of type artifact.
+	AuditResourceTypeArtifact AuditResourceType = "artifact"
+	// AuditResourceTypeTag is a AuditResourceType of type tag.
+	AuditResourceTypeTag AuditResourceType = "tag"
+)
+
+var ErrInvalidAuditResourceType = errors.New("not a valid AuditResourceType")
+
+// String implements the Stringer interface.
+func (x AuditResourceType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuditResourceType) IsValid() bool {
+	_, err := ParseAuditResourceType(string(x))
+	return err == nil
+}
+
+var _AuditResourceTypeValue = map[string]AuditResourceType{
+	"namespace":  AuditResourceTypeNamespace,
+	"repository": AuditResourceTypeRepository,
+	"artifact":   AuditResourceTypeArtifact,
+	"tag":        AuditResourceTypeTag,
+}
+
+// ParseAuditResourceType attempts to convert a string to a AuditResourceType.
+func ParseAuditResourceType(name string) (AuditResourceType, error) {
+	if x, ok := _AuditResourceTypeValue[name]; ok {
+		return x, nil
+	}
+	return AuditResourceType(""), fmt.Errorf("%s is %w", name, ErrInvalidAuditResourceType)
+}
+
+// MustParseAuditResourceType converts a string to a AuditResourceType, and panics if is not valid.
+func MustParseAuditResourceType(name string) AuditResourceType {
+	val, err := ParseAuditResourceType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuditResourceTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuditResourceType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuditResourceType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuditResourceType(v)
+	case []byte:
+		*x, err = ParseAuditResourceType(string(v))
+	case AuditResourceType:
+		*x = v
+	case *AuditResourceType:
+		if v == nil {
+			return errAuditResourceTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuditResourceTypeNilPtr
+		}
+		*x, err = ParseAuditResourceType(*v)
+	default:
+		return errors.New("invalid type for AuditResourceType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuditResourceType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// DaemonVulnerability is a Daemon of type Vulnerability.
 	DaemonVulnerability Daemon = "Vulnerability"
 	// DaemonSbom is a Daemon of type Sbom.

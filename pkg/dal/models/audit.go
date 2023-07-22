@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,34 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package models
 
 import (
-	"gorm.io/gen"
+	"time"
 
-	"github.com/go-sigma/sigma/pkg/dal/models"
+	"gorm.io/plugin/soft_delete"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-func main() {
-	g := gen.NewGenerator(gen.Config{
-		OutPath:       "pkg/dal/query",
-		Mode:          gen.WithDefaultQuery,
-		FieldSignable: true,
-	})
+// Audit represents a audit
+type Audit struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
 
-	g.ApplyBasic(
-		models.User{},
-		models.Audit{},
-		models.Namespace{},
-		models.Repository{},
-		models.Artifact{},
-		models.ArtifactSbom{},
-		models.ArtifactVulnerability{},
-		models.Tag{},
-		models.Blob{},
-		models.BlobUpload{},
-		models.CasbinRule{},
-	)
+	UserID       int64
+	NamespaceID  int64
+	Action       enums.AuditAction
+	ResourceType enums.AuditResourceType
+	Resource     string
 
-	g.Execute()
+	Namespace Namespace
+	User      User
 }

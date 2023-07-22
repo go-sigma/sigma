@@ -6,12 +6,12 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.85.0
 	github.com/aquasecurity/trivy v0.43.1
-	github.com/aws/aws-sdk-go v1.44.301
+	github.com/aws/aws-sdk-go v1.44.306
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.72.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230714152834-003dd5aaa1f3
+	github.com/distribution/distribution/v3 v3.0.0-20230719040215-46b3d6201649
 	github.com/fatih/color v1.15.0
 	github.com/glebarez/sqlite v1.9.0
 	github.com/go-playground/validator v9.31.0+incompatible
@@ -25,7 +25,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jinzhu/copier v0.3.5
 	github.com/labstack/echo-contrib v0.15.0
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230713155351-f641ac67a420

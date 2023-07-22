@@ -23,6 +23,7 @@ import { Dialog, Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
+import calcUnit from "../../utils/calcUnit";
 import Toast from "../../components/Notification";
 import { INamespace, IHTTPError } from "../../interfaces";
 
@@ -49,10 +50,11 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(namespace.tag_limit);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
   useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
+  let calcUnitObj = calcUnit(namespace.size_limit);
   const [realSizeLimit, setRealSizeLimit] = useState(0);
-  const [sizeLimit, setSizeLimit] = useState<string | number>(namespace.size_limit);
+  const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
-  const [sizeLimitUnit, setSizeLimitUnit] = useState("");
+  const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
   useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
   useEffect(() => {
     let sl = 0;
@@ -441,7 +443,7 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={() => updateNamespace()}
                       >
-                        Create
+                        Update
                       </button>
                       <button
                         type="button"

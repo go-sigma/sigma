@@ -28,7 +28,7 @@ export default function ({ current, limit }: { current: number, limit: number })
           <>{humanFormat(current)}</>
         ) : (
           <>
-            <div className="mb-1 text-sm font-medium">
+            <div className="text-sm font-medium">
               {humanFormat(current)} / {humanFormat(limit)} (<span className={threshold > Settings.QuotaThreshold ? "text-red-700 dark:text-red-500" : "text-blue-700 dark:text-blue-500"}>{(current / limit * 100 > 100 ? 100 : current / limit * 100).toFixed(1)}%</span>)
             </div>
           </>

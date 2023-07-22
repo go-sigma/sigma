@@ -16,13 +16,18 @@ package namespaces
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -39,6 +44,17 @@ import (
 func (h *handlers) DeleteNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.DeleteNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
@@ -47,14 +63,41 @@ func (h *handlers) DeleteNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	err = namespaceService.DeleteByID(ctx, req.ID)
+	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Delete namespace from db failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			log.Error().Err(err).Int64("id", req.ID).Msg("Namespace not found")
+			// return xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%d) not found: %v", req.ID, err))
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found", req.ID))
 		}
-		log.Error().Err(err).Msg("Delete namespace from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		log.Error().Err(err).Msg("Get namespace failed")
+		// return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get namespace(%d) failed: %v", req.ID, err))
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
+	}
+
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		namespaceService := h.namespaceServiceFactory.New(tx)
+		err = namespaceService.DeleteByID(ctx, req.ID)
+		if err != nil {
+			log.Error().Err(err).Msg("Delete namespace failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%d) find failed: %v", req.ID, err))
+		}
+		auditService := h.auditServiceFactory.New(tx)
+		err = auditService.Create(ctx, &models.Audit{
+			UserID:       user.ID,
+			NamespaceID:  req.ID,
+			Action:       enums.AuditActionDelete,
+			ResourceType: enums.AuditResourceTypeNamespace,
+			Resource:     namespaceObj.Name,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Create audit for delete namespace failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for delete namespace failed: %v", err))
+		}
+		return nil
+	})
+	if err != nil {
+		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
 	return c.NoContent(http.StatusNoContent)

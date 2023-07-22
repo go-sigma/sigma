@@ -28,6 +28,20 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
+CREATE TABLE IF NOT EXISTS `audits` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `user_id` bigint NOT NULL,
+  `namespace_id` bigint NOT NULL,
+  `action` text CHECK (`action` IN ('create', 'update', 'delete', 'pull', 'push')) NOT NULL,
+  `resource_type` text CHECK (`resource_type` IN ('namespace', 'repository', 'tag')) NOT NULL,
+  `resource` varchar(256) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+);
+
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `name` varchar(64) NOT NULL,
