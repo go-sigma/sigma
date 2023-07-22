@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -99,6 +100,18 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msg("Add role for user failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add role for user failed: %v", err))
+		}
+		auditService := h.auditServiceFactory.New(tx)
+		err = auditService.Create(ctx, &models.Audit{
+			UserID:       user.ID,
+			NamespaceID:  namespaceObj.ID,
+			Action:       enums.AuditActionCreate,
+			ResourceType: enums.AuditResourceTypeNamespace,
+			Resource:     namespaceObj.Name,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Create audit failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		return nil
 	})

@@ -120,14 +120,14 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query.Order(field.Desc())
+			query = query.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query.Order(field)
+			query = query.Order(field)
 		default:
-			query.Order(s.tx.Namespace.UpdatedAt.Desc())
+			query = query.Order(s.tx.Namespace.UpdatedAt.Desc())
 		}
 	} else {
-		query.Order(s.tx.Namespace.UpdatedAt.Desc())
+		query = query.Order(s.tx.Namespace.UpdatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package users
+package oauth2
 
 import (
+	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// Logout handles the logout request
-func (h *handlers) Logout(c echo.Context) error {
-	ctx := log.Logger.WithContext(c.Request().Context())
-
-	jti, ok := c.Get("jti").(string)
-	if !ok || jti == "" {
-		log.Error().Str("jti", jti).Msg("Get jti failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Get jti failed")
-	}
-	err := h.tokenService.Revoke(ctx, jti)
+// Callback ...
+func (h *handlers) ClientID(c echo.Context) error {
+	var req types.Oauth2ClientIDRequest
+	err := utils.BindValidate(c, &req)
 	if err != nil {
-		log.Error().Err(err).Msg("Revoke token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		log.Error().Err(err).Msg("Bind and validate request body failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeOK, "Logout successfully")
+	return c.JSON(http.StatusOK, types.Oauth2ClientIDResponse{
+		ClientID: viper.GetString(fmt.Sprintf("auth.oauth2.%s.clientId", strings.ToLower(string(req.Provider)))),
+	})
 }

@@ -27,6 +27,24 @@ export interface IHTTPError {
   description: string;
 }
 
+export interface IUserSelf {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export interface IOauth2ClientID {
+  client_id: string;
+}
+
+export interface IUserLoginResponse {
+  id: number;
+  username: string;
+  email: string;
+  token: string;
+  refresh_token: string;
+}
+
 export interface INamespace {
   id: number;
   name: string;

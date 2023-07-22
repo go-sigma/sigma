@@ -83,6 +83,7 @@ func TestDeleteNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)
@@ -93,6 +94,7 @@ func TestDeleteNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = namespaceHandler.DeleteNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
@@ -101,6 +103,7 @@ func TestDeleteNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)
@@ -114,11 +117,14 @@ func TestDeleteNamespace(t *testing.T) {
 	daoMockNamespaceService.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) error {
 		return fmt.Errorf("test")
 	}).Times(1)
+	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
+		return &models.Namespace{}, nil
+	}).Times(1)
 
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
-	}).Times(1)
+	}).Times(2)
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 
@@ -126,6 +132,7 @@ func TestDeleteNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.DeleteNamespace(c)

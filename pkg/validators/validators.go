@@ -64,6 +64,7 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_digest", ValidateDigest)         // nolint:errcheck
 	v.RegisterValidation("is_valid_tag", ValidateTag)               // nolint:errcheck
 	v.RegisterValidation("is_valid_visibility", ValidateVisibility) // nolint:errcheck
+	v.RegisterValidation("is_valid_provider", ValidateProvider)     // nolint:errcheck
 }
 
 // ValidateRepository validates the repository name
@@ -98,5 +99,12 @@ func ValidateTag(field validator.FieldLevel) bool {
 func ValidateVisibility(field validator.FieldLevel) bool {
 	v := field.Field().String()
 	_, err := enums.ParseVisibility(v)
+	return err == nil
+}
+
+// ValidateProvider validates the provider
+func ValidateProvider(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseProvider(v)
 	return err == nil
 }

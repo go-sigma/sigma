@@ -82,6 +82,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -93,6 +94,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -104,6 +106,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -114,6 +117,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -124,6 +128,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatUint(3, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -144,7 +149,7 @@ func TestPutNamespace(t *testing.T) {
 	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
-	}).Times(1)
+	}).Times(2)
 
 	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
 
@@ -152,6 +157,7 @@ func TestPutNamespace(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatUint(3, 10))
 	err = namespaceHandler.PutNamespace(c)
@@ -163,9 +169,29 @@ func TestPutNamespaceFailed1(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
+	err := tests.Initialize(t)
+	assert.NoError(t, err)
+	err = tests.DB.Init()
+	assert.NoError(t, err)
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		err = conn.Close()
+		assert.NoError(t, err)
+		err = tests.DB.DeInit()
+		assert.NoError(t, err)
+	}()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+
+	ctx := context.Background()
+	userObj := &models.User{Provider: enums.ProviderLocal, Username: "put-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
 
 	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
 	daoMockNamespaceService.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Namespace, error) {
@@ -183,9 +209,10 @@ func TestPutNamespaceFailed1(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.FormatUint(3, 10))
-	err := namespaceHandler.PutNamespace(c)
+	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

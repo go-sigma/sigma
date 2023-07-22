@@ -6,16 +6,14 @@ CREATE TYPE provider AS ENUM (
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "provider" provider NOT NULL DEFAULT 'local',
+  "provider_account_id" varchar(256),
   "username" varchar(64) NOT NULL UNIQUE,
   "password" varchar(256) NOT NULL,
   "email" varchar(256),
-  "provider_account_id" varchar(256),
-  "refresh_token" varchar(256),
-  "access_token" varchar(256),
-  "expires_at" bigint,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
-  "deleted_at" bigint NOT NULL DEFAULT 0
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
 
 CREATE TYPE visibility AS ENUM (
@@ -38,6 +36,34 @@ CREATE TABLE IF NOT EXISTS "namespaces" (
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "namespaces_unique_with_name" UNIQUE ("name", "deleted_at")
+);
+
+CREATE TYPE audit_action AS ENUM (
+  'create',
+  'update',
+  'delete',
+  'pull',
+  'push'
+);
+
+CREATE TYPE audit_resource_type AS ENUM (
+  'namespace',
+  'repository',
+  'tag'
+);
+
+CREATE TABLE IF NOT EXISTS "audits" (
+  "id" bigserial PRIMARY KEY,
+  "user_id" bigint NOT NULL,
+  "namespace_id" bigint NOT NULL,
+  "action" audit_action NOT NULL,
+  "resource_type" audit_resource_type NOT NULL,
+  "resource" varchar(256) NOT NULL,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "repositories" (

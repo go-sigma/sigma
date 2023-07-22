@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package users
+package oauth2
 
 import (
 	"fmt"
@@ -29,33 +29,28 @@ import (
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
-// Handlers is the interface for the tag handlers
+// Handler is the interface for the oauth2 handlers
 type Handlers interface {
 	// Login handles the login request
-	Login(c echo.Context) error
-	// Logout handles the logout request
-	Logout(c echo.Context) error
-	// Signup handles the signup request
-	Signup(c echo.Context) error
-	// Self handles the self request
-	Self(c echo.Context) error
-}
-
-type handlers struct {
-	tokenService       token.TokenService
-	passwordService    password.Password
-	userServiceFactory dao.UserServiceFactory
+	// Login(c echo.Context) error
+	// Callback handles the callback request
+	Callback(c echo.Context) error
+	// ClientID handles the client id request
+	ClientID(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
 
+type handlers struct {
+	tokenService       token.TokenService
+	userServiceFactory dao.UserServiceFactory
+}
+
 type inject struct {
 	tokenService       token.TokenService
-	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
 }
 
@@ -65,15 +60,11 @@ func handlerNew(injects ...inject) (Handlers, error) {
 	if err != nil {
 		return nil, err
 	}
-	passwordService := password.New()
 	userServiceFactory := dao.NewUserServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.tokenService != nil {
 			tokenService = ij.tokenService
-		}
-		if ij.passwordService != nil {
-			passwordService = ij.passwordService
 		}
 		if ij.userServiceFactory != nil {
 			userServiceFactory = ij.userServiceFactory
@@ -81,32 +72,34 @@ func handlerNew(injects ...inject) (Handlers, error) {
 	}
 	return &handlers{
 		tokenService:       tokenService,
-		passwordService:    passwordService,
 		userServiceFactory: userServiceFactory,
 	}, nil
 }
 
 type factory struct{}
 
-var skipAuths = []string{"post:/api/v1/users/login", "get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
-
+// Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	userGroup := e.Group(consts.APIV1 + "/users")
-	userHandler, err := handlerNew()
+	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
+	repositoryHandler, err := handlerNew()
 	if err != nil {
 		return err
 	}
-	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
+
+	oauth2Mapper := viper.GetStringMap("auth.oauth2")
+	var skipAuths = make([]string, 0, len(oauth2Mapper))
+	for key := range oauth2Mapper {
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", key))
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", key))
+	}
+	oauth2Group.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
 		Skipper: func(c echo.Context) bool {
 			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
 			return slices.Contains(skipAuths, authStr)
 		},
 	}))
-	userGroup.POST("/login", userHandler.Login)
-	userGroup.GET("/logout", userHandler.Logout)
-	userGroup.GET("/signup", userHandler.Signup)
-	userGroup.GET("/create", userHandler.Signup)
-	userGroup.GET("/self", userHandler.Self)
+	oauth2Group.GET("/:provider/callback", repositoryHandler.Callback)
+	oauth2Group.GET("/:provider/client_id", repositoryHandler.ClientID)
 	return nil
 }
 

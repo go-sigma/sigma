@@ -28,6 +28,8 @@ func main() {
 	})
 
 	g.ApplyBasic(
+		models.User{},
+		models.Audit{},
 		models.Namespace{},
 		models.Repository{},
 		models.Artifact{},
@@ -36,7 +38,6 @@ func main() {
 		models.Tag{},
 		models.Blob{},
 		models.BlobUpload{},
-		models.User{},
 		models.CasbinRule{},
 	)
 

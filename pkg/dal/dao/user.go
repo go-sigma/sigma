@@ -19,6 +19,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 //go:generate mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
@@ -32,6 +33,8 @@ type UserService interface {
 	Create(ctx context.Context, user *models.User) error
 	// Count gets the total number of users.
 	Count(ctx context.Context) (int64, error)
+	// GetByProvider gets the user with the specified oauth2 provider.
+	GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User, error)
 }
 
 type userService struct {
@@ -76,4 +79,9 @@ func (s *userService) Create(ctx context.Context, user *models.User) error {
 // Count gets the total number of users.
 func (s *userService) Count(ctx context.Context) (int64, error) {
 	return s.tx.User.WithContext(ctx).Count()
+}
+
+// GetByProvider gets the user with the specified oauth2 provider.
+func (s *userService) GetByProvider(ctx context.Context, platform enums.Provider, accountID string) (*models.User, error) {
+	return s.tx.User.WithContext(ctx).Where(s.tx.User.Provider.Eq(platform), s.tx.User.ProviderAccountID.Eq(accountID)).First()
 }

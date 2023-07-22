@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,16 +22,19 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// User is the model for the user table.
-type User struct {
+// Audit represents a audit
+type Audit struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Provider          enums.Provider `gorm:"default:local"`
-	ProviderAccountID *string
-	Username          string
-	Password          *string
-	Email             *string
+	UserID       int64
+	NamespaceID  int64
+	Action       enums.AuditAction
+	ResourceType enums.AuditResourceType
+	Resource     string
+
+	Namespace Namespace
+	User      User
 }

@@ -74,3 +74,19 @@ type SortMethod string
 // unknown,
 // )
 type ArtifactType string
+
+// AuditAction x ENUM(
+// create,
+// update,
+// delete,
+// pull,
+// push,
+// )
+type AuditAction string
+
+// AuditResourceType x ENUM(
+// namespace,
+// repository,
+// tag,
+// )
+type AuditResourceType string

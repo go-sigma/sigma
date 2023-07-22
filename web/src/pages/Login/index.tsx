@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
+import { Link, useParams } from "react-router-dom";
+
+import Toast from "../../components/Notification";
+import { IHTTPError, IOauth2ClientID } from "../../interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -26,7 +30,6 @@ export default function Login({ localServer }: { localServer: string }) {
     let url = localServer + `/api/v1/users/login`;
     axios.post(url, { "username": username, "password": password })
       .then(response => {
-        console.log(response)
         localStorage.setItem("token", response.data.token);
         navigate("/");
       }).catch(err => {
@@ -137,9 +140,9 @@ export default function Login({ localServer }: { localServer: string }) {
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4">
+              {/* <div className="mt-6 grid grid-cols-1 gap-4">
                 <a
-                  href="#"
+                  href={(localServer === "" ? "" : localServer) + "/api/v1/oauth2/github/login"}
                   className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
                 >
                   <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
@@ -151,11 +154,50 @@ export default function Login({ localServer }: { localServer: string }) {
                   </svg>
                   <span className="text-sm font-semibold leading-6">GitHub</span>
                 </a>
-              </div>
+              </div> */}
+              <GitHubButton localServer={localServer} />
             </div>
           </div>
         </div>
       </div>
     </>
   )
+}
+
+function GitHubButton({ localServer }: { localServer: string }) {
+  const [clientID, setClientID] = useState("");
+
+  useEffect(() => {
+    axios.get(`${localServer}/api/v1/oauth2/github/client_id`).then(response => {
+      if (response.status == 200) {
+        const data = response.data as IOauth2ClientID;
+        setClientID(data.client_id);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-4">
+      <a
+        // href={(localServer === "" ? "" : localServer) + "/api/v1/oauth2/github/login"}
+        href={`https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(location.protocol + "//" + location.host + "/#/login/callback/github")}`}
+        className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
+      >
+        <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span className="text-sm font-semibold leading-6">GitHub</span>
+      </a>
+    </div>
+  );
 }

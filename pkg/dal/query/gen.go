@@ -20,6 +20,7 @@ var (
 	Artifact              *artifact
 	ArtifactSbom          *artifactSbom
 	ArtifactVulnerability *artifactVulnerability
+	Audit                 *audit
 	Blob                  *blob
 	BlobUpload            *blobUpload
 	CasbinRule            *casbinRule
@@ -34,6 +35,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Artifact = &Q.Artifact
 	ArtifactSbom = &Q.ArtifactSbom
 	ArtifactVulnerability = &Q.ArtifactVulnerability
+	Audit = &Q.Audit
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	CasbinRule = &Q.CasbinRule
@@ -49,6 +51,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Artifact:              newArtifact(db, opts...),
 		ArtifactSbom:          newArtifactSbom(db, opts...),
 		ArtifactVulnerability: newArtifactVulnerability(db, opts...),
+		Audit:                 newAudit(db, opts...),
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
 		CasbinRule:            newCasbinRule(db, opts...),
@@ -65,6 +68,7 @@ type Query struct {
 	Artifact              artifact
 	ArtifactSbom          artifactSbom
 	ArtifactVulnerability artifactVulnerability
+	Audit                 audit
 	Blob                  blob
 	BlobUpload            blobUpload
 	CasbinRule            casbinRule
@@ -82,6 +86,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Artifact:              q.Artifact.clone(db),
 		ArtifactSbom:          q.ArtifactSbom.clone(db),
 		ArtifactVulnerability: q.ArtifactVulnerability.clone(db),
+		Audit:                 q.Audit.clone(db),
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
 		CasbinRule:            q.CasbinRule.clone(db),
@@ -106,6 +111,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Artifact:              q.Artifact.replaceDB(db),
 		ArtifactSbom:          q.ArtifactSbom.replaceDB(db),
 		ArtifactVulnerability: q.ArtifactVulnerability.replaceDB(db),
+		Audit:                 q.Audit.replaceDB(db),
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
 		CasbinRule:            q.CasbinRule.replaceDB(db),
@@ -120,6 +126,7 @@ type queryCtx struct {
 	Artifact              *artifactDo
 	ArtifactSbom          *artifactSbomDo
 	ArtifactVulnerability *artifactVulnerabilityDo
+	Audit                 *auditDo
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
 	CasbinRule            *casbinRuleDo
@@ -134,6 +141,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Artifact:              q.Artifact.WithContext(ctx),
 		ArtifactSbom:          q.ArtifactSbom.WithContext(ctx),
 		ArtifactVulnerability: q.ArtifactVulnerability.WithContext(ctx),
+		Audit:                 q.Audit.WithContext(ctx),
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
 		CasbinRule:            q.CasbinRule.WithContext(ctx),

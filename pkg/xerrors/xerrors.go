@@ -41,4 +41,6 @@ var (
 	HTTPErrCodePaginationInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "PAGINATION_INVALID", Title: "Pagination Invalid"}
 	// HTTPErrCodeInternalError is an internal error.
 	HTTPErrCodeInternalError = ErrCode{HTTPStatusCode: http.StatusInternalServerError, Code: "INTERNAL_ERROR", Title: "Internal Error"}
+	// HTTPErrCodeVerificationCodeInvalid is a verification code error.
+	HTTPErrCodeVerificationCodeInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "VERIFICATION_CODE_INVALID", Title: "Verification Code Invalid"}
 )

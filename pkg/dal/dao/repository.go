@@ -142,14 +142,14 @@ func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int6
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query.Order(field.Desc())
+			query = query.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query.Order(field)
+			query = query.Order(field)
 		default:
-			query.Order(s.tx.Repository.UpdatedAt.Desc())
+			query = query.Order(s.tx.Repository.UpdatedAt.Desc())
 		}
 	} else {
-		query.Order(s.tx.Repository.UpdatedAt.Desc())
+		query = query.Order(s.tx.Repository.UpdatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
