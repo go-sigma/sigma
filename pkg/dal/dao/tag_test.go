@@ -77,7 +77,7 @@ func TestTagService(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj)
+		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		tagService := tagServiceFactory.New(tx)

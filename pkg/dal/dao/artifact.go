@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -302,12 +303,26 @@ func (s *artifactService) DeleteByIDs(ctx context.Context, ids []int64) error {
 
 // CreateSbom save a new artifact sbom.
 func (s *artifactService) CreateSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
-	return s.tx.ArtifactSbom.WithContext(ctx).Create(sbom)
+	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ArtifactID.Eq(sbom.ArtifactID)).First()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		return s.tx.ArtifactSbom.WithContext(ctx).Create(sbom)
+	}
+	return nil
 }
 
 // CreateVulnerability save a new artifact vulnerability.
 func (s *artifactService) CreateVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
-	return s.tx.ArtifactVulnerability.WithContext(ctx).Create(vulnerability)
+	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ArtifactID.Eq(vulnerability.ArtifactID)).First()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		return s.tx.ArtifactVulnerability.WithContext(ctx).Create(vulnerability)
+	}
+	return nil
 }
 
 // UpdateSbom update the artifact sbom.

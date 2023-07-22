@@ -62,7 +62,7 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	log.Info().Str("artifactDigest", artifact.Digest).Msg("Start sbom artifact")
+	log.Info().Str("artifactDigest", artifact.Digest).Str("command", cmd.String()).Msg("Start sbom artifact")
 
 	defer func() {
 		err := os.Remove(filename)

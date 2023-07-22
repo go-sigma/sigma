@@ -1,4 +1,4 @@
-# this file used as default config in the container.
+# this is a full config file, just show all avaliable config items.
 
 log:
   level: debug

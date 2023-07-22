@@ -21,10 +21,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -45,6 +49,17 @@ import (
 // @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) PostRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	var req types.PostRepositoryRequest
 	err := utils.BindValidate(c, &req)
@@ -75,7 +90,11 @@ func (h *handlers) PostRepository(c echo.Context) error {
 		SizeLimit:   ptr.To(req.SizeLimit),
 	}
 	repositoryService := h.repositoryServiceFactory.New()
-	err = repositoryService.Create(ctx, repositoryObj)
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{
+		AutoCreate: viper.GetBool("namespace.autoCreate"),
+		Visibility: enums.MustParseVisibility(viper.GetString("namespace.visibility")),
+		UserID:     user.ID,
+	})
 	if err != nil {
 		log.Error().Err(err).Interface("repositoryObj", repositoryObj).Msg("Repository create failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

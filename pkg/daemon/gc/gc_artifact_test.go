@@ -63,7 +63,7 @@ func TestGcArtifact(t *testing.T) {
 
 	repositoryService := repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj)
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 	assert.NoError(t, err)
 
 	artifactService := artifactServiceFactory.New()

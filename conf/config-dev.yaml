@@ -1,11 +1,11 @@
-# this file used as default config in the container.
+# this file used for local development.
 
 log:
   level: debug
   proxyLevel: info
 database:
   # The database type to use. Supported types are: sqlite3, mysql, postgresql
-  type: sqlite3
+  type: mysql
   sqlite3:
     path: sigma.db
   mysql:
@@ -45,7 +45,7 @@ workqueue:
 
 namespace:
   # push image to registry, if namespace not exist, it will be created automatically
-  autoCreate: false
+  autoCreate: true
   # the automatic created namespace visibility, avaliable: public, private
   visibility: public
 
@@ -68,7 +68,7 @@ http:
     key: ./conf/sigma.test.io.key
 storage:
   rootdirectory: ./storage
-  type: filesystem
+  type: s3
   filesystem:
     path: /var/lib/sigma/oci/
   s3:
