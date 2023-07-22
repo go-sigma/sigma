@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.19.10-alpine3.18
+ARG GOLANG_VERSION=1.19.11-alpine3.18
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 
@@ -18,7 +18,6 @@ ARG SYFT_VERSION=0.84.1
 ARG TARGETARCH=amd64
 
 RUN set -eux && \
-  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
   wget -q -O syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz https://github.com/anchore/syft/releases/download/v"${SYFT_VERSION}"/syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
   tar -xzf syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
@@ -32,7 +31,6 @@ ARG ORAS_VERSION=1.0.0
 ARG TARGETARCH=amd64
 
 RUN set -eux && \
-  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
   case "${TARGETARCH}" in \
 		amd64) export TRIVYARCH='64bit' ;; \
@@ -68,7 +66,6 @@ RUN make build-release
 FROM alpine:${ALPINE_VERSION}
 
 RUN set -eux && \
-  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache redis yq
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
