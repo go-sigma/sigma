@@ -42,11 +42,11 @@ jobs:
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Asia/Shanghai'}}
             type=ref,event=pr
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=nightly,enable={{is_default_branch}}
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
+            type=semver,pattern={{version}}-alpine
+            type=semver,pattern={{major}}.{{minor}}-alpine
+            type=semver,pattern={{major}}-alpine
+            type=raw,value=nightly-alpine,enable={{is_default_branch}}
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -58,8 +58,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-alpine
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-alpine,mode=max
   image-build-debian:
     name: image-build-debian
     runs-on: ubuntu-22.04
@@ -88,11 +88,11 @@ jobs:
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Asia/Shanghai'}}
             type=ref,event=pr
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=nightly,enable={{is_default_branch}}
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
+            type=semver,pattern={{version}}-debian
+            type=semver,pattern={{major}}.{{minor}}-debian
+            type=semver,pattern={{major}}-debian
+            type=raw,value=nightly-debian,enable={{is_default_branch}}
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -104,5 +104,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-debian
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-debian,mode=max
