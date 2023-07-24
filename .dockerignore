@@ -1,3 +1,10 @@
 vendor/
 web/dist/
 web/node_modules/
+.github/
+deploy/
+docs/
+e2e/
+scripts/
+bin/
+assets/
