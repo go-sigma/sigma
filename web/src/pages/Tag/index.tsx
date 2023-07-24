@@ -113,7 +113,7 @@ export default function Tag({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu item="Tag" />
+        <Menu localServer={localServer} item="tags" namespace={namespace} repository={repository || ""} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
           <main className="">
             <Header title="Tag"

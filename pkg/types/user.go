@@ -54,3 +54,8 @@ type GetUserSelfResponse struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 }
+
+// PostUserLogoutRequest ...
+type PostUserLogoutRequest struct {
+	Tokens []string `json:"tokens" validate:"required,min=1" example:"123,234"`
+}

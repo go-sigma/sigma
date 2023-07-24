@@ -39,6 +39,8 @@ type Handlers interface {
 	DeleteNamespace(c echo.Context) error
 	// PutNamespace handles the put namespace request
 	PutNamespace(c echo.Context) error
+	// HotNamespace handles the hot namespace request
+	HotNamespace(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -109,6 +111,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
+	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
 	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
 	return nil

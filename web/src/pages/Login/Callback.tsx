@@ -16,9 +16,9 @@
 
 import axios from "axios";
 import { useState, useEffect } from "react";
-import Toast from "../../components/Notification";
 import { Link, useParams } from "react-router-dom";
 
+import Toast from "../../components/Notification";
 import { IHTTPError, IUserLoginResponse } from "../../interfaces";
 
 import "./index.css";

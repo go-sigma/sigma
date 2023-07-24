@@ -15,46 +15,48 @@
 package namespaces
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// ListNamespace handles the list namespace request
-// @Summary List namespace
+// HotNamespace handles the hot namespace request
+// @Summary Hot namespace
 // @security BasicAuth
 // @Tags Namespace
 // @Accept json
 // @Produce json
-// @Router /namespaces/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Param name query string false "search namespace with name"
+// @Router /namespaces/hot [get]
 // @Success 200	{object} types.CommonList{items=[]types.NamespaceItem}
 // @Failure 500 {object} xerrors.ErrCode
-func (h *handlers) ListNamespace(c echo.Context) error {
+// @Failure 401 {object} xerrors.ErrCode
+func (h *handlers) HotNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.ListNamespaceRequest
-	err := utils.BindValidate(c, &req)
-	if err != nil {
-		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
-	}
-	req.Pagination = utils.NormalizePagination(req.Pagination)
+	fmt.Println("help help help")
 
-	namespaceService := h.namespaceServiceFactory.New()
-	namespaces, total, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
+	auditService := h.auditServiceFactory.New()
+	namespaces, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace)
 	if err != nil {
-		log.Error().Err(err).Msg("List namespace failed")
+		log.Error().Err(err).Msg("Get hot namespaces failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
@@ -76,5 +78,5 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
+	return c.JSON(http.StatusOK, types.CommonList{Total: int64(len(namespaces)), Items: resp})
 }

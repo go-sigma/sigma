@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,7 +158,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu item="Namespace" />
+        <Menu localServer={localServer} item="namespaces" />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Namespace" />

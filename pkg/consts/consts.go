@@ -46,6 +46,8 @@ const (
 	ContextJti = "jti"
 	// ContextUser represents user in context
 	ContextUser = "user"
+	// HotNamespace top hot namespaces
+	HotNamespace = 3
 )
 
 // UserAgent represents the user agent
