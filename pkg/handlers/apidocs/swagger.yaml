@@ -128,6 +128,19 @@ definitions:
         example: 21911
         type: integer
     type: object
+  types.PostUserLogoutRequest:
+    properties:
+      tokens:
+        example:
+        - "123"
+        - "234"
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - tokens
+    type: object
   types.PostUserTokenResponse:
     properties:
       expires_in:
@@ -859,6 +872,37 @@ paths:
       summary: Get tag
       tags:
       - Tag
+  /namespaces/hot:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.NamespaceItem'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Hot namespace
+      tags:
+      - Namespace
   /systems/endpoint:
     get:
       consumes:
@@ -897,6 +941,35 @@ paths:
       summary: Generate token
       tags:
       - Token
+  /users/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Logout user object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostUserLogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Logout user
+      tags:
+      - User
   /validators/reference:
     get:
       consumes:

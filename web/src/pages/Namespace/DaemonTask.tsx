@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 XImager
+ * Copyright 2023 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ export default function Repository({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu item="Repository" />
+        <Menu localServer={localServer} item="Repository" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Repository" props={

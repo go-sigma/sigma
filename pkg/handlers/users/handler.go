@@ -103,7 +103,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 		},
 	}))
 	userGroup.POST("/login", userHandler.Login)
-	userGroup.GET("/logout", userHandler.Logout)
+	userGroup.POST("/logout", userHandler.Logout)
 	userGroup.GET("/signup", userHandler.Signup)
 	userGroup.GET("/create", userHandler.Signup)
 	userGroup.GET("/self", userHandler.Self)

@@ -170,7 +170,7 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu item="Repository" />
+        <Menu localServer={localServer} item="repositories" namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"

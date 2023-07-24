@@ -113,7 +113,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
     <tr>
       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          navigate(`/namespaces/${namespace}/repository/summary?repository=${repository.name}&repository_id=${repository.id}`);
+          navigate(`/namespaces/${namespace}/repository/tags?repository=${repository.name}&repository_id=${repository.id}`);
         }}
       >
         <div className="flex items-center space-x-3 lg:pl-2">

@@ -17,10 +17,9 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
-import { Link, useParams } from "react-router-dom";
 
 import Toast from "../../components/Notification";
-import { IHTTPError, IOauth2ClientID } from "../../interfaces";
+import { IHTTPError, IUserLoginResponse, IOauth2ClientID } from "../../interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -30,7 +29,9 @@ export default function Login({ localServer }: { localServer: string }) {
     let url = localServer + `/api/v1/users/login`;
     axios.post(url, { "username": username, "password": password })
       .then(response => {
-        localStorage.setItem("token", response.data.token);
+        const resp = response.data as IUserLoginResponse;
+        localStorage.setItem("token", resp.token);
+        localStorage.setItem("refresh_token", resp.refresh_token);
         navigate("/");
       }).catch(err => {
         console.log(err)

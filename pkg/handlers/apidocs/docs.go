@@ -160,6 +160,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/namespaces/hot": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Namespace"
+                ],
+                "summary": "Hot namespace",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.NamespaceItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/namespaces/{id}": {
             "get": {
                 "security": [
@@ -888,6 +942,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Logout user",
+                "parameters": [
+                    {
+                        "description": "Logout user object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostUserLogoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/validators/reference": {
             "get": {
                 "security": [
@@ -1111,6 +1212,25 @@ const docTemplate = `{
                 "id": {
                     "type": "integer",
                     "example": 21911
+                }
+            }
+        },
+        "types.PostUserLogoutRequest": {
+            "type": "object",
+            "required": [
+                "tokens"
+            ],
+            "properties": {
+                "tokens": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "123",
+                        "234"
+                    ]
                 }
             }
         },

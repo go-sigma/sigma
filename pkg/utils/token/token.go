@@ -30,11 +30,16 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
-//go:generate mockgen -destination=mocks/token.go -package=mocks github.com/ximager/ximager/pkg/utils/token TokenService
+//go:generate mockgen -destination=mocks/token.go -package=mocks github.com/go-sigma/sigma/pkg/utils/token TokenService
 
 const (
-	expireKey = "ximager:expire:jwt:%s"
+	expireKey = consts.AppName + ":expire:jwt:%s"
 	expireVal = "1"
+)
+
+var (
+	// ErrRevoked token has been revoked
+	ErrRevoked = fmt.Errorf("token has been revoked")
 )
 
 // JWTClaims is the claims for the JWT token
@@ -135,7 +140,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, stri
 		return "", "", err
 	}
 	if val == expireVal {
-		return "", "", fmt.Errorf("token has been revoked")
+		return "", "", ErrRevoked
 	}
 
 	return id, result, nil
