@@ -16,6 +16,23 @@ package enums
 
 //go:generate go-enum --sql --mustparse
 
+// LogLevel x ENUM(
+// trace,
+// debug,
+// info,
+// warn,
+// error,
+// fatal,
+// panic,
+// )
+type LogLevel string
+
+// Deploy x ENUM(
+// single,
+// replica,
+// )
+type Deploy string
+
 // TaskCommonStatus x ENUM(
 // Pending,
 // Doing,
@@ -30,6 +47,23 @@ type TaskCommonStatus string
 // sqlite3,
 // )
 type Database string
+
+// RedisType x ENUM(
+// internal,
+// external,
+// )
+type RedisType string
+
+// CacheType x ENUM(
+// memory,
+// redis,
+// )
+type CacheType string
+
+// CacheKey x ENUM(
+// redis,
+// )
+type WorkQueueType string
 
 // Daemon x ENUM(
 // Vulnerability,

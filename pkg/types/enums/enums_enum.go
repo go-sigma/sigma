@@ -207,8 +207,6 @@ const (
 	AuditResourceTypeNamespace AuditResourceType = "namespace"
 	// AuditResourceTypeRepository is a AuditResourceType of type repository.
 	AuditResourceTypeRepository AuditResourceType = "repository"
-	// AuditResourceTypeArtifact is a AuditResourceType of type artifact.
-	AuditResourceTypeArtifact AuditResourceType = "artifact"
 	// AuditResourceTypeTag is a AuditResourceType of type tag.
 	AuditResourceTypeTag AuditResourceType = "tag"
 )
@@ -230,7 +228,6 @@ func (x AuditResourceType) IsValid() bool {
 var _AuditResourceTypeValue = map[string]AuditResourceType{
 	"namespace":  AuditResourceTypeNamespace,
 	"repository": AuditResourceTypeRepository,
-	"artifact":   AuditResourceTypeArtifact,
 	"tag":        AuditResourceTypeTag,
 }
 
@@ -288,6 +285,89 @@ func (x *AuditResourceType) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x AuditResourceType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// CacheTypeMemory is a CacheType of type memory.
+	CacheTypeMemory CacheType = "memory"
+	// CacheTypeRedis is a CacheType of type redis.
+	CacheTypeRedis CacheType = "redis"
+)
+
+var ErrInvalidCacheType = errors.New("not a valid CacheType")
+
+// String implements the Stringer interface.
+func (x CacheType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x CacheType) IsValid() bool {
+	_, err := ParseCacheType(string(x))
+	return err == nil
+}
+
+var _CacheTypeValue = map[string]CacheType{
+	"memory": CacheTypeMemory,
+	"redis":  CacheTypeRedis,
+}
+
+// ParseCacheType attempts to convert a string to a CacheType.
+func ParseCacheType(name string) (CacheType, error) {
+	if x, ok := _CacheTypeValue[name]; ok {
+		return x, nil
+	}
+	return CacheType(""), fmt.Errorf("%s is %w", name, ErrInvalidCacheType)
+}
+
+// MustParseCacheType converts a string to a CacheType, and panics if is not valid.
+func MustParseCacheType(name string) CacheType {
+	val, err := ParseCacheType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errCacheTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *CacheType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = CacheType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseCacheType(v)
+	case []byte:
+		*x, err = ParseCacheType(string(v))
+	case CacheType:
+		*x = v
+	case *CacheType:
+		if v == nil {
+			return errCacheTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errCacheTypeNilPtr
+		}
+		*x, err = ParseCacheType(*v)
+	default:
+		return errors.New("invalid type for CacheType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x CacheType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 
@@ -470,6 +550,89 @@ func (x Database) Value() (driver.Value, error) {
 }
 
 const (
+	// DeploySingle is a Deploy of type single.
+	DeploySingle Deploy = "single"
+	// DeployReplica is a Deploy of type replica.
+	DeployReplica Deploy = "replica"
+)
+
+var ErrInvalidDeploy = errors.New("not a valid Deploy")
+
+// String implements the Stringer interface.
+func (x Deploy) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x Deploy) IsValid() bool {
+	_, err := ParseDeploy(string(x))
+	return err == nil
+}
+
+var _DeployValue = map[string]Deploy{
+	"single":  DeploySingle,
+	"replica": DeployReplica,
+}
+
+// ParseDeploy attempts to convert a string to a Deploy.
+func ParseDeploy(name string) (Deploy, error) {
+	if x, ok := _DeployValue[name]; ok {
+		return x, nil
+	}
+	return Deploy(""), fmt.Errorf("%s is %w", name, ErrInvalidDeploy)
+}
+
+// MustParseDeploy converts a string to a Deploy, and panics if is not valid.
+func MustParseDeploy(name string) Deploy {
+	val, err := ParseDeploy(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errDeployNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *Deploy) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = Deploy("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseDeploy(v)
+	case []byte:
+		*x, err = ParseDeploy(string(v))
+	case Deploy:
+		*x = v
+	case *Deploy:
+		if v == nil {
+			return errDeployNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errDeployNilPtr
+		}
+		*x, err = ParseDeploy(*v)
+	default:
+		return errors.New("invalid type for Deploy")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x Deploy) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// GcTargetBlobsAndArtifacts is a GcTarget of type blobsAndArtifacts.
 	GcTargetBlobsAndArtifacts GcTarget = "blobsAndArtifacts"
 	// GcTargetArtifacts is a GcTarget of type artifacts.
@@ -553,6 +716,104 @@ func (x GcTarget) Value() (driver.Value, error) {
 }
 
 const (
+	// LogLevelTrace is a LogLevel of type trace.
+	LogLevelTrace LogLevel = "trace"
+	// LogLevelDebug is a LogLevel of type debug.
+	LogLevelDebug LogLevel = "debug"
+	// LogLevelInfo is a LogLevel of type info.
+	LogLevelInfo LogLevel = "info"
+	// LogLevelWarn is a LogLevel of type warn.
+	LogLevelWarn LogLevel = "warn"
+	// LogLevelError is a LogLevel of type error.
+	LogLevelError LogLevel = "error"
+	// LogLevelFatal is a LogLevel of type fatal.
+	LogLevelFatal LogLevel = "fatal"
+	// LogLevelPanic is a LogLevel of type panic.
+	LogLevelPanic LogLevel = "panic"
+)
+
+var ErrInvalidLogLevel = errors.New("not a valid LogLevel")
+
+// String implements the Stringer interface.
+func (x LogLevel) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x LogLevel) IsValid() bool {
+	_, err := ParseLogLevel(string(x))
+	return err == nil
+}
+
+var _LogLevelValue = map[string]LogLevel{
+	"trace": LogLevelTrace,
+	"debug": LogLevelDebug,
+	"info":  LogLevelInfo,
+	"warn":  LogLevelWarn,
+	"error": LogLevelError,
+	"fatal": LogLevelFatal,
+	"panic": LogLevelPanic,
+}
+
+// ParseLogLevel attempts to convert a string to a LogLevel.
+func ParseLogLevel(name string) (LogLevel, error) {
+	if x, ok := _LogLevelValue[name]; ok {
+		return x, nil
+	}
+	return LogLevel(""), fmt.Errorf("%s is %w", name, ErrInvalidLogLevel)
+}
+
+// MustParseLogLevel converts a string to a LogLevel, and panics if is not valid.
+func MustParseLogLevel(name string) LogLevel {
+	val, err := ParseLogLevel(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errLogLevelNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *LogLevel) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = LogLevel("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseLogLevel(v)
+	case []byte:
+		*x, err = ParseLogLevel(string(v))
+	case LogLevel:
+		*x = v
+	case *LogLevel:
+		if v == nil {
+			return errLogLevelNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errLogLevelNilPtr
+		}
+		*x, err = ParseLogLevel(*v)
+	default:
+		return errors.New("invalid type for LogLevel")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x LogLevel) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// ProviderLocal is a Provider of type local.
 	ProviderLocal Provider = "local"
 	// ProviderGithub is a Provider of type github.
@@ -632,6 +893,89 @@ func (x *Provider) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x Provider) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// RedisTypeInternal is a RedisType of type internal.
+	RedisTypeInternal RedisType = "internal"
+	// RedisTypeExternal is a RedisType of type external.
+	RedisTypeExternal RedisType = "external"
+)
+
+var ErrInvalidRedisType = errors.New("not a valid RedisType")
+
+// String implements the Stringer interface.
+func (x RedisType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RedisType) IsValid() bool {
+	_, err := ParseRedisType(string(x))
+	return err == nil
+}
+
+var _RedisTypeValue = map[string]RedisType{
+	"internal": RedisTypeInternal,
+	"external": RedisTypeExternal,
+}
+
+// ParseRedisType attempts to convert a string to a RedisType.
+func ParseRedisType(name string) (RedisType, error) {
+	if x, ok := _RedisTypeValue[name]; ok {
+		return x, nil
+	}
+	return RedisType(""), fmt.Errorf("%s is %w", name, ErrInvalidRedisType)
+}
+
+// MustParseRedisType converts a string to a RedisType, and panics if is not valid.
+func MustParseRedisType(name string) RedisType {
+	val, err := ParseRedisType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errRedisTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *RedisType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = RedisType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseRedisType(v)
+	case []byte:
+		*x, err = ParseRedisType(string(v))
+	case RedisType:
+		*x = v
+	case *RedisType:
+		if v == nil {
+			return errRedisTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errRedisTypeNilPtr
+		}
+		*x, err = ParseRedisType(*v)
+	default:
+		return errors.New("invalid type for RedisType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x RedisType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 
@@ -887,5 +1231,85 @@ func (x *Visibility) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x Visibility) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// WorkQueueTypeRedis is a WorkQueueType of type redis.
+	WorkQueueTypeRedis WorkQueueType = "redis"
+)
+
+var ErrInvalidWorkQueueType = errors.New("not a valid WorkQueueType")
+
+// String implements the Stringer interface.
+func (x WorkQueueType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x WorkQueueType) IsValid() bool {
+	_, err := ParseWorkQueueType(string(x))
+	return err == nil
+}
+
+var _WorkQueueTypeValue = map[string]WorkQueueType{
+	"redis": WorkQueueTypeRedis,
+}
+
+// ParseWorkQueueType attempts to convert a string to a WorkQueueType.
+func ParseWorkQueueType(name string) (WorkQueueType, error) {
+	if x, ok := _WorkQueueTypeValue[name]; ok {
+		return x, nil
+	}
+	return WorkQueueType(""), fmt.Errorf("%s is %w", name, ErrInvalidWorkQueueType)
+}
+
+// MustParseWorkQueueType converts a string to a WorkQueueType, and panics if is not valid.
+func MustParseWorkQueueType(name string) WorkQueueType {
+	val, err := ParseWorkQueueType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errWorkQueueTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *WorkQueueType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = WorkQueueType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseWorkQueueType(v)
+	case []byte:
+		*x, err = ParseWorkQueueType(string(v))
+	case WorkQueueType:
+		*x = v
+	case *WorkQueueType:
+		if v == nil {
+			return errWorkQueueTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errWorkQueueTypeNilPtr
+		}
+		*x, err = ParseWorkQueueType(*v)
+	default:
+		return errors.New("invalid type for WorkQueueType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x WorkQueueType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
