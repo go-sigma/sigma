@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,4 +58,33 @@ type GetUserSelfResponse struct {
 // PostUserLogoutRequest ...
 type PostUserLogoutRequest struct {
 	Tokens []string `json:"tokens" validate:"required,min=1" example:"123,234"`
+}
+
+// PostUserRecoverPasswordRequest ...
+type PostUserRecoverPasswordRequest struct {
+	Username string `json:"username" validate:"required,alphanum,min=2,max=20" example:"test"`
+	Email    string `json:"email" validate:"required,email" email:"test@email.com"`
+}
+
+// PostUserRecoverResetPasswordRequest...
+type PostUserRecoverResetPasswordRequest struct {
+	Code     string `json:"code" param:"code" validate:"required" example:"123456"`
+	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+}
+
+// PostUserSelfResetPasswordRequest ...
+type PostUserSelfResetPasswordRequest struct {
+	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+}
+
+// PostUserResetPasswordPasswordRequest ...
+type PostUserResetPasswordPasswordRequest struct {
+	ID       int64  `json:"id" param:"id" validate:"required" example:"123"`
+	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+}
+
+// PutUserSelfRequest ...
+type PutUserSelfRequest struct {
+	Username *string `json:"username,omitempty" validate:"omitempty,alphanum,min=2,max=20" example:"sigma"`
+	Email    *string `json:"email,omitempty" validate:"omitempty,email" example:"test@mail.com"`
 }

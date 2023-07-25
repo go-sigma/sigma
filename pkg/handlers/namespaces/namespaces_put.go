@@ -79,7 +79,7 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
 	}
 
-	updates := make(map[string]interface{}, 5)
+	updates := make(map[string]any, 5)
 	if req.SizeLimit != nil {
 		updates[query.Namespace.SizeLimit.ColumnName().String()] = ptr.To(req.SizeLimit)
 	}

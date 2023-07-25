@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,4 +34,16 @@ type User struct {
 	Username          string
 	Password          *string
 	Email             *string
+}
+
+type UserRecoverCode struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	UserID int64
+	Code   string
+
+	User User
 }

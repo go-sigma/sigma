@@ -41,8 +41,20 @@ type Handlers interface {
 	Logout(c echo.Context) error
 	// Signup handles the signup request
 	Signup(c echo.Context) error
+	// ResetPassword handles the reset request
+	ResetPassword(c echo.Context) error
+
+	// RecoverPassword handles the recover user's password
+	RecoverPassword(c echo.Context) error
+	// RecoverPasswordReset handles the recover user's password reset
+	RecoverPasswordReset(c echo.Context) error
+
 	// Self handles the self request
 	Self(c echo.Context) error
+	// SelfPut handles the self put request
+	SelfPut(c echo.Context) error
+	// SelfResetPassword handles the self reset request
+	SelfResetPassword(c echo.Context) error
 }
 
 type handlers struct {
@@ -102,11 +114,21 @@ func (f factory) Initialize(e *echo.Echo) error {
 			return slices.Contains(skipAuths, authStr)
 		},
 	}))
+
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.POST("/logout", userHandler.Logout)
 	userGroup.GET("/signup", userHandler.Signup)
 	userGroup.GET("/create", userHandler.Signup)
+
 	userGroup.GET("/self", userHandler.Self)
+	userGroup.PUT("/self", userHandler.SelfPut)
+	userGroup.PUT("/self/reset-password", userHandler.SelfResetPassword)
+
+	userGroup.GET("/recover-password", userHandler.RecoverPassword)
+	userGroup.PUT("/recover-password-reset/:code", userHandler.RecoverPasswordReset)
+
+	userGroup.PUT("/:id/reset-password", userHandler.ResetPassword)
+
 	return nil
 }
 
