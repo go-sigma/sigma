@@ -1,4 +1,4 @@
-// Copyright 2023 XImager
+// Copyright 2023 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,74 +14,80 @@
 
 package users
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/alicebob/miniredis/v2"
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/spf13/viper"
-// 	"github.com/stretchr/testify/assert"
-// 	"go.uber.org/mock/gomock"
+	"github.com/alicebob/miniredis/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	tokenmock "github.com/go-sigma/sigma/pkg/utils/token/mocks"
-// )
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/logger"
+	tokenmock "github.com/go-sigma/sigma/pkg/utils/token/mocks"
+	"github.com/go-sigma/sigma/pkg/validators"
+)
 
-// func TestLogout(t *testing.T) {
-// 	logger.SetLevel("debug")
+func TestLogout(t *testing.T) {
+	logger.SetLevel("debug")
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	var times int
-// 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-// 	tokenMock.EXPECT().Revoke(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) error {
-// 		if times == 0 {
-// 			times++
-// 			return nil
-// 		} else {
-// 			return fmt.Errorf("error")
-// 		}
-// 	}).Times(2)
+	var times int
+	tokenMock := tokenmock.NewMockTokenService(ctrl)
+	tokenMock.EXPECT().Revoke(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) error {
+		if times < 3 {
+			times++
+			return nil
+		} else {
+			return fmt.Errorf("error")
+		}
+	}).Times(4)
+	tokenMock.EXPECT().Validate(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (string, string, error) {
+		return "test", "id", nil
+	}).Times(6)
 
-// 	miniRedis := miniredis.RunT(t)
-// 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	miniRedis := miniredis.RunT(t)
+	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-// 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
-// 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
-// 	assert.NoError(t, err)
+	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	userHandler, err := handlerNew(inject{tokenService: tokenMock})
+	assert.NoError(t, err)
 
-// 	e := echo.New()
+	e := echo.New()
+	validators.Initialize(e)
 
-// 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.Set(consts.ContextJti, "")
+	err = userHandler.Logout(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
 
-// 	req = httptest.NewRequest(http.MethodGet, "/", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "test")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.Set(consts.ContextJti, "test")
+	err = userHandler.Logout(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
-// 	req = httptest.NewRequest(http.MethodGet, "/", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "test")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-// }
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.Set(consts.ContextJti, "test")
+	err = userHandler.Logout(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+}
