@@ -28,6 +28,7 @@ var (
 	Repository            *repository
 	Tag                   *tag
 	User                  *user
+	UserRecoverCode       *userRecoverCode
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -43,6 +44,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Repository = &Q.Repository
 	Tag = &Q.Tag
 	User = &Q.User
+	UserRecoverCode = &Q.UserRecoverCode
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -59,6 +61,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Repository:            newRepository(db, opts...),
 		Tag:                   newTag(db, opts...),
 		User:                  newUser(db, opts...),
+		UserRecoverCode:       newUserRecoverCode(db, opts...),
 	}
 }
 
@@ -76,6 +79,7 @@ type Query struct {
 	Repository            repository
 	Tag                   tag
 	User                  user
+	UserRecoverCode       userRecoverCode
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -94,6 +98,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Repository:            q.Repository.clone(db),
 		Tag:                   q.Tag.clone(db),
 		User:                  q.User.clone(db),
+		UserRecoverCode:       q.UserRecoverCode.clone(db),
 	}
 }
 
@@ -119,6 +124,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Repository:            q.Repository.replaceDB(db),
 		Tag:                   q.Tag.replaceDB(db),
 		User:                  q.User.replaceDB(db),
+		UserRecoverCode:       q.UserRecoverCode.replaceDB(db),
 	}
 }
 
@@ -134,6 +140,7 @@ type queryCtx struct {
 	Repository            *repositoryDo
 	Tag                   *tagDo
 	User                  *userDo
+	UserRecoverCode       *userRecoverCodeDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -149,6 +156,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Repository:            q.Repository.WithContext(ctx),
 		Tag:                   q.Tag.WithContext(ctx),
 		User:                  q.User.WithContext(ctx),
+		UserRecoverCode:       q.UserRecoverCode.WithContext(ctx),
 	}
 }
 

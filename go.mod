@@ -6,12 +6,12 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.85.0
 	github.com/aquasecurity/trivy v0.43.1
-	github.com/aws/aws-sdk-go v1.44.306
+	github.com/aws/aws-sdk-go v1.44.307
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.72.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230719040215-46b3d6201649
+	github.com/distribution/distribution/v3 v3.0.0-20230722181636-7b502560cad4
 	github.com/fatih/color v1.15.0
 	github.com/glebarez/sqlite v1.9.0
 	github.com/go-playground/validator v9.31.0+incompatible
@@ -28,7 +28,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230713155351-f641ac67a420
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230724201716-b1e549bb8912
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -44,7 +44,7 @@ require (
 	github.com/wagslane/go-password-validator v0.3.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.11.0
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
+	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090
 	golang.org/x/oauth2 v0.10.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2

@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS "users" (
   CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
 
+CREATE TABLE IF NOT EXISTS "user_recover_codes" (
+  "id" bigserial PRIMARY KEY,
+  "user_id" bigint NOT NULL,
+  "code" varchar(256) NOT NULL,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" integer NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+  CONSTRAINT "user_recover_codes_unique_with_user_id" UNIQUE ("user_id", "deleted_at")
+);
+
 CREATE TYPE visibility AS ENUM (
   'public',
   'private'

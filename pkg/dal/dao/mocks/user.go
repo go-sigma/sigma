@@ -65,6 +65,34 @@ func (mr *MockUserServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserService)(nil).Create), arg0, arg1)
 }
 
+// CreateRecoverCode mocks base method.
+func (m *MockUserService) CreateRecoverCode(arg0 context.Context, arg1 *models.UserRecoverCode) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRecoverCode", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateRecoverCode indicates an expected call of CreateRecoverCode.
+func (mr *MockUserServiceMockRecorder) CreateRecoverCode(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRecoverCode", reflect.TypeOf((*MockUserService)(nil).CreateRecoverCode), arg0, arg1)
+}
+
+// DeleteRecoverCode mocks base method.
+func (m *MockUserService) DeleteRecoverCode(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRecoverCode", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRecoverCode indicates an expected call of DeleteRecoverCode.
+func (mr *MockUserServiceMockRecorder) DeleteRecoverCode(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRecoverCode", reflect.TypeOf((*MockUserService)(nil).DeleteRecoverCode), arg0, arg1)
+}
+
 // GetByProvider mocks base method.
 func (m *MockUserService) GetByProvider(arg0 context.Context, arg1 enums.Provider, arg2 string) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -80,6 +108,21 @@ func (mr *MockUserServiceMockRecorder) GetByProvider(arg0, arg1, arg2 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProvider", reflect.TypeOf((*MockUserService)(nil).GetByProvider), arg0, arg1, arg2)
 }
 
+// GetByRecoverCode mocks base method.
+func (m *MockUserService) GetByRecoverCode(arg0 context.Context, arg1 string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByRecoverCode", arg0, arg1)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByRecoverCode indicates an expected call of GetByRecoverCode.
+func (mr *MockUserServiceMockRecorder) GetByRecoverCode(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRecoverCode", reflect.TypeOf((*MockUserService)(nil).GetByRecoverCode), arg0, arg1)
+}
+
 // GetByUsername mocks base method.
 func (m *MockUserService) GetByUsername(arg0 context.Context, arg1 string) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -93,4 +136,33 @@ func (m *MockUserService) GetByUsername(arg0 context.Context, arg1 string) (*mod
 func (mr *MockUserServiceMockRecorder) GetByUsername(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsername", reflect.TypeOf((*MockUserService)(nil).GetByUsername), arg0, arg1)
+}
+
+// GetRecoverCodeByUserID mocks base method.
+func (m *MockUserService) GetRecoverCodeByUserID(arg0 context.Context, arg1 int64) (*models.UserRecoverCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRecoverCodeByUserID", arg0, arg1)
+	ret0, _ := ret[0].(*models.UserRecoverCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRecoverCodeByUserID indicates an expected call of GetRecoverCodeByUserID.
+func (mr *MockUserServiceMockRecorder) GetRecoverCodeByUserID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecoverCodeByUserID", reflect.TypeOf((*MockUserService)(nil).GetRecoverCodeByUserID), arg0, arg1)
+}
+
+// UpdateByID mocks base method.
+func (m *MockUserService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateByID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateByID indicates an expected call of UpdateByID.
+func (mr *MockUserServiceMockRecorder) UpdateByID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockUserService)(nil).UpdateByID), arg0, arg1, arg2)
 }
