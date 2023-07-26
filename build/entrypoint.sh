@@ -1,6 +1,8 @@
 #!/bin/sh
 
-if [ "$(yq ".redis.type" < /etc/sigma/config.yaml)" = "internal"  ]; then
+REDIS_TYPE=${REDIS_TYPE:-$(yq ".redis.type" < /etc/sigma/config.yaml)}
+
+if [ "$REDIS_TYPE" = "internal"  ]; then
   if [ ! -d /var/lib/sigma/redis/ ]; then
     mkdir -p /var/lib/sigma/redis/
   fi
