@@ -43,6 +43,8 @@ type Handlers interface {
 	Signup(c echo.Context) error
 	// ResetPassword handles the reset request
 	ResetPassword(c echo.Context) error
+	// List handles the list user request
+	List(c echo.Context) error
 
 	// RecoverPassword handles the recover user's password
 	RecoverPassword(c echo.Context) error
@@ -115,6 +117,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 		},
 	}))
 
+	userGroup.GET("/", userHandler.List)
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.POST("/logout", userHandler.Logout)
 	userGroup.GET("/signup", userHandler.Signup)

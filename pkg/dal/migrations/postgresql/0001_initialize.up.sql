@@ -126,12 +126,19 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   CONSTRAINT "artifacts_unique_with_repo" UNIQUE ("repository_id", "digest", "deleted_at")
 );
 
+CREATE TYPE daemon_status AS ENUM (
+  'Pending',
+  'Doing',
+  'Success',
+  'Failed'
+);
+
 CREATE TABLE IF NOT EXISTS "artifact_sboms" (
   "id" bigserial PRIMARY KEY,
   "artifact_id" bigserial NOT NULL,
   "raw" bytea,
   "result" bytea,
-  "status" varchar(64) NOT NULL,
+  "status" daemon_status NOT NULL,
   "stdout" bytea,
   "stderr" bytea,
   "message" varchar(256),
@@ -148,7 +155,7 @@ CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   "metadata" bytea,
   "raw" bytea,
   "result" bytea,
-  "status" varchar(64) NOT NULL,
+  "status" daemon_status NOT NULL,
   "stdout" bytea,
   "stderr" bytea,
   "message" varchar(256),
@@ -217,6 +224,25 @@ CREATE TABLE IF NOT EXISTS "artifact_blobs" (
   PRIMARY KEY ("artifact_id", "blob_id"),
   CONSTRAINT "fk_artifact_blobs_artifact" FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "fk_artifact_blobs_blob" FOREIGN KEY ("blob_id") REFERENCES "blobs" ("id")
+);
+
+CREATE TYPE daemon_type AS ENUM (
+  'Gc',
+  'Vulnerability',
+  'Sbom'
+);
+
+CREATE TABLE IF NOT EXISTS "daemon_logs" (
+  "id" bigserial PRIMARY KEY,
+  "namespace_id" bigserial,
+  "type" daemon_type NOT NULL,
+  "action" audit_action NOT NULL,
+  "resource" varchar(256) NOT NULL,
+  "status" daemon_status NOT NULL,
+  "message" bytea,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
 CREATE TABLE "casbin_rules" (

@@ -40,6 +40,7 @@ func main() {
 		models.Blob{},
 		models.BlobUpload{},
 		models.CasbinRule{},
+		models.DaemonLog{},
 	)
 
 	g.Execute()

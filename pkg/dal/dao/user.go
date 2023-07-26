@@ -16,12 +16,16 @@ package dao
 
 import (
 	"context"
+	"fmt"
 
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 //go:generate mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
@@ -33,6 +37,8 @@ type UserService interface {
 	GetByUsername(ctx context.Context, username string) (*models.User, error)
 	// Create creates a new user.
 	Create(ctx context.Context, user *models.User) error
+	// List all users with pagination
+	List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// UpdateByID updates the namespace with the specified namespace ID.
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 	// Count gets the total number of users.
@@ -86,6 +92,29 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 // Create creates a new user.
 func (s *userService) Create(ctx context.Context, user *models.User) error {
 	return s.tx.User.WithContext(ctx).Create(user)
+}
+
+// List all users with pagination
+func (s *userService) List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.User.WithContext(ctx)
+	if name != nil {
+		query = query.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	field, ok := s.tx.User.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.User.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.User.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // Count gets the total number of users.

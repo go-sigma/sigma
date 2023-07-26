@@ -12,13 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package models
 
-const (
-	// TopicSbom is the topic for the sbom
-	TopicSbom = "sbom"
-	// TopicVulnerability is the topic for the vuln
-	TopicVulnerability = "vuln"
-	// TopicGc is the topic for the gc
-	TopicGc = "gc"
+import (
+	"time"
+
+	"gorm.io/plugin/soft_delete"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
+
+// DaemonLog represents an artifact
+type DaemonLog struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID *int64
+	Type        enums.Daemon
+	Action      enums.AuditAction
+	Resource    string
+	Status      enums.TaskCommonStatus
+	Message     []byte
+}

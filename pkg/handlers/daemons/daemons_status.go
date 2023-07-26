@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package systems
+package daemons
 
 import (
 	"net/http"
@@ -23,14 +23,18 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 )
 
-// GetEndpoint handles the get endpoint request
-// @Summary Get endpoint
-// @Tags Systems
+// Status get the specific daemon task status
+// @Summary Get specific daemon task status
+// @Tags Daemon
 // @Accept json
 // @Produce json
-// @Router /systems/endpoint [get]
-// @Success 200 {object} types.GetEndpointResponse
-func (h *handlers) GetEndpoint(c echo.Context) error {
+// @Router /daemons/{daemon}/ [get]
+// @Param daemon path string true "Daemon name"
+// @Param namespace_id query string false "Namespace ID"
+// @Success 202
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
+func (h *handlers) Status(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetEndpointResponse{
 		Endpoint: viper.GetString("server.endpoint"),
 	})

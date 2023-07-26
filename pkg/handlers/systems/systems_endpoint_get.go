@@ -12,13 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package systems
 
-const (
-	// TopicSbom is the topic for the sbom
-	TopicSbom = "sbom"
-	// TopicVulnerability is the topic for the vuln
-	TopicVulnerability = "vuln"
-	// TopicGc is the topic for the gc
-	TopicGc = "gc"
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
+
+	"github.com/go-sigma/sigma/pkg/types"
 )
+
+// GetEndpoint handles the get endpoint request
+// @Summary Get endpoint
+// @Tags System
+// @Accept json
+// @Produce json
+// @Router /systems/endpoint [get]
+// @Success 200 {object} types.GetEndpointResponse
+func (h *handlers) GetEndpoint(c echo.Context) error {
+	return c.JSON(http.StatusOK, types.GetEndpointResponse{
+		Endpoint: viper.GetString("server.endpoint"),
+	})
+}

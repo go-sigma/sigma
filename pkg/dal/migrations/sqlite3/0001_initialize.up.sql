@@ -185,6 +185,19 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES blobs (`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `daemon_logs` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `namespace_id` integer,
+  `type` text CHECK (`type` IN ('Gc', 'Vulnerability', 'Sbom')) NOT NULL,
+  `action` text CHECK (`action` IN ('create', 'update', 'delete', 'pull', 'push')) NOT NULL,
+  `resource` varchar(256) NOT NULL,
+  `status` text CHECK (`status` IN ('Success', 'Failed')) NOT NULL,
+  `message` BLOB,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
 CREATE TABLE `casbin_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `ptype` text,
