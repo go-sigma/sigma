@@ -36,3 +36,40 @@ type DaemonGcPayload struct {
 	Target enums.GcTarget `json:"target"`
 	Scope  *string        `json:"scope,omitempty"`
 }
+
+// PostDaemonRunRequest ...
+type PostDaemonRunRequest struct {
+	NamespaceID int64        `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,number" example:"123"`
+	Name        enums.Daemon `json:"name" param:"name" validate:"required" example:"Gc"`
+}
+
+// GetDaemonRunRequest ...
+type GetDaemonRunRequest struct {
+	NamespaceID int64        `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,number" example:"123"`
+	Name        enums.Daemon `json:"name" param:"name" validate:"required" example:"Gc"`
+}
+
+// GetDaemonRunResponse ...
+type GetDaemonRunResponse struct {
+	Status enums.TaskCommonStatus `json:"status"`
+}
+
+// GetDaemonLogsRequest ...
+type GetDaemonLogsRequest struct {
+	Pagination
+	Sortable
+
+	NamespaceID int64        `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,number" example:"123"`
+	Name        enums.Daemon `json:"name" param:"name" validate:"required" example:"Gc"`
+}
+
+type DaemonLogItem struct {
+	ID       int64                  `json:"id" example:"1"`
+	Resource string                 `json:"resource" example:"test"`
+	Action   enums.AuditAction      `json:"action" example:"delete"`
+	Status   enums.TaskCommonStatus `json:"status"`
+	Message  *string                `json:"message" example:"something error occurred"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}

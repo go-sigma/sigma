@@ -376,10 +376,6 @@ const (
 	DaemonVulnerability Daemon = "Vulnerability"
 	// DaemonSbom is a Daemon of type Sbom.
 	DaemonSbom Daemon = "Sbom"
-	// DaemonProxyArtifact is a Daemon of type ProxyArtifact.
-	DaemonProxyArtifact Daemon = "ProxyArtifact"
-	// DaemonProxyTag is a Daemon of type ProxyTag.
-	DaemonProxyTag Daemon = "ProxyTag"
 	// DaemonGc is a Daemon of type Gc.
 	DaemonGc Daemon = "Gc"
 )
@@ -401,8 +397,6 @@ func (x Daemon) IsValid() bool {
 var _DaemonValue = map[string]Daemon{
 	"Vulnerability": DaemonVulnerability,
 	"Sbom":          DaemonSbom,
-	"ProxyArtifact": DaemonProxyArtifact,
-	"ProxyTag":      DaemonProxyTag,
 	"Gc":            DaemonGc,
 }
 

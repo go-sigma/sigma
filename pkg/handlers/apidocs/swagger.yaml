@@ -1,5 +1,31 @@
 basePath: /api/v1
 definitions:
+  enums.AuditAction:
+    enum:
+    - create
+    - update
+    - delete
+    - pull
+    - push
+    type: string
+    x-enum-varnames:
+    - AuditActionCreate
+    - AuditActionUpdate
+    - AuditActionDelete
+    - AuditActionPull
+    - AuditActionPush
+  enums.TaskCommonStatus:
+    enum:
+    - Pending
+    - Doing
+    - Success
+    - Failed
+    type: string
+    x-enum-varnames:
+    - TaskCommonStatusPending
+    - TaskCommonStatusDoing
+    - TaskCommonStatusSuccess
+    - TaskCommonStatusFailed
   enums.Visibility:
     enum:
     - private
@@ -16,6 +42,30 @@ definitions:
       total:
         example: 1
         type: integer
+    type: object
+  types.DaemonLogItem:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/enums.AuditAction'
+        example: delete
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
+      message:
+        example: something error occurred
+        type: string
+      resource:
+        example: test
+        type: string
+      status:
+        $ref: '#/definitions/enums.TaskCommonStatus'
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
     type: object
   types.GetEndpointResponse:
     properties:
@@ -362,6 +412,128 @@ info:
   title: sigma API
   version: "1.0"
 paths:
+  /daemons/{daemon}/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Daemon name
+        in: path
+        name: daemon
+        required: true
+        type: string
+      - description: Namespace ID
+        in: query
+        name: namespace_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: Get specific daemon task status
+      tags:
+      - Daemon
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Daemon name
+        in: path
+        name: daemon
+        required: true
+        type: string
+      - description: Namespace ID
+        in: query
+        name: namespace_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: Run the specific daemon task
+      tags:
+      - Daemon
+  /daemons/{daemon}/logs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Daemon name
+        in: path
+        name: daemon
+        required: true
+        type: string
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: Namespace ID
+        in: query
+        name: namespace_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.DaemonLogItem'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: Get logs
+      tags:
+      - Daemon
   /namespaces/:
     get:
       consumes:
@@ -916,7 +1088,7 @@ paths:
             $ref: '#/definitions/types.GetEndpointResponse'
       summary: Get endpoint
       tags:
-      - Systems
+      - System
   /tokens:
     get:
       consumes:

@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
+	types "github.com/go-sigma/sigma/pkg/types"
 	enums "github.com/go-sigma/sigma/pkg/types/enums"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -151,6 +152,22 @@ func (m *MockUserService) GetRecoverCodeByUserID(arg0 context.Context, arg1 int6
 func (mr *MockUserServiceMockRecorder) GetRecoverCodeByUserID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecoverCodeByUserID", reflect.TypeOf((*MockUserService)(nil).GetRecoverCodeByUserID), arg0, arg1)
+}
+
+// List mocks base method.
+func (m *MockUserService) List(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.User, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*models.User)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// List indicates an expected call of List.
+func (mr *MockUserServiceMockRecorder) List(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserService)(nil).List), arg0, arg1, arg2, arg3)
 }
 
 // UpdateByID mocks base method.

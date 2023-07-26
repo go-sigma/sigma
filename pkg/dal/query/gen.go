@@ -24,6 +24,7 @@ var (
 	Blob                  *blob
 	BlobUpload            *blobUpload
 	CasbinRule            *casbinRule
+	DaemonLog             *daemonLog
 	Namespace             *namespace
 	Repository            *repository
 	Tag                   *tag
@@ -40,6 +41,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	CasbinRule = &Q.CasbinRule
+	DaemonLog = &Q.DaemonLog
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
 	Tag = &Q.Tag
@@ -57,6 +59,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
 		CasbinRule:            newCasbinRule(db, opts...),
+		DaemonLog:             newDaemonLog(db, opts...),
 		Namespace:             newNamespace(db, opts...),
 		Repository:            newRepository(db, opts...),
 		Tag:                   newTag(db, opts...),
@@ -75,6 +78,7 @@ type Query struct {
 	Blob                  blob
 	BlobUpload            blobUpload
 	CasbinRule            casbinRule
+	DaemonLog             daemonLog
 	Namespace             namespace
 	Repository            repository
 	Tag                   tag
@@ -94,6 +98,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
 		CasbinRule:            q.CasbinRule.clone(db),
+		DaemonLog:             q.DaemonLog.clone(db),
 		Namespace:             q.Namespace.clone(db),
 		Repository:            q.Repository.clone(db),
 		Tag:                   q.Tag.clone(db),
@@ -120,6 +125,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
 		CasbinRule:            q.CasbinRule.replaceDB(db),
+		DaemonLog:             q.DaemonLog.replaceDB(db),
 		Namespace:             q.Namespace.replaceDB(db),
 		Repository:            q.Repository.replaceDB(db),
 		Tag:                   q.Tag.replaceDB(db),
@@ -136,6 +142,7 @@ type queryCtx struct {
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
 	CasbinRule            *casbinRuleDo
+	DaemonLog             *daemonLogDo
 	Namespace             *namespaceDo
 	Repository            *repositoryDo
 	Tag                   *tagDo
@@ -152,6 +159,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
 		CasbinRule:            q.CasbinRule.WithContext(ctx),
+		DaemonLog:             q.DaemonLog.WithContext(ctx),
 		Namespace:             q.Namespace.WithContext(ctx),
 		Repository:            q.Repository.WithContext(ctx),
 		Tag:                   q.Tag.WithContext(ctx),

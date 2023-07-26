@@ -37,7 +37,7 @@ type Deploy string
 // Pending,
 // Doing,
 // Success,
-// Failed
+// Failed,
 // )
 type TaskCommonStatus string
 
@@ -68,8 +68,6 @@ type WorkQueueType string
 // Daemon x ENUM(
 // Vulnerability,
 // Sbom,
-// ProxyArtifact,
-// ProxyTag,
 // Gc
 // )
 type Daemon string

@@ -14,6 +14,26 @@
 
 package types
 
+import "github.com/go-sigma/sigma/pkg/types/enums"
+
+type GetUserListRequest struct {
+	Pagination
+	Sortable
+
+	// Name query the user by username.
+	Name *string `json:"name" query:"name"`
+}
+
+type GetUserItem struct {
+	ID       int64          `json:"id"`
+	Provider enums.Provider `json:"provider"`
+	Username string         `json:"username"`
+	Email    string         `json:"email"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
 // PostUserLoginRequest ...
 type PostUserLoginRequest struct {
 	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`

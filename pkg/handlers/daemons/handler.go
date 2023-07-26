@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package systems
+package daemons
 
 import (
 	"path"
@@ -21,35 +21,56 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the system handlers
 type Handlers interface {
-	// GetEndpoint handles the get endpoint request
-	GetEndpoint(c echo.Context) error
+	// Run run the specific daemon task
+	Run(c echo.Context) error
+	// Status get the specific daemon task status
+	Status(c echo.Context) error
+	// Logs get the specific daemon task logs
+	Logs(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type handlers struct {
+	daemonServiceFactory dao.DaemonServiceFactory
+}
 
-type inject struct{}
+type inject struct {
+	daemonServiceFactory dao.DaemonServiceFactory
+}
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handlers {
-	return &handlers{}
+	daemonServiceFactory := dao.NewDaemonServiceFactory()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.daemonServiceFactory != nil {
+			daemonServiceFactory = ij.daemonServiceFactory
+		}
+	}
+	return &handlers{
+		daemonServiceFactory: daemonServiceFactory,
+	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	systemGroup := e.Group(consts.APIV1 + "/systems")
+	daemonGroup := e.Group(consts.APIV1+"/daemons", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	repositoryHandler := handlerNew()
-	systemGroup.GET("/endpoint", repositoryHandler.GetEndpoint)
+	daemonGroup.POST("/:name/", repositoryHandler.Run)
+	daemonGroup.GET("/:name/", repositoryHandler.Run)
+	daemonGroup.GET("/:name/logs", repositoryHandler.Logs)
 	return nil
 }
 
