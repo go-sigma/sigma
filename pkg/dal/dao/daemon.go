@@ -32,8 +32,10 @@ import (
 
 // DaemonService is the interface that provides methods to operate on daemon model
 type DaemonService interface {
-	// Create creates a new daemon record in the database
-	Create(ctx context.Context, audit *models.DaemonLog) error
+	// Create creates a new daemon log record in the database
+	Create(ctx context.Context, daemonLog *models.DaemonLog) error
+	// CreateMany creates many new daemon log records in the database
+	CreateMany(ctx context.Context, daemonLogs []*models.DaemonLog) error
 	// Delete delete a daemon log record with specific id
 	Delete(ctx context.Context, id int64) error
 	// List lists all daemon log
@@ -69,6 +71,11 @@ func (f *daemonServiceFactory) New(txs ...*query.Query) DaemonService {
 // Create creates a new daemon record in the database
 func (s *daemonService) Create(ctx context.Context, daemonLog *models.DaemonLog) error {
 	return s.tx.DaemonLog.WithContext(ctx).Create(daemonLog)
+}
+
+// CreateMany creates many new daemon log records in the database
+func (s *daemonService) CreateMany(ctx context.Context, daemonLogs []*models.DaemonLog) error {
+	return s.tx.DaemonLog.WithContext(ctx).Create(daemonLogs...)
 }
 
 // Delete delete a daemon log record with specific id

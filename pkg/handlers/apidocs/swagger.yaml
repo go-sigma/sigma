@@ -14,6 +14,14 @@ definitions:
     - AuditActionDelete
     - AuditActionPull
     - AuditActionPush
+  enums.Provider:
+    enum:
+    - local
+    - github
+    type: string
+    x-enum-varnames:
+    - ProviderLocal
+    - ProviderGithub
   enums.TaskCommonStatus:
     enum:
     - Pending
@@ -71,6 +79,23 @@ definitions:
     properties:
       endpoint:
         example: https://example.com:3000
+        type: string
+    type: object
+  types.GetUserItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      provider:
+        $ref: '#/definitions/enums.Provider'
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      username:
         type: string
     type: object
   types.NamespaceItem:
@@ -370,6 +395,54 @@ definitions:
         type: string
       vulnerability:
         example: '{"critical":0,"high":0,"medium":0,"low":0}'
+        type: string
+    type: object
+  types.WebhookItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      enable:
+        example: true
+        type: boolean
+      event_artifact:
+        example: true
+        type: boolean
+      event_member:
+        example: true
+        type: boolean
+      event_namespace:
+        example: true
+        type: boolean
+      event_repository:
+        example: true
+        type: boolean
+      event_tag:
+        example: true
+        type: boolean
+      id:
+        example: 1
+        type: integer
+      namespace_id:
+        example: 1
+        type: integer
+      retry_duration:
+        example: 5
+        type: integer
+      retry_times:
+        example: 3
+        type: integer
+      secret:
+        example: secret
+        type: string
+      ssl_verify:
+        example: true
+        type: boolean
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      url:
+        example: http://example.com/webhook
         type: string
     type: object
   xerrors.ErrCode:
@@ -1113,6 +1186,60 @@ paths:
       summary: Generate token
       tags:
       - Token
+  /users/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: Username
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GetUserItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: List users with pagination
+      tags:
+      - User
   /users/logout:
     post:
       consumes:
@@ -1166,6 +1293,127 @@ paths:
       summary: validate reference
       tags:
       - Validator
+  /webhooks/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: filter by namespace id
+        in: query
+        name: namespace_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.WebhookItem'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List webhooks
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/logs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook ID
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.WebhookItem'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List webhook logs
+      tags:
+      - Webhook
 securityDefinitions:
   BasicAuth:
     type: basic

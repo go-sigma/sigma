@@ -29,10 +29,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/middlewares"
-
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
 )
 
 // Worker is the worker initialization

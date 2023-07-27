@@ -115,7 +115,7 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 		if c.AuditUserID != 0 {
 			err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
 				UserID:       c.AuditUserID,
-				NamespaceID:  repositoryObj.NamespaceID,
+				NamespaceID:  ptr.Of(repositoryObj.NamespaceID),
 				Action:       enums.AuditActionCreate,
 				ResourceType: enums.AuditResourceTypeTag,
 				Resource:     fmt.Sprintf("%s:%s", repositoryObj.Name, tag.Name),

@@ -34,6 +34,9 @@ type GetUserItem struct {
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
+// UserItem ...
+type UserItem = GetUserItem
+
 // PostUserLoginRequest ...
 type PostUserLoginRequest struct {
 	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`

@@ -66,10 +66,12 @@ CREATE TYPE audit_resource_type AS ENUM (
 CREATE TABLE IF NOT EXISTS "audits" (
   "id" bigserial PRIMARY KEY,
   "user_id" bigint NOT NULL,
-  "namespace_id" bigint NOT NULL,
+  "namespace_id" bigint,
   "action" audit_action NOT NULL,
   "resource_type" audit_resource_type NOT NULL,
   "resource" varchar(256) NOT NULL,
+  "before_raw" bytea,
+  "req_raw" bytea,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -107,7 +109,7 @@ CREATE TYPE artifact_type AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "artifacts" (
   "id" bigserial PRIMARY KEY,
-  "repository_id" bigserial NOT NULL,
+  "repository_id" bigint NOT NULL,
   "digest" varchar(256) NOT NULL,
   "size" bigint NOT NULL DEFAULT 0,
   "blobs_size" bigint NOT NULL DEFAULT 0,
@@ -135,7 +137,7 @@ CREATE TYPE daemon_status AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "artifact_sboms" (
   "id" bigserial PRIMARY KEY,
-  "artifact_id" bigserial NOT NULL,
+  "artifact_id" bigint NOT NULL,
   "raw" bytea,
   "result" bytea,
   "status" daemon_status NOT NULL,
@@ -151,7 +153,7 @@ CREATE TABLE IF NOT EXISTS "artifact_sboms" (
 
 CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   "id" bigserial PRIMARY KEY,
-  "artifact_id" bigserial NOT NULL,
+  "artifact_id" bigint NOT NULL,
   "metadata" bytea,
   "raw" bytea,
   "result" bytea,
@@ -168,8 +170,8 @@ CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
 
 CREATE TABLE IF NOT EXISTS "tags" (
   "id" bigserial PRIMARY KEY,
-  "repository_id" bigserial NOT NULL,
-  "artifact_id" bigserial NOT NULL,
+  "repository_id" bigint NOT NULL,
+  "artifact_id" bigint NOT NULL,
   "name" varchar(64) NOT NULL,
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
@@ -211,16 +213,16 @@ CREATE TABLE IF NOT EXISTS "blob_uploads" (
 );
 
 CREATE TABLE IF NOT EXISTS "artifact_artifacts" (
-  "artifact_id" bigserial NOT NULL,
-  "artifact_index_id" bigserial NOT NULL,
+  "artifact_id" bigint NOT NULL,
+  "artifact_index_id" bigint NOT NULL,
   PRIMARY KEY ("artifact_id", "artifact_index_id"),
   CONSTRAINT "fk_artifact_artifacts_artifact" FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "fk_artifact_artifacts_artifact_index" FOREIGN KEY ("artifact_index_id") REFERENCES "artifacts" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "artifact_blobs" (
-  "artifact_id" bigserial NOT NULL,
-  "blob_id" bigserial NOT NULL,
+  "artifact_id" bigint NOT NULL,
+  "blob_id" bigint NOT NULL,
   PRIMARY KEY ("artifact_id", "blob_id"),
   CONSTRAINT "fk_artifact_blobs_artifact" FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "fk_artifact_blobs_blob" FOREIGN KEY ("blob_id") REFERENCES "blobs" ("id")
@@ -234,7 +236,7 @@ CREATE TYPE daemon_type AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "daemon_logs" (
   "id" bigserial PRIMARY KEY,
-  "namespace_id" bigserial,
+  "namespace_id" bigint,
   "type" daemon_type NOT NULL,
   "action" audit_action NOT NULL,
   "resource" varchar(256) NOT NULL,
@@ -281,4 +283,37 @@ INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
 
 INSERT INTO "namespaces" ("name", "visibility")
   VALUES ('library', 'public');
+
+CREATE TABLE IF NOT EXISTS "webhooks" (
+  "id" bigserial PRIMARY KEY,
+  "namespace_id" bigint NOT NULL,
+  "url" varchar(128) NOT NULL,
+  "secret" varchar(63),
+  "ssl_verify" smallint NOT NULL DEFAULT 1,
+  "retry_times" smallint NOT NULL DEFAULT 3,
+  "retry_duration" smallint NOT NULL DEFAULT 5,
+  "event_namespace" smallint,
+  "event_repository" smallint NOT NULL DEFAULT 1,
+  "event_tag" smallint NOT NULL DEFAULT 1,
+  "event_pull_push" smallint NOT NULL DEFAULT 1,
+  "event_member" smallint NOT NULL DEFAULT 1,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS "webhook_logs" (
+  "id" bigserial PRIMARY KEY,
+  "webhook_id" bigint NOT NULL,
+  "event" varchar(128) NOT NULL,
+  "status_code" smallint NOT NULL,
+  "req_header" bytea NOT NULL,
+  "req_body" bytea NOT NULL,
+  "resp_header" bytea NOT NULL,
+  "resp_body" bytea,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("webhook_id") REFERENCES "webhooks" ("id")
+);
 

@@ -56,6 +56,8 @@ type RepositoryService interface {
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// DeleteByID deletes the repository with the specified repository ID.
 	DeleteByID(ctx context.Context, id int64) error
+	// DeleteEmpty delete all of empty repository
+	DeleteEmpty(ctx context.Context, namespaceID *int64) ([]string, error)
 }
 
 type repositoryService struct {
@@ -118,7 +120,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		}
 		err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
 			UserID:       autoCreateNamespace.UserID,
-			NamespaceID:  namespaceObj.ID,
+			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.AuditActionCreate,
 			ResourceType: enums.AuditResourceTypeNamespace,
 			Resource:     namespaceObj.Name,
@@ -143,7 +145,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		}
 		err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
 			UserID:       autoCreateNamespace.UserID,
-			NamespaceID:  namespaceObj.ID,
+			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.AuditActionCreate,
 			ResourceType: enums.AuditResourceTypeRepository,
 			Resource:     repositoryObj.Name,
@@ -258,4 +260,30 @@ func (s *repositoryService) CountByNamespace(ctx context.Context, namespaceIDs [
 		tagCount[c.NamespaceID] = c.Count
 	}
 	return tagCount, nil
+}
+
+// DeleteEmpty delete all of empty repository
+func (s *repositoryService) DeleteEmpty(ctx context.Context, namespaceID *int64) ([]string, error) {
+	query := s.tx.Repository.WithContext(ctx).
+		LeftJoin(s.tx.Artifact, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
+		LeftJoin(s.tx.Tag, s.tx.Repository.ID.EqCol(s.tx.Tag.RepositoryID)).
+		Where(s.tx.Artifact.RepositoryID.IsNull(), s.tx.Tag.RepositoryID.IsNull())
+	if namespaceID != nil {
+		query = query.Where(s.tx.Repository.NamespaceID.Eq(ptr.To(namespaceID)))
+	}
+	repositoryObjs, err := query.Find()
+	if err != nil {
+		return nil, err
+	}
+	IDs := make([]int64, 0, len(repositoryObjs))
+	result := make([]string, 0, len(repositoryObjs))
+	for _, r := range repositoryObjs {
+		result = append(result, r.Name)
+		IDs = append(IDs, r.ID)
+	}
+	_, err = s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.In(IDs...)).Delete()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

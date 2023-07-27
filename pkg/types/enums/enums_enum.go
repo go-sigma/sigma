@@ -209,6 +209,8 @@ const (
 	AuditResourceTypeRepository AuditResourceType = "repository"
 	// AuditResourceTypeTag is a AuditResourceType of type tag.
 	AuditResourceTypeTag AuditResourceType = "tag"
+	// AuditResourceTypeWebhook is a AuditResourceType of type webhook.
+	AuditResourceTypeWebhook AuditResourceType = "webhook"
 )
 
 var ErrInvalidAuditResourceType = errors.New("not a valid AuditResourceType")
@@ -229,6 +231,7 @@ var _AuditResourceTypeValue = map[string]AuditResourceType{
 	"namespace":  AuditResourceTypeNamespace,
 	"repository": AuditResourceTypeRepository,
 	"tag":        AuditResourceTypeTag,
+	"webhook":    AuditResourceTypeWebhook,
 }
 
 // ParseAuditResourceType attempts to convert a string to a AuditResourceType.
@@ -378,6 +381,10 @@ const (
 	DaemonSbom Daemon = "Sbom"
 	// DaemonGc is a Daemon of type Gc.
 	DaemonGc Daemon = "Gc"
+	// DaemonGcRepository is a Daemon of type GcRepository.
+	DaemonGcRepository Daemon = "GcRepository"
+	// DaemonWebhook is a Daemon of type Webhook.
+	DaemonWebhook Daemon = "Webhook"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")
@@ -398,6 +405,8 @@ var _DaemonValue = map[string]Daemon{
 	"Vulnerability": DaemonVulnerability,
 	"Sbom":          DaemonSbom,
 	"Gc":            DaemonGc,
+	"GcRepository":  DaemonGcRepository,
+	"Webhook":       DaemonWebhook,
 }
 
 // ParseDaemon attempts to convert a string to a Daemon.
@@ -1225,6 +1234,199 @@ func (x *Visibility) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x Visibility) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// WebhookResourceActionCreate is a WebhookResourceAction of type create.
+	WebhookResourceActionCreate WebhookResourceAction = "create"
+	// WebhookResourceActionUpdate is a WebhookResourceAction of type update.
+	WebhookResourceActionUpdate WebhookResourceAction = "update"
+	// WebhookResourceActionDelete is a WebhookResourceAction of type delete.
+	WebhookResourceActionDelete WebhookResourceAction = "delete"
+	// WebhookResourceActionAdd is a WebhookResourceAction of type add.
+	WebhookResourceActionAdd WebhookResourceAction = "add"
+	// WebhookResourceActionRemove is a WebhookResourceAction of type remove.
+	WebhookResourceActionRemove WebhookResourceAction = "remove"
+	// WebhookResourceActionPull is a WebhookResourceAction of type pull.
+	WebhookResourceActionPull WebhookResourceAction = "pull"
+	// WebhookResourceActionPush is a WebhookResourceAction of type push.
+	WebhookResourceActionPush WebhookResourceAction = "push"
+)
+
+var ErrInvalidWebhookResourceAction = errors.New("not a valid WebhookResourceAction")
+
+// String implements the Stringer interface.
+func (x WebhookResourceAction) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x WebhookResourceAction) IsValid() bool {
+	_, err := ParseWebhookResourceAction(string(x))
+	return err == nil
+}
+
+var _WebhookResourceActionValue = map[string]WebhookResourceAction{
+	"create": WebhookResourceActionCreate,
+	"update": WebhookResourceActionUpdate,
+	"delete": WebhookResourceActionDelete,
+	"add":    WebhookResourceActionAdd,
+	"remove": WebhookResourceActionRemove,
+	"pull":   WebhookResourceActionPull,
+	"push":   WebhookResourceActionPush,
+}
+
+// ParseWebhookResourceAction attempts to convert a string to a WebhookResourceAction.
+func ParseWebhookResourceAction(name string) (WebhookResourceAction, error) {
+	if x, ok := _WebhookResourceActionValue[name]; ok {
+		return x, nil
+	}
+	return WebhookResourceAction(""), fmt.Errorf("%s is %w", name, ErrInvalidWebhookResourceAction)
+}
+
+// MustParseWebhookResourceAction converts a string to a WebhookResourceAction, and panics if is not valid.
+func MustParseWebhookResourceAction(name string) WebhookResourceAction {
+	val, err := ParseWebhookResourceAction(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errWebhookResourceActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *WebhookResourceAction) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = WebhookResourceAction("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseWebhookResourceAction(v)
+	case []byte:
+		*x, err = ParseWebhookResourceAction(string(v))
+	case WebhookResourceAction:
+		*x = v
+	case *WebhookResourceAction:
+		if v == nil {
+			return errWebhookResourceActionNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errWebhookResourceActionNilPtr
+		}
+		*x, err = ParseWebhookResourceAction(*v)
+	default:
+		return errors.New("invalid type for WebhookResourceAction")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x WebhookResourceAction) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// WebhookResourceTypePing is a WebhookResourceType of type ping.
+	WebhookResourceTypePing WebhookResourceType = "ping"
+	// WebhookResourceTypeNamespace is a WebhookResourceType of type namespace.
+	WebhookResourceTypeNamespace WebhookResourceType = "namespace"
+	// WebhookResourceTypeRepository is a WebhookResourceType of type repository.
+	WebhookResourceTypeRepository WebhookResourceType = "repository"
+	// WebhookResourceTypeTag is a WebhookResourceType of type tag.
+	WebhookResourceTypeTag WebhookResourceType = "tag"
+	// WebhookResourceTypeArtifact is a WebhookResourceType of type artifact.
+	WebhookResourceTypeArtifact WebhookResourceType = "artifact"
+	// WebhookResourceTypeMember is a WebhookResourceType of type member.
+	WebhookResourceTypeMember WebhookResourceType = "member"
+)
+
+var ErrInvalidWebhookResourceType = errors.New("not a valid WebhookResourceType")
+
+// String implements the Stringer interface.
+func (x WebhookResourceType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x WebhookResourceType) IsValid() bool {
+	_, err := ParseWebhookResourceType(string(x))
+	return err == nil
+}
+
+var _WebhookResourceTypeValue = map[string]WebhookResourceType{
+	"ping":       WebhookResourceTypePing,
+	"namespace":  WebhookResourceTypeNamespace,
+	"repository": WebhookResourceTypeRepository,
+	"tag":        WebhookResourceTypeTag,
+	"artifact":   WebhookResourceTypeArtifact,
+	"member":     WebhookResourceTypeMember,
+}
+
+// ParseWebhookResourceType attempts to convert a string to a WebhookResourceType.
+func ParseWebhookResourceType(name string) (WebhookResourceType, error) {
+	if x, ok := _WebhookResourceTypeValue[name]; ok {
+		return x, nil
+	}
+	return WebhookResourceType(""), fmt.Errorf("%s is %w", name, ErrInvalidWebhookResourceType)
+}
+
+// MustParseWebhookResourceType converts a string to a WebhookResourceType, and panics if is not valid.
+func MustParseWebhookResourceType(name string) WebhookResourceType {
+	val, err := ParseWebhookResourceType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errWebhookResourceTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *WebhookResourceType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = WebhookResourceType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseWebhookResourceType(v)
+	case []byte:
+		*x, err = ParseWebhookResourceType(string(v))
+	case WebhookResourceType:
+		*x = v
+	case *WebhookResourceType:
+		if v == nil {
+			return errWebhookResourceTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errWebhookResourceTypeNilPtr
+		}
+		*x, err = ParseWebhookResourceType(*v)
+	default:
+		return errors.New("invalid type for WebhookResourceType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x WebhookResourceType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 

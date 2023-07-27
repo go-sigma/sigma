@@ -1,0 +1,9 @@
+FROM moby/buildkit:v0.12.0-rootless
+
+USER root
+RUN apk add --no-cache git-lfs
+
+USER 1000:1000
+
+# docker run -it --rm --entrypoint '' --security-opt seccomp=unconfined --security-opt apparmor=unconfined -e BUILDKITD_FLAGS=--oci-worker-no-process-sandbox docker.io/library/test:dev sh
+# buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=/code --local dockerfile=/code --opt platform=linux/amd64,linux/arm64

@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespaces
+package webhooks
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -30,22 +28,23 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostNamespace handles the post namespace request
-// @Summary Create namespace
-// @Tags Namespace
+// PostWebhook handles the post webhook request
+// @Summary Create a webhook
+// @Tags Webhook
+// @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /namespaces/ [post]
-// @Param message body types.PostNamespaceRequest true "Namespace object"
-// @security BasicAuth
-// @Success 201 {object} types.PostNamespaceResponse
+// @Router /webhooks [post]
+// @Param namespace_id query int64 false "create webhook for namespace"
+// @Param message body types.PostWebhookRequestSwagger true "Webhook object"
+// @Success 201
 // @Failure 400 {object} xerrors.ErrCode
+// @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
-func (h *handlers) PostNamespace(c echo.Context) error {
+func (h *handlers) PostWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -59,55 +58,53 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PostNamespaceRequest
+	var req types.PostWebhookRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
-	_, err = namespaceService.GetByName(ctx, req.Name)
+	webhookService := h.webhookServiceFactory.New()
+	_, total, err := webhookService.List(ctx, req.NamespaceID, types.Pagination{}, types.Sortable{})
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Get namespace by name failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get namespace by name failed")
-		}
+		log.Error().Err(err).Msg("Get webhook count failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	if err == nil {
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Namespace already exists")
+	if total > 5 {
+		log.Error().Int64("total", total).Msg("Reached the maximum webhooks")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Reached the maximum webhooks")
 	}
 
-	namespaceObj := &models.Namespace{
-		Name:        req.Name,
-		Description: req.Description,
-	}
-	if req.Visibility != nil {
-		namespaceObj.Visibility = ptr.To(req.Visibility)
-	}
-	if ptr.To(req.SizeLimit) > 0 {
-		namespaceObj.SizeLimit = ptr.To(req.SizeLimit)
-	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceService := h.namespaceServiceFactory.New(tx)
-		err = namespaceService.Create(ctx, namespaceObj)
-		if err != nil {
-			log.Error().Err(err).Msg("Create namespace failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
+		webhookService := h.webhookServiceFactory.New(tx)
+		webhookObj := &models.Webhook{
+			NamespaceID:     req.NamespaceID,
+			Url:             req.Url,
+			Secret:          req.Secret,
+			SslVerify:       req.SslVerify,
+			RetryTimes:      req.RetryTimes,
+			RetryDuration:   req.RetryDuration,
+			Enable:          req.Enable,
+			EventNamespace:  req.EventNamespace,
+			EventRepository: req.EventRepository,
+			EventTag:        req.EventTag,
+			EventMember:     req.EventMember,
+			EventArtifact:   req.EventArtifact,
 		}
-		authService := h.authServiceFactory.New(tx)
-		err = authService.AddRoleForUser(ctx, strconv.FormatInt(user.ID, 10), "namespace_admin", namespaceObj.Name)
+		err = webhookService.Create(ctx, webhookObj)
 		if err != nil {
-			log.Error().Err(err).Msg("Add role for user failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add role for user failed: %v", err))
+			log.Error().Err(err).Msg("Create webhook failed")
+			return xerrors.HTTPErrCodeInternalError.Detail("Create webhook failed")
 		}
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
-			NamespaceID:  ptr.Of(namespaceObj.ID),
+			NamespaceID:  req.NamespaceID,
 			Action:       enums.AuditActionCreate,
-			ResourceType: enums.AuditResourceTypeNamespace,
-			Resource:     namespaceObj.Name,
+			ResourceType: enums.AuditResourceTypeWebhook,
+			Resource:     strconv.FormatInt(webhookObj.ID, 10),
+			ReqRaw:       utils.MustMarshal(webhookObj),
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit failed")
@@ -118,6 +115,5 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-
-	return c.JSON(http.StatusCreated, types.PostNamespaceResponse{ID: namespaceObj.ID})
+	return c.NoContent(http.StatusCreated)
 }

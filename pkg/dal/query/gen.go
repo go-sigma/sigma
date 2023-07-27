@@ -30,6 +30,8 @@ var (
 	Tag                   *tag
 	User                  *user
 	UserRecoverCode       *userRecoverCode
+	Webhook               *webhook
+	WebhookLog            *webhookLog
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -47,6 +49,8 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Tag = &Q.Tag
 	User = &Q.User
 	UserRecoverCode = &Q.UserRecoverCode
+	Webhook = &Q.Webhook
+	WebhookLog = &Q.WebhookLog
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -65,6 +69,8 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Tag:                   newTag(db, opts...),
 		User:                  newUser(db, opts...),
 		UserRecoverCode:       newUserRecoverCode(db, opts...),
+		Webhook:               newWebhook(db, opts...),
+		WebhookLog:            newWebhookLog(db, opts...),
 	}
 }
 
@@ -84,6 +90,8 @@ type Query struct {
 	Tag                   tag
 	User                  user
 	UserRecoverCode       userRecoverCode
+	Webhook               webhook
+	WebhookLog            webhookLog
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -104,6 +112,8 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Tag:                   q.Tag.clone(db),
 		User:                  q.User.clone(db),
 		UserRecoverCode:       q.UserRecoverCode.clone(db),
+		Webhook:               q.Webhook.clone(db),
+		WebhookLog:            q.WebhookLog.clone(db),
 	}
 }
 
@@ -131,6 +141,8 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Tag:                   q.Tag.replaceDB(db),
 		User:                  q.User.replaceDB(db),
 		UserRecoverCode:       q.UserRecoverCode.replaceDB(db),
+		Webhook:               q.Webhook.replaceDB(db),
+		WebhookLog:            q.WebhookLog.replaceDB(db),
 	}
 }
 
@@ -148,6 +160,8 @@ type queryCtx struct {
 	Tag                   *tagDo
 	User                  *userDo
 	UserRecoverCode       *userRecoverCodeDo
+	Webhook               *webhookDo
+	WebhookLog            *webhookLogDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -165,6 +179,8 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Tag:                   q.Tag.WithContext(ctx),
 		User:                  q.User.WithContext(ctx),
 		UserRecoverCode:       q.UserRecoverCode.WithContext(ctx),
+		Webhook:               q.Webhook.WithContext(ctx),
+		WebhookLog:            q.WebhookLog.WithContext(ctx),
 	}
 }
 

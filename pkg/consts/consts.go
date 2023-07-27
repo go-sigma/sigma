@@ -48,6 +48,8 @@ const (
 	ContextUser = "user"
 	// HotNamespace top hot namespaces
 	HotNamespace = 3
+	// WebhookSecretHeader ...
+	WebhookSecretHeader = "X-Sigma-Signature-256" // nolint: gosec
 )
 
 // UserAgent represents the user agent

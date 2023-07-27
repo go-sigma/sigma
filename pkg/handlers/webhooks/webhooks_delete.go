@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespaces
+package webhooks
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -29,20 +30,21 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// DeleteNamespace handles the delete namespace request
-// @Summary Delete namespace
+// DeleteWebhook handles the delete webhook request
+// @Summary Delete a webhook
 // @security BasicAuth
-// @Tags Namespace
+// @Tags Webhook
 // @Accept json
 // @Produce json
-// @Router /namespaces/{id} [delete]
+// @Router /webhooks/{id} [get]
+// @Param id path string true "Webhook id"
 // @Success 204
 // @Failure 500 {object} xerrors.ErrCode
-func (h *handlers) DeleteNamespace(c echo.Context) error {
+// @Failure 401 {object} xerrors.ErrCode
+func (h *handlers) DeleteWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -56,42 +58,44 @@ func (h *handlers) DeleteNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.DeleteNamespaceRequest
+	var req types.DeleteWebhookRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.Get(ctx, req.ID)
+	webhookService := h.webhookServiceFactory.New()
+	webhookOldObj, err := webhookService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("id", req.ID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found", req.ID))
+			log.Error().Err(err).Int64("id", req.ID).Msg("Webhook not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Webhook(%d) not found", req.ID))
 		}
-		log.Error().Err(err).Msg("Get namespace failed")
+		log.Error().Err(err).Msg("Get webhook failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceService := h.namespaceServiceFactory.New(tx)
-		err = namespaceService.DeleteByID(ctx, req.ID)
+		webhookService := h.webhookServiceFactory.New(tx)
+		err = webhookService.DeleteByID(ctx, req.ID)
 		if err != nil {
-			log.Error().Err(err).Msg("Delete namespace failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%d) find failed: %v", req.ID, err))
+			log.Error().Err(err).Msg("Delete webhook failed")
+			return xerrors.HTTPErrCodeInternalError.Detail("Delete webhook failed")
 		}
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
-			NamespaceID:  ptr.Of(req.ID),
-			Action:       enums.AuditActionDelete,
-			ResourceType: enums.AuditResourceTypeNamespace,
-			Resource:     namespaceObj.Name,
+			NamespaceID:  webhookOldObj.NamespaceID,
+			Action:       enums.AuditActionCreate,
+			ResourceType: enums.AuditResourceTypeWebhook,
+			Resource:     strconv.FormatInt(webhookOldObj.ID, 10),
+			BeforeRaw:    utils.MustMarshal(webhookOldObj),
+			ReqRaw:       utils.MustMarshal(req),
 		})
 		if err != nil {
-			log.Error().Err(err).Msg("Create audit for delete namespace failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for delete namespace failed: %v", err))
+			log.Error().Err(err).Msg("Create audit failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		return nil
 	})
