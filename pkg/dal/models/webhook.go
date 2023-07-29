@@ -22,21 +22,43 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// Audit represents a audit
-type Audit struct {
+// Webhook ...
+type Webhook struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	UserID       int64
-	NamespaceID  *int64
-	Action       enums.AuditAction
-	ResourceType enums.AuditResourceType
-	Resource     string
-	BeforeRaw    []byte
-	ReqRaw       []byte
+	NamespaceID     *int64
+	Url             string
+	Secret          *string
+	SslVerify       bool
+	RetryTimes      int
+	RetryDuration   int
+	Enable          bool
+	EventNamespace  *bool
+	EventRepository bool
+	EventTag        bool
+	EventArtifact   bool
+	EventMember     bool
+}
 
-	Namespace Namespace
-	User      User
+// WebhookLog ...
+type WebhookLog struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	WebhookID int64
+
+	Event      enums.WebhookResourceType
+	Action     enums.WebhookResourceAction
+	StatusCode int
+	ReqHeader  []byte
+	ReqBody    []byte
+	RespHeader []byte
+	RespBody   []byte
+
+	Webhook Webhook
 }

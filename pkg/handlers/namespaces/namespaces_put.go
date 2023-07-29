@@ -107,7 +107,7 @@ func (h *handlers) PutNamespace(c echo.Context) error {
 			auditService := h.auditServiceFactory.New(tx)
 			err = auditService.Create(ctx, &models.Audit{
 				UserID:       user.ID,
-				NamespaceID:  namespaceObj.ID,
+				NamespaceID:  ptr.Of(namespaceObj.ID),
 				Action:       enums.AuditActionUpdate,
 				ResourceType: enums.AuditResourceTypeNamespace,
 				Resource:     namespaceObj.Name,

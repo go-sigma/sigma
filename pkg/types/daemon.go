@@ -37,6 +37,23 @@ type DaemonGcPayload struct {
 	Scope  *string        `json:"scope,omitempty"`
 }
 
+// DaemonGcRepositoryPayload ...
+type DaemonGcRepositoryPayload struct {
+	Scope *string `json:"scope,omitempty"`
+}
+
+// DaemonWebhookPayload ...
+type DaemonWebhookPayload struct {
+	NamespaceID  *int64                      `json:"namespace_id"`
+	WebhookID    *int64                      `json:"webhook_id"`
+	WebhookLogID *int64                      `json:"webhook_log_id"`
+	Resend       bool                        `json:"resend"`
+	Ping         bool                        `json:"ping"`
+	Event        enums.WebhookResourceType   `json:"event"`
+	Action       enums.WebhookResourceAction `json:"action"`
+	Payload      []byte                      `json:"payload"`
+}
+
 // PostDaemonRunRequest ...
 type PostDaemonRunRequest struct {
 	NamespaceID int64        `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,number" example:"123"`
@@ -63,6 +80,7 @@ type GetDaemonLogsRequest struct {
 	Name        enums.Daemon `json:"name" param:"name" validate:"required" example:"Gc"`
 }
 
+// DaemonLogItem ...
 type DaemonLogItem struct {
 	ID       int64                  `json:"id" example:"1"`
 	Resource string                 `json:"resource" example:"test"`

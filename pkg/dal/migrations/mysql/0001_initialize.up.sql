@@ -42,10 +42,12 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
 CREATE TABLE IF NOT EXISTS `audits` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
-  `namespace_id` bigint NOT NULL,
+  `namespace_id` bigint,
   `action` ENUM ('create', 'update', 'delete', 'pull', 'push') NOT NULL,
   `resource_type` ENUM ('namespace', 'repository', 'tag') NOT NULL,
   `resource` varchar(256) NOT NULL,
+  `before_raw` BLOB,
+  `req_raw` BLOB,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -234,4 +236,37 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
 
 INSERT INTO `namespaces` (`name`, `visibility`)
   VALUES ('library', 'public');
+
+CREATE TABLE IF NOT EXISTS `webhooks` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `namespace_id` bigint NOT NULL,
+  `url` varchar(128) NOT NULL,
+  `secret` varchar(63),
+  `ssl_verify` tinyint NOT NULL DEFAULT 1,
+  `retry_times` tinyint NOT NULL DEFAULT 3,
+  `retry_duration` tinyint NOT NULL DEFAULT 5,
+  `event_namespace` tinyint,
+  `event_repository` tinyint NOT NULL DEFAULT 1,
+  `event_tag` tinyint NOT NULL DEFAULT 1,
+  `event_pull_push` tinyint NOT NULL DEFAULT 1,
+  `event_member` tinyint NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `webhook_logs` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `webhook_id` bigint NOT NULL,
+  `event` varchar(128) NOT NULL,
+  `status_code` smallint NOT NULL,
+  `req_header` BLOB NOT NULL,
+  `req_body` BLOB NOT NULL,
+  `resp_header` BLOB NOT NULL,
+  `resp_body` BLOB,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`)
+);
 

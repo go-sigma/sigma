@@ -95,6 +95,21 @@ func (mr *MockRepositoryServiceMockRecorder) DeleteByID(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRepositoryService)(nil).DeleteByID), arg0, arg1)
 }
 
+// DeleteEmpty mocks base method.
+func (m *MockRepositoryService) DeleteEmpty(arg0 context.Context, arg1 *int64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteEmpty", arg0, arg1)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteEmpty indicates an expected call of DeleteEmpty.
+func (mr *MockRepositoryServiceMockRecorder) DeleteEmpty(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmpty", reflect.TypeOf((*MockRepositoryService)(nil).DeleteEmpty), arg0, arg1)
+}
+
 // FindAll mocks base method.
 func (m *MockRepositoryService) FindAll(arg0 context.Context, arg1, arg2, arg3 int64) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()

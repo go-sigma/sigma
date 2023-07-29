@@ -36,6 +36,8 @@ func newAudit(db *gorm.DB, opts ...gen.DOOption) audit {
 	_audit.Action = field.NewField(tableName, "action")
 	_audit.ResourceType = field.NewField(tableName, "resource_type")
 	_audit.Resource = field.NewString(tableName, "resource")
+	_audit.BeforeRaw = field.NewBytes(tableName, "before_raw")
+	_audit.ReqRaw = field.NewBytes(tableName, "req_raw")
 	_audit.Namespace = auditBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -66,6 +68,8 @@ type audit struct {
 	Action       field.Field
 	ResourceType field.Field
 	Resource     field.String
+	BeforeRaw    field.Bytes
+	ReqRaw       field.Bytes
 	Namespace    auditBelongsToNamespace
 
 	User auditBelongsToUser
@@ -94,6 +98,8 @@ func (a *audit) updateTableName(table string) *audit {
 	a.Action = field.NewField(table, "action")
 	a.ResourceType = field.NewField(table, "resource_type")
 	a.Resource = field.NewString(table, "resource")
+	a.BeforeRaw = field.NewBytes(table, "before_raw")
+	a.ReqRaw = field.NewBytes(table, "req_raw")
 
 	a.fillFieldMap()
 
@@ -118,7 +124,7 @@ func (a *audit) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *audit) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 11)
+	a.fieldMap = make(map[string]field.Expr, 13)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -128,6 +134,8 @@ func (a *audit) fillFieldMap() {
 	a.fieldMap["action"] = a.Action
 	a.fieldMap["resource_type"] = a.ResourceType
 	a.fieldMap["resource"] = a.Resource
+	a.fieldMap["before_raw"] = a.BeforeRaw
+	a.fieldMap["req_raw"] = a.ReqRaw
 
 }
 

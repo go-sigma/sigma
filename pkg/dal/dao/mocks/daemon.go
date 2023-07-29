@@ -50,6 +50,20 @@ func (mr *MockDaemonServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockDaemonService)(nil).Create), arg0, arg1)
 }
 
+// CreateMany mocks base method.
+func (m *MockDaemonService) CreateMany(arg0 context.Context, arg1 []*models.DaemonLog) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMany", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateMany indicates an expected call of CreateMany.
+func (mr *MockDaemonServiceMockRecorder) CreateMany(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMany", reflect.TypeOf((*MockDaemonService)(nil).CreateMany), arg0, arg1)
+}
+
 // Delete mocks base method.
 func (m *MockDaemonService) Delete(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()

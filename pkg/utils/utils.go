@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
@@ -125,4 +126,13 @@ func IsFile(filePath string) bool {
 func IsExist(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
+}
+
+// MustMarshal marshals the given object to bytes.
+func MustMarshal(in any) []byte {
+	result, err := sonic.Marshal(in)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }

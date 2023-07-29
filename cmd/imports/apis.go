@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package imports
 
 import (
 	_ "github.com/go-sigma/sigma/pkg/handlers/apidocs"
 	_ "github.com/go-sigma/sigma/pkg/handlers/artifacts"
+	_ "github.com/go-sigma/sigma/pkg/handlers/daemons"
 	_ "github.com/go-sigma/sigma/pkg/handlers/namespaces"
 	_ "github.com/go-sigma/sigma/pkg/handlers/oauth2"
 	_ "github.com/go-sigma/sigma/pkg/handlers/repositories"
@@ -25,4 +26,5 @@ import (
 	_ "github.com/go-sigma/sigma/pkg/handlers/tokens"
 	_ "github.com/go-sigma/sigma/pkg/handlers/users"
 	_ "github.com/go-sigma/sigma/pkg/handlers/validators"
+	_ "github.com/go-sigma/sigma/pkg/handlers/webhooks"
 )

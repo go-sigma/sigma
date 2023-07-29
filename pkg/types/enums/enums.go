@@ -68,7 +68,9 @@ type WorkQueueType string
 // Daemon x ENUM(
 // Vulnerability,
 // Sbom,
-// Gc
+// Gc,
+// GcRepository,
+// Webhook,
 // )
 type Daemon string
 
@@ -120,5 +122,27 @@ type AuditAction string
 // namespace,
 // repository,
 // tag,
+// webhook,
 // )
 type AuditResourceType string
+
+// WebhookResourceType x ENUM(
+// ping,
+// namespace,
+// repository,
+// tag,
+// artifact,
+// member,
+// )
+type WebhookResourceType string
+
+// WebhookOperate x ENUM(
+// create,
+// update,
+// delete,
+// add,
+// remove,
+// pull,
+// push,
+// )
+type WebhookResourceAction string

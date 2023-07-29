@@ -6,7 +6,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.85.0
 	github.com/aquasecurity/trivy v0.43.1
-	github.com/aws/aws-sdk-go v1.44.307
+	github.com/aws/aws-sdk-go v1.44.309
 	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.72.1
 	github.com/casbin/gorm-adapter/v3 v3.18.0
@@ -28,7 +28,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230724201716-b1e549bb8912
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230727054407-60fc69c5ad8a
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.29.1
@@ -173,7 +173,7 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
-	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
