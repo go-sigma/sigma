@@ -146,3 +146,35 @@ type WebhookResourceType string
 // push,
 // )
 type WebhookResourceAction string
+
+// ScmCredentialType x ENUM(
+// ssh,
+// token,
+// username,
+// none,
+// )
+type ScmCredentialType string
+
+// ScmProvider x ENUM(
+// github,
+// gitlab,
+// gitea,
+// none,
+// )
+type ScmProvider string
+
+// OciPlatform x ENUM(
+// linux/amd64,
+// linux/amd64/v2,
+// linux/amd64/v3,
+// linux/arm64,
+// linux/riscv64,
+// linux/ppc64le,
+// linux/s390x,
+// linux/386,
+// linux/mips64le,
+// linux/mips64,
+// linux/arm/v7,
+// linux/arm/v6,
+// )
+type OciPlatform string

@@ -27,13 +27,22 @@ GOFLAGS          = -ldflags '-s -w $(GOLDFLAGS)'
 all: build
 
 ## Build:
-build: ## Build your project and put the output binary in ./bin
+build: ## Build sigma and put the output binary in ./bin
 	@$(GOCMD) mod download
 	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
-build-release: ## Build your project for release and put the output binary in ./bin
+## Build:
+build-builder: ## Build sigma-builder and put the output binary in ./bin
+	@$(GOCMD) mod download
+	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
+
+build-release: ## Build sigma for release and put the output binary in ./bin
 	@$(GOCMD) mod download
 	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+
+build-builder-release: ## Build sigma-builder for release and put the output binary in ./bin
+	@$(GOCMD) mod download
+	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 build-linux: ## Build your project for linux and put the output binary in ./bin
 	@CGO_ENABLED=1 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
