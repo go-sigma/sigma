@@ -23,7 +23,7 @@ vendor/
 !3rdparty/distribution/vendor
 
 # Binaries for programs
-bin/sigma
+bin/sigma*
 
 ### Node ###
 # Logs

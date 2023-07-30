@@ -817,6 +817,119 @@ func (x LogLevel) Value() (driver.Value, error) {
 }
 
 const (
+	// OciPlatformLinuxAmd64 is a OciPlatform of type linux/amd64.
+	OciPlatformLinuxAmd64 OciPlatform = "linux/amd64"
+	// OciPlatformLinuxAmd64V2 is a OciPlatform of type linux/amd64/v2.
+	OciPlatformLinuxAmd64V2 OciPlatform = "linux/amd64/v2"
+	// OciPlatformLinuxAmd64V3 is a OciPlatform of type linux/amd64/v3.
+	OciPlatformLinuxAmd64V3 OciPlatform = "linux/amd64/v3"
+	// OciPlatformLinuxArm64 is a OciPlatform of type linux/arm64.
+	OciPlatformLinuxArm64 OciPlatform = "linux/arm64"
+	// OciPlatformLinuxRiscv64 is a OciPlatform of type linux/riscv64.
+	OciPlatformLinuxRiscv64 OciPlatform = "linux/riscv64"
+	// OciPlatformLinuxPpc64le is a OciPlatform of type linux/ppc64le.
+	OciPlatformLinuxPpc64le OciPlatform = "linux/ppc64le"
+	// OciPlatformLinuxS390x is a OciPlatform of type linux/s390x.
+	OciPlatformLinuxS390x OciPlatform = "linux/s390x"
+	// OciPlatformLinux386 is a OciPlatform of type linux/386.
+	OciPlatformLinux386 OciPlatform = "linux/386"
+	// OciPlatformLinuxMips64le is a OciPlatform of type linux/mips64le.
+	OciPlatformLinuxMips64le OciPlatform = "linux/mips64le"
+	// OciPlatformLinuxMips64 is a OciPlatform of type linux/mips64.
+	OciPlatformLinuxMips64 OciPlatform = "linux/mips64"
+	// OciPlatformLinuxArmV7 is a OciPlatform of type linux/arm/v7.
+	OciPlatformLinuxArmV7 OciPlatform = "linux/arm/v7"
+	// OciPlatformLinuxArmV6 is a OciPlatform of type linux/arm/v6.
+	OciPlatformLinuxArmV6 OciPlatform = "linux/arm/v6"
+)
+
+var ErrInvalidOciPlatform = errors.New("not a valid OciPlatform")
+
+// String implements the Stringer interface.
+func (x OciPlatform) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x OciPlatform) IsValid() bool {
+	_, err := ParseOciPlatform(string(x))
+	return err == nil
+}
+
+var _OciPlatformValue = map[string]OciPlatform{
+	"linux/amd64":    OciPlatformLinuxAmd64,
+	"linux/amd64/v2": OciPlatformLinuxAmd64V2,
+	"linux/amd64/v3": OciPlatformLinuxAmd64V3,
+	"linux/arm64":    OciPlatformLinuxArm64,
+	"linux/riscv64":  OciPlatformLinuxRiscv64,
+	"linux/ppc64le":  OciPlatformLinuxPpc64le,
+	"linux/s390x":    OciPlatformLinuxS390x,
+	"linux/386":      OciPlatformLinux386,
+	"linux/mips64le": OciPlatformLinuxMips64le,
+	"linux/mips64":   OciPlatformLinuxMips64,
+	"linux/arm/v7":   OciPlatformLinuxArmV7,
+	"linux/arm/v6":   OciPlatformLinuxArmV6,
+}
+
+// ParseOciPlatform attempts to convert a string to a OciPlatform.
+func ParseOciPlatform(name string) (OciPlatform, error) {
+	if x, ok := _OciPlatformValue[name]; ok {
+		return x, nil
+	}
+	return OciPlatform(""), fmt.Errorf("%s is %w", name, ErrInvalidOciPlatform)
+}
+
+// MustParseOciPlatform converts a string to a OciPlatform, and panics if is not valid.
+func MustParseOciPlatform(name string) OciPlatform {
+	val, err := ParseOciPlatform(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errOciPlatformNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *OciPlatform) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = OciPlatform("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseOciPlatform(v)
+	case []byte:
+		*x, err = ParseOciPlatform(string(v))
+	case OciPlatform:
+		*x = v
+	case *OciPlatform:
+		if v == nil {
+			return errOciPlatformNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errOciPlatformNilPtr
+		}
+		*x, err = ParseOciPlatform(*v)
+	default:
+		return errors.New("invalid type for OciPlatform")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x OciPlatform) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// ProviderLocal is a Provider of type local.
 	ProviderLocal Provider = "local"
 	// ProviderGithub is a Provider of type github.
@@ -979,6 +1092,184 @@ func (x *RedisType) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x RedisType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// ScmCredentialTypeSsh is a ScmCredentialType of type ssh.
+	ScmCredentialTypeSsh ScmCredentialType = "ssh"
+	// ScmCredentialTypeToken is a ScmCredentialType of type token.
+	ScmCredentialTypeToken ScmCredentialType = "token"
+	// ScmCredentialTypeUsername is a ScmCredentialType of type username.
+	ScmCredentialTypeUsername ScmCredentialType = "username"
+	// ScmCredentialTypeNone is a ScmCredentialType of type none.
+	ScmCredentialTypeNone ScmCredentialType = "none"
+)
+
+var ErrInvalidScmCredentialType = errors.New("not a valid ScmCredentialType")
+
+// String implements the Stringer interface.
+func (x ScmCredentialType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ScmCredentialType) IsValid() bool {
+	_, err := ParseScmCredentialType(string(x))
+	return err == nil
+}
+
+var _ScmCredentialTypeValue = map[string]ScmCredentialType{
+	"ssh":      ScmCredentialTypeSsh,
+	"token":    ScmCredentialTypeToken,
+	"username": ScmCredentialTypeUsername,
+	"none":     ScmCredentialTypeNone,
+}
+
+// ParseScmCredentialType attempts to convert a string to a ScmCredentialType.
+func ParseScmCredentialType(name string) (ScmCredentialType, error) {
+	if x, ok := _ScmCredentialTypeValue[name]; ok {
+		return x, nil
+	}
+	return ScmCredentialType(""), fmt.Errorf("%s is %w", name, ErrInvalidScmCredentialType)
+}
+
+// MustParseScmCredentialType converts a string to a ScmCredentialType, and panics if is not valid.
+func MustParseScmCredentialType(name string) ScmCredentialType {
+	val, err := ParseScmCredentialType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errScmCredentialTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *ScmCredentialType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = ScmCredentialType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseScmCredentialType(v)
+	case []byte:
+		*x, err = ParseScmCredentialType(string(v))
+	case ScmCredentialType:
+		*x = v
+	case *ScmCredentialType:
+		if v == nil {
+			return errScmCredentialTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errScmCredentialTypeNilPtr
+		}
+		*x, err = ParseScmCredentialType(*v)
+	default:
+		return errors.New("invalid type for ScmCredentialType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x ScmCredentialType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// ScmProviderGithub is a ScmProvider of type github.
+	ScmProviderGithub ScmProvider = "github"
+	// ScmProviderGitlab is a ScmProvider of type gitlab.
+	ScmProviderGitlab ScmProvider = "gitlab"
+	// ScmProviderGitea is a ScmProvider of type gitea.
+	ScmProviderGitea ScmProvider = "gitea"
+	// ScmProviderNone is a ScmProvider of type none.
+	ScmProviderNone ScmProvider = "none"
+)
+
+var ErrInvalidScmProvider = errors.New("not a valid ScmProvider")
+
+// String implements the Stringer interface.
+func (x ScmProvider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ScmProvider) IsValid() bool {
+	_, err := ParseScmProvider(string(x))
+	return err == nil
+}
+
+var _ScmProviderValue = map[string]ScmProvider{
+	"github": ScmProviderGithub,
+	"gitlab": ScmProviderGitlab,
+	"gitea":  ScmProviderGitea,
+	"none":   ScmProviderNone,
+}
+
+// ParseScmProvider attempts to convert a string to a ScmProvider.
+func ParseScmProvider(name string) (ScmProvider, error) {
+	if x, ok := _ScmProviderValue[name]; ok {
+		return x, nil
+	}
+	return ScmProvider(""), fmt.Errorf("%s is %w", name, ErrInvalidScmProvider)
+}
+
+// MustParseScmProvider converts a string to a ScmProvider, and panics if is not valid.
+func MustParseScmProvider(name string) ScmProvider {
+	val, err := ParseScmProvider(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errScmProviderNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *ScmProvider) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = ScmProvider("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseScmProvider(v)
+	case []byte:
+		*x, err = ParseScmProvider(string(v))
+	case ScmProvider:
+		*x = v
+	case *ScmProvider:
+		if v == nil {
+			return errScmProviderNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errScmProviderNilPtr
+		}
+		*x, err = ParseScmProvider(*v)
+	default:
+		return errors.New("invalid type for ScmProvider")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x ScmProvider) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 
