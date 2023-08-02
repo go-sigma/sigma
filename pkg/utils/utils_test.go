@@ -241,3 +241,71 @@ func TestIsExist(t *testing.T) {
 		})
 	})
 }
+
+func TestDirWithSlash(t *testing.T) {
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "common",
+			args: args{
+				id: "",
+			},
+			want: "",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "1",
+			},
+			want: "1",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "12",
+			},
+			want: "12",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "123",
+			},
+			want: "12/3",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "1234",
+			},
+			want: "12/34",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "12345",
+			},
+			want: "12/34/5",
+		},
+		{
+			name: "common",
+			args: args{
+				id: "123456789",
+			},
+			want: "12/34/56789",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := DirWithSlash(tt.args.id); got != tt.want {
+				t.Errorf("DirWithSlash() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

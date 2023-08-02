@@ -136,3 +136,25 @@ func MustMarshal(in any) []byte {
 	}
 	return result
 }
+
+// DirWithSlash returns the dir with slash
+func DirWithSlash(id string) string {
+	// judge if the string has two slashes
+	if len(strings.Split(id, "/")) == 3 {
+		return id
+	}
+	if len(id) > 2 {
+		if !strings.Contains(id, "/") {
+			return DirWithSlash(fmt.Sprintf("%s/%s", id[0:2], id[2:]))
+		}
+		// remove the str before the last slash
+		str := id[strings.LastIndex(id, "/")+1:]
+		if len(str) > 2 {
+			str = fmt.Sprintf("%s/%s", str[0:2], str[2:])
+		} else {
+			return fmt.Sprintf("%s/%s", strings.TrimSuffix(id[0:strings.LastIndex(id, "/")+1], "/"), str)
+		}
+		return DirWithSlash(fmt.Sprintf("%s/%s", strings.TrimSuffix(id[0:strings.LastIndex(id, "/")+1], "/"), str))
+	}
+	return id
+}
