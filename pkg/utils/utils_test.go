@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -305,6 +306,55 @@ func TestDirWithSlash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := DirWithSlash(tt.args.id); got != tt.want {
 				t.Errorf("DirWithSlash() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStringsJoin(t *testing.T) {
+	type args struct {
+		strs []enums.OciPlatform
+		sep  string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "common",
+			args: args{
+				strs: []enums.OciPlatform{},
+				sep:  ",",
+			},
+			want: "",
+		},
+		{
+			name: "common",
+			args: args{
+				strs: []enums.OciPlatform{
+					enums.OciPlatformLinuxAmd64,
+				},
+				sep: ",",
+			},
+			want: "linux/amd64",
+		},
+		{
+			name: "common",
+			args: args{
+				strs: []enums.OciPlatform{
+					enums.OciPlatformLinux386,
+					enums.OciPlatformLinuxAmd64,
+				},
+				sep: ",",
+			},
+			want: "linux/386,linux/amd64",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StringsJoin(tt.args.strs, tt.args.sep); got != tt.want {
+				t.Errorf("StringsJoin() = %v, want %v", got, tt.want)
 			}
 		})
 	}
