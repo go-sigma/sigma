@@ -158,3 +158,22 @@ func DirWithSlash(id string) string {
 	}
 	return id
 }
+
+type stringsJoin interface {
+	String() string
+}
+
+// StringsJoin ...
+func StringsJoin[T stringsJoin](strs []T, sep string) string {
+	if len(strs) == 0 {
+		return ""
+	}
+	if len(strs) == 1 {
+		return strs[0].String()
+	}
+	b := make([]string, len(strs))
+	for i, str := range strs {
+		b[i] = str.String()
+	}
+	return strings.Join(b, sep)
+}
