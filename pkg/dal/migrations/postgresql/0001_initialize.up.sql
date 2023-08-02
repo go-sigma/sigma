@@ -317,3 +317,20 @@ CREATE TABLE IF NOT EXISTS "webhook_logs" (
   FOREIGN KEY ("webhook_id") REFERENCES "webhooks" ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "builders" (
+  "id" bigserial PRIMARY KEY,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS "builder_logs" (
+  "id" bigserial PRIMARY KEY,
+  "builder_id" bigint NOT NULL,
+  "log" bytea,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp NOT NULL,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("builder_id") REFERENCES "builders" ("id")
+);
+

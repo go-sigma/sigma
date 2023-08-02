@@ -270,3 +270,20 @@ CREATE TABLE IF NOT EXISTS `webhook_logs` (
   FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `builders` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `builder_logs` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `builder_id` bigint NOT NULL,
+  `log` LONGBLOB,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NOT NULL,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
+);
+
