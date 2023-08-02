@@ -5,9 +5,9 @@ go 1.19
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/alicebob/miniredis/v2 v2.30.4
-	github.com/anchore/syft v0.85.0
-	github.com/aquasecurity/trivy v0.43.1
-	github.com/aws/aws-sdk-go v1.44.312
+	github.com/anchore/syft v0.86.1
+	github.com/aquasecurity/trivy v0.44.0
+	github.com/aws/aws-sdk-go v1.44.314
 	github.com/bytedance/sonic v1.9.2
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.73.0
@@ -33,12 +33,12 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	github.com/moby/buildkit v0.11.6
+	github.com/moby/buildkit v0.12.0
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230727214836-6bc87156eacf
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/zerolog v1.30.0
-	github.com/shirou/gopsutil/v3 v3.23.6
+	github.com/shirou/gopsutil/v3 v3.23.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -50,7 +50,7 @@ require (
 	github.com/wagslane/go-password-validator v0.3.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.11.0
-	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691
+	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b
 	golang.org/x/oauth2 v0.10.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
@@ -72,9 +72,9 @@ require (
 	github.com/anchore/go-logger v0.0.0-20230627193650-d65da4224867 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20230104203445-02e0a6721501 // indirect
-	github.com/anchore/stereoscope v0.0.0-20230627195312-cd49355d934e // indirect
+	github.com/anchore/stereoscope v0.0.0-20230727211946-d1f3d766295e // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/aquasecurity/trivy-db v0.0.0-20230703082116-dc52e83376ce // indirect
+	github.com/aquasecurity/trivy-db v0.0.0-20230726112157-167ba4f2faeb // indirect
 	github.com/becheran/wildmatch-go v1.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -86,8 +86,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.4+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.7.0 // indirect
+	github.com/docker/docker v24.0.5+incompatible // indirect
+	github.com/docker/docker-credential-helpers v0.8.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
@@ -169,7 +169,7 @@ require (
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/spdx/tools-golang v0.5.2 // indirect
+	github.com/spdx/tools-golang v0.5.3 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

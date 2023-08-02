@@ -40,6 +40,10 @@ const (
 	// BlobUploads represent blob uploads
 	// file always represent like: blob_uploads/{upload_id}
 	BlobUploads = "blob_uploads"
+	// BlobUploadParts represent blob upload parts
+	BlobUploadParts = "blob_upload_parts"
+	// BuilderLogs represent builder logs
+	BuilderLogs = "builder_logs"
 	// DefaultTimePattern time pattern
 	DefaultTimePattern = "2006-01-02 15:04:05"
 	// ContextJti represents jti in context
