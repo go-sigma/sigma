@@ -23,6 +23,8 @@ var (
 	Audit                 *audit
 	Blob                  *blob
 	BlobUpload            *blobUpload
+	Builder               *builder
+	BuilderLog            *builderLog
 	CasbinRule            *casbinRule
 	DaemonLog             *daemonLog
 	Namespace             *namespace
@@ -42,6 +44,8 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Audit = &Q.Audit
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
+	Builder = &Q.Builder
+	BuilderLog = &Q.BuilderLog
 	CasbinRule = &Q.CasbinRule
 	DaemonLog = &Q.DaemonLog
 	Namespace = &Q.Namespace
@@ -62,6 +66,8 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Audit:                 newAudit(db, opts...),
 		Blob:                  newBlob(db, opts...),
 		BlobUpload:            newBlobUpload(db, opts...),
+		Builder:               newBuilder(db, opts...),
+		BuilderLog:            newBuilderLog(db, opts...),
 		CasbinRule:            newCasbinRule(db, opts...),
 		DaemonLog:             newDaemonLog(db, opts...),
 		Namespace:             newNamespace(db, opts...),
@@ -83,6 +89,8 @@ type Query struct {
 	Audit                 audit
 	Blob                  blob
 	BlobUpload            blobUpload
+	Builder               builder
+	BuilderLog            builderLog
 	CasbinRule            casbinRule
 	DaemonLog             daemonLog
 	Namespace             namespace
@@ -105,6 +113,8 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Audit:                 q.Audit.clone(db),
 		Blob:                  q.Blob.clone(db),
 		BlobUpload:            q.BlobUpload.clone(db),
+		Builder:               q.Builder.clone(db),
+		BuilderLog:            q.BuilderLog.clone(db),
 		CasbinRule:            q.CasbinRule.clone(db),
 		DaemonLog:             q.DaemonLog.clone(db),
 		Namespace:             q.Namespace.clone(db),
@@ -134,6 +144,8 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Audit:                 q.Audit.replaceDB(db),
 		Blob:                  q.Blob.replaceDB(db),
 		BlobUpload:            q.BlobUpload.replaceDB(db),
+		Builder:               q.Builder.replaceDB(db),
+		BuilderLog:            q.BuilderLog.replaceDB(db),
 		CasbinRule:            q.CasbinRule.replaceDB(db),
 		DaemonLog:             q.DaemonLog.replaceDB(db),
 		Namespace:             q.Namespace.replaceDB(db),
@@ -153,6 +165,8 @@ type queryCtx struct {
 	Audit                 *auditDo
 	Blob                  *blobDo
 	BlobUpload            *blobUploadDo
+	Builder               *builderDo
+	BuilderLog            *builderLogDo
 	CasbinRule            *casbinRuleDo
 	DaemonLog             *daemonLogDo
 	Namespace             *namespaceDo
@@ -172,6 +186,8 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Audit:                 q.Audit.WithContext(ctx),
 		Blob:                  q.Blob.WithContext(ctx),
 		BlobUpload:            q.BlobUpload.WithContext(ctx),
+		Builder:               q.Builder.WithContext(ctx),
+		BuilderLog:            q.BuilderLog.WithContext(ctx),
 		CasbinRule:            q.CasbinRule.WithContext(ctx),
 		DaemonLog:             q.DaemonLog.WithContext(ctx),
 		Namespace:             q.Namespace.WithContext(ctx),

@@ -43,6 +43,8 @@ func main() {
 		models.DaemonLog{},
 		models.Webhook{},
 		models.WebhookLog{},
+		models.Builder{},
+		models.BuilderLog{},
 	)
 
 	g.Execute()
