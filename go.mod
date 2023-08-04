@@ -7,13 +7,13 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.86.1
 	github.com/aquasecurity/trivy v0.44.0
-	github.com/aws/aws-sdk-go v1.44.314
-	github.com/bytedance/sonic v1.10.0-rc
+	github.com/aws/aws-sdk-go v1.44.316
+	github.com/bytedance/sonic v1.10.0-rc3
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.73.0
 	github.com/casbin/gorm-adapter/v3 v3.18.0
-	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/distribution/distribution/v3 v3.0.0-20230722181636-7b502560cad4
+	github.com/deckarep/golang-set/v2 v2.3.1
+	github.com/distribution/distribution/v3 v3.0.0-20230802173126-807a836852c0
 	github.com/docker/cli v24.0.5+incompatible
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/dustin/go-humanize v1.0.1
@@ -34,7 +34,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	github.com/moby/buildkit v0.12.0
+	github.com/moby/buildkit v0.12.1
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230727214836-6bc87156eacf
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.0.5
