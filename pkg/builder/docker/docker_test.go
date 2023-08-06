@@ -12,11 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package imports
+package docker
 
-import (
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
-)
+// import (
+// 	"context"
+// 	"fmt"
+// 	"testing"
+// 	"time"
+
+// 	"github.com/stretchr/testify/assert"
+// )
+
+// func TestStart(t *testing.T) {
+// 	var f = factory{}
+// 	i, err := f.New()
+// 	assert.NoError(t, err)
+
+// 	ctx := context.Background()
+// 	err = i.Start(ctx, "test")
+// 	assert.NoError(t, err)
+// 	time.Sleep(time.Second * 5)
+// 	fmt.Println(i.Stop(ctx, "test"))
+// 	time.Sleep(time.Hour)
+// }

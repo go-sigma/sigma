@@ -15,8 +15,9 @@
 package imports
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
+	_ "github.com/go-sigma/sigma/pkg/builder/docker"
+	_ "github.com/go-sigma/sigma/pkg/builder/k8s"
+	_ "github.com/go-sigma/sigma/pkg/builder/logger/database"
+	_ "github.com/go-sigma/sigma/pkg/builder/logger/obs"
+	_ "github.com/go-sigma/sigma/pkg/builder/podman"
 )

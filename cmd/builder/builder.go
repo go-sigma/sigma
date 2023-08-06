@@ -52,7 +52,7 @@ const (
 	cacheOut                = "/opt/cache_out"
 	knownHosts              = "known_hosts"
 	privateKey              = "private_key"
-	dockerConfig            = "docker_config.json"
+	dockerConfig            = "config.json"
 	buildkitdConfigFilename = "buildkitd.toml"
 	workspace               = "/code"
 	compressedCache         = "cache.tgz"
@@ -173,14 +173,12 @@ func (b Builder) initToken() error {
 		defer func() {
 			_ = privateKeyObj.Close() // nolint: errcheck
 		}()
-		if !utils.IsFile(path.Join(homeSigma, privateKey)) {
-			_, err = privateKeyObj.WriteString(b.ScmSshKey)
-			if err != nil {
-				return fmt.Errorf("Write private key failed: %v", err)
-			}
+		_, err = privateKeyObj.WriteString(b.ScmSshKey)
+		if err != nil {
+			return fmt.Errorf("Write private key failed: %v", err)
 		}
 	}
-	if b.OciRegistryPassword != "" && b.OciRegistryUsername != "" {
+	if len(b.OciRegistryDomain) != 0 {
 		dockerConfigObj, err := os.Create(path.Join(homeSigma, dockerConfig))
 		if err != nil {
 			return fmt.Errorf("Create file failed: %v", dockerConfigObj)
@@ -188,19 +186,19 @@ func (b Builder) initToken() error {
 		defer func() {
 			_ = dockerConfigObj.Close() // nolint: errcheck
 		}()
-		cf := configfile.ConfigFile{
-			AuthConfigs: map[string]dockertypes.AuthConfig{
-				b.OciRegistryDomain: {
-					Username: b.OciRegistryUsername,
-					Password: b.OciRegistryPassword,
-				},
-			},
-		}
-		if !utils.IsFile(path.Join(homeSigma, dockerConfig)) {
-			err = cf.SaveToWriter(dockerConfigObj)
-			if err != nil {
-				return fmt.Errorf("Save docker config failed: %v", err)
+		cf := configfile.ConfigFile{}
+		cf.AuthConfigs = make(map[string]dockertypes.AuthConfig)
+		for index, domain := range b.OciRegistryDomain {
+			if len(b.OciRegistryUsername[index]) != 0 || len(b.OciRegistryPassword[index]) != 0 {
+				cf.AuthConfigs[domain] = dockertypes.AuthConfig{
+					Username: b.OciRegistryUsername[index],
+					Password: b.OciRegistryPassword[index],
+				}
 			}
+		}
+		err = cf.SaveToWriter(dockerConfigObj)
+		if err != nil {
+			return fmt.Errorf("Save docker config failed: %v", err)
 		}
 	}
 	var btConfig buildkitdconfig.Config
@@ -251,7 +249,7 @@ func (b Builder) gitClone() error {
 	if b.ScmDepth != 0 {
 		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(b.ScmDepth))
 	}
-	if b.ScmSubModule {
+	if b.ScmSubmodule {
 		cmd.Args = append(cmd.Args, "--recurse-submodules")
 	}
 	if b.ScmCredentialType == enums.ScmCredentialTypeSsh {
@@ -307,7 +305,7 @@ func (b Builder) build() error {
 		cmd.Args = append(cmd.Args, "--opt", fmt.Sprintf("platform=%s", strings.Join(platforms, ",")))
 	}
 	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile")                         // TODO: set frontend
-	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=false", b.OciName))                     // TODO: set output push true
+	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=true", b.OciName))                      // TODO: set output push true
 	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut)) // TODO: set cache volume
 	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))                             // TODO: set cache volume
 
@@ -316,6 +314,7 @@ func (b Builder) build() error {
 		buildkitdFlags += fmt.Sprintf("--config=%s", path.Join(homeSigma, buildkitdConfigFilename))
 	}
 	cmd.Env = append(os.Environ(), fmt.Sprintf("BUILDKITD_FLAGS=%s", buildkitdFlags))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", homeSigma))
 
 	log.Info().Str("command", cmd.String()).Strs("env", cmd.Env).Msg("Building image")
 	cmd.Stdout = os.Stdout

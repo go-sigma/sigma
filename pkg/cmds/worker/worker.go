@@ -26,6 +26,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/middlewares"
@@ -33,7 +34,12 @@ import (
 
 // Worker is the worker initialization
 func Worker() error {
-	err := daemon.InitializeServer()
+	err := builder.Initialize()
+	if err != nil {
+		return err
+	}
+
+	err = daemon.InitializeServer()
 	if err != nil {
 		return err
 	}

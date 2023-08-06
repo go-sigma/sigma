@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handler is the interface for the system handlers
+// Handler is the interface for the webhook handlers
 type Handlers interface {
 	// PostWebhook handles the post webhook request
 	PostWebhook(c echo.Context) error
@@ -63,7 +63,7 @@ type inject struct {
 	auditServiceFactory     dao.AuditServiceFactory
 }
 
-// handlerNew creates a new instance of the distribution handlers
+// handlerNew creates a new instance of the webhook handlers
 func handlerNew(injects ...inject) Handlers {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()

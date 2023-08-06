@@ -18,7 +18,8 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // Builder config for builder
 type Builder struct {
-	ID string `env:"ID,notEmpty"`
+	ID       int64 `env:"ID,notEmpty"`
+	RunnerID int64 `env:"RUNNER_ID,notEmpty"`
 
 	ScmCredentialType enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE,notEmpty"`
 	ScmSshKey         string                  `env:"SCM_SSH_KEY"`
@@ -29,16 +30,46 @@ type Builder struct {
 	ScmRepository     string                  `env:"SCM_REPOSITORY,notEmpty"`
 	ScmBranch         string                  `env:"SCM_BRANCH" envDefault:"main"`
 	ScmDepth          int                     `env:"SCM_DEPTH" envDefault:"0"`
-	ScmSubModule      bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
+	ScmSubmodule      bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
 
-	OciRegistryDomain   string `env:"OCI_REGISTRY_DOMAIN,notEmpty"`
-	OciRegistryUsername string `env:"OCI_REGISTRY_USERNAME"`
-	OciRegistryPassword string `env:"OCI_REGISTRY_PASSWORD"`
-	OciName             string `env:"OCI_NAME,notEmpty"`
+	OciRegistryDomain   []string `env:"OCI_REGISTRY_DOMAIN" envSeparator:","`
+	OciRegistryUsername []string `env:"OCI_REGISTRY_USERNAME" envSeparator:","`
+	OciRegistryPassword []string `env:"OCI_REGISTRY_PASSWORD" envSeparator:","`
+	OciName             string   `env:"OCI_NAME,notEmpty"`
 
 	BuildkitInsecureRegistries []string            `env:"BUILDKIT_INSECURE_REGISTRIES" envSeparator:","`
 	BuildkitCacheDir           string              `env:"BUILDKIT_CACHE_DIR" envDefault:"/tmp/buildkit"`
 	BuildkitContext            string              `env:"BUILDKIT_CONTEXT" envDefault:"."`
 	BuildkitDockerfile         string              `env:"BUILDKIT_DOCKERFILE" envDefault:"Dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `env:"BUILDKIT_PLATFORMS" envSeparator:","`
+}
+
+// PostBuilderRequest ...
+type PostBuilderRequest struct {
+	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+
+	ScmCredentialType enums.ScmCredentialType `json:"scm_credential_type" example:"ssh"`
+	ScmSshKey         string                  `json:"scm_ssh_key" example:"xxxx"`
+	ScmToken          string                  `json:"scm_token" example:"xxxx"`
+	ScmUsername       string                  `json:"scm_username" example:"sigma"`
+	ScmPassword       string                  `json:"scm_password" example:"sigma"`
+	// ScmProvider       enums.ScmProvider       `json:"scm_provider"`
+	ScmRepository string `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
+	ScmBranch     string `json:"scm_branch" example:"main"`
+	ScmDepth      int    `json:"scm_depth" example:"0"`
+	ScmSubmodule  bool   `json:"scm_submodule" example:"false"`
+}
+
+// PostBuilderRequestSwagger ...
+type PostBuilderRequestSwagger struct {
+	ScmCredentialType enums.ScmCredentialType `json:"scm_credential_type" example:"ssh"`
+	ScmSshKey         string                  `json:"scm_ssh_key" example:"xxxx"`
+	ScmToken          string                  `json:"scm_token" example:"xxxx"`
+	ScmUsername       string                  `json:"scm_username" example:"sigma"`
+	ScmPassword       string                  `json:"scm_password" example:"sigma"`
+	// ScmProvider       enums.ScmProvider       `json:"scm_provider"`
+	ScmRepository string `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
+	ScmBranch     string `json:"scm_branch" example:"main"`
+	ScmDepth      int    `json:"scm_depth" example:"0"`
+	ScmSubmodule  bool   `json:"scm_submodule" example:"false"`
 }

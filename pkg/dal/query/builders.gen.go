@@ -31,6 +31,31 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_builder.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_builder.ID = field.NewInt64(tableName, "id")
+	_builder.RepositoryID = field.NewInt64(tableName, "repository_id")
+	_builder.Active = field.NewBool(tableName, "active")
+	_builder.ScmCredentialType = field.NewField(tableName, "scm_credential_type")
+	_builder.ScmToken = field.NewString(tableName, "scm_token")
+	_builder.ScmSshKey = field.NewString(tableName, "scm_ssh_key")
+	_builder.ScmUsername = field.NewString(tableName, "scm_username")
+	_builder.ScmPassword = field.NewString(tableName, "scm_password")
+	_builder.ScmRepository = field.NewString(tableName, "scm_repository")
+	_builder.ScmBranch = field.NewString(tableName, "scm_branch")
+	_builder.ScmDepth = field.NewInt(tableName, "scm_depth")
+	_builder.ScmSubmodule = field.NewBool(tableName, "scm_submodule")
+	_builder.BuildkitInsecureRegistries = field.NewString(tableName, "buildkit_insecure_registries")
+	_builder.BuildkitContext = field.NewString(tableName, "buildkit_context")
+	_builder.BuildkitDockerfile = field.NewString(tableName, "buildkit_dockerfile")
+	_builder.BuildkitPlatforms = field.NewString(tableName, "buildkit_platforms")
+	_builder.Repository = builderBelongsToRepository{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Repository", "models.Repository"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Repository.Namespace", "models.Namespace"),
+		},
+	}
 
 	_builder.fillFieldMap()
 
@@ -40,11 +65,27 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 type builder struct {
 	builderDo builderDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
+	ALL                        field.Asterisk
+	CreatedAt                  field.Time
+	UpdatedAt                  field.Time
+	DeletedAt                  field.Uint
+	ID                         field.Int64
+	RepositoryID               field.Int64
+	Active                     field.Bool
+	ScmCredentialType          field.Field
+	ScmToken                   field.String
+	ScmSshKey                  field.String
+	ScmUsername                field.String
+	ScmPassword                field.String
+	ScmRepository              field.String
+	ScmBranch                  field.String
+	ScmDepth                   field.Int
+	ScmSubmodule               field.Bool
+	BuildkitInsecureRegistries field.String
+	BuildkitContext            field.String
+	BuildkitDockerfile         field.String
+	BuildkitPlatforms          field.String
+	Repository                 builderBelongsToRepository
 
 	fieldMap map[string]field.Expr
 }
@@ -65,6 +106,21 @@ func (b *builder) updateTableName(table string) *builder {
 	b.UpdatedAt = field.NewTime(table, "updated_at")
 	b.DeletedAt = field.NewUint(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
+	b.RepositoryID = field.NewInt64(table, "repository_id")
+	b.Active = field.NewBool(table, "active")
+	b.ScmCredentialType = field.NewField(table, "scm_credential_type")
+	b.ScmToken = field.NewString(table, "scm_token")
+	b.ScmSshKey = field.NewString(table, "scm_ssh_key")
+	b.ScmUsername = field.NewString(table, "scm_username")
+	b.ScmPassword = field.NewString(table, "scm_password")
+	b.ScmRepository = field.NewString(table, "scm_repository")
+	b.ScmBranch = field.NewString(table, "scm_branch")
+	b.ScmDepth = field.NewInt(table, "scm_depth")
+	b.ScmSubmodule = field.NewBool(table, "scm_submodule")
+	b.BuildkitInsecureRegistries = field.NewString(table, "buildkit_insecure_registries")
+	b.BuildkitContext = field.NewString(table, "buildkit_context")
+	b.BuildkitDockerfile = field.NewString(table, "buildkit_dockerfile")
+	b.BuildkitPlatforms = field.NewString(table, "buildkit_platforms")
 
 	b.fillFieldMap()
 
@@ -89,11 +145,27 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 4)
+	b.fieldMap = make(map[string]field.Expr, 20)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
+	b.fieldMap["repository_id"] = b.RepositoryID
+	b.fieldMap["active"] = b.Active
+	b.fieldMap["scm_credential_type"] = b.ScmCredentialType
+	b.fieldMap["scm_token"] = b.ScmToken
+	b.fieldMap["scm_ssh_key"] = b.ScmSshKey
+	b.fieldMap["scm_username"] = b.ScmUsername
+	b.fieldMap["scm_password"] = b.ScmPassword
+	b.fieldMap["scm_repository"] = b.ScmRepository
+	b.fieldMap["scm_branch"] = b.ScmBranch
+	b.fieldMap["scm_depth"] = b.ScmDepth
+	b.fieldMap["scm_submodule"] = b.ScmSubmodule
+	b.fieldMap["buildkit_insecure_registries"] = b.BuildkitInsecureRegistries
+	b.fieldMap["buildkit_context"] = b.BuildkitContext
+	b.fieldMap["buildkit_dockerfile"] = b.BuildkitDockerfile
+	b.fieldMap["buildkit_platforms"] = b.BuildkitPlatforms
+
 }
 
 func (b builder) clone(db *gorm.DB) builder {
@@ -104,6 +176,81 @@ func (b builder) clone(db *gorm.DB) builder {
 func (b builder) replaceDB(db *gorm.DB) builder {
 	b.builderDo.ReplaceDB(db)
 	return b
+}
+
+type builderBelongsToRepository struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Namespace struct {
+		field.RelationField
+	}
+}
+
+func (a builderBelongsToRepository) Where(conds ...field.Expr) *builderBelongsToRepository {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a builderBelongsToRepository) WithContext(ctx context.Context) *builderBelongsToRepository {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a builderBelongsToRepository) Session(session *gorm.Session) *builderBelongsToRepository {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a builderBelongsToRepository) Model(m *models.Builder) *builderBelongsToRepositoryTx {
+	return &builderBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
+}
+
+type builderBelongsToRepositoryTx struct{ tx *gorm.Association }
+
+func (a builderBelongsToRepositoryTx) Find() (result *models.Repository, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a builderBelongsToRepositoryTx) Append(values ...*models.Repository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a builderBelongsToRepositoryTx) Replace(values ...*models.Repository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a builderBelongsToRepositoryTx) Delete(values ...*models.Repository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a builderBelongsToRepositoryTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a builderBelongsToRepositoryTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type builderDo struct{ gen.DO }

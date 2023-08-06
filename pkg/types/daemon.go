@@ -54,6 +54,14 @@ type DaemonWebhookPayload struct {
 	Payload      []byte                      `json:"payload"`
 }
 
+// DaemonBuilderPayload ...
+type DaemonBuilderPayload struct {
+	Action       enums.DaemonBuilderAction
+	ID           int64
+	RunnerID     int64
+	RepositoryID int64
+}
+
 // PostDaemonRunRequest ...
 type PostDaemonRunRequest struct {
 	NamespaceID int64        `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,number" example:"123"`

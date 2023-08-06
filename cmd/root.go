@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+
 	_ "github.com/go-sigma/sigma/cmd/imports"
 )
 
@@ -66,4 +68,6 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	cobra.CheckErr(viper.ReadInConfig())
+
+	cobra.CheckErr(viper.Unmarshal(configs.GetConfiguration()))
 }
