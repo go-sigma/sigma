@@ -1,4 +1,4 @@
-# Default values for ximager.
+# Default values for sigma.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -91,18 +91,18 @@ config:
     mysql:
       host: 10.37.48.71
       port: 30306
-      user: ximager
-      password: ximager
-      dbname: ximager
+      user: sigma
+      password: sigma
+      dbname: sigma
     postgresql:
       host: localhost
       port: 5432
-      user: ximager
-      password: ximager
-      dbname: ximager
+      user: sigma
+      password: sigma
+      dbname: sigma
       sslmode: disable
   redis:
-    url: redis://:ximager@10.37.48.71:30060/0
+    url: redis://:sigma@10.37.48.71:30060/0
   http:
     server: 0.0.0.0:3000
     worker: 0.0.0.0:3001
@@ -112,11 +112,11 @@ config:
     filesystem:
       path: /
     s3:
-      ak: ximager
-      sk: ximager-ximager
+      ak: sigma
+      sk: sigma-sigma
       endpoint: http://10.37.48.71:32000
       region: cn-north-1
-      bucket: ximager
+      bucket: sigma
       forcePathStyle: true
   # Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
   proxy:
@@ -129,11 +129,11 @@ config:
     user:
       password: ""
     internalUser:
-      username: internal-ximager
-      password: internal-ximager
+      username: internal-sigma
+      password: internal-sigma
     admin:
-      username: ximager
-      password: ximager
+      username: sigma
+      password: sigma
     token:
       realm: ""
       service: ""
@@ -146,7 +146,7 @@ redis:
   enabled: true # 是否启用Redis部署
   auth:
     enabled: true
-    password: "ximager"
+    password: "sigma"
   master:
     service:
       type: NodePort
@@ -157,24 +157,24 @@ redis:
 
 minio:
   enabled: true # 是否启用MinIO部署
-  accessKey: "ximager"
-  secretKey: "ximager-ximager"
+  accessKey: "sigma"
+  secretKey: "sigma-sigma"
   service:
     type: NodePort
     nodePort: 32000
   buckets:
-    - name: ximager
+    - name: sigma
       policy: none
       purge: false
 
 mysql:
   enabled: true # 是否启用MySQL部署
   auth:
-    rootPassword: "ximager"
+    rootPassword: "sigma"
     createDatabase: true
-    database: "ximager"
-    username: "ximager"
-    password: "ximager"
+    database: "sigma"
+    username: "sigma"
+    password: "sigma"
   primary:
     service:
       type: NodePort

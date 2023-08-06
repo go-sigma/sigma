@@ -17,18 +17,18 @@ data:
       mysql:
         host: {{ .Release.Name }}-mysql
         port: 3306
-        user: ximager
-        password: ximager
-        dbname: ximager
+        user: sigma
+        password: sigma
+        dbname: sigma
       postgresql:
         host: localhost
         port: 5432
-        user: ximager
-        password: ximager
-        dbname: ximager
+        user: sigma
+        password: sigma
+        dbname: sigma
         sslmode: disable
     redis:
-      url: redis://:ximager@{{ .Release.Name }}-redis-master:6379/0
+      url: redis://:sigma@{{ .Release.Name }}-redis-master:6379/0
     http:
       server: 0.0.0.0:3000
       worker: 0.0.0.0:3001
@@ -44,11 +44,11 @@ data:
       filesystem:
         path: /
       s3:
-        ak: ximager
-        sk: ximager-ximager
+        ak: sigma
+        sk: sigma-sigma
         endpoint: http://{{ .Release.Name }}-minio:9000
         region: cn-north-1
-        bucket: ximager
+        bucket: sigma
         forcePathStyle: true
     proxy:
       enabled: true
@@ -60,11 +60,11 @@ data:
       user:
         password: ""
       internalUser:
-        username: internal-ximager
-        password: internal-ximager
+        username: internal-sigma
+        password: internal-sigma
       admin:
-        username: ximager
-        password: ximager
+        username: sigma
+        password: sigma
       token:
         realm: ""
         service: ""
@@ -73,6 +73,6 @@ data:
         refreshTtl: 24h
         privateKey: {{ genPrivateKey "rsa" | b64enc }}
   {{- else if eq .Values.middleware.type "external" }}
-  ximager.yaml: |-
+  sigma.yaml: |-
     {{ .Values.config | toYaml | nindent 4 }}
   {{- end }}

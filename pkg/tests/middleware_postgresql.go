@@ -50,7 +50,7 @@ var _ CIDatabase = &postgresqlCIDatabase{}
 // Init sets the default values for the database configuration in ci tests
 func (d *postgresqlCIDatabase) Init() error {
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, "postgres://ximager:ximager@localhost:5432/?sslmode=disable")
+	conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func (d *postgresqlCIDatabase) Init() error {
 	viper.SetDefault("database.type", "postgresql")
 	viper.SetDefault("database.postgres.host", "127.0.0.1")
 	viper.SetDefault("database.postgres.port", "5432")
-	viper.SetDefault("database.postgres.user", "ximager")
-	viper.SetDefault("database.postgres.password", "ximager")
+	viper.SetDefault("database.postgres.user", "sigma")
+	viper.SetDefault("database.postgres.password", "sigma")
 	viper.SetDefault("database.postgres.dbname", d.dbname)
 	viper.SetDefault("database.postgres.sslmode", "disable")
 
@@ -86,7 +86,7 @@ func (d *postgresqlCIDatabase) DeInit() error {
 	log.Debug().Str("database", d.dbname).Msg("postgresql does not allow to drop the database, skipping")
 
 	// ctx := context.Background()
-	// conn, err := pgx.Connect(ctx, "postgres://ximager:ximager@localhost:5432/?sslmode=disable")
+	// conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")
 	// if err != nil {
 	// 	return err
 	// }

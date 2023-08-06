@@ -30,9 +30,9 @@ func TestNew(t *testing.T) {
 	viper.Reset()
 	viper.SetDefault("storage.s3.endpoint", "http://localhost:9010")
 	viper.SetDefault("storage.s3.region", "cn-north-1")
-	viper.SetDefault("storage.s3.ak", "ximager")
-	viper.SetDefault("storage.s3.sk", "ximager-ximager")
-	viper.SetDefault("storage.s3.bucket", "ximager")
+	viper.SetDefault("storage.s3.ak", "sigma")
+	viper.SetDefault("storage.s3.sk", "sigma-sigma")
+	viper.SetDefault("storage.s3.bucket", "sigma")
 	viper.SetDefault("storage.s3.forcePathStyle", true)
 
 	ctx := context.Background()

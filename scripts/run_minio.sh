@@ -3,9 +3,9 @@
 DOCKER=${DOCKER:-docker}
 
 "$DOCKER" run -p 9000:9000 -p 9001:9001 \
-  --name ximager-minio \
-  -e MINIO_ROOT_USER=ximager \
-  -e MINIO_ROOT_PASSWORD=ximager-ximager \
+  --name sigma-minio \
+  -e MINIO_ROOT_USER=sigma \
+  -e MINIO_ROOT_PASSWORD=sigma-sigma \
   -e MINIO_REGION_NAME=cn-north-1 \
   --rm -d \
   --entrypoint "" \
@@ -14,4 +14,4 @@ DOCKER=${DOCKER:-docker}
   --health-timeout 5s \
   --health-retries 10 \
   quay.io/minio/minio:RELEASE.2023-07-07T07-13-57Z \
-  sh -c 'mkdir -p /data/ximager && minio server /data --console-address ":9001"'
+  sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'

@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:generate mockgen -destination=mocks/storage_driver.go -package=mocks github.com/ximager/ximager/pkg/storage StorageDriver
-//go:generate mockgen -destination=mocks/storage_driver_factory.go -package=mocks github.com/ximager/ximager/pkg/storage StorageDriverFactory
+//go:generate mockgen -destination=mocks/storage_driver.go -package=mocks github.com/go-sigma/sigma/pkg/storage StorageDriver
+//go:generate mockgen -destination=mocks/storage_driver_factory.go -package=mocks github.com/go-sigma/sigma/pkg/storage StorageDriverFactory
 
 // FileInfo returns information about a given path. Inspired by os.FileInfo,
 // it elides the base name method for a full path instead.

@@ -21,22 +21,22 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ximager
-          MYSQL_DATABASE: ximager
-          MYSQL_USER: ximager
-          MYSQL_PASSWORD: ximager
+          MYSQL_ROOT_PASSWORD: sigma
+          MYSQL_DATABASE: sigma
+          MYSQL_USER: sigma
+          MYSQL_PASSWORD: sigma
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgresql:
         image: postgres:15-alpine
         env:
-          POSTGRES_PASSWORD: ximager
-          POSTGRES_USER: ximager
-          POSTGRES_DB: ximager
+          POSTGRES_PASSWORD: sigma
+          POSTGRES_USER: sigma
+          POSTGRES_DB: sigma
         ports:
           - 5432:5432
-        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+        options: --health-cmd="pg_isready -U sigma -d sigma || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -88,22 +88,22 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ximager
-          MYSQL_DATABASE: ximager
-          MYSQL_USER: ximager
-          MYSQL_PASSWORD: ximager
+          MYSQL_ROOT_PASSWORD: sigma
+          MYSQL_DATABASE: sigma
+          MYSQL_USER: sigma
+          MYSQL_PASSWORD: sigma
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgresql:
         image: postgres:15-alpine
         env:
-          POSTGRES_PASSWORD: ximager
-          POSTGRES_USER: ximager
-          POSTGRES_DB: ximager
+          POSTGRES_PASSWORD: sigma
+          POSTGRES_USER: sigma
+          POSTGRES_DB: sigma
         ports:
           - 5432:5432
-        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+        options: --health-cmd="pg_isready -U sigma -d sigma || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -156,22 +156,22 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ximager
-          MYSQL_DATABASE: ximager
-          MYSQL_USER: ximager
-          MYSQL_PASSWORD: ximager
+          MYSQL_ROOT_PASSWORD: sigma
+          MYSQL_DATABASE: sigma
+          MYSQL_USER: sigma
+          MYSQL_PASSWORD: sigma
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgresql:
         image: postgres:15-alpine
         env:
-          POSTGRES_PASSWORD: ximager
-          POSTGRES_USER: ximager
-          POSTGRES_DB: ximager
+          POSTGRES_PASSWORD: sigma
+          POSTGRES_USER: sigma
+          POSTGRES_DB: sigma
         ports:
           - 5432:5432
-        options: --health-cmd="pg_isready -U ximager -d ximager || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+        options: --health-cmd="pg_isready -U sigma -d sigma || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3

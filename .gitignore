@@ -184,7 +184,7 @@ sketch
 .idea/
 
 # conf
-conf/ximager-dev.yaml
+conf/sigma-dev.yaml
 
 # database
 *.db

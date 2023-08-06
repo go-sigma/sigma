@@ -301,10 +301,10 @@ func TestSignupMockDAO(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 
 	miniRedis := miniredis.RunT(t)

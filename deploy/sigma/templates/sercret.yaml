@@ -8,4 +8,4 @@ metadata:
 data:
   {{ $privateKey := (genPrivateKey "rsa" | b64enc) }}
   AUTH_JWT_PRIVATEKEY: {{ .Values.config.auth.jwt.privateKey | default $privateKey | quote }}
-  AUTH_USER_PASSWORD: {{ (trimPrefix "ximager:" (htpasswd "ximager" (.Values.config.auth.user.password | default "ximager")))  | b64enc | quote }}
+  AUTH_USER_PASSWORD: {{ (trimPrefix "sigma:" (htpasswd "sigma" (.Values.config.auth.user.password | default "sigma")))  | b64enc | quote }}

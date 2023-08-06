@@ -3,13 +3,13 @@
 DOCKER=${DOCKER:-docker}
 
 "$DOCKER" run -it \
-  --name ximager-mysql \
-  -e MYSQL_ROOT_PASSWORD=ximager \
-  -e MYSQL_DATABASE=ximager \
-  -e MYSQL_USER=ximager \
-  -e MYSQL_PASSWORD=ximager \
+  --name sigma-mysql \
+  -e MYSQL_ROOT_PASSWORD=sigma \
+  -e MYSQL_DATABASE=sigma \
+  -e MYSQL_USER=sigma \
+  -e MYSQL_PASSWORD=sigma \
   -p 3306:3306 -d --rm \
-  --health-cmd "mysqladmin -uximager -pximager ping || exit 1" \
+  --health-cmd "mysqladmin -usigma -psigma ping || exit 1" \
   --health-interval 10s \
   --health-timeout 5s \
   --health-retries 10 \

@@ -47,11 +47,11 @@ func TestInitInternalUser(t *testing.T) {
 	err = initUser()
 	assert.Error(t, err)
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
 	err = initUser()
 	assert.Error(t, err)
 
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
 	err = initUser()
 	assert.Error(t, err)
 }
@@ -71,10 +71,10 @@ func TestInitAdminUser1(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
 
-	viper.SetDefault("auth.admin.password", "ximager")
+	viper.SetDefault("auth.admin.password", "sigma")
 	err = initUser()
 	assert.Error(t, err)
 }
@@ -94,11 +94,11 @@ func TestInitAdminUser2(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
-	viper.SetDefault("auth.admin.email", "ximager@gmail.com")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
+	viper.SetDefault("auth.admin.email", "sigma@gmail.com")
 	err = initUser()
 	assert.NoError(t, err)
 
@@ -111,13 +111,13 @@ func TestInitAdminUser2(t *testing.T) {
 	assert.Equal(t, count, int64(2))
 
 	ctx := context.Background()
-	user, err := userService.GetByUsername(ctx, "ximager")
+	user, err := userService.GetByUsername(ctx, "sigma")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.True(t, passwordService.Verify("ximager", ptr.To(user.Password)))
+	assert.True(t, passwordService.Verify("sigma", ptr.To(user.Password)))
 
-	user, err = userService.GetByUsername(ctx, "internal-ximager")
+	user, err = userService.GetByUsername(ctx, "internal-sigma")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.True(t, passwordService.Verify("internal-ximager", ptr.To(user.Password)))
+	assert.True(t, passwordService.Verify("internal-sigma", ptr.To(user.Password)))
 }

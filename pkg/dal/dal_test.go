@@ -51,7 +51,7 @@ func TestInitialize(t *testing.T) {
 	err = os.Remove(dbPath)
 	assert.NoError(t, err)
 
-	db, err = sql.Open("mysql", "root:ximager@tcp(127.0.0.1:3306)/")
+	db, err = sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	assert.NoError(t, err)
 
 	dbname := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
@@ -63,14 +63,14 @@ func TestInitialize(t *testing.T) {
 	viper.SetDefault("database.mysql.host", "127.0.0.1")
 	viper.SetDefault("database.mysql.port", "3306")
 	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "ximager")
-	viper.SetDefault("database.mysql.database", "ximager")
+	viper.SetDefault("database.mysql.password", "sigma")
+	viper.SetDefault("database.mysql.database", "sigma")
 	viper.SetDefault("database.mysql.dbname", dbname)
 
 	err = Initialize()
 	assert.NoError(t, err)
 
-	db, err = sql.Open("mysql", "root:ximager@tcp(127.0.0.1:3306)/")
+	db, err = sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	assert.NoError(t, err)
 	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", dbname))
 	assert.NoError(t, err)
@@ -79,13 +79,13 @@ func TestInitialize(t *testing.T) {
 	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
 	viper.SetDefault("database.postgres.host", "localhost")
 	viper.SetDefault("database.postgres.port", 5432)
-	viper.SetDefault("database.postgres.user", "ximager")
-	viper.SetDefault("database.postgres.password", "ximager")
-	viper.SetDefault("database.postgres.dbname", "ximager")
+	viper.SetDefault("database.postgres.user", "sigma")
+	viper.SetDefault("database.postgres.password", "sigma")
+	viper.SetDefault("database.postgres.dbname", "sigma")
 	viper.SetDefault("database.postgres.dbname", dbname)
 
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, "postgres://ximager:ximager@localhost:5432/?sslmode=disable")
+	conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")
 	assert.NoError(t, err)
 
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", dbname))

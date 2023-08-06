@@ -62,6 +62,6 @@ var workerCmd = &cobra.Command{
 }
 
 func init() {
-	workerCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
+	workerCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
 	rootCmd.AddCommand(workerCmd)
 }

@@ -88,11 +88,11 @@ func TestAuthWithConfig(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
-	viper.SetDefault("auth.admin.email", "ximager@gmail.com")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
+	viper.SetDefault("auth.admin.email", "sigma@gmail.com")
 
 	err = inits.Initialize()
 	assert.NoError(t, err)
@@ -108,14 +108,14 @@ func TestAuthWithConfig(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager1")
+	req.SetBasicAuth("sigma", "sigma1")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	err = hDS(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 	rec1 := httptest.NewRecorder()
 	c = e.NewContext(req, rec1)
 	err = hDS(c)
@@ -126,7 +126,7 @@ func TestAuthWithConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	token, err := tokenService.New(&models.User{
-		Username: "ximager",
+		Username: "sigma",
 	}, time.Hour)
 	assert.NoError(t, err)
 	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)

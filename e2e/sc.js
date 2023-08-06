@@ -5,8 +5,8 @@ export const options = {
   iterations: 3,
 };
 
-const username = 'ximager';
-const password = 'ximager';
+const username = 'sigma';
+const password = 'sigma';
 
 const host = "http://127.0.0.1:3000";
 

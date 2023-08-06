@@ -47,7 +47,7 @@ var _ CIDatabase = &mysqlCIDatabase{}
 
 // Init sets the default values for the database configuration in ci tests
 func (d *mysqlCIDatabase) Init() error {
-	db, err := sql.Open("mysql", "root:ximager@tcp(127.0.0.1:3306)/")
+	db, err := sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (d *mysqlCIDatabase) Init() error {
 	viper.SetDefault("database.mysql.host", "127.0.0.1")
 	viper.SetDefault("database.mysql.port", "3306")
 	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "ximager")
+	viper.SetDefault("database.mysql.password", "sigma")
 	viper.SetDefault("database.mysql.dbname", d.dbname)
 
 	err = dal.Initialize()
@@ -78,7 +78,7 @@ func (d *mysqlCIDatabase) Init() error {
 
 // DeInit remove the database or database file for ci tests
 func (d *mysqlCIDatabase) DeInit() error {
-	db, err := sql.Open("mysql", "root:ximager@tcp(127.0.0.1:3306)/")
+	db, err := sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	if err != nil {
 		return err
 	}

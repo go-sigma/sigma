@@ -28,25 +28,25 @@ func TestNew(t *testing.T) {
 
 func TestHash(t *testing.T) {
 	pwdService := New(bcrypt.DefaultCost)
-	hashedPwd, err := pwdService.Hash("ximager")
+	hashedPwd, err := pwdService.Hash("sigma")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashedPwd)
 
-	hashedPwd, err = pwdService.Hash("ximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximagerximager")
+	hashedPwd, err = pwdService.Hash("sigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigmasigma")
 	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
 	assert.Empty(t, hashedPwd)
 }
 
 func TestVerify(t *testing.T) {
 	pwdService := New()
-	hashedPwd, err := pwdService.Hash("ximager")
+	hashedPwd, err := pwdService.Hash("sigma")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashedPwd)
 
-	eq := pwdService.Verify("ximager", hashedPwd)
+	eq := pwdService.Verify("sigma", hashedPwd)
 	assert.True(t, eq)
 
 	case1 := "invalid"
-	neq := pwdService.Verify("ximager", case1)
+	neq := pwdService.Verify("sigma", case1)
 	assert.False(t, neq)
 }

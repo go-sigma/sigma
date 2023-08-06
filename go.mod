@@ -7,7 +7,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/anchore/syft v0.86.1
 	github.com/aquasecurity/trivy v0.44.0
-	github.com/aws/aws-sdk-go v1.44.316
+	github.com/aws/aws-sdk-go v1.44.317
 	github.com/bytedance/sonic v1.10.0-rc3
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.73.0
@@ -50,9 +50,9 @@ require (
 	github.com/tidwall/gjson v1.15.0
 	github.com/wagslane/go-password-validator v0.3.0
 	go.uber.org/mock v0.2.0
-	golang.org/x/crypto v0.11.0
+	golang.org/x/crypto v0.12.0
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b
-	golang.org/x/oauth2 v0.10.0
+	golang.org/x/oauth2 v0.11.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.2
@@ -197,10 +197,10 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.13.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.11.1 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
