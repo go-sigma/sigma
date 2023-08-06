@@ -16,9 +16,9 @@ package gc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/bytedance/sonic"
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
@@ -47,7 +47,7 @@ type gc struct {
 
 func runner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonGcPayload
-	err := sonic.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal(task.Payload(), &payload)
 	if err != nil {
 		return err
 	}

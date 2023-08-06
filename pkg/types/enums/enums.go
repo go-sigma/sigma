@@ -41,6 +41,15 @@ type Deploy string
 // )
 type TaskCommonStatus string
 
+// BuildStatus x ENUM(
+// Success,
+// Failed,
+// Pending,
+// Scheduling,
+// Building,
+// )
+type BuildStatus string
+
 // Database x ENUM(
 // postgresql,
 // mysql,
@@ -71,6 +80,7 @@ type WorkQueueType string
 // Gc,
 // GcRepository,
 // Webhook,
+// Builder,
 // )
 type Daemon string
 
@@ -123,6 +133,7 @@ type AuditAction string
 // repository,
 // tag,
 // webhook,
+// builder,
 // )
 type AuditResourceType string
 
@@ -178,3 +189,10 @@ type ScmProvider string
 // linux/arm/v6,
 // )
 type OciPlatform string
+
+// DaemonBuilderAction x ENUM(
+// Start,
+// Restart,
+// Stop,
+// )
+type DaemonBuilderAction string

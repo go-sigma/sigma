@@ -12,11 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package imports
+package configs
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
+	"fmt"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
+
+// CheckDeploy ...
+func (c *Configuration) CheckDeploy() error {
+	if c.Deploy == enums.DeployReplica {
+		if c.Redis.Type == enums.RedisTypeInternal {
+			return fmt.Errorf("Deploy replica should use external redis")
+		}
+	}
+	return nil
+}

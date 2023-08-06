@@ -38,6 +38,7 @@ var topics = map[enums.Daemon]string{
 	enums.DaemonGc:            consts.TopicGc,
 	enums.DaemonGcRepository:  consts.TopicGcRepository,
 	enums.DaemonWebhook:       consts.TopicWebhook,
+	enums.DaemonBuilder:       consts.TopicBuilder,
 }
 
 var (

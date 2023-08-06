@@ -14,75 +14,190 @@
 
 package configs
 
-import "github.com/go-sigma/sigma/pkg/types/enums"
+import (
+	"github.com/go-sigma/sigma/pkg/types/enums"
+)
 
-// ConfigurationLog ...
-type ConfigurationLog struct {
-	Level      enums.LogLevel
-	ProxyLevel enums.LogLevel
-}
+var configuration = &Configuration{}
 
-// ConfigurationDatabaseSqlite3 ...
-type ConfigurationDatabaseSqlite3 struct {
-	Path string
-}
-
-// ConfigurationDatabaseMysql ...
-type ConfigurationDatabaseMysql struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-}
-
-// ConfigurationDatabase ...
-type ConfigurationDatabasePostgresql struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-	SslMode  bool
-}
-
-// ConfigurationDatabase ...
-type ConfigurationDatabase struct {
-	Type       enums.Database
-	Sqlite3    ConfigurationDatabaseSqlite3
-	Mysql      ConfigurationDatabaseMysql
-	Postgresql ConfigurationDatabasePostgresql
-}
-
-// ConfigurationRedis ...
-type ConfigurationRedis struct {
-	Type enums.RedisType
-	Url  string
-}
-
-// ConfigurationCache ...
-type ConfigurationCache struct {
-	Type enums.CacheType
-}
-
-// ConfigurationWorkQueue ...
-type ConfigurationWorkQueue struct {
-	Type enums.WorkQueueType
-}
-
-// ConfigurationNamespace ...
-type ConfigurationNamespace struct {
-	AutoCreate bool
-	Visibility enums.Visibility
+// GetConfiguration ...
+func GetConfiguration() *Configuration {
+	return configuration
 }
 
 // Configuration ...
 type Configuration struct {
-	Log       ConfigurationLog
-	Database  ConfigurationDatabase
-	Deploy    enums.Deploy
-	Redis     ConfigurationRedis
-	Cache     ConfigurationCache
-	WorkQueue ConfigurationWorkQueue
-	Namespace ConfigurationNamespace
+	Log       ConfigurationLog       `yaml:"log"`
+	Database  ConfigurationDatabase  `yaml:"database"`
+	Deploy    enums.Deploy           `yaml:"deploy"`
+	Redis     ConfigurationRedis     `yaml:"redis"`
+	Cache     ConfigurationCache     `yaml:"cache"`
+	WorkQueue ConfigurationWorkQueue `yaml:"workqueue"`
+	Namespace ConfigurationNamespace `yaml:"namespace"`
+	HTTP      ConfigurationHTTP      `yaml:"http"`
+	Storage   ConfigurationStorage   `yaml:"storage"`
+	Proxy     ConfigurationProxy     `yaml:"proxy"`
+	Daemon    ConfigurationDaemon    `yaml:"daemon"`
+	Auth      ConfigurationAuth      `yaml:"auth"`
+}
+
+// ConfigurationLog ...
+type ConfigurationLog struct {
+	Level      enums.LogLevel `yaml:"level"`
+	ProxyLevel enums.LogLevel `yaml:"proxyLevel"`
+}
+
+// ConfigurationDatabaseSqlite3 ...
+type ConfigurationDatabaseSqlite3 struct {
+	Path string `yaml:"path"`
+}
+
+// ConfigurationDatabaseMysql ...
+type ConfigurationDatabaseMysql struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+}
+
+// ConfigurationDatabase ...
+type ConfigurationDatabasePostgresql struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+	SslMode  string `yaml:"sslmode"`
+}
+
+// ConfigurationDatabase ...
+type ConfigurationDatabase struct {
+	Type       enums.Database                  `yaml:"type"`
+	Sqlite3    ConfigurationDatabaseSqlite3    `yaml:"sqlite3"`
+	Mysql      ConfigurationDatabaseMysql      `yaml:"mysql"`
+	Postgresql ConfigurationDatabasePostgresql `yaml:"postgresql"`
+}
+
+// ConfigurationRedis ...
+type ConfigurationRedis struct {
+	Type enums.RedisType `yaml:"type"`
+	Url  string          `yaml:"url"`
+}
+
+// ConfigurationCache ...
+type ConfigurationCache struct {
+	Type enums.CacheType `yaml:"type"`
+}
+
+// ConfigurationWorkQueue ...
+type ConfigurationWorkQueue struct {
+	Type enums.WorkQueueType `yaml:"type"`
+}
+
+// ConfigurationNamespace ...
+type ConfigurationNamespace struct {
+	AutoCreate bool             `yaml:"autoCreate"`
+	Visibility enums.Visibility `yaml:"visibility"`
+}
+
+// ConfigurationHttpTLS ...
+type ConfigurationHttpTLS struct {
+	Enabled     bool   `yaml:"enabled"`
+	Certificate string `yaml:"certificate"`
+	Key         string `yaml:"key"`
+}
+
+// ConfigurationHTTP ...
+type ConfigurationHTTP struct {
+	Endpoint         string               `yaml:"endpoint"`
+	InternalEndpoint string               `yaml:"internalEndpoint"`
+	TLS              ConfigurationHttpTLS `yaml:"tls"`
+}
+
+// ConfigurationStorageFilesystem ...
+type ConfigurationStorageFilesystem struct {
+	Path string `yaml:"path"`
+}
+
+// ConfigurationStorageS3 ...
+type ConfigurationStorageS3 struct {
+	Ak             string `yaml:"ak"`
+	Sk             string `yaml:"sk"`
+	Endpoint       string `yaml:"endpoint"`
+	Region         string `yaml:"region"`
+	Bucket         string `yaml:"bucket"`
+	ForcePathStyle bool   `yaml:"forcePathStyle"`
+}
+
+// ConfigurationStorage ...
+type ConfigurationStorage struct {
+	RootDirectory string                         `yaml:"rootDirectory"`
+	Type          string                         `yaml:"type"`
+	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
+	S3            ConfigurationStorageS3         `yaml:"s3"`
+}
+
+// ConfigurationProxy ...
+type ConfigurationProxy struct {
+	Enabled   string `yaml:"enabled"`
+	Endpoint  string `yaml:"endpoint"`
+	TlsVerify bool   `yaml:"tlsVerify"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+}
+
+// ConfigurationDaemonGc ...
+type ConfigurationDaemonGc struct {
+	Retention string `yaml:"retention"`
+	Cron      string `yaml:"cron"`
+}
+
+// ConfigurationDaemon ...
+type ConfigurationDaemon struct {
+	Gc ConfigurationDaemonGc `yaml:"gc"`
+}
+
+// ConfigurationAuthInternalUser ...
+type ConfigurationAuthInternalUser struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+// ConfigurationAuthAdmin ...
+type ConfigurationAuthAdmin struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+// ConfigurationAuthToken ...
+type ConfigurationAuthToken struct {
+	Realm   string `yaml:"realm"`
+	Service string `yaml:"service"`
+}
+
+// ConfigurationAuthJwt ...
+type ConfigurationAuthJwt struct {
+	Ttl        string `yaml:"ttl"`
+	RefreshTtl string `yaml:"refreshTtl"`
+	PrivateKey string `yaml:"privateKey"`
+}
+
+// ConfigurationAuthOauth2Github ...
+type ConfigurationAuthOauth2Github struct {
+	ClientID     string `yaml:"clientId"`
+	ClientSecret string `yaml:"clientSecret"`
+}
+
+// ConfigurationAuthOauth2 ...
+type ConfigurationAuthOauth2 struct {
+	Github ConfigurationAuthOauth2Github `yaml:"github"`
+}
+
+// ConfigurationAuth ...
+type ConfigurationAuth struct {
+	InternalUser ConfigurationAuthInternalUser `yaml:"internalUser"`
+	Admin        ConfigurationAuthAdmin        `yaml:"admin"`
+	Token        ConfigurationAuthToken        `yaml:"token"`
+	Oauth2       ConfigurationAuthOauth2       `yaml:"oauth2"`
 }

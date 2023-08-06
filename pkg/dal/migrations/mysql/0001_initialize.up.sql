@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username` varchar(64) NOT NULL UNIQUE,
   `password` varchar(256),
   `email` varchar(256),
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`)
 );
@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
   `code` varchar(256) NOT NULL,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `user_recover_codes_unique_with_use_id` UNIQUE (`user_id`, `deleted_at`)
@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `resource` varchar(256) NOT NULL,
   `before_raw` BLOB,
   `req_raw` BLOB,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
@@ -103,8 +103,8 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `stdout` MEDIUMBLOB,
   `stderr` MEDIUMBLOB,
   `message` varchar(256),
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
@@ -120,8 +120,8 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `stdout` MEDIUMBLOB,
   `stderr` MEDIUMBLOB,
   `message` varchar(256),
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
@@ -135,8 +135,8 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
@@ -151,8 +151,8 @@ CREATE TABLE IF NOT EXISTS `blobs` (
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `blobs_unique_with_digest` UNIQUE (`digest`, `deleted_at`)
 );
@@ -165,8 +165,8 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `repository` varchar(256) NOT NULL,
   `file_id` varchar(256) NOT NULL,
   `size` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `blob_uploads_unique_with_upload_id_etag` UNIQUE (`upload_id`, `etag`, `deleted_at`)
 );
@@ -193,10 +193,10 @@ CREATE TABLE IF NOT EXISTS `daemon_logs` (
   `type` ENUM ('Gc', 'Vulnerability', 'Sbom') NOT NULL,
   `action` ENUM ('create', 'update', 'delete', 'pull', 'push') NOT NULL,
   `resource` varchar(256) NOT NULL,
-  `status` ENUM ('Success', 'Failed') NOT NULL,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL,
   `message` BLOB,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0
 );
 
@@ -250,8 +250,8 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_tag` tinyint NOT NULL DEFAULT 1,
   `event_pull_push` tinyint NOT NULL DEFAULT 1,
   `event_member` tinyint NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0
 );
 
@@ -264,25 +264,39 @@ CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `req_body` BLOB NOT NULL,
   `resp_header` BLOB NOT NULL,
   `resp_body` BLOB,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `builders` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `repository_id` bigint NOT NULL,
+  `active` tinyint NOT NULL DEFAULT 1,
+  `scm_credential_type` varchar(16) NOT NULL,
+  `scm_ssh_key` BLOB,
+  `scm_token` varchar(256),
+  `scm_username` varchar(30),
+  `scm_password` varchar(30),
+  `scm_repository` varchar(256) NOT NULL,
+  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
+  `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
+  `scm_submodule` tinyint NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
+  CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `builder_logs` (
+CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `builder_id` bigint NOT NULL,
   `log` LONGBLOB,
-  `created_at` timestamp NOT NULL,
-  `updated_at` timestamp NOT NULL,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );

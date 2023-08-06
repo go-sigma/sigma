@@ -190,3 +190,5 @@ conf/ximager-dev.yaml
 *.db
 
 pkg/**/*.html
+
+.vscode/

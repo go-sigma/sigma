@@ -211,6 +211,8 @@ const (
 	AuditResourceTypeTag AuditResourceType = "tag"
 	// AuditResourceTypeWebhook is a AuditResourceType of type webhook.
 	AuditResourceTypeWebhook AuditResourceType = "webhook"
+	// AuditResourceTypeBuilder is a AuditResourceType of type builder.
+	AuditResourceTypeBuilder AuditResourceType = "builder"
 )
 
 var ErrInvalidAuditResourceType = errors.New("not a valid AuditResourceType")
@@ -232,6 +234,7 @@ var _AuditResourceTypeValue = map[string]AuditResourceType{
 	"repository": AuditResourceTypeRepository,
 	"tag":        AuditResourceTypeTag,
 	"webhook":    AuditResourceTypeWebhook,
+	"builder":    AuditResourceTypeBuilder,
 }
 
 // ParseAuditResourceType attempts to convert a string to a AuditResourceType.
@@ -288,6 +291,98 @@ func (x *AuditResourceType) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x AuditResourceType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// BuildStatusSuccess is a BuildStatus of type Success.
+	BuildStatusSuccess BuildStatus = "Success"
+	// BuildStatusFailed is a BuildStatus of type Failed.
+	BuildStatusFailed BuildStatus = "Failed"
+	// BuildStatusPending is a BuildStatus of type Pending.
+	BuildStatusPending BuildStatus = "Pending"
+	// BuildStatusScheduling is a BuildStatus of type Scheduling.
+	BuildStatusScheduling BuildStatus = "Scheduling"
+	// BuildStatusBuilding is a BuildStatus of type Building.
+	BuildStatusBuilding BuildStatus = "Building"
+)
+
+var ErrInvalidBuildStatus = errors.New("not a valid BuildStatus")
+
+// String implements the Stringer interface.
+func (x BuildStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x BuildStatus) IsValid() bool {
+	_, err := ParseBuildStatus(string(x))
+	return err == nil
+}
+
+var _BuildStatusValue = map[string]BuildStatus{
+	"Success":    BuildStatusSuccess,
+	"Failed":     BuildStatusFailed,
+	"Pending":    BuildStatusPending,
+	"Scheduling": BuildStatusScheduling,
+	"Building":   BuildStatusBuilding,
+}
+
+// ParseBuildStatus attempts to convert a string to a BuildStatus.
+func ParseBuildStatus(name string) (BuildStatus, error) {
+	if x, ok := _BuildStatusValue[name]; ok {
+		return x, nil
+	}
+	return BuildStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidBuildStatus)
+}
+
+// MustParseBuildStatus converts a string to a BuildStatus, and panics if is not valid.
+func MustParseBuildStatus(name string) BuildStatus {
+	val, err := ParseBuildStatus(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errBuildStatusNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *BuildStatus) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = BuildStatus("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseBuildStatus(v)
+	case []byte:
+		*x, err = ParseBuildStatus(string(v))
+	case BuildStatus:
+		*x = v
+	case *BuildStatus:
+		if v == nil {
+			return errBuildStatusNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errBuildStatusNilPtr
+		}
+		*x, err = ParseBuildStatus(*v)
+	default:
+		return errors.New("invalid type for BuildStatus")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x BuildStatus) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 
@@ -385,6 +480,8 @@ const (
 	DaemonGcRepository Daemon = "GcRepository"
 	// DaemonWebhook is a Daemon of type Webhook.
 	DaemonWebhook Daemon = "Webhook"
+	// DaemonBuilder is a Daemon of type Builder.
+	DaemonBuilder Daemon = "Builder"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")
@@ -407,6 +504,7 @@ var _DaemonValue = map[string]Daemon{
 	"Gc":            DaemonGc,
 	"GcRepository":  DaemonGcRepository,
 	"Webhook":       DaemonWebhook,
+	"Builder":       DaemonBuilder,
 }
 
 // ParseDaemon attempts to convert a string to a Daemon.
@@ -463,6 +561,92 @@ func (x *Daemon) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x Daemon) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// DaemonBuilderActionStart is a DaemonBuilderAction of type Start.
+	DaemonBuilderActionStart DaemonBuilderAction = "Start"
+	// DaemonBuilderActionRestart is a DaemonBuilderAction of type Restart.
+	DaemonBuilderActionRestart DaemonBuilderAction = "Restart"
+	// DaemonBuilderActionStop is a DaemonBuilderAction of type Stop.
+	DaemonBuilderActionStop DaemonBuilderAction = "Stop"
+)
+
+var ErrInvalidDaemonBuilderAction = errors.New("not a valid DaemonBuilderAction")
+
+// String implements the Stringer interface.
+func (x DaemonBuilderAction) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x DaemonBuilderAction) IsValid() bool {
+	_, err := ParseDaemonBuilderAction(string(x))
+	return err == nil
+}
+
+var _DaemonBuilderActionValue = map[string]DaemonBuilderAction{
+	"Start":   DaemonBuilderActionStart,
+	"Restart": DaemonBuilderActionRestart,
+	"Stop":    DaemonBuilderActionStop,
+}
+
+// ParseDaemonBuilderAction attempts to convert a string to a DaemonBuilderAction.
+func ParseDaemonBuilderAction(name string) (DaemonBuilderAction, error) {
+	if x, ok := _DaemonBuilderActionValue[name]; ok {
+		return x, nil
+	}
+	return DaemonBuilderAction(""), fmt.Errorf("%s is %w", name, ErrInvalidDaemonBuilderAction)
+}
+
+// MustParseDaemonBuilderAction converts a string to a DaemonBuilderAction, and panics if is not valid.
+func MustParseDaemonBuilderAction(name string) DaemonBuilderAction {
+	val, err := ParseDaemonBuilderAction(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errDaemonBuilderActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *DaemonBuilderAction) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = DaemonBuilderAction("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseDaemonBuilderAction(v)
+	case []byte:
+		*x, err = ParseDaemonBuilderAction(string(v))
+	case DaemonBuilderAction:
+		*x = v
+	case *DaemonBuilderAction:
+		if v == nil {
+			return errDaemonBuilderActionNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errDaemonBuilderActionNilPtr
+		}
+		*x, err = ParseDaemonBuilderAction(*v)
+	default:
+		return errors.New("invalid type for DaemonBuilderAction")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x DaemonBuilderAction) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 

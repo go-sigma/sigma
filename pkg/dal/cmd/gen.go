@@ -44,7 +44,7 @@ func main() {
 		models.Webhook{},
 		models.WebhookLog{},
 		models.Builder{},
-		models.BuilderLog{},
+		models.BuilderRunner{},
 	)
 
 	g.Execute()

@@ -30,6 +30,7 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -79,7 +80,11 @@ func Serve(config ServerConfig) error {
 		handlers.InitializeDistribution(e)
 	}
 	if !config.WithoutWorker {
-		err := daemon.InitializeServer()
+		err := builder.Initialize()
+		if err != nil {
+			return err
+		}
+		err = daemon.InitializeServer()
 		if err != nil {
 			return err
 		}

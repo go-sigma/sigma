@@ -25,4 +25,6 @@ const (
 	TopicGcRepository = "gc_repository"
 	// TopicWebhook is the topic for the webhook
 	TopicWebhook = "webhook"
+	// TopicBuilder is the topic for the builder
+	TopicBuilder = "builder"
 )

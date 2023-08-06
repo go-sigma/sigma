@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Builder represents a builder
@@ -26,10 +28,29 @@ type Builder struct {
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
+
+	RepositoryID      int64
+	Active            bool
+	ScmCredentialType enums.ScmCredentialType
+	ScmToken          string
+	ScmSshKey         string
+	ScmUsername       string
+	ScmPassword       string
+	ScmRepository     string
+	ScmBranch         string
+	ScmDepth          int
+	ScmSubmodule      bool
+
+	BuildkitInsecureRegistries string
+	BuildkitContext            string `gorm:"default:."`
+	BuildkitDockerfile         string `gorm:"default:Dockerfile"`
+	BuildkitPlatforms          string `gorm:"default:linux/amd64"`
+
+	Repository *Repository
 }
 
-// BuilderLog represents a builder log
-type BuilderLog struct {
+// BuilderRunner represents a builder runner
+type BuilderRunner struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
@@ -37,6 +58,7 @@ type BuilderLog struct {
 
 	BuilderID int64
 	Log       []byte
+	Status    enums.BuildStatus
 
 	Builder Builder
 }

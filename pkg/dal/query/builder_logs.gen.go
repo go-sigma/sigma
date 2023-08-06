@@ -23,7 +23,7 @@ func newBuilderLog(db *gorm.DB, opts ...gen.DOOption) builderLog {
 	_builderLog := builderLog{}
 
 	_builderLog.builderLogDo.UseDB(db, opts...)
-	_builderLog.builderLogDo.UseModel(&models.BuilderLog{})
+	_builderLog.builderLogDo.UseModel(&models.BuilderRunner{})
 
 	tableName := _builderLog.builderLogDo.TableName()
 	_builderLog.ALL = field.NewAsterisk(tableName)
@@ -33,10 +33,24 @@ func newBuilderLog(db *gorm.DB, opts ...gen.DOOption) builderLog {
 	_builderLog.ID = field.NewInt64(tableName, "id")
 	_builderLog.BuilderID = field.NewInt64(tableName, "builder_id")
 	_builderLog.Log = field.NewBytes(tableName, "log")
+	_builderLog.Status = field.NewField(tableName, "status")
 	_builderLog.Builder = builderLogBelongsToBuilder{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Builder", "models.Builder"),
+		Repository: struct {
+			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Builder.Repository", "models.Repository"),
+			Namespace: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Builder.Repository.Namespace", "models.Namespace"),
+			},
+		},
 	}
 
 	_builderLog.fillFieldMap()
@@ -54,6 +68,7 @@ type builderLog struct {
 	ID        field.Int64
 	BuilderID field.Int64
 	Log       field.Bytes
+	Status    field.Field
 	Builder   builderLogBelongsToBuilder
 
 	fieldMap map[string]field.Expr
@@ -77,6 +92,7 @@ func (b *builderLog) updateTableName(table string) *builderLog {
 	b.ID = field.NewInt64(table, "id")
 	b.BuilderID = field.NewInt64(table, "builder_id")
 	b.Log = field.NewBytes(table, "log")
+	b.Status = field.NewField(table, "status")
 
 	b.fillFieldMap()
 
@@ -103,13 +119,14 @@ func (b *builderLog) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builderLog) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 7)
+	b.fieldMap = make(map[string]field.Expr, 8)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["builder_id"] = b.BuilderID
 	b.fieldMap["log"] = b.Log
+	b.fieldMap["status"] = b.Status
 
 }
 
@@ -127,6 +144,13 @@ type builderLogBelongsToBuilder struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	Repository struct {
+		field.RelationField
+		Namespace struct {
+			field.RelationField
+		}
+	}
 }
 
 func (a builderLogBelongsToBuilder) Where(conds ...field.Expr) *builderLogBelongsToBuilder {
@@ -152,7 +176,7 @@ func (a builderLogBelongsToBuilder) Session(session *gorm.Session) *builderLogBe
 	return &a
 }
 
-func (a builderLogBelongsToBuilder) Model(m *models.BuilderLog) *builderLogBelongsToBuilderTx {
+func (a builderLogBelongsToBuilder) Model(m *models.BuilderRunner) *builderLogBelongsToBuilderTx {
 	return &builderLogBelongsToBuilderTx{a.db.Model(m).Association(a.Name())}
 }
 
@@ -288,57 +312,57 @@ func (b builderLogDo) Unscoped() *builderLogDo {
 	return b.withDO(b.DO.Unscoped())
 }
 
-func (b builderLogDo) Create(values ...*models.BuilderLog) error {
+func (b builderLogDo) Create(values ...*models.BuilderRunner) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return b.DO.Create(values)
 }
 
-func (b builderLogDo) CreateInBatches(values []*models.BuilderLog, batchSize int) error {
+func (b builderLogDo) CreateInBatches(values []*models.BuilderRunner, batchSize int) error {
 	return b.DO.CreateInBatches(values, batchSize)
 }
 
 // Save : !!! underlying implementation is different with GORM
 // The method is equivalent to executing the statement: db.Clauses(clause.OnConflict{UpdateAll: true}).Create(values)
-func (b builderLogDo) Save(values ...*models.BuilderLog) error {
+func (b builderLogDo) Save(values ...*models.BuilderRunner) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return b.DO.Save(values)
 }
 
-func (b builderLogDo) First() (*models.BuilderLog, error) {
+func (b builderLogDo) First() (*models.BuilderRunner, error) {
 	if result, err := b.DO.First(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.BuilderLog), nil
+		return result.(*models.BuilderRunner), nil
 	}
 }
 
-func (b builderLogDo) Take() (*models.BuilderLog, error) {
+func (b builderLogDo) Take() (*models.BuilderRunner, error) {
 	if result, err := b.DO.Take(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.BuilderLog), nil
+		return result.(*models.BuilderRunner), nil
 	}
 }
 
-func (b builderLogDo) Last() (*models.BuilderLog, error) {
+func (b builderLogDo) Last() (*models.BuilderRunner, error) {
 	if result, err := b.DO.Last(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.BuilderLog), nil
+		return result.(*models.BuilderRunner), nil
 	}
 }
 
-func (b builderLogDo) Find() ([]*models.BuilderLog, error) {
+func (b builderLogDo) Find() ([]*models.BuilderRunner, error) {
 	result, err := b.DO.Find()
-	return result.([]*models.BuilderLog), err
+	return result.([]*models.BuilderRunner), err
 }
 
-func (b builderLogDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.BuilderLog, err error) {
-	buf := make([]*models.BuilderLog, 0, batchSize)
+func (b builderLogDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.BuilderRunner, err error) {
+	buf := make([]*models.BuilderRunner, 0, batchSize)
 	err = b.DO.FindInBatches(&buf, batchSize, func(tx gen.Dao, batch int) error {
 		defer func() { results = append(results, buf...) }()
 		return fc(tx, batch)
@@ -346,7 +370,7 @@ func (b builderLogDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) 
 	return results, err
 }
 
-func (b builderLogDo) FindInBatches(result *[]*models.BuilderLog, batchSize int, fc func(tx gen.Dao, batch int) error) error {
+func (b builderLogDo) FindInBatches(result *[]*models.BuilderRunner, batchSize int, fc func(tx gen.Dao, batch int) error) error {
 	return b.DO.FindInBatches(result, batchSize, fc)
 }
 
@@ -372,23 +396,23 @@ func (b builderLogDo) Preload(fields ...field.RelationField) *builderLogDo {
 	return &b
 }
 
-func (b builderLogDo) FirstOrInit() (*models.BuilderLog, error) {
+func (b builderLogDo) FirstOrInit() (*models.BuilderRunner, error) {
 	if result, err := b.DO.FirstOrInit(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.BuilderLog), nil
+		return result.(*models.BuilderRunner), nil
 	}
 }
 
-func (b builderLogDo) FirstOrCreate() (*models.BuilderLog, error) {
+func (b builderLogDo) FirstOrCreate() (*models.BuilderRunner, error) {
 	if result, err := b.DO.FirstOrCreate(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.BuilderLog), nil
+		return result.(*models.BuilderRunner), nil
 	}
 }
 
-func (b builderLogDo) FindByPage(offset int, limit int) (result []*models.BuilderLog, count int64, err error) {
+func (b builderLogDo) FindByPage(offset int, limit int) (result []*models.BuilderRunner, count int64, err error) {
 	result, err = b.Offset(offset).Limit(limit).Find()
 	if err != nil {
 		return
@@ -417,7 +441,7 @@ func (b builderLogDo) Scan(result interface{}) (err error) {
 	return b.DO.Scan(result)
 }
 
-func (b builderLogDo) Delete(models ...*models.BuilderLog) (result gen.ResultInfo, err error) {
+func (b builderLogDo) Delete(models ...*models.BuilderRunner) (result gen.ResultInfo, err error) {
 	return b.DO.Delete(models)
 }
 
