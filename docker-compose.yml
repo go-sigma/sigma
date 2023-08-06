@@ -1,6 +1,6 @@
-version: '2'
+version: "2"
 services:
-  ximager:
+  sigma:
     image: sigma:latest
     ports:
       - "3000:3000"
@@ -19,12 +19,12 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ximager
-      MYSQL_DATABASE: ximager
-      MYSQL_USER: ximager
-      MYSQL_PASSWORD: ximager
+      MYSQL_ROOT_PASSWORD: sigma
+      MYSQL_DATABASE: sigma
+      MYSQL_USER: sigma
+      MYSQL_PASSWORD: sigma
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -39,31 +39,31 @@ services:
       timeout: 5s
       retries: 10
   minio:
-    image: quay.io/minio/minio:RELEASE.2023-07-07T07-13-57Z
+    image: quay.io/minio/minio:RELEASE.2023-08-04T17-40-21Z
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ximager
-      MINIO_ROOT_PASSWORD: ximager-ximager
+      MINIO_ROOT_USER: sigma
+      MINIO_ROOT_PASSWORD: sigma-sigma
       MINIO_REGION_NAME: cn-north-1
-    entrypoint: ''
-    command: /bin/sh -c 'mkdir -p /data/ximager && minio server /data --console-address ":9001"'
+    entrypoint: ""
+    command: /bin/sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 10
   postgres:
-    image: postgres:14-alpine
+    image: postgres:15-alpine
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: ximager
-      POSTGRES_USER: ximager
-      POSTGRES_DB: ximager
+      POSTGRES_PASSWORD: sigma
+      POSTGRES_USER: sigma
+      POSTGRES_DB: sigma
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "ximager"]
+      test: ["CMD", "pg_isready", "-U", "sigma"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -74,8 +74,8 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_USER: ximager
-      PMA_PASSWORD: ximager
+      PMA_USER: sigma
+      PMA_PASSWORD: sigma
     depends_on:
       - mysql
     healthcheck:
@@ -84,12 +84,12 @@ services:
       timeout: 5s
       retries: 10
   pgadmin:
-    image: dpage/pgadmin4:7.4
+    image: dpage/pgadmin4:7.5
     ports:
       - "5050:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: ximager@tosone.cn
-      PGADMIN_DEFAULT_PASSWORD: ximager
+      PGADMIN_DEFAULT_EMAIL: sigma@tosone.cn
+      PGADMIN_DEFAULT_PASSWORD: sigma
     depends_on:
       - postgres
     healthcheck:

@@ -28,7 +28,7 @@ func TestNewDSError(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager1")
+	req.SetBasicAuth("sigma", "sigma1")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	err := NewDSError(c, DSErrCodeBlobUnknown)

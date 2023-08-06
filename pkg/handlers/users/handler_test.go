@@ -55,10 +55,10 @@ func TestFactory(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 
 	miniRedis := miniredis.RunT(t)
@@ -82,7 +82,7 @@ func TestFactory(t *testing.T) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	assert.NoError(t, err)
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

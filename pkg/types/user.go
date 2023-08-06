@@ -40,7 +40,7 @@ type UserItem = GetUserItem
 // PostUserLoginRequest ...
 type PostUserLoginRequest struct {
 	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`
-	Password string `json:"password" validate:"required,min=6,max=20"`
+	Password string `json:"password" validate:"required,min=5,max=20"`
 }
 
 // PostUserLoginResponse ...
@@ -62,7 +62,7 @@ type PostUserTokenResponse struct {
 // PostUserSignupRequest ...
 type PostUserSignupRequest struct {
 	Username string `json:"username" validate:"required,alphanum,min=2,max=20" example:"sigma"`
-	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
 	Email    string `json:"email" validate:"required,email" example:"test@gmail.com"`
 }
 
@@ -92,18 +92,18 @@ type PostUserRecoverPasswordRequest struct {
 // PostUserRecoverResetPasswordRequest...
 type PostUserRecoverResetPasswordRequest struct {
 	Code     string `json:"code" param:"code" validate:"required" example:"123456"`
-	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
 }
 
 // PostUserSelfResetPasswordRequest ...
 type PostUserSelfResetPasswordRequest struct {
-	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
 }
 
 // PostUserResetPasswordPasswordRequest ...
 type PostUserResetPasswordPasswordRequest struct {
 	ID       int64  `json:"id" param:"id" validate:"required" example:"123"`
-	Password string `json:"password" validate:"required,min=6,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
 }
 
 // PutUserSelfRequest ...

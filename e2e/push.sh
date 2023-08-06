@@ -24,7 +24,7 @@ docker tag hello-world:latest 127.0.0.1:3000/library/hello-world:latest
 docker pull mysql:8
 docker tag mysql:8 127.0.0.1:3000/library/mysql:8
 
-docker login 127.0.0.1:3000 -u ximager -p ximager
+docker login 127.0.0.1:3000 -u sigma -p sigma
 
 docker push 127.0.0.1:3000/library/hello-world:latest
 docker pull 127.0.0.1:3000/library/hello-world:latest

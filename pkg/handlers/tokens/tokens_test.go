@@ -61,10 +61,10 @@ func TestToken(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 
 	miniRedis := miniredis.RunT(t)
@@ -114,7 +114,7 @@ func TestToken(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	err = userHandler.Token(c)
@@ -123,7 +123,7 @@ func TestToken(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	err = userHandler.Token(c)
@@ -132,7 +132,7 @@ func TestToken(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	err = userHandler.Token(c)
@@ -160,10 +160,10 @@ func TestTokenMockDAO(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-ximager")
-	viper.SetDefault("auth.internalUser.username", "internal-ximager")
-	viper.SetDefault("auth.admin.password", "ximager")
-	viper.SetDefault("auth.admin.username", "ximager")
+	viper.SetDefault("auth.internalUser.password", "internal-sigma")
+	viper.SetDefault("auth.internalUser.username", "internal-sigma")
+	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.username", "sigma")
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 
 	miniRedis := miniredis.RunT(t)
@@ -190,7 +190,7 @@ func TestTokenMockDAO(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("ximager", "ximager")
+	req.SetBasicAuth("sigma", "sigma")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	err = userHandler.Token(c)

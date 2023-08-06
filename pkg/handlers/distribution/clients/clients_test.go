@@ -33,8 +33,8 @@ import (
 )
 
 func TestBasicAuthToken(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path { // nolint: gocritic
 		case "/v2/":
@@ -63,8 +63,8 @@ func TestBasicAuthToken(t *testing.T) {
 }
 
 func TestTLSBasicAuthToken(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path { // nolint: gocritic
 		case "/v2/":
@@ -95,9 +95,9 @@ func TestTLSBasicAuthToken(t *testing.T) {
 func TestBearerAuthToken(t *testing.T) {
 	var wwwAuthenticate string
 
-	cUsername := "ximager"
-	cPassword := "ximager"
-	token := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
+	token := "sigma"
 	service := "registry.docker.io"
 	scope := "repository:library/alpine:pull"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -145,9 +145,9 @@ func TestBearerAuthToken(t *testing.T) {
 func TestDoRequest(t *testing.T) {
 	var wwwAuthenticate string
 
-	cUsername := "ximager"
-	cPassword := "ximager"
-	token := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
+	token := "sigma"
 	service := "registry.docker.io"
 	scope := "repository:library/alpine:pull"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -210,8 +210,8 @@ func TestDoRequest(t *testing.T) {
 }
 
 func TestDoRequestPing1(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("proxy.endpoint", "http://127.0.0.1:10010")
 	viper.SetDefault("proxy.tlsVerify", true)
@@ -224,8 +224,8 @@ func TestDoRequestPing1(t *testing.T) {
 }
 
 func TestDoRequestPing2(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
@@ -246,8 +246,8 @@ func TestDoRequestPing2(t *testing.T) {
 }
 
 func TestDoRequestPing3(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
@@ -268,8 +268,8 @@ func TestDoRequestPing3(t *testing.T) {
 }
 
 func TestDoRequestPing4(t *testing.T) {
-	cUsername := "ximager"
-	cPassword := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
 
 	wwwAuthenticate1 := fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3000/user/token", "registry.docker.io", "repository:library/alpine:pull")
 	wwwAuthenticate2 := fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3001/user/token", "registry.docker.io", "repository:library/alpine:pull")
@@ -295,7 +295,7 @@ func TestDoRequestPing4(t *testing.T) {
 }
 
 func TestDoRequestNoUsername(t *testing.T) {
-	cPassword := "ximager"
+	cPassword := "sigma"
 
 	wwwAuthenticate := fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3000/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
@@ -320,8 +320,8 @@ func TestDoRequestNoUsername(t *testing.T) {
 }
 
 func TestDoRequestPingBasicAuth(t *testing.T) {
-	cPassword := "ximager"
-	cUsername := "ximager"
+	cPassword := "sigma"
+	cUsername := "sigma"
 
 	var wwwAuthenticate string
 

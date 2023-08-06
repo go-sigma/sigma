@@ -11,15 +11,15 @@ database:
   mysql:
     host: localhost
     port: 3306
-    user: ximager
-    password: ximager
-    dbname: ximager
+    user: sigma
+    password: sigma
+    dbname: sigma
   postgresql:
     host: localhost
     port: 5432
-    user: ximager
-    password: ximager
-    dbname: ximager
+    user: sigma
+    password: sigma
+    dbname: sigma
     sslmode: disable
 
 # deploy available: single, replica
@@ -68,11 +68,11 @@ storage:
   filesystem:
     path: /var/lib/sigma/oci/
   s3:
-    ak: ximager
-    sk: ximager-ximager
+    ak: sigma
+    sk: sigma-sigma
     endpoint: http://127.0.0.1:9000
     region: cn-north-1
-    bucket: ximager
+    bucket: sigma
     forcePathStyle: true
 # Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
 proxy:
@@ -89,11 +89,11 @@ daemon:
     cron: 0 2 * * 6
 auth:
   internalUser:
-    username: internal-ximager
-    password: internal-ximager
+    username: internal-sigma
+    password: internal-sigma
   admin:
-    username: ximager
-    password: ximager
+    username: sigma
+    password: sigma
   token:
     realm: ""
     service: ""

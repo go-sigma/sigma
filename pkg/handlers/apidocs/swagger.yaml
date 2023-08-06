@@ -22,6 +22,18 @@ definitions:
     x-enum-varnames:
     - ProviderLocal
     - ProviderGithub
+  enums.ScmCredentialType:
+    enum:
+    - ssh
+    - token
+    - username
+    - none
+    type: string
+    x-enum-varnames:
+    - ScmCredentialTypeSsh
+    - ScmCredentialTypeToken
+    - ScmCredentialTypeUsername
+    - ScmCredentialTypeNone
   enums.TaskCommonStatus:
     enum:
     - Pending
@@ -42,6 +54,40 @@ definitions:
     x-enum-varnames:
     - VisibilityPrivate
     - VisibilityPublic
+  enums.WebhookResourceAction:
+    enum:
+    - create
+    - update
+    - delete
+    - add
+    - remove
+    - pull
+    - push
+    type: string
+    x-enum-varnames:
+    - WebhookResourceActionCreate
+    - WebhookResourceActionUpdate
+    - WebhookResourceActionDelete
+    - WebhookResourceActionAdd
+    - WebhookResourceActionRemove
+    - WebhookResourceActionPull
+    - WebhookResourceActionPush
+  enums.WebhookResourceType:
+    enum:
+    - ping
+    - namespace
+    - repository
+    - tag
+    - artifact
+    - member
+    type: string
+    x-enum-varnames:
+    - WebhookResourceTypePing
+    - WebhookResourceTypeNamespace
+    - WebhookResourceTypeRepository
+    - WebhookResourceTypeTag
+    - WebhookResourceTypeArtifact
+    - WebhookResourceTypeMember
   types.CommonList:
     properties:
       items:
@@ -98,6 +144,89 @@ definitions:
       username:
         type: string
     type: object
+  types.GetWebhookLogResponse:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceAction'
+        example: action
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      event:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceType'
+        example: event
+      id:
+        example: 1
+        type: integer
+      req_body:
+        example: ""
+        type: string
+      req_header:
+        example: ""
+        type: string
+      resp_body:
+        example: ""
+        type: string
+      resp_header:
+        example: ""
+        type: string
+      status_code:
+        example: 200
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetWebhookResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      enable:
+        example: true
+        type: boolean
+      event_artifact:
+        example: true
+        type: boolean
+      event_member:
+        example: true
+        type: boolean
+      event_namespace:
+        example: true
+        type: boolean
+      event_repository:
+        example: true
+        type: boolean
+      event_tag:
+        example: true
+        type: boolean
+      id:
+        example: 1
+        type: integer
+      namespace_id:
+        example: 1
+        type: integer
+      retry_duration:
+        example: 5
+        type: integer
+      retry_times:
+        example: 3
+        type: integer
+      secret:
+        example: secret
+        type: string
+      ssl_verify:
+        example: true
+        type: boolean
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      url:
+        example: http://example.com/webhook
+        type: string
+    type: object
   types.NamespaceItem:
     properties:
       created_at:
@@ -137,6 +266,38 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.Visibility'
         example: private
+    type: object
+  types.PostBuilderRequestSwagger:
+    properties:
+      scm_branch:
+        example: main
+        type: string
+      scm_credential_type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: ssh
+      scm_depth:
+        example: 0
+        type: integer
+      scm_password:
+        example: sigma
+        type: string
+      scm_repository:
+        description: ScmProvider       enums.ScmProvider       `json:"scm_provider"`
+        example: https://github.com/go-sigma/sigma.git
+        type: string
+      scm_ssh_key:
+        example: xxxx
+        type: string
+      scm_submodule:
+        example: false
+        type: boolean
+      scm_token:
+        example: xxxx
+        type: string
+      scm_username:
+        example: sigma
+        type: string
     type: object
   types.PostNamespaceRequest:
     properties:
@@ -228,6 +389,53 @@ definitions:
         example: eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJYSW1hZ2VyIiwic3ViIjoieGltYWdlciIsImV4cCI6MTY4OTUwNDcxMSwibmJmIjoxNjg5NTAxMTExLCJpYXQiOjE2ODk1MDExMTEsImp0aSI6ImIxYTRmMGQ1LWNlNTUtNGU3ZS1hYjY1LWRhNTZiMDhhNjg2YSIsImRhdCI6InhpbWFnZXIifQ.cjuIJVnLl9yFB9zhv0KPZUq_M1Mb-tiyjHQXYowRAROEdu5t6HHYnFnl348IYFg51vGDh7ROBp1-pZIQJ5gCyM4rTuoYZneS7NPtb8sFjch3dDotVDXSpbppdkXZAPvEIwXKDKcmyMCsAAgep4A6gVeQ07RthUbITahCG3-ssF9NTojDgIyKysReju3BV5FOh_lbBwNXmfBnRUV11w8eApAuLEJhdNM_W50BdoHvUHAbwblDmanNonc9zAkzcQQZqndCNZJJ2hee7ZqOSByWDtxnLB5zbvLBV76BJf6EAW8zTYDW9fxWwSydhvmo5bSxgcI4LFzloUXO-Mj1TWVg2Lvjf3vAkmdYUxD8fhxE7x49i02TN4ohwtr3jI27vOh4Jv4FgMbu2SkZTVrfQ7ySpcWgX-UC2egXSs2fwpwoPyDZn4LmnDTZX4_PLqz7IgoeusrpFzHnfKD_mf3q-xq1ugJoNQRFWXFpF9fhWmYPsefoKlU349ZVqHg19QT2sFnSJBHWqL92NAr75vzUxxmxN61ZpXU70xZ54-qXMsu1V2jyGQl2wlFDPPb8jUWEh9cY_EmEarFAJPCBTAaxhdTpe8lR7b4WcbHtGu2zDQYpDvNOL7NKTLzjzn1COewvE2jkf0m9fL-u3RzrEIfo4eLBSBbUrrnpFit7CQFzxUZF5u9IWaSuicqwy7KoFt3PazsvQNYi9DYoGi5TVuI2EtdWYCSA09J5rL3GKkUkwZT0yMrea21xR9tpBU4LvJLM00bXYXLQGwISoSQ30pLGJiOskDADMrF-Wfg7JZi1KiUyA8jNgNebOw9VVBYxR7h33vKNDJPI2dZsqOYAwXqaTQTdJAm888yrpBRt22s2lsWhUBmvRgHpDFUHKUQHTFNZNOi_CeL4YTaoWhcS9j6ydtrteDz3gw783hY9_kSnER0GiYZNyMPMJYcQTteeESwCP0_eRgZDtc7jFU2ZDFSWshzWk7M53YQvuSw9j3r5l3yJ88qYLgJoqnLgGBHOfdz5zkzJkECEXzbmb05JB7cnJUNgg_AJSpI38P7906JBXsBmgXpjqDyFdYn89NbqGZqwcyKEquvEtDfdSAIAqlbVT-g8lkC14T3YD-CJwhK7u3lB-bFAASOdb4xjz5hcL9C7KoElMNGxuK0r-7bDYBVqQVSt_jqbAPufx3fgpz8D-S-43DkN7ZIZTCaLrocNZjgT74KXlCzBYnPgTAOvPxOPzOUxrwgXLKbloKSWSAr8eOEgR2bdF8WFI7NG6WunlJp55v9yc5KTTeuaoDQGZhuVzAH5A05NtDDerT7KHeoiI2_q9s_VrY6J1er6bWq2VI46iYl339ozgje10RCDWCbWzWiGeg
         type: string
     type: object
+  types.PostWebhookRequestSwagger:
+    properties:
+      enable:
+        example: true
+        type: boolean
+      event_artifact:
+        example: true
+        type: boolean
+      event_member:
+        example: true
+        type: boolean
+      event_namespace:
+        example: true
+        type: boolean
+      event_repository:
+        example: true
+        type: boolean
+      event_tag:
+        example: true
+        type: boolean
+      namespace_id:
+        example: 1
+        type: integer
+      retry_duration:
+        example: 5
+        type: integer
+      retry_times:
+        example: 3
+        type: integer
+      secret:
+        example: secret
+        maxLength: 63
+        type: string
+      ssl_verify:
+        example: true
+        type: boolean
+      url:
+        example: http://example.com/webhook
+        maxLength: 128
+        type: string
+    required:
+    - enable
+    - retry_duration
+    - retry_times
+    - ssl_verify
+    - url
+    type: object
   types.PutNamespaceRequestSwagger:
     properties:
       description:
@@ -265,6 +473,44 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.Visibility'
         example: public
+    type: object
+  types.PutWebhookRequestSwagger:
+    properties:
+      enable:
+        example: true
+        type: boolean
+      event_artifact:
+        example: true
+        type: boolean
+      event_member:
+        example: true
+        type: boolean
+      event_namespace:
+        example: true
+        type: boolean
+      event_repository:
+        example: true
+        type: boolean
+      event_tag:
+        example: true
+        type: boolean
+      retry_duration:
+        example: 5
+        type: integer
+      retry_times:
+        example: 3
+        type: integer
+      secret:
+        example: secret
+        maxLength: 63
+        type: string
+      ssl_verify:
+        example: true
+        type: boolean
+      url:
+        example: http://example.com/webhook
+        maxLength: 128
+        type: string
     type: object
   types.RepositoryItem:
     properties:
@@ -485,6 +731,44 @@ info:
   title: sigma API
   version: "1.0"
 paths:
+  /builders:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: create builder for repository
+        in: query
+        name: repository_id
+        required: true
+        type: integer
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostBuilderRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a builder for repository
+      tags:
+      - Builder
   /daemons/{daemon}/:
     get:
       consumes:
@@ -1293,6 +1577,81 @@ paths:
       summary: validate reference
       tags:
       - Validator
+  /webhook/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Webhook object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutWebhookRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update a webhook
+      tags:
+      - Webhook
+  /webhooks:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: create webhook for namespace
+        in: query
+        name: namespace_id
+        type: integer
+      - description: Webhook object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostWebhookRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a webhook
+      tags:
+      - Webhook
   /webhooks/:
     get:
       consumes:
@@ -1325,7 +1684,7 @@ paths:
       - description: filter by namespace id
         in: query
         name: namespace_id
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -1351,6 +1710,43 @@ paths:
       security:
       - BasicAuth: []
       summary: List webhooks
+      tags:
+      - Webhook
+  /webhooks/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GetWebhookResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get a webhook
       tags:
       - Webhook
   /webhooks/{webhook_id}/logs:
@@ -1412,6 +1808,48 @@ paths:
       security:
       - BasicAuth: []
       summary: List webhook logs
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/logs/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - description: Webhook log id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GetWebhookLogResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get a webhook log
       tags:
       - Webhook
 securityDefinitions:

@@ -33,9 +33,9 @@ import (
 func TestFallbackProxy(t *testing.T) {
 	var wwwAuthenticate string
 
-	cUsername := "ximager"
-	cPassword := "ximager"
-	token := "ximager"
+	cUsername := "sigma"
+	cPassword := "sigma"
+	token := "sigma"
 	service := "registry.docker.io"
 	scope := "repository:library/alpine:pull"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

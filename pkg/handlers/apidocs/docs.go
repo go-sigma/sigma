@@ -23,6 +23,66 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/builders": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Builder"
+                ],
+                "summary": "Create a builder for repository",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "create builder for repository",
+                        "name": "repository_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Builder object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostBuilderRequestSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/daemons/{daemon}/": {
             "get": {
                 "consumes": [
@@ -1299,6 +1359,125 @@ const docTemplate = `{
                 }
             }
         },
+        "/webhook/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Update a webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Webhook id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Webhook object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PutWebhookRequestSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/webhooks": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Create a webhook",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "create webhook for namespace",
+                        "name": "namespace_id",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Webhook object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostWebhookRequestSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/webhooks/": {
             "get": {
                 "security": [
@@ -1351,7 +1530,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "filter by namespace id",
                         "name": "namespace_id",
                         "in": "query"
@@ -1372,6 +1551,69 @@ const docTemplate = `{
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/definitions/types.WebhookItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/webhooks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Get a webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Webhook id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GetWebhookResponse"
                                             }
                                         }
                                     }
@@ -1489,6 +1731,76 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/webhooks/{webhook_id}/logs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Get a webhook log",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Webhook id",
+                        "name": "webhook_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Webhook log id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GetWebhookLogResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1520,6 +1832,21 @@ const docTemplate = `{
                 "ProviderGithub"
             ]
         },
+        "enums.ScmCredentialType": {
+            "type": "string",
+            "enum": [
+                "ssh",
+                "token",
+                "username",
+                "none"
+            ],
+            "x-enum-varnames": [
+                "ScmCredentialTypeSsh",
+                "ScmCredentialTypeToken",
+                "ScmCredentialTypeUsername",
+                "ScmCredentialTypeNone"
+            ]
+        },
         "enums.TaskCommonStatus": {
             "type": "string",
             "enum": [
@@ -1544,6 +1871,46 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "VisibilityPrivate",
                 "VisibilityPublic"
+            ]
+        },
+        "enums.WebhookResourceAction": {
+            "type": "string",
+            "enum": [
+                "create",
+                "update",
+                "delete",
+                "add",
+                "remove",
+                "pull",
+                "push"
+            ],
+            "x-enum-varnames": [
+                "WebhookResourceActionCreate",
+                "WebhookResourceActionUpdate",
+                "WebhookResourceActionDelete",
+                "WebhookResourceActionAdd",
+                "WebhookResourceActionRemove",
+                "WebhookResourceActionPull",
+                "WebhookResourceActionPush"
+            ]
+        },
+        "enums.WebhookResourceType": {
+            "type": "string",
+            "enum": [
+                "ping",
+                "namespace",
+                "repository",
+                "tag",
+                "artifact",
+                "member"
+            ],
+            "x-enum-varnames": [
+                "WebhookResourceTypePing",
+                "WebhookResourceTypeNamespace",
+                "WebhookResourceTypeRepository",
+                "WebhookResourceTypeTag",
+                "WebhookResourceTypeArtifact",
+                "WebhookResourceTypeMember"
             ]
         },
         "types.CommonList": {
@@ -1629,6 +1996,124 @@ const docTemplate = `{
                 }
             }
         },
+        "types.GetWebhookLogResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookResourceAction"
+                        }
+                    ],
+                    "example": "action"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "event": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookResourceType"
+                        }
+                    ],
+                    "example": "event"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "req_body": {
+                    "type": "string",
+                    "example": ""
+                },
+                "req_header": {
+                    "type": "string",
+                    "example": ""
+                },
+                "resp_body": {
+                    "type": "string",
+                    "example": ""
+                },
+                "resp_header": {
+                    "type": "string",
+                    "example": ""
+                },
+                "status_code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetWebhookResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "enable": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_member": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_namespace": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_repository": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_tag": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "retry_duration": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "retry_times": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "secret": {
+                    "type": "string",
+                    "example": "secret"
+                },
+                "ssl_verify": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "http://example.com/webhook"
+                }
+            }
+        },
         "types.NamespaceItem": {
             "type": "object",
             "properties": {
@@ -1683,6 +2168,52 @@ const docTemplate = `{
                         }
                     ],
                     "example": "private"
+                }
+            }
+        },
+        "types.PostBuilderRequestSwagger": {
+            "type": "object",
+            "properties": {
+                "scm_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "scm_credential_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmCredentialType"
+                        }
+                    ],
+                    "example": "ssh"
+                },
+                "scm_depth": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "scm_password": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "scm_repository": {
+                    "description": "ScmProvider       enums.ScmProvider       ` + "`" + `json:\"scm_provider\"` + "`" + `",
+                    "type": "string",
+                    "example": "https://github.com/go-sigma/sigma.git"
+                },
+                "scm_ssh_key": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_submodule": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "scm_token": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_username": {
+                    "type": "string",
+                    "example": "sigma"
                 }
             }
         },
@@ -1817,6 +2348,68 @@ const docTemplate = `{
                 }
             }
         },
+        "types.PostWebhookRequestSwagger": {
+            "type": "object",
+            "required": [
+                "enable",
+                "retry_duration",
+                "retry_times",
+                "ssl_verify",
+                "url"
+            ],
+            "properties": {
+                "enable": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_member": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_namespace": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_repository": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_tag": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "retry_duration": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "retry_times": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "secret": {
+                    "type": "string",
+                    "maxLength": 63,
+                    "example": "secret"
+                },
+                "ssl_verify": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "url": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "example": "http://example.com/webhook"
+                }
+            }
+        },
         "types.PutNamespaceRequestSwagger": {
             "type": "object",
             "properties": {
@@ -1871,6 +2464,57 @@ const docTemplate = `{
                         }
                     ],
                     "example": "public"
+                }
+            }
+        },
+        "types.PutWebhookRequestSwagger": {
+            "type": "object",
+            "properties": {
+                "enable": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_member": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_namespace": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_repository": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_tag": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "retry_duration": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "retry_times": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "secret": {
+                    "type": "string",
+                    "maxLength": 63,
+                    "example": "secret"
+                },
+                "ssl_verify": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "url": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "example": "http://example.com/webhook"
                 }
             }
         },

@@ -70,6 +70,6 @@ var distributionCmd = &cobra.Command{
 }
 
 func init() {
-	distributionCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/ximager/ximager.yaml)")
+	distributionCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
 	rootCmd.AddCommand(distributionCmd)
 }

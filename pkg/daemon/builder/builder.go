@@ -89,8 +89,8 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 			ScmSubmodule:      builderObj.ScmSubmodule,
 
 			OciRegistryDomain:   []string{"192.168.31.114:3000"},
-			OciRegistryUsername: []string{"ximager"},
-			OciRegistryPassword: []string{"ximager"},
+			OciRegistryUsername: []string{"sigma"},
+			OciRegistryPassword: []string{"sigma"},
 			OciName:             "192.168.31.114:3000/library/test:dev",
 
 			BuildkitInsecureRegistries: []string{"192.168.31.114:3000@http"},

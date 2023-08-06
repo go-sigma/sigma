@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//go:generate mockgen -destination=mocks/password.go -package=mocks github.com/ximager/ximager/pkg/utils/password Password
+//go:generate mockgen -destination=mocks/password.go -package=mocks github.com/go-sigma/sigma/pkg/utils/password Password
 
 // Password is an interface for password hashing
 // nolint: revive
