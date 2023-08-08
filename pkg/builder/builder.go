@@ -20,7 +20,10 @@ import (
 	"io"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
+
 	builderlogger "github.com/go-sigma/sigma/pkg/builder/logger"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/crypt"
@@ -47,7 +50,7 @@ var Driver Builder
 
 // Factory is the interface for the builder driver factory
 type Factory interface {
-	New() (Builder, error)
+	New(config configs.Configuration) (Builder, error)
 }
 
 // DriverFactories ...
@@ -60,7 +63,7 @@ func Initialize() error {
 		return fmt.Errorf("builder driver %q not registered", typ)
 	}
 	var err error
-	Driver, err = factory.New()
+	Driver, err = factory.New(configs.Configuration{})
 	if err != nil {
 		return err
 	}
@@ -112,4 +115,18 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 	}
 
 	return buildConfigEnvs
+}
+
+// BuildK8sEnv ...
+func BuildK8sEnv(builderConfig BuilderConfig) []corev1.EnvVar {
+	envs := BuildEnv(builderConfig)
+	var k8sEnvs = make([]corev1.EnvVar, 0, len(envs))
+	for _, env := range envs {
+		s := strings.SplitN(env, "=", 2)
+		k8sEnvs = append(k8sEnvs, corev1.EnvVar{
+			Name:  s[0],
+			Value: s[1],
+		})
+	}
+	return k8sEnvs
 }

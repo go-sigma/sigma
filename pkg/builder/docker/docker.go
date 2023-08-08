@@ -32,6 +32,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 )
@@ -45,7 +46,7 @@ type factory struct{}
 var _ builder.Factory = factory{}
 
 // New returns a new filesystem storage driver
-func (f factory) New() (builder.Builder, error) {
+func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, fmt.Errorf("Create docker client failed: %v", err)

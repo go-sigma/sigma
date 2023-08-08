@@ -39,6 +39,21 @@ type Configuration struct {
 	Proxy     ConfigurationProxy     `yaml:"proxy"`
 	Daemon    ConfigurationDaemon    `yaml:"daemon"`
 	Auth      ConfigurationAuth      `yaml:"auth"`
+	Builder   ConfigurationBuilder   `yaml:"builder"`
+}
+
+type ConfigurationBuilder struct {
+	Type   string                     `yaml:"type"`
+	K8s    ConfigurationBuilderK8s    `yaml:"k8s"`
+	Docker ConfigurationBuilderDocker `yaml:"docker"`
+}
+
+type ConfigurationBuilderK8s struct {
+	Kubeconfig string `yaml:"kubeconfig"`
+	Namespace  string `yaml:"namespace"`
+}
+
+type ConfigurationBuilderDocker struct {
 }
 
 // ConfigurationLog ...
