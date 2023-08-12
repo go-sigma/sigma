@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -58,7 +57,6 @@ func initUser() error {
 		return err
 	}
 	internalUser := &models.User{
-		Provider: enums.ProviderLocal,
 		Username: internalUserUsername,
 		Password: ptr.Of(internalUserPasswordHashed),
 		Email:    ptr.Of("internal-fake@gmail.com"),
@@ -85,7 +83,6 @@ func initUser() error {
 		adminUserEmail = "fake@gmail.com"
 	}
 	adminUser := &models.User{
-		Provider: enums.ProviderLocal,
 		Username: adminUserUsername,
 		Password: ptr.Of(adminUserPasswordHashed),
 		Email:    ptr.Of(adminUserEmail),

@@ -29,11 +29,30 @@ type User struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Provider          enums.Provider `gorm:"default:local"`
-	ProviderAccountID *string
-	Username          string
-	Password          *string
-	Email             *string
+	Username string
+	Password *string
+	Email    *string
+}
+
+// User3rdParty ...
+type User3rdParty struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	UserID       int64
+	Provider     enums.Provider
+	AccountID    *string
+	Token        *string
+	RefreshToken *string
+
+	User User
+}
+
+// TableName ...
+func (User3rdParty) TableName() string {
+	return "user_3rdparty"
 }
 
 type UserRecoverCode struct {

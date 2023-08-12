@@ -33,12 +33,13 @@ var tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
 // topics all daemon topics
 var topics = map[enums.Daemon]string{
-	enums.DaemonSbom:          consts.TopicSbom,
-	enums.DaemonVulnerability: consts.TopicVulnerability,
-	enums.DaemonGc:            consts.TopicGc,
-	enums.DaemonGcRepository:  consts.TopicGcRepository,
-	enums.DaemonWebhook:       consts.TopicWebhook,
-	enums.DaemonBuilder:       consts.TopicBuilder,
+	enums.DaemonSbom:           consts.TopicSbom,
+	enums.DaemonVulnerability:  consts.TopicVulnerability,
+	enums.DaemonGc:             consts.TopicGc,
+	enums.DaemonGcRepository:   consts.TopicGcRepository,
+	enums.DaemonWebhook:        consts.TopicWebhook,
+	enums.DaemonBuilder:        consts.TopicBuilder,
+	enums.DaemonCodeRepository: consts.TopicCodeRepository,
 }
 
 var (

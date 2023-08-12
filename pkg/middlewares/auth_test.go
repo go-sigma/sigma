@@ -16,6 +16,7 @@ package middlewares
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,10 +28,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -125,9 +128,14 @@ func TestAuthWithConfig(t *testing.T) {
 	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
 	assert.NoError(t, err)
 
-	token, err := tokenService.New(&models.User{
-		Username: "sigma",
-	}, time.Hour)
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+	ctx := context.Background()
+	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+
+	token, err := tokenService.New(userObj.ID, time.Hour)
 	assert.NoError(t, err)
 	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)
 	rec2 := httptest.NewRecorder()

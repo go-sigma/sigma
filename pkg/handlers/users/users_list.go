@@ -61,7 +61,6 @@ func (h *handlers) List(c echo.Context) error {
 	for _, o := range userObjs {
 		resp = append(resp, types.GetUserItem{
 			ID:       o.ID,
-			Provider: o.Provider,
 			Username: o.Username,
 			Email:    ptr.To(o.Email),
 

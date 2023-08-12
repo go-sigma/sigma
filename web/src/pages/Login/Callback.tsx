@@ -16,10 +16,10 @@
 
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import Toast from "../../components/Notification";
-import { IHTTPError, IUserLoginResponse } from "../../interfaces";
+import { IHTTPError, IUserSelf, IUserLoginResponse } from "../../interfaces";
 
 import "./index.css";
 
@@ -30,6 +30,9 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [requestDone, setRequestDone] = useState(false);
   const [success, setSuccess] = useState(true);
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     if (code == "") {
@@ -42,6 +45,8 @@ export default function ({ localServer }: { localServer: string }) {
         let resp = response.data as IUserLoginResponse;
         localStorage.setItem("token", resp.token);
         localStorage.setItem("refresh_token", resp.refresh_token);
+        setUsername(resp.username);
+        setEmail(resp.email);
         setSuccess(true);
         setTimeout(() => { setRequestDone(true); }, 500)
       } else {
@@ -49,7 +54,10 @@ export default function ({ localServer }: { localServer: string }) {
         if (token !== "") {
           axios.get(localServer + "/api/v1/users/self").then(response => {
             if (response.status === 200) {
+              const user = response.data as IUserSelf;
               setSuccess(true);
+              setUsername(user.username);
+              setEmail(user.email);
               setTimeout(() => { setRequestDone(true); }, 500)
             } else {
               const errorcode = response.data as IHTTPError;
@@ -75,7 +83,10 @@ export default function ({ localServer }: { localServer: string }) {
       if (token !== "") {
         axios.get(localServer + "/api/v1/users/self").then(response => {
           if (response.status === 200) {
+            const user = response.data as IUserSelf;
             setSuccess(true);
+            setUsername(user.username);
+            setEmail(user.email);
             setTimeout(() => { setRequestDone(true); }, 500)
           } else {
             const errorcode = response.data as IHTTPError;
@@ -97,6 +108,24 @@ export default function ({ localServer }: { localServer: string }) {
       }
     });
   }, [code]);
+
+  const selfUpdate = () => {
+    let url = localServer + "/api/v1/users/self";
+    axios.put(url, {
+      username: username,
+      email: email,
+    }).then(response => {
+      if (response.status === 202) {
+        window.location.assign("/");
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
 
   return (
     <div className="bg-white min-h-screen flex items-center">
@@ -130,19 +159,64 @@ export default function ({ localServer }: { localServer: string }) {
                   <div className="mt-10 flex items-center justify-center gap-x-6">
                     {
                       success ? (
-                        <button
-                          // to={{ pathname: "/", search: "a=b" }}
-                          // to={localServer === "" ? "/" : `${location.protocol}//${location.host}/#/about`}
-                          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                          onClick={() => {
-                            window.location.assign("/");
-                          }}
-                        >
-                          Go to dashboard
-                        </button>
+                        <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12 min-w-[400px]">
+                          <div className="space-y-6 text-left" >
+                            <div>
+                              <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+                                Username
+                              </label>
+                              <div className="mt-2">
+                                <input
+                                  id="username"
+                                  name="username"
+                                  type="text"
+                                  value={username}
+                                  required
+                                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  onChange={e => {
+                                    setUsername(e.target.value);
+                                  }}
+                                />
+                              </div>
+                              <div className="h-1">
+                                <p className="text-red-600 text-sm">xxx</p>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
+                                Email
+                              </label>
+                              <div className="mt-2">
+                                <input
+                                  id="email"
+                                  name="email"
+                                  type="email"
+                                  required
+                                  value={email}
+                                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  onChange={(e) => {
+                                    setEmail(e.target.value);
+                                  }}
+                                />
+                              </div>
+                              <div className="h-1">
+                                <p className="text-red-600 text-sm">xxx</p>
+                              </div>
+                            </div>
+
+                            <div>
+                              <button
+                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                onClick={selfUpdate}
+                              >
+                                Submit
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <button
-                          // to={localServer === "" ? "/login" : `${location.protocol}//${location.host}#/login`}
                           className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                           onClick={() => {
                             window.location.assign("/#/login");
@@ -172,7 +246,7 @@ export default function ({ localServer }: { localServer: string }) {
             }}
           />
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }

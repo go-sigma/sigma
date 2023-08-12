@@ -1634,6 +1634,49 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Delete a webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Webhook id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
             }
         },
         "/webhooks/{webhook_id}/logs": {
@@ -1821,17 +1864,6 @@ const docTemplate = `{
                 "AuditActionPush"
             ]
         },
-        "enums.Provider": {
-            "type": "string",
-            "enum": [
-                "local",
-                "github"
-            ],
-            "x-enum-varnames": [
-                "ProviderLocal",
-                "ProviderGithub"
-            ]
-        },
         "enums.ScmCredentialType": {
             "type": "string",
             "enum": [
@@ -1983,9 +2015,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
-                },
-                "provider": {
-                    "$ref": "#/definitions/enums.Provider"
                 },
                 "updated_at": {
                     "type": "string",

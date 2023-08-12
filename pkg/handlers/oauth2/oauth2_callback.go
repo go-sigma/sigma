@@ -15,7 +15,6 @@
 package oauth2
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,7 +29,10 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -50,7 +52,7 @@ func (h *handlers) Callback(c echo.Context) error {
 	}
 
 	var conf *oauth2.Config
-	switch req.Provider { // nolint: gocritic
+	switch req.Provider {
 	case enums.ProviderGithub:
 		conf = &oauth2.Config{
 			ClientID:     viper.GetString("auth.oauth2.github.clientId"),
@@ -58,6 +60,24 @@ func (h *handlers) Callback(c echo.Context) error {
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://github.com/login/oauth/authorize",
 				TokenURL: "https://github.com/login/oauth/access_token",
+			},
+		}
+	case enums.ProviderGitlab:
+		conf = &oauth2.Config{
+			ClientID:     viper.GetString("auth.oauth2.gitlab.clientId"),
+			ClientSecret: viper.GetString("auth.oauth2.gitlab.clientSecret"),
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://gitlab.com/oauth/authorize",
+				TokenURL: "https://gitlab.com/oauth/token",
+			},
+		}
+	case enums.ProviderGitea:
+		conf = &oauth2.Config{
+			ClientID:     viper.GetString("auth.oauth2.gitea.clientId"),
+			ClientSecret: viper.GetString("auth.oauth2.gitea.clientSecret"),
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://gitlab.com/oauth/authorize",
+				TokenURL: "https://gitlab.com/oauth/token",
 			},
 		}
 	}
@@ -74,51 +94,49 @@ func (h *handlers) Callback(c echo.Context) error {
 
 	client := conf.Client(ctx, oauth2Token)
 
-	var rReq *http.Request
-	switch req.Provider { // nolint: gocritic
-	case enums.ProviderGithub:
-		rReq, err = http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
-	}
-	if err != nil {
-		log.Error().Err(err).Str("platform", string(req.Provider)).Str("code", req.Code).Msg("Create request failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-	resp, err := client.Do(rReq)
-	if err != nil {
-		log.Error().Err(err).Str("platform", string(req.Provider)).Str("code", req.Code).Msg("Request user info failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-	if resp.StatusCode != 200 {
-		log.Error().Err(err).Str("platform", string(req.Provider)).Str("code", req.Code).Msg("Request user info failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
 	var userInfo types.Oauth2UserInfo
-	switch req.Provider { // nolint: gocritic
+
+	switch req.Provider {
 	case enums.ProviderGithub:
-		var user github.User
-		err = json.NewDecoder(resp.Body).Decode(&user)
+		user, _, err := github.NewClient(client).Users.Get(ctx, "")
 		if err != nil {
-			log.Error().Err(err).Msg("Decode user info failed")
+			log.Error().Err(err).Msg("Get user info failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 		}
 		userInfo = types.Oauth2UserInfo{
-			Provider: req.Provider,
-			ID:       strconv.FormatInt(user.GetID(), 10),
-			Username: user.GetLogin(),
-			Email:    user.GetEmail(),
+			Provider:     req.Provider,
+			ID:           strconv.FormatInt(user.GetID(), 10),
+			Username:     user.GetLogin(),
+			Email:        user.GetEmail(),
+			Token:        oauth2Token.AccessToken,
+			RefreshToken: oauth2Token.RefreshToken,
 		}
+	case enums.ProviderGitlab:
+		// gitlab.NewOAuthClient(oauth2Token.AccessToken, gitlab.WithBaseURL(""))
+	case enums.ProviderGitea:
+		// gitea.NewClient("", gitea.SetHTTPClient(client))
 	}
 
 	var userExist = true
 
 	userService := h.userServiceFactory.New()
-	userObj, err := userService.GetByProvider(ctx, req.Provider, userInfo.ID)
+	user3rdPartyObj, err := userService.GetByProvider(ctx, req.Provider, userInfo.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			userExist = false
 		} else {
 			log.Error().Err(err).Msg("Get user by provider failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		}
+	}
+
+	if userExist {
+		err = userService.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
+			query.User3rdParty.Token.ColumnName().String():        oauth2Token.AccessToken,
+			query.User3rdParty.RefreshToken.ColumnName().String(): oauth2Token.RefreshToken,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Update user 3rdparty failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 		}
 	}
@@ -137,35 +155,44 @@ func (h *handlers) Callback(c echo.Context) error {
 		if usernameExist {
 			userInfo.Username = fmt.Sprintf("%s-%s", userInfo.Username, gonanoid.Must(6))
 		}
-		userObj = &models.User{
-			Provider:          req.Provider,
-			ProviderAccountID: ptr.Of(userInfo.ID),
-			Username:          userInfo.Username,
-			Email:             ptr.Of(userInfo.Email),
+		user3rdPartyObj = &models.User3rdParty{
+			Provider:     req.Provider,
+			AccountID:    ptr.Of(userInfo.ID),
+			Token:        ptr.Of(userInfo.Token),
+			RefreshToken: ptr.Of(userInfo.RefreshToken),
+			User: models.User{
+				Username: userInfo.Username,
+				Email:    ptr.Of(userInfo.Email),
+			},
 		}
-		err = userService.Create(ctx, userObj)
+		err = userService.CreateUser3rdParty(ctx, user3rdPartyObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create user failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 		}
 	}
 
-	refreshToken, err := h.tokenService.New(userObj, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(userObj, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.refreshTtl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
+	err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_id": %d}`, user3rdPartyObj.ID)))
+	if err != nil {
+		log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
+	}
+
 	return c.JSON(http.StatusOK, types.Oauth2CallbackResponse{
-		ID:           userObj.ID,
-		Username:     userObj.Username,
-		Email:        ptr.To(userObj.Email),
+		ID:           user3rdPartyObj.User.ID,
+		Username:     user3rdPartyObj.User.Username,
+		Email:        ptr.To(user3rdPartyObj.User.Email),
 		RefreshToken: refreshToken,
 		Token:        token,
 	})

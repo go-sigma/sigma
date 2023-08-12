@@ -29,7 +29,11 @@ func main() {
 
 	g.ApplyBasic(
 		models.User{},
+		models.User3rdParty{},
 		models.UserRecoverCode{},
+		models.CodeRepository{},
+		models.CodeRepositoryOwner{},
+		models.CodeRepositoryCloneCredential{},
 		models.Audit{},
 		models.Namespace{},
 		models.Repository{},

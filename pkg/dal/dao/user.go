@@ -33,10 +33,16 @@ import (
 
 // UserService is the interface that provides the user service methods.
 type UserService interface {
+	// Get get user by id.
+	Get(ctx context.Context, id int64) (*models.User, error)
 	// GetByUsername gets the user with the specified user name.
 	GetByUsername(ctx context.Context, username string) (*models.User, error)
 	// Create creates a new user.
 	Create(ctx context.Context, user *models.User) error
+	// CreateUser3rdParty create a new 3rdparty user.
+	CreateUser3rdParty(ctx context.Context, user3rdParty *models.User3rdParty) error
+	// UpdateUser3rdParty update 3rdParty user
+	UpdateUser3rdParty(ctx context.Context, id int64, updates map[string]any) error
 	// List all users with pagination
 	List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// UpdateByID updates the namespace with the specified namespace ID.
@@ -44,7 +50,9 @@ type UserService interface {
 	// Count gets the total number of users.
 	Count(ctx context.Context) (int64, error)
 	// GetByProvider gets the user with the specified oauth2 provider.
-	GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User, error)
+	GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error)
+	// GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
+	GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error)
 	// GetRecoverCodeByUserID gets the recover code with the specified user id.
 	GetRecoverCodeByUserID(ctx context.Context, userID int64) (*models.UserRecoverCode, error)
 	// GetByRecoverCode gets the user with the specified recover code.
@@ -84,6 +92,11 @@ func (f *userServiceFactory) New(txs ...*query.Query) UserService {
 
 var _ UserServiceFactory = &userServiceFactory{}
 
+// Get get user by id.
+func (s *userService) Get(ctx context.Context, id int64) (*models.User, error) {
+	return s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(id)).First()
+}
+
 // GetByUsername gets the user with the specified user name.
 func (s *userService) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	return s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Eq(username)).First()
@@ -92,6 +105,26 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 // Create creates a new user.
 func (s *userService) Create(ctx context.Context, user *models.User) error {
 	return s.tx.User.WithContext(ctx).Create(user)
+}
+
+// CreateUser3rdParty create a new 3rdparty user.
+func (s *userService) CreateUser3rdParty(ctx context.Context, user3rdParty *models.User3rdParty) error {
+	return s.tx.User3rdParty.WithContext(ctx).Create(user3rdParty)
+}
+
+// UpdateUser3rdParty update 3rdParty user
+func (s *userService) UpdateUser3rdParty(ctx context.Context, id int64, updates map[string]any) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	matched, err := s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(id)).Updates(updates)
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // List all users with pagination
@@ -123,8 +156,15 @@ func (s *userService) Count(ctx context.Context) (int64, error) {
 }
 
 // GetByProvider gets the user with the specified oauth2 provider.
-func (s *userService) GetByProvider(ctx context.Context, platform enums.Provider, accountID string) (*models.User, error) {
-	return s.tx.User.WithContext(ctx).Where(s.tx.User.Provider.Eq(platform), s.tx.User.ProviderAccountID.Eq(accountID)).First()
+func (s *userService) GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error) {
+	return s.tx.User3rdParty.WithContext(ctx).
+		Where(s.tx.User3rdParty.Provider.Eq(provider), s.tx.User3rdParty.AccountID.Eq(accountID)).
+		Preload(s.tx.User3rdParty.User).First()
+}
+
+// GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
+func (s *userService) GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error) {
+	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(userID)).First()
 }
 
 // GetRecoverCodeByUserID gets the recover code with the specified user id.

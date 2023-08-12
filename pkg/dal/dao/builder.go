@@ -23,6 +23,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/builder.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BuilderService
+//go:generate mockgen -destination=mocks/builder_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BuilderServiceFactory
+
 // BuilderService is the interface that provides methods to operate on Builder model
 type BuilderService interface {
 	// Create creates a new builder record in the database

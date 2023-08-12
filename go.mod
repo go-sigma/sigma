@@ -3,17 +3,18 @@ module github.com/go-sigma/sigma
 go 1.19
 
 require (
+	code.gitea.io/sdk/gitea v0.15.1
 	github.com/BurntSushi/toml v1.3.2
-	github.com/alicebob/miniredis/v2 v2.30.4
+	github.com/alicebob/miniredis/v2 v2.30.5
 	github.com/anchore/syft v0.86.1
-	github.com/aquasecurity/trivy v0.44.0
-	github.com/aws/aws-sdk-go v1.44.317
-	github.com/bytedance/sonic v1.10.0-rc3
+	github.com/aquasecurity/trivy v0.44.1
+	github.com/aws/aws-sdk-go v1.44.322
+	github.com/bytedance/sonic v1.10.0
 	github.com/caarlos0/env/v9 v9.0.0
-	github.com/casbin/casbin/v2 v2.73.0
-	github.com/casbin/gorm-adapter/v3 v3.18.0
+	github.com/casbin/casbin/v2 v2.73.1
+	github.com/casbin/gorm-adapter/v3 v3.18.1
 	github.com/deckarep/golang-set/v2 v2.3.1
-	github.com/distribution/distribution/v3 v3.0.0-20230802173126-807a836852c0
+	github.com/distribution/distribution/v3 v3.0.0-20230808081639-69fe1690134c
 	github.com/docker/cli v24.0.5+incompatible
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/dustin/go-humanize v1.0.1
@@ -47,18 +48,19 @@ require (
 	github.com/swaggo/echo-swagger v1.4.0
 	github.com/swaggo/swag v1.16.1
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
-	github.com/tidwall/gjson v1.15.0
+	github.com/tidwall/gjson v1.16.0
 	github.com/wagslane/go-password-validator v0.3.0
+	github.com/xanzy/go-gitlab v0.90.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.12.0
-	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/oauth2 v0.11.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.2
 	gorm.io/gen v0.3.23
-	gorm.io/gorm v1.25.2
-	gorm.io/plugin/dbresolver v1.4.2
+	gorm.io/gorm v1.25.3
+	gorm.io/plugin/dbresolver v1.4.3
 	gorm.io/plugin/soft_delete v1.2.1
 	k8s.io/api v0.27.4
 	k8s.io/client-go v0.27.4
@@ -124,7 +126,10 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

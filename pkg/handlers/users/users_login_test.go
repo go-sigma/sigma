@@ -127,7 +127,7 @@ func TestLoginMockToken(t *testing.T) {
 
 	var times int
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ *models.User, _ time.Duration) (string, error) {
+	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
 		times++
 		if times == 2 {
 			return "test", nil

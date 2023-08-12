@@ -19,6 +19,7 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -27,7 +28,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 )
 
 //go:generate mockgen -destination=mocks/token.go -package=mocks github.com/go-sigma/sigma/pkg/utils/token TokenService
@@ -46,7 +46,7 @@ var (
 type JWTClaims struct {
 	jwt.RegisteredClaims
 
-	Username string `json:"dat"`
+	UID string `json:"uid"`
 }
 
 // Valid validates the claims
@@ -57,9 +57,9 @@ func (j JWTClaims) Valid() error {
 // TokenService is the interface for token service.
 type TokenService interface {
 	// New creates a new token.
-	New(user *models.User, expire time.Duration) (string, error)
+	New(id int64, expire time.Duration) (string, error)
 	// Validate validates the token.
-	Validate(ctx context.Context, token string) (string, string, error)
+	Validate(ctx context.Context, token string) (string, int64, error)
 	// Revoke revokes the token.
 	Revoke(ctx context.Context, id string) error
 }
@@ -94,18 +94,18 @@ func NewTokenService(privateKeyString string) (TokenService, error) {
 }
 
 // New creates a new token.
-func (s *tokenService) New(user *models.User, expire time.Duration) (string, error) {
+func (s *tokenService) New(id int64, expire time.Duration) (string, error) {
 	now := time.Now()
 	claims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.Username,
+			Subject:   strconv.FormatInt(id, 10),
 			Issuer:    consts.AppName,
 			ExpiresAt: jwt.NewNumericDate(now.Add(expire)),
 			NotBefore: jwt.NewNumericDate(now),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        uuid.New().String(),
 		},
-		Username: user.Username,
+		UID: strconv.FormatInt(id, 10),
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS512, claims).SignedString(s.privateKey)
 	if err != nil {
@@ -115,35 +115,39 @@ func (s *tokenService) New(user *models.User, expire time.Duration) (string, err
 }
 
 // Validate validates the token.
-func (s *tokenService) Validate(ctx context.Context, token string) (string, string, error) {
+func (s *tokenService) Validate(ctx context.Context, token string) (string, int64, error) {
 	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return s.publicKey, nil
 	})
 	if err != nil {
-		return "", "", err
+		return "", 0, err
 	}
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok || !jwtToken.Valid {
-		return "", "", fmt.Errorf("invalid token")
+		return "", 0, fmt.Errorf("invalid token")
 	}
-	result, ok := claims["dat"].(string)
+	result, ok := claims["uid"].(string)
 	if !ok {
-		return "", "", fmt.Errorf("invalid token")
+		return "", 0, fmt.Errorf("invalid token")
 	}
 	id, ok := claims["jti"].(string)
 	if !ok {
-		return "", "", fmt.Errorf("invalid token")
+		return "", 0, fmt.Errorf("invalid token")
 	}
 
 	val, err := s.redisCli.Get(ctx, fmt.Sprintf(expireKey, id)).Result()
 	if err != nil && err != redis.Nil {
-		return "", "", err
+		return "", 0, err
 	}
 	if val == expireVal {
-		return "", "", ErrRevoked
+		return "", 0, ErrRevoked
+	}
+	ret, err := strconv.ParseInt(result, 10, 0)
+	if err != nil {
+		return "", 0, fmt.Errorf("invalid token, parse uid(%s) failed: %v", result, err)
 	}
 
-	return id, result, nil
+	return id, ret, nil
 }
 
 // Revoke revokes the token.

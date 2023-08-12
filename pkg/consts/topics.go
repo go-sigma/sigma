@@ -27,4 +27,6 @@ const (
 	TopicWebhook = "webhook"
 	// TopicBuilder is the topic for the builder
 	TopicBuilder = "builder"
+	// TopicCodeRepository is the topic for the code repository
+	TopicCodeRepository = "code_repository"
 )

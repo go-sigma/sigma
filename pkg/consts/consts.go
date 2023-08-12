@@ -54,6 +54,8 @@ const (
 	HotNamespace = 3
 	// WebhookSecretHeader ...
 	WebhookSecretHeader = "X-Sigma-Signature-256" // nolint: gosec
+	// InsertBatchSize ...
+	InsertBatchSize = 100
 )
 
 // UserAgent represents the user agent
@@ -120,4 +122,9 @@ const (
 const (
 	// LockerMigration ...
 	LockerMigration = "locker-migration"
+)
+
+var (
+	// KeepNamespaces ...
+	KeepNamespaces = []string{"api", "v2"}
 )

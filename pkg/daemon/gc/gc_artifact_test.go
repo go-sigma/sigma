@@ -52,7 +52,7 @@ func TestGcArtifact(t *testing.T) {
 	userServiceFactory := dao.NewUserServiceFactory()
 
 	userService := userServiceFactory.New()
-	userObj := &models.User{Provider: enums.ProviderLocal, Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err := userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 

@@ -80,6 +80,20 @@ func (mr *MockUserServiceMockRecorder) CreateRecoverCode(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRecoverCode", reflect.TypeOf((*MockUserService)(nil).CreateRecoverCode), arg0, arg1)
 }
 
+// CreateUser3rdParty mocks base method.
+func (m *MockUserService) CreateUser3rdParty(arg0 context.Context, arg1 *models.User3rdParty) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser3rdParty", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateUser3rdParty indicates an expected call of CreateUser3rdParty.
+func (mr *MockUserServiceMockRecorder) CreateUser3rdParty(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser3rdParty", reflect.TypeOf((*MockUserService)(nil).CreateUser3rdParty), arg0, arg1)
+}
+
 // DeleteRecoverCode mocks base method.
 func (m *MockUserService) DeleteRecoverCode(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -94,11 +108,26 @@ func (mr *MockUserServiceMockRecorder) DeleteRecoverCode(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRecoverCode", reflect.TypeOf((*MockUserService)(nil).DeleteRecoverCode), arg0, arg1)
 }
 
+// Get mocks base method.
+func (m *MockUserService) Get(arg0 context.Context, arg1 int64) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockUserServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserService)(nil).Get), arg0, arg1)
+}
+
 // GetByProvider mocks base method.
-func (m *MockUserService) GetByProvider(arg0 context.Context, arg1 enums.Provider, arg2 string) (*models.User, error) {
+func (m *MockUserService) GetByProvider(arg0 context.Context, arg1 enums.Provider, arg2 string) (*models.User3rdParty, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByProvider", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*models.User)
+	ret0, _ := ret[0].(*models.User3rdParty)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -154,6 +183,21 @@ func (mr *MockUserServiceMockRecorder) GetRecoverCodeByUserID(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecoverCodeByUserID", reflect.TypeOf((*MockUserService)(nil).GetRecoverCodeByUserID), arg0, arg1)
 }
 
+// GetUser3rdParty mocks base method.
+func (m *MockUserService) GetUser3rdParty(arg0 context.Context, arg1 int64) (*models.User3rdParty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser3rdParty", arg0, arg1)
+	ret0, _ := ret[0].(*models.User3rdParty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser3rdParty indicates an expected call of GetUser3rdParty.
+func (mr *MockUserServiceMockRecorder) GetUser3rdParty(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser3rdParty", reflect.TypeOf((*MockUserService)(nil).GetUser3rdParty), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockUserService) List(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.User, int64, error) {
 	m.ctrl.T.Helper()
@@ -182,4 +226,18 @@ func (m *MockUserService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[
 func (mr *MockUserServiceMockRecorder) UpdateByID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockUserService)(nil).UpdateByID), arg0, arg1, arg2)
+}
+
+// UpdateUser3rdParty mocks base method.
+func (m *MockUserService) UpdateUser3rdParty(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser3rdParty", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser3rdParty indicates an expected call of UpdateUser3rdParty.
+func (mr *MockUserServiceMockRecorder) UpdateUser3rdParty(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser3rdParty", reflect.TypeOf((*MockUserService)(nil).UpdateUser3rdParty), arg0, arg1, arg2)
 }

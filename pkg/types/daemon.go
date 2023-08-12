@@ -56,10 +56,15 @@ type DaemonWebhookPayload struct {
 
 // DaemonBuilderPayload ...
 type DaemonBuilderPayload struct {
-	Action       enums.DaemonBuilderAction
-	ID           int64
-	RunnerID     int64
-	RepositoryID int64
+	Action       enums.DaemonBuilderAction `json:"action"`
+	ID           int64                     `json:"id"`
+	RunnerID     int64                     `json:"runner_id"`
+	RepositoryID int64                     `json:"repository_id"`
+}
+
+// DaemonCodeRepositoryPayload ...
+type DaemonCodeRepositoryPayload struct {
+	UserID int64 `json:"user_id"`
 }
 
 // PostDaemonRunRequest ...

@@ -72,7 +72,7 @@ func TestGetRepository(t *testing.T) {
 
 		userServiceFactory := dao.NewUserServiceFactory()
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "list-repository", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+		userObj := &models.User{Username: "list-repository", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 		namespaceService := namespaceFactory.New(tx)

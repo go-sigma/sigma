@@ -31,8 +31,6 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_user.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_user.ID = field.NewInt64(tableName, "id")
-	_user.Provider = field.NewField(tableName, "provider")
-	_user.ProviderAccountID = field.NewString(tableName, "provider_account_id")
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Email = field.NewString(tableName, "email")
@@ -45,16 +43,14 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL               field.Asterisk
-	CreatedAt         field.Time
-	UpdatedAt         field.Time
-	DeletedAt         field.Uint
-	ID                field.Int64
-	Provider          field.Field
-	ProviderAccountID field.String
-	Username          field.String
-	Password          field.String
-	Email             field.String
+	ALL       field.Asterisk
+	CreatedAt field.Time
+	UpdatedAt field.Time
+	DeletedAt field.Uint
+	ID        field.Int64
+	Username  field.String
+	Password  field.String
+	Email     field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -75,8 +71,6 @@ func (u *user) updateTableName(table string) *user {
 	u.UpdatedAt = field.NewTime(table, "updated_at")
 	u.DeletedAt = field.NewUint(table, "deleted_at")
 	u.ID = field.NewInt64(table, "id")
-	u.Provider = field.NewField(table, "provider")
-	u.ProviderAccountID = field.NewString(table, "provider_account_id")
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Email = field.NewString(table, "email")
@@ -104,13 +98,11 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 9)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
 	u.fieldMap["id"] = u.ID
-	u.fieldMap["provider"] = u.Provider
-	u.fieldMap["provider_account_id"] = u.ProviderAccountID
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["email"] = u.Email

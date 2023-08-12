@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/logger"
 )
 
 func TestGetCtx(t *testing.T) {
@@ -39,6 +41,8 @@ func TestRunAtShutdown(t *testing.T) {
 }
 
 func TestShutdown(t *testing.T) {
+	logger.SetLevel("debug")
+
 	runAtShutdown = []item{}
 
 	orderArray := []int{}
@@ -74,11 +78,11 @@ func TestShutdown(t *testing.T) {
 		orderArray = append(orderArray, 2)
 	})
 	RunAtShutdown("test5", 5, func() {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		orderArray = append(orderArray, 5)
 	})
 	RunAtShutdown("test4", 4, func() {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		orderArray = append(orderArray, 4)
 	})
 
@@ -88,7 +92,7 @@ func TestShutdown(t *testing.T) {
 	assert.Equal(t, []int{1, 2}, orderArray)
 
 	/* TestShutdownPanic*/
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	runAtShutdown = []item{}
 	orderArray = []int{}
 	RunAtShutdown("test1", 1, func() {

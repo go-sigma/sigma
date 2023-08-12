@@ -1,19 +1,78 @@
-CREATE TYPE provider AS ENUM (
-  'local',
-  'github'
+CREATE TYPE user_3rdparty_provider AS ENUM (
+  'github',
+  'gitlab',
+  'gitea'
 );
 
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
-  "provider" provider NOT NULL DEFAULT 'local',
-  "provider_account_id" varchar(256),
-  "username" varchar(64) NOT NULL UNIQUE,
+  "username" varchar(64) NOT NULL,
   "password" varchar(256) NOT NULL,
   "email" varchar(256),
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
+);
+
+CREATE TABLE IF NOT EXISTS "user_3rdparty" (
+  "id" bigserial PRIMARY KEY,
+  "user_id" bigint NOT NULL,
+  "provider" user_3rdparty_provider NOT NULL DEFAULT 'github',
+  "account_id" varchar(256),
+  "token" varchar(256),
+  "refresh_token" varchar(256),
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+  CONSTRAINT "user_3rdparty_unique_with_account_id" UNIQUE ("provider", "account_id", "deleted_at")
+);
+
+CREATE TYPE code_repository_clone_credentials_type AS enum (
+  'none',
+  'ssh',
+  'username',
+  'token'
+);
+
+CREATE TABLE IF NOT EXISTS "code_repository_clone_credentials" (
+  "id" bigserial PRIMARY KEY,
+  "user_3rdparty_id" bigint NOT NULL,
+  "type" code_repository_clone_credentials_type NOT NULL,
+  "ssh_key" bytea,
+  "username" varchar(256),
+  "password" varchar(256),
+  "token" varchar(256),
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "code_repository_owners" (
+  "id" bigserial PRIMARY KEY,
+  "user_3rdparty_id" bigint NOT NULL,
+  "name" varchar(256) NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
+  CONSTRAINT "code_repository_owners_unique_with_name" UNIQUE ("user_3rdparty_id", "name", "deleted_at")
+);
+
+CREATE TABLE IF NOT EXISTS "code_repositories" (
+  "id" bigserial PRIMARY KEY,
+  "user_3rdparty_id" bigint NOT NULL,
+  "owner" varchar(256) NOT NULL,
+  "name" varchar(256) NOT NULL,
+  "ssh_url" varchar(256) NOT NULL,
+  "clone_url" varchar(256) NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
+  CONSTRAINT "code_repositories_unique_with_name" UNIQUE ("user_3rdparty_id", "owner", "name", "deleted_at")
 );
 
 CREATE TABLE IF NOT EXISTS "user_recover_codes" (

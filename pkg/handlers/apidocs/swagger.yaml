@@ -14,14 +14,6 @@ definitions:
     - AuditActionDelete
     - AuditActionPull
     - AuditActionPush
-  enums.Provider:
-    enum:
-    - local
-    - github
-    type: string
-    x-enum-varnames:
-    - ProviderLocal
-    - ProviderGithub
   enums.ScmCredentialType:
     enum:
     - ssh
@@ -136,8 +128,6 @@ definitions:
         type: string
       id:
         type: integer
-      provider:
-        $ref: '#/definitions/enums.Provider'
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -1713,6 +1703,33 @@ paths:
       tags:
       - Webhook
   /webhooks/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete a webhook
+      tags:
+      - Webhook
     get:
       consumes:
       - application/json

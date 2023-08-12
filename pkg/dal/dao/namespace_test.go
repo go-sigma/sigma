@@ -63,7 +63,7 @@ func TestNamespaceService(t *testing.T) {
 	userServiceFactory := NewUserServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "namespace-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+		userObj := &models.User{Username: "namespace-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
@@ -147,7 +147,7 @@ func TestNamespaceServiceQuota(t *testing.T) {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "artifact-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+		userObj := &models.User{Username: "artifact-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 
