@@ -27,7 +27,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -62,7 +61,7 @@ func TestUserGetByUsername(t *testing.T) {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := f.New(tx)
 		assert.NotNil(t, userService)
-		err := userService.Create(ctx, &models.User{Provider: enums.ProviderLocal, Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")})
+		err := userService.Create(ctx, &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")})
 		assert.NoError(t, err)
 		testUser, err := userService.GetByUsername(ctx, "test-case")
 		assert.NoError(t, err)

@@ -38,3 +38,13 @@ DROP TABLE IF EXISTS "builders";
 
 DROP TABLE IF EXISTS "builder_logs";
 
+DROP TABLE IF EXISTS "user_3rdparty";
+
+DROP TABLE IF EXISTS "code_repository_clone_credentials";
+
+DROP TABLE IF EXISTS "code_repository_owners";
+
+DROP TABLE IF EXISTS "code_repositories";
+
+DROP TABLE IF EXISTS "user_recover_codes";
+

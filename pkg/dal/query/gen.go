@@ -16,24 +16,28 @@ import (
 )
 
 var (
-	Q                     = new(Query)
-	Artifact              *artifact
-	ArtifactSbom          *artifactSbom
-	ArtifactVulnerability *artifactVulnerability
-	Audit                 *audit
-	Blob                  *blob
-	BlobUpload            *blobUpload
-	Builder               *builder
-	BuilderRunner         *builderRunner
-	CasbinRule            *casbinRule
-	DaemonLog             *daemonLog
-	Namespace             *namespace
-	Repository            *repository
-	Tag                   *tag
-	User                  *user
-	UserRecoverCode       *userRecoverCode
-	Webhook               *webhook
-	WebhookLog            *webhookLog
+	Q                             = new(Query)
+	Artifact                      *artifact
+	ArtifactSbom                  *artifactSbom
+	ArtifactVulnerability         *artifactVulnerability
+	Audit                         *audit
+	Blob                          *blob
+	BlobUpload                    *blobUpload
+	Builder                       *builder
+	BuilderRunner                 *builderRunner
+	CasbinRule                    *casbinRule
+	CodeRepository                *codeRepository
+	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
+	CodeRepositoryOwner           *codeRepositoryOwner
+	DaemonLog                     *daemonLog
+	Namespace                     *namespace
+	Repository                    *repository
+	Tag                           *tag
+	User                          *user
+	User3rdParty                  *user3rdParty
+	UserRecoverCode               *userRecoverCode
+	Webhook                       *webhook
+	WebhookLog                    *webhookLog
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -47,11 +51,15 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Builder = &Q.Builder
 	BuilderRunner = &Q.BuilderRunner
 	CasbinRule = &Q.CasbinRule
+	CodeRepository = &Q.CodeRepository
+	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
+	CodeRepositoryOwner = &Q.CodeRepositoryOwner
 	DaemonLog = &Q.DaemonLog
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
 	Tag = &Q.Tag
 	User = &Q.User
+	User3rdParty = &Q.User3rdParty
 	UserRecoverCode = &Q.UserRecoverCode
 	Webhook = &Q.Webhook
 	WebhookLog = &Q.WebhookLog
@@ -59,71 +67,83 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                    db,
-		Artifact:              newArtifact(db, opts...),
-		ArtifactSbom:          newArtifactSbom(db, opts...),
-		ArtifactVulnerability: newArtifactVulnerability(db, opts...),
-		Audit:                 newAudit(db, opts...),
-		Blob:                  newBlob(db, opts...),
-		BlobUpload:            newBlobUpload(db, opts...),
-		Builder:               newBuilder(db, opts...),
-		BuilderRunner:         newBuilderRunner(db, opts...),
-		CasbinRule:            newCasbinRule(db, opts...),
-		DaemonLog:             newDaemonLog(db, opts...),
-		Namespace:             newNamespace(db, opts...),
-		Repository:            newRepository(db, opts...),
-		Tag:                   newTag(db, opts...),
-		User:                  newUser(db, opts...),
-		UserRecoverCode:       newUserRecoverCode(db, opts...),
-		Webhook:               newWebhook(db, opts...),
-		WebhookLog:            newWebhookLog(db, opts...),
+		db:                            db,
+		Artifact:                      newArtifact(db, opts...),
+		ArtifactSbom:                  newArtifactSbom(db, opts...),
+		ArtifactVulnerability:         newArtifactVulnerability(db, opts...),
+		Audit:                         newAudit(db, opts...),
+		Blob:                          newBlob(db, opts...),
+		BlobUpload:                    newBlobUpload(db, opts...),
+		Builder:                       newBuilder(db, opts...),
+		BuilderRunner:                 newBuilderRunner(db, opts...),
+		CasbinRule:                    newCasbinRule(db, opts...),
+		CodeRepository:                newCodeRepository(db, opts...),
+		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
+		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
+		DaemonLog:                     newDaemonLog(db, opts...),
+		Namespace:                     newNamespace(db, opts...),
+		Repository:                    newRepository(db, opts...),
+		Tag:                           newTag(db, opts...),
+		User:                          newUser(db, opts...),
+		User3rdParty:                  newUser3rdParty(db, opts...),
+		UserRecoverCode:               newUserRecoverCode(db, opts...),
+		Webhook:                       newWebhook(db, opts...),
+		WebhookLog:                    newWebhookLog(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Artifact              artifact
-	ArtifactSbom          artifactSbom
-	ArtifactVulnerability artifactVulnerability
-	Audit                 audit
-	Blob                  blob
-	BlobUpload            blobUpload
-	Builder               builder
-	BuilderRunner         builderRunner
-	CasbinRule            casbinRule
-	DaemonLog             daemonLog
-	Namespace             namespace
-	Repository            repository
-	Tag                   tag
-	User                  user
-	UserRecoverCode       userRecoverCode
-	Webhook               webhook
-	WebhookLog            webhookLog
+	Artifact                      artifact
+	ArtifactSbom                  artifactSbom
+	ArtifactVulnerability         artifactVulnerability
+	Audit                         audit
+	Blob                          blob
+	BlobUpload                    blobUpload
+	Builder                       builder
+	BuilderRunner                 builderRunner
+	CasbinRule                    casbinRule
+	CodeRepository                codeRepository
+	CodeRepositoryCloneCredential codeRepositoryCloneCredential
+	CodeRepositoryOwner           codeRepositoryOwner
+	DaemonLog                     daemonLog
+	Namespace                     namespace
+	Repository                    repository
+	Tag                           tag
+	User                          user
+	User3rdParty                  user3rdParty
+	UserRecoverCode               userRecoverCode
+	Webhook                       webhook
+	WebhookLog                    webhookLog
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                    db,
-		Artifact:              q.Artifact.clone(db),
-		ArtifactSbom:          q.ArtifactSbom.clone(db),
-		ArtifactVulnerability: q.ArtifactVulnerability.clone(db),
-		Audit:                 q.Audit.clone(db),
-		Blob:                  q.Blob.clone(db),
-		BlobUpload:            q.BlobUpload.clone(db),
-		Builder:               q.Builder.clone(db),
-		BuilderRunner:         q.BuilderRunner.clone(db),
-		CasbinRule:            q.CasbinRule.clone(db),
-		DaemonLog:             q.DaemonLog.clone(db),
-		Namespace:             q.Namespace.clone(db),
-		Repository:            q.Repository.clone(db),
-		Tag:                   q.Tag.clone(db),
-		User:                  q.User.clone(db),
-		UserRecoverCode:       q.UserRecoverCode.clone(db),
-		Webhook:               q.Webhook.clone(db),
-		WebhookLog:            q.WebhookLog.clone(db),
+		db:                            db,
+		Artifact:                      q.Artifact.clone(db),
+		ArtifactSbom:                  q.ArtifactSbom.clone(db),
+		ArtifactVulnerability:         q.ArtifactVulnerability.clone(db),
+		Audit:                         q.Audit.clone(db),
+		Blob:                          q.Blob.clone(db),
+		BlobUpload:                    q.BlobUpload.clone(db),
+		Builder:                       q.Builder.clone(db),
+		BuilderRunner:                 q.BuilderRunner.clone(db),
+		CasbinRule:                    q.CasbinRule.clone(db),
+		CodeRepository:                q.CodeRepository.clone(db),
+		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
+		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
+		DaemonLog:                     q.DaemonLog.clone(db),
+		Namespace:                     q.Namespace.clone(db),
+		Repository:                    q.Repository.clone(db),
+		Tag:                           q.Tag.clone(db),
+		User:                          q.User.clone(db),
+		User3rdParty:                  q.User3rdParty.clone(db),
+		UserRecoverCode:               q.UserRecoverCode.clone(db),
+		Webhook:                       q.Webhook.clone(db),
+		WebhookLog:                    q.WebhookLog.clone(db),
 	}
 }
 
@@ -137,66 +157,78 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                    db,
-		Artifact:              q.Artifact.replaceDB(db),
-		ArtifactSbom:          q.ArtifactSbom.replaceDB(db),
-		ArtifactVulnerability: q.ArtifactVulnerability.replaceDB(db),
-		Audit:                 q.Audit.replaceDB(db),
-		Blob:                  q.Blob.replaceDB(db),
-		BlobUpload:            q.BlobUpload.replaceDB(db),
-		Builder:               q.Builder.replaceDB(db),
-		BuilderRunner:         q.BuilderRunner.replaceDB(db),
-		CasbinRule:            q.CasbinRule.replaceDB(db),
-		DaemonLog:             q.DaemonLog.replaceDB(db),
-		Namespace:             q.Namespace.replaceDB(db),
-		Repository:            q.Repository.replaceDB(db),
-		Tag:                   q.Tag.replaceDB(db),
-		User:                  q.User.replaceDB(db),
-		UserRecoverCode:       q.UserRecoverCode.replaceDB(db),
-		Webhook:               q.Webhook.replaceDB(db),
-		WebhookLog:            q.WebhookLog.replaceDB(db),
+		db:                            db,
+		Artifact:                      q.Artifact.replaceDB(db),
+		ArtifactSbom:                  q.ArtifactSbom.replaceDB(db),
+		ArtifactVulnerability:         q.ArtifactVulnerability.replaceDB(db),
+		Audit:                         q.Audit.replaceDB(db),
+		Blob:                          q.Blob.replaceDB(db),
+		BlobUpload:                    q.BlobUpload.replaceDB(db),
+		Builder:                       q.Builder.replaceDB(db),
+		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
+		CasbinRule:                    q.CasbinRule.replaceDB(db),
+		CodeRepository:                q.CodeRepository.replaceDB(db),
+		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
+		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
+		DaemonLog:                     q.DaemonLog.replaceDB(db),
+		Namespace:                     q.Namespace.replaceDB(db),
+		Repository:                    q.Repository.replaceDB(db),
+		Tag:                           q.Tag.replaceDB(db),
+		User:                          q.User.replaceDB(db),
+		User3rdParty:                  q.User3rdParty.replaceDB(db),
+		UserRecoverCode:               q.UserRecoverCode.replaceDB(db),
+		Webhook:                       q.Webhook.replaceDB(db),
+		WebhookLog:                    q.WebhookLog.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Artifact              *artifactDo
-	ArtifactSbom          *artifactSbomDo
-	ArtifactVulnerability *artifactVulnerabilityDo
-	Audit                 *auditDo
-	Blob                  *blobDo
-	BlobUpload            *blobUploadDo
-	Builder               *builderDo
-	BuilderRunner         *builderRunnerDo
-	CasbinRule            *casbinRuleDo
-	DaemonLog             *daemonLogDo
-	Namespace             *namespaceDo
-	Repository            *repositoryDo
-	Tag                   *tagDo
-	User                  *userDo
-	UserRecoverCode       *userRecoverCodeDo
-	Webhook               *webhookDo
-	WebhookLog            *webhookLogDo
+	Artifact                      *artifactDo
+	ArtifactSbom                  *artifactSbomDo
+	ArtifactVulnerability         *artifactVulnerabilityDo
+	Audit                         *auditDo
+	Blob                          *blobDo
+	BlobUpload                    *blobUploadDo
+	Builder                       *builderDo
+	BuilderRunner                 *builderRunnerDo
+	CasbinRule                    *casbinRuleDo
+	CodeRepository                *codeRepositoryDo
+	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
+	CodeRepositoryOwner           *codeRepositoryOwnerDo
+	DaemonLog                     *daemonLogDo
+	Namespace                     *namespaceDo
+	Repository                    *repositoryDo
+	Tag                           *tagDo
+	User                          *userDo
+	User3rdParty                  *user3rdPartyDo
+	UserRecoverCode               *userRecoverCodeDo
+	Webhook                       *webhookDo
+	WebhookLog                    *webhookLogDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Artifact:              q.Artifact.WithContext(ctx),
-		ArtifactSbom:          q.ArtifactSbom.WithContext(ctx),
-		ArtifactVulnerability: q.ArtifactVulnerability.WithContext(ctx),
-		Audit:                 q.Audit.WithContext(ctx),
-		Blob:                  q.Blob.WithContext(ctx),
-		BlobUpload:            q.BlobUpload.WithContext(ctx),
-		Builder:               q.Builder.WithContext(ctx),
-		BuilderRunner:         q.BuilderRunner.WithContext(ctx),
-		CasbinRule:            q.CasbinRule.WithContext(ctx),
-		DaemonLog:             q.DaemonLog.WithContext(ctx),
-		Namespace:             q.Namespace.WithContext(ctx),
-		Repository:            q.Repository.WithContext(ctx),
-		Tag:                   q.Tag.WithContext(ctx),
-		User:                  q.User.WithContext(ctx),
-		UserRecoverCode:       q.UserRecoverCode.WithContext(ctx),
-		Webhook:               q.Webhook.WithContext(ctx),
-		WebhookLog:            q.WebhookLog.WithContext(ctx),
+		Artifact:                      q.Artifact.WithContext(ctx),
+		ArtifactSbom:                  q.ArtifactSbom.WithContext(ctx),
+		ArtifactVulnerability:         q.ArtifactVulnerability.WithContext(ctx),
+		Audit:                         q.Audit.WithContext(ctx),
+		Blob:                          q.Blob.WithContext(ctx),
+		BlobUpload:                    q.BlobUpload.WithContext(ctx),
+		Builder:                       q.Builder.WithContext(ctx),
+		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
+		CasbinRule:                    q.CasbinRule.WithContext(ctx),
+		CodeRepository:                q.CodeRepository.WithContext(ctx),
+		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
+		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
+		DaemonLog:                     q.DaemonLog.WithContext(ctx),
+		Namespace:                     q.Namespace.WithContext(ctx),
+		Repository:                    q.Repository.WithContext(ctx),
+		Tag:                           q.Tag.WithContext(ctx),
+		User:                          q.User.WithContext(ctx),
+		User3rdParty:                  q.User3rdParty.WithContext(ctx),
+		UserRecoverCode:               q.UserRecoverCode.WithContext(ctx),
+		Webhook:                       q.Webhook.WithContext(ctx),
+		WebhookLog:                    q.WebhookLog.WithContext(ctx),
 	}
 }
 

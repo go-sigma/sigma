@@ -65,7 +65,7 @@ func TestRepositoryService(t *testing.T) {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Provider: enums.ProviderLocal, Username: "repository-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+		userObj := &models.User{Username: "repository-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 		err = userService.Create(ctx, userObj)
 		assert.NoError(t, err)
 

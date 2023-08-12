@@ -22,47 +22,48 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// User is the model for the user table.
-type User struct {
+// CodeRepository ...
+type CodeRepository struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Username string
-	Password *string
-	Email    *string
+	User3rdPartyID int64  `gorm:"column:user_3rdparty_id"`
+	Owner          string // in github named owner.name
+	Name           string // in github named full_name
+	SshUrl         string // in github named ssh_url
+	CloneUrl       string // in github named clone_url
+
+	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
 
-// User3rdParty ...
-type User3rdParty struct {
+// CodeRepositoryOwner ...
+type CodeRepositoryOwner struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	UserID       int64
-	Provider     enums.Provider
-	AccountID    *string
-	Token        *string
-	RefreshToken *string
+	User3rdPartyID int64  `gorm:"column:user_3rdparty_id"`
+	Name           string // in github named owner.name
 
-	User User
+	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
 
-// TableName ...
-func (User3rdParty) TableName() string {
-	return "user_3rdparty"
-}
-
-type UserRecoverCode struct {
+// CodeRepositoryCloneCredential ...
+type CodeRepositoryCloneCredential struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	UserID int64
-	Code   string
+	User3rdPartyID int64 `gorm:"column:user_3rdparty_id"`
+	Type           enums.ScmCredentialType
+	SshKey         string
+	Username       string
+	Password       string
+	Token          string
 
-	User User
+	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
