@@ -482,6 +482,8 @@ const (
 	DaemonWebhook Daemon = "Webhook"
 	// DaemonBuilder is a Daemon of type Builder.
 	DaemonBuilder Daemon = "Builder"
+	// DaemonCodeRepository is a Daemon of type CodeRepository.
+	DaemonCodeRepository Daemon = "CodeRepository"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")
@@ -499,12 +501,13 @@ func (x Daemon) IsValid() bool {
 }
 
 var _DaemonValue = map[string]Daemon{
-	"Vulnerability": DaemonVulnerability,
-	"Sbom":          DaemonSbom,
-	"Gc":            DaemonGc,
-	"GcRepository":  DaemonGcRepository,
-	"Webhook":       DaemonWebhook,
-	"Builder":       DaemonBuilder,
+	"Vulnerability":  DaemonVulnerability,
+	"Sbom":           DaemonSbom,
+	"Gc":             DaemonGc,
+	"GcRepository":   DaemonGcRepository,
+	"Webhook":        DaemonWebhook,
+	"Builder":        DaemonBuilder,
+	"CodeRepository": DaemonCodeRepository,
 }
 
 // ParseDaemon attempts to convert a string to a Daemon.
@@ -1118,6 +1121,10 @@ const (
 	ProviderLocal Provider = "local"
 	// ProviderGithub is a Provider of type github.
 	ProviderGithub Provider = "github"
+	// ProviderGitlab is a Provider of type gitlab.
+	ProviderGitlab Provider = "gitlab"
+	// ProviderGitea is a Provider of type gitea.
+	ProviderGitea Provider = "gitea"
 )
 
 var ErrInvalidProvider = errors.New("not a valid Provider")
@@ -1137,6 +1144,8 @@ func (x Provider) IsValid() bool {
 var _ProviderValue = map[string]Provider{
 	"local":  ProviderLocal,
 	"github": ProviderGithub,
+	"gitlab": ProviderGitlab,
+	"gitea":  ProviderGitea,
 }
 
 // ParseProvider attempts to convert a string to a Provider.

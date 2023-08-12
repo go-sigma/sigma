@@ -59,7 +59,7 @@ func (h *handlers) Token(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
-	token, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
+	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

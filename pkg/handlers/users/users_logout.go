@@ -54,7 +54,7 @@ func (h *handlers) Logout(c echo.Context) error {
 		if t == "" {
 			continue
 		}
-		_, id, err := h.tokenService.Validate(ctx, t)
+		id, _, err := h.tokenService.Validate(ctx, t)
 		if err != nil {
 			if errors.Is(err, token.ErrRevoked) {
 				continue

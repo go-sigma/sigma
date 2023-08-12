@@ -81,6 +81,7 @@ type WorkQueueType string
 // GcRepository,
 // Webhook,
 // Builder,
+// CodeRepository,
 // )
 type Daemon string
 
@@ -99,6 +100,8 @@ type GcTarget string
 // Provider x ENUM(
 // local,
 // github,
+// gitlab,
+// gitea,
 // )
 type Provider string
 

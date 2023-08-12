@@ -39,7 +39,7 @@ import (
 // @Tags Webhook
 // @Accept json
 // @Produce json
-// @Router /webhooks/{id} [get]
+// @Router /webhooks/{id} [delete]
 // @Param id path string true "Webhook id"
 // @Success 204
 // @Failure 500 {object} xerrors.ErrCode

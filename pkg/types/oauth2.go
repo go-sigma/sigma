@@ -29,10 +29,12 @@ type Oauth2CallbackRequest struct {
 
 // Oauth2UserInfo represents the user info.
 type Oauth2UserInfo struct {
-	Provider enums.Provider `json:"provider"`
-	ID       string         `json:"id"`
-	Username string         `json:"username"`
-	Email    string         `json:"email"`
+	Provider     enums.Provider `json:"provider"`
+	ID           string         `json:"id"`
+	Username     string         `json:"username"`
+	Email        string         `json:"email"`
+	Token        string         `json:"token"`
+	RefreshToken string         `json:"refresh_token"`
 }
 
 // Oauth2CallbackResponse ...

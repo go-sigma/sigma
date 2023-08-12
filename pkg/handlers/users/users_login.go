@@ -51,13 +51,13 @@ func (h *handlers) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")
 	}
 
-	refreshToken, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.refreshTtl"))
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

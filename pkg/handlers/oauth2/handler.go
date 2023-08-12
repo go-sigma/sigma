@@ -34,8 +34,6 @@ import (
 
 // Handler is the interface for the oauth2 handlers
 type Handlers interface {
-	// Login handles the login request
-	// Login(c echo.Context) error
 	// Callback handles the callback request
 	Callback(c echo.Context) error
 	// ClientID handles the client id request

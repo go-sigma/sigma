@@ -14,8 +14,6 @@
 
 package types
 
-import "github.com/go-sigma/sigma/pkg/types/enums"
-
 type GetUserListRequest struct {
 	Pagination
 	Sortable
@@ -25,10 +23,9 @@ type GetUserListRequest struct {
 }
 
 type GetUserItem struct {
-	ID       int64          `json:"id"`
-	Provider enums.Provider `json:"provider"`
-	Username string         `json:"username"`
-	Email    string         `json:"email"`
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

@@ -36,7 +36,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -64,7 +63,7 @@ func TestPostNamespace(t *testing.T) {
 	userService := userServiceFactory.New()
 
 	ctx := context.Background()
-	userObj := &models.User{Provider: enums.ProviderLocal, Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
@@ -186,7 +185,7 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 	userService := userServiceFactory.New()
 
 	ctx := context.Background()
-	userObj := &models.User{Provider: enums.ProviderLocal, Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	err = userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
