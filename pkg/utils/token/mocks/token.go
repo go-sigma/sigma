@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	models "github.com/go-sigma/sigma/pkg/dal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -37,7 +36,7 @@ func (m *MockTokenService) EXPECT() *MockTokenServiceMockRecorder {
 }
 
 // New mocks base method.
-func (m *MockTokenService) New(arg0 *models.User, arg1 time.Duration) (string, error) {
+func (m *MockTokenService) New(arg0 int64, arg1 time.Duration) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", arg0, arg1)
 	ret0, _ := ret[0].(string)
@@ -66,11 +65,11 @@ func (mr *MockTokenServiceMockRecorder) Revoke(arg0, arg1 interface{}) *gomock.C
 }
 
 // Validate mocks base method.
-func (m *MockTokenService) Validate(arg0 context.Context, arg1 string) (string, string, error) {
+func (m *MockTokenService) Validate(arg0 context.Context, arg1 string) (string, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate", arg0, arg1)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
+	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }

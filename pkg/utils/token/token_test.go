@@ -24,9 +24,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 const (
@@ -57,13 +55,13 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, tokenService)
 
-	token, err := tokenService.New(&models.User{Provider: enums.ProviderLocal, Username: "test"}, time.Second*30)
+	token, err := tokenService.New(100, time.Second*30)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
-	id, username, err := tokenService.Validate(context.Background(), token)
+	id, uid, err := tokenService.Validate(context.Background(), token)
 	assert.NoError(t, err)
-	assert.Equal(t, "test", username)
+	assert.Equal(t, int64(100), uid)
 	_, err = uuid.Parse(id)
 	assert.NoError(t, err)
 

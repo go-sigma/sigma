@@ -64,10 +64,15 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			ctx := log.Logger.WithContext(req.Context())
 			authorization := req.Header.Get("Authorization")
 
-			var username, jti string
+			var uid int64
+			var jti string
+
+			userServiceFactory := dao.NewUserServiceFactory()
+			userService := userServiceFactory.New()
 
 			switch {
 			case strings.HasPrefix(authorization, "Basic"):
+				var username string
 				var pwd string
 				var ok bool
 				username, pwd, ok = c.Request().BasicAuth()
@@ -90,6 +95,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					}
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
+				uid = user.ID
 
 				passwordService := password.New()
 				verify := passwordService.Verify(pwd, ptr.To(user.Password))
@@ -103,7 +109,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				}
 				jti = uuid.New().String()
 			case strings.HasPrefix(authorization, "Bearer"):
-				jti, username, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
+				jti, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 				if err != nil {
 					log.Error().Err(err).Msg("Validate token failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
@@ -120,9 +126,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 			}
 
-			userServiceFactory := dao.NewUserServiceFactory()
-			userService := userServiceFactory.New()
-			user, err := userService.GetByUsername(ctx, username)
+			userObj, err := userService.Get(ctx, uid)
 			if err != nil {
 				if err == gorm.ErrRecordNotFound {
 					log.Error().Err(err).Msg("User not found")
@@ -138,7 +142,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 			}
 
-			c.Set(consts.ContextUser, user)
+			c.Set(consts.ContextUser, userObj)
 			c.Set(consts.ContextJti, jti)
 
 			return next(c)
