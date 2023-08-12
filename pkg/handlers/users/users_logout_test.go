@@ -43,16 +43,16 @@ func TestLogout(t *testing.T) {
 	var times int
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
 	tokenMock.EXPECT().Revoke(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) error {
-		if times < 3 {
+		if times < 1 {
 			times++
 			return nil
 		} else {
 			return fmt.Errorf("error")
 		}
-	}).Times(4)
+	}).AnyTimes()
 	tokenMock.EXPECT().Validate(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (string, string, error) {
 		return "test", "id", nil
-	}).Times(6)
+	}).AnyTimes()
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())

@@ -16,11 +16,12 @@ package users
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -49,7 +50,7 @@ func (h *handlers) Logout(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	var ids = mapset.NewSet[string]()
+	var ids = sets.New[string]()
 	for _, t := range req.Tokens {
 		if t == "" {
 			continue
@@ -62,7 +63,7 @@ func (h *handlers) Logout(c echo.Context) error {
 			log.Error().Err(err).Msg("Revoke token failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 		}
-		ids.Add(id)
+		ids.Insert(id)
 	}
 
 	jti, ok := c.Get("jti").(string)
@@ -71,9 +72,16 @@ func (h *handlers) Logout(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Get jti failed")
 	}
 
-	ids.Add(jti)
+	ids.Insert(jti)
 
-	for _, id := range ids.ToSlice() {
+	fmt.Println("82", ids)
+
+	for {
+		id, ok := ids.PopAny()
+		if !ok {
+			break
+		}
+
 		err = h.tokenService.Revoke(ctx, id)
 		if err != nil {
 			log.Error().Err(err).Msg("Revoke token failed")

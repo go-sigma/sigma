@@ -116,7 +116,7 @@ func TestSignupMockToken1(t *testing.T) {
 	defer ctrl.Finish()
 
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ *models.User, _ time.Duration) (string, error) {
+	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
 		return "test", nil
 	}).Times(2)
 
@@ -157,7 +157,7 @@ func TestSignupMockToken2(t *testing.T) {
 	defer ctrl.Finish()
 
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ *models.User, _ time.Duration) (string, error) {
+	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
 		return "", fmt.Errorf("test")
 	}).Times(1)
 
@@ -199,7 +199,7 @@ func TestSignupMockToken3(t *testing.T) {
 
 	var times int
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ *models.User, _ time.Duration) (string, error) {
+	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
 		if times == 0 {
 			times++
 			return "test", nil

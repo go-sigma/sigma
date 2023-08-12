@@ -78,7 +78,7 @@ func TestToken(t *testing.T) {
 
 	var tokenTimes int
 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ *models.User, _ time.Duration) (string, error) {
+	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
 		if tokenTimes == 0 {
 			tokenTimes++
 			return "test", nil

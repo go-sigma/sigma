@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "code_repository_clone_credentials" (
   "id" bigserial PRIMARY KEY,
   "user_3rdparty_id" bigint NOT NULL,
   "type" code_repository_clone_credentials_type NOT NULL,
-  "ssh_key" BLOB,
+  "ssh_key" bytea,
   "username" varchar(256),
   "password" varchar(256),
   "token" varchar(256),

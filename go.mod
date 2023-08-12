@@ -8,7 +8,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.5
 	github.com/anchore/syft v0.86.1
 	github.com/aquasecurity/trivy v0.44.1
-	github.com/aws/aws-sdk-go v1.44.320
+	github.com/aws/aws-sdk-go v1.44.322
 	github.com/bytedance/sonic v1.10.0
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.73.1
@@ -53,7 +53,7 @@ require (
 	github.com/xanzy/go-gitlab v0.90.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.12.0
-	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/oauth2 v0.11.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
