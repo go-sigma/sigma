@@ -80,6 +80,45 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
+  types.CodeRepositoryItem:
+    properties:
+      clone_url:
+        example: https://github.com/go-sigma/sigma.git
+        type: string
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: sigma
+        type: string
+      owner:
+        example: go-sigma
+        type: string
+      ssh_url:
+        example: git@github.com:go-sigma/sigma.git
+        type: string
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.CodeRepositoryOwnerItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: go-sigma
+        type: string
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
   types.CommonList:
     properties:
       items:
@@ -759,6 +798,130 @@ paths:
       summary: Create a builder for repository
       tags:
       - Builder
+  /coderepos/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: search code repository with name
+        in: query
+        name: name
+        type: string
+      - description: search code repository with provider
+        in: query
+        name: provider
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.CodeRepositoryOwnerItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repository owners
+      tags:
+      - Namespace
+  /coderepos/owners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: search code repository with name
+        in: query
+        name: name
+        type: string
+      - description: search code repository with owner
+        in: query
+        name: owner
+        type: string
+      - description: search code repository with provider
+        in: query
+        name: provider
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.CodeRepositoryItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repositories
+      tags:
+      - Namespace
   /daemons/{daemon}/:
     get:
       consumes:
