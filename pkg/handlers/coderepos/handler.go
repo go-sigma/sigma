@@ -31,6 +31,8 @@ import (
 type Handlers interface {
 	// List list all of the code repositories
 	List(c echo.Context) error
+	// ListOwner list all of the code repository owner
+	ListOwners(c echo.Context) error
 	// Resync resync all of the code repositories
 	Resync(c echo.Context) error
 	// Setup setup builder for code repository
@@ -76,8 +78,9 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	codeRepositoryHandler := handlerNew()
 	codereposGroup.GET("/", codeRepositoryHandler.List)
-	codereposGroup.GET("/resync", codeRepositoryHandler.Resync)
-	codereposGroup.GET("/setup", codeRepositoryHandler.Setup)
+	codereposGroup.GET("/owners", codeRepositoryHandler.ListOwners)
+	codereposGroup.POST("/resync", codeRepositoryHandler.Resync)
+	codereposGroup.POST("/setup", codeRepositoryHandler.Setup)
 	return nil
 }
 

@@ -27,23 +27,22 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// List list all of the code repositories
-// @Summary List code repositories
+// ListOwner list all of the code repository owner
+// @Summary List code repository owners
 // @security BasicAuth
 // @Tags Namespace
 // @Accept json
 // @Produce json
-// @Router /coderepos/owners/ [get]
+// @Router /coderepos/ [get]
 // @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
 // @Param page query int64 false "page" minimum(1) default(1)
 // @Param sort query string false "sort field"
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param name query string false "search code repository with name"
-// @Param owner query string false "search code repository with owner"
 // @Param provider query string false "search code repository with provider"
-// @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryItem}
+// @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryOwnerItem}
 // @Failure 500 {object} xerrors.ErrCode
-func (h *handlers) List(c echo.Context) error {
+func (h *handlers) ListOwners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -57,7 +56,7 @@ func (h *handlers) List(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.ListCodeRepositoryRequest
+	var req types.ListCodeRepositoryOwnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -66,21 +65,18 @@ func (h *handlers) List(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	codeRepositoryService := h.codeRepositoryServiceFactory.New()
-	codeRepositoryObjs, total, err := codeRepositoryService.ListWithPagination(ctx, user.ID, req.Provider, req.Owner, req.Name, req.Pagination, req.Sortable)
+	codeRepositoryOwnerObjs, total, err := codeRepositoryService.ListOwnerWithPagination(ctx, user.ID, req.Provider, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Msg("List code repositories failed")
+		log.Error().Err(err).Msg("List code repository owners failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	resp := make([]any, 0, len(codeRepositoryObjs))
-	for _, codeRepositoryObj := range codeRepositoryObjs {
-		resp = append(resp, types.CodeRepositoryItem{
-			ID:        codeRepositoryObj.ID,
-			Name:      codeRepositoryObj.Name,
-			Owner:     codeRepositoryObj.Owner,
-			CloneUrl:  codeRepositoryObj.CloneUrl,
-			SshUrl:    codeRepositoryObj.SshUrl,
-			CreatedAt: codeRepositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: codeRepositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
+	resp := make([]any, 0, len(codeRepositoryOwnerObjs))
+	for _, codeRepositoryOwnerObj := range codeRepositoryOwnerObjs {
+		resp = append(resp, types.CodeRepositoryOwnerItem{
+			ID:        codeRepositoryOwnerObj.ID,
+			Name:      codeRepositoryOwnerObj.Name,
+			CreatedAt: codeRepositoryOwnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt: codeRepositoryOwnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 
