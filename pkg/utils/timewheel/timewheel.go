@@ -15,6 +15,7 @@
 package timewheel
 
 import (
+	"context"
 	"time"
 )
 
@@ -33,7 +34,7 @@ const (
 )
 
 // Notify is a function that is called when a timer expires.
-type Notify func()
+type Notify func(context.Context, TimeWheel)
 
 type timeWheel struct {
 	maxTicker time.Duration
@@ -43,10 +44,13 @@ type timeWheel struct {
 	stopped chan struct{}
 
 	runner []Notify
+
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 // NewTimeWheel new time wheel
-func NewTimeWheel(maxTickers ...time.Duration) TimeWheel {
+func NewTimeWheel(ctx context.Context, maxTickers ...time.Duration) TimeWheel {
 	t := &timeWheel{
 		next:    make(chan struct{}, 1),
 		stop:    make(chan struct{}, 1),
@@ -54,6 +58,9 @@ func NewTimeWheel(maxTickers ...time.Duration) TimeWheel {
 
 		runner: make([]Notify, 0),
 	}
+	ctx, ctxCancel := context.WithCancel(ctx)
+	t.ctx = ctx
+	t.ctxCancel = ctxCancel
 	if len(maxTickers) > 0 {
 		t.maxTicker = maxTickers[0]
 	} else {
@@ -72,11 +79,11 @@ func (t *timeWheel) runLoop() {
 			select {
 			case <-ticker.C:
 				for _, runner := range t.runner {
-					go runner()
+					go runner(t.ctx, t)
 				}
 			case <-t.next:
 				for _, runner := range t.runner {
-					go runner()
+					go runner(t.ctx, t)
 				}
 			case <-t.stop:
 				t.stopped <- struct{}{}
@@ -97,6 +104,7 @@ func (t *timeWheel) TickNext(ddl time.Duration) {
 // Stop stop
 func (t *timeWheel) Stop() {
 	t.stop <- struct{}{}
+	t.ctxCancel()
 	<-t.stopped
 }
 

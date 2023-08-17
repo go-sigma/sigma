@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -38,6 +39,10 @@ type BuilderService interface {
 	GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error)
 	// UpdateRunner update builder runner
 	UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error
+	// GetByNextTrigger get by next trigger
+	GetByNextTrigger(ctx context.Context, now time.Time, limit int) ([]*models.Builder, error)
+	// UpdateNextTrigger update next trigger
+	UpdateNextTrigger(ctx context.Context, id int64, next time.Time) error
 }
 
 type builderService struct {
@@ -89,6 +94,23 @@ func (s builderService) GetRunner(ctx context.Context, id int64) (*models.Builde
 // UpdateRunner update builder runner
 func (s builderService) UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error {
 	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(builderID), s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+// GetByNextTrigger get by next trigger
+func (s builderService) GetByNextTrigger(ctx context.Context, now time.Time, limit int) ([]*models.Builder, error) {
+	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.CronNextTrigger.Lt(now)).Limit(limit).Find()
+}
+
+// UpdateNextTrigger update next trigger
+func (s builderService) UpdateNextTrigger(ctx context.Context, id int64, next time.Time) error {
+	matched, err := s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.ID.Eq(id)).Update(s.tx.Builder.CronNextTrigger, next)
 	if err != nil {
 		return err
 	}

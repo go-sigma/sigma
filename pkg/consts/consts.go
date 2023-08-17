@@ -122,6 +122,8 @@ const (
 const (
 	// LockerMigration ...
 	LockerMigration = "locker-migration"
+	// LockerCronjobBuilder ...
+	LockerCronjobBuilder = "locker-cronjob-builder"
 )
 
 var (

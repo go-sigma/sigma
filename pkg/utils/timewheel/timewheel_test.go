@@ -15,6 +15,7 @@
 package timewheel
 
 import (
+	"context"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -24,8 +25,8 @@ import (
 
 func TestNewTimeWheel(t *testing.T) {
 	var myNum int32 = 1
-	tw := NewTimeWheel()
-	tw.AddRunner(func() {
+	tw := NewTimeWheel(context.Background())
+	tw.AddRunner(func(_ context.Context, _ TimeWheel) {
 		atomic.AddInt32(&myNum, 1)
 	})
 	tw.TickNext(time.Second)
@@ -36,8 +37,8 @@ func TestNewTimeWheel(t *testing.T) {
 
 func TestNewTimeWheelWithMaxTicker(t *testing.T) {
 	var myNum int32 = 1
-	tw := NewTimeWheel(time.Second * 2)
-	tw.AddRunner(func() {
+	tw := NewTimeWheel(context.Background(), time.Second*2)
+	tw.AddRunner(func(_ context.Context, _ TimeWheel) {
 		atomic.AddInt32(&myNum, 1)
 	})
 	tw.TickNext(time.Second)

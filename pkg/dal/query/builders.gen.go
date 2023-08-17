@@ -33,15 +33,19 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.ID = field.NewInt64(tableName, "id")
 	_builder.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_builder.Active = field.NewBool(tableName, "active")
+	_builder.ScmRepository = field.NewString(tableName, "scm_repository")
 	_builder.ScmCredentialType = field.NewField(tableName, "scm_credential_type")
 	_builder.ScmToken = field.NewString(tableName, "scm_token")
 	_builder.ScmSshKey = field.NewString(tableName, "scm_ssh_key")
 	_builder.ScmUsername = field.NewString(tableName, "scm_username")
 	_builder.ScmPassword = field.NewString(tableName, "scm_password")
-	_builder.ScmRepository = field.NewString(tableName, "scm_repository")
-	_builder.ScmBranch = field.NewString(tableName, "scm_branch")
 	_builder.ScmDepth = field.NewInt(tableName, "scm_depth")
 	_builder.ScmSubmodule = field.NewBool(tableName, "scm_submodule")
+	_builder.CronRule = field.NewString(tableName, "cron_rule")
+	_builder.CronBranch = field.NewString(tableName, "cron_branch")
+	_builder.CronTag = field.NewString(tableName, "cron_tag")
+	_builder.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
+	_builder.WebhookTag = field.NewString(tableName, "webhook_tag")
 	_builder.BuildkitInsecureRegistries = field.NewString(tableName, "buildkit_insecure_registries")
 	_builder.BuildkitContext = field.NewString(tableName, "buildkit_context")
 	_builder.BuildkitDockerfile = field.NewString(tableName, "buildkit_dockerfile")
@@ -72,15 +76,19 @@ type builder struct {
 	ID                         field.Int64
 	RepositoryID               field.Int64
 	Active                     field.Bool
+	ScmRepository              field.String
 	ScmCredentialType          field.Field
 	ScmToken                   field.String
 	ScmSshKey                  field.String
 	ScmUsername                field.String
 	ScmPassword                field.String
-	ScmRepository              field.String
-	ScmBranch                  field.String
 	ScmDepth                   field.Int
 	ScmSubmodule               field.Bool
+	CronRule                   field.String
+	CronBranch                 field.String
+	CronTag                    field.String
+	CronNextTrigger            field.Time
+	WebhookTag                 field.String
 	BuildkitInsecureRegistries field.String
 	BuildkitContext            field.String
 	BuildkitDockerfile         field.String
@@ -108,15 +116,19 @@ func (b *builder) updateTableName(table string) *builder {
 	b.ID = field.NewInt64(table, "id")
 	b.RepositoryID = field.NewInt64(table, "repository_id")
 	b.Active = field.NewBool(table, "active")
+	b.ScmRepository = field.NewString(table, "scm_repository")
 	b.ScmCredentialType = field.NewField(table, "scm_credential_type")
 	b.ScmToken = field.NewString(table, "scm_token")
 	b.ScmSshKey = field.NewString(table, "scm_ssh_key")
 	b.ScmUsername = field.NewString(table, "scm_username")
 	b.ScmPassword = field.NewString(table, "scm_password")
-	b.ScmRepository = field.NewString(table, "scm_repository")
-	b.ScmBranch = field.NewString(table, "scm_branch")
 	b.ScmDepth = field.NewInt(table, "scm_depth")
 	b.ScmSubmodule = field.NewBool(table, "scm_submodule")
+	b.CronRule = field.NewString(table, "cron_rule")
+	b.CronBranch = field.NewString(table, "cron_branch")
+	b.CronTag = field.NewString(table, "cron_tag")
+	b.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
+	b.WebhookTag = field.NewString(table, "webhook_tag")
 	b.BuildkitInsecureRegistries = field.NewString(table, "buildkit_insecure_registries")
 	b.BuildkitContext = field.NewString(table, "buildkit_context")
 	b.BuildkitDockerfile = field.NewString(table, "buildkit_dockerfile")
@@ -145,22 +157,26 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 20)
+	b.fieldMap = make(map[string]field.Expr, 24)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["repository_id"] = b.RepositoryID
 	b.fieldMap["active"] = b.Active
+	b.fieldMap["scm_repository"] = b.ScmRepository
 	b.fieldMap["scm_credential_type"] = b.ScmCredentialType
 	b.fieldMap["scm_token"] = b.ScmToken
 	b.fieldMap["scm_ssh_key"] = b.ScmSshKey
 	b.fieldMap["scm_username"] = b.ScmUsername
 	b.fieldMap["scm_password"] = b.ScmPassword
-	b.fieldMap["scm_repository"] = b.ScmRepository
-	b.fieldMap["scm_branch"] = b.ScmBranch
 	b.fieldMap["scm_depth"] = b.ScmDepth
 	b.fieldMap["scm_submodule"] = b.ScmSubmodule
+	b.fieldMap["cron_rule"] = b.CronRule
+	b.fieldMap["cron_branch"] = b.CronBranch
+	b.fieldMap["cron_tag"] = b.CronTag
+	b.fieldMap["cron_next_trigger"] = b.CronNextTrigger
+	b.fieldMap["webhook_tag"] = b.WebhookTag
 	b.fieldMap["buildkit_insecure_registries"] = b.BuildkitInsecureRegistries
 	b.fieldMap["buildkit_context"] = b.BuildkitContext
 	b.fieldMap["buildkit_dockerfile"] = b.BuildkitDockerfile

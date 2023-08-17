@@ -25,7 +25,6 @@ import (
 	builderdriver "github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -53,7 +52,7 @@ type builder struct {
 
 func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload) error {
 	if payload.Action == enums.DaemonBuilderActionStop {
-		return builderdriver.Driver.Stop(ctx, payload.ID, payload.RunnerID)
+		return builderdriver.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
 	}
 	builderService := b.builderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, payload.RepositoryID)
@@ -62,20 +61,26 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 		return fmt.Errorf("Get builder record failed")
 	}
 
-	runnerObj := &models.BuilderRunner{
-		BuilderID: payload.ID,
-		Status:    enums.BuildStatusPending,
-	}
-	err = builderService.CreateRunner(ctx, runnerObj)
+	runnerObj, err := builderService.GetRunner(ctx, payload.RunnerID)
 	if err != nil {
-		log.Error().Err(err).Msg("Create builder runner record failed")
-		return fmt.Errorf("Create builder runner record failed: %v", err)
+		log.Error().Err(err).Msg("Get runner failed")
+		return fmt.Errorf("Get runner failed: %v", err)
 	}
+
+	// runnerObj := &models.BuilderRunner{
+	// 	BuilderID: payload.BuilderID,
+	// 	Status:    enums.BuildStatusPending,
+	// }
+	// err = builderService.CreateRunner(ctx, runnerObj)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Create builder runner record failed")
+	// 	return fmt.Errorf("Create builder runner record failed: %v", err)
+	// }
 
 	buildConfig := builderdriver.BuilderConfig{
 		Builder: types.Builder{
-			ID:       payload.ID,
-			RunnerID: runnerObj.ID,
+			BuilderID: payload.BuilderID,
+			RunnerID:  runnerObj.ID,
 
 			ScmCredentialType: builderObj.ScmCredentialType,
 			ScmProvider:       enums.ScmProviderGithub,
@@ -84,7 +89,7 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 			ScmUsername:       builderObj.ScmUsername,
 			ScmPassword:       builderObj.ScmPassword,
 			ScmRepository:     builderObj.ScmRepository,
-			ScmBranch:         builderObj.ScmBranch,
+			ScmBranch:         runnerObj.ScmBranch,
 			ScmDepth:          builderObj.ScmDepth,
 			ScmSubmodule:      builderObj.ScmSubmodule,
 
