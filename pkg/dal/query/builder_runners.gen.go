@@ -34,6 +34,9 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.BuilderID = field.NewInt64(tableName, "builder_id")
 	_builderRunner.Log = field.NewBytes(tableName, "log")
 	_builderRunner.Status = field.NewField(tableName, "status")
+	_builderRunner.Tag = field.NewString(tableName, "tag")
+	_builderRunner.ScmBranch = field.NewString(tableName, "scm_branch")
+	_builderRunner.BuildkitPlatforms = field.NewString(tableName, "buildkit_platforms")
 	_builderRunner.Builder = builderRunnerBelongsToBuilder{
 		db: db.Session(&gorm.Session{}),
 
@@ -61,15 +64,18 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 type builderRunner struct {
 	builderRunnerDo builderRunnerDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	BuilderID field.Int64
-	Log       field.Bytes
-	Status    field.Field
-	Builder   builderRunnerBelongsToBuilder
+	ALL               field.Asterisk
+	CreatedAt         field.Time
+	UpdatedAt         field.Time
+	DeletedAt         field.Uint
+	ID                field.Int64
+	BuilderID         field.Int64
+	Log               field.Bytes
+	Status            field.Field
+	Tag               field.String
+	ScmBranch         field.String
+	BuildkitPlatforms field.String
+	Builder           builderRunnerBelongsToBuilder
 
 	fieldMap map[string]field.Expr
 }
@@ -93,6 +99,9 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.BuilderID = field.NewInt64(table, "builder_id")
 	b.Log = field.NewBytes(table, "log")
 	b.Status = field.NewField(table, "status")
+	b.Tag = field.NewString(table, "tag")
+	b.ScmBranch = field.NewString(table, "scm_branch")
+	b.BuildkitPlatforms = field.NewString(table, "buildkit_platforms")
 
 	b.fillFieldMap()
 
@@ -121,7 +130,7 @@ func (b *builderRunner) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (b *builderRunner) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 8)
+	b.fieldMap = make(map[string]field.Expr, 11)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -129,6 +138,9 @@ func (b *builderRunner) fillFieldMap() {
 	b.fieldMap["builder_id"] = b.BuilderID
 	b.fieldMap["log"] = b.Log
 	b.fieldMap["status"] = b.Status
+	b.fieldMap["tag"] = b.Tag
+	b.fieldMap["scm_branch"] = b.ScmBranch
+	b.fieldMap["buildkit_platforms"] = b.BuildkitPlatforms
 
 }
 

@@ -73,7 +73,7 @@ func Initialize() error {
 // BuildEnv ...
 func BuildEnv(builderConfig BuilderConfig) []string {
 	buildConfigEnvs := []string{
-		fmt.Sprintf("ID=%d", builderConfig.ID),
+		fmt.Sprintf("ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
 
 		fmt.Sprintf("SCM_CREDENTIAL_TYPE=%s", builderConfig.ScmCredentialType.String()),
@@ -96,20 +96,20 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 	}
 	if builderConfig.ScmPassword != "" {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_PASSWORD=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.ID, builderConfig.RunnerID), builderConfig.ScmPassword)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmPassword)))
 	}
 	if builderConfig.ScmSshKey != "" {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_SSH_KEY=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.ID, builderConfig.RunnerID), builderConfig.ScmSshKey)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmSshKey)))
 	}
 	if builderConfig.ScmToken != "" {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_TOKEN=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.ID, builderConfig.RunnerID), builderConfig.ScmToken)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmToken)))
 	}
 	if len(builderConfig.OciRegistryPassword) != 0 {
 		var passwords []string
 		for _, p := range builderConfig.OciRegistryPassword {
-			passwords = append(passwords, crypt.MustEncrypt(fmt.Sprintf("%d-%d", builderConfig.ID, builderConfig.RunnerID), p))
+			passwords = append(passwords, crypt.MustEncrypt(fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), p))
 		}
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("OCI_REGISTRY_PASSWORD=%s", strings.Join(passwords, ",")))
 	}

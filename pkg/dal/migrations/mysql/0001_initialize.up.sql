@@ -325,27 +325,53 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint NOT NULL,
   `active` tinyint NOT NULL DEFAULT 1,
-  `scm_credential_type` varchar(16) NOT NULL,
+  -- method 1
+  `scm_repository` varchar(256),
+  `scm_credential_type` varchar(16),
   `scm_ssh_key` BLOB,
   `scm_token` varchar(256),
   `scm_username` varchar(30),
   `scm_password` varchar(30),
-  `scm_repository` varchar(256) NOT NULL,
+  -- method 2
+  `code_repository_id` bigint,
+  -- method 3
+  `dockerfile` BLOB,
+  -- common settings
   `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
   `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
   `scm_submodule` tinyint NOT NULL DEFAULT 1,
+  -- cron settings
+  `cron_rule` varchar(30),
+  `cron_branch` varchar(30),
+  `cron_tag` varchar(256),
+  `cron_next_trigger` timestamp,
+  -- webhook settings
+  `webhook_tag` varchar(256),
+  -- buildkit settings
+  `buildkit_insecure_registries` varchar(256),
+  `buildkit_context` varchar(30) NOT NULL default '.',
+  `buildkit_dockerfile` varchar(256) NOT NULL default 'Dockerfile',
+  `buildkit_platforms` varchar(256) NOT NULL default 'linux/amd64',
+  -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
+  FOREIGN KEY (`code_repository_id`) REFERENCES `code_repositories` (`id`),
   CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
 );
 
+-- TODO: buildx flags
 CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `builder_id` bigint NOT NULL,
   `log` LONGBLOB,
   `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL,
+  -- common settings
+  `tag` varchar(30) NOT NULL, -- image tag
+  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
+  `buildkit_platforms` varchar(256) NOT NULL default 'linux/amd64',
+  -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,

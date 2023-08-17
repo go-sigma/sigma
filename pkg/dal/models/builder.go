@@ -29,17 +29,26 @@ type Builder struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	RepositoryID      int64
-	Active            bool
+	RepositoryID int64
+	Active       bool
+
+	ScmRepository     string
 	ScmCredentialType enums.ScmCredentialType
 	ScmToken          string
 	ScmSshKey         string
 	ScmUsername       string
 	ScmPassword       string
-	ScmRepository     string
-	ScmBranch         string
-	ScmDepth          int
-	ScmSubmodule      bool
+
+	// ScmBranch    string
+	ScmDepth     int
+	ScmSubmodule bool
+
+	CronRule        *string
+	CronBranch      *string
+	CronTag         *string
+	CronNextTrigger *time.Time
+
+	WebhookTag *string
 
 	BuildkitInsecureRegistries string
 	BuildkitContext            string `gorm:"default:."`
@@ -59,6 +68,10 @@ type BuilderRunner struct {
 	BuilderID int64
 	Log       []byte
 	Status    enums.BuildStatus
+
+	Tag               string
+	ScmBranch         string
+	BuildkitPlatforms string `gorm:"default:linux/amd64"`
 
 	Builder Builder
 }

@@ -18,8 +18,8 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // Builder config for builder
 type Builder struct {
-	ID       int64 `env:"ID,notEmpty"`
-	RunnerID int64 `env:"RUNNER_ID,notEmpty"`
+	BuilderID int64 `env:"ID,notEmpty"`
+	RunnerID  int64 `env:"RUNNER_ID,notEmpty"`
 
 	ScmCredentialType enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE,notEmpty"`
 	ScmSshKey         string                  `env:"SCM_SSH_KEY"`

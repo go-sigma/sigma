@@ -89,7 +89,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				"oci-image-builder": consts.AppName,
-				"builder-id":        strconv.FormatInt(builderConfig.ID, 10),
+				"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
 				"runner-id":         strconv.FormatInt(builderConfig.RunnerID, 10),
 			},
 		},

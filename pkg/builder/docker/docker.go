@@ -77,18 +77,18 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		Env:        builder.BuildEnv(builderConfig),
 		Labels: map[string]string{
 			"oci-image-builder": consts.AppName,
-			"builder-id":        strconv.FormatInt(builderConfig.ID, 10),
+			"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
 			"runner-id":         strconv.FormatInt(builderConfig.RunnerID, 10),
 		},
 	}
 	hostConfig := &container.HostConfig{
 		SecurityOpt: []string{"seccomp=unconfined", "apparmor=unconfined"},
 	}
-	_, err := i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.ID, builderConfig.RunnerID))
+	_, err := i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
-	return i.client.ContainerStart(ctx, i.genContainerID(builderConfig.ID, builderConfig.RunnerID), dockertypes.ContainerStartOptions{})
+	return i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), dockertypes.ContainerStartOptions{})
 }
 
 const (
@@ -123,7 +123,7 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 
 // Restart wrap stop and start
 func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConfig) error {
-	err := i.Stop(ctx, builderConfig.ID, builderConfig.RunnerID)
+	err := i.Stop(ctx, builderConfig.BuilderID, builderConfig.RunnerID)
 	if err != nil {
 		return err
 	}

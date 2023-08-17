@@ -33,7 +33,7 @@ func (b *Builder) checker() error {
 		return fmt.Errorf("SCM_SSH_KEY should be set, if SCM_CREDENTIAL_TYPE is 'ssh'")
 	}
 	if b.ScmSshKey != "" {
-		b.ScmSshKey, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.ID, b.RunnerID), b.ScmSshKey)
+		b.ScmSshKey, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.ScmSshKey)
 		if err != nil {
 			return fmt.Errorf("Decrypt ssh key failed: %v", err)
 		}
@@ -43,7 +43,7 @@ func (b *Builder) checker() error {
 		return fmt.Errorf("SCM_TOKEN should be set, if SCM_CREDENTIAL_TYPE is 'token'")
 	}
 	if b.ScmToken != "" {
-		b.ScmToken, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.ID, b.RunnerID), b.ScmToken)
+		b.ScmToken, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.ScmToken)
 		if err != nil {
 			return fmt.Errorf("Decrypt scm token failed: %v", err)
 		}
@@ -56,7 +56,7 @@ func (b *Builder) checker() error {
 		return fmt.Errorf("SCM_USERNAME and SCM_PASSWORD should be set, if SCM_CREDENTIAL_TYPE is 'username'")
 	}
 	if b.ScmPassword != "" {
-		b.ScmPassword, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.ID, b.RunnerID), b.ScmPassword)
+		b.ScmPassword, err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.ScmPassword)
 		if err != nil {
 			return fmt.Errorf("Decrypt scm password failed: %v", err)
 		}
@@ -76,7 +76,7 @@ func (b *Builder) checker() error {
 	}
 
 	for index, password := range b.OciRegistryPassword {
-		b.OciRegistryPassword[index], err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.ID, b.RunnerID), password)
+		b.OciRegistryPassword[index], err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), password)
 		if err != nil {
 			return fmt.Errorf("Decrypt oci registry password failed: %v", err)
 		}

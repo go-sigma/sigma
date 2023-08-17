@@ -99,7 +99,6 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 			ScmUsername:       req.ScmUsername,
 			ScmPassword:       req.ScmPassword, // should encrypt the password
 			ScmRepository:     req.ScmRepository,
-			ScmBranch:         req.ScmBranch,
 			ScmDepth:          req.ScmDepth,
 			ScmSubmodule:      req.ScmSubmodule,
 		}

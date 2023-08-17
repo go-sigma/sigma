@@ -12,13 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package imports
+package cronjob
 
-import (
-	_ "github.com/go-sigma/sigma/pkg/cronjob"
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
+import "time"
+
+const (
+	// cronjobIterDuration each job iterate duration
+	cronjobIterDuration = time.Second * 30
+	// tickNextDuration tick the next runner if current get full of jobs
+	tickNextDuration = time.Second * 3
+	// maxJob each iterate get the maximum jobs
+	maxJob = 100
 )
+
+var starter []func()
+
+var stopper []func()
+
+// Initialize ...
+func Initialize() {
+	for _, start := range starter {
+		start()
+	}
+}
