@@ -1,21 +1,21 @@
 module github.com/go-sigma/sigma
 
-go 1.19
+go 1.20
 
 require (
 	code.gitea.io/sdk/gitea v0.15.1
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.30.5
-	github.com/anchore/syft v0.87.0
+	github.com/anchore/syft v0.87.1
 	github.com/aquasecurity/trivy v0.44.1
-	github.com/aws/aws-sdk-go v1.44.325
+	github.com/aws/aws-sdk-go v1.44.326
 	github.com/bytedance/sonic v1.10.0
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.75.0
 	github.com/casbin/gorm-adapter/v3 v3.18.1
 	github.com/deckarep/golang-set/v2 v2.3.1
-	github.com/distribution/distribution/v3 v3.0.0-20230816152046-6ccc551f9613
+	github.com/distribution/distribution/v3 v3.0.0-20230818072615-97957b12b1b2
 	github.com/docker/cli v24.0.5+incompatible
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/dustin/go-humanize v1.0.1
@@ -54,7 +54,7 @@ require (
 	github.com/xanzy/go-gitlab v0.90.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.12.0
-	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/oauth2 v0.11.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
@@ -225,7 +225,7 @@ require (
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.12.1-0.20230815132531-74c255bcf846 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230815205213-6bfd019c3878 // indirect
