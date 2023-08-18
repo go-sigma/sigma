@@ -53,3 +53,33 @@ type ListCodeRepositoryOwnerRequest struct {
 	Provider enums.Provider `json:"provider" query:"provider" validate:"required,is_valid_provider"`
 	Name     *string        `json:"name,omitempty" query:"name" validate:"omitempty,min=1"`
 }
+
+// PostCodeRepositorySetupBuilder ...
+type PostCodeRepositorySetupBuilder struct {
+	ID int64 `json:"id" param:"id" validate:"required,number"`
+
+	NamespaceID    int64  `json:"namespace_id" validate:"required,number"`
+	RepositoryName string `json:"repository_name" validate:"required,is_valid_repository" example:"library/test"`
+
+	ScmBranch    string `json:"scm_branch" example:"main"`
+	ScmDepth     int    `json:"scm_depth" example:"0"`
+	ScmSubmodule bool   `json:"scm_submodule" example:"false"`
+
+	BuildkitContext    string              `json:"buildkit_context" example:"."`
+	BuildkitDockerfile string              `json:"buildkit_dockerfile" example:"Dockerfile"`
+	BuildkitPlatforms  []enums.OciPlatform `json:"buildkit_platforms" example:"linux/amd64"`
+}
+
+// PostCodeRepositorySetupBuilderSwagger ...
+type PostCodeRepositorySetupBuilderSwagger struct {
+	NamespaceID    int64  `json:"namespace_id" validate:"required,number"`
+	RepositoryName string `json:"repository_name" validate:"required,is_valid_repository" example:"library/test"`
+
+	ScmBranch    string `json:"scm_branch" example:"main"`
+	ScmDepth     int    `json:"scm_depth" example:"0"`
+	ScmSubmodule bool   `json:"scm_submodule" example:"false"`
+
+	BuildkitContext    string              `json:"buildkit_context" example:"."`
+	BuildkitDockerfile string              `json:"buildkit_dockerfile" example:"Dockerfile"`
+	BuildkitPlatforms  []enums.OciPlatform `json:"buildkit_platforms" example:"linux/amd64"`
+}

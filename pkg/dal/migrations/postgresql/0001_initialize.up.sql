@@ -376,27 +376,53 @@ CREATE TABLE IF NOT EXISTS "webhook_logs" (
   FOREIGN KEY ("webhook_id") REFERENCES "webhooks" ("id")
 );
 
+CREATE TYPE builder_source AS ENUM (
+  'SelfCodeRepository',
+  'CodeRepository',
+  'Dockerfile'
+);
+
 CREATE TABLE IF NOT EXISTS "builders" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigint NOT NULL,
   "active" smallint NOT NULL DEFAULT 1,
+  "source" builder_source NOT NULL,
+  -- source SelfCodeRepository
   "scm_credential_type" varchar(16) NOT NULL,
+  "scm_repository" varchar(256) NOT NULL,
   "scm_ssh_key" bytea,
   "scm_token" varchar(256),
   "scm_username" varchar(30),
   "scm_password" varchar(30),
-  "scm_repository" varchar(256) NOT NULL,
-  "scm_branch" varchar(30) NOT NULL DEFAULT 'main',
+  -- source CodeRepository
+  "code_repository_id" bigint,
+  -- source Dockerfile
+  "dockerfile" bytea,
+  -- common settings
   "scm_depth" smallint NOT NULL DEFAULT 0,
   "scm_submodule" smallint NOT NULL DEFAULT 1,
+  -- cron settings
+  "cron_rules" varchar(30),
+  "cron_branch" varchar(30),
+  "cron_tag" varchar(256),
+  "cron_next_trigger" timestamp,
+  -- webhook settings
+  "webhook_tag" varchar(256),
+  -- buildkit settings
+  "buildkit_insecure_registries" varchar(256),
+  "buildkit_context" varchar(30) NOT NULL DEFAULT '.',
+  "buildkit_dockerfile" varchar(256) NOT NULL DEFAULT 'Dockerfile',
+  "buildkit_platforms" varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  -- other fields
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
+  FOREIGN KEY ("code_repository_id") REFERENCES "code_repositories" ("id"),
   CONSTRAINT "builders_unique_with_repository" UNIQUE ("repository_id", "deleted_at")
 );
 
-CREATE TYPE build_status AS ENUM (
+CREATE TYPE builder_runner_status AS ENUM (
   'Pending',
   'Doing',
   'Success',
@@ -408,7 +434,12 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   "id" bigserial PRIMARY KEY,
   "builder_id" bigint NOT NULL,
   "log" bytea,
-  "status" build_status NOT NULL DEFAULT 'Pending',
+  "status" builder_runner_status NOT NULL DEFAULT 'Pending',
+  -- common settings
+  "tag" varchar(30) NOT NULL, -- image tag
+  "scm_branch" varchar(30) NOT NULL DEFAULT 'main',
+  "buildkit_platforms" varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  -- other fields
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,

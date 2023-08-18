@@ -14,6 +14,34 @@ definitions:
     - AuditActionDelete
     - AuditActionPull
     - AuditActionPush
+  enums.OciPlatform:
+    enum:
+    - linux/amd64
+    - linux/amd64/v2
+    - linux/amd64/v3
+    - linux/arm64
+    - linux/riscv64
+    - linux/ppc64le
+    - linux/s390x
+    - linux/386
+    - linux/mips64le
+    - linux/mips64
+    - linux/arm/v7
+    - linux/arm/v6
+    type: string
+    x-enum-varnames:
+    - OciPlatformLinuxAmd64
+    - OciPlatformLinuxAmd64V2
+    - OciPlatformLinuxAmd64V3
+    - OciPlatformLinuxArm64
+    - OciPlatformLinuxRiscv64
+    - OciPlatformLinuxPpc64le
+    - OciPlatformLinuxS390x
+    - OciPlatformLinux386
+    - OciPlatformLinuxMips64le
+    - OciPlatformLinuxMips64
+    - OciPlatformLinuxArmV7
+    - OciPlatformLinuxArmV6
   enums.ScmCredentialType:
     enum:
     - ssh
@@ -327,6 +355,38 @@ definitions:
       scm_username:
         example: sigma
         type: string
+    type: object
+  types.PostCodeRepositorySetupBuilderSwagger:
+    properties:
+      buildkit_context:
+        example: .
+        type: string
+      buildkit_dockerfile:
+        example: Dockerfile
+        type: string
+      buildkit_platforms:
+        example:
+        - linux/amd64
+        items:
+          $ref: '#/definitions/enums.OciPlatform'
+        type: array
+      namespace_id:
+        type: integer
+      repository_name:
+        example: library/test
+        type: string
+      scm_branch:
+        example: main
+        type: string
+      scm_depth:
+        example: 0
+        type: integer
+      scm_submodule:
+        example: false
+        type: boolean
+    required:
+    - namespace_id
+    - repository_name
     type: object
   types.PostNamespaceRequest:
     properties:
@@ -857,7 +917,37 @@ paths:
       - BasicAuth: []
       summary: List code repository owners
       tags:
-      - Namespace
+      - CodeRepository
+  /coderepos/{id}/setup-builder:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: code repository id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Code repository setup builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostCodeRepositorySetupBuilderSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Setup builder for code repository
+      tags:
+      - CodeRepository
   /coderepos/owners/:
     get:
       consumes:
@@ -921,7 +1011,7 @@ paths:
       - BasicAuth: []
       summary: List code repositories
       tags:
-      - Namespace
+      - CodeRepository
   /daemons/{daemon}/:
     get:
       consumes:

@@ -97,7 +97,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Namespace"
+                    "CodeRepository"
                 ],
                 "summary": "List code repository owners",
                 "parameters": [
@@ -192,7 +192,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Namespace"
+                    "CodeRepository"
                 ],
                 "summary": "List code repositories",
                 "parameters": [
@@ -269,6 +269,54 @@ const docTemplate = `{
                                 }
                             ]
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/coderepos/{id}/setup-builder": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "Setup builder for code repository",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code repository id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Code repository setup builder object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostCodeRepositorySetupBuilderSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -2060,6 +2108,37 @@ const docTemplate = `{
                 "AuditActionPush"
             ]
         },
+        "enums.OciPlatform": {
+            "type": "string",
+            "enum": [
+                "linux/amd64",
+                "linux/amd64/v2",
+                "linux/amd64/v3",
+                "linux/arm64",
+                "linux/riscv64",
+                "linux/ppc64le",
+                "linux/s390x",
+                "linux/386",
+                "linux/mips64le",
+                "linux/mips64",
+                "linux/arm/v7",
+                "linux/arm/v6"
+            ],
+            "x-enum-varnames": [
+                "OciPlatformLinuxAmd64",
+                "OciPlatformLinuxAmd64V2",
+                "OciPlatformLinuxAmd64V3",
+                "OciPlatformLinuxArm64",
+                "OciPlatformLinuxRiscv64",
+                "OciPlatformLinuxPpc64le",
+                "OciPlatformLinuxS390x",
+                "OciPlatformLinux386",
+                "OciPlatformLinuxMips64le",
+                "OciPlatformLinuxMips64",
+                "OciPlatformLinuxArmV7",
+                "OciPlatformLinuxArmV6"
+            ]
+        },
         "enums.ScmCredentialType": {
             "type": "string",
             "enum": [
@@ -2493,6 +2572,51 @@ const docTemplate = `{
                 "scm_username": {
                     "type": "string",
                     "example": "sigma"
+                }
+            }
+        },
+        "types.PostCodeRepositorySetupBuilderSwagger": {
+            "type": "object",
+            "required": [
+                "namespace_id",
+                "repository_name"
+            ],
+            "properties": {
+                "buildkit_context": {
+                    "type": "string",
+                    "example": "."
+                },
+                "buildkit_dockerfile": {
+                    "type": "string",
+                    "example": "Dockerfile"
+                },
+                "buildkit_platforms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enums.OciPlatform"
+                    },
+                    "example": [
+                        "linux/amd64"
+                    ]
+                },
+                "namespace_id": {
+                    "type": "integer"
+                },
+                "repository_name": {
+                    "type": "string",
+                    "example": "library/test"
+                },
+                "scm_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "scm_depth": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "scm_submodule": {
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },

@@ -199,3 +199,10 @@ type OciPlatform string
 // Stop,
 // )
 type DaemonBuilderAction string
+
+// BuilderSource x ENUM(
+// Dockerfile,
+// CodeRepository,
+// SelfCodeRepository,
+// )
+type BuilderSource string

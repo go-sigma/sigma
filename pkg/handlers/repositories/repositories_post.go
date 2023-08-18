@@ -79,7 +79,6 @@ func (h *handlers) PostRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
 	}
 
-	log.Info().Interface("req", req).Send()
 	repositoryObj := &models.Repository{
 		NamespaceID: namespaceObj.ID,
 		Name:        req.Name,

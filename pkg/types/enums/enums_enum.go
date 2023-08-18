@@ -387,6 +387,92 @@ func (x BuildStatus) Value() (driver.Value, error) {
 }
 
 const (
+	// BuilderSourceDockerfile is a BuilderSource of type Dockerfile.
+	BuilderSourceDockerfile BuilderSource = "Dockerfile"
+	// BuilderSourceCodeRepository is a BuilderSource of type CodeRepository.
+	BuilderSourceCodeRepository BuilderSource = "CodeRepository"
+	// BuilderSourceSelfCodeRepository is a BuilderSource of type SelfCodeRepository.
+	BuilderSourceSelfCodeRepository BuilderSource = "SelfCodeRepository"
+)
+
+var ErrInvalidBuilderSource = errors.New("not a valid BuilderSource")
+
+// String implements the Stringer interface.
+func (x BuilderSource) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x BuilderSource) IsValid() bool {
+	_, err := ParseBuilderSource(string(x))
+	return err == nil
+}
+
+var _BuilderSourceValue = map[string]BuilderSource{
+	"Dockerfile":         BuilderSourceDockerfile,
+	"CodeRepository":     BuilderSourceCodeRepository,
+	"SelfCodeRepository": BuilderSourceSelfCodeRepository,
+}
+
+// ParseBuilderSource attempts to convert a string to a BuilderSource.
+func ParseBuilderSource(name string) (BuilderSource, error) {
+	if x, ok := _BuilderSourceValue[name]; ok {
+		return x, nil
+	}
+	return BuilderSource(""), fmt.Errorf("%s is %w", name, ErrInvalidBuilderSource)
+}
+
+// MustParseBuilderSource converts a string to a BuilderSource, and panics if is not valid.
+func MustParseBuilderSource(name string) BuilderSource {
+	val, err := ParseBuilderSource(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errBuilderSourceNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *BuilderSource) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = BuilderSource("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseBuilderSource(v)
+	case []byte:
+		*x, err = ParseBuilderSource(string(v))
+	case BuilderSource:
+		*x = v
+	case *BuilderSource:
+		if v == nil {
+			return errBuilderSourceNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errBuilderSourceNilPtr
+		}
+		*x, err = ParseBuilderSource(*v)
+	default:
+		return errors.New("invalid type for BuilderSource")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x BuilderSource) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// CacheTypeMemory is a CacheType of type memory.
 	CacheTypeMemory CacheType = "memory"
 	// CacheTypeRedis is a CacheType of type redis.

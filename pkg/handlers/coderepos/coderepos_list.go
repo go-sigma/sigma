@@ -30,7 +30,7 @@ import (
 // List list all of the code repositories
 // @Summary List code repositories
 // @security BasicAuth
-// @Tags Namespace
+// @Tags CodeRepository
 // @Accept json
 // @Produce json
 // @Router /coderepos/owners/ [get]
