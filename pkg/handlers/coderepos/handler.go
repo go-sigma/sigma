@@ -36,37 +36,65 @@ type Handlers interface {
 	// Resync resync all of the code repositories
 	Resync(c echo.Context) error
 	// Setup setup builder for code repository
-	Setup(c echo.Context) error
+	SetupBuilder(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
 
 type handlers struct {
+	namespaceServiceFactory      dao.NamespaceServiceFactory
+	repositoryServiceFactory     dao.RepositoryServiceFactory
 	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 	userServiceFactory           dao.UserServiceFactory
+	auditServiceFactory          dao.AuditServiceFactory
+	builderServiceFactory        dao.BuilderServiceFactory
 }
 
 type inject struct {
+	namespaceServiceFactory      dao.NamespaceServiceFactory
+	repositoryServiceFactory     dao.RepositoryServiceFactory
 	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 	userServiceFactory           dao.UserServiceFactory
+	auditServiceFactory          dao.AuditServiceFactory
+	builderServiceFactory        dao.BuilderServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handlers {
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
 	userServiceFactory := dao.NewUserServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
+	builderServiceFactory := dao.NewBuilderServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.namespaceServiceFactory != nil {
+			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
 		if ij.codeRepositoryServiceFactory != nil {
 			codeRepositoryServiceFactory = ij.codeRepositoryServiceFactory
 		}
 		if ij.userServiceFactory != nil {
 			userServiceFactory = ij.userServiceFactory
 		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
+		if ij.builderServiceFactory != nil {
+			builderServiceFactory = ij.builderServiceFactory
+		}
 	}
 	return &handlers{
+		namespaceServiceFactory:      namespaceServiceFactory,
+		repositoryServiceFactory:     repositoryServiceFactory,
 		codeRepositoryServiceFactory: codeRepositoryServiceFactory,
 		userServiceFactory:           userServiceFactory,
+		auditServiceFactory:          auditServiceFactory,
+		builderServiceFactory:        builderServiceFactory,
 	}
 }
 
@@ -80,7 +108,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup.GET("/", codeRepositoryHandler.List)
 	codereposGroup.GET("/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.POST("/resync", codeRepositoryHandler.Resync)
-	codereposGroup.POST("/setup", codeRepositoryHandler.Setup)
+	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
 }
 

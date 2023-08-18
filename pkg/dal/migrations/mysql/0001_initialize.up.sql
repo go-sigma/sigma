@@ -325,19 +325,19 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint NOT NULL,
   `active` tinyint NOT NULL DEFAULT 1,
-  -- method 1
+  `source` ENUM ('SelfCodeRepository', 'CodeRepository', 'Dockerfile') NOT NULL,
+  -- source SelfCodeRepository
   `scm_repository` varchar(256),
   `scm_credential_type` varchar(16),
   `scm_ssh_key` BLOB,
   `scm_token` varchar(256),
   `scm_username` varchar(30),
   `scm_password` varchar(30),
-  -- method 2
+  -- source CodeRepository
   `code_repository_id` bigint,
-  -- method 3
+  -- source Dockerfile
   `dockerfile` BLOB,
   -- common settings
-  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
   `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
   `scm_submodule` tinyint NOT NULL DEFAULT 1,
   -- cron settings
@@ -349,9 +349,9 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `webhook_tag` varchar(256),
   -- buildkit settings
   `buildkit_insecure_registries` varchar(256),
-  `buildkit_context` varchar(30) NOT NULL default '.',
-  `buildkit_dockerfile` varchar(256) NOT NULL default 'Dockerfile',
-  `buildkit_platforms` varchar(256) NOT NULL default 'linux/amd64',
+  `buildkit_context` varchar(30) NOT NULL DEFAULT '.',
+  `buildkit_dockerfile` varchar(256) NOT NULL DEFAULT 'Dockerfile',
+  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -370,7 +370,7 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   -- common settings
   `tag` varchar(30) NOT NULL, -- image tag
   `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
-  `buildkit_platforms` varchar(256) NOT NULL default 'linux/amd64',
+  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

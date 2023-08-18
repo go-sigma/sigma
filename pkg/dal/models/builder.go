@@ -32,6 +32,13 @@ type Builder struct {
 	RepositoryID int64
 	Active       bool
 
+	Source enums.BuilderSource
+
+	// source CodeRepository
+	CodeRepositoryID *int64
+	// source Dockerfile
+	Dockerfile []byte
+	// source SelfCodeRepository
 	ScmRepository     string
 	ScmCredentialType enums.ScmCredentialType
 	ScmToken          string
@@ -39,17 +46,20 @@ type Builder struct {
 	ScmUsername       string
 	ScmPassword       string
 
-	// ScmBranch    string
+	// common settings
 	ScmDepth     int
 	ScmSubmodule bool
 
+	// cron settings
 	CronRule        *string
 	CronBranch      *string
 	CronTag         *string
 	CronNextTrigger *time.Time
 
+	// webhook settings
 	WebhookTag *string
 
+	// buildkit settings
 	BuildkitInsecureRegistries string
 	BuildkitContext            string `gorm:"default:."`
 	BuildkitDockerfile         string `gorm:"default:Dockerfile"`

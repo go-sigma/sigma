@@ -325,15 +325,34 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `repository_id` integer NOT NULL,
   `active` integer NOT NULL DEFAULT 1,
+  `source` text CHECK (`source` IN ('SelfCodeRepository', 'CodeRepository', 'Dockerfile')) NOT NULL,
+  -- source SelfCodeRepository
   `scm_credential_type` varchar(16) NOT NULL,
+  `scm_repository` varchar(256) NOT NULL,
   `scm_ssh_key` BLOB,
   `scm_token` varchar(256),
   `scm_username` varchar(30),
   `scm_password` varchar(30),
-  `scm_repository` varchar(256) NOT NULL,
-  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
+  -- source CodeRepository
+  `code_repository_id` integer,
+  -- source Dockerfile
+  `dockerfile` BLOB,
+  -- common settings
   `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
   `scm_submodule` integer NOT NULL DEFAULT 1,
+  -- cron settings
+  `cron_rule` varchar(30),
+  `cron_branch` varchar(30),
+  `cron_tag` varchar(256),
+  `cron_next_trigger` timestamp,
+  -- webhook settings
+  `webhook_tag` varchar(256),
+  -- buildkit settings
+  `buildkit_insecure_registries` varchar(256),
+  `buildkit_context` varchar(30) NOT NULL DEFAULT '.',
+  `buildkit_dockerfile` varchar(256) NOT NULL DEFAULT 'Dockerfile',
+  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -346,6 +365,11 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `builder_id` bigint NOT NULL,
   `log` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL,
+  -- common settings
+  `tag` varchar(30) NOT NULL, -- image tag
+  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
+  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
