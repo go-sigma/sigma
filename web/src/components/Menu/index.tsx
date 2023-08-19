@@ -221,6 +221,17 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                   </Link>
                 )
               }
+              <Link to={`/namespaces`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+                setMenuActive("namespaces");
+                item === "namespaces" && e.preventDefault();
+              }}>
+                <span className="text-gray-400 mr-3 h-6 w-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+                  </svg>
+                </span>
+                Code Repository
+              </Link>
               {
                 !isAnonymous && (
                   <Link to={`/settings`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "settings" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
@@ -270,6 +281,11 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
               }
             </div>
           </nav>
+        </div>
+        <div className="flex justify-center">
+          <a type="button" className="rounded-md bg-white px-20 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" href="/swagger/index.html">
+            <span className="text-gray-700">API Docs</span>
+          </a>
         </div>
       </div>
     </div >
