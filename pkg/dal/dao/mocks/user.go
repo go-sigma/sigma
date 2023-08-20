@@ -214,6 +214,21 @@ func (mr *MockUserServiceMockRecorder) List(arg0, arg1, arg2, arg3 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserService)(nil).List), arg0, arg1, arg2, arg3)
 }
 
+// ListUser3rdParty mocks base method.
+func (m *MockUserService) ListUser3rdParty(arg0 context.Context, arg1 int64) ([]*models.User3rdParty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUser3rdParty", arg0, arg1)
+	ret0, _ := ret[0].([]*models.User3rdParty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUser3rdParty indicates an expected call of ListUser3rdParty.
+func (mr *MockUserServiceMockRecorder) ListUser3rdParty(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUser3rdParty", reflect.TypeOf((*MockUserService)(nil).ListUser3rdParty), arg0, arg1)
+}
+
 // UpdateByID mocks base method.
 func (m *MockUserService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
 	m.ctrl.T.Helper()

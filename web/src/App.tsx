@@ -28,6 +28,8 @@ import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 
+import CodeRepository from './pages/CodeRepository';
+
 import { setupResponseInterceptor } from './utils/request'
 
 const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
@@ -70,6 +72,8 @@ export default function App() {
         <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
+
+        <Route path="/coderepos" element={<CodeRepository localServer={localServer} />} />
 
         <Route path="/about" element={<About />} />
       </Routes>

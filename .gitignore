@@ -171,6 +171,7 @@ dist
 **/*.back.*
 
 node_modules
+web/pkg/
 
 *.sublime*
 

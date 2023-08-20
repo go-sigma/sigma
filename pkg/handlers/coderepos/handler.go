@@ -37,6 +37,8 @@ type Handlers interface {
 	Resync(c echo.Context) error
 	// Setup setup builder for code repository
 	SetupBuilder(c echo.Context) error
+	// Providers get providers
+	Providers(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -108,6 +110,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup.GET("/", codeRepositoryHandler.List)
 	codereposGroup.GET("/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.POST("/resync", codeRepositoryHandler.Resync)
+	codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
 	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
 }

@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	gomock "go.uber.org/mock/gomock"
@@ -63,6 +64,21 @@ func (mr *MockBuilderServiceMockRecorder) CreateRunner(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRunner", reflect.TypeOf((*MockBuilderService)(nil).CreateRunner), arg0, arg1)
 }
 
+// GetByNextTrigger mocks base method.
+func (m *MockBuilderService) GetByNextTrigger(arg0 context.Context, arg1 time.Time, arg2 int) ([]*models.Builder, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByNextTrigger", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.Builder)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByNextTrigger indicates an expected call of GetByNextTrigger.
+func (mr *MockBuilderServiceMockRecorder) GetByNextTrigger(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNextTrigger", reflect.TypeOf((*MockBuilderService)(nil).GetByNextTrigger), arg0, arg1, arg2)
+}
+
 // GetByRepositoryID mocks base method.
 func (m *MockBuilderService) GetByRepositoryID(arg0 context.Context, arg1 int64) (*models.Builder, error) {
 	m.ctrl.T.Helper()
@@ -91,6 +107,20 @@ func (m *MockBuilderService) GetRunner(arg0 context.Context, arg1 int64) (*model
 func (mr *MockBuilderServiceMockRecorder) GetRunner(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRunner", reflect.TypeOf((*MockBuilderService)(nil).GetRunner), arg0, arg1)
+}
+
+// UpdateNextTrigger mocks base method.
+func (m *MockBuilderService) UpdateNextTrigger(arg0 context.Context, arg1 int64, arg2 time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateNextTrigger", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateNextTrigger indicates an expected call of UpdateNextTrigger.
+func (mr *MockBuilderServiceMockRecorder) UpdateNextTrigger(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateNextTrigger", reflect.TypeOf((*MockBuilderService)(nil).UpdateNextTrigger), arg0, arg1, arg2)
 }
 
 // UpdateRunner mocks base method.

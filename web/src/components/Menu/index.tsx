@@ -221,7 +221,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                   </Link>
                 )
               }
-              <Link to={`/namespaces`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+              <Link to={`/coderepos`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                 setMenuActive("namespaces");
                 item === "namespaces" && e.preventDefault();
               }}>
