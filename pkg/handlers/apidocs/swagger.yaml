@@ -42,6 +42,18 @@ definitions:
     - OciPlatformLinuxMips64
     - OciPlatformLinuxArmV7
     - OciPlatformLinuxArmV6
+  enums.Provider:
+    enum:
+    - local
+    - github
+    - gitlab
+    - gitea
+    type: string
+    x-enum-varnames:
+    - ProviderLocal
+    - ProviderGithub
+    - ProviderGitlab
+    - ProviderGitea
   enums.ScmCredentialType:
     enum:
     - ssh
@@ -283,6 +295,13 @@ definitions:
       url:
         example: http://example.com/webhook
         type: string
+    type: object
+  types.ListCodeRepositoryProvidersResponse:
+    properties:
+      providers:
+        allOf:
+        - $ref: '#/definitions/enums.Provider'
+        example: github
     type: object
   types.NamespaceItem:
     properties:
@@ -939,6 +958,10 @@ paths:
       responses:
         "201":
           description: Created
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
         "500":
           description: Internal Server Error
           schema:
@@ -1010,6 +1033,37 @@ paths:
       security:
       - BasicAuth: []
       summary: List code repositories
+      tags:
+      - CodeRepository
+  /coderepos/providers/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.ListCodeRepositoryProvidersResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repository providers
       tags:
       - CodeRepository
   /daemons/{daemon}/:

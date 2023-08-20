@@ -279,6 +279,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/coderepos/providers/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "List code repository providers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.ListCodeRepositoryProvidersResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/coderepos/{id}/setup-builder": {
             "post": {
                 "security": [
@@ -317,6 +371,12 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -2139,6 +2199,21 @@ const docTemplate = `{
                 "OciPlatformLinuxArmV6"
             ]
         },
+        "enums.Provider": {
+            "type": "string",
+            "enum": [
+                "local",
+                "github",
+                "gitlab",
+                "gitea"
+            ],
+            "x-enum-varnames": [
+                "ProviderLocal",
+                "ProviderGithub",
+                "ProviderGitlab",
+                "ProviderGitea"
+            ]
+        },
         "enums.ScmCredentialType": {
             "type": "string",
             "enum": [
@@ -2469,6 +2544,19 @@ const docTemplate = `{
                 "url": {
                     "type": "string",
                     "example": "http://example.com/webhook"
+                }
+            }
+        },
+        "types.ListCodeRepositoryProvidersResponse": {
+            "type": "object",
+            "properties": {
+                "providers": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Provider"
+                        }
+                    ],
+                    "example": "github"
                 }
             }
         },

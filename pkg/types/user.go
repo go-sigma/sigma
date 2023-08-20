@@ -14,6 +14,8 @@
 
 package types
 
+import "github.com/go-sigma/sigma/pkg/types/enums"
+
 type GetUserListRequest struct {
 	Pagination
 	Sortable
@@ -107,4 +109,9 @@ type PostUserResetPasswordPasswordRequest struct {
 type PutUserSelfRequest struct {
 	Username *string `json:"username,omitempty" validate:"omitempty,alphanum,min=2,max=20" example:"sigma"`
 	Email    *string `json:"email,omitempty" validate:"omitempty,email" example:"test@mail.com"`
+}
+
+// ListCodeRepositoryProvidersResponse ...
+type ListCodeRepositoryProvidersResponse struct {
+	Provider enums.Provider `json:"providers" example:"github"`
 }

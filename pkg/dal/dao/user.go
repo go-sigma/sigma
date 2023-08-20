@@ -53,6 +53,8 @@ type UserService interface {
 	GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error)
 	// GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
 	GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error)
+	// ListUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
+	ListUser3rdParty(ctx context.Context, userID int64) ([]*models.User3rdParty, error)
 	// GetRecoverCodeByUserID gets the recover code with the specified user id.
 	GetRecoverCodeByUserID(ctx context.Context, userID int64) (*models.UserRecoverCode, error)
 	// GetByRecoverCode gets the user with the specified recover code.
@@ -165,6 +167,11 @@ func (s *userService) GetByProvider(ctx context.Context, provider enums.Provider
 // GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
 func (s *userService) GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error) {
 	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(userID)).First()
+}
+
+// ListUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
+func (s *userService) ListUser3rdParty(ctx context.Context, userID int64) ([]*models.User3rdParty, error) {
+	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(userID)).Find()
 }
 
 // GetRecoverCodeByUserID gets the recover code with the specified user id.
