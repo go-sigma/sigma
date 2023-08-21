@@ -200,7 +200,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
               </div>
             </div>
           </main>
-          <div className="flex flex-1 overflow-y-auto">
+          <div className="flex-1 flex overflow-y-auto">
             <div className="align-middle inline-block min-w-full border-b border-gray-200">
               <table className="min-w-full flex-1">
                 <thead>
