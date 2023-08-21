@@ -20,7 +20,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 
-import { ScaleIcon } from '@heroicons/react/24/outline'
+import { ScaleIcon } from '@heroicons/react/24/outline';
 
 import "./index.css";
 
@@ -39,7 +39,7 @@ export default function Home({ localServer }: { localServer: string }) {
           <title>sigma - Home</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white min-w-1600">
+      <div className="min-h-screen flex overflow-hidden bg-white min-w-[1600px]">
         <Menu item="home" localServer={localServer} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
@@ -70,6 +70,6 @@ export default function Home({ localServer }: { localServer: string }) {
           </main>
         </div>
       </div>
-    </Fragment >
+    </Fragment>
   )
 }

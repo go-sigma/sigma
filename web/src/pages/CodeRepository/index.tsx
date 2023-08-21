@@ -31,7 +31,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>sigma - Code Repositories</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white min-w-1600">
+      <div className="min-h-screen flex overflow-hidden bg-white min-w-[1600px]">
         <Menu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
@@ -50,9 +50,9 @@ export default function ({ localServer }: { localServer: string }) {
                     </div>
                   </div>
                 </div>
-                <div className="hidden absolute top-0 left-0 h-full w-full bg-[rgba(243,244,246,0.4)] group-hover:flex flex-col justify-center">
+                <div className="hidden absolute top-0 left-0 h-full w-full bg-[rgba(243,244,246,0.2)] group-hover:flex flex-col justify-center">
                   <button type="button"
-                    className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 mx-auto block">
+                    className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 mx-auto block hover:-translate-y-1 duration-300">
                     Grant
                   </button>
                 </div>
