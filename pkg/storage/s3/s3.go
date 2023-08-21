@@ -33,6 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -52,7 +53,7 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-func (f factory) New() (storage.StorageDriver, error) {
+func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
 	endpoint := viper.GetString("storage.s3.endpoint")
 	region := viper.GetString("storage.s3.region")
 	ak := viper.GetString("storage.s3.ak")
@@ -131,13 +132,6 @@ func (a *awss3) Stat(ctx context.Context, path string) (storage.FileInfo, error)
 	return fi, nil
 }
 
-const (
-	multipartCopyThresholdSize  = 32 << 20 // 32MB
-	multipartCopyChunkSize      = 32 << 20 // 32MB
-	multipartCopyMaxConcurrency = 100      // 100 goroutines
-	maxPaginationKeys           = 1000     // 1000 keys
-)
-
 func (a *awss3) sanitizePath(p string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(path.Join(a.rootDirectory, p), "."), "/")
 }
@@ -152,7 +146,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 	sourcePath = a.sanitizePath(sourcePath)
 	destPath = a.sanitizePath(destPath)
 
-	if fileInfo.Size() <= multipartCopyThresholdSize {
+	if fileInfo.Size() <= storage.MultipartCopyThresholdSize {
 		_, err := a.S3.CopyObject(&s3.CopyObjectInput{
 			Bucket:     aws.String(a.bucket),
 			Key:        aws.String(destPath),
@@ -172,17 +166,17 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 		return err
 	}
 
-	numParts := (fileInfo.Size() + multipartCopyChunkSize - 1) / multipartCopyChunkSize
+	numParts := (fileInfo.Size() + storage.MultipartCopyChunkSize - 1) / storage.MultipartCopyChunkSize
 	completedParts := make([]*s3.CompletedPart, numParts)
 	errChan := make(chan error, numParts)
-	limiter := make(chan struct{}, multipartCopyMaxConcurrency)
+	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
 		i := int64(i)
 		go func() {
 			limiter <- struct{}{}
-			firstByte := i * multipartCopyChunkSize
-			lastByte := firstByte + multipartCopyChunkSize - 1
+			firstByte := i * storage.MultipartCopyChunkSize
+			lastByte := firstByte + storage.MultipartCopyChunkSize - 1
 			if lastByte >= fileInfo.Size() {
 				lastByte = fileInfo.Size() - 1
 			}
@@ -225,7 +219,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 func (a *awss3) Delete(ctx context.Context, path string) error {
 	path = a.sanitizePath(path)
 
-	s3Objects := make([]*s3.ObjectIdentifier, 0, maxPaginationKeys)
+	s3Objects := make([]*s3.ObjectIdentifier, 0, storage.MaxPaginationKeys)
 	listObjectsInput := &s3.ListObjectsV2Input{
 		Bucket: aws.String(a.bucket),
 		Prefix: aws.String(path),

@@ -145,12 +145,23 @@ type ConfigurationStorageS3 struct {
 	ForcePathStyle bool   `yaml:"forcePathStyle"`
 }
 
+// ConfigurationStorageCos ...
+type ConfigurationStorageCos struct {
+	Ak             string `yaml:"ak"`
+	Sk             string `yaml:"sk"`
+	Endpoint       string `yaml:"endpoint"`
+	Region         string `yaml:"region"`
+	Bucket         string `yaml:"bucket"`
+	ForcePathStyle bool   `yaml:"forcePathStyle"`
+}
+
 // ConfigurationStorage ...
 type ConfigurationStorage struct {
 	RootDirectory string                         `yaml:"rootDirectory"`
 	Type          string                         `yaml:"type"`
 	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
 	S3            ConfigurationStorageS3         `yaml:"s3"`
+	Cos           ConfigurationStorageCos        `yaml:"cos"`
 }
 
 // ConfigurationProxy ...

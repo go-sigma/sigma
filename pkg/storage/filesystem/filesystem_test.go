@@ -24,6 +24,8 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 func TestNew(t *testing.T) {
@@ -33,7 +35,7 @@ func TestNew(t *testing.T) {
 	viper.SetDefault("storage.rootDirectory", "storage")
 
 	f := factory{}
-	driver, err := f.New()
+	driver, err := f.New(configs.Configuration{})
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 

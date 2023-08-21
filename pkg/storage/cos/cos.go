@@ -15,7 +15,6 @@
 package cos
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -31,6 +30,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tencentyun/cos-go-sdk-v5"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -43,28 +43,30 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-func (f factory) New() (storage.StorageDriver, error) {
-	endpoint := viper.GetString("storage.cos.endpoint")
-	ak := viper.GetString("storage.cos.ak")
-	sk := viper.GetString("storage.cos.sk")
+// New ...
+func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
+	u, err := url.Parse(config.Storage.Cos.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("Config [storage.cos.endpoint] is invalid")
+	}
 
-	u, _ := url.Parse(endpoint)
-	b := &cos.BaseURL{BucketURL: u}
-	c := cos.NewClient(b, &http.Client{
-		Timeout: 100 * time.Second,
+	c := cos.NewClient(&cos.BaseURL{BucketURL: u}, &http.Client{
+		Timeout: 3 * time.Second,
 		Transport: &cos.AuthorizationTransport{
-			SecretID:  ak,
-			SecretKey: sk,
+			SecretID:  config.Storage.Cos.Ak,
+			SecretKey: config.Storage.Cos.Sk,
 		},
 	})
 
 	return &tencentcos{
 		client: c,
+		domain: u.Host,
 	}, nil
 }
 
 type tencentcos struct {
 	client *cos.Client
+	domain string
 }
 
 type fileInfo struct {
@@ -116,35 +118,29 @@ func (t *tencentcos) Stat(ctx context.Context, path string) (storage.FileInfo, e
 	return fi, nil
 }
 
-const (
-	multipartCopyThresholdSize  = 32 << 20 // 32MB
-	multipartCopyChunkSize      = 32 << 20 // 32MB
-	multipartCopyMaxConcurrency = 100      // 100 goroutines
-	maxPaginationKeys           = 1000     // 1000 keys
-)
-
 func (t *tencentcos) Move(ctx context.Context, sourcePath, destPath string) (err error) {
 	endpoint, _ := url.Parse(viper.GetString("storage.cos.endpoint"))
 	sourceURL := fmt.Sprintf("%s/%s", endpoint.Host, sourcePath)
-	surl := strings.SplitN(sourceURL, "/", 2)
-	if len(surl) < 2 {
+	sUrl := strings.SplitN(sourceURL, "/", 2)
+	if len(sUrl) < 2 {
 		err := fmt.Errorf("sourceURL format error: %s", sourceURL)
 		return err
 	}
 	var resp *cos.Response
-	resp, err = t.client.Object.Head(ctx, surl[1], nil)
+	resp, err = t.client.Object.Head(ctx, sUrl[1], nil)
 	if err != nil {
 		return err
 	}
+
 	totalBytes := resp.ContentLength
-	u := fmt.Sprintf("%s/%s", surl[0], encodeURIComponent(surl[1]))
+	u := fmt.Sprintf("%s/%s", sUrl[0], url.QueryEscape(sUrl[1]))
 	opt := &cos.MultiCopyOptions{}
 
 	chunks, partNum, err := SplitSizeIntoChunks(totalBytes, opt.PartSize*1024*1024)
 	if err != nil {
 		return err
 	}
-	if partNum == 0 || (totalBytes < multipartCopyThresholdSize) {
+	if partNum == 0 || (totalBytes < storage.MultipartCopyThresholdSize) {
 		_, _, err := t.client.Object.Copy(ctx, destPath, sourceURL, opt.OptCopy)
 		return err
 	}
@@ -162,7 +158,7 @@ func (t *tencentcos) Move(ctx context.Context, sourcePath, destPath string) (err
 		poolSize = 1
 	}
 
-	chjobs := make(chan *cos.CopyJobs, multipartCopyMaxConcurrency)
+	chjobs := make(chan *cos.CopyJobs, storage.MultipartCopyMaxConcurrency)
 	chresults := make(chan *CopyResults)
 	optcom := &cos.CompleteMultipartUploadOptions{}
 
@@ -244,7 +240,7 @@ func (t *tencentcos) Move(ctx context.Context, sourcePath, destPath string) (err
 // Delete recursively deletes all objects stored at "path" and its subpaths.
 // Delete 删除指定路径的对象
 func (t *tencentcos) Delete(ctx context.Context, path string) error {
-	cosObjects := make([]cos.Object, 0, maxPaginationKeys)
+	cosObjects := make([]cos.Object, 0, storage.MaxPaginationKeys)
 	var marker string
 	for {
 		// 获取对象列表
@@ -299,7 +295,6 @@ func (t *tencentcos) Delete(ctx context.Context, path string) error {
 // with a given byte offset.
 // May be used to resume reading a stream by providing a nonzero offset.
 // Reader 返回读取指定路径的 Reader
-
 func (t *tencentcos) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
 	// 设置读取范围
 	opt := &cos.ObjectGetOptions{
@@ -366,58 +361,58 @@ func (t *tencentcos) Upload(ctx context.Context, path string, body io.Reader) er
 	return err
 }
 
-// helpers
-func encodeURIComponent(s string, excluded ...[]byte) string {
-	var b bytes.Buffer
-	written := 0
+// // helpers
+// func encodeURIComponent(s string, excluded ...[]byte) string {
+// 	var b bytes.Buffer
+// 	written := 0
 
-	for i, n := 0, len(s); i < n; i++ {
-		c := s[i]
+// 	for i, n := 0, len(s); i < n; i++ {
+// 		c := s[i]
 
-		switch c {
-		case '-', '_', '.', '!', '~', '*', '\'', '(', ')':
-			continue
-		default:
-			// Unreserved according to RFC 3986 sec 2.3
-			if 'a' <= c && c <= 'z' {
+// 		switch c {
+// 		case '-', '_', '.', '!', '~', '*', '\'', '(', ')':
+// 			continue
+// 		default:
+// 			// Unreserved according to RFC 3986 sec 2.3
+// 			if 'a' <= c && c <= 'z' {
 
-				continue
+// 				continue
 
-			}
-			if 'A' <= c && c <= 'Z' {
+// 			}
+// 			if 'A' <= c && c <= 'Z' {
 
-				continue
+// 				continue
 
-			}
-			if '0' <= c && c <= '9' {
+// 			}
+// 			if '0' <= c && c <= '9' {
 
-				continue
-			}
-			if len(excluded) > 0 {
-				conti := false
-				for _, ch := range excluded[0] {
-					if ch == c {
-						conti = true
-						break
-					}
-				}
-				if conti {
-					continue
-				}
-			}
-		}
+// 				continue
+// 			}
+// 			if len(excluded) > 0 {
+// 				conti := false
+// 				for _, ch := range excluded[0] {
+// 					if ch == c {
+// 						conti = true
+// 						break
+// 					}
+// 				}
+// 				if conti {
+// 					continue
+// 				}
+// 			}
+// 		}
 
-		b.WriteString(s[written:i])
-		fmt.Fprintf(&b, "%%%02X", c)
-		written = i + 1
-	}
+// 		b.WriteString(s[written:i])
+// 		fmt.Fprintf(&b, "%%%02X", c)
+// 		written = i + 1
+// 	}
 
-	if written == 0 {
-		return s
-	}
-	b.WriteString(s[written:])
-	return b.String()
-}
+// 	if written == 0 {
+// 		return s
+// 	}
+// 	b.WriteString(s[written:])
+// 	return b.String()
+// }
 
 func SplitSizeIntoChunks(totalBytes int64, partSize int64) ([]cos.Chunk, int, error) {
 	var partNum int64
@@ -427,7 +422,7 @@ func SplitSizeIntoChunks(totalBytes int64, partSize int64) ([]cos.Chunk, int, er
 		}
 		partNum = totalBytes / partSize
 		if partNum >= 10000 {
-			return nil, 0, fmt.Errorf("Too manry parts, out of 10000")
+			return nil, 0, fmt.Errorf("Too many parts, out of 10000")
 		}
 	} else {
 		partNum, partSize = DividePart(totalBytes, 16)

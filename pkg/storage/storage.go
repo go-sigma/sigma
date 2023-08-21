@@ -21,6 +21,19 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+)
+
+const (
+	// MultipartCopyThresholdSize ...
+	MultipartCopyThresholdSize = 32 << 20 // 32MB
+	// MultipartCopyChunkSize ...
+	MultipartCopyChunkSize = 32 << 20 // 32MB
+	// MultipartCopyMaxConcurrency ...
+	MultipartCopyMaxConcurrency = 100 // 100 goroutines
+	// MaxPaginationKeys ...
+	MaxPaginationKeys = 1000 // 1000 keys
 )
 
 //go:generate mockgen -destination=mocks/storage_driver.go -package=mocks github.com/go-sigma/sigma/pkg/storage StorageDriver
@@ -84,7 +97,7 @@ type StorageDriver interface {
 
 // Factory is the interface for the storage driver factory
 type Factory interface {
-	New() (StorageDriver, error)
+	New(config configs.Configuration) (StorageDriver, error)
 }
 
 var driverFactories = make(map[string]Factory)
@@ -121,14 +134,14 @@ func (s *storageDriverFactory) New() StorageDriver {
 }
 
 // Initialize initializes the storage driver
-func Initialize() error {
+func Initialize(config configs.Configuration) error {
 	typ := viper.GetString("storage.type")
 	factory, ok := driverFactories[typ]
 	if !ok {
 		return fmt.Errorf("driver %q not registered", typ)
 	}
 	var err error
-	Driver, err = factory.New()
+	Driver, err = factory.New(config)
 	if err != nil {
 		return err
 	}

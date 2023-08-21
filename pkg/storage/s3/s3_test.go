@@ -24,6 +24,8 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 func TestNew(t *testing.T) {
@@ -38,7 +40,7 @@ func TestNew(t *testing.T) {
 	ctx := context.Background()
 
 	var f = factory{}
-	driver, err := f.New()
+	driver, err := f.New(configs.Configuration{})
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 
@@ -57,7 +59,7 @@ func TestNew(t *testing.T) {
 	//---------------------------- wrong endpoint ---------------------
 
 	viper.SetDefault("storage.s3.endpoint", "http://localhost:9000")
-	driver, err = f.New()
+	driver, err = f.New(configs.Configuration{})
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 

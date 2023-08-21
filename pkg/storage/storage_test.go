@@ -20,17 +20,19 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 type dummyFactory struct{}
 
-func (dummyFactory) New() (StorageDriver, error) {
+func (dummyFactory) New(_ configs.Configuration) (StorageDriver, error) {
 	return nil, nil
 }
 
 type dummyFactoryError struct{}
 
-func (dummyFactoryError) New() (StorageDriver, error) {
+func (dummyFactoryError) New(_ configs.Configuration) (StorageDriver, error) {
 	return nil, fmt.Errorf("dummy error")
 }
 
@@ -51,17 +53,17 @@ func TestInitialize(t *testing.T) {
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "dummy")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "fake")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.Error(t, err)
 
 	err = RegisterDriverFactory("dummy-error", &dummyFactoryError{})
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "dummy-error")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.Error(t, err)
 }

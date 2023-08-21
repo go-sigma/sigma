@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -98,7 +99,7 @@ func Serve(config ServerConfig) error {
 		return err
 	}
 
-	err = storage.Initialize()
+	err = storage.Initialize(configs.Configuration{})
 	if err != nil {
 		return err
 	}

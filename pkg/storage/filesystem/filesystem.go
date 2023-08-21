@@ -27,6 +27,7 @@ import (
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -51,7 +52,7 @@ type factory struct{}
 var _ storage.Factory = factory{}
 
 // New returns a new filesystem storage driver
-func (f factory) New() (storage.StorageDriver, error) {
+func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
 	driver := &fs{rootDirectory: path.Join(viper.GetString("storage.filesystem.path"), viper.GetString("storage.rootDirectory"))}
 	if !utils.IsExist(driver.rootDirectory) {
 		err := os.MkdirAll(driver.rootDirectory, 0755)
