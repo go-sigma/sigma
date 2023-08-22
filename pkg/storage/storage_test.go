@@ -20,17 +20,19 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 type dummyFactory struct{}
 
-func (dummyFactory) New() (StorageDriver, error) {
+func (dummyFactory) New(_ configs.Configuration) (StorageDriver, error) {
 	return nil, nil
 }
 
 type dummyFactoryError struct{}
 
-func (dummyFactoryError) New() (StorageDriver, error) {
+func (dummyFactoryError) New(_ configs.Configuration) (StorageDriver, error) {
 	return nil, fmt.Errorf("dummy error")
 }
 
@@ -51,17 +53,93 @@ func TestInitialize(t *testing.T) {
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "dummy")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "fake")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.Error(t, err)
 
 	err = RegisterDriverFactory("dummy-error", &dummyFactoryError{})
 	assert.NoError(t, err)
 
 	viper.SetDefault("storage.type", "dummy-error")
-	err = Initialize()
+	err = Initialize(configs.Configuration{})
 	assert.Error(t, err)
+}
+
+func TestSanitizePath(t *testing.T) {
+	type args struct {
+		rootDirectory string
+		p             string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "test-1",
+			args: args{
+				rootDirectory: "",
+				p:             "test",
+			},
+			want: "test",
+		},
+		{
+			name: "test-2",
+			args: args{
+				rootDirectory: ".",
+				p:             "test",
+			},
+			want: "test",
+		},
+		{
+			name: "test-3",
+			args: args{
+				rootDirectory: "./",
+				p:             "test",
+			},
+			want: "test",
+		},
+		{
+			name: "test-4",
+			args: args{
+				rootDirectory: "/",
+				p:             "test",
+			},
+			want: "test",
+		},
+		{
+			name: "test-5",
+			args: args{
+				rootDirectory: "/test",
+				p:             "test",
+			},
+			want: "test/test",
+		},
+		{
+			name: "test-6",
+			args: args{
+				rootDirectory: "./test",
+				p:             "test",
+			},
+			want: "test/test",
+		},
+		{
+			name: "test-7",
+			args: args{
+				rootDirectory: "test",
+				p:             "test",
+			},
+			want: "test/test",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SanitizePath(tt.args.rootDirectory, tt.args.p); got != tt.want {
+				t.Errorf("SanitizePath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

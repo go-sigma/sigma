@@ -1,4 +1,4 @@
-# this is a full config file, just show all avaliable config items.
+# this is a full config file, just show all available config items.
 
 log:
   level: debug

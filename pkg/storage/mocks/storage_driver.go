@@ -9,7 +9,6 @@ import (
 	io "io"
 	reflect "reflect"
 
-	storage "github.com/go-sigma/sigma/pkg/storage"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -120,21 +119,6 @@ func (m *MockStorageDriver) Reader(arg0 context.Context, arg1 string, arg2 int64
 func (mr *MockStorageDriverMockRecorder) Reader(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reader", reflect.TypeOf((*MockStorageDriver)(nil).Reader), arg0, arg1, arg2)
-}
-
-// Stat mocks base method.
-func (m *MockStorageDriver) Stat(arg0 context.Context, arg1 string) (storage.FileInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Stat", arg0, arg1)
-	ret0, _ := ret[0].(storage.FileInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Stat indicates an expected call of Stat.
-func (mr *MockStorageDriverMockRecorder) Stat(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stat", reflect.TypeOf((*MockStorageDriver)(nil).Stat), arg0, arg1)
 }
 
 // Upload mocks base method.

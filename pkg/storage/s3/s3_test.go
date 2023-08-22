@@ -24,6 +24,8 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 func TestNew(t *testing.T) {
@@ -38,14 +40,11 @@ func TestNew(t *testing.T) {
 	ctx := context.Background()
 
 	var f = factory{}
-	driver, err := f.New()
+	driver, err := f.New(configs.Configuration{})
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 
 	err = driver.Upload(ctx, "unit-test", strings.NewReader("test"))
-	assert.Error(t, err)
-
-	_, err = driver.Stat(ctx, "none-exist")
 	assert.Error(t, err)
 
 	err = driver.Move(ctx, "none-exist", "none-exist")
@@ -57,29 +56,15 @@ func TestNew(t *testing.T) {
 	//---------------------------- wrong endpoint ---------------------
 
 	viper.SetDefault("storage.s3.endpoint", "http://localhost:9000")
-	driver, err = f.New()
+	driver, err = f.New(configs.Configuration{})
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 
 	err = driver.Upload(ctx, "dir/unit-test", strings.NewReader("test"))
 	assert.NoError(t, err)
 
-	fileInfo, err := driver.Stat(ctx, "dir/unit-test")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.IsDir(), false)
-	assert.Equal(t, fileInfo.Name(), "dir/unit-test")
-	assert.Equal(t, fileInfo.Size(), int64(4))
-	assert.NotNil(t, fileInfo.ModTime())
-
 	err = driver.Move(ctx, "dir/unit-test", "dir/unit-test-to")
 	assert.NoError(t, err)
-
-	_, err = driver.Stat(ctx, "none-exist")
-	assert.ErrorIs(t, err, os.ErrNotExist)
-
-	fileInfo, err = driver.Stat(ctx, "dir")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.IsDir(), true)
 
 	reader, err := driver.Reader(ctx, "dir/unit-test", 0)
 	assert.NoError(t, err)
@@ -119,9 +104,6 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 	err = driver.Move(ctx, "upload-test", "upload-test-move-to")
 	assert.NoError(t, err)
-	fileInfo, err = driver.Stat(ctx, "upload-test-move-to")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.Size(), int64(200*1<<20))
 	err = driver.Delete(ctx, "upload-test-move-to")
 	assert.NoError(t, err)
 

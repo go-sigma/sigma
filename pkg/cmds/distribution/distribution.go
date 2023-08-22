@@ -27,6 +27,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/storage"
@@ -62,7 +63,7 @@ func Serve() error {
 	}
 
 	handlers.InitializeDistribution(e)
-	err := storage.Initialize()
+	err := storage.Initialize(configs.Configuration{})
 	if err != nil {
 		return err
 	}

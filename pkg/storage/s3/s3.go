@@ -19,12 +19,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -33,8 +31,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 type awss3 struct {
@@ -52,7 +52,7 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-func (f factory) New() (storage.StorageDriver, error) {
+func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
 	endpoint := viper.GetString("storage.s3.endpoint")
 	region := viper.GetString("storage.s3.region")
 	ak := viper.GetString("storage.s3.ak")
@@ -77,86 +77,29 @@ func (f factory) New() (storage.StorageDriver, error) {
 	}, nil
 }
 
-type fileInfo struct {
-	name    string
-	size    int64
-	modTime time.Time
-	isDir   bool
-}
-
-var _ storage.FileInfo = fileInfo{}
-
-func (f fileInfo) Name() string {
-	return f.name
-}
-
-func (f fileInfo) Size() int64 {
-	return f.size
-}
-
-func (f fileInfo) ModTime() time.Time {
-	return f.modTime
-}
-
-func (f fileInfo) IsDir() bool {
-	return f.isDir
-}
-
-// Stat returns the file info for the given path.
-func (a *awss3) Stat(ctx context.Context, path string) (storage.FileInfo, error) {
-	path = a.sanitizePath(path)
-	resp, err := a.S3.ListObjectsV2WithContext(ctx, &s3.ListObjectsV2Input{
-		Bucket:  aws.String(a.bucket),
-		Prefix:  aws.String(path),
-		MaxKeys: aws.Int64(1),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	fi := fileInfo{name: path}
-	if len(resp.Contents) == 1 { // nolint: gocritic
-		if *resp.Contents[0].Key != path {
-			fi.isDir = true
-		} else {
-			fi.isDir = false
-			fi.size = *resp.Contents[0].Size
-			fi.modTime = *resp.Contents[0].LastModified
-		}
-	} else if len(resp.CommonPrefixes) == 1 {
-		fi.isDir = true
-	} else {
-		return nil, os.ErrNotExist
-	}
-	return fi, nil
-}
-
-const (
-	multipartCopyThresholdSize  = 32 << 20 // 32MB
-	multipartCopyChunkSize      = 32 << 20 // 32MB
-	multipartCopyMaxConcurrency = 100      // 100 goroutines
-	maxPaginationKeys           = 1000     // 1000 keys
-)
-
 func (a *awss3) sanitizePath(p string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(path.Join(a.rootDirectory, p), "."), "/")
 }
 
-// Move moves a file from sourcePath to destPath.
-func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) error {
-	fileInfo, err := a.Stat(ctx, sourcePath)
+// Move moves a file from srcPath to dstPath.
+func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error {
+	srcPath = a.sanitizePath(srcPath)
+	dstPath = a.sanitizePath(dstPath)
+
+	srcFile, err := a.S3.HeadObject(&s3.HeadObjectInput{
+		Bucket: aws.String(a.bucket),
+		Key:    aws.String(srcPath),
+	})
 	if err != nil {
-		return err
+		return fmt.Errorf("Head source path(%s) failed: %v", srcPath, err)
 	}
+	srcSize := ptr.To(srcFile.ContentLength)
 
-	sourcePath = a.sanitizePath(sourcePath)
-	destPath = a.sanitizePath(destPath)
-
-	if fileInfo.Size() <= multipartCopyThresholdSize {
+	if srcSize <= storage.MultipartCopyThresholdSize {
 		_, err := a.S3.CopyObject(&s3.CopyObjectInput{
 			Bucket:     aws.String(a.bucket),
-			Key:        aws.String(destPath),
-			CopySource: aws.String(path.Join(a.bucket, sourcePath)),
+			Key:        aws.String(dstPath),
+			CopySource: aws.String(path.Join(a.bucket, srcPath)),
 		})
 		if err != nil {
 			return err
@@ -166,30 +109,30 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 
 	createResp, err := a.S3.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
-		Key:    aws.String(destPath),
+		Key:    aws.String(dstPath),
 	})
 	if err != nil {
 		return err
 	}
 
-	numParts := (fileInfo.Size() + multipartCopyChunkSize - 1) / multipartCopyChunkSize
+	numParts := (srcSize + storage.MultipartCopyChunkSize - 1) / storage.MultipartCopyChunkSize
 	completedParts := make([]*s3.CompletedPart, numParts)
 	errChan := make(chan error, numParts)
-	limiter := make(chan struct{}, multipartCopyMaxConcurrency)
+	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
 		i := int64(i)
 		go func() {
 			limiter <- struct{}{}
-			firstByte := i * multipartCopyChunkSize
-			lastByte := firstByte + multipartCopyChunkSize - 1
-			if lastByte >= fileInfo.Size() {
-				lastByte = fileInfo.Size() - 1
+			firstByte := i * storage.MultipartCopyChunkSize
+			lastByte := firstByte + storage.MultipartCopyChunkSize - 1
+			if lastByte >= srcSize {
+				lastByte = srcSize - 1
 			}
 			uploadResp, err := a.S3.UploadPartCopy(&s3.UploadPartCopyInput{
 				Bucket:          aws.String(a.bucket),
-				CopySource:      aws.String(path.Join(a.bucket, sourcePath)),
-				Key:             aws.String(destPath),
+				CopySource:      aws.String(path.Join(a.bucket, srcPath)),
+				Key:             aws.String(dstPath),
 				PartNumber:      aws.Int64(i + 1),
 				UploadId:        createResp.UploadId,
 				CopySourceRange: aws.String(fmt.Sprintf("bytes=%d-%d", firstByte, lastByte)),
@@ -214,7 +157,7 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 
 	_, err = a.S3.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
-		Key:             aws.String(destPath),
+		Key:             aws.String(dstPath),
 		UploadId:        createResp.UploadId,
 		MultipartUpload: &s3.CompletedMultipartUpload{Parts: completedParts},
 	})
@@ -223,9 +166,9 @@ func (a *awss3) Move(ctx context.Context, sourcePath string, destPath string) er
 
 // Delete removes the object at the given path.
 func (a *awss3) Delete(ctx context.Context, path string) error {
-	path = a.sanitizePath(path)
+	path = storage.SanitizePath(a.rootDirectory, path)
 
-	s3Objects := make([]*s3.ObjectIdentifier, 0, maxPaginationKeys)
+	s3Objects := make([]*s3.ObjectIdentifier, 0, storage.MaxPaginationKeys)
 	listObjectsInput := &s3.ListObjectsV2Input{
 		Bucket: aws.String(a.bucket),
 		Prefix: aws.String(path),
@@ -363,7 +306,7 @@ func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts [
 func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) error {
 	_, err := a.S3.AbortMultipartUploadWithContext(ctx, &s3.AbortMultipartUploadInput{
 		Bucket:   aws.String(a.bucket),
-		Key:      aws.String(a.sanitizePath(path)),
+		Key:      aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		UploadId: aws.String(uploadID),
 	})
 	return err
@@ -373,7 +316,7 @@ func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) e
 func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 	_, err := a.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(a.bucket),
-		Key:    aws.String(a.sanitizePath(path)),
+		Key:    aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		Body:   body,
 	})
 	return err
