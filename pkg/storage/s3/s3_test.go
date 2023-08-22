@@ -47,9 +47,6 @@ func TestNew(t *testing.T) {
 	err = driver.Upload(ctx, "unit-test", strings.NewReader("test"))
 	assert.Error(t, err)
 
-	_, err = driver.Stat(ctx, "none-exist")
-	assert.Error(t, err)
-
 	err = driver.Move(ctx, "none-exist", "none-exist")
 	assert.Error(t, err)
 
@@ -66,22 +63,8 @@ func TestNew(t *testing.T) {
 	err = driver.Upload(ctx, "dir/unit-test", strings.NewReader("test"))
 	assert.NoError(t, err)
 
-	fileInfo, err := driver.Stat(ctx, "dir/unit-test")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.IsDir(), false)
-	assert.Equal(t, fileInfo.Name(), "dir/unit-test")
-	assert.Equal(t, fileInfo.Size(), int64(4))
-	assert.NotNil(t, fileInfo.ModTime())
-
 	err = driver.Move(ctx, "dir/unit-test", "dir/unit-test-to")
 	assert.NoError(t, err)
-
-	_, err = driver.Stat(ctx, "none-exist")
-	assert.ErrorIs(t, err, os.ErrNotExist)
-
-	fileInfo, err = driver.Stat(ctx, "dir")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.IsDir(), true)
 
 	reader, err := driver.Reader(ctx, "dir/unit-test", 0)
 	assert.NoError(t, err)
@@ -121,9 +104,6 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 	err = driver.Move(ctx, "upload-test", "upload-test-move-to")
 	assert.NoError(t, err)
-	fileInfo, err = driver.Stat(ctx, "upload-test-move-to")
-	assert.NoError(t, err)
-	assert.Equal(t, fileInfo.Size(), int64(200*1<<20))
 	err = driver.Delete(ctx, "upload-test-move-to")
 	assert.NoError(t, err)
 

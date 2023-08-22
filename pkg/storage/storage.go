@@ -18,7 +18,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
+	"path"
+	"strings"
 
 	"github.com/spf13/viper"
 
@@ -39,31 +40,8 @@ const (
 //go:generate mockgen -destination=mocks/storage_driver.go -package=mocks github.com/go-sigma/sigma/pkg/storage StorageDriver
 //go:generate mockgen -destination=mocks/storage_driver_factory.go -package=mocks github.com/go-sigma/sigma/pkg/storage StorageDriverFactory
 
-// FileInfo returns information about a given path. Inspired by os.FileInfo,
-// it elides the base name method for a full path instead.
-type FileInfo interface {
-	// Name provides the full path of the target of this file info.
-	Name() string
-
-	// Size returns current length in bytes of the file. The return value can
-	// be used to write to the end of the file at path. The value is
-	// meaningless if IsDir returns true.
-	Size() int64
-
-	// ModTime returns the modification time for the file. For backends that
-	// don't have a modification time, the creation time should be returned.
-	ModTime() time.Time
-
-	// IsDir returns true if the path is a directory.
-	IsDir() bool
-}
-
 // StorageDriver is the interface for the storage driver
 type StorageDriver interface {
-	// Stat retrieves the FileInfo for the given path, including the current
-	// size in bytes and the creation time.
-	Stat(ctx context.Context, path string) (FileInfo, error)
-
 	// Move moves an object stored at sourcePath to destPath, removing the
 	// original object.
 	// Note: This may be no more efficient than a copy followed by a delete for
@@ -146,4 +124,12 @@ func Initialize(config configs.Configuration) error {
 		return err
 	}
 	return nil
+}
+
+// SanitizePath ...
+func SanitizePath(rootDirectory, p string) string {
+	if rootDirectory == "" || rootDirectory == "." || rootDirectory == "./" || rootDirectory == "/" {
+		return p
+	}
+	return strings.TrimPrefix(strings.TrimPrefix(path.Join(rootDirectory, p), "."), "/")
 }
