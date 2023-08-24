@@ -17,6 +17,7 @@ package coderepo
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/google/go-github/v53/github"
@@ -94,13 +95,19 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 
 	var newRepos = make([]*models.CodeRepository, 0, len(repos))
 	for _, r := range repos {
-		newRepos = append(newRepos, &models.CodeRepository{
+		repo := &models.CodeRepository{
 			User3rdPartyID: user3rdPartyObj.ID,
+			RepositoryID:   strconv.FormatInt(r.GetID(), 10),
+			OwnerID:        strconv.FormatInt(ptr.To(ptr.To(r.Owner).ID), 10),
 			Owner:          ptr.To(ptr.To(r.Owner).Login),
 			Name:           r.GetName(),
 			SshUrl:         r.GetSSHURL(),
 			CloneUrl:       r.GetCloneURL(),
-		})
+		}
+		if ptr.To(ptr.To(r.Owner).Login) != ptr.To(userObj.Login) {
+			repo.IsOrg = true
+		}
+		newRepos = append(newRepos, repo)
 	}
 
 	return cr.diff(ctx, user3rdPartyObj, newRepos)

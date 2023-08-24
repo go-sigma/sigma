@@ -33,14 +33,14 @@ import (
 // @Tags CodeRepository
 // @Accept json
 // @Produce json
-// @Router /coderepos/owners/ [get]
+// @Router /coderepos/{provider} [get]
 // @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
 // @Param page query int64 false "page" minimum(1) default(1)
 // @Param sort query string false "sort field"
 // @Param method query string false "sort method" Enums(asc, desc)
 // @Param name query string false "search code repository with name"
 // @Param owner query string false "search code repository with owner"
-// @Param provider query string false "search code repository with provider"
+// @Param provider path string true "search code repository with provider"
 // @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryItem}
 // @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) List(c echo.Context) error {
@@ -74,13 +74,16 @@ func (h *handlers) List(c echo.Context) error {
 	resp := make([]any, 0, len(codeRepositoryObjs))
 	for _, codeRepositoryObj := range codeRepositoryObjs {
 		resp = append(resp, types.CodeRepositoryItem{
-			ID:        codeRepositoryObj.ID,
-			Name:      codeRepositoryObj.Name,
-			Owner:     codeRepositoryObj.Owner,
-			CloneUrl:  codeRepositoryObj.CloneUrl,
-			SshUrl:    codeRepositoryObj.SshUrl,
-			CreatedAt: codeRepositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: codeRepositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:           codeRepositoryObj.ID,
+			RepositoryID: codeRepositoryObj.RepositoryID,
+			Name:         codeRepositoryObj.Name,
+			OwnerID:      codeRepositoryObj.OwnerID,
+			Owner:        codeRepositoryObj.Owner,
+			IsOrg:        codeRepositoryObj.IsOrg,
+			CloneUrl:     codeRepositoryObj.CloneUrl,
+			SshUrl:       codeRepositoryObj.SshUrl,
+			CreatedAt:    codeRepositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:    codeRepositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 

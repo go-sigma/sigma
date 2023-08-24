@@ -16,31 +16,20 @@
 
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import _ from 'lodash';
 
 import Settings from '../../Settings';
 import Menu from '../../components/Menu';
 import Header from '../../components/Header';
+import Toast from "../../components/Notification";
 import Pagination from '../../components/Pagination';
 import OrderHeader from '../../components/OrderHeader';
 
-import { INamespace, INamespaceList, IHTTPError, IOrder } from '../../interfaces';
-
-const people = [
-  { id: 1, name: 'Wade Cooper' },
-  { id: 2, name: 'Arlene Mccoy' },
-  { id: 3, name: 'Devon Webb' },
-  { id: 4, name: 'Tom Cook' },
-  { id: 5, name: 'Tanya Fox' },
-  { id: 6, name: 'Hellen Schmidt' },
-  { id: 7, name: 'Caroline Schultz' },
-  { id: 8, name: 'Mason Heaney' },
-  { id: 9, name: 'Claudie Smitham' },
-  { id: 10, name: 'Emil Schaefer' },
-]
+import { IHTTPError, IOrder, ICodeRepositoryOwnerList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryList } from '../../interfaces';
 
 function classNames(...classes: Array<string | boolean>) {
   return classes.filter(Boolean).join(' ')
@@ -49,15 +38,77 @@ function classNames(...classes: Array<string | boolean>) {
 export default function ({ localServer }: { localServer: string }) {
   const { provider } = useParams<{ provider: string }>();
 
+  const coderepoRef = useRef<HTMLDivElement>(null);
+
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
   const [searchCodeRepo, setSearchCodeRepo] = useState("");
+  const [searchCodeRepoEvent, setSearchCodeRepoEvent] = useState(0);
+
 
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
 
-  const [organization, setOrganization] = useState(people[3])
+  const [codeRepositoryOwners, setCodeRepositoryOwners] = useState<ICodeRepositoryOwnerItem[]>([]);
+  const [organization, setOrganization] = useState("");
+
+  const [repositories, setRepositories] = useState<ICodeRepositoryItem[]>([]);
+  const [nameSearch, setNameSearch] = useState("");
+
+  useEffect(() => {
+    if (provider == "") {
+      return;
+    }
+    axios.get(`${localServer}/api/v1/coderepos/${provider}/owners`).then(response => {
+      if (response.status == 200) {
+        const data = response.data as ICodeRepositoryOwnerList;
+        setCodeRepositoryOwners(_.orderBy(data.items, ['is_org']));
+        for (let i = 0; i < data.items.length; i++) {
+          if (!data.items[i].is_org) {
+            setOrganization(data.items[i].owner);
+            break;
+          }
+        }
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [provider])
+
+  useEffect(() => {
+    if (provider == "" || organization == "") {
+      return;
+    }
+    let url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&&limit=${Settings.PageSize}&page=${page}`;
+    if (searchCodeRepo != "") {
+      url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&name=${searchCodeRepo}&limit=${Settings.PageSize}&page=${page}`;
+    }
+    axios.get(url).then(response => {
+      if (response.status == 200) {
+        const data = response.data as ICodeRepositoryList;
+        setRepositories(data.items);
+        setTotal(data.total);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [provider, organization, page, searchCodeRepoEvent]);
+
+  const setPageAndScrollTop = (page: number) => {
+    if (coderepoRef?.current) {
+      coderepoRef.current.scrollTop = 0;
+    }
+    setPage(page);
+  }
 
   return (
     <Fragment>
@@ -98,7 +149,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="codeRepositorySearch"
                             className="block h-10 rounded-md border-0 py-1.5 pr-5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 w-full pl-3 text-left"
                           >
-                            <span className="block truncate">{organization.name}</span>
+                            <span className="block truncate">{organization}</span>
                             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                               <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                             </span>
@@ -111,21 +162,21 @@ export default function ({ localServer }: { localServer: string }) {
                             leaveTo="opacity-0"
                           >
                             <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                              {people.map((person) => (
+                              {codeRepositoryOwners.map(cro => (
                                 <Listbox.Option
-                                  key={person.id}
+                                  key={cro.id}
                                   className={({ active }) =>
                                     classNames(
                                       active ? 'bg-indigo-600 text-white' : 'text-gray-900',
                                       'relative cursor-default select-none py-2 pl-3 pr-2'
                                     )
                                   }
-                                  value={person}
+                                  value={cro.owner}
                                 >
                                   {({ selected, active }) => (
                                     <>
                                       <span className={classNames(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                                        {person.name}
+                                        {cro.owner}
                                       </span>
                                     </>
                                   )}
@@ -151,9 +202,9 @@ export default function ({ localServer }: { localServer: string }) {
                       value={searchCodeRepo}
                       onChange={e => { setSearchCodeRepo(e.target.value); }}
                       onKeyDown={e => {
-                        // if (e.key == "Enter") {
-                        //   fetchNamespace()
-                        // }
+                        if (e.key == "Enter") {
+                          setSearchCodeRepoEvent(searchCodeRepoEvent + 1);
+                        }
                       }}
                       className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     />
@@ -179,7 +230,7 @@ export default function ({ localServer }: { localServer: string }) {
           </main>
           {/* part 1 end */}
           {/* part 2 begin */}
-          <div>
+          <div ref={coderepoRef} className="flex-1 flex overflow-y-auto">
             <div className="align-middle inline-block min-w-full border-b border-gray-200">
               <table className="min-w-full flex-1">
                 <thead>
@@ -198,22 +249,22 @@ export default function ({ localServer }: { localServer: string }) {
                     </th>
                   </tr>
                 </thead>
-                {/* <tbody className="bg-white divide-y divide-gray-100 max-h-max">
+                <tbody className="bg-white divide-y divide-gray-100 max-h-max">
                   {
-                    namespaceList.items?.map((namespace, index) => {
+                    repositories?.map((repository, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
+                        <TableItem key={repository.id} index={index} repository={repository} localServer={localServer} />
                       );
                     })
                   }
-                </tbody> */}
+                </tbody>
               </table>
             </div>
           </div>
           {/* part 2 end */}
           {/* part 3 begin */}
           <div style={{ marginTop: "auto" }}>
-            <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
+            <Pagination limit={Settings.PageSize} page={page} setPage={setPageAndScrollTop} total={total} />
           </div>
           {/* part 3 end */}
         </div>
@@ -222,10 +273,23 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index }: { localServer: string, index: number }) {
+function TableItem({ localServer, index, repository }: { localServer: string, index: number, repository: ICodeRepositoryItem }) {
   return (
-    <div>
-
-    </div>
+    <tr className="align-middle">
+      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+        onClick={() => {
+          // navigate(`/namespaces/${namespace.name}/repositories`);
+        }}
+      >
+        <div className="items-center space-x-3 lg:pl-2">
+          <div className="truncate hover:text-gray-600">
+            <span>
+              {repository.name}
+              <span className="text-gray-500 font-normal ml-2">{repository.clone_url}</span>
+            </span>
+          </div>
+        </div>
+      </td>
+    </tr>
   )
 }

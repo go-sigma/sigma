@@ -157,3 +157,35 @@ export interface IImageConfig {
 export interface IEndpoint {
   endpoint: string;
 }
+
+export interface ICodeRepositoryOwnerItem {
+  id: number;
+  owner_id: string;
+  owner: string;
+  is_org: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICodeRepositoryOwnerList {
+  items: ICodeRepositoryOwnerItem[];
+  total: number;
+}
+
+export interface ICodeRepositoryItem {
+  id: number;
+  repository_id: string;
+  name: string;
+  owner_id: string;
+  owner: string;
+  is_org: boolean;
+  clone_url: string;
+  ssh_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICodeRepositoryList {
+  items: ICodeRepositoryItem[];
+  total: number;
+}

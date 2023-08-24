@@ -53,17 +53,22 @@ CREATE TABLE IF NOT EXISTS "code_repository_clone_credentials" (
 CREATE TABLE IF NOT EXISTS "code_repository_owners" (
   "id" bigserial PRIMARY KEY,
   "user_3rdparty_id" bigint NOT NULL,
-  "name" varchar(256) NOT NULL,
+  "is_org" smallint NOT NULL DEFAULT 0,
+  "owner_id" varchar(256) NOT NULL,
+  "owner" varchar(256) NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
-  CONSTRAINT "code_repository_owners_unique_with_name" UNIQUE ("user_3rdparty_id", "name", "deleted_at")
+  CONSTRAINT "code_repository_owners_unique_with_name" UNIQUE ("user_3rdparty_id", "owner_id", "deleted_at")
 );
 
 CREATE TABLE IF NOT EXISTS "code_repositories" (
   "id" bigserial PRIMARY KEY,
   "user_3rdparty_id" bigint NOT NULL,
+  "repository_id" varchar(256) NOT NULL,
+  "is_org" smallint NOT NULL DEFAULT 0,
+  "owner_id" varchar(256) NOT NULL,
   "owner" varchar(256) NOT NULL,
   "name" varchar(256) NOT NULL,
   "ssh_url" varchar(256) NOT NULL,
@@ -72,7 +77,7 @@ CREATE TABLE IF NOT EXISTS "code_repositories" (
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
-  CONSTRAINT "code_repositories_unique_with_name" UNIQUE ("user_3rdparty_id", "owner", "name", "deleted_at")
+  CONSTRAINT "code_repositories_unique_with_name" UNIQUE ("user_3rdparty_id", "owner_id", "repository_id", "deleted_at")
 );
 
 CREATE TABLE IF NOT EXISTS "user_recover_codes" (

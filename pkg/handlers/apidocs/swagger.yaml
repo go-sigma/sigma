@@ -131,11 +131,20 @@ definitions:
       id:
         example: 1
         type: integer
+      is_org:
+        example: true
+        type: boolean
       name:
         example: sigma
         type: string
       owner:
         example: go-sigma
+        type: string
+      owner_id:
+        example: "1"
+        type: string
+      repository_id:
+        example: "1"
         type: string
       ssh_url:
         example: git@github.com:go-sigma/sigma.git
@@ -152,8 +161,14 @@ definitions:
       id:
         example: 1
         type: integer
-      name:
+      is_org:
+        example: true
+        type: boolean
+      owner:
         example: go-sigma
+        type: string
+      owner_id:
+        example: "1"
         type: string
       updated_at:
         example: "2006-01-02 15:04:05"
@@ -877,66 +892,6 @@ paths:
       summary: Create a builder for repository
       tags:
       - Builder
-  /coderepos/:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - default: 10
-        description: limit
-        in: query
-        maximum: 100
-        minimum: 10
-        name: limit
-        type: integer
-      - default: 1
-        description: page
-        in: query
-        minimum: 1
-        name: page
-        type: integer
-      - description: sort field
-        in: query
-        name: sort
-        type: string
-      - description: sort method
-        enum:
-        - asc
-        - desc
-        in: query
-        name: method
-        type: string
-      - description: search code repository with name
-        in: query
-        name: name
-        type: string
-      - description: search code repository with provider
-        in: query
-        name: provider
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/types.CommonList'
-            - properties:
-                items:
-                  items:
-                    $ref: '#/definitions/types.CodeRepositoryOwnerItem'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: List code repository owners
-      tags:
-      - CodeRepository
   /coderepos/{id}/setup-builder:
     post:
       consumes:
@@ -971,7 +926,7 @@ paths:
       summary: Setup builder for code repository
       tags:
       - CodeRepository
-  /coderepos/owners/:
+  /coderepos/{provider}:
     get:
       consumes:
       - application/json
@@ -1009,8 +964,9 @@ paths:
         name: owner
         type: string
       - description: search code repository with provider
-        in: query
+        in: path
         name: provider
+        required: true
         type: string
       produces:
       - application/json
@@ -1033,6 +989,43 @@ paths:
       security:
       - BasicAuth: []
       summary: List code repositories
+      tags:
+      - CodeRepository
+  /coderepos/{provider}/owners:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search code repository with provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: search code repository with name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.CodeRepositoryOwnerItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repository owners
       tags:
       - CodeRepository
   /coderepos/providers/:

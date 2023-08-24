@@ -107,10 +107,10 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	codeRepositoryHandler := handlerNew()
-	codereposGroup.GET("/", codeRepositoryHandler.List)
-	codereposGroup.GET("/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.POST("/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
+	codereposGroup.GET("/:provider", codeRepositoryHandler.List)
+	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
 }

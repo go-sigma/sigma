@@ -36,6 +36,10 @@ type CodeRepositoryService interface {
 	CreateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
 	// CreateOwnersInBatches creates new code repository owner records in the database
 	CreateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error
+	// UpdateInBatches updates code repository records in the database
+	UpdateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
+	// UpdateOwnersInBatches updates code repository owner records in the database
+	UpdateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error
 	// DeleteInBatches deletes code repository records in the database
 	DeleteInBatches(ctx context.Context, ids []int64) error
 	// DeleteOwnerInBatches deletes code repository owner records in the database
@@ -46,8 +50,8 @@ type CodeRepositoryService interface {
 	ListOwnersAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepositoryOwner, error)
 	// ListWithPagination list code repositories with pagination
 	ListWithPagination(ctx context.Context, userID int64, provider enums.Provider, owner, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.CodeRepository, int64, error)
-	// ListOwnerWithPagination list code repositories with pagination
-	ListOwnerWithPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string, pagination types.Pagination, sort types.Sortable) ([]*models.CodeRepositoryOwner, int64, error)
+	// ListOwnerWithoutPagination list code repositories without pagination
+	ListOwnerWithoutPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string) ([]*models.CodeRepositoryOwner, int64, error)
 }
 
 type codeRepositoryService struct {
@@ -84,6 +88,40 @@ func (s *codeRepositoryService) CreateInBatches(ctx context.Context, codeReposit
 // CreateOwnersInBatches creates new code repository owner records in the database
 func (s *codeRepositoryService) CreateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error {
 	return s.tx.CodeRepositoryOwner.WithContext(ctx).CreateInBatches(codeRepositoryOwners, consts.InsertBatchSize)
+}
+
+// UpdateInBatches updates code repository records in the database
+func (s *codeRepositoryService) UpdateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error {
+	for _, cr := range codeRepositories {
+		_, err := s.tx.CodeRepository.WithContext(ctx).Where(
+			s.tx.CodeRepository.User3rdPartyID.Eq(cr.User3rdPartyID),
+			s.tx.CodeRepository.RepositoryID.Eq(cr.RepositoryID)).Updates(map[string]any{
+			query.CodeRepository.Owner.ColumnName().String():    cr.Owner,
+			query.CodeRepository.Name.ColumnName().String():     cr.Name,
+			query.CodeRepository.SshUrl.ColumnName().String():   cr.SshUrl,
+			query.CodeRepository.CloneUrl.ColumnName().String(): cr.CloneUrl,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UpdateOwnersInBatches updates code repository owner records in the database
+func (s *codeRepositoryService) UpdateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error {
+	for _, cro := range codeRepositoryOwners {
+		_, err := s.tx.CodeRepositoryOwner.WithContext(ctx).Where(
+			s.tx.CodeRepositoryOwner.User3rdPartyID.Eq(cro.User3rdPartyID),
+			s.tx.CodeRepositoryOwner.OwnerID.Eq(cro.OwnerID)).Updates(map[string]any{
+			query.CodeRepositoryOwner.Owner.ColumnName().String(): cro.Owner,
+			query.CodeRepositoryOwner.IsOrg.ColumnName().String(): cro.IsOrg,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // DeleteInBatches deletes code repository records in the database
@@ -151,30 +189,17 @@ func (s *codeRepositoryService) ListWithPagination(ctx context.Context, userID i
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
-// ListOwnerWithPagination list code repositories with pagination
-func (s *codeRepositoryService) ListOwnerWithPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string, pagination types.Pagination, sort types.Sortable) ([]*models.CodeRepositoryOwner, int64, error) {
+// ListOwnerWithoutPagination list code repositories without pagination
+func (s *codeRepositoryService) ListOwnerWithoutPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string) ([]*models.CodeRepositoryOwner, int64, error) {
 	user3rdPartyObj, err := s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.UserID.Eq(userID), s.tx.User3rdParty.Provider.Eq(provider)).First()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	pagination = utils.NormalizePagination(pagination)
 	query := s.tx.CodeRepositoryOwner.WithContext(ctx).Where(s.tx.CodeRepositoryOwner.User3rdPartyID.Eq(user3rdPartyObj.ID))
 	if owner != nil {
-		query = query.Where(s.tx.CodeRepositoryOwner.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(owner))))
+		query = query.Where(s.tx.CodeRepositoryOwner.Owner.Like(fmt.Sprintf("%%%s%%", ptr.To(owner))))
 	}
-	field, ok := s.tx.CodeRepositoryOwner.GetFieldByName(ptr.To(sort.Sort))
-	if ok {
-		switch ptr.To(sort.Method) {
-		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
-		case enums.SortMethodAsc:
-			query = query.Order(field)
-		default:
-			query = query.Order(s.tx.CodeRepositoryOwner.UpdatedAt.Desc())
-		}
-	} else {
-		query = query.Order(s.tx.CodeRepositoryOwner.UpdatedAt.Desc())
-	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+
+	return query.FindByPage(-1, -1)
 }

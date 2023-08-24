@@ -29,11 +29,15 @@ type CodeRepository struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	User3rdPartyID int64  `gorm:"column:user_3rdparty_id"`
-	Owner          string // in github named owner.name
-	Name           string // in github named full_name
-	SshUrl         string // in github named ssh_url
-	CloneUrl       string // in github named clone_url
+	User3rdPartyID int64 `gorm:"column:user_3rdparty_id"`
+	RepositoryID   string
+
+	OwnerID  string
+	Owner    string // in github named owner.name
+	IsOrg    bool
+	Name     string // in github named full_name
+	SshUrl   string // in github named ssh_url
+	CloneUrl string // in github named clone_url
 
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
@@ -45,8 +49,10 @@ type CodeRepositoryOwner struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	User3rdPartyID int64  `gorm:"column:user_3rdparty_id"`
-	Name           string // in github named owner.name
+	User3rdPartyID int64 `gorm:"column:user_3rdparty_id"`
+	OwnerID        string
+	Owner          string // in github named owner.name
+	IsOrg          bool
 
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }

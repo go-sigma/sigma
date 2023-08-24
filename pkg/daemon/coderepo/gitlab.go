@@ -17,6 +17,7 @@ package coderepo
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
@@ -83,6 +84,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 	for _, r := range repos {
 		newRepos = append(newRepos, &models.CodeRepository{
 			User3rdPartyID: user3rdPartyObj.ID,
+			RepositoryID:   strconv.Itoa(r.ID),
 			Owner:          ptr.To(r.Owner).Name,
 			Name:           r.Name,
 			SshUrl:         r.SSHURLToRepo,
