@@ -33,13 +33,9 @@ import (
 // @Tags CodeRepository
 // @Accept json
 // @Produce json
-// @Router /coderepos/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
+// @Router /coderepos/{provider}/owners [get]
+// @Param provider path string true "search code repository with provider"
 // @Param name query string false "search code repository with name"
-// @Param provider query string false "search code repository with provider"
 // @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryOwnerItem}
 // @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) ListOwners(c echo.Context) error {
@@ -62,10 +58,9 @@ func (h *handlers) ListOwners(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	codeRepositoryService := h.codeRepositoryServiceFactory.New()
-	codeRepositoryOwnerObjs, total, err := codeRepositoryService.ListOwnerWithPagination(ctx, user.ID, req.Provider, req.Name, req.Pagination, req.Sortable)
+	codeRepositoryOwnerObjs, total, err := codeRepositoryService.ListOwnerWithoutPagination(ctx, user.ID, req.Provider, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("List code repository owners failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -74,7 +69,9 @@ func (h *handlers) ListOwners(c echo.Context) error {
 	for _, codeRepositoryOwnerObj := range codeRepositoryOwnerObjs {
 		resp = append(resp, types.CodeRepositoryOwnerItem{
 			ID:        codeRepositoryOwnerObj.ID,
-			Name:      codeRepositoryOwnerObj.Name,
+			OwnerID:   codeRepositoryOwnerObj.OwnerID,
+			Owner:     codeRepositoryOwnerObj.Owner,
+			IsOrg:     codeRepositoryOwnerObj.IsOrg,
 			CreatedAt: codeRepositoryOwnerObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: codeRepositoryOwnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

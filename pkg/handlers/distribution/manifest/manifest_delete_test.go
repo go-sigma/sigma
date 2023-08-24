@@ -52,7 +52,7 @@ func TestDeleteManifest(t *testing.T) {
 	const (
 		namespaceName  = "test"
 		repositoryName = "test/busybox"
-		digestName     = "sha256:2776ee23722eaabcffed77dafd22b7a1da734971bf268a323b6819926dfe1ebd"
+		digestName     = "sha256:2776ee23722eaabcffed77dafd22b7a1da734971bf268a323b6819926dfe1ebd" // nolint: gosec
 		tagName        = "latest"
 	)
 

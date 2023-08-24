@@ -32,7 +32,9 @@ func newCodeRepositoryOwner(db *gorm.DB, opts ...gen.DOOption) codeRepositoryOwn
 	_codeRepositoryOwner.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_codeRepositoryOwner.ID = field.NewInt64(tableName, "id")
 	_codeRepositoryOwner.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
-	_codeRepositoryOwner.Name = field.NewString(tableName, "name")
+	_codeRepositoryOwner.OwnerID = field.NewString(tableName, "owner_id")
+	_codeRepositoryOwner.Owner = field.NewString(tableName, "owner")
+	_codeRepositoryOwner.IsOrg = field.NewBool(tableName, "is_org")
 	_codeRepositoryOwner.User3rdParty = codeRepositoryOwnerBelongsToUser3rdParty{
 		db: db.Session(&gorm.Session{}),
 
@@ -58,7 +60,9 @@ type codeRepositoryOwner struct {
 	DeletedAt      field.Uint
 	ID             field.Int64
 	User3rdPartyID field.Int64
-	Name           field.String
+	OwnerID        field.String
+	Owner          field.String
+	IsOrg          field.Bool
 	User3rdParty   codeRepositoryOwnerBelongsToUser3rdParty
 
 	fieldMap map[string]field.Expr
@@ -81,7 +85,9 @@ func (c *codeRepositoryOwner) updateTableName(table string) *codeRepositoryOwner
 	c.DeletedAt = field.NewUint(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
-	c.Name = field.NewString(table, "name")
+	c.OwnerID = field.NewString(table, "owner_id")
+	c.Owner = field.NewString(table, "owner")
+	c.IsOrg = field.NewBool(table, "is_org")
 
 	c.fillFieldMap()
 
@@ -110,13 +116,15 @@ func (c *codeRepositoryOwner) GetFieldByName(fieldName string) (field.OrderExpr,
 }
 
 func (c *codeRepositoryOwner) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 7)
+	c.fieldMap = make(map[string]field.Expr, 9)
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["deleted_at"] = c.DeletedAt
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["user_3rdparty_id"] = c.User3rdPartyID
-	c.fieldMap["name"] = c.Name
+	c.fieldMap["owner_id"] = c.OwnerID
+	c.fieldMap["owner"] = c.Owner
+	c.fieldMap["is_org"] = c.IsOrg
 
 }
 

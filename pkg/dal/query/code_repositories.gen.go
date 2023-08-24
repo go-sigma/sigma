@@ -32,7 +32,10 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_codeRepository.ID = field.NewInt64(tableName, "id")
 	_codeRepository.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
+	_codeRepository.RepositoryID = field.NewString(tableName, "repository_id")
+	_codeRepository.OwnerID = field.NewString(tableName, "owner_id")
 	_codeRepository.Owner = field.NewString(tableName, "owner")
+	_codeRepository.IsOrg = field.NewBool(tableName, "is_org")
 	_codeRepository.Name = field.NewString(tableName, "name")
 	_codeRepository.SshUrl = field.NewString(tableName, "ssh_url")
 	_codeRepository.CloneUrl = field.NewString(tableName, "clone_url")
@@ -61,7 +64,10 @@ type codeRepository struct {
 	DeletedAt      field.Uint
 	ID             field.Int64
 	User3rdPartyID field.Int64
+	RepositoryID   field.String
+	OwnerID        field.String
 	Owner          field.String
+	IsOrg          field.Bool
 	Name           field.String
 	SshUrl         field.String
 	CloneUrl       field.String
@@ -87,7 +93,10 @@ func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.DeletedAt = field.NewUint(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
+	c.RepositoryID = field.NewString(table, "repository_id")
+	c.OwnerID = field.NewString(table, "owner_id")
 	c.Owner = field.NewString(table, "owner")
+	c.IsOrg = field.NewBool(table, "is_org")
 	c.Name = field.NewString(table, "name")
 	c.SshUrl = field.NewString(table, "ssh_url")
 	c.CloneUrl = field.NewString(table, "clone_url")
@@ -119,13 +128,16 @@ func (c *codeRepository) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (c *codeRepository) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 10)
+	c.fieldMap = make(map[string]field.Expr, 13)
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["deleted_at"] = c.DeletedAt
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["user_3rdparty_id"] = c.User3rdPartyID
+	c.fieldMap["repository_id"] = c.RepositoryID
+	c.fieldMap["owner_id"] = c.OwnerID
 	c.fieldMap["owner"] = c.Owner
+	c.fieldMap["is_org"] = c.IsOrg
 	c.fieldMap["name"] = c.Name
 	c.fieldMap["ssh_url"] = c.SshUrl
 	c.fieldMap["clone_url"] = c.CloneUrl

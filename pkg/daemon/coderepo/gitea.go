@@ -17,6 +17,7 @@ package coderepo
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/rs/zerolog/log"
@@ -83,6 +84,7 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 	for _, r := range repos {
 		newRepos = append(newRepos, &models.CodeRepository{
 			User3rdPartyID: user3rdPartyObj.ID,
+			RepositoryID:   strconv.FormatInt(r.ID, 10),
 			Owner:          ptr.To(r.Owner).UserName,
 			Name:           r.Name,
 			SshUrl:         r.SSHURL,

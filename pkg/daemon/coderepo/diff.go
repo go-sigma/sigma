@@ -33,11 +33,13 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 		return fmt.Errorf("List all old repositories failed: %v", err)
 	}
 
+	needUpdateRepos := make([]*models.CodeRepository, 0, len(newRepos))
 	needDelRepos := make([]*models.CodeRepository, 0, len(oldRepos))
 	for _, oldRepo := range oldRepos {
 		found := false
 		for _, newRepo := range newRepos {
-			if oldRepo.Owner == newRepo.Owner && oldRepo.Name == newRepo.Name {
+			if oldRepo.RepositoryID == newRepo.RepositoryID {
+				needUpdateRepos = append(needUpdateRepos, newRepo)
 				found = true
 				break
 			}
@@ -51,7 +53,7 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 	for _, newRepo := range newRepos {
 		found := false
 		for _, oldRepo := range oldRepos {
-			if oldRepo.Owner == newRepo.Owner && oldRepo.Name == newRepo.Name {
+			if oldRepo.RepositoryID == newRepo.RepositoryID {
 				found = true
 				break
 			}
@@ -67,11 +69,18 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 		return fmt.Errorf("List all old repository owners failed: %v", err)
 	}
 
+	needUpdateOwners := make([]*models.CodeRepositoryOwner, 0, len(newRepos))
 	needDelOwners := make([]*models.CodeRepositoryOwner, 0, len(oldOwners))
 	for _, oldOwner := range oldOwners {
 		found := false
 		for _, newRepo := range newRepos {
-			if oldOwner.Name == newRepo.Owner {
+			if oldOwner.Owner == newRepo.Owner {
+				needUpdateOwners = append(needUpdateOwners, &models.CodeRepositoryOwner{
+					User3rdPartyID: newRepo.User3rdPartyID,
+					OwnerID:        newRepo.OwnerID,
+					Owner:          newRepo.Owner,
+					IsOrg:          newRepo.IsOrg,
+				})
 				found = true
 				break
 			}
@@ -85,7 +94,7 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 	for _, newRepo := range newRepos {
 		found := false
 		for _, oldOwner := range oldOwners {
-			if oldOwner.Name == newRepo.Owner {
+			if oldOwner.Owner == newRepo.Owner {
 				found = true
 				break
 			}
@@ -96,7 +105,9 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			}
 			needInsertOwners = append(needInsertOwners, &models.CodeRepositoryOwner{
 				User3rdPartyID: user3rdPartyObj.ID,
-				Name:           newRepo.Owner,
+				OwnerID:        newRepo.OwnerID,
+				Owner:          newRepo.Owner,
+				IsOrg:          newRepo.IsOrg,
 			})
 			uniqueOwner = uniqueOwner.Insert(newRepo.Owner)
 		}
@@ -109,6 +120,13 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			if err != nil {
 				log.Error().Err(err).Msg("Create new repositories failed")
 				return fmt.Errorf("Create new repositories failed: %v", err)
+			}
+		}
+		if len(needUpdateRepos) > 0 {
+			err := codeRepositoryService.UpdateInBatches(ctx, needUpdateRepos)
+			if err != nil {
+				log.Error().Err(err).Msg("Update new repositories failed")
+				return fmt.Errorf("Update new repositories failed: %v", err)
 			}
 		}
 		if len(needDelRepos) > 0 {
@@ -127,6 +145,13 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			if err != nil {
 				log.Error().Err(err).Msg("Create new code repository owners failed")
 				return fmt.Errorf("Create new code repository owner failed: %v", err)
+			}
+		}
+		if len(needUpdateOwners) > 0 {
+			err := codeRepositoryService.UpdateOwnersInBatches(ctx, needUpdateOwners)
+			if err != nil {
+				log.Error().Err(err).Msg("Update new code repository owners failed")
+				return fmt.Errorf("Update new code repository owner failed: %v", err)
 			}
 		}
 		if len(needDelOwners) > 0 {
