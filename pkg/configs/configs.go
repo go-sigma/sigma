@@ -20,14 +20,14 @@ var checkers []checker
 
 // Initialize initializes the configs.
 func Initialize() error {
+	defaultSettings()
+
 	for _, checker := range checkers {
 		err := checker()
 		if err != nil {
 			return err
 		}
 	}
-
-	defaultSettings()
 
 	return nil
 }

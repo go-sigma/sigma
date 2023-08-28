@@ -20,9 +20,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the system handlers
@@ -33,13 +35,17 @@ type Handlers interface {
 
 var _ Handlers = &handlers{}
 
-type handlers struct{}
+type handlers struct {
+	config configs.Configuration
+}
 
 type inject struct{}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handlers {
-	return &handlers{}
+func handlerNew(_ ...inject) Handlers {
+	return &handlers{
+		config: ptr.To(configs.GetConfiguration()),
+	}
 }
 
 type factory struct{}

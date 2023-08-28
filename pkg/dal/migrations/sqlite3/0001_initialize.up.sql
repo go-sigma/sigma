@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 );
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` bigint NOT NULL,
   `provider` text CHECK (`provider` IN ('github', 'gitlab', 'gitea')) NOT NULL DEFAULT 'github',
   `account_id` varchar(256),
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `user_3rdparty` (
 );
 
 CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_3rdparty_id` bigint NOT NULL,
   `type` text CHECK (`type` IN ('none', 'ssh', 'username', 'token')) NOT NULL DEFAULT 'none',
   `ssh_key` BLOB,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
 );
 
 CREATE TABLE IF NOT EXISTS `code_repository_owners` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_3rdparty_id` bigint NOT NULL,
   `is_org` integer NOT NULL DEFAULT 0,
   `owner_id` varchar(256) NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `code_repository_owners` (
 );
 
 CREATE TABLE IF NOT EXISTS `code_repositories` (
-  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_3rdparty_id` bigint NOT NULL,
   `repository_id` varchar(256) NOT NULL,
   `is_org` integer NOT NULL DEFAULT 0,
@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `name` varchar(256) NOT NULL,
   `ssh_url` varchar(256) NOT NULL,
   `clone_url` varchar(256) NOT NULL,
+  `oci_repo_count` integer NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,

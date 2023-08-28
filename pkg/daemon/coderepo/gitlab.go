@@ -27,7 +27,12 @@ import (
 )
 
 func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.User3rdParty) error {
-	client, err := gitlab.NewClient(ptr.To(user3rdPartyObj.Token))
+	client, err := gitlab.NewOAuthClient(ptr.To(user3rdPartyObj.Token))
+	if err != nil {
+		return err
+	}
+
+	userObj, _, err := client.Users.CurrentUser()
 	if err != nil {
 		return err
 	}
@@ -36,12 +41,18 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 
 	page := 1
 	for {
-		rs, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+		rs, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{
+			Owned:       ptr.Of(true),
+			ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
 		if err != nil {
 			log.Error().Err(err).Msg("List projects from gitlab failed")
 			return fmt.Errorf("List projects from gitlab failed: %w", err)
 		}
-		repos = append(repos, rs...)
+		for _, r := range rs {
+			if r.Namespace.Path == userObj.Username {
+				repos = append(repos, r)
+			}
+		}
 		if len(rs) < perPage {
 			break
 		}
@@ -52,7 +63,10 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 
 	page = 1
 	for {
-		gs, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+		gs, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{
+			AllAvailable:   ptr.Of(true),
+			MinAccessLevel: ptr.Of(gitlab.ReporterPermissions),
+			ListOptions:    gitlab.ListOptions{Page: page, PerPage: perPage}})
 		if err != nil {
 			log.Error().Err(err).Msg("List groups from gitlab failed")
 			return fmt.Errorf("List groups from gitlab failed: %w", err)
@@ -67,7 +81,9 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 	for _, g := range groups {
 		page = 1
 		for {
-			rs, _, err := client.Groups.ListGroupProjects(g.ID, &gitlab.ListGroupProjectsOptions{ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+			rs, _, err := client.Groups.ListGroupProjects(g.ID, &gitlab.ListGroupProjectsOptions{
+				MinAccessLevel: ptr.Of(gitlab.ReporterPermissions),
+				ListOptions:    gitlab.ListOptions{Page: page, PerPage: perPage}})
 			if err != nil {
 				log.Error().Err(err).Msg("List projects from gitlab failed")
 				return fmt.Errorf("List projects from gitlab failed: %w", err)
@@ -82,14 +98,19 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 
 	var newRepos = make([]*models.CodeRepository, 0, len(repos))
 	for _, r := range repos {
-		newRepos = append(newRepos, &models.CodeRepository{
+		repo := &models.CodeRepository{
 			User3rdPartyID: user3rdPartyObj.ID,
 			RepositoryID:   strconv.Itoa(r.ID),
-			Owner:          ptr.To(r.Owner).Name,
+			OwnerID:        strconv.Itoa(r.Namespace.ID),
+			Owner:          r.Namespace.Path,
 			Name:           r.Name,
 			SshUrl:         r.SSHURLToRepo,
 			CloneUrl:       r.HTTPURLToRepo,
-		})
+		}
+		if r.Namespace.Path != userObj.Username {
+			repo.IsOrg = true
+		}
+		newRepos = append(newRepos, repo)
 	}
 
 	return cr.diff(ctx, user3rdPartyObj, newRepos)

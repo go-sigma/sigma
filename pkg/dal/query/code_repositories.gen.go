@@ -39,6 +39,7 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.Name = field.NewString(tableName, "name")
 	_codeRepository.SshUrl = field.NewString(tableName, "ssh_url")
 	_codeRepository.CloneUrl = field.NewString(tableName, "clone_url")
+	_codeRepository.OciRepoCount = field.NewInt64(tableName, "oci_repo_count")
 	_codeRepository.User3rdParty = codeRepositoryBelongsToUser3rdParty{
 		db: db.Session(&gorm.Session{}),
 
@@ -71,6 +72,7 @@ type codeRepository struct {
 	Name           field.String
 	SshUrl         field.String
 	CloneUrl       field.String
+	OciRepoCount   field.Int64
 	User3rdParty   codeRepositoryBelongsToUser3rdParty
 
 	fieldMap map[string]field.Expr
@@ -100,6 +102,7 @@ func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.Name = field.NewString(table, "name")
 	c.SshUrl = field.NewString(table, "ssh_url")
 	c.CloneUrl = field.NewString(table, "clone_url")
+	c.OciRepoCount = field.NewInt64(table, "oci_repo_count")
 
 	c.fillFieldMap()
 
@@ -128,7 +131,7 @@ func (c *codeRepository) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (c *codeRepository) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 13)
+	c.fieldMap = make(map[string]field.Expr, 14)
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["deleted_at"] = c.DeletedAt
@@ -141,6 +144,7 @@ func (c *codeRepository) fillFieldMap() {
 	c.fieldMap["name"] = c.Name
 	c.fieldMap["ssh_url"] = c.SshUrl
 	c.fieldMap["clone_url"] = c.CloneUrl
+	c.fieldMap["oci_repo_count"] = c.OciRepoCount
 
 }
 

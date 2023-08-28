@@ -181,11 +181,21 @@ export interface ICodeRepositoryItem {
   is_org: boolean;
   clone_url: string;
   ssh_url: string;
+  oci_repo_count: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface ICodeRepositoryList {
   items: ICodeRepositoryItem[];
+  total: number;
+}
+
+export interface ICodeRepositoryProviderItem {
+  providers: string;
+}
+
+export interface ICodeRepositoryProviderList {
+  items: ICodeRepositoryProviderItem[];
   total: number;
 }

@@ -155,6 +155,15 @@ type ConfigurationStorageCos struct {
 	ForcePathStyle bool   `yaml:"forcePathStyle"`
 }
 
+// ConfigurationStorageQiniu ...
+type ConfigurationStorageQiniu struct {
+	Ak       string `yaml:"ak"`
+	Sk       string `yaml:"sk"`
+	Bucket   string `yaml:"bucket"`
+	Region   string `yaml:"region"`
+	UseHTTPS bool   `yaml:"useHttps"`
+}
+
 // ConfigurationStorage ...
 type ConfigurationStorage struct {
 	RootDirectory string                         `yaml:"rootDirectory"`
@@ -162,6 +171,7 @@ type ConfigurationStorage struct {
 	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
 	S3            ConfigurationStorageS3         `yaml:"s3"`
 	Cos           ConfigurationStorageCos        `yaml:"cos"`
+	Qiniu         ConfigurationStorageQiniu      `yaml:"qiniu"`
 }
 
 // ConfigurationProxy ...
@@ -226,4 +236,5 @@ type ConfigurationAuth struct {
 	Admin        ConfigurationAuthAdmin        `yaml:"admin"`
 	Token        ConfigurationAuthToken        `yaml:"token"`
 	Oauth2       ConfigurationAuthOauth2       `yaml:"oauth2"`
+	Jwt          ConfigurationAuthJwt          `yaml:"jwt"`
 }

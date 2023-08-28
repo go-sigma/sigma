@@ -39,6 +39,8 @@ type CodeRepository struct {
 	SshUrl   string // in github named ssh_url
 	CloneUrl string // in github named clone_url
 
+	OciRepoCount int64
+
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
 

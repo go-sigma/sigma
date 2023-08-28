@@ -17,7 +17,7 @@
     "@tailwindcss/forms": "^0.5.5",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.9",
-    "axios": "^1.4.0",
+    "axios": "^1.5.0",
     "bytemd": "^1.5.0",
     "dayjs": "^1.11.9",
     "flowbite": "^1.8.1",
@@ -33,7 +33,7 @@
     "react-use": "^17.4.0"
   },
   "devDependencies": {
-    "@types/node": "^20.5.4",
+    "@types/node": "^20.5.7",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react-swc": "^3.3.2",
@@ -42,7 +42,7 @@
     "json-server": "^0.17.3",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6",
+    "typescript": "^5.2.2",
     "vite": "^4.4.9"
   }
 }

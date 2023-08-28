@@ -17,5 +17,6 @@ package imports
 import (
 	_ "github.com/go-sigma/sigma/pkg/storage/cos"
 	_ "github.com/go-sigma/sigma/pkg/storage/filesystem"
+	_ "github.com/go-sigma/sigma/pkg/storage/oss"
 	_ "github.com/go-sigma/sigma/pkg/storage/s3"
 )

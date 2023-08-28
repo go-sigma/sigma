@@ -2287,6 +2287,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "sigma"
                 },
+                "oci_repo_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "owner": {
                     "type": "string",
                     "example": "go-sigma"

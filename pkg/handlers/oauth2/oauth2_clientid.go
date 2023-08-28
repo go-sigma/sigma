@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// Callback ...
+// ClientID ...
 func (h *handlers) ClientID(c echo.Context) error {
 	var req types.Oauth2ClientIDRequest
 	err := utils.BindValidate(c, &req)

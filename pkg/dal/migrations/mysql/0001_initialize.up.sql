@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
-  `provider` ENUM ('github') NOT NULL,
+  `provider` ENUM ('github', 'gitlab', 'gitea') NOT NULL,
   `account_id` varchar(256),
   `token` varchar(256),
   `refresh_token` varchar(256),
@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `name` varchar(256) NOT NULL,
   `ssh_url` varchar(256) NOT NULL,
   `clone_url` varchar(256) NOT NULL,
+  `oci_repo_count` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,

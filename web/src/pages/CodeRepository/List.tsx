@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
+import _ from 'lodash';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import _ from 'lodash';
+import { Dialog, Menu } from '@headlessui/react';
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 import Settings from '../../Settings';
-import Menu from '../../components/Menu';
+import HeaderMenu from '../../components/Menu';
 import Header from '../../components/Header';
 import Toast from "../../components/Notification";
 import Pagination from '../../components/Pagination';
-import OrderHeader from '../../components/OrderHeader';
 
 import { IHTTPError, IOrder, ICodeRepositoryOwnerList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryList } from '../../interfaces';
 
@@ -45,7 +47,6 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [searchCodeRepo, setSearchCodeRepo] = useState("");
   const [searchCodeRepoEvent, setSearchCodeRepoEvent] = useState(0);
-
 
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
@@ -127,7 +128,7 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white min-w-[1600px]">
-        <Menu localServer={localServer} item="coderepos" />
+        <HeaderMenu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           {/* part 1 begin */}
           <main className="relative focus:outline-none" tabIndex={0}>
@@ -224,7 +225,7 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="pr-2 flex flex-col">
                 <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
                 // onClick={() => { setCreateNamespaceModal(true) }}
-                >Pull credential</button>
+                >Clone credential</button>
               </div>
             </div>
           </main>
@@ -239,12 +240,9 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="lg:pl-2">Name</span>
                     </th>
                     <th className="sticky top-0 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      <OrderHeader text={"Image Repo Count"} orderStatus={sortOrder} setOrder={e => {
-                        setSortOrder(e);
-                        setSortName("");
-                      }} />
+                      <span className="lg:pl-2">Oci Repo Count</span>
                     </th>
-                    <th className="sticky top-0 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Action
                     </th>
                   </tr>
@@ -289,6 +287,12 @@ function TableItem({ localServer, index, repository }: { localServer: string, in
             </span>
           </div>
         </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {repository.oci_repo_count}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700">
+        Setup
       </td>
     </tr>
   )

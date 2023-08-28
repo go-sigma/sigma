@@ -82,6 +82,7 @@ func (h *handlers) List(c echo.Context) error {
 			IsOrg:        codeRepositoryObj.IsOrg,
 			CloneUrl:     codeRepositoryObj.CloneUrl,
 			SshUrl:       codeRepositoryObj.SshUrl,
+			OciRepoCount: codeRepositoryObj.OciRepoCount,
 			CreatedAt:    codeRepositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:    codeRepositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

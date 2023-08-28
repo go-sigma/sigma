@@ -7,15 +7,16 @@ require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.30.5
-	github.com/anchore/syft v0.87.1
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
+	github.com/anchore/syft v0.88.0
 	github.com/aquasecurity/trivy v0.44.1
-	github.com/aws/aws-sdk-go v1.44.329
+	github.com/aws/aws-sdk-go v1.44.332
 	github.com/bytedance/sonic v1.10.0
 	github.com/caarlos0/env/v9 v9.0.0
-	github.com/casbin/casbin/v2 v2.75.1
+	github.com/casbin/casbin/v2 v2.77.1
 	github.com/casbin/gorm-adapter/v3 v3.18.1
 	github.com/deckarep/golang-set/v2 v2.3.1
-	github.com/distribution/distribution/v3 v3.0.0-20230822120903-944446b6f565
+	github.com/distribution/distribution/v3 v3.0.0-20230824182353-293b588075cb
 	github.com/docker/cli v24.0.5+incompatible
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/dustin/go-humanize v1.0.1
@@ -36,7 +37,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/matoous/go-nanoid v1.5.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	github.com/moby/buildkit v0.12.1
+	github.com/moby/buildkit v0.12.2
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230727214836-6bc87156eacf
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.1.0
@@ -63,8 +64,8 @@ require (
 	gorm.io/gorm v1.25.4
 	gorm.io/plugin/dbresolver v1.4.7
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/api v0.28.0
-	k8s.io/client-go v0.28.0
+	k8s.io/api v0.28.1
+	k8s.io/client-go v0.28.1
 )
 
 require (
@@ -240,7 +241,7 @@ require (
 	gorm.io/datatypes v1.2.0 // indirect
 	gorm.io/driver/sqlserver v1.5.1 // indirect
 	gorm.io/hints v1.1.2 // indirect
-	k8s.io/apimachinery v0.28.0
+	k8s.io/apimachinery v0.28.1
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230816210353-14e408962443 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
