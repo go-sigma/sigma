@@ -55,7 +55,7 @@ type codeRepository struct {
 func (cr codeRepository) runner(ctx context.Context, payload types.DaemonCodeRepositoryPayload) error {
 	userService := cr.userServiceFactory.New()
 	// TODO: fix get user 3rdparty
-	user3rdPartyObj, err := userService.GetUser3rdParty(ctx, payload.UserID)
+	user3rdPartyObj, err := userService.GetUser3rdParty(ctx, payload.User3rdPartyID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get 3rdParty user failed")
 		return fmt.Errorf("Get 3rdParty user failed: %v", err)

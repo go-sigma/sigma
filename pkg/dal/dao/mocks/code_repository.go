@@ -108,20 +108,20 @@ func (mr *MockCodeRepositoryServiceMockRecorder) ListAll(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListAll), arg0, arg1)
 }
 
-// ListOwnerWithPagination mocks base method.
-func (m *MockCodeRepositoryService) ListOwnerWithPagination(arg0 context.Context, arg1 int64, arg2 enums.Provider, arg3 *string, arg4 types.Pagination, arg5 types.Sortable) ([]*models.CodeRepositoryOwner, int64, error) {
+// ListOwnerWithoutPagination mocks base method.
+func (m *MockCodeRepositoryService) ListOwnerWithoutPagination(arg0 context.Context, arg1 int64, arg2 enums.Provider, arg3 *string) ([]*models.CodeRepositoryOwner, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListOwnerWithPagination", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ListOwnerWithoutPagination", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*models.CodeRepositoryOwner)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// ListOwnerWithPagination indicates an expected call of ListOwnerWithPagination.
-func (mr *MockCodeRepositoryServiceMockRecorder) ListOwnerWithPagination(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+// ListOwnerWithoutPagination indicates an expected call of ListOwnerWithoutPagination.
+func (mr *MockCodeRepositoryServiceMockRecorder) ListOwnerWithoutPagination(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOwnerWithPagination", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListOwnerWithPagination), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOwnerWithoutPagination", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListOwnerWithoutPagination), arg0, arg1, arg2, arg3)
 }
 
 // ListOwnersAll mocks base method.
@@ -153,4 +153,32 @@ func (m *MockCodeRepositoryService) ListWithPagination(arg0 context.Context, arg
 func (mr *MockCodeRepositoryServiceMockRecorder) ListWithPagination(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPagination", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListWithPagination), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+}
+
+// UpdateInBatches mocks base method.
+func (m *MockCodeRepositoryService) UpdateInBatches(arg0 context.Context, arg1 []*models.CodeRepository) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateInBatches", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateInBatches indicates an expected call of UpdateInBatches.
+func (mr *MockCodeRepositoryServiceMockRecorder) UpdateInBatches(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInBatches", reflect.TypeOf((*MockCodeRepositoryService)(nil).UpdateInBatches), arg0, arg1)
+}
+
+// UpdateOwnersInBatches mocks base method.
+func (m *MockCodeRepositoryService) UpdateOwnersInBatches(arg0 context.Context, arg1 []*models.CodeRepositoryOwner) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOwnersInBatches", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOwnersInBatches indicates an expected call of UpdateOwnersInBatches.
+func (mr *MockCodeRepositoryServiceMockRecorder) UpdateOwnersInBatches(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOwnersInBatches", reflect.TypeOf((*MockCodeRepositoryService)(nil).UpdateOwnersInBatches), arg0, arg1)
 }

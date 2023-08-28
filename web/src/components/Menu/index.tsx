@@ -85,12 +85,9 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
       axios.post(localServer + "/api/v1/users/logout", {
         tokens: tokens
       }).then(response => {
-        if (response.status === 204) {
-          navigate("/login");
-        } else {
-          const errorcode = response.data as IHTTPError;
-          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-        }
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh_token");
+        navigate("/login");
       }).catch(error => {
         const errorcode = error.response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });

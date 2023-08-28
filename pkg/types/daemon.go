@@ -64,7 +64,7 @@ type DaemonBuilderPayload struct {
 
 // DaemonCodeRepositoryPayload ...
 type DaemonCodeRepositoryPayload struct {
-	UserID int64 `json:"user_id"`
+	User3rdPartyID int64 `json:"user_3rdparty_id"`
 }
 
 // PostDaemonRunRequest ...

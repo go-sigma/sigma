@@ -171,7 +171,7 @@ func (s *userService) GetUser3rdParty(ctx context.Context, userID int64) (*model
 
 // ListUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
 func (s *userService) ListUser3rdParty(ctx context.Context, userID int64) ([]*models.User3rdParty, error) {
-	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(userID)).Find()
+	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.UserID.Eq(userID)).Find()
 }
 
 // GetRecoverCodeByUserID gets the recover code with the specified user id.

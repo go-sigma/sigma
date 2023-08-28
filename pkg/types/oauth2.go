@@ -23,8 +23,14 @@ type Oauth2LoginRequest struct {
 
 // Oauth2CallbackRequest represents the request to callback.
 type Oauth2CallbackRequest struct {
-	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
-	Code     string         `json:"code" query:"code" validate:"required"`
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider" example:"gitlab"`
+	Code     string         `json:"code" query:"code" validate:"required" example:"123456"`
+	Endpoint string         `json:"endpoint" query:"endpoint" example:"http://localhost:5173"`
+}
+
+// Oauth2RedirectCallbackRequest ...
+type Oauth2RedirectCallbackRequest struct {
+	Code string `json:"code" query:"code"`
 }
 
 // Oauth2UserInfo represents the user info.

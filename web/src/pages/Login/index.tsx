@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
 import Toast from "../../components/Notification";
-import { IHTTPError, IUserLoginResponse, IOauth2ClientID } from "../../interfaces";
+import { IHTTPError, IUserLoginResponse, IOauth2ClientID, IEndpoint } from "../../interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -38,6 +38,34 @@ export default function Login({ localServer }: { localServer: string }) {
         console.log(err)
       })
   }
+
+  const [endpoint, setEndpoint] = useState("");
+
+  useEffect(() => {
+    let url = localServer + `/api/v1/systems/endpoint`;
+    axios.get(url).then(response => {
+      if (response.status === 200) {
+        let e = response.data as IEndpoint;
+        setEndpoint(e.endpoint);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [])
+
+  useEffect(() => { // if user have already login redirect to home
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response !== undefined && response.status === 200) {
+        navigate("/");
+      }
+    }).catch(error => {
+      console.log("get user self info failed:", error);
+    });
+  }, []);
 
   return (
     <>
@@ -135,8 +163,11 @@ export default function Login({ localServer }: { localServer: string }) {
                   <span className="bg-white px-6 text-gray-900">Or continue with</span>
                 </div>
               </div>
-
-              <GitHubButton localServer={localServer} />
+              <div className="mt-6 grid grid-cols-1 gap-4">
+                <button className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F] border-gray-800">Anonymous</button>
+              </div>
+              <GitHubButton localServer={localServer} endpoint={endpoint} />
+              <GitLabButton localServer={localServer} endpoint={endpoint} />
             </div>
           </div>
         </div>
@@ -145,7 +176,7 @@ export default function Login({ localServer }: { localServer: string }) {
   )
 }
 
-function GitHubButton({ localServer }: { localServer: string }) {
+function GitHubButton({ localServer, endpoint }: { localServer: string, endpoint: string }) {
   const [clientID, setClientID] = useState("");
 
   useEffect(() => {
@@ -166,7 +197,7 @@ function GitHubButton({ localServer }: { localServer: string }) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-4">
       <a
-        href={`https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(location.protocol + "//" + location.host + "/#/login/callback/github")}&scope=repo`}
+        href={`https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(`${endpoint}/api/v1/oauth2/github/redirect_callback?endpoint=${encodeURIComponent(location.protocol + "//" + location.host)}`)}&scope=repo`}
         className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
       >
         <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
@@ -177,6 +208,38 @@ function GitHubButton({ localServer }: { localServer: string }) {
           />
         </svg>
         <span className="text-sm font-semibold leading-6">GitHub</span>
+      </a>
+    </div>
+  );
+}
+
+
+function GitLabButton({ localServer, endpoint }: { localServer: string, endpoint: string }) {
+  const [clientID, setClientID] = useState("");
+
+  useEffect(() => {
+    axios.get(`${localServer}/api/v1/oauth2/gitlab/client_id`).then(response => {
+      if (response.status == 200) {
+        const data = response.data as IOauth2ClientID;
+        setClientID(data.client_id);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-4">
+      <a
+        href={`https://gitlab.com/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(`${endpoint}/api/v1/oauth2/gitlab/redirect_callback?endpoint=${encodeURIComponent(location.protocol + "//" + location.host)}`)}&response_type=code&scope=read_repository+read_user+api+read_api`}
+        className="flex w-full items-center justify-center gap-3 rounded-md  bg-red-600 px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="90 90 210 210" className="h-5 w-5"><g><path className="fill-[#e24329]" d="M282.83,170.73l-.27-.69-26.14-68.22a6.81,6.81,0,0,0-2.69-3.24,7,7,0,0,0-8,.43,7,7,0,0,0-2.32,3.52l-17.65,54H154.29l-17.65-54A6.86,6.86,0,0,0,134.32,99a7,7,0,0,0-8-.43,6.87,6.87,0,0,0-2.69,3.24L97.44,170l-.26.69a48.54,48.54,0,0,0,16.1,56.1l.09.07.24.17,39.82,29.82,19.7,14.91,12,9.06a8.07,8.07,0,0,0,9.76,0l12-9.06,19.7-14.91,40.06-30,.1-.08A48.56,48.56,0,0,0,282.83,170.73Z" /><path className="fill-[#fc6d26]" d="M282.83,170.73l-.27-.69a88.3,88.3,0,0,0-35.15,15.8L190,229.25c19.55,14.79,36.57,27.64,36.57,27.64l40.06-30,.1-.08A48.56,48.56,0,0,0,282.83,170.73Z" /><path className="fill-[#fca326]" d="M153.43,256.89l19.7,14.91,12,9.06a8.07,8.07,0,0,0,9.76,0l12-9.06,19.7-14.91S209.55,244,190,229.25C170.45,244,153.43,256.89,153.43,256.89Z" /><path className="fill-[#fc6d26]" d="M132.58,185.84A88.19,88.19,0,0,0,97.44,170l-.26.69a48.54,48.54,0,0,0,16.1,56.1l.09.07.24.17,39.82,29.82s17-12.85,36.57-27.64Z" /></g></svg>
+        <span className="text-sm font-semibold leading-6">GitLab</span>
       </a>
     </div>
   );

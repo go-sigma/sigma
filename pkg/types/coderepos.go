@@ -26,6 +26,7 @@ type CodeRepositoryItem struct {
 	IsOrg        bool   `json:"is_org" example:"true"`
 	CloneUrl     string `json:"clone_url" example:"https://github.com/go-sigma/sigma.git"`
 	SshUrl       string `json:"ssh_url" example:"git@github.com:go-sigma/sigma.git"`
+	OciRepoCount int64  `json:"oci_repo_count" example:"1"`
 	CreatedAt    string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt    string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }

@@ -12,26 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package systems
+package oss
 
 import (
-	"net/http"
+	"path"
+	"reflect"
 
-	"github.com/labstack/echo/v4"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 
-	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// GetEndpoint handles the get endpoint request
-// @Summary Get endpoint
-// @Tags System
-// @Accept json
-// @Produce json
-// @Router /systems/endpoint [get]
-// @Success 200 {object} types.GetEndpointResponse
-func (h *handlers) GetEndpoint(c echo.Context) error {
-	return c.JSON(http.StatusOK, types.GetEndpointResponse{
-		Endpoint: h.config.HTTP.Endpoint,
-		// Endpoint: "http://localhost:3000",
-	})
+func init() {
+	utils.PanicIf(storage.RegisterDriverFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+}
+
+type factory struct{}
+
+var _ storage.Factory = factory{}
+
+// New ...
+func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
+	_, _ = oss.New("endpoint", "accessID", "accessKey")
+	return nil, nil
 }

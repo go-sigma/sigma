@@ -24,11 +24,13 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -38,11 +40,14 @@ type Handlers interface {
 	Callback(c echo.Context) error
 	// ClientID handles the client id request
 	ClientID(c echo.Context) error
+	// RedirectCallback ...
+	RedirectCallback(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
 
 type handlers struct {
+	config             configs.Configuration
 	tokenService       token.TokenService
 	userServiceFactory dao.UserServiceFactory
 }
@@ -69,6 +74,7 @@ func handlerNew(injects ...inject) (Handlers, error) {
 		}
 	}
 	return &handlers{
+		config:             ptr.To(configs.GetConfiguration()),
 		tokenService:       tokenService,
 		userServiceFactory: userServiceFactory,
 	}, nil
@@ -89,6 +95,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	for key := range oauth2Mapper {
 		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", key))
 		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", key))
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", key))
 	}
 	oauth2Group.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
 		Skipper: func(c echo.Context) bool {
@@ -98,6 +105,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	}))
 	oauth2Group.GET("/:provider/callback", repositoryHandler.Callback)
 	oauth2Group.GET("/:provider/client_id", repositoryHandler.ClientID)
+	oauth2Group.GET("/:provider/redirect_callback", repositoryHandler.RedirectCallback)
 	return nil
 }
 

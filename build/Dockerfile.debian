@@ -15,7 +15,7 @@ RUN set -eux && yarn install --frozen-lockfile && yarn build
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.87.0
+ARG SYFT_VERSION=0.88.0
 ARG TARGETARCH=amd64
 
 RUN set -eux && \

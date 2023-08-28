@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -26,17 +27,21 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -44,8 +49,14 @@ import (
 func (h *handlers) Callback(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	userSignedObj, err := h.tryGetUser(c)
+	if err != nil {
+		log.Error().Err(err).Msg("Get user failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user failed: %v", err))
+	}
+
 	var req types.Oauth2CallbackRequest
-	err := utils.BindValidate(c, &req)
+	err = utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
@@ -70,6 +81,11 @@ func (h *handlers) Callback(c echo.Context) error {
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
 			},
+			// h.config.HTTP.Endpoint
+			// "http://localhost:3000",
+			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
+				h.config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(req.Endpoint)),
+			Scopes: []string{"api", "read_api", "read_user", "read_repository"},
 		}
 	case enums.ProviderGitea:
 		conf = &oauth2.Config{
@@ -79,6 +95,7 @@ func (h *handlers) Callback(c echo.Context) error {
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
 			},
+			RedirectURL: "http://localhost:3000/api/v1/oauth2/github/redirect_callback",
 		}
 	}
 
@@ -112,7 +129,24 @@ func (h *handlers) Callback(c echo.Context) error {
 			RefreshToken: oauth2Token.RefreshToken,
 		}
 	case enums.ProviderGitlab:
-		// gitlab.NewOAuthClient(oauth2Token.AccessToken, gitlab.WithBaseURL(""))
+		client, err := gitlab.NewOAuthClient(oauth2Token.AccessToken)
+		if err != nil {
+			log.Error().Err(err).Msg("Create gitlab client failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gitlab client failed: %v", err))
+		}
+		user, _, err := client.Users.CurrentUser()
+		if err != nil {
+			log.Error().Err(err).Msg("Get user info failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user info failed: %v", err))
+		}
+		userInfo = types.Oauth2UserInfo{
+			Provider:     req.Provider,
+			ID:           strconv.FormatInt(int64(user.ID), 10),
+			Username:     user.Name,
+			Email:        user.Email,
+			Token:        oauth2Token.AccessToken,
+			RefreshToken: oauth2Token.RefreshToken,
+		}
 	case enums.ProviderGitea:
 		// gitea.NewClient("", gitea.SetHTTPClient(client))
 	}
@@ -130,6 +164,11 @@ func (h *handlers) Callback(c echo.Context) error {
 		}
 	}
 
+	if user3rdPartyObj != nil && userSignedObj != nil && user3rdPartyObj.UserID != userSignedObj.ID {
+		log.Error().Int64("user_id", user3rdPartyObj.UserID).Int64("signed", userSignedObj.ID).Msg("User already bound to another account")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "User already bound to another account")
+	}
+
 	if userExist {
 		err = userService.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
 			query.User3rdParty.Token.ColumnName().String():        oauth2Token.AccessToken,
@@ -142,33 +181,69 @@ func (h *handlers) Callback(c echo.Context) error {
 	}
 
 	if !userExist {
-		var usernameExist = true
-		_, err := userService.GetByUsername(ctx, userInfo.Username)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				usernameExist = false
-			} else {
-				log.Error().Err(err).Msg("Get user by username failed")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		if userSignedObj == nil {
+			var usernameExist = true
+			_, err := userService.GetByUsername(ctx, userInfo.Username)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					usernameExist = false
+				} else {
+					log.Error().Err(err).Msg("Get user by username failed")
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+				}
 			}
-		}
-		if usernameExist {
-			userInfo.Username = fmt.Sprintf("%s-%s", userInfo.Username, gonanoid.Must(6))
-		}
-		user3rdPartyObj = &models.User3rdParty{
-			Provider:     req.Provider,
-			AccountID:    ptr.Of(userInfo.ID),
-			Token:        ptr.Of(userInfo.Token),
-			RefreshToken: ptr.Of(userInfo.RefreshToken),
-			User: models.User{
-				Username: userInfo.Username,
-				Email:    ptr.Of(userInfo.Email),
-			},
-		}
-		err = userService.CreateUser3rdParty(ctx, user3rdPartyObj)
-		if err != nil {
-			log.Error().Err(err).Msg("Create user failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+			if usernameExist {
+				userInfo.Username = fmt.Sprintf("%s-%s", userInfo.Username, gonanoid.Must(6))
+			}
+			err = query.Q.Transaction(func(tx *query.Query) error {
+				userService := dao.NewUserServiceFactory().New()
+				userSignedObj = &models.User{
+					Username: userInfo.Username,
+					Email:    ptr.Of(userInfo.Email),
+				}
+				err = userService.Create(ctx, userSignedObj)
+				if err != nil {
+					log.Error().Err(err).Msg("Create user failed")
+					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
+				}
+				user3rdPartyObj = &models.User3rdParty{
+					Provider:     req.Provider,
+					AccountID:    ptr.Of(userInfo.ID),
+					Token:        ptr.Of(userInfo.Token),
+					RefreshToken: ptr.Of(userInfo.RefreshToken),
+					UserID:       userSignedObj.ID,
+				}
+				err = userService.CreateUser3rdParty(ctx, user3rdPartyObj)
+				if err != nil {
+					log.Error().Err(err).Msg("Create user failed")
+					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
+				}
+				user3rdPartyObj.User = ptr.To(userSignedObj)
+				return nil
+			})
+			if err != nil {
+				return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+			}
+		} else {
+			err = query.Q.Transaction(func(tx *query.Query) error {
+				user3rdPartyObj = &models.User3rdParty{
+					Provider:     req.Provider,
+					AccountID:    ptr.Of(userInfo.ID),
+					Token:        ptr.Of(userInfo.Token),
+					RefreshToken: ptr.Of(userInfo.RefreshToken),
+					UserID:       userSignedObj.ID,
+				}
+				err = userService.CreateUser3rdParty(ctx, user3rdPartyObj)
+				if err != nil {
+					log.Error().Err(err).Msg("Create user failed")
+					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
+				}
+				user3rdPartyObj.User = ptr.To(userSignedObj)
+				return nil
+			})
+			if err != nil {
+				return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+			}
 		}
 	}
 
@@ -184,7 +259,7 @@ func (h *handlers) Callback(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_id": %d}`, user3rdPartyObj.ID)))
+	err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
 	if err != nil {
 		log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 	}
@@ -196,4 +271,60 @@ func (h *handlers) Callback(c echo.Context) error {
 		RefreshToken: refreshToken,
 		Token:        token,
 	})
+}
+
+func (h *handlers) tryGetUser(c echo.Context) (*models.User, error) {
+	req := c.Request()
+	ctx := log.Logger.WithContext(req.Context())
+	authorization := req.Header.Get("Authorization")
+
+	var uid int64
+
+	userService := h.userServiceFactory.New()
+
+	switch {
+	case strings.HasPrefix(authorization, "Basic"):
+		var username string
+		var pwd string
+		var ok bool
+		username, pwd, ok = c.Request().BasicAuth()
+		if !ok {
+			return nil, nil
+		}
+
+		user, err := userService.GetByUsername(ctx, username)
+		if err != nil {
+			log.Error().Err(err).Msg("Get user by username failed")
+			return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user by username failed: %v", err))
+		}
+		uid = user.ID
+
+		passwordService := password.New()
+		verify := passwordService.Verify(pwd, ptr.To(user.Password))
+		if !verify {
+			log.Error().Err(err).Msg("Verify password failed")
+			return nil, xerrors.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Verify password failed: %v", err))
+		}
+	case strings.HasPrefix(authorization, "Bearer"):
+		tokenService, err := token.NewTokenService(h.config.Auth.Jwt.PrivateKey)
+		if err != nil {
+			log.Error().Err(err).Msg("Create token service failed")
+			return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create token service failed: %v", err))
+		}
+		_, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
+		if err != nil {
+			log.Error().Err(err).Msg("Validate token failed")
+			return nil, xerrors.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Validate token failed: %v", err))
+		}
+	default:
+		return nil, nil
+	}
+
+	userObj, err := userService.Get(ctx, uid)
+	if err != nil {
+		log.Error().Err(err).Msg("Get user failed")
+		return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user failed: %v", err))
+	}
+
+	return userObj, nil
 }

@@ -137,6 +137,9 @@ definitions:
       name:
         example: sigma
         type: string
+      oci_repo_count:
+        example: 1
+        type: integer
       owner:
         example: go-sigma
         type: string
