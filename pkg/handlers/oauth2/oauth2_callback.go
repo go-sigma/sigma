@@ -154,7 +154,7 @@ func (h *handlers) Callback(c echo.Context) error {
 	var userExist = true
 
 	userService := h.userServiceFactory.New()
-	user3rdPartyObj, err := userService.GetByProvider(ctx, req.Provider, userInfo.ID)
+	user3rdPartyObj, err := userService.GetUser3rdPartyByAccountID(ctx, req.Provider, userInfo.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			userExist = false
@@ -218,6 +218,11 @@ func (h *handlers) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
+				err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
+				if err != nil {
+					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
+					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
+				}
 				user3rdPartyObj.User = ptr.To(userSignedObj)
 				return nil
 			})
@@ -238,6 +243,11 @@ func (h *handlers) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
+				err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
+				if err != nil {
+					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
+					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
+				}
 				user3rdPartyObj.User = ptr.To(userSignedObj)
 				return nil
 			})
@@ -257,11 +267,6 @@ func (h *handlers) Callback(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-
-	err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
-	if err != nil {
-		log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 	}
 
 	return c.JSON(http.StatusOK, types.Oauth2CallbackResponse{

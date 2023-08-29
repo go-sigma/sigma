@@ -16,25 +16,22 @@ package coderepos
 
 import (
 	"errors"
-	"fmt"
-	"time"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// Resync resync all of the code repositories
-func (h *handlers) Resync(c echo.Context) error {
+// User3rdParty get user 3rdparty
+func (h *handlers) User3rdParty(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -48,7 +45,7 @@ func (h *handlers) Resync(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.GetCodeRepositoryResyncRequest
+	var req types.GetCodeRepositoryUser3rdPartyRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -65,28 +62,15 @@ func (h *handlers) Resync(c echo.Context) error {
 		log.Error().Err(err).Int64("userID", user.ID).Str("provider", req.Provider.String()).Msg("Code repository find failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Code repository find failed")
 	}
-	if user3rdPartyObj.CrLastUpdateStatus == enums.TaskCommonStatusDoing {
-		log.Error().Str("provider", req.Provider.String()).Msg("Code repository status already is syncing")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, fmt.Sprintf("Code repository(%s) status already is syncing", req.Provider.String()))
-	}
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
-		err = userService.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
-			query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now(),
-			query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    enums.TaskCommonStatusDoing,
-			query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   "",
-		})
-		if err != nil {
-			return xerrors.HTTPErrCodeInternalError.Detail("Update user status failed")
-		}
-		err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
-		if err != nil {
-			log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
-		}
-		return nil
+
+	return c.JSON(http.StatusOK, types.GetCodeRepositoryUser3rdPartyResponse{
+		ID:                    user3rdPartyObj.ID,
+		AccountID:             ptr.To(user3rdPartyObj.AccountID),
+		CrLastUpdateTimestamp: user3rdPartyObj.CrLastUpdateTimestamp.Format(consts.DefaultTimePattern),
+		CrLastUpdateStatus:    user3rdPartyObj.CrLastUpdateStatus,
+		CrLastUpdateMessage:   user3rdPartyObj.CrLastUpdateMessage,
+
+		CreatedAt: user3rdPartyObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt: user3rdPartyObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
-	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
-	}
-	return nil
 }

@@ -14,7 +14,9 @@
 
 package types
 
-import "github.com/go-sigma/sigma/pkg/types/enums"
+import (
+	"github.com/go-sigma/sigma/pkg/types/enums"
+)
 
 type GetUserListRequest struct {
 	Pagination
@@ -114,4 +116,25 @@ type PutUserSelfRequest struct {
 // ListCodeRepositoryProvidersResponse ...
 type ListCodeRepositoryProvidersResponse struct {
 	Provider enums.Provider `json:"providers" example:"github"`
+}
+
+// GetCodeRepositoryResyncRequest ...
+type GetCodeRepositoryResyncRequest struct {
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+}
+
+// GetCodeRepositoryUser3rdPartyRequest ...
+type GetCodeRepositoryUser3rdPartyRequest struct {
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+}
+
+type GetCodeRepositoryUser3rdPartyResponse struct {
+	ID                    int64                  `json:"id" example:"1"`
+	AccountID             string                 `json:"account_id" example:"1"`
+	CrLastUpdateTimestamp string                 `json:"cr_last_update_timestamp"`
+	CrLastUpdateStatus    enums.TaskCommonStatus `json:"cr_last_update_status"`
+	CrLastUpdateMessage   *string                `json:"cr_last_update_message"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }

@@ -16,6 +16,7 @@
 
 import _ from 'lodash';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import { useParams, Link } from 'react-router-dom';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
@@ -31,7 +32,7 @@ import Header from '../../components/Header';
 import Toast from "../../components/Notification";
 import Pagination from '../../components/Pagination';
 
-import { IHTTPError, IOrder, ICodeRepositoryOwnerList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryList } from '../../interfaces';
+import { IHTTPError, IOrder, ICodeRepositoryOwnerList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryUser3rdParty } from '../../interfaces';
 
 function classNames(...classes: Array<string | boolean>) {
   return classes.filter(Boolean).join(' ')
@@ -56,6 +57,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [repositories, setRepositories] = useState<ICodeRepositoryItem[]>([]);
   const [nameSearch, setNameSearch] = useState("");
+  const [refresh, setRefresh] = useState({});
 
   useEffect(() => {
     if (provider == "") {
@@ -79,13 +81,43 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [provider])
+  }, [provider, refresh]);
+
+  const [user3rdparty, setUser3rdparty] = useState<ICodeRepositoryUser3rdParty>();
+
+  const [refreshUser3rdparty, setRefreshUser3rdparty] = useState({});
+  useEffect(() => {
+    if (provider == "") {
+      return;
+    }
+    axios.get(`${localServer}/api/v1/coderepos/${provider}/user3rdparty`).then(response => {
+      if (response.status == 200) {
+        const data = response.data as ICodeRepositoryUser3rdParty;
+        setUser3rdparty(data);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [provider, refresh, refreshUser3rdparty]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRefreshUser3rdparty({});
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (provider == "" || organization == "") {
       return;
     }
-    let url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&&limit=${Settings.PageSize}&page=${page}`;
+    let url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&limit=${Settings.PageSize}&page=${page}`;
     if (searchCodeRepo != "") {
       url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&name=${searchCodeRepo}&limit=${Settings.PageSize}&page=${page}`;
     }
@@ -111,6 +143,28 @@ export default function ({ localServer }: { localServer: string }) {
     setPage(page);
   }
 
+  const crResync = () => {
+    if (provider == "") {
+      return;
+    }
+    if (user3rdparty?.cr_last_update_status == "Doing") {
+      Toast({ level: "warning", title: "Code repository is already synchronizing", message: "" });
+      return;
+    }
+    axios.get(`${localServer}/api/v1/coderepos/${provider}/resync`).then(response => {
+      if (response.status == 200) {
+        setTimeout(() => { setRefresh({}); }, 200)
+        Toast({ level: "success", title: "Code Repository is synchronizing", message: "" });
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
   return (
     <Fragment>
       <HelmetProvider>
@@ -120,10 +174,10 @@ export default function ({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div id="tooltip-hover" role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
         <div>
-          Last synced <span className='text-gray-300'>last month</span>
+          {user3rdparty?.cr_last_update_status}{user3rdparty?.cr_last_update_status == "Failed" && user3rdparty?.cr_last_update_message != "" ? ", " + user3rdparty?.cr_last_update_message : ""}
         </div>
         <div>
-          Failed, connect failed
+          Last updated <span className='text-gray-300'>{dayjs().to(dayjs(user3rdparty?.cr_last_update_timestamp))}</span>
         </div>
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
@@ -219,7 +273,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
               <div className="flex flex-col">
                 <button data-tooltip-target="tooltip-hover" data-tooltip-trigger="hover" type="button" className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                // onClick={() => { setCreateNamespaceModal(true) }}
+                  onClick={crResync}
                 >Sync</button>
               </div>
               <div className="pr-2 flex flex-col">

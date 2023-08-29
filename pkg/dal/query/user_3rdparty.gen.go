@@ -36,6 +36,9 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 	_user3rdParty.AccountID = field.NewString(tableName, "account_id")
 	_user3rdParty.Token = field.NewString(tableName, "token")
 	_user3rdParty.RefreshToken = field.NewString(tableName, "refresh_token")
+	_user3rdParty.CrLastUpdateTimestamp = field.NewTime(tableName, "cr_last_update_timestamp")
+	_user3rdParty.CrLastUpdateStatus = field.NewField(tableName, "cr_last_update_status")
+	_user3rdParty.CrLastUpdateMessage = field.NewString(tableName, "cr_last_update_message")
 	_user3rdParty.User = user3rdPartyBelongsToUser{
 		db: db.Session(&gorm.Session{}),
 
@@ -49,18 +52,20 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 
 type user3rdParty struct {
 	user3rdPartyDo user3rdPartyDo
-
-	ALL          field.Asterisk
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
-	DeletedAt    field.Uint
-	ID           field.Int64
-	UserID       field.Int64
-	Provider     field.Field
-	AccountID    field.String
-	Token        field.String
-	RefreshToken field.String
-	User         user3rdPartyBelongsToUser
+	ALL                   field.Asterisk
+	CreatedAt             field.Time
+	UpdatedAt             field.Time
+	DeletedAt             field.Uint
+	ID                    field.Int64
+	UserID                field.Int64
+	Provider              field.Field
+	AccountID             field.String
+	Token                 field.String
+	RefreshToken          field.String
+	CrLastUpdateTimestamp field.Time
+	CrLastUpdateStatus    field.Field
+	CrLastUpdateMessage   field.String
+	User                  user3rdPartyBelongsToUser
 
 	fieldMap map[string]field.Expr
 }
@@ -86,6 +91,9 @@ func (u *user3rdParty) updateTableName(table string) *user3rdParty {
 	u.AccountID = field.NewString(table, "account_id")
 	u.Token = field.NewString(table, "token")
 	u.RefreshToken = field.NewString(table, "refresh_token")
+	u.CrLastUpdateTimestamp = field.NewTime(table, "cr_last_update_timestamp")
+	u.CrLastUpdateStatus = field.NewField(table, "cr_last_update_status")
+	u.CrLastUpdateMessage = field.NewString(table, "cr_last_update_message")
 
 	u.fillFieldMap()
 
@@ -114,7 +122,7 @@ func (u *user3rdParty) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (u *user3rdParty) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 10)
+	u.fieldMap = make(map[string]field.Expr, 13)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
@@ -124,6 +132,9 @@ func (u *user3rdParty) fillFieldMap() {
 	u.fieldMap["account_id"] = u.AccountID
 	u.fieldMap["token"] = u.Token
 	u.fieldMap["refresh_token"] = u.RefreshToken
+	u.fieldMap["cr_last_update_timestamp"] = u.CrLastUpdateTimestamp
+	u.fieldMap["cr_last_update_status"] = u.CrLastUpdateStatus
+	u.fieldMap["cr_last_update_message"] = u.CrLastUpdateMessage
 
 }
 

@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 import Toast from "../../components/Notification";
-import { INamespace, INamespaceList, IHTTPError, IUserSelf } from "../../interfaces";
+import { INamespace, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
 
 export default function ({ localServer, item, namespace, repository, tag }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -94,6 +94,24 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
       });
     }
   }
+
+  const [endpoint, setEndpoint] = useState("");
+
+  useEffect(() => {
+    let url = localServer + `/api/v1/systems/endpoint`;
+    axios.get(url).then(response => {
+      if (response.status === 200) {
+        let e = response.data as IEndpoint;
+        setEndpoint(e.endpoint);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [])
 
   return (
     <div className="flex flex-shrink-0">
@@ -280,7 +298,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
           </nav>
         </div>
         <div className="flex justify-center">
-          <a type="button" className="rounded-md bg-white px-20 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" href="/swagger/index.html">
+          <a type="button" className="rounded-md bg-white px-20 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" href={`${endpoint}/swagger/index.html`}>
             <span className="text-gray-700">API Docs</span>
           </a>
         </div>
