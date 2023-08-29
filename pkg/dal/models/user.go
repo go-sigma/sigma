@@ -47,6 +47,10 @@ type User3rdParty struct {
 	Token        *string
 	RefreshToken *string
 
+	CrLastUpdateTimestamp time.Time              `gorm:"autoCreateTime"`
+	CrLastUpdateStatus    enums.TaskCommonStatus `gorm:"default:Doing"`
+	CrLastUpdateMessage   *string
+
 	User User
 }
 

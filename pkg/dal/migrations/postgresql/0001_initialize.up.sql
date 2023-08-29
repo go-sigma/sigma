@@ -4,6 +4,13 @@ CREATE TYPE user_3rdparty_provider AS ENUM (
   'gitea'
 );
 
+CREATE TYPE daemon_status AS ENUM (
+  'Pending',
+  'Doing',
+  'Success',
+  'Failed'
+);
+
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "username" varchar(64) NOT NULL,
@@ -22,6 +29,9 @@ CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   "account_id" varchar(256),
   "token" varchar(256),
   "refresh_token" varchar(256),
+  "cr_last_update_timestamp" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "cr_last_update_status" daemon_status NOT NULL DEFAULT 'Doing',
+  "cr_last_update_message" varchar(256),
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -191,13 +201,6 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
   CONSTRAINT "artifacts_unique_with_repo" UNIQUE ("repository_id", "digest", "deleted_at")
-);
-
-CREATE TYPE daemon_status AS ENUM (
-  'Pending',
-  'Doing',
-  'Success',
-  'Failed'
 );
 
 CREATE TABLE IF NOT EXISTS "artifact_sboms" (

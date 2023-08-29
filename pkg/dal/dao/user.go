@@ -49,10 +49,12 @@ type UserService interface {
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 	// Count gets the total number of users.
 	Count(ctx context.Context) (int64, error)
-	// GetByProvider gets the user with the specified oauth2 provider.
-	GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error)
+	// GetUser3rdPartyByAccountID gets the user with the specified oauth2 provider.
+	GetUser3rdPartyByAccountID(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error)
+	// GetUser3rdPartyByProvider gets the 3rdParty user by provider
+	GetUser3rdPartyByProvider(ctx context.Context, userID int64, provider enums.Provider) (*models.User3rdParty, error)
 	// GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
-	GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error)
+	GetUser3rdParty(ctx context.Context, user3rdPartyID int64) (*models.User3rdParty, error)
 	// ListUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
 	ListUser3rdParty(ctx context.Context, userID int64) ([]*models.User3rdParty, error)
 	// GetRecoverCodeByUserID gets the recover code with the specified user id.
@@ -157,16 +159,23 @@ func (s *userService) Count(ctx context.Context) (int64, error) {
 	return s.tx.User.WithContext(ctx).Count()
 }
 
-// GetByProvider gets the user with the specified oauth2 provider.
-func (s *userService) GetByProvider(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error) {
+// GetUser3rdPartyByAccountID gets the user with the specified oauth2 provider.
+func (s *userService) GetUser3rdPartyByAccountID(ctx context.Context, provider enums.Provider, accountID string) (*models.User3rdParty, error) {
 	return s.tx.User3rdParty.WithContext(ctx).
 		Where(s.tx.User3rdParty.Provider.Eq(provider), s.tx.User3rdParty.AccountID.Eq(accountID)).
 		Preload(s.tx.User3rdParty.User).First()
 }
 
+// GetUser3rdPartyByProvider gets the 3rdParty user by provider
+func (s *userService) GetUser3rdPartyByProvider(ctx context.Context, userID int64, provider enums.Provider) (*models.User3rdParty, error) {
+	return s.tx.User3rdParty.WithContext(ctx).Where(
+		s.tx.User3rdParty.UserID.Eq(userID), s.tx.User3rdParty.Provider.Eq(provider)).
+		Preload(s.tx.User3rdParty.User).First()
+}
+
 // GetUser3rdParty gets the user 3rdparty with the specified 3rdparty userid
-func (s *userService) GetUser3rdParty(ctx context.Context, userID int64) (*models.User3rdParty, error) {
-	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(userID)).First()
+func (s *userService) GetUser3rdParty(ctx context.Context, user3rdPartyID int64) (*models.User3rdParty, error) {
+	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.ID.Eq(user3rdPartyID)).First()
 }
 
 // ListUser3rdParty gets the user 3rdparty with the specified 3rdparty userid

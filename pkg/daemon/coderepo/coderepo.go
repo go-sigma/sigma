@@ -18,12 +18,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -44,7 +46,24 @@ func crRunner(ctx context.Context, task *asynq.Task) error {
 		userServiceFactory:           dao.NewUserServiceFactory(),
 		codeRepositoryServiceFactory: dao.NewCodeRepositoryServiceFactory(),
 	}
-	return cr.runner(ctx, payload)
+
+	status := enums.TaskCommonStatusSuccess
+	statusMessage := ""
+	err = cr.runner(ctx, payload)
+	if err != nil {
+		status = enums.TaskCommonStatusFailed
+		statusMessage = err.Error()
+	}
+	userService := dao.NewUserServiceFactory().New()
+	err = userService.UpdateUser3rdParty(ctx, payload.User3rdPartyID, map[string]any{
+		query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now(),
+		query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    status,
+		query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   statusMessage,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type codeRepository struct {

@@ -199,3 +199,13 @@ export interface ICodeRepositoryProviderList {
   items: ICodeRepositoryProviderItem[];
   total: number;
 }
+
+export interface ICodeRepositoryUser3rdParty {
+  id: number;
+  account_id: string;
+  cr_last_update_timestamp: string;
+  cr_last_update_status: string;
+  cr_last_update_message: string;
+  created_at: string;
+  updated_at: string;
+}

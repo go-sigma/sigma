@@ -39,6 +39,8 @@ type Handlers interface {
 	SetupBuilder(c echo.Context) error
 	// Providers get providers
 	Providers(c echo.Context) error
+	// User3rdParty get user 3rdparty
+	User3rdParty(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -107,9 +109,10 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	codeRepositoryHandler := handlerNew()
-	codereposGroup.POST("/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
 	codereposGroup.GET("/:provider", codeRepositoryHandler.List)
+	codereposGroup.GET("/:provider/user3rdparty", codeRepositoryHandler.User3rdParty)
+	codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
