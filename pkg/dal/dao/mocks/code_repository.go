@@ -37,6 +37,20 @@ func (m *MockCodeRepositoryService) EXPECT() *MockCodeRepositoryServiceMockRecor
 	return m.recorder
 }
 
+// CreateBranchesInBatches mocks base method.
+func (m *MockCodeRepositoryService) CreateBranchesInBatches(arg0 context.Context, arg1 []*models.CodeRepositoryBranch) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBranchesInBatches", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateBranchesInBatches indicates an expected call of CreateBranchesInBatches.
+func (mr *MockCodeRepositoryServiceMockRecorder) CreateBranchesInBatches(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBranchesInBatches", reflect.TypeOf((*MockCodeRepositoryService)(nil).CreateBranchesInBatches), arg0, arg1)
+}
+
 // CreateInBatches mocks base method.
 func (m *MockCodeRepositoryService) CreateInBatches(arg0 context.Context, arg1 []*models.CodeRepository) error {
 	m.ctrl.T.Helper()
@@ -63,6 +77,20 @@ func (m *MockCodeRepositoryService) CreateOwnersInBatches(arg0 context.Context, 
 func (mr *MockCodeRepositoryServiceMockRecorder) CreateOwnersInBatches(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOwnersInBatches", reflect.TypeOf((*MockCodeRepositoryService)(nil).CreateOwnersInBatches), arg0, arg1)
+}
+
+// DeleteBranchesInBatches mocks base method.
+func (m *MockCodeRepositoryService) DeleteBranchesInBatches(arg0 context.Context, arg1 []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBranchesInBatches", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBranchesInBatches indicates an expected call of DeleteBranchesInBatches.
+func (mr *MockCodeRepositoryServiceMockRecorder) DeleteBranchesInBatches(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBranchesInBatches", reflect.TypeOf((*MockCodeRepositoryService)(nil).DeleteBranchesInBatches), arg0, arg1)
 }
 
 // DeleteInBatches mocks base method.
@@ -106,6 +134,22 @@ func (m *MockCodeRepositoryService) ListAll(arg0 context.Context, arg1 int64) ([
 func (mr *MockCodeRepositoryServiceMockRecorder) ListAll(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListAll), arg0, arg1)
+}
+
+// ListBranchesWithoutPagination mocks base method.
+func (m *MockCodeRepositoryService) ListBranchesWithoutPagination(arg0 context.Context, arg1 int64) ([]*models.CodeRepositoryBranch, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBranchesWithoutPagination", arg0, arg1)
+	ret0, _ := ret[0].([]*models.CodeRepositoryBranch)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListBranchesWithoutPagination indicates an expected call of ListBranchesWithoutPagination.
+func (mr *MockCodeRepositoryServiceMockRecorder) ListBranchesWithoutPagination(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBranchesWithoutPagination", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListBranchesWithoutPagination), arg0, arg1)
 }
 
 // ListOwnerWithoutPagination mocks base method.

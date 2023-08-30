@@ -36,6 +36,8 @@ type CodeRepositoryService interface {
 	CreateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
 	// CreateOwnersInBatches creates new code repository owner records in the database
 	CreateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error
+	// CreateBranchesInBatches ...
+	CreateBranchesInBatches(ctx context.Context, branches []*models.CodeRepositoryBranch) error
 	// UpdateInBatches updates code repository records in the database
 	UpdateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
 	// UpdateOwnersInBatches updates code repository owner records in the database
@@ -44,6 +46,8 @@ type CodeRepositoryService interface {
 	DeleteInBatches(ctx context.Context, ids []int64) error
 	// DeleteOwnerInBatches deletes code repository owner records in the database
 	DeleteOwnerInBatches(ctx context.Context, ids []int64) error
+	// DeleteBranchesInBatches ...
+	DeleteBranchesInBatches(ctx context.Context, ids []int64) error
 	// ListAll lists all code repository records in the database
 	ListAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepository, error)
 	// ListOwnersAll lists all code repository owners records in the database
@@ -52,6 +56,8 @@ type CodeRepositoryService interface {
 	ListWithPagination(ctx context.Context, userID int64, provider enums.Provider, owner, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.CodeRepository, int64, error)
 	// ListOwnerWithoutPagination list code repositories without pagination
 	ListOwnerWithoutPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string) ([]*models.CodeRepositoryOwner, int64, error)
+	// ListBranchesWithoutPagination ...
+	ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID int64) ([]*models.CodeRepositoryBranch, int64, error)
 }
 
 type codeRepositoryService struct {
@@ -88,6 +94,11 @@ func (s *codeRepositoryService) CreateInBatches(ctx context.Context, codeReposit
 // CreateOwnersInBatches creates new code repository owner records in the database
 func (s *codeRepositoryService) CreateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error {
 	return s.tx.CodeRepositoryOwner.WithContext(ctx).CreateInBatches(codeRepositoryOwners, consts.InsertBatchSize)
+}
+
+// CreateBranchesInBatches ...
+func (s *codeRepositoryService) CreateBranchesInBatches(ctx context.Context, branches []*models.CodeRepositoryBranch) error {
+	return s.tx.CodeRepositoryBranch.WithContext(ctx).CreateInBatches(branches, consts.InsertBatchSize)
 }
 
 // UpdateInBatches updates code repository records in the database
@@ -148,6 +159,18 @@ func (s *codeRepositoryService) DeleteOwnerInBatches(ctx context.Context, ids []
 	return nil
 }
 
+// DeleteBranchesInBatches ...
+func (s *codeRepositoryService) DeleteBranchesInBatches(ctx context.Context, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.ID.In(ids...)).Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // ListAll lists all code repository records in the database
 func (s *codeRepositoryService) ListAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepository, error) {
 	return s.tx.CodeRepository.WithContext(ctx).Where(s.tx.CodeRepository.User3rdPartyID.Eq(user3rdPartyID)).Find()
@@ -202,4 +225,9 @@ func (s *codeRepositoryService) ListOwnerWithoutPagination(ctx context.Context, 
 	}
 
 	return query.FindByPage(-1, -1)
+}
+
+// ListBranchesWithoutPagination ...
+func (s *codeRepositoryService) ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID int64) ([]*models.CodeRepositoryBranch, int64, error) {
+	return s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.CodeRepositoryID.Eq(codeRepositoryID)).FindByPage(-1, -1)
 }

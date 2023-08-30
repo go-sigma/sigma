@@ -92,5 +92,5 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 		})
 	}
 
-	return cr.diff(ctx, user3rdPartyObj, newRepos)
+	return cr.diff(ctx, user3rdPartyObj, newRepos, nil)
 }

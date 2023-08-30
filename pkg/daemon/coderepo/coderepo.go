@@ -31,6 +31,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
+const (
+	perPage = 100
+)
+
 func init() {
 	utils.PanicIf(daemon.RegisterTask(enums.DaemonCodeRepository, crRunner))
 }

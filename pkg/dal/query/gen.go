@@ -27,6 +27,7 @@ var (
 	BuilderRunner                 *builderRunner
 	CasbinRule                    *casbinRule
 	CodeRepository                *codeRepository
+	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
 	DaemonLog                     *daemonLog
@@ -52,6 +53,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	BuilderRunner = &Q.BuilderRunner
 	CasbinRule = &Q.CasbinRule
 	CodeRepository = &Q.CodeRepository
+	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
 	DaemonLog = &Q.DaemonLog
@@ -78,6 +80,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		BuilderRunner:                 newBuilderRunner(db, opts...),
 		CasbinRule:                    newCasbinRule(db, opts...),
 		CodeRepository:                newCodeRepository(db, opts...),
+		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
 		DaemonLog:                     newDaemonLog(db, opts...),
@@ -105,6 +108,7 @@ type Query struct {
 	BuilderRunner                 builderRunner
 	CasbinRule                    casbinRule
 	CodeRepository                codeRepository
+	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
 	DaemonLog                     daemonLog
@@ -133,6 +137,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		BuilderRunner:                 q.BuilderRunner.clone(db),
 		CasbinRule:                    q.CasbinRule.clone(db),
 		CodeRepository:                q.CodeRepository.clone(db),
+		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
 		DaemonLog:                     q.DaemonLog.clone(db),
@@ -168,6 +173,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
 		CasbinRule:                    q.CasbinRule.replaceDB(db),
 		CodeRepository:                q.CodeRepository.replaceDB(db),
+		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
 		DaemonLog:                     q.DaemonLog.replaceDB(db),
@@ -193,6 +199,7 @@ type queryCtx struct {
 	BuilderRunner                 *builderRunnerDo
 	CasbinRule                    *casbinRuleDo
 	CodeRepository                *codeRepositoryDo
+	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
 	DaemonLog                     *daemonLogDo
@@ -218,6 +225,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
 		CasbinRule:                    q.CasbinRule.WithContext(ctx),
 		CodeRepository:                q.CodeRepository.WithContext(ctx),
+		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
 		DaemonLog:                     q.DaemonLog.WithContext(ctx),
