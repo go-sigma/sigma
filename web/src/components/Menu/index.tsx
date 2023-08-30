@@ -273,9 +273,10 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                     </h3>
                     <div className="mt-1 space-y-1" role="group" aria-labelledby="teams-headline">
                       {
-                        hotNamespaceList.map((ns, index) => {
+                        hotNamespaceList.map((ns: INamespace, index: number) => {
                           return (
                             <Link
+                              key={index}
                               to={`/namespaces/${ns.name}/repositories`}
                               className="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-50 cursor-pointer"
                               onClick={e => {

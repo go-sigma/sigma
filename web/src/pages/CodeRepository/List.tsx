@@ -322,6 +322,7 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
+// TODO: if user have no namespace setup button just display a notification
 function TableItem({ repository }: { repository: ICodeRepositoryItem }) {
   const navigate = useNavigate();
   return (

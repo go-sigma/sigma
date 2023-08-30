@@ -57,6 +57,19 @@ type ListCodeRepositoryOwnerRequest struct {
 	Name     *string        `json:"name,omitempty" query:"name" validate:"omitempty,min=1"`
 }
 
+// ListCodeRepositoryBranchesRequest ...
+type ListCodeRepositoryBranchesRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number"`
+}
+
+// CodeRepositoryBranchItem ...
+type CodeRepositoryBranchItem struct {
+	ID        int64  `json:"id" example:"1"`
+	Name      string `json:"name" example:"main"`
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
 // PostCodeRepositorySetupBuilder ...
 type PostCodeRepositorySetupBuilder struct {
 	ID int64 `json:"id" param:"id" validate:"required,number"`

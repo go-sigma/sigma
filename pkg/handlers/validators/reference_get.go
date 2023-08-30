@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/distribution/distribution/v3/reference"
+	"github.com/distribution/reference"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
