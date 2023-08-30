@@ -17,14 +17,11 @@
 import _ from 'lodash';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { useParams, Link } from 'react-router-dom';
-import { Fragment, useEffect, useRef, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import { Dialog, Menu } from '@headlessui/react';
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 import Settings from '../../Settings';
 import HeaderMenu from '../../components/Menu';
@@ -152,7 +149,7 @@ export default function ({ localServer }: { localServer: string }) {
       return;
     }
     axios.get(`${localServer}/api/v1/coderepos/${provider}/resync`).then(response => {
-      if (response.status == 200) {
+      if (response.status == 202) {
         setTimeout(() => { setRefresh({}); }, 200)
         Toast({ level: "success", title: "Code Repository is synchronizing", message: "" });
       } else {
@@ -305,7 +302,7 @@ export default function ({ localServer }: { localServer: string }) {
                   {
                     repositories?.map((repository, index) => {
                       return (
-                        <TableItem key={repository.id} index={index} repository={repository} localServer={localServer} />
+                        <TableItem key={repository.id} repository={repository} />
                       );
                     })
                   }
@@ -325,12 +322,13 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, repository }: { localServer: string, index: number, repository: ICodeRepositoryItem }) {
+function TableItem({ repository }: { repository: ICodeRepositoryItem }) {
+  const navigate = useNavigate();
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          // navigate(`/namespaces/${namespace.name}/repositories`);
+          window.open(repository.clone_url, "_blank");
         }}
       >
         <div className="items-center space-x-3 lg:pl-2">
@@ -345,7 +343,11 @@ function TableItem({ localServer, index, repository }: { localServer: string, in
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
         {repository.oci_repo_count}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700"
+        onClick={() => {
+          navigate("/builders/setup")
+        }}
+      >
         Setup
       </td>
     </tr>

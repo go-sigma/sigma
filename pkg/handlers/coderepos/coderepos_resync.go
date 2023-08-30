@@ -17,6 +17,7 @@ package coderepos
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -88,5 +89,5 @@ func (h *handlers) Resync(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return nil
+	return c.NoContent(http.StatusAccepted)
 }
