@@ -42,6 +42,18 @@ type CodeRepository struct {
 	OciRepoCount int64
 
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
+	Branches     []CodeRepositoryBranch
+}
+
+// CodeRepositoryBranch ...
+type CodeRepositoryBranch struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	CodeRepositoryID int64
+	Name             string
 }
 
 // CodeRepositoryOwner ...

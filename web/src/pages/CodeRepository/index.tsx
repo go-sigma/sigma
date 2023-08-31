@@ -66,7 +66,7 @@ export default function ({ localServer }: { localServer: string }) {
   const hasProvider = (provider: string) => {
     if (providers?.length !== undefined && providers?.length > 0) {
       for (let i = 0; i < providers.length; i++) {
-        if (providers[i].providers === provider) {
+        if (providers[i].provider === provider) {
           return true;
         }
       }

@@ -33,6 +33,8 @@ type Handlers interface {
 	List(c echo.Context) error
 	// ListOwner list all of the code repository owner
 	ListOwners(c echo.Context) error
+	// ListBranches ...
+	ListBranches(c echo.Context) error
 	// Resync resync all of the code repositories
 	Resync(c echo.Context) error
 	// Setup setup builder for code repository
@@ -114,6 +116,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup.GET("/:provider/user3rdparty", codeRepositoryHandler.User3rdParty)
 	codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
+	codereposGroup.GET("/:id/branches", codeRepositoryHandler.ListBranches)
 	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
 }

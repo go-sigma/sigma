@@ -31,13 +31,11 @@ import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
 
+import BuildersSetup from './pages/Builder/Setup';
+
 import { setupResponseInterceptor } from './utils/request'
 
 const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
-
-function About() {
-  return <h1>About</h1>;
-}
 
 export default function App() {
   const navigate = useNavigate();
@@ -77,7 +75,8 @@ export default function App() {
         <Route path="/coderepos" element={<CodeRepositoryHome localServer={localServer} />} />
         <Route path="/coderepos/:provider" element={<CodeRepositoryList localServer={localServer} />} />
 
-        <Route path="/about" element={<About />} />
+        <Route path="/builders/setup" element={<BuildersSetup localServer={localServer} />} />
+
       </Routes>
     </>
   );

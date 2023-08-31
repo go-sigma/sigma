@@ -115,7 +115,7 @@ type PutUserSelfRequest struct {
 
 // ListCodeRepositoryProvidersResponse ...
 type ListCodeRepositoryProvidersResponse struct {
-	Provider enums.Provider `json:"providers" example:"github"`
+	Provider enums.Provider `json:"provider" example:"github"`
 }
 
 // GetCodeRepositoryResyncRequest ...

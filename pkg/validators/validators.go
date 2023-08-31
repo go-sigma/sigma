@@ -19,7 +19,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/distribution/distribution/v3/reference"
+	"github.com/distribution/reference"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"

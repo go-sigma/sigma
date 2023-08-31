@@ -52,6 +52,7 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 
 type user3rdParty struct {
 	user3rdPartyDo user3rdPartyDo
+
 	ALL                   field.Asterisk
 	CreatedAt             field.Time
 	UpdatedAt             field.Time

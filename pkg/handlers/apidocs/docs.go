@@ -83,7 +83,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/coderepos/providers/": {
+        "/coderepos/providers": {
             "get": {
                 "security": [
                     {
@@ -126,6 +126,63 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/coderepos/{id}/branches": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "List code repository branches",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code repository id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.CodeRepositoryBranchItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -345,6 +402,87 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/coderepos/{provider}/resync": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "Resync code repository",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search code repository with provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/coderepos/{provider}/user3rdparty": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "Get code repository user 3rdparty",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "get user 3rdParty with provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetCodeRepositoryUser3rdPartyResponse"
                         }
                     },
                     "500": {
@@ -2264,6 +2402,27 @@ const docTemplate = `{
                 "WebhookResourceTypeMember"
             ]
         },
+        "types.CodeRepositoryBranchItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
         "types.CodeRepositoryItem": {
             "type": "object",
             "properties": {
@@ -2384,6 +2543,36 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/enums.TaskCommonStatus"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetCodeRepositoryUser3rdPartyResponse": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "cr_last_update_message": {
+                    "type": "string"
+                },
+                "cr_last_update_status": {
+                    "$ref": "#/definitions/enums.TaskCommonStatus"
+                },
+                "cr_last_update_timestamp": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -2543,7 +2732,7 @@ const docTemplate = `{
         "types.ListCodeRepositoryProvidersResponse": {
             "type": "object",
             "properties": {
-                "providers": {
+                "provider": {
                     "allOf": [
                         {
                             "$ref": "#/definitions/enums.Provider"

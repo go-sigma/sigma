@@ -17,6 +17,7 @@ package coderepos
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -34,6 +35,15 @@ import (
 )
 
 // Resync resync all of the code repositories
+// @Summary Resync code repository
+// @security BasicAuth
+// @Tags CodeRepository
+// @Accept json
+// @Produce json
+// @Router /coderepos/{provider}/resync [get]
+// @Param provider path string true "search code repository with provider"
+// @Success 202
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) Resync(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -88,5 +98,5 @@ func (h *handlers) Resync(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return nil
+	return c.NoContent(http.StatusAccepted)
 }

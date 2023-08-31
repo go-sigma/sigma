@@ -191,8 +191,20 @@ export interface ICodeRepositoryList {
   total: number;
 }
 
+export interface ICodeRepositoryBranchItem {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICodeRepositoryBranchList {
+  items: ICodeRepositoryBranchItem[];
+  total: number;
+}
+
 export interface ICodeRepositoryProviderItem {
-  providers: string;
+  provider: string;
 }
 
 export interface ICodeRepositoryProviderList {

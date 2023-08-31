@@ -113,5 +113,30 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 		newRepos = append(newRepos, repo)
 	}
 
-	return cr.diff(ctx, user3rdPartyObj, newRepos)
+	var branchMap = make(map[string][]*models.CodeRepositoryBranch)
+	for _, r := range newRepos {
+		var branches []*models.CodeRepositoryBranch
+		page = 1
+		for {
+			bs, _, err := client.Branches.ListBranches(r.RepositoryID, &gitlab.ListBranchesOptions{ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+			if err != nil {
+				log.Error().Err(err).Str("owner", r.Owner).Str("repo", r.Name).Msg("List branches failed")
+				return fmt.Errorf("List branches for repo(%s/%s) failed: %v", r.Owner, r.Name, err)
+			}
+			var bsObj = make([]*models.CodeRepositoryBranch, 0, len(bs))
+			for _, b := range bs {
+				bsObj = append(bsObj, &models.CodeRepositoryBranch{
+					Name: b.Name,
+				})
+			}
+			branches = append(branches, bsObj...)
+			if len(bs) < perPage {
+				break
+			}
+			page++
+		}
+		branchMap[r.RepositoryID] = branches
+	}
+
+	return cr.diff(ctx, user3rdPartyObj, newRepos, branchMap)
 }

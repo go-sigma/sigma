@@ -120,6 +120,21 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
+  types.CodeRepositoryBranchItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: main
+        type: string
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
   types.CodeRepositoryItem:
     properties:
       clone_url:
@@ -206,6 +221,27 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/enums.TaskCommonStatus'
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetCodeRepositoryUser3rdPartyResponse:
+    properties:
+      account_id:
+        example: "1"
+        type: string
+      cr_last_update_message:
+        type: string
+      cr_last_update_status:
+        $ref: '#/definitions/enums.TaskCommonStatus'
+      cr_last_update_timestamp:
+        type: string
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -316,7 +352,7 @@ definitions:
     type: object
   types.ListCodeRepositoryProvidersResponse:
     properties:
-      providers:
+      provider:
         allOf:
         - $ref: '#/definitions/enums.Provider'
         example: github
@@ -895,6 +931,39 @@ paths:
       summary: Create a builder for repository
       tags:
       - Builder
+  /coderepos/{id}/branches:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: code repository id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.CodeRepositoryBranchItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repository branches
+      tags:
+      - CodeRepository
   /coderepos/{id}/setup-builder:
     post:
       consumes:
@@ -1031,7 +1100,57 @@ paths:
       summary: List code repository owners
       tags:
       - CodeRepository
-  /coderepos/providers/:
+  /coderepos/{provider}/resync:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search code repository with provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Resync code repository
+      tags:
+      - CodeRepository
+  /coderepos/{provider}/user3rdparty:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: get user 3rdParty with provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetCodeRepositoryUser3rdPartyResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get code repository user 3rdparty
+      tags:
+      - CodeRepository
+  /coderepos/providers:
     get:
       consumes:
       - application/json

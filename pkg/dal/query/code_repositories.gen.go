@@ -40,6 +40,12 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.SshUrl = field.NewString(tableName, "ssh_url")
 	_codeRepository.CloneUrl = field.NewString(tableName, "clone_url")
 	_codeRepository.OciRepoCount = field.NewInt64(tableName, "oci_repo_count")
+	_codeRepository.Branches = codeRepositoryHasManyBranches{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Branches", "models.CodeRepositoryBranch"),
+	}
+
 	_codeRepository.User3rdParty = codeRepositoryBelongsToUser3rdParty{
 		db: db.Session(&gorm.Session{}),
 
@@ -73,7 +79,9 @@ type codeRepository struct {
 	SshUrl         field.String
 	CloneUrl       field.String
 	OciRepoCount   field.Int64
-	User3rdParty   codeRepositoryBelongsToUser3rdParty
+	Branches       codeRepositoryHasManyBranches
+
+	User3rdParty codeRepositoryBelongsToUser3rdParty
 
 	fieldMap map[string]field.Expr
 }
@@ -131,7 +139,7 @@ func (c *codeRepository) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (c *codeRepository) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 14)
+	c.fieldMap = make(map[string]field.Expr, 15)
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["deleted_at"] = c.DeletedAt
@@ -156,6 +164,77 @@ func (c codeRepository) clone(db *gorm.DB) codeRepository {
 func (c codeRepository) replaceDB(db *gorm.DB) codeRepository {
 	c.codeRepositoryDo.ReplaceDB(db)
 	return c
+}
+
+type codeRepositoryHasManyBranches struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a codeRepositoryHasManyBranches) Where(conds ...field.Expr) *codeRepositoryHasManyBranches {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a codeRepositoryHasManyBranches) WithContext(ctx context.Context) *codeRepositoryHasManyBranches {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a codeRepositoryHasManyBranches) Session(session *gorm.Session) *codeRepositoryHasManyBranches {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a codeRepositoryHasManyBranches) Model(m *models.CodeRepository) *codeRepositoryHasManyBranchesTx {
+	return &codeRepositoryHasManyBranchesTx{a.db.Model(m).Association(a.Name())}
+}
+
+type codeRepositoryHasManyBranchesTx struct{ tx *gorm.Association }
+
+func (a codeRepositoryHasManyBranchesTx) Find() (result []*models.CodeRepositoryBranch, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a codeRepositoryHasManyBranchesTx) Append(values ...*models.CodeRepositoryBranch) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a codeRepositoryHasManyBranchesTx) Replace(values ...*models.CodeRepositoryBranch) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a codeRepositoryHasManyBranchesTx) Delete(values ...*models.CodeRepositoryBranch) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a codeRepositoryHasManyBranchesTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a codeRepositoryHasManyBranchesTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type codeRepositoryBelongsToUser3rdParty struct {
