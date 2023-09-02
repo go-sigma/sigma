@@ -45,7 +45,18 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// Callback ...
+// Callback handles the oauth2 callback request
+// @Summary OAuth2 callback
+// @security BasicAuth
+// @Tags OAuth2
+// @Accept json
+// @Produce json
+// @Router /oauth2/{provider}/callback [get]
+// @Param provider path string true "oauth2 provider"
+// @Param code query string true "code"
+// @Param endpoint query string false "endpoint"
+// @Success 200	{object} types.Oauth2ClientIDResponse
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) Callback(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -81,8 +92,6 @@ func (h *handlers) Callback(c echo.Context) error {
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
 			},
-			// h.config.HTTP.Endpoint
-			// "http://localhost:3000",
 			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
 				h.config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(req.Endpoint)),
 			Scopes: []string{"api", "read_api", "read_user", "read_repository"},

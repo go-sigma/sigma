@@ -397,6 +397,12 @@ definitions:
         - $ref: '#/definitions/enums.Visibility'
         example: private
     type: object
+  types.Oauth2ClientIDResponse:
+    properties:
+      client_id:
+        example: "1234567890"
+        type: string
+    type: object
   types.PostBuilderRequestSwagger:
     properties:
       scm_branch:
@@ -1844,6 +1850,91 @@ paths:
       summary: Hot namespace
       tags:
       - Namespace
+  /oauth2/{provider}/callback:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: oauth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: endpoint
+        in: query
+        name: endpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Oauth2ClientIDResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: OAuth2 callback
+      tags:
+      - OAuth2
+  /oauth2/{provider}/client_id:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: oauth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Oauth2ClientIDResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get oauth2 provider client id
+      tags:
+      - OAuth2
+  /oauth2/{provider}/redirect_callback:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: oauth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Moved Permanently
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Redirect oauth2 provider callback
+      tags:
+      - OAuth2
   /systems/endpoint:
     get:
       consumes:

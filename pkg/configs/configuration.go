@@ -225,9 +225,23 @@ type ConfigurationAuthOauth2Github struct {
 	ClientSecret string `yaml:"clientSecret"`
 }
 
+// ConfigurationAuthOauth2Gitlab ...
+type ConfigurationAuthOauth2Gitlab struct {
+	ClientID     string `yaml:"clientId"`
+	ClientSecret string `yaml:"clientSecret"`
+}
+
+// ConfigurationAuthOauth2Gitea ...
+type ConfigurationAuthOauth2Gitea struct {
+	ClientID     string `yaml:"clientId"`
+	ClientSecret string `yaml:"clientSecret"`
+}
+
 // ConfigurationAuthOauth2 ...
 type ConfigurationAuthOauth2 struct {
 	Github ConfigurationAuthOauth2Github `yaml:"github"`
+	Gitlab ConfigurationAuthOauth2Github `yaml:"gitlab"`
+	Gitea  ConfigurationAuthOauth2Github `yaml:"gitea"`
 }
 
 // ConfigurationAuth ...
