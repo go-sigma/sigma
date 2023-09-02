@@ -19,4 +19,5 @@ export default {
   QuotaThreshold: 0.8,
   PageSize: 20,
   MaxSizeLimit: 102400 * (1 << 40),
+  AutoCompleteSize: 5,
 };
