@@ -16,24 +16,20 @@
 
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import Toast from "../../components/Notification";
-import { IHTTPError, IUserSelf, IUserLoginResponse, ITagList, IEndpoint } from "../../interfaces";
+import { IHTTPError, IUserSelf, IUserLoginResponse } from "../../interfaces";
 
 import "./index.css";
 
 export default function ({ localServer }: { localServer: string }) {
   const { provider } = useParams<{ provider: string }>();
-  const searchParams = new URLSearchParams(location.search);
+  const [searchParams] = useSearchParams();
   const code = searchParams.get("code");
 
   const [requestDone, setRequestDone] = useState(false);
   const [success, setSuccess] = useState(true);
-
-  const navigate = useNavigate();
-
-
 
   useEffect(() => {
     if (code == "") {

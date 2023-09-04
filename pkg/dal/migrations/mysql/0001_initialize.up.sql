@@ -400,3 +400,13 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `work_queue` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `topic` varchar(30) NOT NULL,
+  `payload` BLOB NOT NULL,
+  `version` varchar(30) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
+

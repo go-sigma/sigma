@@ -26,7 +26,16 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// RedirectCallback ...
+// RedirectCallback Redirect oauth2 provider callback
+// @Summary Redirect oauth2 provider callback
+// @security BasicAuth
+// @Tags OAuth2
+// @Accept json
+// @Produce json
+// @Router /oauth2/{provider}/redirect_callback [get]
+// @Param provider path string true "oauth2 provider"
+// @Success 301
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) RedirectCallback(c echo.Context) error {
 	var req types.Oauth2CallbackRequest
 	err := utils.BindValidate(c, &req)
@@ -34,5 +43,5 @@ func (h *handlers) RedirectCallback(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/?code=%s#/login/callback/%s", req.Endpoint, req.Code, req.Provider))
+	return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/#/login/callback/%s?code=%s", req.Endpoint, req.Provider, req.Code))
 }
