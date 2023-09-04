@@ -46,9 +46,11 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.ScmSubmodule = field.NewBool(tableName, "scm_submodule")
 	_builder.CronRule = field.NewString(tableName, "cron_rule")
 	_builder.CronBranch = field.NewString(tableName, "cron_branch")
-	_builder.CronTag = field.NewString(tableName, "cron_tag")
+	_builder.CronTagTemplate = field.NewString(tableName, "cron_tag_template")
 	_builder.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
-	_builder.WebhookTag = field.NewString(tableName, "webhook_tag")
+	_builder.WebhookBranchName = field.NewString(tableName, "webhook_branch_name")
+	_builder.WebhookBranchTagTemplate = field.NewString(tableName, "webhook_branch_tag_template")
+	_builder.WebhookTagTagTemplate = field.NewString(tableName, "webhook_tag_tag_template")
 	_builder.BuildkitInsecureRegistries = field.NewString(tableName, "buildkit_insecure_registries")
 	_builder.BuildkitContext = field.NewString(tableName, "buildkit_context")
 	_builder.BuildkitDockerfile = field.NewString(tableName, "buildkit_dockerfile")
@@ -92,9 +94,11 @@ type builder struct {
 	ScmSubmodule               field.Bool
 	CronRule                   field.String
 	CronBranch                 field.String
-	CronTag                    field.String
+	CronTagTemplate            field.String
 	CronNextTrigger            field.Time
-	WebhookTag                 field.String
+	WebhookBranchName          field.String
+	WebhookBranchTagTemplate   field.String
+	WebhookTagTagTemplate      field.String
 	BuildkitInsecureRegistries field.String
 	BuildkitContext            field.String
 	BuildkitDockerfile         field.String
@@ -135,9 +139,11 @@ func (b *builder) updateTableName(table string) *builder {
 	b.ScmSubmodule = field.NewBool(table, "scm_submodule")
 	b.CronRule = field.NewString(table, "cron_rule")
 	b.CronBranch = field.NewString(table, "cron_branch")
-	b.CronTag = field.NewString(table, "cron_tag")
+	b.CronTagTemplate = field.NewString(table, "cron_tag_template")
 	b.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
-	b.WebhookTag = field.NewString(table, "webhook_tag")
+	b.WebhookBranchName = field.NewString(table, "webhook_branch_name")
+	b.WebhookBranchTagTemplate = field.NewString(table, "webhook_branch_tag_template")
+	b.WebhookTagTagTemplate = field.NewString(table, "webhook_tag_tag_template")
 	b.BuildkitInsecureRegistries = field.NewString(table, "buildkit_insecure_registries")
 	b.BuildkitContext = field.NewString(table, "buildkit_context")
 	b.BuildkitDockerfile = field.NewString(table, "buildkit_dockerfile")
@@ -166,7 +172,7 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 27)
+	b.fieldMap = make(map[string]field.Expr, 29)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -186,9 +192,11 @@ func (b *builder) fillFieldMap() {
 	b.fieldMap["scm_submodule"] = b.ScmSubmodule
 	b.fieldMap["cron_rule"] = b.CronRule
 	b.fieldMap["cron_branch"] = b.CronBranch
-	b.fieldMap["cron_tag"] = b.CronTag
+	b.fieldMap["cron_tag_template"] = b.CronTagTemplate
 	b.fieldMap["cron_next_trigger"] = b.CronNextTrigger
-	b.fieldMap["webhook_tag"] = b.WebhookTag
+	b.fieldMap["webhook_branch_name"] = b.WebhookBranchName
+	b.fieldMap["webhook_branch_tag_template"] = b.WebhookBranchTagTemplate
+	b.fieldMap["webhook_tag_tag_template"] = b.WebhookTagTagTemplate
 	b.fieldMap["buildkit_insecure_registries"] = b.BuildkitInsecureRegistries
 	b.fieldMap["buildkit_context"] = b.BuildkitContext
 	b.fieldMap["buildkit_dockerfile"] = b.BuildkitDockerfile

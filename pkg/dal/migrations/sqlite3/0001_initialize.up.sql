@@ -362,11 +362,13 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `scm_submodule` integer NOT NULL DEFAULT 1,
   -- cron settings
   `cron_rule` varchar(30),
-  `cron_branch` varchar(30),
-  `cron_tag` varchar(256),
+  `cron_branch` varchar(256),
+  `cron_tag_template` varchar(256),
   `cron_next_trigger` timestamp,
   -- webhook settings
-  `webhook_tag` varchar(256),
+  `webhook_branch_name` varchar(256),
+  `webhook_branch_tag_template` varchar(256),
+  `webhook_tag_tag_template` varchar(256),
   -- buildkit settings
   `buildkit_insecure_registries` varchar(256),
   `buildkit_context` varchar(30) NOT NULL DEFAULT '.',

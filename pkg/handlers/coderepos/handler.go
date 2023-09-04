@@ -37,8 +37,6 @@ type Handlers interface {
 	ListBranches(c echo.Context) error
 	// Resync resync all of the code repositories
 	Resync(c echo.Context) error
-	// Setup setup builder for code repository
-	SetupBuilder(c echo.Context) error
 	// Providers get providers
 	Providers(c echo.Context) error
 	// User3rdParty get user 3rdparty
@@ -117,7 +115,6 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
 	codereposGroup.GET("/:id/branches", codeRepositoryHandler.ListBranches)
-	codereposGroup.POST("/:id/setup-builder", codeRepositoryHandler.SetupBuilder)
 	return nil
 }
 
