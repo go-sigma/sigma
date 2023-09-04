@@ -95,7 +95,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			if err != nil {
 				return err
 			}
-			tag, err := builder.BuildTag(ptr.To(builderObj.CronTag), builder.BuildTagOption{ScmBranch: ptr.To(builderObj.CronBranch)})
+			tag, err := builder.BuildTag(ptr.To(builderObj.CronTagTemplate), builder.BuildTagOption{ScmBranch: ptr.To(builderObj.CronBranch)})
 			if err != nil {
 				return err
 			}

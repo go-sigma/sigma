@@ -53,11 +53,13 @@ type Builder struct {
 	// cron settings
 	CronRule        *string
 	CronBranch      *string
-	CronTag         *string
+	CronTagTemplate *string
 	CronNextTrigger *time.Time
 
 	// webhook settings
-	WebhookTag *string
+	WebhookBranchName        *string
+	WebhookBranchTagTemplate *string
+	WebhookTagTagTemplate    *string
 
 	// buildkit settings
 	BuildkitInsecureRegistries string
