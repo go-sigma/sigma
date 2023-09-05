@@ -32,7 +32,6 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_builder.ID = field.NewInt64(tableName, "id")
 	_builder.RepositoryID = field.NewInt64(tableName, "repository_id")
-	_builder.Active = field.NewBool(tableName, "active")
 	_builder.Source = field.NewField(tableName, "source")
 	_builder.CodeRepositoryID = field.NewInt64(tableName, "code_repository_id")
 	_builder.Dockerfile = field.NewBytes(tableName, "dockerfile")
@@ -42,6 +41,7 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.ScmSshKey = field.NewString(tableName, "scm_ssh_key")
 	_builder.ScmUsername = field.NewString(tableName, "scm_username")
 	_builder.ScmPassword = field.NewString(tableName, "scm_password")
+	_builder.ScmBranch = field.NewString(tableName, "scm_branch")
 	_builder.ScmDepth = field.NewInt(tableName, "scm_depth")
 	_builder.ScmSubmodule = field.NewBool(tableName, "scm_submodule")
 	_builder.CronRule = field.NewString(tableName, "cron_rule")
@@ -80,7 +80,6 @@ type builder struct {
 	DeletedAt                  field.Uint
 	ID                         field.Int64
 	RepositoryID               field.Int64
-	Active                     field.Bool
 	Source                     field.Field
 	CodeRepositoryID           field.Int64
 	Dockerfile                 field.Bytes
@@ -90,6 +89,7 @@ type builder struct {
 	ScmSshKey                  field.String
 	ScmUsername                field.String
 	ScmPassword                field.String
+	ScmBranch                  field.String
 	ScmDepth                   field.Int
 	ScmSubmodule               field.Bool
 	CronRule                   field.String
@@ -125,7 +125,6 @@ func (b *builder) updateTableName(table string) *builder {
 	b.DeletedAt = field.NewUint(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.RepositoryID = field.NewInt64(table, "repository_id")
-	b.Active = field.NewBool(table, "active")
 	b.Source = field.NewField(table, "source")
 	b.CodeRepositoryID = field.NewInt64(table, "code_repository_id")
 	b.Dockerfile = field.NewBytes(table, "dockerfile")
@@ -135,6 +134,7 @@ func (b *builder) updateTableName(table string) *builder {
 	b.ScmSshKey = field.NewString(table, "scm_ssh_key")
 	b.ScmUsername = field.NewString(table, "scm_username")
 	b.ScmPassword = field.NewString(table, "scm_password")
+	b.ScmBranch = field.NewString(table, "scm_branch")
 	b.ScmDepth = field.NewInt(table, "scm_depth")
 	b.ScmSubmodule = field.NewBool(table, "scm_submodule")
 	b.CronRule = field.NewString(table, "cron_rule")
@@ -178,7 +178,6 @@ func (b *builder) fillFieldMap() {
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["repository_id"] = b.RepositoryID
-	b.fieldMap["active"] = b.Active
 	b.fieldMap["source"] = b.Source
 	b.fieldMap["code_repository_id"] = b.CodeRepositoryID
 	b.fieldMap["dockerfile"] = b.Dockerfile
@@ -188,6 +187,7 @@ func (b *builder) fillFieldMap() {
 	b.fieldMap["scm_ssh_key"] = b.ScmSshKey
 	b.fieldMap["scm_username"] = b.ScmUsername
 	b.fieldMap["scm_password"] = b.ScmPassword
+	b.fieldMap["scm_branch"] = b.ScmBranch
 	b.fieldMap["scm_depth"] = b.ScmDepth
 	b.fieldMap["scm_submodule"] = b.ScmSubmodule
 	b.fieldMap["cron_rule"] = b.CronRule

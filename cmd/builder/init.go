@@ -121,7 +121,7 @@ func (b Builder) initToken() error {
 			if strings.HasSuffix(registry, "@http") {
 				btConfig.Registries[strings.TrimSuffix(registry, "@http")] = resolverconfig.RegistryConfig{PlainHTTP: ptr.Of(true)}
 			} else {
-				btConfig.Registries[strings.TrimSuffix(registry, "@http")] = resolverconfig.RegistryConfig{Insecure: ptr.Of(true)}
+				btConfig.Registries[registry] = resolverconfig.RegistryConfig{Insecure: ptr.Of(true)}
 			}
 		}
 	}

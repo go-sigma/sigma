@@ -30,7 +30,9 @@ import (
 // BuilderService is the interface that provides methods to operate on Builder model
 type BuilderService interface {
 	// Create creates a new builder record in the database
-	Create(ctx context.Context, audit *models.Builder) error
+	Create(ctx context.Context, builder *models.Builder) error
+	// Update update the builder by id
+	Update(ctx context.Context, id int64, updates map[string]interface{}) error
 	// Get get builder by repository id
 	GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// CreateRunner creates a new builder runner record in the database
@@ -74,6 +76,21 @@ func (f *builderServiceFactory) New(txs ...*query.Query) BuilderService {
 // Create creates a new builder record in the database
 func (s builderService) Create(ctx context.Context, builder *models.Builder) error {
 	return s.tx.Builder.WithContext(ctx).Create(builder)
+}
+
+// Update update the builder by id
+func (s builderService) Update(ctx context.Context, id int64, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	result, err := s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.ID.Eq(id)).UpdateColumns(updates)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // Get get builder by repository id

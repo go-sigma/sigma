@@ -59,12 +59,14 @@ func Initialize(e *echo.Echo) {
 
 // register registers the validators
 func register(v *validator.Validate) {
-	v.RegisterValidation("is_valid_namespace", ValidateNamespace)   // nolint:errcheck
-	v.RegisterValidation("is_valid_repository", ValidateRepository) // nolint:errcheck
-	v.RegisterValidation("is_valid_digest", ValidateDigest)         // nolint:errcheck
-	v.RegisterValidation("is_valid_tag", ValidateTag)               // nolint:errcheck
-	v.RegisterValidation("is_valid_visibility", ValidateVisibility) // nolint:errcheck
-	v.RegisterValidation("is_valid_provider", ValidateProvider)     // nolint:errcheck
+	v.RegisterValidation("is_valid_namespace", ValidateNamespace)                   // nolint:errcheck
+	v.RegisterValidation("is_valid_repository", ValidateRepository)                 // nolint:errcheck
+	v.RegisterValidation("is_valid_digest", ValidateDigest)                         // nolint:errcheck
+	v.RegisterValidation("is_valid_tag", ValidateTag)                               // nolint:errcheck
+	v.RegisterValidation("is_valid_visibility", ValidateVisibility)                 // nolint:errcheck
+	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
+	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
+	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
 }
 
 // ValidateRepository validates the repository name
@@ -107,4 +109,30 @@ func ValidateProvider(field validator.FieldLevel) bool {
 	v := field.Field().String()
 	_, err := enums.ParseProvider(v)
 	return err == nil
+}
+
+// ValidateScmCredentialType validates the ScmCredentialType
+func ValidateScmCredentialType(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseScmCredentialType(v)
+	return err == nil
+}
+
+// ValidateBuilderSource validates the builder source
+func ValidateBuilderSource(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseBuilderSource(v)
+	return err == nil
+}
+
+// ValidateOciPlatforms validates oci platforms
+func ValidateOciPlatforms(field validator.FieldLevel) bool {
+	for i := 0; i < field.Field().Len(); i++ {
+		v := field.Field().Index(i).String()
+		_, err := enums.ParseOciPlatform(v)
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }
