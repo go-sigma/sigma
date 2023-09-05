@@ -405,7 +405,6 @@ CREATE TYPE builder_source AS ENUM (
 CREATE TABLE IF NOT EXISTS "builders" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigint NOT NULL,
-  "active" smallint NOT NULL DEFAULT 1,
   "source" builder_source NOT NULL,
   -- source SelfCodeRepository
   "scm_credential_type" varchar(16) NOT NULL,
@@ -419,6 +418,7 @@ CREATE TABLE IF NOT EXISTS "builders" (
   -- source Dockerfile
   "dockerfile" bytea,
   -- common settings
+  "scm_branch" varchar(256),
   "scm_depth" smallint NOT NULL DEFAULT 0,
   "scm_submodule" smallint NOT NULL DEFAULT 1,
   -- cron settings

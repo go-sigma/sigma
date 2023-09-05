@@ -31,6 +31,10 @@ import (
 type Handlers interface {
 	// PostBuilder handles the post builder request
 	PostBuilder(c echo.Context) error
+	// GetBuilder handles the get builder request
+	GetBuilder(c echo.Context) error
+	// PutBuilder handles the put builder request
+	PutBuilder(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -89,10 +93,12 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	builderGroup := e.Group(consts.APIV1+"/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	builderGroup := e.Group(consts.APIV1+"/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	webhookHandler := handlerNew()
 	builderGroup.POST("/", webhookHandler.PostBuilder)
+	builderGroup.GET("/:id", webhookHandler.GetBuilder)
+	builderGroup.PUT("/:id", webhookHandler.PutBuilder)
 	return nil
 }
 

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -41,8 +42,7 @@ import (
 // @Accept json
 // @Produce json
 // @Router /builders [post]
-// @Param repository_id query int64 true "create builder for repository"
-// @Param message body types.PostBuilderRequestSwagger true "Builder object"
+// @Param message body types.PostBuilderRequest true "Builder object"
 // @Success 201
 // @Failure 400 {object} xerrors.ErrCode
 // @Failure 404 {object} xerrors.ErrCode
@@ -66,6 +66,11 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	}
+
+	err = h.PostBuilderValidator(req)
+	if err != nil {
+		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
@@ -92,15 +97,38 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		builderService := h.builderServiceFactory.New(tx)
 		builderObj := &models.Builder{
-			RepositoryID:      req.RepositoryID,
+			RepositoryID: req.RepositoryID,
+
+			Source: req.Source,
+
+			CodeRepositoryID: req.CodeRepositoryID,
+
+			Dockerfile: []byte(ptr.To(req.Dockerfile)),
+
+			ScmRepository:     req.ScmRepository,
 			ScmCredentialType: req.ScmCredentialType,
 			ScmToken:          req.ScmToken,
 			ScmSshKey:         req.ScmSshKey,
 			ScmUsername:       req.ScmUsername,
 			ScmPassword:       req.ScmPassword, // should encrypt the password
-			ScmRepository:     req.ScmRepository,
-			ScmDepth:          req.ScmDepth,
-			ScmSubmodule:      req.ScmSubmodule,
+
+			ScmBranch: req.ScmBranch,
+
+			ScmDepth:     req.ScmDepth,
+			ScmSubmodule: req.ScmSubmodule,
+
+			CronRule:        req.CronRule,
+			CronBranch:      req.CronBranch,
+			CronTagTemplate: req.CronTagTemplate,
+
+			WebhookBranchName:        req.WebhookBranchName,
+			WebhookBranchTagTemplate: req.WebhookBranchTagTemplate,
+			WebhookTagTagTemplate:    req.WebhookTagTagTemplate,
+
+			BuildkitInsecureRegistries: strings.Join(req.BuildkitInsecureRegistries, ","),
+			BuildkitContext:            req.BuildkitContext,
+			BuildkitDockerfile:         req.BuildkitDockerfile,
+			BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
 		}
 		err = builderService.Create(ctx, builderObj)
 		if err != nil {
@@ -126,4 +154,50 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 	return c.NoContent(http.StatusCreated)
+}
+
+// PostBuilderValidator ...
+func (h *handlers) PostBuilderValidator(req types.PostBuilderRequest) error {
+	switch req.Source {
+	case enums.BuilderSourceSelfCodeRepository:
+		if req.ScmCredentialType == nil {
+			log.Error().Interface("ScmCredentialType", ptr.To(req.ScmCredentialType)).Msg("ScmCredentialType cannot be nil")
+			return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'scm credential_type' is invalid")
+		}
+		switch ptr.To(req.ScmCredentialType) {
+		case enums.ScmCredentialTypeNone:
+		case enums.ScmCredentialTypeUsername:
+			if len(ptr.To(req.ScmUsername)) == 0 || len(ptr.To(req.ScmPassword)) == 0 {
+				log.Error().Str("ScmUsername", ptr.To(req.ScmUsername)).Str("ScmPassword", ptr.To(req.ScmPassword)).Msg("ScmUsername and ScmPassword cannot be nil")
+				return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'scm_username' or 'scm_password' is invalid")
+			}
+		case enums.ScmCredentialTypeToken:
+			if len(ptr.To(req.ScmToken)) == 0 {
+				log.Error().Str("ScmToken", ptr.To(req.ScmToken)).Msg("ScmToken cannot be nil")
+				return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'scm_token' is invalid")
+			}
+		case enums.ScmCredentialTypeSsh:
+			if len(ptr.To(req.ScmSshKey)) == 0 {
+				log.Error().Str("ScmSshKey", ptr.To(req.ScmSshKey)).Msg("ScmSshKey cannot be nil")
+				return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'scm_ssh_key' is invalid")
+			}
+		default:
+			log.Error().Interface("ScmCredentialType", ptr.To(req.ScmCredentialType)).Msg("ScmCredentialType cannot be nil")
+			return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'scm credential_type' is invalid")
+		}
+	case enums.BuilderSourceCodeRepository:
+		if req.CodeRepositoryID == nil {
+			log.Error().Msg("CodeRepositoryID cannot be nil")
+			return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'code_repository_id' is invalid")
+		}
+	case enums.BuilderSourceDockerfile:
+		if req.Dockerfile == nil || len(ptr.To(req.Dockerfile)) == 0 {
+			log.Error().Str("Dockerfile", ptr.To(req.Dockerfile)).Msg("Dockerfile cannot be nil")
+			return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'dockerfile' is invalid")
+		}
+	default:
+		log.Error().Str("Source", string(req.Source)).Msg("Source is invalid")
+		return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'source' is invalid")
+	}
+	return nil
 }

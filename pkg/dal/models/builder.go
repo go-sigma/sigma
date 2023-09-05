@@ -30,7 +30,6 @@ type Builder struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	RepositoryID int64
-	Active       bool
 
 	Source enums.BuilderSource
 
@@ -39,14 +38,15 @@ type Builder struct {
 	// source Dockerfile
 	Dockerfile []byte
 	// source SelfCodeRepository
-	ScmRepository     string
-	ScmCredentialType enums.ScmCredentialType
-	ScmToken          string
-	ScmSshKey         string
-	ScmUsername       string
-	ScmPassword       string
+	ScmRepository     *string
+	ScmCredentialType *enums.ScmCredentialType
+	ScmToken          *string
+	ScmSshKey         *string
+	ScmUsername       *string
+	ScmPassword       *string
 
 	// common settings
+	ScmBranch    *string // for SelfCodeRepository and CodeRepository
 	ScmDepth     int
 	ScmSubmodule bool
 

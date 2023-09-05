@@ -344,7 +344,6 @@ CREATE TABLE IF NOT EXISTS `webhook_logs` (
 CREATE TABLE IF NOT EXISTS `builders` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint NOT NULL,
-  `active` tinyint NOT NULL DEFAULT 1,
   `source` ENUM ('SelfCodeRepository', 'CodeRepository', 'Dockerfile') NOT NULL,
   -- source SelfCodeRepository
   `scm_repository` varchar(256),
@@ -358,6 +357,7 @@ CREATE TABLE IF NOT EXISTS `builders` (
   -- source Dockerfile
   `dockerfile` BLOB,
   -- common settings
+  `scm_branch` varchar(256),
   `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
   `scm_submodule` tinyint NOT NULL DEFAULT 1,
   -- cron settings

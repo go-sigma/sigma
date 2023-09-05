@@ -14,6 +14,16 @@ definitions:
     - AuditActionDelete
     - AuditActionPull
     - AuditActionPush
+  enums.BuilderSource:
+    enum:
+    - Dockerfile
+    - CodeRepository
+    - SelfCodeRepository
+    type: string
+    x-enum-varnames:
+    - BuilderSourceDockerfile
+    - BuilderSourceCodeRepository
+    - BuilderSourceSelfCodeRepository
   enums.OciPlatform:
     enum:
     - linux/amd64
@@ -66,6 +76,18 @@ definitions:
     - ScmCredentialTypeToken
     - ScmCredentialTypeUsername
     - ScmCredentialTypeNone
+  enums.ScmProvider:
+    enum:
+    - github
+    - gitlab
+    - gitea
+    - none
+    type: string
+    x-enum-varnames:
+    - ScmProviderGithub
+    - ScmProviderGitlab
+    - ScmProviderGitea
+    - ScmProviderNone
   enums.TaskCommonStatus:
     enum:
     - Pending
@@ -403,10 +425,48 @@ definitions:
         example: "1234567890"
         type: string
     type: object
-  types.PostBuilderRequestSwagger:
+  types.PostBuilderRequest:
     properties:
+      buildkit_context:
+        type: string
+      buildkit_dockerfile:
+        type: string
+      buildkit_insecure_registries:
+        example:
+        - test.com
+        - xxx.com@http
+        items:
+          type: string
+        type: array
+      buildkit_platforms:
+        example:
+        - linux/amd64
+        items:
+          $ref: '#/definitions/enums.OciPlatform'
+        minItems: 1
+        type: array
+      code_repository_id:
+        example: 10
+        type: integer
+      cron_branch:
+        example: main
+        type: string
+      cron_rule:
+        example: '* * * * *'
+        type: string
+      cron_tag_template:
+        example: '{.Ref}'
+        type: string
+      dockerfile:
+        example: xxx
+        type: string
+      repository_id:
+        example: 10
+        type: integer
       scm_branch:
         example: main
+        maxLength: 50
+        minLength: 1
         type: string
       scm_credential_type:
         allOf:
@@ -418,8 +478,9 @@ definitions:
       scm_password:
         example: sigma
         type: string
+      scm_provider:
+        $ref: '#/definitions/enums.ScmProvider'
       scm_repository:
-        description: ScmProvider       enums.ScmProvider       `json:"scm_provider"`
         example: https://github.com/go-sigma/sigma.git
         type: string
       scm_ssh_key:
@@ -434,38 +495,21 @@ definitions:
       scm_username:
         example: sigma
         type: string
-    type: object
-  types.PostCodeRepositorySetupBuilderSwagger:
-    properties:
-      buildkit_context:
-        example: .
-        type: string
-      buildkit_dockerfile:
+      source:
+        allOf:
+        - $ref: '#/definitions/enums.BuilderSource'
         example: Dockerfile
-        type: string
-      buildkit_platforms:
-        example:
-        - linux/amd64
-        items:
-          $ref: '#/definitions/enums.OciPlatform'
-        type: array
-      namespace_id:
-        type: integer
-      repository_name:
-        example: library/test
-        type: string
-      scm_branch:
+      webhook_branch_name:
         example: main
         type: string
-      scm_depth:
-        example: 0
-        type: integer
-      scm_submodule:
-        example: false
-        type: boolean
+      webhook_branch_tag_template:
+        example: '{.Ref}'
+        type: string
+      webhook_tag_tag_template:
+        example: '{.Ref}'
+        type: string
     required:
-    - namespace_id
-    - repository_name
+    - buildkit_platforms
     type: object
   types.PostNamespaceRequest:
     properties:
@@ -603,6 +647,92 @@ definitions:
     - retry_times
     - ssl_verify
     - url
+    type: object
+  types.PutBuilderRequest:
+    properties:
+      buildkit_context:
+        type: string
+      buildkit_dockerfile:
+        type: string
+      buildkit_insecure_registries:
+        example:
+        - test.com
+        - xxx.com@http
+        items:
+          type: string
+        maxItems: 3
+        type: array
+      buildkit_platforms:
+        example:
+        - linux/amd64
+        items:
+          $ref: '#/definitions/enums.OciPlatform'
+        minItems: 1
+        type: array
+      code_repository_id:
+        description: source CodeRepository
+        example: 10
+        type: integer
+      cron_branch:
+        example: main
+        type: string
+      cron_rule:
+        example: '* * * * *'
+        type: string
+      cron_tag_template:
+        example: '{.Ref}'
+        type: string
+      dockerfile:
+        description: source Dockerfile
+        example: xxx
+        type: string
+      id:
+        type: integer
+      scm_branch:
+        example: main
+        type: string
+      scm_credential_type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: ssh
+      scm_depth:
+        example: 0
+        type: integer
+      scm_password:
+        example: sigma
+        type: string
+      scm_repository:
+        description: source SelfCodeRepository
+        example: https://github.com/go-sigma/sigma.git
+        type: string
+      scm_ssh_key:
+        example: xxxx
+        type: string
+      scm_submodule:
+        example: false
+        type: boolean
+      scm_token:
+        example: xxxx
+        type: string
+      scm_username:
+        example: sigma
+        type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/enums.BuilderSource'
+        example: Dockerfile
+      webhook_branch_name:
+        example: main
+        type: string
+      webhook_branch_tag_template:
+        example: '{.Ref}'
+        type: string
+      webhook_tag_tag_template:
+        example: '{.Ref}'
+        type: string
+    required:
+    - buildkit_platforms
+    - id
     type: object
   types.PutNamespaceRequestSwagger:
     properties:
@@ -904,17 +1034,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: create builder for repository
-        in: query
-        name: repository_id
-        required: true
-        type: integer
       - description: Builder object
         in: body
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PostBuilderRequestSwagger'
+          $ref: '#/definitions/types.PostBuilderRequest'
       produces:
       - application/json
       responses:
@@ -935,6 +1060,75 @@ paths:
       security:
       - BasicAuth: []
       summary: Create a builder for repository
+      tags:
+      - Builder
+  /builders/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Builder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get a builder by repository id
+      tags:
+      - Builder
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Builder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutBuilderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update a builder by id
       tags:
       - Builder
   /coderepos/{id}/branches:
@@ -968,40 +1162,6 @@ paths:
       security:
       - BasicAuth: []
       summary: List code repository branches
-      tags:
-      - CodeRepository
-  /coderepos/{id}/setup-builder:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: code repository id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Code repository setup builder object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostCodeRepositorySetupBuilderSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Setup builder for code repository
       tags:
       - CodeRepository
   /coderepos/{provider}:

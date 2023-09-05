@@ -14,7 +14,9 @@
 
 package types
 
-import "github.com/go-sigma/sigma/pkg/types/enums"
+import (
+	"github.com/go-sigma/sigma/pkg/types/enums"
+)
 
 // Builder config for builder
 type Builder struct {
@@ -46,30 +48,118 @@ type Builder struct {
 
 // PostBuilderRequest ...
 type PostBuilderRequest struct {
-	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+	RepositoryID int64 `json:"repository_id" example:"10"`
 
-	ScmCredentialType enums.ScmCredentialType `json:"scm_credential_type" example:"ssh"`
-	ScmSshKey         string                  `json:"scm_ssh_key" example:"xxxx"`
-	ScmToken          string                  `json:"scm_token" example:"xxxx"`
-	ScmUsername       string                  `json:"scm_username" example:"sigma"`
-	ScmPassword       string                  `json:"scm_password" example:"sigma"`
-	// ScmProvider       enums.ScmProvider       `json:"scm_provider"`
-	ScmRepository string `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
-	ScmBranch     string `json:"scm_branch" example:"main"`
-	ScmDepth      int    `json:"scm_depth" example:"0"`
-	ScmSubmodule  bool   `json:"scm_submodule" example:"false"`
+	Source      enums.BuilderSource `json:"source" example:"Dockerfile"`
+	ScmProvider enums.ScmProvider   `json:"scm_provider"`
+
+	CodeRepositoryID *int64 `json:"code_repository_id" example:"10"`
+
+	Dockerfile *string `json:"dockerfile" example:"xxx"`
+
+	ScmRepository     *string                  `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
+	ScmCredentialType *enums.ScmCredentialType `json:"scm_credential_type,omitempty" validate:"omitempty,is_valid_scm_credential_type" example:"ssh"`
+	ScmSshKey         *string                  `json:"scm_ssh_key" example:"xxxx"`
+	ScmToken          *string                  `json:"scm_token" example:"xxxx"`
+	ScmUsername       *string                  `json:"scm_username" example:"sigma"`
+	ScmPassword       *string                  `json:"scm_password" example:"sigma"`
+
+	ScmBranch *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=50" example:"main"`
+
+	ScmDepth     int  `json:"scm_depth" example:"0"`
+	ScmSubmodule bool `json:"scm_submodule" example:"false"`
+
+	CronRule        *string `json:"cron_rule" example:"* * * * *"`
+	CronBranch      *string `json:"cron_branch" example:"main"`
+	CronTagTemplate *string `json:"cron_tag_template" example:"{.Ref}"`
+
+	WebhookBranchName        *string `json:"webhook_branch_name" example:"main"`
+	WebhookBranchTagTemplate *string `json:"webhook_branch_tag_template" example:"{.Ref}"`
+	WebhookTagTagTemplate    *string `json:"webhook_tag_tag_template" example:"{.Ref}"`
+
+	BuildkitInsecureRegistries []string            `json:"buildkit_insecure_registries" example:"test.com,xxx.com@http"`
+	BuildkitContext            string              `json:"buildkit_context"`
+	BuildkitDockerfile         string              `json:"buildkit_dockerfile"`
+	BuildkitPlatforms          []enums.OciPlatform `json:"buildkit_platforms" validate:"required,min=1" example:"linux/amd64"`
 }
 
-// PostBuilderRequestSwagger ...
-type PostBuilderRequestSwagger struct {
-	ScmCredentialType enums.ScmCredentialType `json:"scm_credential_type" example:"ssh"`
-	ScmSshKey         string                  `json:"scm_ssh_key" example:"xxxx"`
-	ScmToken          string                  `json:"scm_token" example:"xxxx"`
-	ScmUsername       string                  `json:"scm_username" example:"sigma"`
-	ScmPassword       string                  `json:"scm_password" example:"sigma"`
-	// ScmProvider       enums.ScmProvider       `json:"scm_provider"`
-	ScmRepository string `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
-	ScmBranch     string `json:"scm_branch" example:"main"`
-	ScmDepth      int    `json:"scm_depth" example:"0"`
-	ScmSubmodule  bool   `json:"scm_submodule" example:"false"`
+// GetBuilderRequest represents the request to get a builder.
+type GetBuilderRequest struct {
+	RepositoryID int64 `json:"repository_id" validate:"required,number"`
+}
+
+// GetBuilderResponse ...
+type GetBuilderResponse struct {
+	ID int64 `json:"id" example:"10"`
+
+	RepositoryID int64 `json:"repository_id" example:"10"`
+
+	Source enums.BuilderSource `json:"source" example:"Dockerfile"`
+
+	// source CodeRepository
+	CodeRepositoryID *int64 `json:"code_repository_id" example:"10"`
+	// source Dockerfile
+	Dockerfile *string `json:"dockerfile" example:"xxx"`
+	// source SelfCodeRepository
+	ScmRepository     *string                  `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
+	ScmCredentialType *enums.ScmCredentialType `json:"scm_credential_type" example:"ssh"`
+	ScmSshKey         *string                  `json:"scm_ssh_key" example:"xxxx"`
+	ScmToken          *string                  `json:"scm_token" example:"xxxx"`
+	ScmUsername       *string                  `json:"scm_username" example:"sigma"`
+	ScmPassword       *string                  `json:"scm_password" example:"sigma"`
+
+	ScmBranch *string `json:"scm_branch" example:"main"`
+
+	ScmDepth     int  `json:"scm_depth" example:"0"`
+	ScmSubmodule bool `json:"scm_submodule" example:"false"`
+
+	CronRule        *string `json:"cron_rule" example:"* * * * *"`
+	CronBranch      *string `json:"cron_branch" example:"main"`
+	CronTagTemplate *string `json:"cron_tag_template" example:"{.Ref}"`
+
+	WebhookBranchName        *string `json:"webhook_branch_name" example:"main"`
+	WebhookBranchTagTemplate *string `json:"webhook_branch_tag_template" example:"{.Ref}"`
+	WebhookTagTagTemplate    *string `json:"webhook_tag_tag_template" example:"{.Ref}"`
+
+	BuildkitInsecureRegistries []string            `json:"buildkit_insecure_registries,omitempty" example:"test.com,xxx.com@http" validate:"omitempty,max=3"`
+	BuildkitContext            string              `json:"buildkit_context"`
+	BuildkitDockerfile         string              `json:"buildkit_dockerfile"`
+	BuildkitPlatforms          []enums.OciPlatform `json:"buildkit_platforms" validate:"required,min=1,is_valid_oci_platforms" example:"linux/amd64"`
+}
+
+// PutBuilderRequest represents the request to get a builder.
+type PutBuilderRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number"`
+
+	Source enums.BuilderSource `json:"source" example:"Dockerfile"`
+
+	// source CodeRepository
+	CodeRepositoryID *int64 `json:"code_repository_id" example:"10"`
+	// source Dockerfile
+	Dockerfile *string `json:"dockerfile" example:"xxx"`
+	// source SelfCodeRepository
+	ScmRepository     *string                  `json:"scm_repository" example:"https://github.com/go-sigma/sigma.git"`
+	ScmCredentialType *enums.ScmCredentialType `json:"scm_credential_type,omitempty" validate:"omitempty,is_valid_scm_credential_type" example:"ssh"`
+	ScmSshKey         *string                  `json:"scm_ssh_key" example:"xxxx"`
+	ScmToken          *string                  `json:"scm_token" example:"xxxx"`
+	ScmUsername       *string                  `json:"scm_username" example:"sigma"`
+	ScmPassword       *string                  `json:"scm_password" example:"sigma"`
+
+	ScmBranch *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=50" example:"main"`
+
+	ScmDepth     int  `json:"scm_depth" example:"0"`
+	ScmSubmodule bool `json:"scm_submodule" example:"false"`
+
+	CronRule        *string `json:"cron_rule" example:"* * * * *"`
+	CronBranch      *string `json:"cron_branch" example:"main"`
+	CronTagTemplate *string `json:"cron_tag_template" example:"{.Ref}"`
+
+	WebhookBranchName        *string `json:"webhook_branch_name" example:"main"`
+	WebhookBranchTagTemplate *string `json:"webhook_branch_tag_template" example:"{.Ref}"`
+	WebhookTagTagTemplate    *string `json:"webhook_tag_tag_template" example:"{.Ref}"`
+
+	BuildkitInsecureRegistries []string            `json:"buildkit_insecure_registries,omitempty" example:"test.com,xxx.com@http" validate:"omitempty,max=3"`
+	BuildkitContext            string              `json:"buildkit_context"`
+	BuildkitDockerfile         string              `json:"buildkit_dockerfile"`
+	BuildkitPlatforms          []enums.OciPlatform `json:"buildkit_platforms" validate:"required,min=1,is_valid_oci_platforms" example:"linux/amd64"`
 }

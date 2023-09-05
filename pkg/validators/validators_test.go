@@ -20,7 +20,35 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
+
+func TestValidateOCIPlatforms(t *testing.T) {
+	type Test struct {
+		Name      string
+		Platforms []enums.OciPlatform `validate:"is_valid_oci_platforms"`
+		Expected  bool
+	}
+
+	var tests = []Test{
+		{"test-1", []enums.OciPlatform{"linux/amd64"}, true},
+		{"test-2", []enums.OciPlatform{"linux/amd64", "linux/arm64"}, true},
+		{"test-3", []enums.OciPlatform{"linux/amd64", "linux/arm641"}, false},
+	}
+
+	validate := validator.New()
+	register(validate)
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			err := validate.Struct(test)
+			if !assert.Equal(t, test.Expected, err == nil) {
+				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
+			}
+		})
+	}
+}
 
 func TestValidateRepository(t *testing.T) {
 	type Test struct {
