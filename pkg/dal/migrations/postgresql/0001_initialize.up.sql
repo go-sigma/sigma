@@ -146,7 +146,8 @@ CREATE TYPE audit_action AS ENUM (
 CREATE TYPE audit_resource_type AS ENUM (
   'namespace',
   'repository',
-  'tag'
+  'tag',
+  'builder'
 );
 
 CREATE TABLE IF NOT EXISTS "audits" (
@@ -419,8 +420,8 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "dockerfile" bytea,
   -- common settings
   "scm_branch" varchar(256),
-  "scm_depth" smallint NOT NULL DEFAULT 0,
-  "scm_submodule" smallint NOT NULL DEFAULT 1,
+  "scm_depth" smallint,
+  "scm_submodule" smallint,
   -- cron settings
   "cron_rules" varchar(30),
   "cron_branch" varchar(256),
@@ -432,9 +433,10 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "webhook_tag_tag_template" varchar(256),
   -- buildkit settings
   "buildkit_insecure_registries" varchar(256),
-  "buildkit_context" varchar(30) NOT NULL DEFAULT '.',
-  "buildkit_dockerfile" varchar(256) NOT NULL DEFAULT 'Dockerfile',
+  "buildkit_context" varchar(30),
+  "buildkit_dockerfile" varchar(256),
   "buildkit_platforms" varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  "buildkit_build_args" varchar(256),
   -- other fields
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL,

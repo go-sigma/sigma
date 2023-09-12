@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `user_id` bigint NOT NULL,
   `namespace_id` bigint,
   `action` ENUM ('create', 'update', 'delete', 'pull', 'push') NOT NULL,
-  `resource_type` ENUM ('namespace', 'repository', 'tag') NOT NULL,
+  `resource_type` ENUM ('namespace', 'repository', 'tag', 'builder') NOT NULL,
   `resource` varchar(256) NOT NULL,
   `before_raw` BLOB,
   `req_raw` BLOB,
@@ -358,8 +358,8 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `dockerfile` BLOB,
   -- common settings
   `scm_branch` varchar(256),
-  `scm_depth` MEDIUMINT NOT NULL DEFAULT 0,
-  `scm_submodule` tinyint NOT NULL DEFAULT 1,
+  `scm_depth` MEDIUMINT,
+  `scm_submodule` tinyint,
   -- cron settings
   `cron_rule` varchar(30),
   `cron_branch` varchar(256),
@@ -371,9 +371,10 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `webhook_tag_tag_template` varchar(256),
   -- buildkit settings
   `buildkit_insecure_registries` varchar(256),
-  `buildkit_context` varchar(30) NOT NULL DEFAULT '.',
-  `buildkit_dockerfile` varchar(256) NOT NULL DEFAULT 'Dockerfile',
+  `buildkit_context` varchar(30),
+  `buildkit_dockerfile` varchar(256),
   `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  `buildkit_build_args` varchar(256),
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
