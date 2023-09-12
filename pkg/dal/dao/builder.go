@@ -33,6 +33,10 @@ type BuilderService interface {
 	Create(ctx context.Context, builder *models.Builder) error
 	// Update update the builder by id
 	Update(ctx context.Context, id int64, updates map[string]interface{}) error
+	// Get get builder by id
+	Get(ctx context.Context, id int64) (*models.Builder, error)
+	// GetByRepositoryIDs get builders by repository ids
+	GetByRepositoryIDs(ctx context.Context, repositoryIDs []int64) (map[int64]*models.Builder, error)
 	// Get get builder by repository id
 	GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// CreateRunner creates a new builder runner record in the database
@@ -91,6 +95,27 @@ func (s builderService) Update(ctx context.Context, id int64, updates map[string
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// Get get builder by id
+func (s builderService) Get(ctx context.Context, id int64) (*models.Builder, error) {
+	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.ID.Eq(id)).First()
+}
+
+// GetByRepositoryIDs get builders by repository ids
+func (s builderService) GetByRepositoryIDs(ctx context.Context, repositoryIDs []int64) (map[int64]*models.Builder, error) {
+	if len(repositoryIDs) == 0 {
+		return nil, nil
+	}
+	builderObjs, err := s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.RepositoryID.In(repositoryIDs...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]*models.Builder, len(builderObjs))
+	for _, builderObj := range builderObjs {
+		result[builderObj.RepositoryID] = builderObj
+	}
+	return result, nil
 }
 
 // Get get builder by repository id

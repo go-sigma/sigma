@@ -36,9 +36,10 @@ import (
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /builders/{id} [put]
+// @Router /repositories/{repository_id}/builders/{id} [put]
+// @Param repository_id path string true "Repository ID"
 // @Param id path string true "Builder ID"
-// @Param message body types.PutBuilderRequest true "Builder object"
+// @Param message body types.PutBuilderRequestSwagger true "Builder object"
 // @Success 201
 // @Failure 400 {object} xerrors.ErrCode
 // @Failure 404 {object} xerrors.ErrCode

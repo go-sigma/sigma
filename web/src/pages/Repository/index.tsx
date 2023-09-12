@@ -31,7 +31,7 @@ import OrderHeader from "../../components/OrderHeader";
 import "./index.css";
 import TableItem from "./TableItem";
 
-import { IRepository, IRepositoryList, IHTTPError, IOrder } from "../../interfaces";
+import { IRepositoryItem, IRepositoryList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
@@ -88,7 +88,7 @@ export default function ({ localServer }: { localServer: string }) {
       size_limit: realSizeLimit,
       tag_limit: tagCountLimit,
       visibility: repositoryVisibility,
-    } as IRepository, {}).then(response => {
+    } as IRepositoryItem, {}).then(response => {
       if (response.status === 201) {
         setRepositoryText("");
         setDescriptionText("");

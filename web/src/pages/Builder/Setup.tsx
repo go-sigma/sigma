@@ -29,7 +29,7 @@ import Header from '../../components/Header';
 import HeaderMenu from '../../components/Menu';
 import Toast from "../../components/Notification";
 
-import { IHTTPError, INamespaceList, INamespace, IRepository, IRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, ICodeRepositoryList, ICodeRepositoryOwnerList, ICodeRepositoryBranchItem, ICodeRepositoryBranchList } from '../../interfaces';
+import { IHTTPError, INamespaceList, INamespaceItem, IRepositoryItem, IRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, ICodeRepositoryList, ICodeRepositoryOwnerList, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, IBuilderItem } from '../../interfaces';
 
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 
@@ -55,9 +55,10 @@ const supportPlatforms = [
 ];
 
 const supportCredential = [
-  { id: 1, name: 'username' },
-  { id: 2, name: 'token' },
-  { id: 3, name: 'ssh' },
+  { id: 1, name: 'none' },
+  { id: 2, name: 'username' },
+  { id: 3, name: 'token' },
+  { id: 4, name: 'ssh' },
 ];
 
 const supportBuilderSource = [
@@ -70,6 +71,8 @@ export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const { id } = useParams<{ id?: string }>();
+
   const [selectedPlatforms, setSelectedPlatforms] = useState([supportPlatforms[0]])
 
   useEffect(() => {
@@ -77,11 +80,11 @@ export default function ({ localServer }: { localServer: string }) {
   }, [searchParams]);
 
   const [namespaceSearch, setNamespaceSearch] = useState('');
-  const [namespaceList, setNamespaceList] = useState<INamespace[]>();
-  const [namespaceSelected, setNamespaceSelected] = useState<INamespace>({
+  const [namespaceList, setNamespaceList] = useState<INamespaceItem[]>();
+  const [namespaceSelected, setNamespaceSelected] = useState<INamespaceItem>({
     name: searchParams.get('namespace') || "",
     id: parseInt(searchParams.get('namespace_id') || "") || 0,
-  } as INamespace);
+  } as INamespaceItem);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/namespaces/?limit=${Settings.AutoCompleteSize}`;
@@ -103,11 +106,11 @@ export default function ({ localServer }: { localServer: string }) {
   }, [namespaceSearch]);
 
   const [repositorySearch, setRepositorySearch] = useState('');
-  const [repositoryList, setRepositoryList] = useState<IRepository[]>();
-  const [repositorySelected, setRepositorySelected] = useState<IRepository>({
+  const [repositoryList, setRepositoryList] = useState<IRepositoryItem[]>();
+  const [repositorySelected, setRepositorySelected] = useState<IRepositoryItem>({
     name: searchParams.get('repository') || "",
     id: parseInt(searchParams.get('repository_id') || "") || 0,
-  } as IRepository);
+  } as IRepositoryItem);
 
   useEffect(() => {
     if (namespaceSelected.name == undefined || namespaceSelected.name.length == 0) {
@@ -333,7 +336,7 @@ export default function ({ localServer }: { localServer: string }) {
   }, [cronBranchSearch, codeRepositoryBranchList]);
 
   const [builderSource, setBuilderSource] = useState(searchParams.get('builder_source') || 'CodeRepository');
-  const [dockerfile, setDockerfile] = useState('');
+  const [dockerfile, setDockerfile] = useState('FROM alpine:latest');
   const [customRepositoryCloneUrl, setCustomRepositoryCloneUrl] = useState('');
   const [customRepositoryBranch, setCustomRepositoryBranch] = useState('');
   const [customRepositoryCredential, setCustomRepositoryCredential] = useState('username');
@@ -346,11 +349,140 @@ export default function ({ localServer }: { localServer: string }) {
     const data: { [key: string]: any } = {
       namespace_id: namespaceSelected.id,
       repository_id: repositorySelected.id,
+      source: builderSource,
     };
     if (builderSource === 'Dockerfile') {
       data['dockerfile'] = btoa(dockerfile);
     }
+    if (builderSource === 'CodeRepository') {
+      data['scm_provider'] = codeRepositoryProviderSelected.provider;
+      data['code_repository_id'] = codeRepositorySelected.id;
+    }
+    if (builderSource === 'SelfCodeRepository') {
+      data['scm_repository'] = customRepositoryCloneUrl;
+      data['scm_credential_type'] = customRepositoryCredential;
+      if (customRepositoryCredential === 'token') {
+        data['scm_token'] = customRepositoryToken;
+      }
+      if (customRepositoryCredential === 'ssh') {
+        data['scm_ssh_key'] = customRepositorySshKey;
+      }
+      if (customRepositoryCredential === 'username') {
+        data['scm_username'] = customRepositoryUsername;
+        data['scm_password'] = customRepositoryPassword;
+      }
+    }
+    if (builderSource === 'CodeRepository' || builderSource === 'SelfCodeRepository') {
+      data['scm_branch'] = customRepositoryBranch;
+      data['scm_depth'] = depth;
+      data['scm_submodule'] = submodule;
+    }
+    if (cronBuild) {
+      data['cron_rule'] = cronExpr;
+      if (builderSource === 'CodeRepository' || builderSource === 'SelfCodeRepository') {
+        data['cron_branch'] = cronBranch;
+      }
+      data['cron_tag_template'] = cronTagTemplate;
+    }
+    if (mergeEvent) {
+      data['webhook_branch_name'] = mergeEventBranch;
+      data['webhook_branch_tag_template'] = mergeEventBranch;
+    }
+    if (tagEvent) {
+      data['webhook_tag_tag_template'] = tagEventTagTemplate;
+    }
+    if (builderSource === 'CodeRepository' || builderSource === 'SelfCodeRepository') {
+      data['buildkit_context'] = dockerfileContext;
+      data['buildkit_dockerfile'] = dockerfilePath;
+    }
+    let ps: string[] = [];
+    for (let i = 0; i < selectedPlatforms.length; i++) {
+      ps.push(selectedPlatforms[i].name);
+    }
+    data['buildkit_platforms'] = ps;
+    console.log(data);
+    if (id === undefined) {
+      let url = `${localServer}/api/v1/repositories/${repositorySelected.id}/builders/`;
+      axios.post(url, data as IBuilderItem).then(response => {
+        if (response?.status === 201) {
+          // TODO: redirect to repo
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        }
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    } else {
+      let url = `${localServer}/api/v1/repositories/${searchParams.get('repository_id')}/builders/${id}`;
+      axios.put(url, data as IBuilderItem).then(response => {
+        if (response?.status === 204) {
+          console.log(response);
+
+          // TODO: redirect to repo
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        }
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    }
   }
+
+  useEffect(() => {
+    if (id === undefined) {
+      return;
+    }
+    axios.get(`${localServer}/api/v1/repositories/${searchParams.get('repository_id')}/builders/${id}`).then(response => {
+      if (response?.status === 200) {
+        let builderItem = response.data as IBuilderItem;
+        setBuilderSource(builderItem.source);
+        setSearchParams({
+          ...Object.fromEntries(searchParams.entries()),
+          builder_source: builderItem.source,
+          cron_enabled: builderItem.cron_rule !== null ? "true" : "false",
+        });
+        let ps = "";
+        let platforms: {
+          id: number;
+          name: string;
+        }[] = [];
+        for (let i = 0; i < builderItem.buildkit_platforms.length; i++) {
+          if (i == 0) {
+            ps += builderItem.buildkit_platforms[i];
+          } else {
+            ps += `,${builderItem.buildkit_platforms[i]}`
+          }
+          for (let j = 0; j < supportPlatforms.length; j++) {
+            if (supportPlatforms[j].name === builderItem.buildkit_platforms[i]) {
+              platforms.push(supportPlatforms[j]);
+              break;
+            }
+          }
+        }
+        setSearchParams({
+          ...Object.fromEntries(searchParams.entries()),
+          platforms: ps,
+        });
+        setSelectedPlatforms(platforms);
+        setDockerfile(atob(builderItem.dockerfile || ''));
+        setCronBuild(builderItem.cron_rule !== null);
+        if (builderItem.cron_rule !== null) {
+          setCronExpr(builderItem.cron_rule || '');
+          setCronTagTemplate(builderItem.cron_tag_template || '');
+          if (builderItem.source === 'SelfCodeRepository') {
+            setCronBranch(builderItem.cron_branch || '');
+          }
+        }
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [id]);
 
   return (
     <Fragment>
@@ -378,7 +510,7 @@ export default function ({ localServer }: { localServer: string }) {
                     Namespace
                   </label>
                   <div className="mt-2">
-                    <Combobox value={namespaceSelected} onChange={(namespace: INamespace) => {
+                    <Combobox value={namespaceSelected} onChange={(namespace: INamespaceItem) => {
                       setSearchParams({
                         ...Object.fromEntries(searchParams.entries()),
                         namespace: namespace.name,
@@ -386,7 +518,7 @@ export default function ({ localServer }: { localServer: string }) {
                         repository: '',
                         repository_id: '',
                       });
-                      setRepositorySelected({} as IRepository); // clear the repo selected
+                      setRepositorySelected({} as IRepositoryItem); // clear the repo selected
                       setNamespaceSelected(namespace);
                     }}>
                       <div className="relative mt-1">
@@ -394,7 +526,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <Combobox.Input
                             id="namespace"
                             className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                            displayValue={(namespace: INamespace) => namespace.name}
+                            displayValue={(namespace: INamespaceItem) => namespace.name}
                             onChange={event => {
                               setNamespaceSearch(event.target.value);
                             }}
@@ -447,7 +579,7 @@ export default function ({ localServer }: { localServer: string }) {
                     Repository
                   </label>
                   <div className="mt-2">
-                    <Combobox value={repositorySelected} onChange={(repo: IRepository) => {
+                    <Combobox value={repositorySelected} onChange={(repo: IRepositoryItem) => {
                       setSearchParams({
                         ...Object.fromEntries(searchParams.entries()),
                         repository: repo.name,
@@ -460,7 +592,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <Combobox.Input
                             id="repository"
                             className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                            displayValue={(repository: IRepository) => {
+                            displayValue={(repository: IRepositoryItem) => {
                               if (namespaceSelected.name != undefined && repository.name != undefined) {
                                 return repository.name.substring(namespaceSelected.name.length + 1)
                               }
@@ -1125,7 +1257,7 @@ export default function ({ localServer }: { localServer: string }) {
                 builderSource === 'Dockerfile' ? (
                   <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div className="sm:col-span-4">
-                      <label htmlFor="dockerfileContext" className="block text-sm font-medium leading-6 text-gray-900">
+                      <label className="block text-sm font-medium leading-6 text-gray-900">
                         Dockerfile
                       </label>
                       <div className="mt-2 flex flex-row items-center">
@@ -1160,48 +1292,56 @@ export default function ({ localServer }: { localServer: string }) {
               <h2 className="text-base font-semibold leading-7 text-gray-900">Build Options</h2>
               <p className="mt-1 text-sm leading-6 text-gray-600">The image build options.</p>
               <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                <div className="sm:col-span-1">
-                  <label htmlFor="dockerfileContext" className="block text-sm font-medium leading-6 text-gray-900">
-                    Context
-                  </label>
-                  <div className="mt-2 flex flex-row items-center h-[36px]">
-                    <input
-                      type="text"
-                      name="dockerfileContext"
-                      id="dockerfileContext"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                      value={dockerfileContext}
-                      onChange={e => {
-                        setSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          dockerfile_context: e.target.value,
-                        });
-                        setDockerfileContext(e.target.value);
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="sm:col-span-1">
-                  <label htmlFor="dockerfilePath" className="block text-sm font-medium leading-6 text-gray-900">
-                    Dockerfile Path
-                  </label>
-                  <div className="mt-2 flex flex-row items-center h-[36px]">
-                    <input
-                      type="text"
-                      name="dockerfilePath"
-                      id="dockerfilePath"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                      value={dockerfilePath}
-                      onChange={e => {
-                        setSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          dockerfile_path: e.target.value,
-                        });
-                        setDockerfilePath(e.target.value);
-                      }}
-                    />
-                  </div>
-                </div>
+                {
+                  builderSource !== 'Dockerfile' ? (
+                    <div className="sm:col-span-1">
+                      <label htmlFor="dockerfileContext" className="block text-sm font-medium leading-6 text-gray-900">
+                        Context
+                      </label>
+                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                        <input
+                          type="text"
+                          name="dockerfileContext"
+                          id="dockerfileContext"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          value={dockerfileContext}
+                          onChange={e => {
+                            setSearchParams({
+                              ...Object.fromEntries(searchParams.entries()),
+                              dockerfile_context: e.target.value,
+                            });
+                            setDockerfileContext(e.target.value);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : null
+                }
+                {
+                  builderSource !== 'Dockerfile' ? (
+                    <div className="sm:col-span-1">
+                      <label htmlFor="dockerfilePath" className="block text-sm font-medium leading-6 text-gray-900">
+                        Dockerfile Path
+                      </label>
+                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                        <input
+                          type="text"
+                          name="dockerfilePath"
+                          id="dockerfilePath"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          value={dockerfilePath}
+                          onChange={e => {
+                            setSearchParams({
+                              ...Object.fromEntries(searchParams.entries()),
+                              dockerfile_path: e.target.value,
+                            });
+                            setDockerfilePath(e.target.value);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : null
+                }
                 <div className="sm:col-span-2">
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                     Platforms
@@ -1232,7 +1372,7 @@ export default function ({ localServer }: { localServer: string }) {
                             />
                           </span>
                         </Listbox.Button>
-                        <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
                           <Transition
                             leave="transition ease-in duration-100"
                             leaveFrom="opacity-100"

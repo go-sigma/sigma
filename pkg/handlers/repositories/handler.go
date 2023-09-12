@@ -48,6 +48,7 @@ type handlers struct {
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
+	builderServiceFactory    dao.BuilderServiceFactory
 }
 
 type inject struct {
@@ -55,6 +56,7 @@ type inject struct {
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
+	builderServiceFactory    dao.BuilderServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
@@ -63,6 +65,7 @@ func handlerNew(injects ...inject) Handlers {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	builderServiceFactory := dao.NewBuilderServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.namespaceServiceFactory != nil {
@@ -77,12 +80,16 @@ func handlerNew(injects ...inject) Handlers {
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
+		if ij.builderServiceFactory != nil {
+			builderServiceFactory = ij.builderServiceFactory
+		}
 	}
 	return &handlers{
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
+		builderServiceFactory:    builderServiceFactory,
 	}
 }
 

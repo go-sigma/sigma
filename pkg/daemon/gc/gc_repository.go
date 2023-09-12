@@ -16,9 +16,9 @@ package gc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/bytedance/sonic"
 	"github.com/hibiken/asynq"
 
 	"github.com/go-sigma/sigma/pkg/daemon"
@@ -38,7 +38,7 @@ func init() {
 // gcRepositoryRunner ...
 func gcRepositoryRunner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonGcRepositoryPayload
-	err := sonic.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal(task.Payload(), &payload)
 	if err != nil {
 		return fmt.Errorf("Unmarshal payload failed: %v", err)
 	}

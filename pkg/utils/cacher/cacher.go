@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bytedance/sonic"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -56,7 +56,7 @@ func New[T any](redisCli redis.UniversalClient, prefix string, fetcher Fetcher[T
 // Set sets the value of given key if it is new to the cache.
 // Param val should not be nil.
 func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
-	content, err := sonic.MarshalString(val)
+	content, err := jsoniter.MarshalToString(val)
 	if err != nil {
 		return fmt.Errorf("marshal value failed: %w", err)
 	}
@@ -90,7 +90,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 		}
 		return result, fmt.Errorf("get value failed: %w", err)
 	}
-	err = sonic.UnmarshalString(content, &result)
+	err = jsoniter.UnmarshalFromString(content, &result)
 	if err != nil {
 		return result, fmt.Errorf("unmarshal value failed: %w", err)
 	}

@@ -47,8 +47,8 @@ type Builder struct {
 
 	// common settings
 	ScmBranch    *string // for SelfCodeRepository and CodeRepository
-	ScmDepth     int
-	ScmSubmodule bool
+	ScmDepth     *int
+	ScmSubmodule *bool
 
 	// cron settings
 	CronRule        *string
@@ -63,9 +63,10 @@ type Builder struct {
 
 	// buildkit settings
 	BuildkitInsecureRegistries string
-	BuildkitContext            string `gorm:"default:."`
-	BuildkitDockerfile         string `gorm:"default:Dockerfile"`
+	BuildkitContext            *string
+	BuildkitDockerfile         *string
 	BuildkitPlatforms          string `gorm:"default:linux/amd64"`
+	BuildkitBuildArgs          *string
 
 	Repository *Repository
 }

@@ -41,8 +41,9 @@ import (
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /builders [post]
-// @Param message body types.PostBuilderRequest true "Builder object"
+// @Router /repositories/{repository_id}/builders [post]
+// @Param repository_id path string true "Repository ID"
+// @Param message body types.PostBuilderRequestSwagger true "Builder object"
 // @Success 201
 // @Failure 400 {object} xerrors.ErrCode
 // @Failure 404 {object} xerrors.ErrCode
@@ -95,7 +96,6 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Repository has been already create builder")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderService := h.builderServiceFactory.New(tx)
 		builderObj := &models.Builder{
 			RepositoryID: req.RepositoryID,
 
@@ -130,6 +130,7 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 			BuildkitDockerfile:         req.BuildkitDockerfile,
 			BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
 		}
+		builderService := h.builderServiceFactory.New(tx)
 		err = builderService.Create(ctx, builderObj)
 		if err != nil {
 			log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Create builder for repository failed")

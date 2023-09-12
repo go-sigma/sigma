@@ -76,6 +76,7 @@ export default function App() {
         <Route path="/coderepos/:provider" element={<CodeRepositoryList localServer={localServer} />} />
 
         <Route path="/builders/setup" element={<BuildersSetup localServer={localServer} />} />
+        <Route path="/builders/setup/:id" element={<BuildersSetup localServer={localServer} />} />
 
       </Routes>
     </>

@@ -14,168 +14,6 @@
     },
     "basePath": "/api/v1",
     "paths": {
-        "/builders": {
-            "post": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Builder"
-                ],
-                "summary": "Create a builder for repository",
-                "parameters": [
-                    {
-                        "description": "Builder object",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.PostBuilderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/builders/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Builder"
-                ],
-                "summary": "Get a builder by repository id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Builder ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Builder"
-                ],
-                "summary": "Update a builder by id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Builder ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Builder object",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.PutBuilderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
         "/coderepos/providers": {
             "get": {
                 "security": [
@@ -1714,6 +1552,186 @@
                 }
             }
         },
+        "/repositories/{repository_id}/builders": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Builder"
+                ],
+                "summary": "Create a builder for repository",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository ID",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Builder object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostBuilderRequestSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/repositories/{repository_id}/builders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Builder"
+                ],
+                "summary": "Get a builder by builder id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository ID",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.BuilderItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Builder"
+                ],
+                "summary": "Update a builder by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository ID",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Builder object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PutBuilderRequestSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/systems/endpoint": {
             "get": {
                 "consumes": [
@@ -2605,6 +2623,131 @@
                 "WebhookResourceTypeMember"
             ]
         },
+        "types.BuilderItem": {
+            "type": "object",
+            "properties": {
+                "buildkit_build_args": {
+                    "type": "string",
+                    "example": "a=b,c=d"
+                },
+                "buildkit_context": {
+                    "type": "string"
+                },
+                "buildkit_dockerfile": {
+                    "type": "string"
+                },
+                "buildkit_insecure_registries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "test.com",
+                        "xxx.com@http"
+                    ]
+                },
+                "buildkit_platforms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enums.OciPlatform"
+                    },
+                    "example": [
+                        "linux/amd64"
+                    ]
+                },
+                "code_repository_id": {
+                    "description": "source CodeRepository",
+                    "type": "integer",
+                    "example": 10
+                },
+                "cron_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "* * * * *"
+                },
+                "cron_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "dockerfile": {
+                    "description": "source Dockerfile",
+                    "type": "string",
+                    "example": "xxx"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "repository_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "scm_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "scm_credential_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmCredentialType"
+                        }
+                    ],
+                    "example": "ssh"
+                },
+                "scm_depth": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "scm_password": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "scm_repository": {
+                    "description": "source SelfCodeRepository",
+                    "type": "string",
+                    "example": "https://github.com/go-sigma/sigma.git"
+                },
+                "scm_ssh_key": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_submodule": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "scm_token": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_username": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "source": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.BuilderSource"
+                        }
+                    ],
+                    "example": "Dockerfile"
+                },
+                "webhook_branch_name": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "webhook_branch_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "webhook_tag_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                }
+            }
+        },
         "types.CodeRepositoryBranchItem": {
             "type": "object",
             "properties": {
@@ -3011,20 +3154,29 @@
                 }
             }
         },
-        "types.PostBuilderRequest": {
+        "types.PostBuilderRequestSwagger": {
             "type": "object",
             "required": [
                 "buildkit_platforms"
             ],
             "properties": {
+                "buildkit_build_args": {
+                    "type": "string",
+                    "example": "a=b,c=d"
+                },
                 "buildkit_context": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "buildkit_dockerfile": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "buildkit_insecure_registries": {
                     "type": "array",
+                    "maxItems": 3,
                     "items": {
                         "type": "string"
                     },
@@ -3044,6 +3196,7 @@
                     ]
                 },
                 "code_repository_id": {
+                    "description": "source CodeRepository",
                     "type": "integer",
                     "example": 10
                 },
@@ -3060,12 +3213,9 @@
                     "example": "{.Ref}"
                 },
                 "dockerfile": {
+                    "description": "source Dockerfile",
                     "type": "string",
                     "example": "xxx"
-                },
-                "repository_id": {
-                    "type": "integer",
-                    "example": 10
                 },
                 "scm_branch": {
                     "type": "string",
@@ -3083,6 +3233,7 @@
                 },
                 "scm_depth": {
                     "type": "integer",
+                    "minimum": 0,
                     "example": 0
                 },
                 "scm_password": {
@@ -3093,6 +3244,7 @@
                     "$ref": "#/definitions/enums.ScmProvider"
                 },
                 "scm_repository": {
+                    "description": "source SelfCodeRepository",
                     "type": "string",
                     "example": "https://github.com/go-sigma/sigma.git"
                 },
@@ -3327,18 +3479,25 @@
                 }
             }
         },
-        "types.PutBuilderRequest": {
+        "types.PutBuilderRequestSwagger": {
             "type": "object",
             "required": [
-                "buildkit_platforms",
-                "id"
+                "buildkit_platforms"
             ],
             "properties": {
+                "buildkit_build_args": {
+                    "type": "string",
+                    "example": "a=b,c=d"
+                },
                 "buildkit_context": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "buildkit_dockerfile": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "buildkit_insecure_registries": {
                     "type": "array",
@@ -3383,11 +3542,10 @@
                     "type": "string",
                     "example": "xxx"
                 },
-                "id": {
-                    "type": "integer"
-                },
                 "scm_branch": {
                     "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1,
                     "example": "main"
                 },
                 "scm_credential_type": {
@@ -3400,11 +3558,15 @@
                 },
                 "scm_depth": {
                     "type": "integer",
+                    "minimum": 0,
                     "example": 0
                 },
                 "scm_password": {
                     "type": "string",
                     "example": "sigma"
+                },
+                "scm_provider": {
+                    "$ref": "#/definitions/enums.ScmProvider"
                 },
                 "scm_repository": {
                     "description": "source SelfCodeRepository",
@@ -3560,13 +3722,15 @@
         "types.RepositoryItem": {
             "type": "object",
             "properties": {
+                "builder": {
+                    "$ref": "#/definitions/types.BuilderItem"
+                },
                 "created_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
                 "description": {
                     "type": "string",
-                    "maxLength": 30,
                     "example": "i am just description"
                 },
                 "id": {
@@ -3579,7 +3743,6 @@
                 },
                 "overview": {
                     "type": "string",
-                    "maxLength": 3000,
                     "example": "i am just overview"
                 },
                 "size": {
