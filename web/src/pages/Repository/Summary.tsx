@@ -27,14 +27,14 @@ import { Link, useSearchParams, useParams } from "react-router-dom";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
-import { IRepository, IHTTPError } from "../../interfaces";
+import { IRepositoryItem, IHTTPError } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository_id = parseInt(searchParams.get("repository_id") || "");
 
-  const [repositoryObj, setRepositoryObj] = useState<IRepository>({} as IRepository);
+  const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>({} as IRepositoryItem);
 
   const [overview, setOverview] = useState("");
   const [overviewValid, setOverviewValid] = useState(true);
@@ -43,7 +43,7 @@ export default function ({ localServer }: { localServer: string }) {
   useEffect(() => {
     axios.get(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository_id}`).then(response => {
       if (response.status === 200) {
-        const r = response.data as IRepository;
+        const r = response.data as IRepositoryItem;
         setRepositoryObj(r);
         setOverview(r.overview);
       } else {
@@ -65,7 +65,7 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.put(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository_id}`, {
       overview: overview,
-    } as IRepository, {}).then(response => {
+    } as IRepositoryItem, {}).then(response => {
       if (response.status === 204) {
         Toast({ level: "info", title: "Success", message: "update overview success" });
         setEditorState(false);

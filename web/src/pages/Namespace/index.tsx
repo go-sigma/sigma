@@ -29,7 +29,7 @@ import OrderHeader from "../../components/OrderHeader";
 import TableItem from "./TableItem";
 import "./index.css";
 
-import { INamespace, INamespaceList, IHTTPError, IOrder } from "../../interfaces";
+import { INamespaceItem, INamespaceList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
@@ -131,7 +131,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
       repository_limit: repositoryCountLimit,
       tag_limit: tagCountLimit,
       visibility: namespaceVisibility,
-    } as INamespace, {}).then(response => {
+    } as INamespaceItem, {}).then(response => {
       if (response.status === 201) {
         setNamespaceText("");
         setDescriptionText("");

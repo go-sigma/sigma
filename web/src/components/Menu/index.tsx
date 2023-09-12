@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 import Toast from "../../components/Notification";
-import { INamespace, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
+import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
 
 export default function ({ localServer, item, namespace, repository, tag }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -58,7 +58,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
   }, [])
 
   const [hotNamespaceTotal, setHotNamespaceTotal] = useState(0);
-  const [hotNamespaceList, setHotNamespaceList] = useState<INamespace[]>([]);
+  const [hotNamespaceList, setHotNamespaceList] = useState<INamespaceItem[]>([]);
 
   // get hot namespace
   useEffect(() => {
@@ -273,7 +273,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                     </h3>
                     <div className="mt-1 space-y-1" role="group" aria-labelledby="teams-headline">
                       {
-                        hotNamespaceList.map((ns: INamespace, index: number) => {
+                        hotNamespaceList.map((ns: INamespaceItem, index: number) => {
                           return (
                             <Link
                               key={index}

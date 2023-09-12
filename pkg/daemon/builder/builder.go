@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
@@ -89,9 +90,9 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 			// ScmUsername:       builderObj.ScmUsername,
 			// ScmPassword:       builderObj.ScmPassword,
 			// ScmRepository:     builderObj.ScmRepository,
-			ScmBranch:    runnerObj.ScmBranch,
-			ScmDepth:     builderObj.ScmDepth,
-			ScmSubmodule: builderObj.ScmSubmodule,
+			ScmBranch: runnerObj.ScmBranch,
+			ScmDepth:  ptr.To(builderObj.ScmDepth),
+			// ScmSubmodule: builderObj.ScmSubmodule,
 
 			OciRegistryDomain:   []string{"192.168.31.114:3000"},
 			OciRegistryUsername: []string{"sigma"},

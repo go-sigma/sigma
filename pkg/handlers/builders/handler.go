@@ -93,7 +93,7 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	builderGroup := e.Group(consts.APIV1+"/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	builderGroup := e.Group(consts.APIV1+"/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	webhookHandler := handlerNew()
 	builderGroup.POST("/", webhookHandler.PostBuilder)

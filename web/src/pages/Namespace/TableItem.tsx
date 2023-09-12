@@ -25,14 +25,14 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 import calcUnit from "../../utils/calcUnit";
 import Toast from "../../components/Notification";
-import { INamespace, IHTTPError } from "../../interfaces";
+import { INamespaceItem, IHTTPError } from "../../interfaces";
 
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
 
 dayjs.extend(relativeTime);
 
-export default function TableItem({ localServer, index, namespace, setRefresh }: { localServer: string, index: number, namespace: INamespace, setRefresh: (param: any) => void }) {
+export default function TableItem({ localServer, index, namespace, setRefresh }: { localServer: string, index: number, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
   const navigate = useNavigate();
 
   const [updateNamespaceModal, setUpdateNamespaceModal] = useState(false);
@@ -83,7 +83,7 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
       repository_limit: repositoryCountLimit,
       tag_limit: tagCountLimit,
       visibility: namespaceVisibility,
-    } as INamespace, {}).then(response => {
+    } as INamespaceItem, {}).then(response => {
       if (response.status === 204) {
         setNamespaceText("");
         setDescriptionText("");

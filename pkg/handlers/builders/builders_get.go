@@ -16,6 +16,7 @@ package builders
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -31,15 +32,15 @@ import (
 )
 
 // GetBuilder handles the get builder request
-// @Summary Get a builder by repository id
+// @Summary Get a builder by builder id
 // @Tags Builder
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /builders/{id} [get]
+// @Router /repositories/{repository_id}/builders/{id} [get]
+// @Param repository_id path string true "Repository ID"
 // @Param id path string true "Builder ID"
-// @Success 201
-// @Failure 400 {object} xerrors.ErrCode
+// @Success 200 {object} types.BuilderItem
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) GetBuilder(c echo.Context) error {
@@ -49,18 +50,23 @@ func (h *handlers) GetBuilder(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	builderService := h.builderServiceFactory.New()
-	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
+	builderObj, err := builderService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Msg("Builder not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			log.Error().Err(err).Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Builder not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
 		}
-		log.Error().Err(err).Msg("Get builder failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		log.Error().Err(err).Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Get builder failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
+	}
+
+	if builderObj.RepositoryID != req.RepositoryID {
+		log.Error().Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Builder not found")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found", req.ID))
 	}
 
 	platforms := []enums.OciPlatform{}
@@ -68,7 +74,7 @@ func (h *handlers) GetBuilder(c echo.Context) error {
 		platforms = append(platforms, enums.OciPlatform(p))
 	}
 
-	return c.JSON(http.StatusOK, types.GetBuilderResponse{
+	return c.JSON(http.StatusOK, types.BuilderItem{
 		ID:           builderObj.ID,
 		RepositoryID: builderObj.RepositoryID,
 
@@ -102,5 +108,6 @@ func (h *handlers) GetBuilder(c echo.Context) error {
 		BuildkitContext:            builderObj.BuildkitContext,
 		BuildkitDockerfile:         builderObj.BuildkitDockerfile,
 		BuildkitPlatforms:          platforms,
+		BuildkitBuildArgs:          builderObj.BuildkitBuildArgs,
 	})
 }

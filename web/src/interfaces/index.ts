@@ -45,7 +45,7 @@ export interface IUserLoginResponse {
   refresh_token: string;
 }
 
-export interface INamespace {
+export interface INamespaceItem {
   id: number;
   name: string;
   description: string;
@@ -61,11 +61,11 @@ export interface INamespace {
 }
 
 export interface INamespaceList {
-  items: INamespace[];
+  items: INamespaceItem[];
   total: number;
 }
 
-export interface IRepository {
+export interface IRepositoryItem {
   id: number;
   name: string;
   description: string;
@@ -77,10 +77,12 @@ export interface IRepository {
   size: number;
   created_at: string;
   updated_at: string;
+
+  builder?: IBuilderItem;
 }
 
 export interface IRepositoryList {
-  items: IRepository[];
+  items: IRepositoryItem[];
   total: number;
 }
 
@@ -220,4 +222,39 @@ export interface ICodeRepositoryUser3rdParty {
   cr_last_update_message: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface IBuilderItem {
+  id: number;
+  repository_id: number;
+  source: string;
+
+  code_repository_id?: number;
+
+  dockerfile?: string;
+
+  scm_repository?: string;
+  scm_credential_type?: string;
+  scm_ssh_key?: string;
+  scm_token?: string;
+  scm_username?: string;
+  scm_password?: string;
+
+  scm_branch?: string;
+
+  scm_depth?: number;
+  scm_submodule?: boolean;
+
+  cron_rule?: string;
+  cron_branch?: string;
+  cron_tag_template?: string;
+
+  webhook_branch_name?: string;
+  webhook_branch_tag_template?: string;
+  webhook_tag_tag_template?: string;
+
+  buildkit_insecure_registry?: string[];
+  buildkit_context?: string;
+  buildkit_dockerfile?: string;
+  buildkit_platforms: string[];
 }

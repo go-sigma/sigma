@@ -27,11 +27,11 @@ import Quota from "../../components/Quota";
 import calcUnit from "../../utils/calcUnit";
 import Toast from "../../components/Notification";
 import QuotaSimple from "../../components/QuotaSimple";
-import { IRepository, IHTTPError } from "../../interfaces";
+import { IRepositoryItem, IHTTPError } from "../../interfaces";
 
 dayjs.extend(relativeTime);
 
-export default function TableItem({ localServer, index, namespace, repository, setRefresh }: { localServer: string, index: number, namespace: string, repository: IRepository, setRefresh: (param: any) => void }) {
+export default function TableItem({ localServer, index, namespace, repository, setRefresh }: { localServer: string, index: number, namespace: string, repository: IRepositoryItem, setRefresh: (param: any) => void }) {
   const navigate = useNavigate();
 
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
@@ -82,7 +82,7 @@ export default function TableItem({ localServer, index, namespace, repository, s
       size_limit: realSizeLimit,
       tag_limit: tagCountLimit,
       visibility: repositoryVisibility,
-    } as IRepository, {}).then(response => {
+    } as IRepositoryItem, {}).then(response => {
       if (response.status === 204) {
         setRefresh({});
       } else {

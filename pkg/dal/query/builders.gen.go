@@ -55,6 +55,7 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.BuildkitContext = field.NewString(tableName, "buildkit_context")
 	_builder.BuildkitDockerfile = field.NewString(tableName, "buildkit_dockerfile")
 	_builder.BuildkitPlatforms = field.NewString(tableName, "buildkit_platforms")
+	_builder.BuildkitBuildArgs = field.NewString(tableName, "buildkit_build_args")
 	_builder.Repository = builderBelongsToRepository{
 		db: db.Session(&gorm.Session{}),
 
@@ -103,6 +104,7 @@ type builder struct {
 	BuildkitContext            field.String
 	BuildkitDockerfile         field.String
 	BuildkitPlatforms          field.String
+	BuildkitBuildArgs          field.String
 	Repository                 builderBelongsToRepository
 
 	fieldMap map[string]field.Expr
@@ -148,6 +150,7 @@ func (b *builder) updateTableName(table string) *builder {
 	b.BuildkitContext = field.NewString(table, "buildkit_context")
 	b.BuildkitDockerfile = field.NewString(table, "buildkit_dockerfile")
 	b.BuildkitPlatforms = field.NewString(table, "buildkit_platforms")
+	b.BuildkitBuildArgs = field.NewString(table, "buildkit_build_args")
 
 	b.fillFieldMap()
 
@@ -172,7 +175,7 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 29)
+	b.fieldMap = make(map[string]field.Expr, 30)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -201,6 +204,7 @@ func (b *builder) fillFieldMap() {
 	b.fieldMap["buildkit_context"] = b.BuildkitContext
 	b.fieldMap["buildkit_dockerfile"] = b.BuildkitDockerfile
 	b.fieldMap["buildkit_platforms"] = b.BuildkitPlatforms
+	b.fieldMap["buildkit_build_args"] = b.BuildkitBuildArgs
 
 }
 

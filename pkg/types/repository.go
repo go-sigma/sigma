@@ -20,13 +20,15 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 type RepositoryItem struct {
 	ID          int64            `json:"id" example:"1"`
 	Name        string           `json:"name" example:"busybox"`
-	Description *string          `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
-	Overview    *string          `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
+	Description *string          `json:"description,omitempty" example:"i am just description"`
+	Overview    *string          `json:"overview,omitempty" example:"i am just overview"`
 	Visibility  enums.Visibility `json:"visibility" example:"private"`
 	TagCount    int64            `json:"tag_count" example:"100"`
 	TagLimit    *int64           `json:"tag_limit" example:"1000"`
 	SizeLimit   *int64           `json:"size_limit" example:"10000"`
 	Size        *int64           `json:"size" example:"10000"`
+
+	Builder *BuilderItem `json:"builder"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

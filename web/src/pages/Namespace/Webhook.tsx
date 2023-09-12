@@ -27,7 +27,7 @@ import Settings from "../../Settings";
 import TableItem from "../Repository/TableItem";
 import "./index.css";
 
-import { IRepository, IRepositoryList, IHTTPError } from "../../interfaces";
+import { IRepositoryItem, IRepositoryList, IHTTPError } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
