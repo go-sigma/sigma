@@ -51,6 +51,12 @@ type ListCodeRepositoryRequest struct {
 	Name     *string        `json:"name,omitempty" query:"name" validate:"omitempty,min=1"`
 }
 
+// GetCodeRepositoryRequest ...
+type GetCodeRepositoryRequest struct {
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+	ID       int64          `json:"id" param:"id" validate:"required,number"`
+}
+
 // ListCodeRepositoryOwnerRequest ....
 type ListCodeRepositoryOwnerRequest struct {
 	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`

@@ -299,6 +299,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/coderepos/{provider}/repos/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "Get code repository by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search code repository with provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code repository id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CodeRepositoryItem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/coderepos/{provider}/resync": {
             "get": {
                 "security": [
@@ -3170,6 +3219,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "buildkit_build_args": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "a=b,c=d"
                 },
@@ -3214,6 +3264,7 @@ const docTemplate = `{
                     "example": "main"
                 },
                 "cron_rule": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "* * * * *"
                 },
@@ -3290,6 +3341,7 @@ const docTemplate = `{
                     "example": "{.Ref}"
                 },
                 "webhook_tag_tag_template": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "{.Ref}"
                 }
@@ -3495,6 +3547,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "buildkit_build_args": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "a=b,c=d"
                 },
@@ -3539,6 +3592,7 @@ const docTemplate = `{
                     "example": "main"
                 },
                 "cron_rule": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "* * * * *"
                 },
@@ -3615,6 +3669,7 @@ const docTemplate = `{
                     "example": "{.Ref}"
                 },
                 "webhook_tag_tag_template": {
+                    "description": "TODO: validate",
                     "type": "string",
                     "example": "{.Ref}"
                 }

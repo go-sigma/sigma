@@ -57,15 +57,15 @@ func (h *handlers) GetBuilder(c echo.Context) error {
 	builderObj, err := builderService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Builder not found")
+			log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Builder not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
 		}
-		log.Error().Err(err).Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Get builder failed")
+		log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Get builder failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
 	}
 
 	if builderObj.RepositoryID != req.RepositoryID {
-		log.Error().Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Builder not found")
+		log.Error().Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Builder not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found", req.ID))
 	}
 

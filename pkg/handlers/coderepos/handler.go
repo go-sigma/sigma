@@ -31,6 +31,8 @@ import (
 type Handlers interface {
 	// List list all of the code repositories
 	List(c echo.Context) error
+	// Get get code repository by id
+	Get(c echo.Context) error
 	// ListOwner list all of the code repository owner
 	ListOwners(c echo.Context) error
 	// ListBranches ...
@@ -111,6 +113,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	codeRepositoryHandler := handlerNew()
 	codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
 	codereposGroup.GET("/:provider", codeRepositoryHandler.List)
+	codereposGroup.GET("/:provider/repos/:id", codeRepositoryHandler.Get)
 	codereposGroup.GET("/:provider/user3rdparty", codeRepositoryHandler.User3rdParty)
 	codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
 	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
