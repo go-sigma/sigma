@@ -16,13 +16,13 @@ package manifest
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"path"
 	"strings"
 
-	"github.com/bytedance/sonic"
 	"github.com/distribution/distribution/v3"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
@@ -292,7 +292,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 	taskSbomPayload := types.TaskSbom{
 		ArtifactID: artifactObj.ID,
 	}
-	taskSbomPayloadBytes, err := sonic.Marshal(taskSbomPayload)
+	taskSbomPayloadBytes, err := json.Marshal(taskSbomPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
 		return
@@ -318,7 +318,7 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	taskVulnerabilityPayload := types.TaskVulnerability{
 		ArtifactID: artifactObj.ID,
 	}
-	taskVulnerabilityPayloadBytes, err := sonic.Marshal(taskVulnerabilityPayload)
+	taskVulnerabilityPayloadBytes, err := json.Marshal(taskVulnerabilityPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
 		return

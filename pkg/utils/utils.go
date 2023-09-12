@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bytedance/sonic"
+	"github.com/bytedance/json"
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
@@ -130,7 +130,7 @@ func IsExist(path string) bool {
 
 // MustMarshal marshals the given object to bytes.
 func MustMarshal(in any) []byte {
-	result, err := sonic.Marshal(in)
+	result, err := json.Marshal(in)
 	if err != nil {
 		panic(err)
 	}

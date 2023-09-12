@@ -20,13 +20,13 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/go-resty/resty/v2"
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
@@ -49,7 +49,7 @@ func init() {
 
 func webhookRunner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonWebhookPayload
-	err := sonic.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal(task.Payload(), &payload)
 	if err != nil {
 		return fmt.Errorf("Unmarshal payload failed: %v", err)
 	}
@@ -90,7 +90,7 @@ func (w webhook) resend(ctx context.Context, payload types.DaemonWebhookPayload)
 		ReqBody:   webhookLogObj.ReqBody,
 	}
 	var headers map[string]string
-	err = sonic.Unmarshal(webhookLogObj.ReqHeader, &headers)
+	err = json.Unmarshal(webhookLogObj.ReqHeader, &headers)
 	if err != nil {
 		return nil, err
 	}
