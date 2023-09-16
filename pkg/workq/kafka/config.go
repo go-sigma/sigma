@@ -12,15 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package imports
+package kafka
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/cronjob"
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
-	_ "github.com/go-sigma/sigma/pkg/workq/database"
-	_ "github.com/go-sigma/sigma/pkg/workq/kafka"
+	"time"
+
+	"github.com/IBM/sarama"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
+
+// Config ...
+func Config(cfg configs.Configuration) *sarama.Config {
+	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 5
+	config.Consumer.Group.Session.Timeout = 10 * time.Second
+	config.Consumer.Group.Heartbeat.Interval = 3 * time.Second
+	return config
+}

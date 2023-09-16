@@ -22,6 +22,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 //go:generate mockgen -destination=mocks/builder.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BuilderService
@@ -43,6 +47,8 @@ type BuilderService interface {
 	CreateRunner(ctx context.Context, log *models.BuilderRunner) error
 	// GetRunner get runner from object storage or database
 	GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error)
+	// ListRunners list builder runners
+	ListRunners(ctx context.Context, id int64, pagination types.Pagination, sort types.Sortable) ([]*models.BuilderRunner, int64, error)
 	// UpdateRunner update builder runner
 	UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error
 	// GetByNextTrigger get by next trigger
@@ -131,6 +137,26 @@ func (s builderService) CreateRunner(ctx context.Context, log *models.BuilderRun
 // GetRunner get runner from object storage or database
 func (s builderService) GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error) {
 	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(id)).First()
+}
+
+// ListRunners list builder runners
+func (s builderService) ListRunners(ctx context.Context, id int64, pagination types.Pagination, sort types.Sortable) ([]*models.BuilderRunner, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(id))
+	field, ok := s.tx.BuilderRunner.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // UpdateRunner update builder runner

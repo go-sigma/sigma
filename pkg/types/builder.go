@@ -153,3 +153,27 @@ type PutBuilderRequest struct {
 type PutBuilderRequestSwagger struct {
 	PostOrPutBuilderRequest
 }
+
+// ListBuilderRunnersRequest ...
+type ListBuilderRunnersRequest struct {
+	Pagination
+	Sortable
+
+	ID           int64 `json:"id" param:"id" validate:"required,number"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+}
+
+// BuilderRunnerItem ...
+type BuilderRunnerItem struct {
+	ID        int64 `json:"id" example:"10"`
+	BuilderID int64
+	Log       []byte
+	Status    enums.BuildStatus
+
+	Tag               string
+	ScmBranch         string
+	BuildkitPlatforms []enums.OciPlatform `json:"buildkit_platforms" example:"linux/amd64"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
