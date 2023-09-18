@@ -50,6 +50,7 @@ func main() {
 		models.WebhookLog{},
 		models.Builder{},
 		models.BuilderRunner{},
+		models.WorkQueue{},
 	)
 
 	g.Execute()

@@ -39,6 +39,7 @@ var (
 	UserRecoverCode               *userRecoverCode
 	Webhook                       *webhook
 	WebhookLog                    *webhookLog
+	WorkQueue                     *workQueue
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -65,6 +66,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	UserRecoverCode = &Q.UserRecoverCode
 	Webhook = &Q.Webhook
 	WebhookLog = &Q.WebhookLog
+	WorkQueue = &Q.WorkQueue
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -92,6 +94,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		UserRecoverCode:               newUserRecoverCode(db, opts...),
 		Webhook:                       newWebhook(db, opts...),
 		WebhookLog:                    newWebhookLog(db, opts...),
+		WorkQueue:                     newWorkQueue(db, opts...),
 	}
 }
 
@@ -120,6 +123,7 @@ type Query struct {
 	UserRecoverCode               userRecoverCode
 	Webhook                       webhook
 	WebhookLog                    webhookLog
+	WorkQueue                     workQueue
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -149,6 +153,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		UserRecoverCode:               q.UserRecoverCode.clone(db),
 		Webhook:                       q.Webhook.clone(db),
 		WebhookLog:                    q.WebhookLog.clone(db),
+		WorkQueue:                     q.WorkQueue.clone(db),
 	}
 }
 
@@ -185,6 +190,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		UserRecoverCode:               q.UserRecoverCode.replaceDB(db),
 		Webhook:                       q.Webhook.replaceDB(db),
 		WebhookLog:                    q.WebhookLog.replaceDB(db),
+		WorkQueue:                     q.WorkQueue.replaceDB(db),
 	}
 }
 
@@ -211,6 +217,7 @@ type queryCtx struct {
 	UserRecoverCode               *userRecoverCodeDo
 	Webhook                       *webhookDo
 	WebhookLog                    *webhookLogDo
+	WorkQueue                     *workQueueDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -237,6 +244,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		UserRecoverCode:               q.UserRecoverCode.WithContext(ctx),
 		Webhook:                       q.Webhook.WithContext(ctx),
 		WebhookLog:                    q.WebhookLog.WithContext(ctx),
+		WorkQueue:                     q.WorkQueue.WithContext(ctx),
 	}
 }
 

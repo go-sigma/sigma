@@ -71,6 +71,8 @@ type CacheType string
 
 // CacheKey x ENUM(
 // redis,
+// kafka,
+// database,
 // )
 type WorkQueueType string
 

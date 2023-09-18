@@ -2003,6 +2003,10 @@ func (x WebhookResourceType) Value() (driver.Value, error) {
 const (
 	// WorkQueueTypeRedis is a WorkQueueType of type redis.
 	WorkQueueTypeRedis WorkQueueType = "redis"
+	// WorkQueueTypeKafka is a WorkQueueType of type kafka.
+	WorkQueueTypeKafka WorkQueueType = "kafka"
+	// WorkQueueTypeDatabase is a WorkQueueType of type database.
+	WorkQueueTypeDatabase WorkQueueType = "database"
 )
 
 var ErrInvalidWorkQueueType = errors.New("not a valid WorkQueueType")
@@ -2020,7 +2024,9 @@ func (x WorkQueueType) IsValid() bool {
 }
 
 var _WorkQueueTypeValue = map[string]WorkQueueType{
-	"redis": WorkQueueTypeRedis,
+	"redis":    WorkQueueTypeRedis,
+	"kafka":    WorkQueueTypeKafka,
+	"database": WorkQueueTypeDatabase,
 }
 
 // ParseWorkQueueType attempts to convert a string to a WorkQueueType.

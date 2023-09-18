@@ -403,7 +403,9 @@ CREATE TABLE IF NOT EXISTS `work_queue` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `topic` varchar(30) NOT NULL,
   `payload` BLOB NOT NULL,
+  `times` integer NOT NULL DEFAULT 0,
   `version` varchar(30) NOT NULL,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0

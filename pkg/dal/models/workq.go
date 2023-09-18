@@ -12,15 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package imports
+package models
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/cronjob"
-	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
-	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
-	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
-	_ "github.com/go-sigma/sigma/pkg/workq/database"
-	_ "github.com/go-sigma/sigma/pkg/workq/kafka"
+	"time"
+
+	"gorm.io/plugin/soft_delete"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
+
+// WorkQueue ...
+type WorkQueue struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	Topic   string
+	Payload []byte
+	Times   int
+	Version string
+	Status  enums.TaskCommonStatus `gorm:"default:Pending"`
+}

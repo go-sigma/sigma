@@ -35,6 +35,8 @@ type Handlers interface {
 	GetBuilder(c echo.Context) error
 	// PutBuilder handles the put builder request
 	PutBuilder(c echo.Context) error
+	// ListRunners handles the list builder runners request
+	ListRunners(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -95,10 +97,11 @@ type factory struct{}
 func (f factory) Initialize(e *echo.Echo) error {
 	builderGroup := e.Group(consts.APIV1+"/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	webhookHandler := handlerNew()
-	builderGroup.POST("/", webhookHandler.PostBuilder)
-	builderGroup.GET("/:id", webhookHandler.GetBuilder)
-	builderGroup.PUT("/:id", webhookHandler.PutBuilder)
+	handler := handlerNew()
+	builderGroup.POST("/", handler.PostBuilder)
+	builderGroup.GET("/:id", handler.GetBuilder)
+	builderGroup.PUT("/:id", handler.PutBuilder)
+	builderGroup.GET("/:id/runners/", handler.GetBuilder)
 	return nil
 }
 

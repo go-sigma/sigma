@@ -474,7 +474,9 @@ CREATE TABLE IF NOT EXISTS "work_queue" (
   "id" bigserial PRIMARY KEY,
   "topic" varchar(30) NOT NULL,
   "payload" bytea NOT NULL,
+  "times" smallint NOT NULL DEFAULT 0,
   "version" varchar(30) NOT NULL,
+  "status" daemon_status NOT NULL DEFAULT 'Pending',
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0

@@ -64,6 +64,21 @@ func (mr *MockBuilderServiceMockRecorder) CreateRunner(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRunner", reflect.TypeOf((*MockBuilderService)(nil).CreateRunner), arg0, arg1)
 }
 
+// Get mocks base method.
+func (m *MockBuilderService) Get(arg0 context.Context, arg1 int64) (*models.Builder, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*models.Builder)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockBuilderServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBuilderService)(nil).Get), arg0, arg1)
+}
+
 // GetByNextTrigger mocks base method.
 func (m *MockBuilderService) GetByNextTrigger(arg0 context.Context, arg1 time.Time, arg2 int) ([]*models.Builder, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +109,21 @@ func (mr *MockBuilderServiceMockRecorder) GetByRepositoryID(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRepositoryID", reflect.TypeOf((*MockBuilderService)(nil).GetByRepositoryID), arg0, arg1)
 }
 
+// GetByRepositoryIDs mocks base method.
+func (m *MockBuilderService) GetByRepositoryIDs(arg0 context.Context, arg1 []int64) (map[int64]*models.Builder, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByRepositoryIDs", arg0, arg1)
+	ret0, _ := ret[0].(map[int64]*models.Builder)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByRepositoryIDs indicates an expected call of GetByRepositoryIDs.
+func (mr *MockBuilderServiceMockRecorder) GetByRepositoryIDs(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRepositoryIDs", reflect.TypeOf((*MockBuilderService)(nil).GetByRepositoryIDs), arg0, arg1)
+}
+
 // GetRunner mocks base method.
 func (m *MockBuilderService) GetRunner(arg0 context.Context, arg1 int64) (*models.BuilderRunner, error) {
 	m.ctrl.T.Helper()
@@ -107,6 +137,20 @@ func (m *MockBuilderService) GetRunner(arg0 context.Context, arg1 int64) (*model
 func (mr *MockBuilderServiceMockRecorder) GetRunner(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRunner", reflect.TypeOf((*MockBuilderService)(nil).GetRunner), arg0, arg1)
+}
+
+// Update mocks base method.
+func (m *MockBuilderService) Update(arg0 context.Context, arg1 int64, arg2 map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockBuilderServiceMockRecorder) Update(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockBuilderService)(nil).Update), arg0, arg1, arg2)
 }
 
 // UpdateNextTrigger mocks base method.

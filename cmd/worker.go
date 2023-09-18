@@ -29,7 +29,7 @@ import (
 // workerCmd represents the worker command
 var workerCmd = &cobra.Command{
 	Use:   "worker",
-	Short: "Start the XImager worker",
+	Short: "Start the sigma worker",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		initConfig()
 		logger.SetLevel(viper.GetString("log.level"))

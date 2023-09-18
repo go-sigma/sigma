@@ -516,6 +516,7 @@ definitions:
   types.PostBuilderRequestSwagger:
     properties:
       buildkit_build_args:
+        description: 'TODO: validate'
         example: a=b,c=d
         type: string
       buildkit_context:
@@ -549,6 +550,7 @@ definitions:
         example: main
         type: string
       cron_rule:
+        description: 'TODO: validate'
         example: '* * * * *'
         type: string
       cron_tag_template:
@@ -603,6 +605,7 @@ definitions:
         example: '{.Ref}'
         type: string
       webhook_tag_tag_template:
+        description: 'TODO: validate'
         example: '{.Ref}'
         type: string
     required:
@@ -748,6 +751,7 @@ definitions:
   types.PutBuilderRequestSwagger:
     properties:
       buildkit_build_args:
+        description: 'TODO: validate'
         example: a=b,c=d
         type: string
       buildkit_context:
@@ -781,6 +785,7 @@ definitions:
         example: main
         type: string
       cron_rule:
+        description: 'TODO: validate'
         example: '* * * * *'
         type: string
       cron_tag_template:
@@ -835,6 +840,7 @@ definitions:
         example: '{.Ref}'
         type: string
       webhook_tag_tag_template:
+        description: 'TODO: validate'
         example: '{.Ref}'
         type: string
     required:
@@ -1268,6 +1274,37 @@ paths:
       security:
       - BasicAuth: []
       summary: List code repository owners
+      tags:
+      - CodeRepository
+  /coderepos/{provider}/repos/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search code repository with provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: code repository id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CodeRepositoryItem'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get code repository by id
       tags:
       - CodeRepository
   /coderepos/{provider}/resync:

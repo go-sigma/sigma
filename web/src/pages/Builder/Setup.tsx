@@ -249,6 +249,32 @@ export default function ({ localServer }: { localServer: string }) {
         const data = response.data as ICodeRepositoryBranchList;
         setCodeRepositoryBranchList(data.items);
         setCodeRepositoryBranchFilteredList(data.items);
+        if (searchParams.get('code_repository_branch_name') !== null) {
+          for (let i = 0; i < data.total; i++) {
+            if (data.items[i].name === searchParams.get('code_repository_branch_name')) {
+              setCodeRepositoryBranchSelected(data.items[i]);
+              setSearchParams({
+                ...Object.fromEntries(searchParams.entries()),
+                code_repository_branch_name: data.items[i].name,
+                code_repository_branch_id: data.items[i].id.toString(),
+              });
+              break;
+            }
+          }
+        }
+        if (searchParams.get('cron_branch_name') !== null) {
+          for (let i = 0; i < data.total; i++) {
+            if (data.items[i].name === searchParams.get('cron_branch_name')) {
+              setCodeRepositoryBranchSelected(data.items[i]);
+              setSearchParams({
+                ...Object.fromEntries(searchParams.entries()),
+                cron_branch_name: data.items[i].name,
+                cron_branch_id: data.items[i].id.toString(),
+              });
+              break;
+            }
+          }
+        }
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -445,6 +471,15 @@ export default function ({ localServer }: { localServer: string }) {
           builder_source: builderItem.source,
           cron_enabled: builderItem.cron_rule !== null ? "true" : "false",
         });
+        if (builderItem.scm_branch !== undefined) {
+          setSearchParams({
+            ...Object.fromEntries(searchParams.entries()),
+            code_repository_branch_name: builderItem.scm_branch || '',
+          });
+        }
+        if (builderItem.code_repository_id !== undefined) {
+          
+        }
         let ps = "";
         let platforms: {
           id: number;
@@ -475,6 +510,15 @@ export default function ({ localServer }: { localServer: string }) {
           setCronTagTemplate(builderItem.cron_tag_template || '');
           if (builderItem.source === 'SelfCodeRepository') {
             setCronBranch(builderItem.cron_branch || '');
+            setSearchParams({
+              ...Object.fromEntries(searchParams.entries()),
+              cron_branch_name: builderItem.cron_branch || '',
+            });
+          } else if (builderItem.source === 'CodeRepository') {
+            setSearchParams({
+              ...Object.fromEntries(searchParams.entries()),
+              cron_branch_name: builderItem.cron_branch || '',
+            });
           }
         }
       }

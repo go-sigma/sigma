@@ -30,7 +30,7 @@ import (
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Start the XImager server",
+	Short: "Start the sigma server",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		initConfig()
 		logger.SetLevel(viper.GetString("log.level"))

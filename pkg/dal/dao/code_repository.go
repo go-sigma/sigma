@@ -50,6 +50,8 @@ type CodeRepositoryService interface {
 	DeleteBranchesInBatches(ctx context.Context, ids []int64) error
 	// ListAll lists all code repository records in the database
 	ListAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepository, error)
+	// Get get code repository record by id
+	Get(ctx context.Context, id int64) (*models.CodeRepository, error)
 	// ListOwnersAll lists all code repository owners records in the database
 	ListOwnersAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepositoryOwner, error)
 	// ListWithPagination list code repositories with pagination
@@ -174,6 +176,11 @@ func (s *codeRepositoryService) DeleteBranchesInBatches(ctx context.Context, ids
 // ListAll lists all code repository records in the database
 func (s *codeRepositoryService) ListAll(ctx context.Context, user3rdPartyID int64) ([]*models.CodeRepository, error) {
 	return s.tx.CodeRepository.WithContext(ctx).Where(s.tx.CodeRepository.User3rdPartyID.Eq(user3rdPartyID)).Find()
+}
+
+// Get get code repository record by id
+func (s *codeRepositoryService) Get(ctx context.Context, id int64) (*models.CodeRepository, error) {
+	return s.tx.CodeRepository.WithContext(ctx).Where(s.tx.CodeRepository.ID.Eq(id)).Preload(s.tx.CodeRepository.User3rdParty).First()
 }
 
 // ListOwnersAll lists all code repository owners records in the database

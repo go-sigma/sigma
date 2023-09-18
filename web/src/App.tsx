@@ -30,6 +30,7 @@ import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
+import BuilderRunner from './pages/CodeRepository/BuilderRunner';
 
 import BuildersSetup from './pages/Builder/Setup';
 
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repository/builder-runners" element={<BuilderRunner localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
 
         <Route path="/coderepos" element={<CodeRepositoryHome localServer={localServer} />} />
