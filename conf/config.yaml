@@ -3,6 +3,7 @@
 log:
   level: debug
   proxyLevel: info
+
 database:
   # The database type to use. Supported types are: sqlite3, mysql, postgresql
   type: sqlite3
@@ -32,15 +33,28 @@ redis:
   url: redis://:sigma@localhost:6379/0
 
 cache:
-  # the cache type available is: redis
+  # the cache type available is: redis, inmemory, database
   type: redis
   # please attention in multi
-  inmemory: {}
-  redis: {}
+  inmemory:
+    size: 10240
+  redis:
+    ttl: 72h
+  database:
+    size: 10240
+    threshold: 0.2
 
 workqueue:
-  # the workqueue type available: redis
+  # the workqueue type available: redis, kafka, database
   type: redis
+  redis: {}
+  kafka: {}
+  database: {}
+
+locker:
+  # the locker type available: redis, database
+  type: database
+  database: {}
   redis: {}
 
 namespace:

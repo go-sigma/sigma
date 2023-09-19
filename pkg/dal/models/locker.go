@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package models
 
-const (
-	// TopicSbom is the topic for the sbom
-	// TopicSbom = "sbom"
-	// // TopicVulnerability is the topic for the vuln
-	// TopicVulnerability = "vuln"
-	// TopicGc is the topic for the gc
-	TopicGc = "gc"
-	// TopicGcRepository is the topic for the gc repository
-	TopicGcRepository = "gc_repository"
-	// TopicWebhook is the topic for the webhook
-	TopicWebhook = "webhook"
-	// TopicBuilder is the topic for the builder
-	TopicBuilder = "builder"
-	// TopicCodeRepository is the topic for the code repository
-	TopicCodeRepository = "code_repository"
+import (
+	"time"
+
+	"gorm.io/plugin/soft_delete"
 )
+
+// Locker locker
+type Locker struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	Name string `gorm:"uniqueIndex,size:256"`
+}

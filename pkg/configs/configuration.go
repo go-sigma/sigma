@@ -15,6 +15,8 @@
 package configs
 
 import (
+	"time"
+
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -33,6 +35,7 @@ type Configuration struct {
 	Redis     ConfigurationRedis     `yaml:"redis"`
 	Cache     ConfigurationCache     `yaml:"cache"`
 	WorkQueue ConfigurationWorkQueue `yaml:"workqueue"`
+	Locker    ConfigurationLocker    `yaml:"locker"`
 	Namespace ConfigurationNamespace `yaml:"namespace"`
 	HTTP      ConfigurationHTTP      `yaml:"http"`
 	Storage   ConfigurationStorage   `yaml:"storage"`
@@ -100,14 +103,38 @@ type ConfigurationRedis struct {
 	Url  string          `yaml:"url"`
 }
 
+// ConfigurationCacheRedis ...
+type ConfigurationCacheRedis struct {
+	Ttl time.Duration `yaml:"ttl"`
+}
+
+// ConfigurationCacheInmemory ...
+type ConfigurationCacheInmemory struct {
+	Size int64 `yaml:"size"`
+}
+
+// ConfigurationCacheDatabase ...
+type ConfigurationCacheDatabase struct {
+	Size      int64   `yaml:"size"`
+	Threshold float64 `yaml:"threshold"`
+}
+
 // ConfigurationCache ...
 type ConfigurationCache struct {
-	Type enums.CacheType `yaml:"type"`
+	Type     enums.CacherType           `yaml:"type"`
+	Redis    ConfigurationCacheRedis    `yaml:"redis"`
+	Inmemory ConfigurationCacheInmemory `yaml:"inmemory"`
+	Database ConfigurationCacheDatabase `yaml:"database"`
 }
 
 // ConfigurationWorkQueue ...
 type ConfigurationWorkQueue struct {
 	Type enums.WorkQueueType `yaml:"type"`
+}
+
+// ConfigurationLocker ...
+type ConfigurationLocker struct {
+	Type enums.LockerType `yaml:"type"`
 }
 
 // ConfigurationNamespace ...

@@ -33,6 +33,7 @@ func newWorkQueue(db *gorm.DB, opts ...gen.DOOption) workQueue {
 	_workQueue.ID = field.NewInt64(tableName, "id")
 	_workQueue.Topic = field.NewString(tableName, "topic")
 	_workQueue.Payload = field.NewBytes(tableName, "payload")
+	_workQueue.Times = field.NewInt(tableName, "times")
 	_workQueue.Version = field.NewString(tableName, "version")
 	_workQueue.Status = field.NewField(tableName, "status")
 
@@ -51,6 +52,7 @@ type workQueue struct {
 	ID        field.Int64
 	Topic     field.String
 	Payload   field.Bytes
+	Times     field.Int
 	Version   field.String
 	Status    field.Field
 
@@ -75,6 +77,7 @@ func (w *workQueue) updateTableName(table string) *workQueue {
 	w.ID = field.NewInt64(table, "id")
 	w.Topic = field.NewString(table, "topic")
 	w.Payload = field.NewBytes(table, "payload")
+	w.Times = field.NewInt(table, "times")
 	w.Version = field.NewString(table, "version")
 	w.Status = field.NewField(table, "status")
 
@@ -103,13 +106,14 @@ func (w *workQueue) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (w *workQueue) fillFieldMap() {
-	w.fieldMap = make(map[string]field.Expr, 8)
+	w.fieldMap = make(map[string]field.Expr, 9)
 	w.fieldMap["created_at"] = w.CreatedAt
 	w.fieldMap["updated_at"] = w.UpdatedAt
 	w.fieldMap["deleted_at"] = w.DeletedAt
 	w.fieldMap["id"] = w.ID
 	w.fieldMap["topic"] = w.Topic
 	w.fieldMap["payload"] = w.Payload
+	w.fieldMap["times"] = w.Times
 	w.fieldMap["version"] = w.Version
 	w.fieldMap["status"] = w.Status
 }

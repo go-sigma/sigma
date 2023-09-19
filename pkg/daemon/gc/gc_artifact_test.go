@@ -30,6 +30,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/database"
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/redis"
 )
 
 func TestGcArtifact(t *testing.T) {

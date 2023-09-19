@@ -51,7 +51,11 @@ func main() {
 		models.Builder{},
 		models.BuilderRunner{},
 		models.WorkQueue{},
+		models.Locker{},
+		models.Cache{},
 	)
+
+	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})
 
 	g.Execute()
 }

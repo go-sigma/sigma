@@ -27,6 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/logger"
+
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/database"
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/redis"
 )
 
 func TestAuth(t *testing.T) {

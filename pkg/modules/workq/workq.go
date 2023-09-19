@@ -80,11 +80,10 @@ func Initialize(config configs.Configuration) error {
 	if !ok {
 		return fmt.Errorf("Work queue producer(%s) not support", config.WorkQueue.Type.String())
 	}
-	producer, err := producerClientFactory.New(config)
+	ProducerClient, err = producerClientFactory.New(config)
 	if err != nil {
 		return err
 	}
-	ProducerClient = producer
 	return nil
 }
 

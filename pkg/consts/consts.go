@@ -17,6 +17,7 @@ package consts
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	pwdvalidate "github.com/wagslane/go-password-validator"
 )
@@ -129,4 +130,11 @@ const (
 var (
 	// KeepNamespaces ...
 	KeepNamespaces = []string{"api", "v2"}
+)
+
+const (
+	// LockerRetryDelay ...
+	LockerRetryDelay = time.Second * 1
+	// LockerRetryMaxTimes ...
+	LockerRetryMaxTimes = 6
 )

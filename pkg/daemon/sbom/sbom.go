@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	syftTypes "github.com/anchore/syft/syft/formats/syftjson/model"
 	"github.com/anchore/syft/syft/source"
@@ -30,13 +31,19 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
 )
 
 func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonSbom, daemon.DecoratorArtifact(runner)))
+	workq.TopicConsumers[enums.DaemonSbom.String()] = workq.Consumer{
+		Handler:     daemon.DecoratorArtifact(runner),
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
 }
 
 // ReportDistro ...

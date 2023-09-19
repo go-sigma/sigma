@@ -36,7 +36,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/serializer"
 	"github.com/go-sigma/sigma/web"
 )
@@ -49,7 +51,7 @@ type ServerConfig struct {
 }
 
 // Serve starts the server
-func Serve(config ServerConfig) error {
+func Serve(serverConfig ServerConfig) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -77,10 +79,10 @@ func Serve(config ServerConfig) error {
 		pprof.Register(e)
 	}
 
-	if !config.WithoutDistribution {
+	if !serverConfig.WithoutDistribution {
 		handlers.InitializeDistribution(e)
 	}
-	if !config.WithoutWorker {
+	if !serverConfig.WithoutWorker {
 		err := builder.Initialize()
 		if err != nil {
 			return err
@@ -89,8 +91,16 @@ func Serve(config ServerConfig) error {
 		if err != nil {
 			return err
 		}
+		err = workq.Initialize(configs.Configuration{
+			WorkQueue: configs.ConfigurationWorkQueue{
+				Type: enums.WorkQueueTypeDatabase,
+			},
+		})
+		if err != nil {
+			return err
+		}
 	}
-	if !config.WithoutWeb {
+	if !serverConfig.WithoutWeb {
 		web.RegisterHandlers(e)
 	}
 

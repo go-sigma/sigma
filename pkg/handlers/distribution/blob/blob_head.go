@@ -28,10 +28,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
-	"github.com/go-sigma/sigma/pkg/utils/cacher"
+	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -51,7 +50,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
-	blob, err := cacher.New(dal.RedisCli, consts.CacherBlob, func(key string) (*models.Blob, error) {
+	cache, err := cacher.New(consts.CacherBlob, func(key string) (*models.Blob, error) {
 		dgest, err := digest.Parse(key)
 		if err != nil {
 			log.Error().Err(err).Str("digest", key).Msg("Parse digest failed")
@@ -97,7 +96,12 @@ func (h *handler) HeadBlob(c echo.Context) error {
 			return nil, xerrors.DSErrCodeBlobUnknown
 		}
 		return blob, nil
-	}).Get(ctx, dgest.String())
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("Head blob failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	blobObj, err := cache.Get(ctx, dgest.String())
 	if err != nil {
 		if err, ok := err.(xerrors.ErrCode); ok {
 			return xerrors.NewDSError(c, err)
@@ -106,6 +110,6 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blob.Size))
+	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blobObj.Size))
 	return c.NoContent(http.StatusOK)
 }

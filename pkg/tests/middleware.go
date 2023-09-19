@@ -22,6 +22,8 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -69,5 +71,13 @@ func Initialize(t *testing.T) error {
 		return fmt.Errorf("ci database %q not registered", typ)
 	}
 	DB = factory.New()
+
+	err := locker.Initialize(configs.Configuration{
+		Locker: configs.ConfigurationLocker{Type: enums.LockerTypeDatabase},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

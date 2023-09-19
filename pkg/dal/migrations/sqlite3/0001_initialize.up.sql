@@ -399,15 +399,27 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `work_queue` (
+CREATE TABLE IF NOT EXISTS `work_queues` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `topic` varchar(30) NOT NULL,
   `payload` BLOB NOT NULL,
   `times` integer NOT NULL DEFAULT 0,
-  `version` varchar(30) NOT NULL,
+  `version` varchar(36) NOT NULL,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `deleted_at` integer NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS `caches` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `key` varchar(256) NOT NULL UNIQUE,
+  `val` BLOB NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  CONSTRAINT `caches_unique_with_key` UNIQUE (`key`, `deleted_at`)
+);
+
+CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
 

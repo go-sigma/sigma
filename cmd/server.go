@@ -25,6 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // serverCmd represents the server command
@@ -39,6 +41,12 @@ var serverCmd = &cobra.Command{
 		err := configs.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize configs with error")
+			return
+		}
+
+		err = locker.Initialize(ptr.To(configs.GetConfiguration()))
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize locker with error")
 			return
 		}
 
