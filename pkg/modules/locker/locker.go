@@ -15,48 +15,27 @@
 package locker
 
 import (
-	"context"
-	"fmt"
-	"strings"
-	"time"
-
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/modules/locker/database"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/modules/locker/redis"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// Lock ...
-type Lock interface {
-	// Unlock ...
-	Unlock() error
-}
-
-// Locker ...
-type Locker interface {
-	// Lock ...
-	Lock(ctx context.Context, name string, expire time.Duration) (Lock, error)
-}
-
-// LockerFactory ...
-type LockerFactory interface {
-	// New ...
-	New(config configs.Configuration) (Locker, error)
-}
-
-// LockerFactories ...
-var LockerFactories = make(map[string]LockerFactory, 5)
-
-// LockerClient ...
-var LockerClient Locker
-
-// Initialize ...
-func Initialize(config configs.Configuration) error {
-	l, ok := LockerFactories[strings.ToLower(config.Locker.Type.String())]
-	if !ok {
-		return fmt.Errorf("Locker %s not support", strings.ToLower(config.Locker.Type.String()))
-	}
+// New ...
+func New() (definition.Locker, error) {
 	var err error
-	LockerClient, err = l.New(config)
-	if err != nil {
-		return err
+	var lock definition.Locker
+	config := ptr.To(configs.GetConfiguration())
+	switch config.Locker.Type {
+	case enums.LockerTypeDatabase:
+		lock, err = database.New(config)
+	case enums.LockerTypeRedis:
+		lock, err = redis.New(config)
+	default:
+		lock, err = database.New(config)
+		// return nil, fmt.Errorf("Locker %s not support", config.Cache.Type)
 	}
-	return nil
+	return lock, err
 }

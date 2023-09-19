@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -34,7 +35,7 @@ import (
 )
 
 func TestRepositoryServiceFactory(t *testing.T) {
-	f := NewRepositoryServiceFactory()
+	f := dao.NewRepositoryServiceFactory()
 	repositoryService := f.New()
 	assert.NotNil(t, repositoryService)
 	repositoryService = f.New(query.Q)
@@ -59,9 +60,9 @@ func TestRepositoryService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	namespaceServiceFactory := NewNamespaceServiceFactory()
-	repositoryServiceFactory := NewRepositoryServiceFactory()
-	userServiceFactory := NewUserServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
@@ -76,13 +77,13 @@ func TestRepositoryService(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		namespaceObj1 := &models.Namespace{Name: "test1", Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj1)
 		assert.NoError(t, err)
-		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: enums.VisibilityPrivate}, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: enums.VisibilityPrivate}, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		count1, err := repositoryService.CountRepository(ctx, namespaceObj.ID, nil)

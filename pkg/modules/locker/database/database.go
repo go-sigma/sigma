@@ -17,8 +17,6 @@ package database
 import (
 	"context"
 	"errors"
-	"path"
-	"reflect"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -26,20 +24,14 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 )
-
-func init() {
-	locker.LockerFactories[path.Base(reflect.TypeOf(lockerFactory{}).PkgPath())] = &lockerFactory{}
-}
 
 type lockerDatabase struct {
 	lockerServiceFactory dao.LockerServiceFactory
 }
 
-type lockerFactory struct{}
-
-func (f lockerFactory) New(config configs.Configuration) (locker.Locker, error) {
+func New(config configs.Configuration) (definition.Locker, error) {
 	return &lockerDatabase{
 		lockerServiceFactory: dao.NewLockerServiceFactory(),
 	}, nil
@@ -51,7 +43,7 @@ type lock struct {
 }
 
 // Lock ...
-func (l lockerDatabase) Lock(ctx context.Context, name string, expire time.Duration) (locker.Lock, error) {
+func (l lockerDatabase) Lock(ctx context.Context, name string, expire time.Duration) (definition.Lock, error) {
 	err := l.lockerServiceFactory.New().Create(ctx, name)
 	if err != nil {
 		return nil, err

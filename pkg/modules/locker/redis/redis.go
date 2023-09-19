@@ -16,8 +16,6 @@ package redis
 
 import (
 	"context"
-	"path"
-	"reflect"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -26,20 +24,14 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 )
-
-func init() {
-	locker.LockerFactories[path.Base(reflect.TypeOf(lockerFactory{}).PkgPath())] = &lockerFactory{}
-}
 
 type lockerRedis struct {
 	redsync *redsync.Redsync
 }
 
-type lockerFactory struct{}
-
-func (f lockerFactory) New(config configs.Configuration) (locker.Locker, error) {
+func New(config configs.Configuration) (definition.Locker, error) {
 	redisOpt, err := redis.ParseURL(config.Redis.Url)
 	if err != nil {
 		return nil, err
@@ -53,7 +45,7 @@ type lock struct {
 	mutex *redsync.Mutex
 }
 
-func (l lockerRedis) Lock(ctx context.Context, name string, expire time.Duration) (locker.Lock, error) {
+func (l lockerRedis) Lock(ctx context.Context, name string, expire time.Duration) (definition.Lock, error) {
 	var opts = []redsync.Option{redsync.WithRetryDelay(consts.LockerRetryDelay), redsync.WithTries(consts.LockerRetryMaxTimes)}
 	if expire != 0 {
 		opts = append(opts, redsync.WithExpiry(expire))

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
 )
@@ -43,7 +44,7 @@ func TestWebhook(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	f := NewWebhookServiceFactory()
+	f := dao.NewWebhookServiceFactory()
 	webhookService := f.New()
 
 	ctx := log.Logger.WithContext(context.Background())

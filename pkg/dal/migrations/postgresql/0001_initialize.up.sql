@@ -489,7 +489,8 @@ CREATE TABLE IF NOT EXISTS "caches" (
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" integer NOT NULL DEFAULT 0,
-  CONSTRAINT "caches_unique_with_key" UNIQUE ("key", "deleted_at"),
-  INDEX "idx_created_at" ("created_at")
+  CONSTRAINT "caches_unique_with_key" UNIQUE ("key", "deleted_at")
 );
+
+CREATE INDEX "idx_created_at" ON "caches" ("created_at");
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -31,7 +32,7 @@ import (
 )
 
 func TestUserServiceFactory(t *testing.T) {
-	f := NewUserServiceFactory()
+	f := dao.NewUserServiceFactory()
 	userService := f.New()
 	assert.NotNil(t, userService)
 	userService = f.New(query.Q)
@@ -54,7 +55,7 @@ func TestUserGetByUsername(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	f := NewUserServiceFactory()
+	f := dao.NewUserServiceFactory()
 
 	ctx := log.Logger.WithContext(context.Background())
 

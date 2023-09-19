@@ -76,7 +76,11 @@ func Initialize() error {
 		return err
 	}
 
-	lock, err := locker.LockerClient.Lock(context.Background(), consts.LockerMigration, time.Second*30)
+	locker, err := locker.New()
+	if err != nil {
+		return err
+	}
+	lock, err := locker.Lock(context.Background(), consts.LockerMigration, time.Second*30)
 	if err != nil {
 		return err
 	}
