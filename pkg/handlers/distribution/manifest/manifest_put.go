@@ -16,7 +16,6 @@ package manifest
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -31,10 +30,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -292,12 +291,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 	taskSbomPayload := types.TaskSbom{
 		ArtifactID: artifactObj.ID,
 	}
-	taskSbomPayloadBytes, err := json.Marshal(taskSbomPayload)
-	if err != nil {
-		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
-		return
-	}
-	err = daemon.Enqueue(consts.TopicSbom, taskSbomPayloadBytes)
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonSbom.String(), taskSbomPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return
@@ -318,12 +312,7 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	taskVulnerabilityPayload := types.TaskVulnerability{
 		ArtifactID: artifactObj.ID,
 	}
-	taskVulnerabilityPayloadBytes, err := json.Marshal(taskVulnerabilityPayload)
-	if err != nil {
-		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Marshal task payload failed")
-		return
-	}
-	err = daemon.Enqueue(consts.TopicVulnerability, taskVulnerabilityPayloadBytes)
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonVulnerability.String(), taskVulnerabilityPayload)
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return

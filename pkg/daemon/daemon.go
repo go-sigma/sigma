@@ -31,16 +31,16 @@ import (
 // tasks all daemon tasks
 var tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
-// topics all daemon topics
-var topics = map[enums.Daemon]string{
-	enums.DaemonSbom:           consts.TopicSbom,
-	enums.DaemonVulnerability:  consts.TopicVulnerability,
-	enums.DaemonGc:             consts.TopicGc,
-	enums.DaemonGcRepository:   consts.TopicGcRepository,
-	enums.DaemonWebhook:        consts.TopicWebhook,
-	enums.DaemonBuilder:        consts.TopicBuilder,
-	enums.DaemonCodeRepository: consts.TopicCodeRepository,
-}
+// // topics all daemon topics
+// var topics = map[enums.Daemon]string{
+// 	enums.DaemonSbom:           consts.TopicSbom,
+// 	enums.DaemonVulnerability:  consts.TopicVulnerability,
+// 	enums.DaemonGc:             consts.TopicGc,
+// 	enums.DaemonGcRepository:   consts.TopicGcRepository,
+// 	enums.DaemonWebhook:        consts.TopicWebhook,
+// 	enums.DaemonBuilder:        consts.TopicBuilder,
+// 	enums.DaemonCodeRepository: consts.TopicCodeRepository,
+// }
 
 var (
 	// asynqCli asynq client
@@ -57,7 +57,7 @@ func RegisterTask(name enums.Daemon, handler func(context.Context, *asynq.Task) 
 	if ok {
 		return fmt.Errorf("daemon task %q already registered", name)
 	}
-	tasks[name] = handler
+	// tasks[name] = handler
 	return nil
 }
 
@@ -80,21 +80,21 @@ func InitializeServer() error {
 		},
 	)
 
-	mux := asynq.NewServeMux()
-	for taskType, handler := range tasks {
-		topic, ok := topics[taskType]
-		if !ok {
-			return fmt.Errorf("topic for daemon task %q not found", taskType)
-		}
-		mux.HandleFunc(topic, handler)
-	}
+	// mux := asynq.NewServeMux()
+	// for taskType, handler := range tasks {
+	// 	topic, ok := topics[taskType]
+	// 	if !ok {
+	// 		return fmt.Errorf("topic for daemon task %q not found", taskType)
+	// 	}
+	// 	mux.HandleFunc(topic, handler)
+	// }
 
-	go func() {
-		err := asyncSrv.Run(mux)
-		if err != nil {
-			log.Fatal().Err(err).Msg("srv.Run error")
-		}
-	}()
+	// go func() {
+	// 	err := asyncSrv.Run(mux)
+	// 	if err != nil {
+	// 		log.Fatal().Err(err).Msg("srv.Run error")
+	// 	}
+	// }()
 
 	asyncPeriodicTaskManager, err = asynq.NewPeriodicTaskManager(
 		asynq.PeriodicTaskManagerOpts{

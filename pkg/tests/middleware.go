@@ -69,5 +69,6 @@ func Initialize(t *testing.T) error {
 		return fmt.Errorf("ci database %q not registered", typ)
 	}
 	DB = factory.New()
+
 	return nil
 }

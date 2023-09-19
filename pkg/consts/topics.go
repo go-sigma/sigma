@@ -16,9 +16,9 @@ package consts
 
 const (
 	// TopicSbom is the topic for the sbom
-	TopicSbom = "sbom"
-	// TopicVulnerability is the topic for the vuln
-	TopicVulnerability = "vuln"
+	// TopicSbom = "sbom"
+	// // TopicVulnerability is the topic for the vuln
+	// TopicVulnerability = "vuln"
 	// TopicGc is the topic for the gc
 	TopicGc = "gc"
 	// TopicGcRepository is the topic for the gc repository

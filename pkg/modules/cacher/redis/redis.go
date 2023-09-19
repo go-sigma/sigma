@@ -12,59 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cacher
+package redis
 
 import (
 	"context"
 	"fmt"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 )
-
-// Fetcher ...
-type Fetcher[T any] func(key string) (T, error)
-
-type Cacher[T any] interface {
-	// Set sets the value of given key if it is new to the cache.
-	// Param val should not be nil.
-	Set(ctx context.Context, key string, val T, ttls ...time.Duration) error
-	// Get tries to fetch a value corresponding to the given key from the cache.
-	// If error occurs during the first time fetching, it will be cached until the
-	// sequential fetching triggered by the refresh goroutine succeed.
-	Get(ctx context.Context, key string) (T, error)
-	// Del deletes the value corresponding to the given key from the cache.
-	Del(ctx context.Context, key string) error
-}
 
 type cacher[T any] struct {
 	redisCli redis.UniversalClient
 	prefix   string
-	fetcher  Fetcher[T]
+	fetcher  definition.Fetcher[T]
+	config   configs.Configuration
 }
 
 // New returns a new Cacher.
-func New[T any](redisCli redis.UniversalClient, prefix string, fetcher Fetcher[T]) Cacher[T] {
+func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+	redisOpt, err := redis.ParseURL(config.Redis.Url)
+	if err != nil {
+		return nil, err
+	}
 	return &cacher[T]{
-		redisCli: redisCli,
+		redisCli: redis.NewClient(redisOpt),
 		prefix:   prefix,
 		fetcher:  fetcher,
-	}
+		config:   config,
+	}, nil
 }
 
 // Set sets the value of given key if it is new to the cache.
 // Param val should not be nil.
-func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
+func (c *cacher[T]) Set(ctx context.Context, key string, val T) error {
 	content, err := jsoniter.MarshalToString(val)
 	if err != nil {
 		return fmt.Errorf("marshal value failed: %w", err)
 	}
-	var ttl = time.Duration(0) // Zero expiration means the key has no expiration time.
-	if len(ttls) > 0 {
-		ttl = ttls[0]
-	}
-	return c.redisCli.Set(ctx, c.key(key), content, ttl).Err()
+	return c.redisCli.Set(ctx, c.key(key), content, c.config.Cache.Redis.Ttl).Err()
 }
 
 // Get tries to fetch a value corresponding to the given key from the cache.

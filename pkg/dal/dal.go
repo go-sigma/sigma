@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -30,8 +28,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -48,26 +48,56 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
-	pool := goredis.NewPool(RedisCli)
-	rs := redsync.New(pool)
-	mutex := rs.NewMutex(consts.LockerMigration, redsync.WithRetryDelay(time.Second*3), redsync.WithTries(10), redsync.WithExpiry(time.Second*30))
-	err = mutex.Lock()
+
+	var dsn string
+	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
+	switch dbType {
+	case enums.DatabaseMysql:
+		dsn, err = connectMysql()
+	case enums.DatabasePostgresql:
+		dsn, err = connectPostgres()
+	case enums.DatabaseSqlite3:
+		dsn, err = connectSqlite3()
+	default:
+		return fmt.Errorf("unknown database type: %s", dbType)
+	}
+	if err != nil {
+		return err
+	}
+	logLevel := viper.GetString("log.level")
+	if logLevel == "debug" {
+		query.SetDefault(DB.Debug())
+	} else {
+		query.SetDefault(DB)
+	}
+
+	err = DB.AutoMigrate(&models.Locker{})
+	if err != nil {
+		return err
+	}
+
+	locker, err := locker.New()
+	if err != nil {
+		return err
+	}
+	lock, err := locker.Lock(context.Background(), consts.LockerMigration, time.Second*30)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		if ok, err := mutex.Unlock(); !ok || err != nil {
-			log.Fatal().Err(err).Msg("Unlock the migration key failed")
+		err := lock.Unlock()
+		if err != nil {
+			log.Error().Err(err).Msg("Migrate locker release failed")
 		}
 	}()
-	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
+
 	switch dbType {
 	case enums.DatabaseMysql:
-		err = connectMysql()
+		err = migrateMysql(dsn)
 	case enums.DatabasePostgresql:
-		err = connectPostgres()
+		err = migratePostgres(dsn)
 	case enums.DatabaseSqlite3:
-		err = connectSqlite3()
+		err = migrateSqlite(dsn)
 	default:
 		return fmt.Errorf("unknown database type: %s", dbType)
 	}
@@ -85,12 +115,6 @@ func Initialize() error {
 		return err
 	}
 
-	logLevel := viper.GetString("log.level")
-	if logLevel == "debug" {
-		query.SetDefault(DB.Debug())
-	} else {
-		query.SetDefault(DB)
-	}
 	return nil
 }
 
@@ -103,7 +127,7 @@ func connectRedis() error {
 	return nil
 }
 
-func connectMysql() error {
+func connectMysql() (string, error) {
 	host := viper.GetString("database.mysql.host")
 	port := viper.GetString("database.mysql.port")
 	user := viper.GetString("database.mysql.user")
@@ -117,20 +141,15 @@ func connectMysql() error {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	err = migrateMysql(dsn)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return dsn, nil
 }
 
-func connectPostgres() error {
+func connectPostgres() (string, error) {
 	host := viper.GetString("database.postgres.host")
 	port := viper.GetString("database.postgres.port")
 	user := viper.GetString("database.postgres.user")
@@ -143,36 +162,27 @@ func connectPostgres() error {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
 	migrateDsn := fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
-	err = migratePostgres(migrateDsn)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return migrateDsn, nil
 }
 
-func connectSqlite3() error {
+func connectSqlite3() (string, error) {
 	dbname := viper.GetString("database.sqlite3.path")
 
 	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	err = migrateSqlite(dbname)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return dbname, nil
 }

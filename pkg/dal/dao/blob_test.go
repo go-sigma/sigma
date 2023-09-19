@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -25,6 +25,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -32,7 +33,7 @@ import (
 )
 
 func TestBlobServiceFactory(t *testing.T) {
-	f := NewBlobServiceFactory()
+	f := dao.NewBlobServiceFactory()
 	blobService := f.New()
 	assert.NotNil(t, blobService)
 	blobService = f.New(query.Q)
@@ -56,7 +57,7 @@ func TestBlobService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	f := NewBlobServiceFactory()
+	f := dao.NewBlobServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		blobService := f.New(tx)
 		err = blobService.Create(ctx, &models.Blob{

@@ -27,9 +27,12 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Worker is the worker initialization
@@ -40,6 +43,15 @@ func Worker() error {
 	}
 
 	err = daemon.InitializeServer()
+	if err != nil {
+		return err
+	}
+
+	err = workq.Initialize(configs.Configuration{
+		WorkQueue: configs.ConfigurationWorkQueue{
+			Type: enums.WorkQueueTypeDatabase,
+		},
+	})
 	if err != nil {
 		return err
 	}

@@ -32,9 +32,9 @@ type WorkQueueService interface {
 	// Create creates a new work queue record in the database
 	Create(ctx context.Context, builder *models.WorkQueue) error
 	// Get get a work queue record
-	Get(ctx context.Context) (*models.WorkQueue, error)
+	Get(ctx context.Context, topic string) (*models.WorkQueue, error)
 	// UpdateStatus update a work queue record status
-	UpdateStatus(ctx context.Context, id int64, version, newVersion string, status enums.TaskCommonStatus) error
+	UpdateStatus(ctx context.Context, id int64, version, newVersion string, times int, status enums.TaskCommonStatus) error
 }
 
 type workQueueService struct {
@@ -69,15 +69,19 @@ func (s workQueueService) Create(ctx context.Context, wq *models.WorkQueue) erro
 }
 
 // Get get a work queue record
-func (s workQueueService) Get(ctx context.Context) (*models.WorkQueue, error) {
-	return s.tx.WorkQueue.WithContext(ctx).Where(s.tx.WorkQueue.Status.Eq(enums.TaskCommonStatusPending)).Order(s.tx.WorkQueue.UpdatedAt).First()
+func (s workQueueService) Get(ctx context.Context, topic string) (*models.WorkQueue, error) {
+	return s.tx.WorkQueue.WithContext(ctx).Where(
+		s.tx.WorkQueue.Status.Eq(enums.TaskCommonStatusPending),
+		s.tx.WorkQueue.Topic.Eq(topic),
+	).Order(s.tx.WorkQueue.UpdatedAt).First()
 }
 
 // Update update a work queue record
-func (s workQueueService) UpdateStatus(ctx context.Context, id int64, version, newVersion string, status enums.TaskCommonStatus) error {
+func (s workQueueService) UpdateStatus(ctx context.Context, id int64, version, newVersion string, times int, status enums.TaskCommonStatus) error {
 	value := map[string]any{
 		query.WorkQueue.Status.ColumnName().String():  status,
 		query.WorkQueue.Version.ColumnName().String(): newVersion,
+		query.WorkQueue.Times.ColumnName().String():   times,
 	}
 	result, err := s.tx.WorkQueue.WithContext(ctx).Where(
 		s.tx.WorkQueue.ID.Eq(id),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -30,7 +31,7 @@ import (
 )
 
 func TestBlobUploadServiceFactory(t *testing.T) {
-	f := NewBlobUploadServiceFactory()
+	f := dao.NewBlobUploadServiceFactory()
 	blobUploadService := f.New()
 	assert.NotNil(t, blobUploadService)
 	blobUploadService = f.New(query.Q)
@@ -55,7 +56,7 @@ func TestBlobUploadService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	blobUploadServiceFactory := NewBlobUploadServiceFactory()
+	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		blobUploadService := blobUploadServiceFactory.New(tx)
 		blobUploadObj := &models.BlobUpload{

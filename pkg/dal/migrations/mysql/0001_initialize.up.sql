@@ -401,15 +401,27 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `work_queue` (
+CREATE TABLE IF NOT EXISTS `work_queues` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `topic` varchar(30) NOT NULL,
   `payload` BLOB NOT NULL,
   `times` MEDIUMINT NOT NULL DEFAULT 0,
-  `version` varchar(30) NOT NULL,
+  `version` varchar(36) NOT NULL,
   `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS `caches` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `key` varchar(256) NOT NULL UNIQUE,
+  `val` BLOB NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  CONSTRAINT `caches_unique_with_key` UNIQUE (`key`, `deleted_at`)
+);
+
+CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
 

@@ -31,7 +31,7 @@ import (
 var distributionCmd = &cobra.Command{
 	Use:     "distribution",
 	Aliases: []string{"ds"},
-	Short:   "Start the XImager distribution server",
+	Short:   "Start the sigma distribution server",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		initConfig()
 		logger.SetLevel(viper.GetString("log.level"))

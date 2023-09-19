@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -34,7 +35,7 @@ import (
 )
 
 func TestTagServiceFactory(t *testing.T) {
-	f := NewTagServiceFactory()
+	f := dao.NewTagServiceFactory()
 	tagService := f.New()
 	assert.NotNil(t, tagService)
 	tagService = f.New(query.Q)
@@ -59,10 +60,10 @@ func TestTagService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	tagServiceFactory := NewTagServiceFactory()
-	namespaceServiceFactory := NewNamespaceServiceFactory()
-	repositoryServiceFactory := NewRepositoryServiceFactory()
-	userServiceFactory := NewUserServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
@@ -77,7 +78,7 @@ func TestTagService(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		tagService := tagServiceFactory.New(tx)

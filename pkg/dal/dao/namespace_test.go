@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -34,7 +35,7 @@ import (
 )
 
 func TestNamespaceServiceFactory(t *testing.T) {
-	f := NewNamespaceServiceFactory()
+	f := dao.NewNamespaceServiceFactory()
 	namespaceService := f.New()
 	assert.NotNil(t, namespaceService)
 	namespaceService = f.New(query.Q)
@@ -59,8 +60,8 @@ func TestNamespaceService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	f := NewNamespaceServiceFactory()
-	userServiceFactory := NewUserServiceFactory()
+	f := dao.NewNamespaceServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)
 		userObj := &models.User{Username: "namespace-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
@@ -142,8 +143,8 @@ func TestNamespaceServiceQuota(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	namespaceServiceFactory := NewNamespaceServiceFactory()
-	userServiceFactory := NewUserServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := userServiceFactory.New(tx)

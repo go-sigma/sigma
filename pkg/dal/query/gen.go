@@ -25,12 +25,14 @@ var (
 	BlobUpload                    *blobUpload
 	Builder                       *builder
 	BuilderRunner                 *builderRunner
+	Cache                         *cache
 	CasbinRule                    *casbinRule
 	CodeRepository                *codeRepository
 	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
 	DaemonLog                     *daemonLog
+	Locker                        *locker
 	Namespace                     *namespace
 	Repository                    *repository
 	Tag                           *tag
@@ -52,12 +54,14 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	BlobUpload = &Q.BlobUpload
 	Builder = &Q.Builder
 	BuilderRunner = &Q.BuilderRunner
+	Cache = &Q.Cache
 	CasbinRule = &Q.CasbinRule
 	CodeRepository = &Q.CodeRepository
 	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
 	DaemonLog = &Q.DaemonLog
+	Locker = &Q.Locker
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
 	Tag = &Q.Tag
@@ -80,12 +84,14 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		BlobUpload:                    newBlobUpload(db, opts...),
 		Builder:                       newBuilder(db, opts...),
 		BuilderRunner:                 newBuilderRunner(db, opts...),
+		Cache:                         newCache(db, opts...),
 		CasbinRule:                    newCasbinRule(db, opts...),
 		CodeRepository:                newCodeRepository(db, opts...),
 		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
 		DaemonLog:                     newDaemonLog(db, opts...),
+		Locker:                        newLocker(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
 		Repository:                    newRepository(db, opts...),
 		Tag:                           newTag(db, opts...),
@@ -109,12 +115,14 @@ type Query struct {
 	BlobUpload                    blobUpload
 	Builder                       builder
 	BuilderRunner                 builderRunner
+	Cache                         cache
 	CasbinRule                    casbinRule
 	CodeRepository                codeRepository
 	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
 	DaemonLog                     daemonLog
+	Locker                        locker
 	Namespace                     namespace
 	Repository                    repository
 	Tag                           tag
@@ -139,12 +147,14 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		BlobUpload:                    q.BlobUpload.clone(db),
 		Builder:                       q.Builder.clone(db),
 		BuilderRunner:                 q.BuilderRunner.clone(db),
+		Cache:                         q.Cache.clone(db),
 		CasbinRule:                    q.CasbinRule.clone(db),
 		CodeRepository:                q.CodeRepository.clone(db),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
 		DaemonLog:                     q.DaemonLog.clone(db),
+		Locker:                        q.Locker.clone(db),
 		Namespace:                     q.Namespace.clone(db),
 		Repository:                    q.Repository.clone(db),
 		Tag:                           q.Tag.clone(db),
@@ -176,12 +186,14 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		BlobUpload:                    q.BlobUpload.replaceDB(db),
 		Builder:                       q.Builder.replaceDB(db),
 		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
+		Cache:                         q.Cache.replaceDB(db),
 		CasbinRule:                    q.CasbinRule.replaceDB(db),
 		CodeRepository:                q.CodeRepository.replaceDB(db),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
 		DaemonLog:                     q.DaemonLog.replaceDB(db),
+		Locker:                        q.Locker.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
 		Repository:                    q.Repository.replaceDB(db),
 		Tag:                           q.Tag.replaceDB(db),
@@ -203,12 +215,14 @@ type queryCtx struct {
 	BlobUpload                    *blobUploadDo
 	Builder                       *builderDo
 	BuilderRunner                 *builderRunnerDo
+	Cache                         *cacheDo
 	CasbinRule                    *casbinRuleDo
 	CodeRepository                *codeRepositoryDo
 	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
 	DaemonLog                     *daemonLogDo
+	Locker                        *lockerDo
 	Namespace                     *namespaceDo
 	Repository                    *repositoryDo
 	Tag                           *tagDo
@@ -230,12 +244,14 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		BlobUpload:                    q.BlobUpload.WithContext(ctx),
 		Builder:                       q.Builder.WithContext(ctx),
 		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
+		Cache:                         q.Cache.WithContext(ctx),
 		CasbinRule:                    q.CasbinRule.WithContext(ctx),
 		CodeRepository:                q.CodeRepository.WithContext(ctx),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
 		DaemonLog:                     q.DaemonLog.WithContext(ctx),
+		Locker:                        q.Locker.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),
 		Repository:                    q.Repository.WithContext(ctx),
 		Tag:                           q.Tag.WithContext(ctx),

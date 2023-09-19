@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package dao_test
 
 import (
 	"context"
@@ -25,6 +25,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -35,7 +36,7 @@ import (
 )
 
 func TestArtifactServiceFactory(t *testing.T) {
-	f := NewArtifactServiceFactory()
+	f := dao.NewArtifactServiceFactory()
 	artifactService := f.New()
 	assert.NotNil(t, artifactService)
 	artifactService = f.New(query.Q)
@@ -60,9 +61,9 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	userServiceFactory := NewUserServiceFactory()
-	namespaceServiceFactory := NewNamespaceServiceFactory()
-	repositoryServiceFactory := NewRepositoryServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 
 	var repositoryObj *models.Repository
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -78,13 +79,13 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 		return nil
 	})
 	assert.NoError(t, err)
 
-	artifactServiceFactory := NewArtifactServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	artifactService := artifactServiceFactory.New()
 	artifactObj1 := &models.Artifact{
 		RepositoryID: repositoryObj.ID,
@@ -127,11 +128,11 @@ func TestArtifactService(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	tagServiceFactory := NewTagServiceFactory()
-	namespaceServiceFactory := NewNamespaceServiceFactory()
-	repositoryServiceFactory := NewRepositoryServiceFactory()
-	artifactServiceFactory := NewArtifactServiceFactory()
-	userServiceFactory := NewUserServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
 
 	var artifactObj *models.Artifact
 	var tagObj1 *models.Tag
@@ -148,7 +149,7 @@ func TestArtifactService(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		artifactService := artifactServiceFactory.New(tx)
@@ -275,7 +276,7 @@ func TestArtifactService(t *testing.T) {
 
 		repositoryService := repositoryServiceFactory.New(tx)
 		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		artifactObj = &models.Artifact{

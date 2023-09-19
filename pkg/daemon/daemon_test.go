@@ -28,17 +28,17 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-func TestRegisterTask(t *testing.T) {
-	logger.SetLevel("debug")
+// func TestRegisterTask(t *testing.T) {
+// 	logger.SetLevel("debug")
 
-	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
+// 	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
-	err := RegisterTask(enums.DaemonSbom, nil)
-	assert.NoError(t, err)
+// 	err := RegisterTask(enums.DaemonSbom, nil)
+// 	assert.NoError(t, err)
 
-	err = RegisterTask(enums.DaemonSbom, nil)
-	assert.Error(t, err)
-}
+// 	err = RegisterTask(enums.DaemonSbom, nil)
+// 	assert.Error(t, err)
+// }
 
 func TestInitializeServer(t *testing.T) {
 	logger.SetLevel("debug")

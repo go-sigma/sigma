@@ -17,7 +17,6 @@ package daemon
 import (
 	"context"
 
-	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 	"github.com/tidwall/gjson"
 
@@ -39,15 +38,15 @@ type DecoratorArtifactStatus struct {
 }
 
 // DecoratorArtifact is a decorator for daemon task runners
-func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan DecoratorArtifactStatus) error) func(context.Context, *asynq.Task) error {
-	return func(ctx context.Context, atask *asynq.Task) error {
+func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan DecoratorArtifactStatus) error) func(context.Context, []byte) error {
+	return func(ctx context.Context, payload []byte) error {
 		log.Info().Msg("got a task")
 		ctx = log.Logger.WithContext(ctx)
 
 		artifactServiceFactory := dao.NewArtifactServiceFactory()
 		artifactService := artifactServiceFactory.New()
 
-		id := gjson.GetBytes(atask.Payload(), "artifact_id").Int()
+		id := gjson.GetBytes(payload, "artifact_id").Int()
 		artifact, err := artifactService.Get(ctx, id)
 		if err != nil {
 			return err

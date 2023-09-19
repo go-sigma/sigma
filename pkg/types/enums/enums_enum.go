@@ -473,54 +473,57 @@ func (x BuilderSource) Value() (driver.Value, error) {
 }
 
 const (
-	// CacheTypeMemory is a CacheType of type memory.
-	CacheTypeMemory CacheType = "memory"
-	// CacheTypeRedis is a CacheType of type redis.
-	CacheTypeRedis CacheType = "redis"
+	// CacherTypeInmemory is a CacherType of type inmemory.
+	CacherTypeInmemory CacherType = "inmemory"
+	// CacherTypeRedis is a CacherType of type redis.
+	CacherTypeRedis CacherType = "redis"
+	// CacherTypeDatabase is a CacherType of type database.
+	CacherTypeDatabase CacherType = "database"
 )
 
-var ErrInvalidCacheType = errors.New("not a valid CacheType")
+var ErrInvalidCacherType = errors.New("not a valid CacherType")
 
 // String implements the Stringer interface.
-func (x CacheType) String() string {
+func (x CacherType) String() string {
 	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
-func (x CacheType) IsValid() bool {
-	_, err := ParseCacheType(string(x))
+func (x CacherType) IsValid() bool {
+	_, err := ParseCacherType(string(x))
 	return err == nil
 }
 
-var _CacheTypeValue = map[string]CacheType{
-	"memory": CacheTypeMemory,
-	"redis":  CacheTypeRedis,
+var _CacherTypeValue = map[string]CacherType{
+	"inmemory": CacherTypeInmemory,
+	"redis":    CacherTypeRedis,
+	"database": CacherTypeDatabase,
 }
 
-// ParseCacheType attempts to convert a string to a CacheType.
-func ParseCacheType(name string) (CacheType, error) {
-	if x, ok := _CacheTypeValue[name]; ok {
+// ParseCacherType attempts to convert a string to a CacherType.
+func ParseCacherType(name string) (CacherType, error) {
+	if x, ok := _CacherTypeValue[name]; ok {
 		return x, nil
 	}
-	return CacheType(""), fmt.Errorf("%s is %w", name, ErrInvalidCacheType)
+	return CacherType(""), fmt.Errorf("%s is %w", name, ErrInvalidCacherType)
 }
 
-// MustParseCacheType converts a string to a CacheType, and panics if is not valid.
-func MustParseCacheType(name string) CacheType {
-	val, err := ParseCacheType(name)
+// MustParseCacherType converts a string to a CacherType, and panics if is not valid.
+func MustParseCacherType(name string) CacherType {
+	val, err := ParseCacherType(name)
 	if err != nil {
 		panic(err)
 	}
 	return val
 }
 
-var errCacheTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+var errCacherTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
 
 // Scan implements the Scanner interface.
-func (x *CacheType) Scan(value interface{}) (err error) {
+func (x *CacherType) Scan(value interface{}) (err error) {
 	if value == nil {
-		*x = CacheType("")
+		*x = CacherType("")
 		return
 	}
 
@@ -528,30 +531,30 @@ func (x *CacheType) Scan(value interface{}) (err error) {
 	// driver.Value values at the top of the list for expediency
 	switch v := value.(type) {
 	case string:
-		*x, err = ParseCacheType(v)
+		*x, err = ParseCacherType(v)
 	case []byte:
-		*x, err = ParseCacheType(string(v))
-	case CacheType:
+		*x, err = ParseCacherType(string(v))
+	case CacherType:
 		*x = v
-	case *CacheType:
+	case *CacherType:
 		if v == nil {
-			return errCacheTypeNilPtr
+			return errCacherTypeNilPtr
 		}
 		*x = *v
 	case *string:
 		if v == nil {
-			return errCacheTypeNilPtr
+			return errCacherTypeNilPtr
 		}
-		*x, err = ParseCacheType(*v)
+		*x, err = ParseCacherType(*v)
 	default:
-		return errors.New("invalid type for CacheType")
+		return errors.New("invalid type for CacherType")
 	}
 
 	return
 }
 
 // Value implements the driver Valuer interface.
-func (x CacheType) Value() (driver.Value, error) {
+func (x CacherType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 
@@ -988,6 +991,89 @@ func (x *GcTarget) Scan(value interface{}) (err error) {
 
 // Value implements the driver Valuer interface.
 func (x GcTarget) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// LockerTypeRedis is a LockerType of type redis.
+	LockerTypeRedis LockerType = "redis"
+	// LockerTypeDatabase is a LockerType of type database.
+	LockerTypeDatabase LockerType = "database"
+)
+
+var ErrInvalidLockerType = errors.New("not a valid LockerType")
+
+// String implements the Stringer interface.
+func (x LockerType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x LockerType) IsValid() bool {
+	_, err := ParseLockerType(string(x))
+	return err == nil
+}
+
+var _LockerTypeValue = map[string]LockerType{
+	"redis":    LockerTypeRedis,
+	"database": LockerTypeDatabase,
+}
+
+// ParseLockerType attempts to convert a string to a LockerType.
+func ParseLockerType(name string) (LockerType, error) {
+	if x, ok := _LockerTypeValue[name]; ok {
+		return x, nil
+	}
+	return LockerType(""), fmt.Errorf("%s is %w", name, ErrInvalidLockerType)
+}
+
+// MustParseLockerType converts a string to a LockerType, and panics if is not valid.
+func MustParseLockerType(name string) LockerType {
+	val, err := ParseLockerType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errLockerTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *LockerType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = LockerType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseLockerType(v)
+	case []byte:
+		*x, err = ParseLockerType(string(v))
+	case LockerType:
+		*x = v
+	case *LockerType:
+		if v == nil {
+			return errLockerTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errLockerTypeNilPtr
+		}
+		*x, err = ParseLockerType(*v)
+	default:
+		return errors.New("invalid type for LockerType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x LockerType) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 

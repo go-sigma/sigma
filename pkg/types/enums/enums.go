@@ -63,18 +63,25 @@ type Database string
 // )
 type RedisType string
 
-// CacheType x ENUM(
-// memory,
+// CacherType x ENUM(
+// inmemory,
 // redis,
+// database,
 // )
-type CacheType string
+type CacherType string
 
-// CacheKey x ENUM(
+// WorkQueueType x ENUM(
 // redis,
 // kafka,
 // database,
 // )
 type WorkQueueType string
+
+// LockerType x ENUM(
+// redis,
+// database,
+// )
+type LockerType string
 
 // Daemon x ENUM(
 // Vulnerability,
