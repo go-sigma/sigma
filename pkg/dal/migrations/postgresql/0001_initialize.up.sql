@@ -493,4 +493,3 @@ CREATE TABLE IF NOT EXISTS "caches" (
 );
 
 CREATE INDEX "idx_created_at" ON "caches" ("created_at");
-
