@@ -16,25 +16,17 @@ package kafka
 
 import (
 	"context"
-	"path"
-	"reflect"
 
 	"github.com/IBM/sarama"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-func init() {
-	workq.ProducerClientFactories[path.Base(reflect.TypeOf(producerFactory{}).PkgPath())] = &producerFactory{}
-}
-
-type producerFactory struct{}
-
 // NewWorkQueueProducer ...
-func (f producerFactory) New(_ configs.Configuration) (workq.WorkQueueProducer, error) {
+func NewWorkQueueProducer(_ configs.Configuration, _ map[string]definition.Consumer) (definition.WorkQueueProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll

@@ -47,7 +47,8 @@ cache:
 workqueue:
   # the workqueue type available: redis, kafka, database
   type: redis
-  redis: {}
+  redis:
+    concurrency: 10
   kafka: {}
   database: {}
 

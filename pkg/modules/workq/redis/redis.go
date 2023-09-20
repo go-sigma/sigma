@@ -12,28 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cronjob
+package redis
 
-import "time"
+// mux := asynq.NewServeMux()
+// for taskType, handler := range tasks {
+// 	topic, ok := topics[taskType]
+// 	if !ok {
+// 		return fmt.Errorf("topic for daemon task %q not found", taskType)
+// 	}
+// 	mux.HandleFunc(topic, handler)
+// }
 
-const (
-	// cronjobIterDuration each job iterate duration
-	CronjobIterDuration = time.Second * 30
-	// tickNextDuration tick the next runner if current get full of jobs
-	TickNextDuration = time.Second * 3
-	// maxJob each iterate get the maximum jobs
-	MaxJob = 100
-)
-
-// Starter ...
-var Starter []func()
-
-// Stopper ...
-var Stopper []func()
-
-// Initialize ...
-func Initialize() {
-	for _, start := range Starter {
-		start()
-	}
-}
+// go func() {
+// 	err := asyncSrv.Run(mux)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("srv.Run error")
+// 	}
+// }()

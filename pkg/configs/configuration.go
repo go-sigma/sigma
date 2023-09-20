@@ -127,9 +127,22 @@ type ConfigurationCache struct {
 	Database ConfigurationCacheDatabase `yaml:"database"`
 }
 
+type ConfigurationWorkQueueRedis struct {
+	Concurrency int `yaml:"concurrency"`
+}
+
+type ConfigurationWorkQueueDatabase struct {
+}
+
+type ConfigurationWorkQueueKafka struct {
+}
+
 // ConfigurationWorkQueue ...
 type ConfigurationWorkQueue struct {
-	Type enums.WorkQueueType `yaml:"type"`
+	Type     enums.WorkQueueType            `yaml:"type"`
+	Redis    ConfigurationWorkQueueRedis    `yaml:"redis"`
+	Database ConfigurationWorkQueueDatabase `yaml:"database"`
+	Kafka    ConfigurationWorkQueueKafka    `yaml:"kafka"`
 }
 
 // ConfigurationLocker ...

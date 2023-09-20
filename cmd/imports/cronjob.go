@@ -15,5 +15,5 @@
 package imports
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/cronjob"
+	_ "github.com/go-sigma/sigma/pkg/cronjob/builder"
 )

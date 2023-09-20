@@ -17,8 +17,6 @@ package database
 import (
 	"context"
 	"errors"
-	"path"
-	"reflect"
 	"strings"
 	"time"
 
@@ -28,20 +26,14 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-func init() {
-	workq.ConsumerClientFactories[path.Base(reflect.TypeOf(consumerFactory{}).PkgPath())] = &consumerFactory{}
-}
-
-type consumerFactory struct{}
-
 // NewWorkQueueConsumer ...
-func (f consumerFactory) New(_ configs.Configuration) error {
-	for topic, c := range workq.TopicConsumers {
-		go func(consumer workq.Consumer, topic string) {
+func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[string]definition.Consumer) error {
+	for topic, c := range topicHandlers {
+		go func(consumer definition.Consumer, topic string) {
 			handler := &consumerHandler{
 				processingSemaphore: make(chan struct{}, consumer.Concurrency),
 				consumer:            consumer,
@@ -54,7 +46,7 @@ func (f consumerFactory) New(_ configs.Configuration) error {
 
 type consumerHandler struct {
 	processingSemaphore chan struct{}
-	consumer            workq.Consumer
+	consumer            definition.Consumer
 }
 
 func (h *consumerHandler) Consume(topic string) {

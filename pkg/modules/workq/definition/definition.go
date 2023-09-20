@@ -12,28 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cronjob
+package definition
 
-import "time"
-
-const (
-	// cronjobIterDuration each job iterate duration
-	CronjobIterDuration = time.Second * 30
-	// tickNextDuration tick the next runner if current get full of jobs
-	TickNextDuration = time.Second * 3
-	// maxJob each iterate get the maximum jobs
-	MaxJob = 100
+import (
+	"context"
+	"time"
 )
 
-// Starter ...
-var Starter []func()
+type Consumer struct {
+	Handler     func(ctx context.Context, payload []byte) error
+	Concurrency int
+	MaxRetry    int
+	Timeout     time.Duration
+}
 
-// Stopper ...
-var Stopper []func()
-
-// Initialize ...
-func Initialize() {
-	for _, start := range Starter {
-		start()
-	}
+// WorkQueueProducer ...
+type WorkQueueProducer interface {
+	// Produce ...
+	Produce(ctx context.Context, topic string, payload any) error
 }

@@ -16,30 +16,22 @@ package database
 
 import (
 	"context"
-	"path"
-	"reflect"
 
 	"github.com/google/uuid"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
-
-func init() {
-	workq.ProducerClientFactories[path.Base(reflect.TypeOf(producerFactory{}).PkgPath())] = &producerFactory{}
-}
 
 type producer struct {
 	workQueueServiceFactory dao.WorkQueueServiceFactory
 }
 
-type producerFactory struct{}
-
 // NewWorkQueueProducer ...
-func (f producerFactory) New(_ configs.Configuration) (workq.WorkQueueProducer, error) {
+func NewWorkQueueProducer(_ configs.Configuration, _ map[string]definition.Consumer) (definition.WorkQueueProducer, error) {
 	p := &producer{
 		workQueueServiceFactory: dao.NewWorkQueueServiceFactory(),
 	}
