@@ -389,11 +389,10 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `builder_id` bigint NOT NULL,
   `log` LONGBLOB,
-  `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL DEFAULT 'Pending',
   -- common settings
   `tag` varchar(30) NOT NULL, -- image tag
-  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
-  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  `scm_branch` varchar(30),
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

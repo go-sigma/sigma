@@ -35,6 +35,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 const (
@@ -137,7 +138,7 @@ func (b Builder) gitClone() error {
 	if err != nil {
 		return fmt.Errorf("git not found: %v", err)
 	}
-	cmd := exec.Command(git, "clone", "--branch", b.ScmBranch)
+	cmd := exec.Command(git, "clone", "--branch", ptr.To(b.ScmBranch))
 	if b.ScmDepth != 0 {
 		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(b.ScmDepth))
 	}

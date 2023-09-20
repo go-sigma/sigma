@@ -80,11 +80,10 @@ type BuilderRunner struct {
 
 	BuilderID int64
 	Log       []byte
-	Status    enums.BuildStatus
+	Status    enums.BuildStatus `gorm:"default:Pending"`
 
-	Tag               string
-	ScmBranch         string
-	BuildkitPlatforms string `gorm:"default:linux/amd64"`
+	Tag       string
+	ScmBranch *string
 
 	Builder Builder
 }

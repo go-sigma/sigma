@@ -25,7 +25,7 @@ type BuilderLogger interface {
 	// Write write log to object storage or database
 	Write(builderID, runnerID int64) io.WriteCloser
 	// Read get log from object storage or database
-	Read(ctx context.Context, id string) (io.Reader, error)
+	Read(ctx context.Context, id int64) (io.Reader, error)
 }
 
 // Driver is the builder logger driver, maybe implement by s3, database, etc.

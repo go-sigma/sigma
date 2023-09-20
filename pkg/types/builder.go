@@ -30,7 +30,7 @@ type Builder struct {
 	ScmPassword       string                  `env:"SCM_PASSWORD"`
 	ScmProvider       enums.ScmProvider       `env:"SCM_PROVIDER,notEmpty"`
 	ScmRepository     string                  `env:"SCM_REPOSITORY,notEmpty"`
-	ScmBranch         string                  `env:"SCM_BRANCH" envDefault:"main"`
+	ScmBranch         *string                 `env:"SCM_BRANCH" envDefault:"main"`
 	ScmDepth          int                     `env:"SCM_DEPTH" envDefault:"0"`
 	ScmSubmodule      bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
 
@@ -159,8 +159,8 @@ type ListBuilderRunnersRequest struct {
 	Pagination
 	Sortable
 
-	ID           int64 `json:"id" param:"id" validate:"required,number"`
-	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
 }
 
 // BuilderRunnerItem ...
@@ -176,4 +176,35 @@ type BuilderRunnerItem struct {
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// PostRunnerRun ...
+type PostRunnerRun struct {
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+
+	Tag         string  `json:"tag" example:"test"` // TODO: validate
+	Description *string `json:"description,omitempty" validate:"omitempty,max=255"`
+	ScmBranch   *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=50" example:"main"`
+}
+
+// GetRunnerRerun ...
+type GetRunnerRerun struct {
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
+}
+
+// GetRunnerStop ...
+type GetRunnerStop struct {
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
+}
+
+// GetRunnerLog ...
+type GetRunnerLog struct {
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
 }

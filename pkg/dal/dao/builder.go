@@ -44,7 +44,7 @@ type BuilderService interface {
 	// Get get builder by repository id
 	GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// CreateRunner creates a new builder runner record in the database
-	CreateRunner(ctx context.Context, log *models.BuilderRunner) error
+	CreateRunner(ctx context.Context, runner *models.BuilderRunner) error
 	// GetRunner get runner from object storage or database
 	GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error)
 	// ListRunners list builder runners
@@ -130,13 +130,13 @@ func (s builderService) GetByRepositoryID(ctx context.Context, repositoryID int6
 }
 
 // CreateRunner creates a new builder runner record in the database
-func (s builderService) CreateRunner(ctx context.Context, log *models.BuilderRunner) error {
-	return s.tx.BuilderRunner.WithContext(ctx).Create(log)
+func (s builderService) CreateRunner(ctx context.Context, runner *models.BuilderRunner) error {
+	return s.tx.BuilderRunner.WithContext(ctx).Create(runner)
 }
 
 // GetRunner get runner from object storage or database
 func (s builderService) GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error) {
-	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(id)).First()
+	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.ID.Eq(id)).First()
 }
 
 // ListRunners list builder runners

@@ -105,7 +105,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			}
 			runner, err := builder.BuildRunner(builderObj, builder.BuildRunnerOption{
 				Tag:       tag,
-				ScmBranch: ptr.To(builderObj.CronBranch),
+				ScmBranch: builderObj.CronBranch,
 			})
 			if err != nil {
 				return err

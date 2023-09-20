@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/crypt"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Builder ...
@@ -80,7 +81,7 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 		fmt.Sprintf("SCM_USERNAME=%s", builderConfig.ScmUsername),
 		fmt.Sprintf("SCM_PROVIDER=%s", builderConfig.ScmProvider.String()),
 		fmt.Sprintf("SCM_REPOSITORY=%s", builderConfig.ScmRepository),
-		fmt.Sprintf("SCM_BRANCH=%s", builderConfig.ScmBranch),
+		fmt.Sprintf("SCM_BRANCH=%s", ptr.To(builderConfig.ScmBranch)),
 		fmt.Sprintf("SCM_DEPTH=%d", builderConfig.ScmDepth),
 		fmt.Sprintf("SCM_SUBMODULE=%t", builderConfig.ScmSubmodule),
 

@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -26,7 +25,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -56,19 +54,14 @@ func (h *handlers) ListRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runner := range runnerObjs {
-		platforms := []enums.OciPlatform{}
-		for _, p := range strings.Split(runner.BuildkitPlatforms, ",") {
-			platforms = append(platforms, enums.OciPlatform(p))
-		}
 		resp = append(resp, types.BuilderRunnerItem{
-			ID:                runner.ID,
-			BuilderID:         runner.BuilderID,
-			Log:               runner.Log,
-			Status:            runner.Status,
-			Tag:               runner.Tag,
-			BuildkitPlatforms: platforms,
-			CreatedAt:         runner.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:         runner.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:        runner.ID,
+			BuilderID: runner.BuilderID,
+			Log:       runner.Log,
+			Status:    runner.Status,
+			Tag:       runner.Tag,
+			CreatedAt: runner.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt: runner.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})

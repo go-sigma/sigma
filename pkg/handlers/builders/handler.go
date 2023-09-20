@@ -37,6 +37,14 @@ type Handlers interface {
 	PutBuilder(c echo.Context) error
 	// ListRunners handles the list builder runners request
 	ListRunners(c echo.Context) error
+	// PostRunnerRun ...
+	PostRunnerRun(c echo.Context) error
+	// GetRunnerRerun ...
+	GetRunnerRerun(c echo.Context) error
+	// GetRunnerStop ...
+	GetRunnerStop(c echo.Context) error
+	// GetRunnerLog ...
+	GetRunnerLog(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -101,7 +109,12 @@ func (f factory) Initialize(e *echo.Echo) error {
 	builderGroup.POST("/", handler.PostBuilder)
 	builderGroup.GET("/:id", handler.GetBuilder)
 	builderGroup.PUT("/:id", handler.PutBuilder)
-	builderGroup.GET("/:id/runners/", handler.GetBuilder)
+
+	builderGroup.GET("/:id/runners/", handler.ListRunners)
+	builderGroup.GET("/:id/runners/run", handler.PostRunnerRun)
+	builderGroup.GET("/:id/runners/:runner_id/log", handler.GetRunnerLog)
+	builderGroup.GET("/:id/runners/:runner_id/stop", handler.GetRunnerStop)
+	builderGroup.GET("/:id/runners/:runner_id/rerun", handler.GetRunnerStop)
 	return nil
 }
 

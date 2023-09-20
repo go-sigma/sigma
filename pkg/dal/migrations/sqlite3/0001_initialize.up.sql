@@ -387,11 +387,10 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `builder_id` bigint NOT NULL,
   `log` BLOB,
-  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
   -- common settings
   `tag` varchar(30) NOT NULL, -- image tag
-  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
-  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  `scm_branch` varchar(30),
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
