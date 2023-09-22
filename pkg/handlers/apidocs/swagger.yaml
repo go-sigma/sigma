@@ -938,6 +938,9 @@ definitions:
       name:
         example: busybox
         type: string
+      namespace_id:
+        example: 1
+        type: integer
       overview:
         example: i am just overview
         type: string
@@ -2174,7 +2177,7 @@ paths:
       summary: Create a builder for repository
       tags:
       - Builder
-  /repositories/{repository_id}/builders/{id}:
+  /repositories/{repository_id}/builders/:
     get:
       consumes:
       - application/json
@@ -2182,11 +2185,6 @@ paths:
       - description: Repository ID
         in: path
         name: repository_id
-        required: true
-        type: string
-      - description: Builder ID
-        in: path
-        name: id
         required: true
         type: string
       produces:
@@ -2209,6 +2207,7 @@ paths:
       summary: Get a builder by builder id
       tags:
       - Builder
+  /repositories/{repository_id}/builders/{id}:
     put:
       consumes:
       - application/json

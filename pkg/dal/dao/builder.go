@@ -37,8 +37,8 @@ type BuilderService interface {
 	Create(ctx context.Context, builder *models.Builder) error
 	// Update update the builder by id
 	Update(ctx context.Context, id int64, updates map[string]interface{}) error
-	// Get get builder by id
-	Get(ctx context.Context, id int64) (*models.Builder, error)
+	// Get get builder by repository id
+	Get(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// GetByRepositoryIDs get builders by repository ids
 	GetByRepositoryIDs(ctx context.Context, repositoryIDs []int64) (map[int64]*models.Builder, error)
 	// Get get builder by repository id
@@ -104,8 +104,8 @@ func (s builderService) Update(ctx context.Context, id int64, updates map[string
 }
 
 // Get get builder by id
-func (s builderService) Get(ctx context.Context, id int64) (*models.Builder, error) {
-	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.ID.Eq(id)).First()
+func (s builderService) Get(ctx context.Context, repositoryID int64) (*models.Builder, error) {
+	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.RepositoryID.Eq(repositoryID)).First()
 }
 
 // GetByRepositoryIDs get builders by repository ids

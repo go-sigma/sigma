@@ -41,7 +41,7 @@ type RepositoryService interface {
 	// FindAll ...
 	FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error)
 	// Get gets the repository with the specified repository ID.
-	Get(context.Context, int64) (*models.Repository, error)
+	Get(ctx context.Context, repositoryID int64) (*models.Repository, error)
 	// GetByName gets the repository with the specified repository name.
 	GetByName(context.Context, string) (*models.Repository, error)
 	// ListByDtPagination lists the repositories by the pagination.
@@ -164,8 +164,10 @@ func (s *repositoryService) FindAll(ctx context.Context, namespaceID, limit, las
 }
 
 // Get gets the repository with the specified repository ID.
-func (s *repositoryService) Get(ctx context.Context, id int64) (*models.Repository, error) {
-	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).First()
+func (s *repositoryService) Get(ctx context.Context, repositoryID int64) (*models.Repository, error) {
+	return s.tx.Repository.WithContext(ctx).
+		Where(s.tx.Repository.ID.Eq(repositoryID)).
+		Preload(s.tx.Repository.Builder).First()
 }
 
 // GetByName gets the repository with the specified repository name.

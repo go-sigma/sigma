@@ -16,6 +16,7 @@ package repositories
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -51,7 +53,7 @@ func (h *handlers) GetRepository(c echo.Context) error {
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repository, err := repositoryService.Get(ctx, req.ID)
+	repositoryObj, err := repositoryService.Get(ctx, req.ID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("Get repository from db failed")
@@ -61,16 +63,63 @@ func (h *handlers) GetRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
+	var builderItemObj *types.BuilderItem
+	if repositoryObj.Builder != nil {
+		platforms := []enums.OciPlatform{}
+		for _, p := range strings.Split(repositoryObj.Builder.BuildkitPlatforms, ",") {
+			platforms = append(platforms, enums.OciPlatform(p))
+		}
+
+		builderItemObj = &types.BuilderItem{
+			ID:           repositoryObj.Builder.ID,
+			RepositoryID: repositoryObj.Builder.RepositoryID,
+
+			Source: repositoryObj.Builder.Source,
+
+			CodeRepositoryID: repositoryObj.Builder.CodeRepositoryID,
+
+			Dockerfile: ptr.Of(string(repositoryObj.Builder.Dockerfile)),
+
+			ScmRepository:     repositoryObj.Builder.ScmRepository,
+			ScmCredentialType: repositoryObj.Builder.ScmCredentialType,
+			ScmSshKey:         repositoryObj.Builder.ScmSshKey,
+			ScmToken:          repositoryObj.Builder.ScmToken,
+			ScmUsername:       repositoryObj.Builder.ScmUsername,
+			ScmPassword:       repositoryObj.Builder.ScmPassword,
+
+			ScmBranch: repositoryObj.Builder.ScmBranch,
+
+			ScmDepth:     repositoryObj.Builder.ScmDepth,
+			ScmSubmodule: repositoryObj.Builder.ScmSubmodule,
+
+			CronRule:        repositoryObj.Builder.CronRule,
+			CronBranch:      repositoryObj.Builder.CronBranch,
+			CronTagTemplate: repositoryObj.Builder.CronTagTemplate,
+
+			WebhookBranchName:        repositoryObj.Builder.WebhookBranchName,
+			WebhookBranchTagTemplate: repositoryObj.Builder.WebhookBranchTagTemplate,
+			WebhookTagTagTemplate:    repositoryObj.Builder.WebhookTagTagTemplate,
+
+			BuildkitInsecureRegistries: strings.Split(repositoryObj.Builder.BuildkitInsecureRegistries, ","),
+			BuildkitContext:            repositoryObj.Builder.BuildkitContext,
+			BuildkitDockerfile:         repositoryObj.Builder.BuildkitDockerfile,
+			BuildkitPlatforms:          platforms,
+			BuildkitBuildArgs:          repositoryObj.Builder.BuildkitBuildArgs,
+		}
+	}
+
 	return c.JSON(http.StatusOK, types.RepositoryItem{
-		ID:          repository.ID,
-		Name:        repository.Name,
-		Description: repository.Description,
-		Overview:    ptr.Of(string(repository.Overview)),
-		Visibility:  repository.Visibility,
-		SizeLimit:   ptr.Of(repository.SizeLimit),
-		Size:        ptr.Of(repository.Size),
-		TagCount:    repository.TagCount,
-		CreatedAt:   repository.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:   repository.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:          repositoryObj.ID,
+		NamespaceID: repositoryObj.NamespaceID,
+		Name:        repositoryObj.Name,
+		Description: repositoryObj.Description,
+		Overview:    ptr.Of(string(repositoryObj.Overview)),
+		Visibility:  repositoryObj.Visibility,
+		SizeLimit:   ptr.Of(repositoryObj.SizeLimit),
+		Size:        ptr.Of(repositoryObj.Size),
+		TagCount:    repositoryObj.TagCount,
+		Builder:     builderItemObj,
+		CreatedAt:   repositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:   repositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }

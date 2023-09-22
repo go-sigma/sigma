@@ -54,6 +54,12 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				Namespace struct {
 					field.RelationField
 				}
+				Builder struct {
+					field.RelationField
+					Repository struct {
+						field.RelationField
+					}
+				}
 			}
 			Vulnerability struct {
 				field.RelationField
@@ -89,12 +95,31 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 				Namespace struct {
 					field.RelationField
 				}
+				Builder struct {
+					field.RelationField
+					Repository struct {
+						field.RelationField
+					}
+				}
 			}{
 				RelationField: field.NewRelation("Vulnerability.Artifact.Repository", "models.Repository"),
 				Namespace: struct {
 					field.RelationField
 				}{
 					RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Namespace", "models.Namespace"),
+				},
+				Builder: struct {
+					field.RelationField
+					Repository struct {
+						field.RelationField
+					}
+				}{
+					RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder", "models.Builder"),
+					Repository: struct {
+						field.RelationField
+					}{
+						RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.Repository", "models.Repository"),
+					},
 				},
 			},
 			Vulnerability: struct {
@@ -320,6 +345,12 @@ type artifactHasOneVulnerability struct {
 			field.RelationField
 			Namespace struct {
 				field.RelationField
+			}
+			Builder struct {
+				field.RelationField
+				Repository struct {
+					field.RelationField
+				}
 			}
 		}
 		Vulnerability struct {

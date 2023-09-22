@@ -47,12 +47,31 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 			Namespace struct {
 				field.RelationField
 			}
+			Builder struct {
+				field.RelationField
+				Repository struct {
+					field.RelationField
+				}
+			}
 		}{
 			RelationField: field.NewRelation("Artifact.Repository", "models.Repository"),
 			Namespace: struct {
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Namespace", "models.Namespace"),
+			},
+			Builder: struct {
+				field.RelationField
+				Repository struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Artifact.Repository.Builder", "models.Builder"),
+				Repository: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Artifact.Repository.Builder.Repository", "models.Repository"),
+				},
 			},
 		},
 		Vulnerability: struct {
@@ -232,6 +251,12 @@ type artifactSbomBelongsToArtifact struct {
 		field.RelationField
 		Namespace struct {
 			field.RelationField
+		}
+		Builder struct {
+			field.RelationField
+			Repository struct {
+				field.RelationField
+			}
 		}
 	}
 	Vulnerability struct {

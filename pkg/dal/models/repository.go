@@ -42,6 +42,7 @@ type Repository struct {
 	Size        int64            `gorm:"default:0"`
 
 	Namespace Namespace
+	Builder   *Builder
 }
 
 // BeforeCreate ...

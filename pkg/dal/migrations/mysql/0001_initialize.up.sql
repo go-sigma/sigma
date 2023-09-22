@@ -392,7 +392,10 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL DEFAULT 'Pending',
   -- common settings
   `tag` varchar(30) NOT NULL, -- image tag
+  `description` varchar(256),
   `scm_branch` varchar(30),
+  `started_at` timestamp,
+  `ended_at` timestamp,
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -19,6 +19,7 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 // RepositoryItem represents a repository.
 type RepositoryItem struct {
 	ID          int64            `json:"id" example:"1"`
+	NamespaceID int64            `json:"namespace_id" example:"1"`
 	Name        string           `json:"name" example:"busybox"`
 	Description *string          `json:"description,omitempty" example:"i am just description"`
 	Overview    *string          `json:"overview,omitempty" example:"i am just overview"`

@@ -1670,7 +1670,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/repositories/{repository_id}/builders/{id}": {
+        "/repositories/{repository_id}/builders/": {
             "get": {
                 "security": [
                     {
@@ -1692,13 +1692,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Repository ID",
                         "name": "repository_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Builder ID",
-                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -1723,7 +1716,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/repositories/{repository_id}/builders/{id}": {
             "put": {
                 "security": [
                     {
@@ -3804,6 +3799,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "busybox"
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "overview": {
                     "type": "string",

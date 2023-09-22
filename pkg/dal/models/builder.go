@@ -82,8 +82,12 @@ type BuilderRunner struct {
 	Log       []byte
 	Status    enums.BuildStatus `gorm:"default:Pending"`
 
-	Tag       string
-	ScmBranch *string
+	Tag         string
+	Description *string
+	ScmBranch   *string
+
+	StartedAt *time.Time
+	EndedAt   *time.Time
 
 	Builder Builder
 }
