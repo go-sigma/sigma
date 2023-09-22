@@ -1513,6 +1513,54 @@ paths:
       summary: Get logs
       tags:
       - Daemon
+  /namespace/{namespace_id}/repositories/{repository_id}/builders/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutBuilderRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update a builder by id
+      tags:
+      - Builder
   /namespaces/:
     get:
       consumes:
@@ -1666,6 +1714,89 @@ paths:
       summary: Update namespace
       tags:
       - Namespace
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostBuilderRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a builder for repository
+      tags:
+      - Builder
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder ID
+        in: path
+        name: builder_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.BuilderItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get builder runners by builder id
+      tags:
+      - Builder
   /namespaces/{namespace}/repositories/:
     get:
       consumes:
@@ -2139,117 +2270,6 @@ paths:
       summary: Redirect oauth2 provider callback
       tags:
       - OAuth2
-  /repositories/{repository_id}/builders:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      - description: Builder object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostBuilderRequestSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Create a builder for repository
-      tags:
-      - Builder
-  /repositories/{repository_id}/builders/:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.BuilderItem'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Get a builder by builder id
-      tags:
-      - Builder
-  /repositories/{repository_id}/builders/{id}:
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      - description: Builder ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Builder object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PutBuilderRequestSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Update a builder by id
-      tags:
-      - Builder
   /systems/endpoint:
     get:
       consumes:

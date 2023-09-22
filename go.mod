@@ -33,6 +33,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.3.1
+	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/golang-lru/v2 v2.0.6
 	github.com/hibiken/asynq v0.24.1
 	github.com/jackc/pgx/v4 v4.18.1

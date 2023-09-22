@@ -18,7 +18,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/hako/durafmt"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -31,6 +33,18 @@ import (
 )
 
 // ListRunners handles the list builder runners request
+// @Summary Get builder runners by builder id
+// @Tags Builder
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Router /namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/ [get]
+// @Param namespace_id path string true "Namespace ID"
+// @Param repository_id path string true "Repository ID"
+// @Param builder_id path string true "Builder ID"
+// @Success 200 {object} types.BuilderItem
+// @Failure 404 {object} xerrors.ErrCode
+// @Failure 500 {object} xerrors.ErrCode
 func (h *handlers) ListRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -48,32 +62,44 @@ func (h *handlers) ListRunners(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
-	runnerObjs, total, err := builderService.ListRunners(ctx, req.ID, req.Pagination, req.Sortable)
+	runnerObjs, total, err := builderService.ListRunners(ctx, req.BuilderID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List builder runners failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List builder runners failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
-	for _, runner := range runnerObjs {
+	for _, runnerObj := range runnerObjs {
 		var startedAt, endedAt string
-		if runner.StartedAt != nil {
-			startedAt = runner.StartedAt.Format(consts.DefaultTimePattern)
+		if runnerObj.StartedAt != nil {
+			startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
 		}
-		if runner.EndedAt != nil {
-			endedAt = runner.EndedAt.Format(consts.DefaultTimePattern)
+		if runnerObj.EndedAt != nil {
+			endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
 		}
+
+		var duration *string
+		if runnerObj.Duration != nil {
+			duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+		}
+
 		resp = append(resp, types.BuilderRunnerItem{
-			ID:          runner.ID,
-			BuilderID:   runner.BuilderID,
-			Log:         runner.Log,
-			Status:      runner.Status,
-			Tag:         runner.Tag,
-			Description: runner.Description,
-			ScmBranch:   runner.ScmBranch,
+			ID:        runnerObj.ID,
+			BuilderID: runnerObj.BuilderID,
+
+			Log: runnerObj.Log,
+
+			Status:      runnerObj.Status,
+			Tag:         runnerObj.Tag,
+			Description: runnerObj.Description,
+			ScmBranch:   runnerObj.ScmBranch,
+
 			StartedAt:   ptr.Of(startedAt),
 			EndedAt:     ptr.Of(endedAt),
-			CreatedAt:   runner.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:   runner.UpdatedAt.Format(consts.DefaultTimePattern),
+			RawDuration: runnerObj.Duration,
+			Duration:    duration,
+
+			CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})

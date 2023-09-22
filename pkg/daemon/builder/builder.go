@@ -22,13 +22,12 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
-	builderdriver "github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
@@ -41,19 +40,19 @@ func builderRunner(ctx context.Context, task *asynq.Task) error {
 	if err != nil {
 		return fmt.Errorf("Unmarshal payload failed: %v", err)
 	}
-	b := builder{
+	b := runner{
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}
 	return b.runner(ctx, payload)
 }
 
-type builder struct {
+type runner struct {
 	builderServiceFactory dao.BuilderServiceFactory
 }
 
-func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload) error {
+func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) error {
 	if payload.Action == enums.DaemonBuilderActionStop {
-		return builderdriver.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
+		return builder.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
 	}
 	builderService := b.builderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, payload.RepositoryID)
@@ -78,7 +77,7 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 	// 	return fmt.Errorf("Create builder runner record failed: %v", err)
 	// }
 
-	buildConfig := builderdriver.BuilderConfig{
+	buildConfig := builder.BuilderConfig{
 		Builder: types.Builder{
 			BuilderID: payload.BuilderID,
 			RunnerID:  runnerObj.ID,
@@ -91,7 +90,7 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 			// ScmPassword:       builderObj.ScmPassword,
 			// ScmRepository:     builderObj.ScmRepository,
 			ScmBranch: runnerObj.ScmBranch,
-			ScmDepth:  ptr.To(builderObj.ScmDepth),
+			ScmDepth:  builderObj.ScmDepth,
 			// ScmSubmodule: builderObj.ScmSubmodule,
 
 			OciRegistryDomain:   []string{"192.168.31.114:3000"},
@@ -103,9 +102,9 @@ func (b builder) runner(ctx context.Context, payload types.DaemonBuilderPayload)
 		},
 	}
 	if payload.Action == enums.DaemonBuilderActionStart { // nolint: gocritic
-		err = builderdriver.Driver.Start(ctx, buildConfig)
+		err = builder.Driver.Start(ctx, buildConfig)
 	} else if payload.Action == enums.DaemonBuilderActionRestart {
-		err = builderdriver.Driver.Start(ctx, buildConfig)
+		err = builder.Driver.Start(ctx, buildConfig)
 	} else {
 		log.Error().Err(err).Str("action", payload.Action.String()).Msg("Daemon builder action not found")
 		return fmt.Errorf("Daemon builder action not found")

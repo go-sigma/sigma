@@ -88,6 +88,7 @@ type BuilderRunner struct {
 
 	StartedAt *time.Time
 	EndedAt   *time.Time
+	Duration  *int64
 
 	Builder Builder
 }

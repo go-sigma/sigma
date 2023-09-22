@@ -37,12 +37,12 @@ import (
 
 // initToken init git clone token and buildkit push token
 func (b Builder) initToken() error {
-	if b.ScmCredentialType == enums.ScmCredentialTypeSsh {
+	if b.ScmCredentialType != nil && ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeSsh {
 		keyScan, err := exec.LookPath("ssh-keyscan")
 		if err != nil {
 			return fmt.Errorf("ssh-keyscan binary not found in path: %v", err)
 		}
-		endpoint, err := transport.NewEndpoint(b.ScmRepository)
+		endpoint, err := transport.NewEndpoint(ptr.To(b.ScmRepository))
 		if err != nil {
 			return fmt.Errorf("transport.NewEndpoint failed: %v", err)
 		}
@@ -80,7 +80,7 @@ func (b Builder) initToken() error {
 		defer func() {
 			_ = privateKeyObj.Close() // nolint: errcheck
 		}()
-		_, err = privateKeyObj.WriteString(b.ScmSshKey)
+		_, err = privateKeyObj.WriteString(ptr.To(b.ScmSshKey))
 		if err != nil {
 			return fmt.Errorf("Write private key failed: %v", err)
 		}

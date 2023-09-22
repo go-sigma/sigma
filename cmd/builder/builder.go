@@ -139,31 +139,31 @@ func (b Builder) gitClone() error {
 		return fmt.Errorf("git not found: %v", err)
 	}
 	cmd := exec.Command(git, "clone", "--branch", ptr.To(b.ScmBranch))
-	if b.ScmDepth != 0 {
-		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(b.ScmDepth))
+	if ptr.To(b.ScmDepth) != 0 {
+		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(ptr.To(b.ScmDepth)))
 	}
-	if b.ScmSubmodule {
+	if ptr.To(b.ScmSubmodule) {
 		cmd.Args = append(cmd.Args, "--recurse-submodules")
 	}
-	if b.ScmCredentialType == enums.ScmCredentialTypeSsh {
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeSsh {
 		cmd.Args = append(cmd.Args, "-i", path.Join(homeSigma, privateKey))
 		cmd.Env = append(os.Environ(), fmt.Sprintf("SSH_KNOWN_HOSTS=%s", path.Join(homeSigma, knownHosts)))
 	}
-	repository := b.ScmRepository
-	if b.ScmCredentialType == enums.ScmCredentialTypeToken {
+	repository := ptr.To(b.ScmRepository)
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeToken {
 		u, err := url.Parse(repository)
 		if err != nil {
 			return fmt.Errorf("SCM_REPOSITORY parse with url failed: %v", err)
 		}
-		repository = fmt.Sprintf("%s//%s@%s/%s", u.Scheme, b.ScmToken, u.Host, u.Path)
+		repository = fmt.Sprintf("%s//%s@%s/%s", u.Scheme, ptr.To(b.ScmToken), u.Host, u.Path)
 	}
-	if b.ScmCredentialType == enums.ScmCredentialTypeUsername {
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeUsername {
 		endpoint, err := transport.NewEndpoint(repository)
 		if err != nil {
 			return fmt.Errorf("transport.NewEndpoint failed: %v", err)
 		}
-		endpoint.User = b.ScmUsername
-		endpoint.Password = b.ScmPassword
+		endpoint.User = ptr.To(b.ScmUsername)
+		endpoint.Password = ptr.To(b.ScmPassword)
 		repository = endpoint.String()
 	}
 	cmd.Args = append(cmd.Args, repository, workspace)

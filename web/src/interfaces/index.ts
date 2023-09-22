@@ -260,7 +260,12 @@ export interface IBuilderItem {
   buildkit_platforms: string[];
 }
 
-export interface BuilderRunnerItem {
+export interface IBuilderRunnerList {
+  items: IBuilderRunnerItem[];
+  total: number;
+}
+
+export interface IBuilderRunnerItem {
   id: number;
   builder_id: number;
   status: string;

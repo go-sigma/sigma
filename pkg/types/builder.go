@@ -20,19 +20,23 @@ import (
 
 // Builder config for builder
 type Builder struct {
-	BuilderID int64 `env:"ID,notEmpty"`
+	BuilderID int64 `env:"BUILDER_ID,notEmpty"`
 	RunnerID  int64 `env:"RUNNER_ID,notEmpty"`
 
-	ScmCredentialType enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE,notEmpty"`
-	ScmSshKey         string                  `env:"SCM_SSH_KEY"`
-	ScmToken          string                  `env:"SCM_TOKEN"`
-	ScmUsername       string                  `env:"SCM_USERNAME"`
-	ScmPassword       string                  `env:"SCM_PASSWORD"`
-	ScmProvider       enums.ScmProvider       `env:"SCM_PROVIDER,notEmpty"`
-	ScmRepository     string                  `env:"SCM_REPOSITORY,notEmpty"`
-	ScmBranch         *string                 `env:"SCM_BRANCH" envDefault:"main"`
-	ScmDepth          int                     `env:"SCM_DEPTH" envDefault:"0"`
-	ScmSubmodule      bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
+	Source enums.BuilderSource `env:"SOURCE,notEmpty"`
+
+	Dockerfile *string `env:"DOCKERFILE"`
+
+	ScmProvider       *enums.ScmProvider       `env:"SCM_PROVIDER"`
+	ScmCredentialType *enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE,notEmpty"`
+	ScmSshKey         *string                  `env:"SCM_SSH_KEY"`
+	ScmToken          *string                  `env:"SCM_TOKEN"`
+	ScmUsername       *string                  `env:"SCM_USERNAME"`
+	ScmPassword       *string                  `env:"SCM_PASSWORD"`
+	ScmRepository     *string                  `env:"SCM_REPOSITORY,notEmpty"`
+	ScmBranch         *string                  `env:"SCM_BRANCH" envDefault:"main"`
+	ScmDepth          *int                     `env:"SCM_DEPTH" envDefault:"0"`
+	ScmSubmodule      *bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
 
 	OciRegistryDomain   []string `env:"OCI_REGISTRY_DOMAIN" envSeparator:","`
 	OciRegistryUsername []string `env:"OCI_REGISTRY_USERNAME" envSeparator:","`
@@ -44,6 +48,7 @@ type Builder struct {
 	BuildkitContext            string              `env:"BUILDKIT_CONTEXT" envDefault:"."`
 	BuildkitDockerfile         string              `env:"BUILDKIT_DOCKERFILE" envDefault:"Dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `env:"BUILDKIT_PLATFORMS" envSeparator:","`
+	BuildkitBuildArgs          []string            `env:"BUILDKIT_BUILD_ARGS" envSeparator:","`
 }
 
 // GetBuilderRequest represents the request to get a builder.
@@ -159,23 +164,26 @@ type ListBuilderRunnersRequest struct {
 	Pagination
 	Sortable
 
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 }
 
 // BuilderRunnerItem ...
 type BuilderRunnerItem struct {
-	ID        int64 `json:"id" example:"10"`
-	BuilderID int64
-	Log       []byte
-	Status    enums.BuildStatus
+	ID        int64             `json:"id" example:"10"`
+	BuilderID int64             `json:"builder_id" example:"10"`
+	Log       []byte            `json:"log" example:"log"`
+	Status    enums.BuildStatus `json:"status" example:"Success"`
 
-	Tag         string
-	Description *string
-	ScmBranch   *string
+	Tag         string  `json:"tag" example:"v1.0"`
+	Description *string `json:"description" example:"description"`
+	ScmBranch   *string `json:"scm_branch" example:"main"`
 
-	StartedAt *string
-	EndedAt   *string
+	StartedAt   *string `json:"started_at" example:"2006-01-02 15:04:05"`
+	EndedAt     *string `json:"ended_at" example:"2006-01-02 15:04:05"`
+	RawDuration *int64  `json:"raw_duration" example:"10"`
+	Duration    *string `json:"duration" example:"1h"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

@@ -22,7 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	builderlogger "github.com/go-sigma/sigma/pkg/builder/logger"
+	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -68,22 +68,14 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
-	return builderlogger.Initialize()
+	return logger.Initialize()
 }
 
 // BuildEnv ...
 func BuildEnv(builderConfig BuilderConfig) []string {
 	buildConfigEnvs := []string{
-		fmt.Sprintf("ID=%d", builderConfig.BuilderID),
+		fmt.Sprintf("BUILDER_ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
-
-		fmt.Sprintf("SCM_CREDENTIAL_TYPE=%s", builderConfig.ScmCredentialType.String()),
-		fmt.Sprintf("SCM_USERNAME=%s", builderConfig.ScmUsername),
-		fmt.Sprintf("SCM_PROVIDER=%s", builderConfig.ScmProvider.String()),
-		fmt.Sprintf("SCM_REPOSITORY=%s", builderConfig.ScmRepository),
-		fmt.Sprintf("SCM_BRANCH=%s", ptr.To(builderConfig.ScmBranch)),
-		fmt.Sprintf("SCM_DEPTH=%d", builderConfig.ScmDepth),
-		fmt.Sprintf("SCM_SUBMODULE=%t", builderConfig.ScmSubmodule),
 
 		fmt.Sprintf("OCI_REGISTRY_DOMAIN=%s", strings.Join(builderConfig.OciRegistryDomain, ",")),
 		fmt.Sprintf("OCI_REGISTRY_USERNAME=%s", strings.Join(builderConfig.OciRegistryUsername, ",")),
@@ -94,18 +86,43 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 		fmt.Sprintf("BUILDKIT_CONTEXT=%s", builderConfig.BuildkitContext),
 		fmt.Sprintf("BUILDKIT_DOCKERFILE=%s", builderConfig.BuildkitDockerfile),
 		fmt.Sprintf("BUILDKIT_PLATFORMS=%s", utils.StringsJoin(builderConfig.BuildkitPlatforms, ",")),
+		fmt.Sprintf("BUILDKIT_BUILD_ARGS=%s", strings.Join(builderConfig.BuildkitBuildArgs, ",")),
 	}
-	if builderConfig.ScmPassword != "" {
+	if builderConfig.Dockerfile != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("DOCKERFILE=%s", ptr.To(builderConfig.Dockerfile)))
+	}
+	if builderConfig.ScmCredentialType != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_CREDENTIAL_TYPE=%s", builderConfig.ScmCredentialType.String()))
+	}
+	if builderConfig.ScmProvider != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_PROVIDER=%s", builderConfig.ScmProvider.String()))
+	}
+	if builderConfig.ScmRepository != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_REPOSITORY=%s", ptr.To(builderConfig.ScmRepository)))
+	}
+	if builderConfig.ScmBranch != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_BRANCH=%s", ptr.To(builderConfig.ScmBranch)))
+	}
+	if builderConfig.ScmDepth != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_DEPTH=%d", ptr.To(builderConfig.ScmDepth)))
+	}
+	if builderConfig.ScmSubmodule != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_SUBMODULE=%t", ptr.To(builderConfig.ScmSubmodule)))
+	}
+	if builderConfig.ScmUsername != nil {
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_USERNAME=%s", ptr.To(builderConfig.ScmUsername)))
+	}
+	if builderConfig.ScmPassword != nil {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_PASSWORD=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmPassword)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmPassword))))
 	}
-	if builderConfig.ScmSshKey != "" {
+	if builderConfig.ScmSshKey != nil {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_SSH_KEY=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmSshKey)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmSshKey))))
 	}
-	if builderConfig.ScmToken != "" {
+	if builderConfig.ScmToken != nil {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_TOKEN=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), builderConfig.ScmToken)))
+			fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmToken))))
 	}
 	if len(builderConfig.OciRegistryPassword) != 0 {
 		var passwords []string

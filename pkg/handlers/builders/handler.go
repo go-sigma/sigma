@@ -31,8 +31,6 @@ import (
 type Handlers interface {
 	// PostBuilder handles the post builder request
 	PostBuilder(c echo.Context) error
-	// GetBuilder handles the get builder request
-	GetBuilder(c echo.Context) error
 	// PutBuilder handles the put builder request
 	PutBuilder(c echo.Context) error
 	// ListRunners handles the list builder runners request
@@ -103,11 +101,10 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	handler := handlerNew()
 	builderGroup.POST("/", handler.PostBuilder)
-	builderGroup.GET("/", handler.GetBuilder)
 	builderGroup.PUT("/:builder_id", handler.PutBuilder)
 
 	builderGroup.GET("/:builder_id/runners/", handler.ListRunners)

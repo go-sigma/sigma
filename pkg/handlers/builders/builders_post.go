@@ -41,7 +41,8 @@ import (
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /repositories/{repository_id}/builders [post]
+// @Router /namespaces/{namespace_id}/repositories/{repository_id}/builders [post]
+// @Param namespace_id path string true "Namespace ID"
 // @Param repository_id path string true "Repository ID"
 // @Param message body types.PostBuilderRequestSwagger true "Builder object"
 // @Success 201

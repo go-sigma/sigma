@@ -15,8 +15,9 @@
  */
 
 import axios from "axios";
-import { useNavigate } from 'react-router-dom';
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useSearchParams, useParams } from "react-router-dom";
 
@@ -27,7 +28,7 @@ import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
 
-import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder } from "../../interfaces";
+import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder, IBuilderRunnerItem, IBuilderRunnerList } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function ({ localServer }: { localServer: string }) {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    axios.get(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository_id}`).then(response => {
+    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}`).then(response => {
       if (response?.status === 200) {
         const r = response.data as IRepositoryItem;
         setRepositoryObj(r);
@@ -51,7 +52,6 @@ export default function ({ localServer }: { localServer: string }) {
           setBuilderObj(r.builder);
         }
       } else {
-        console.log(response);
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
@@ -61,10 +61,25 @@ export default function ({ localServer }: { localServer: string }) {
     });
   }, [namespace, repository_id]);
 
+  const [runnerObjs, setRunnerObjs] = useState<IBuilderRunnerItem[]>()
+
   useEffect(() => {
     if (builderObj === undefined) {
       return;
     }
+    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/`).then(response => {
+      if (response?.status === 200) {
+        const r = response.data as IBuilderRunnerList;
+        setRunnerObjs(r.items);
+        setTotal(r.total);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
   }, [namespace, repository_id, builderObj])
 
   return (
@@ -173,6 +188,9 @@ export default function ({ localServer }: { localServer: string }) {
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                           <span className="lg:pl-2">Tag</span>
                         </th>
+                        <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                          <span className="lg:pl-2">Status</span>
+                        </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                           Cost
                         </th>
@@ -190,15 +208,15 @@ export default function ({ localServer }: { localServer: string }) {
                         </th>
                       </tr>
                     </thead>
-                    {/* <tbody className="bg-white divide-y divide-gray-100 max-h-max">
-                    {
-                      namespaceList.items?.map((namespace, index) => {
-                        return (
-                          <TableItem key={namespace.id} index={index} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
-                        );
-                      })
-                    }
-                  </tbody> */}
+                    <tbody className="bg-white divide-y divide-gray-100 max-h-max">
+                      {
+                        runnerObjs?.map(runnerObj => {
+                          return (
+                            <TableItem key={runnerObj.id} runnerObj={runnerObj} />
+                          );
+                        })
+                      }
+                    </tbody>
                   </table>
                 )
               }
@@ -211,23 +229,48 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
             )
           }
-          {/* <div
-            className="flex flex-2 items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100"
-            aria-label="Pagination"
-          >
-            <div>
-            </div>
-            <div className="flex flex-1 justify-between sm:justify-end">
-              <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-              // onClick={e => setEditorState(false)}
-              >Cancel</button>
-              <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-              // onClick={() => { updateRepository() }}
-              >Update</button>
-            </div>
-          </div> */}
         </div>
       </div >
     </>
+  )
+}
+
+function TableItem({ runnerObj }: { runnerObj: IBuilderRunnerItem }) {
+  console.log(runnerObj, runnerObj.tag);
+
+  const navigate = useNavigate();
+  return (
+    <tr className="align-middle">
+      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+      // onClick={() => {
+      //   window.open(repository.clone_url, "_blank");
+      // }}
+      >
+        <div className="items-center space-x-3 lg:pl-2">
+          <div className="truncate hover:text-gray-600">
+            <span>
+              {runnerObj.tag}
+              <span className="text-gray-500 font-normal ml-2">{runnerObj.description}</span>
+            </span>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {runnerObj.status}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {dayjs().to(dayjs(runnerObj.created_at))}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {dayjs().to(dayjs(runnerObj.created_at))}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700"
+        onClick={() => {
+          navigate("/builders/setup")
+        }}
+      >
+        Setup
+      </td>
+    </tr>
   )
 }
