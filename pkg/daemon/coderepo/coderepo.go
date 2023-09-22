@@ -20,15 +20,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 const (
@@ -36,13 +35,18 @@ const (
 )
 
 func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonCodeRepository, crRunner))
+	workq.TopicHandlers[enums.DaemonCodeRepository.String()] = definition.Consumer{
+		Handler:     crRunner,
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
 }
 
-func crRunner(ctx context.Context, task *asynq.Task) error {
+func crRunner(ctx context.Context, payload []byte) error {
 	ctx = log.Logger.WithContext(ctx)
-	var payload types.DaemonCodeRepositoryPayload
-	err := json.Unmarshal(task.Payload(), &payload)
+	var task types.DaemonCodeRepositoryPayload
+	err := json.Unmarshal(payload, &task)
 	if err != nil {
 		return fmt.Errorf("Code repository unmarshal payload failed: %v", err)
 	}
@@ -53,13 +57,13 @@ func crRunner(ctx context.Context, task *asynq.Task) error {
 
 	status := enums.TaskCommonStatusSuccess
 	statusMessage := ""
-	err = cr.runner(ctx, payload)
+	err = cr.runner(ctx, task)
 	if err != nil {
 		status = enums.TaskCommonStatusFailed
 		statusMessage = err.Error()
 	}
 	userService := dao.NewUserServiceFactory().New()
-	err = userService.UpdateUser3rdParty(ctx, payload.User3rdPartyID, map[string]any{
+	err = userService.UpdateUser3rdParty(ctx, task.User3rdPartyID, map[string]any{
 		query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now(),
 		query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    status,
 		query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   statusMessage,

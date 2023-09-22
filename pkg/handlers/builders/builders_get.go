@@ -37,9 +37,8 @@ import (
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Router /repositories/{repository_id}/builders/{id} [get]
+// @Router /repositories/{repository_id}/builders/ [get]
 // @Param repository_id path string true "Repository ID"
-// @Param id path string true "Builder ID"
 // @Success 200 {object} types.BuilderItem
 // @Failure 404 {object} xerrors.ErrCode
 // @Failure 500 {object} xerrors.ErrCode
@@ -54,19 +53,19 @@ func (h *handlers) GetBuilder(c echo.Context) error {
 	}
 
 	builderService := h.builderServiceFactory.New()
-	builderObj, err := builderService.Get(ctx, req.ID)
+	builderObj, err := builderService.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Builder not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
+			log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Msg("Builder not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found: %s", req.RepositoryID, err))
 		}
-		log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Get builder failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder(%d) not found: %s", req.ID, err))
+		log.Error().Err(err).Int64("repositoryID", req.RepositoryID).Msg("Get builder failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder(%d) not found: %s", req.RepositoryID, err))
 	}
 
 	if builderObj.RepositoryID != req.RepositoryID {
-		log.Error().Int64("repositoryID", req.RepositoryID).Int64("id", req.ID).Msg("Builder not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found", req.ID))
+		log.Error().Int64("repositoryID", req.RepositoryID).Msg("Builder not found")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder(%d) not found", req.RepositoryID))
 	}
 
 	platforms := []enums.OciPlatform{}

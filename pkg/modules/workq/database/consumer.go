@@ -72,7 +72,7 @@ func (h *consumerHandler) consume(topic string) error {
 	wq, err := workQueueService.Get(daoCtx, strings.ToLower(topic))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Debug().Err(err).Msgf("None task in topic(%s)", topic)
+			log.Trace().Err(err).Msgf("None task in topic(%s)", topic)
 			return nil
 		}
 		return err
