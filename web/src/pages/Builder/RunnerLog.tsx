@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-import axios from 'axios';
+export default function ({ localServer }: { localServer: string }) {
+  return (
+    <>
 
-axios.interceptors.request.use((config: any) => {
-  const token = localStorage.getItem('token');
-  token && (config.headers.Authorization = "Bearer " + token);
-  return config;
-});
-
-export const setupResponseInterceptor = (navigate: any) => {
-  axios.interceptors.response.use(response => {
-    return response;
-  }, error => {
-    if (error?.response?.status === 401) {
-      navigate('/login');
-    } else if (error?.response?.status === 500) {
-      return Promise.reject(error);
-    } else {
-      return Promise.resolve(error?.response);
-    }
-  })
+    </>
+  )
 }

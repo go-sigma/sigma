@@ -48,8 +48,8 @@ type Builder struct {
 
 // GetBuilderRequest represents the request to get a builder.
 type GetBuilderRequest struct {
-	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	Namespace    string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"library"`
+	RepositoryID int64  `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
 }
 
 // BuilderItem ...
@@ -170,9 +170,12 @@ type BuilderRunnerItem struct {
 	Log       []byte
 	Status    enums.BuildStatus
 
-	Tag               string
-	ScmBranch         string
-	BuildkitPlatforms []enums.OciPlatform `json:"buildkit_platforms" example:"linux/amd64"`
+	Tag         string
+	Description *string
+	ScmBranch   *string
+
+	StartedAt *string
+	EndedAt   *string
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

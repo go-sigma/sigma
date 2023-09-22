@@ -398,8 +398,13 @@ export default function ({ localServer }: { localServer: string }) {
         data['scm_password'] = customRepositoryPassword;
       }
     }
-    if (builderSource === 'CodeRepository' || builderSource === 'SelfCodeRepository') {
+    if (builderSource === 'CodeRepository') {
+      data['scm_branch'] = codeRepositoryBranchSelected.name;
+    }
+    if (builderSource === 'SelfCodeRepository') {
       data['scm_branch'] = customRepositoryBranch;
+    }
+    if (builderSource === 'CodeRepository' || builderSource === 'SelfCodeRepository') {
       data['scm_depth'] = depth;
       data['scm_submodule'] = submodule;
     }
@@ -428,7 +433,7 @@ export default function ({ localServer }: { localServer: string }) {
     data['buildkit_platforms'] = ps;
     console.log(data);
     if (id === undefined) {
-      let url = `${localServer}/api/v1/repositories/${repositorySelected.id}/builders/`;
+      let url = `${localServer}/api/v1/namespaces/${namespaceSelected.name}/repositories/${repositorySelected.id}/builders/`;
       axios.post(url, data as IBuilderItem).then(response => {
         if (response?.status === 201) {
           // TODO: redirect to repo
@@ -478,7 +483,7 @@ export default function ({ localServer }: { localServer: string }) {
           });
         }
         if (builderItem.code_repository_id !== undefined) {
-          
+
         }
         let ps = "";
         let platforms: {
@@ -554,28 +559,44 @@ export default function ({ localServer }: { localServer: string }) {
                     Namespace
                   </label>
                   <div className="mt-2">
-                    <Combobox value={namespaceSelected} onChange={(namespace: INamespaceItem) => {
-                      setSearchParams({
-                        ...Object.fromEntries(searchParams.entries()),
-                        namespace: namespace.name,
-                        namespace_id: namespace.id.toString(),
-                        repository: '',
-                        repository_id: '',
-                      });
-                      setRepositorySelected({} as IRepositoryItem); // clear the repo selected
-                      setNamespaceSelected(namespace);
-                    }}>
+                    <Combobox value={namespaceSelected}
+                      disabled={(searchParams.get('namespace_stick') || '') === 'true'}
+                      onChange={(namespace: INamespaceItem) => {
+                        setSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          namespace: namespace.name,
+                          namespace_id: namespace.id.toString(),
+                          repository: '',
+                          repository_id: '',
+                        });
+                        setRepositorySelected({} as IRepositoryItem); // clear the repo selected
+                        setNamespaceSelected(namespace);
+                      }}>
                       <div className="relative mt-1">
                         <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                           <Combobox.Input
                             id="namespace"
-                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            className={() => {
+                              let cursor = ''
+                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                                cursor = 'cursor-not-allowed ';
+                              }
+                              return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            }}
                             displayValue={(namespace: INamespaceItem) => namespace.name}
                             onChange={event => {
                               setNamespaceSearch(event.target.value);
                             }}
                           />
-                          <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                          <Combobox.Button
+                            className={() => {
+                              let cursor = ''
+                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                                cursor = 'cursor-not-allowed ';
+                              }
+                              return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
+                            }}
+                          >
                             <ChevronUpDownIcon
                               className="h-5 w-5 text-gray-400"
                               aria-hidden="true"
@@ -623,19 +644,27 @@ export default function ({ localServer }: { localServer: string }) {
                     Repository
                   </label>
                   <div className="mt-2">
-                    <Combobox value={repositorySelected} onChange={(repo: IRepositoryItem) => {
-                      setSearchParams({
-                        ...Object.fromEntries(searchParams.entries()),
-                        repository: repo.name,
-                        repository_id: repo.id.toString(),
-                      });
-                      setRepositorySelected(repo);
-                    }}>
+                    <Combobox value={repositorySelected}
+                      disabled={(searchParams.get('repository_stick') || '') === 'true'}
+                      onChange={(repo: IRepositoryItem) => {
+                        setSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          repository: repo.name,
+                          repository_id: repo.id.toString(),
+                        });
+                        setRepositorySelected(repo);
+                      }}>
                       <div className="relative mt-1">
-                        <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                        <div className="w-full relative overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm cursor-pointer" >
                           <Combobox.Input
                             id="repository"
-                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            className={() => {
+                              let cursor = ''
+                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                                cursor = 'cursor-not-allowed ';
+                              }
+                              return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            }}
                             displayValue={(repository: IRepositoryItem) => {
                               if (namespaceSelected.name != undefined && repository.name != undefined) {
                                 return repository.name.substring(namespaceSelected.name.length + 1)
@@ -646,7 +675,15 @@ export default function ({ localServer }: { localServer: string }) {
                               setRepositorySearch(event.target.value);
                             }}
                           />
-                          <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                          <Combobox.Button
+                            className={() => {
+                              let cursor = ''
+                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                                cursor = 'cursor-not-allowed ';
+                              }
+                              return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
+                            }}
+                          >
                             <ChevronUpDownIcon
                               className="h-5 w-5 text-gray-400"
                               aria-hidden="true"

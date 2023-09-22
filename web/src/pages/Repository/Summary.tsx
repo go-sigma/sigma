@@ -131,6 +131,12 @@ export default function ({ localServer }: { localServer: string }) {
                       Summary
                     </span>
                     <Link
+                      to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Runners
+                    </Link>
+                    <Link
                       to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj.name}&repository_id=${repository_id}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >

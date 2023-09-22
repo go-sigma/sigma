@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -72,6 +73,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 			}
 		}()
 		if runnerObj.Status == enums.BuildStatusFailed || runnerObj.Status == enums.BuildStatusSuccess {
+			// already built
 			reader, err := logger.Driver.Read(ctx, runnerObj.ID)
 			if err != nil {
 				log.Error().Err(err).Msg("Read log failed")
@@ -82,7 +84,8 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 				log.Error().Err(err).Msg("Send log failed")
 				return
 			}
-		} else {
+		} else if runnerObj.Status == enums.BuildStatusBuilding {
+			// still building
 			for {
 				reader, writer := io.Pipe()
 				go func() {
@@ -103,7 +106,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 			}
 		}
 	}).ServeHTTP(c.Response(), c.Request())
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (h *handlers) sendLog(ws *websocket.Conn, reader io.Reader) error {

@@ -67,6 +67,7 @@ export interface INamespaceList {
 
 export interface IRepositoryItem {
   id: number;
+  namespace_id: number;
   name: string;
   description: string;
   overview: string;
@@ -257,4 +258,17 @@ export interface IBuilderItem {
   buildkit_context?: string;
   buildkit_dockerfile?: string;
   buildkit_platforms: string[];
+}
+
+export interface BuilderRunnerItem {
+  id: number;
+  builder_id: number;
+  status: string;
+  tag: string;
+  description?: string;
+  scm_branch?: string;
+  started_at?: string;
+  ended_at?: string;
+  created_at: string;
+  updated_at: string;
 }

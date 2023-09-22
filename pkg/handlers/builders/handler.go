@@ -103,18 +103,18 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	builderGroup := e.Group(consts.APIV1+"/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	handler := handlerNew()
 	builderGroup.POST("/", handler.PostBuilder)
-	builderGroup.GET("/:id", handler.GetBuilder)
-	builderGroup.PUT("/:id", handler.PutBuilder)
+	builderGroup.GET("/", handler.GetBuilder)
+	builderGroup.PUT("/:builder_id", handler.PutBuilder)
 
-	builderGroup.GET("/:id/runners/", handler.ListRunners)
-	builderGroup.GET("/:id/runners/run", handler.PostRunnerRun)
-	builderGroup.GET("/:id/runners/:runner_id/log", handler.GetRunnerLog)
-	builderGroup.GET("/:id/runners/:runner_id/stop", handler.GetRunnerStop)
-	builderGroup.GET("/:id/runners/:runner_id/rerun", handler.GetRunnerStop)
+	builderGroup.GET("/:builder_id/runners/", handler.ListRunners)
+	builderGroup.GET("/:builder_id/runners/run", handler.PostRunnerRun)
+	builderGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
+	builderGroup.GET("/:builder_id/runners/:runner_id/stop", handler.GetRunnerStop)
+	builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerStop)
 	return nil
 }
 

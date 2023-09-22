@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -54,14 +55,25 @@ func (h *handlers) ListRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runner := range runnerObjs {
+		var startedAt, endedAt string
+		if runner.StartedAt != nil {
+			startedAt = runner.StartedAt.Format(consts.DefaultTimePattern)
+		}
+		if runner.EndedAt != nil {
+			endedAt = runner.EndedAt.Format(consts.DefaultTimePattern)
+		}
 		resp = append(resp, types.BuilderRunnerItem{
-			ID:        runner.ID,
-			BuilderID: runner.BuilderID,
-			Log:       runner.Log,
-			Status:    runner.Status,
-			Tag:       runner.Tag,
-			CreatedAt: runner.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: runner.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:          runner.ID,
+			BuilderID:   runner.BuilderID,
+			Log:         runner.Log,
+			Status:      runner.Status,
+			Tag:         runner.Tag,
+			Description: runner.Description,
+			ScmBranch:   runner.ScmBranch,
+			StartedAt:   ptr.Of(startedAt),
+			EndedAt:     ptr.Of(endedAt),
+			CreatedAt:   runner.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:   runner.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
