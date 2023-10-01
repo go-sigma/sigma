@@ -136,7 +136,7 @@ func (s builderService) CreateRunner(ctx context.Context, runner *models.Builder
 
 // GetRunner get runner from object storage or database
 func (s builderService) GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error) {
-	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.ID.Eq(id)).First()
+	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.ID.Eq(id)).Preload(s.tx.BuilderRunner.Builder).First()
 }
 
 // ListRunners list builder runners
@@ -161,7 +161,9 @@ func (s builderService) ListRunners(ctx context.Context, id int64, pagination ty
 
 // UpdateRunner update builder runner
 func (s builderService) UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error {
-	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(builderID), s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)
+	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(
+		s.tx.BuilderRunner.BuilderID.Eq(builderID),
+		s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)
 	if err != nil {
 		return err
 	}

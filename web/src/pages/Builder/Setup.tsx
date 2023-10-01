@@ -433,7 +433,7 @@ export default function ({ localServer }: { localServer: string }) {
     data['buildkit_platforms'] = ps;
     console.log(data);
     if (id === undefined) {
-      let url = `${localServer}/api/v1/namespaces/${namespaceSelected.name}/repositories/${repositorySelected.id}/builders/`;
+      let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${repositorySelected.id}/builders/`;
       axios.post(url, data as IBuilderItem).then(response => {
         if (response?.status === 201) {
           // TODO: redirect to repo
@@ -446,7 +446,7 @@ export default function ({ localServer }: { localServer: string }) {
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
     } else {
-      let url = `${localServer}/api/v1/repositories/${searchParams.get('repository_id')}/builders/${id}`;
+      let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}/builders/${id}`;
       axios.put(url, data as IBuilderItem).then(response => {
         if (response?.status === 204) {
           console.log(response);
@@ -467,9 +467,10 @@ export default function ({ localServer }: { localServer: string }) {
     if (id === undefined) {
       return;
     }
-    axios.get(`${localServer}/api/v1/repositories/${searchParams.get('repository_id')}/builders/${id}`).then(response => {
+    axios.get(`${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}`).then(response => {
       if (response?.status === 200) {
-        let builderItem = response.data as IBuilderItem;
+        let repositoryItem = response.data as IRepositoryItem;
+        let builderItem = repositoryItem.builder || {} as IBuilderItem;
         setBuilderSource(builderItem.source);
         setSearchParams({
           ...Object.fromEntries(searchParams.entries()),

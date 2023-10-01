@@ -47,8 +47,8 @@ func (h *handlers) GetRunnerStop(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
-	if builderObj.ID != req.ID {
-		log.Error().Int64("id", req.ID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
+	if builderObj.ID != req.BuilderID {
+		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
@@ -70,7 +70,7 @@ func (h *handlers) GetRunnerStop(c echo.Context) error {
 	err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
 		Action:       enums.DaemonBuilderActionStop,
 		RepositoryID: req.RepositoryID,
-		BuilderID:    req.ID,
+		BuilderID:    req.BuilderID,
 		RunnerID:     req.RunnerID,
 	})
 	if err != nil {

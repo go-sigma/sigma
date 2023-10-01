@@ -15,6 +15,7 @@
 package builders
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -31,6 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/compress"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -96,6 +98,13 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Repository has been already create builder")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Repository has been already create builder")
 	}
+
+	compressedDockerfile, err := h.CompressDockerfile(req.Dockerfile)
+	if err != nil {
+		log.Error().Err(err).Msg("Dockerfile base64 decode failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Dockerfile base64 decode failed: %v", err))
+	}
+
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		builderObj := &models.Builder{
 			RepositoryID: req.RepositoryID,
@@ -104,7 +113,7 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 
 			CodeRepositoryID: req.CodeRepositoryID,
 
-			Dockerfile: []byte(ptr.To(req.Dockerfile)),
+			Dockerfile: compressedDockerfile,
 
 			ScmRepository:     req.ScmRepository,
 			ScmCredentialType: req.ScmCredentialType,
@@ -202,4 +211,16 @@ func (h *handlers) PostBuilderValidator(req types.PostBuilderRequest) error {
 		return xerrors.HTTPErrCodeBadRequest.Detail("parameter 'source' is invalid")
 	}
 	return nil
+}
+
+// CompressDockerfile ...
+func (h *handlers) CompressDockerfile(str *string) ([]byte, error) {
+	if str == nil {
+		return nil, nil
+	}
+	data, err := base64.StdEncoding.DecodeString(ptr.To(str))
+	if err != nil {
+		return nil, err
+	}
+	return compress.CompressBytes(data)
 }

@@ -28,12 +28,12 @@ type Builder struct {
 	Dockerfile *string `env:"DOCKERFILE"`
 
 	ScmProvider       *enums.ScmProvider       `env:"SCM_PROVIDER"`
-	ScmCredentialType *enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE,notEmpty"`
+	ScmCredentialType *enums.ScmCredentialType `env:"SCM_CREDENTIAL_TYPE"`
 	ScmSshKey         *string                  `env:"SCM_SSH_KEY"`
 	ScmToken          *string                  `env:"SCM_TOKEN"`
 	ScmUsername       *string                  `env:"SCM_USERNAME"`
 	ScmPassword       *string                  `env:"SCM_PASSWORD"`
-	ScmRepository     *string                  `env:"SCM_REPOSITORY,notEmpty"`
+	ScmRepository     *string                  `env:"SCM_REPOSITORY"`
 	ScmBranch         *string                  `env:"SCM_BRANCH" envDefault:"main"`
 	ScmDepth          *int                     `env:"SCM_DEPTH" envDefault:"0"`
 	ScmSubmodule      *bool                    `env:"SCM_SUBMODULE" envDefault:"false"`
@@ -136,6 +136,7 @@ type PostOrPutBuilderRequest struct {
 
 // PostBuilderRequest ...
 type PostBuilderRequest struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
 
 	PostOrPutBuilderRequest
@@ -148,8 +149,9 @@ type PostBuilderRequestSwagger struct {
 
 // PutBuilderRequest represents the request to get a builder.
 type PutBuilderRequest struct {
-	ID           int64 `json:"id" param:"id" validate:"required,number"`
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 
 	PostOrPutBuilderRequest
 }
@@ -191,31 +193,55 @@ type BuilderRunnerItem struct {
 
 // PostRunnerRun ...
 type PostRunnerRun struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 
 	Tag         string  `json:"tag" example:"test"` // TODO: validate
-	Description *string `json:"description,omitempty" validate:"omitempty,max=255"`
-	ScmBranch   *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=50" example:"main"`
+	Description *string `json:"description,omitempty" validate:"omitempty,max=50"`
+	ScmBranch   *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=64" example:"main"`
 }
 
 // GetRunnerRerun ...
 type GetRunnerRerun struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
+}
+
+// RunOrRerunRunnerResponse ...
+type RunOrRerunRunnerResponse struct {
+	RunnerID int64 `json:"runner_id" example:"10"`
 }
 
 // GetRunnerStop ...
 type GetRunnerStop struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
 }
 
 // GetRunnerLog ...
 type GetRunnerLog struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
-	ID           int64 `json:"id" param:"id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
+}
+
+// GetRunner ...
+type GetRunner struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
+	RunnerID     int64 `json:"runner_id" param:"runner_id" validate:"required,number" example:"10"`
+}
+
+// BuildTagOption ...
+type BuildTagOption struct {
+	ScmBranch string
+	ScmTag    string
+	ScmRef    string
 }

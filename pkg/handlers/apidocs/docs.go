@@ -616,7 +616,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespace/{namespace_id}/repositories/{repository_id}/builders/{id}": {
+        "/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}": {
             "put": {
                 "security": [
                     {
@@ -651,7 +651,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Builder ID",
-                        "name": "id",
+                        "name": "builder_id",
                         "in": "path",
                         "required": true
                     },
@@ -2021,12 +2021,51 @@ const docTemplate = `{
                 "tags": [
                     "Validator"
                 ],
-                "summary": "validate reference",
+                "summary": "Validate reference",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Reference",
                         "name": "reference",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/validators/tag": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validator"
+                ],
+                "summary": "Validate tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reference",
+                        "name": "tag",
                         "in": "query",
                         "required": true
                     }

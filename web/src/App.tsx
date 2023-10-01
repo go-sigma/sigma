@@ -76,7 +76,7 @@ export default function App() {
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
 
         <Route path="/namespaces/:namespace/repository/runners" element={<BuilderRunnerList localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/repository/runner-log" element={<BuilderRunnerLog localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repository/runner-logs/:runner_id" element={<BuilderRunnerLog localServer={localServer} />} />
 
         <Route path="/coderepos" element={<CodeRepositoryHome localServer={localServer} />} />
         <Route path="/coderepos/:provider" element={<CodeRepositoryList localServer={localServer} />} />

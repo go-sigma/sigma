@@ -15,6 +15,7 @@
 package builders
 
 import (
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -35,9 +36,10 @@ import (
 
 // GetRunnerLog ...
 func (h *handlers) GetRunnerLog(c echo.Context) error {
+	fmt.Println("help")
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.GetRunnerStop
+	var req types.GetRunnerLog
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -50,8 +52,8 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
-	if builderObj.ID != req.ID {
-		log.Error().Int64("id", req.ID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
+	if builderObj.ID != req.BuilderID {
+		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
@@ -79,7 +81,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 				log.Error().Err(err).Msg("Read log failed")
 				return
 			}
-			err = h.sendLog(ws, reader)
+			err = h.sendLogWithGzip(ws, reader)
 			if err != nil {
 				log.Error().Err(err).Msg("Send log failed")
 				return
@@ -89,7 +91,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 			for {
 				reader, writer := io.Pipe()
 				go func() {
-					err = builder.Driver.LogStream(ctx, req.ID, req.RunnerID, writer)
+					err = builder.Driver.LogStream(ctx, req.BuilderID, req.RunnerID, writer)
 					if err != nil {
 						log.Error().Err(err).Msg("Read log failed")
 						_, err = writer.Write([]byte{10})
@@ -98,7 +100,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 						}
 					}
 				}()
-				err = h.sendLog(ws, reader)
+				err = h.sendLogWithoutGzip(ws, reader)
 				if err != nil {
 					log.Error().Err(err).Msg("Send log failed")
 					return
@@ -109,14 +111,30 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (h *handlers) sendLogWithGzip(ws *websocket.Conn, reader io.Reader) error {
+	gzipReader, err := gzip.NewReader(reader)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		return err
+	}
+	return h.sendLog(ws, gzipReader)
+}
+
+func (h *handlers) sendLogWithoutGzip(ws *websocket.Conn, reader io.Reader) error {
+	return h.sendLog(ws, reader)
+}
+
 func (h *handlers) sendLog(ws *websocket.Conn, reader io.Reader) error {
 	for {
 		var data = make([]byte, 512)
 		_, err := reader.Read(data)
-		if errors.Is(err, io.EOF) {
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			return nil
 		}
 		if err != nil {
+			log.Error().Err(err).Msg("Read builder runner log failed")
 			return err
 		}
 		err = websocket.Message.Send(ws, data)

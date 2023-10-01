@@ -77,6 +77,10 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 		fmt.Sprintf("BUILDER_ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
 
+		fmt.Sprintf("SOURCE=%s", builderConfig.Source.String()),
+
+		fmt.Sprintf("DOCKERFILE=%s", ptr.To(builderConfig.Dockerfile)),
+
 		fmt.Sprintf("OCI_REGISTRY_DOMAIN=%s", strings.Join(builderConfig.OciRegistryDomain, ",")),
 		fmt.Sprintf("OCI_REGISTRY_USERNAME=%s", strings.Join(builderConfig.OciRegistryUsername, ",")),
 		fmt.Sprintf("OCI_NAME=%s", builderConfig.OciName),

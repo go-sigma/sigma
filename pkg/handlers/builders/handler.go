@@ -43,6 +43,8 @@ type Handlers interface {
 	GetRunnerStop(c echo.Context) error
 	// GetRunnerLog ...
 	GetRunnerLog(c echo.Context) error
+	// GetRunner ...
+	GetRunner(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -101,17 +103,20 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-
 	handler := handlerNew()
+
+	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
+		middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	builderGroup.POST("/", handler.PostBuilder)
 	builderGroup.PUT("/:builder_id", handler.PutBuilder)
-
 	builderGroup.GET("/:builder_id/runners/", handler.ListRunners)
-	builderGroup.GET("/:builder_id/runners/run", handler.PostRunnerRun)
-	builderGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
+	builderGroup.POST("/:builder_id/runners/run", handler.PostRunnerRun)
+	builderGroup.GET("/:builder_id/runners/:runner_id", handler.GetRunner)
 	builderGroup.GET("/:builder_id/runners/:runner_id/stop", handler.GetRunnerStop)
-	builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerStop)
+	builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerRerun)
+
+	builderWithoutAuthGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
+	builderWithoutAuthGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
 	return nil
 }
 

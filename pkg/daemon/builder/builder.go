@@ -16,27 +16,34 @@ package builder
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
-	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/builder"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonBuilder, builderRunner))
+	workq.TopicHandlers[enums.DaemonBuilder.String()] = definition.Consumer{
+		Handler:     builderRunner,
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
 }
 
-func builderRunner(ctx context.Context, task *asynq.Task) error {
+func builderRunner(ctx context.Context, data []byte) error {
 	var payload types.DaemonBuilderPayload
-	err := json.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal(data, &payload)
 	if err != nil {
 		return fmt.Errorf("Unmarshal payload failed: %v", err)
 	}
@@ -82,6 +89,10 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			BuilderID: payload.BuilderID,
 			RunnerID:  runnerObj.ID,
 
+			Source: runnerObj.Builder.Source,
+
+			Dockerfile: ptr.Of(base64.StdEncoding.EncodeToString(runnerObj.Builder.Dockerfile)),
+
 			// ScmCredentialType: builderObj.ScmCredentialType,
 			// ScmProvider:       enums.ScmProviderGithub,
 			// ScmSshKey:         builderObj.ScmSshKey,
@@ -93,12 +104,12 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			ScmDepth:  builderObj.ScmDepth,
 			// ScmSubmodule: builderObj.ScmSubmodule,
 
-			OciRegistryDomain:   []string{"192.168.31.114:3000"},
+			OciRegistryDomain:   []string{"192.168.31.198:3000"},
 			OciRegistryUsername: []string{"sigma"},
 			OciRegistryPassword: []string{"sigma"},
-			OciName:             "192.168.31.114:3000/library/test:dev",
+			OciName:             "192.168.31.198:3000/library/test:dev",
 
-			BuildkitInsecureRegistries: []string{"192.168.31.114:3000@http"},
+			BuildkitInsecureRegistries: []string{"192.168.31.198:3000@http"},
 		},
 	}
 	if payload.Action == enums.DaemonBuilderActionStart { // nolint: gocritic

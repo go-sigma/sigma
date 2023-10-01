@@ -18,25 +18,25 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/hako/durafmt"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostRunnerRun ...
-func (h *handlers) PostRunnerRun(c echo.Context) error {
+// GetRunner ...
+func (h *handlers) GetRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.PostRunnerRun
+	var req types.GetRunner
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -44,7 +44,7 @@ func (h *handlers) PostRunnerRun(c echo.Context) error {
 	}
 
 	builderService := h.builderServiceFactory.New()
-	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
+	runnerObj, err := builderService.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id not found")
@@ -53,40 +53,41 @@ func (h *handlers) PostRunnerRun(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
-	if builderObj.ID != req.BuilderID {
-		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
+	if runnerObj.BuilderID != req.BuilderID {
+		log.Error().Int64("builder_id", runnerObj.BuilderID).Int64("builder_id", req.BuilderID).Msg("Get builder by id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
-	var runnerObj *models.BuilderRunner
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderService := h.builderServiceFactory.New(tx)
-		runnerObj = &models.BuilderRunner{
-			BuilderID: req.BuilderID,
-			Tag:       req.Tag,
-			ScmBranch: req.ScmBranch,
-		}
-		err = builderService.CreateRunner(ctx, runnerObj)
-		if err != nil {
-			log.Error().Err(err).Msg("Create builder runner failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
-		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
-			Action:       enums.DaemonBuilderActionStart,
-			RepositoryID: req.RepositoryID,
-			BuilderID:    req.BuilderID,
-			RunnerID:     runnerObj.ID,
-		})
-		if err != nil {
-			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
-		}
-		return nil
-	})
-	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+	var startedAt, endedAt string
+	if runnerObj.StartedAt != nil {
+		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
 	}
-	return c.JSON(http.StatusCreated, types.RunOrRerunRunnerResponse{
-		RunnerID: runnerObj.ID,
+	if runnerObj.EndedAt != nil {
+		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+	}
+
+	var duration *string
+	if runnerObj.Duration != nil {
+		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+	}
+
+	return c.JSON(http.StatusOK, types.BuilderRunnerItem{
+		ID:        runnerObj.ID,
+		BuilderID: runnerObj.BuilderID,
+
+		Log: runnerObj.Log,
+
+		Status:      runnerObj.Status,
+		Tag:         runnerObj.Tag,
+		Description: runnerObj.Description,
+		ScmBranch:   runnerObj.ScmBranch,
+
+		StartedAt:   ptr.Of(startedAt),
+		EndedAt:     ptr.Of(endedAt),
+		RawDuration: runnerObj.Duration,
+		Duration:    duration,
+
+		CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }

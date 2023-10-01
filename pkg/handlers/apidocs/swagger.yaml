@@ -1513,7 +1513,7 @@ paths:
       summary: Get logs
       tags:
       - Daemon
-  /namespace/{namespace_id}/repositories/{repository_id}/builders/{id}:
+  /namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}:
     put:
       consumes:
       - application/json
@@ -1530,7 +1530,7 @@ paths:
         type: string
       - description: Builder ID
         in: path
-        name: id
+        name: builder_id
         required: true
         type: string
       - description: Builder object
@@ -2412,7 +2412,31 @@ paths:
             $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
-      summary: validate reference
+      summary: Validate reference
+      tags:
+      - Validator
+  /validators/tag:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reference
+        in: query
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate tag
       tags:
       - Validator
   /webhook/{id}:

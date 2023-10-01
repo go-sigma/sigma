@@ -55,6 +55,26 @@ func Compress(src string) ([]byte, error) {
 	return dst.Bytes(), nil
 }
 
+// CompressBytes ...
+func CompressBytes(src []byte) ([]byte, error) {
+	srcReader := bytes.NewReader(src)
+	var dst bytes.Buffer
+	gzipWriter, err := gzip.NewWriterLevel(&dst, gzip.BestSpeed)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(gzipWriter, srcReader)
+	if err != nil {
+		return nil, err
+	}
+	err = gzipWriter.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return dst.Bytes(), nil
+}
+
 // Decompress decompresses the given string using gzip.
 func Decompress(src []byte) (string, error) {
 	srcReader := bytes.NewReader(src)

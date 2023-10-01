@@ -15,6 +15,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"math/big"
@@ -35,6 +36,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/compress"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -71,7 +73,11 @@ func main() {
 	checkErr(builder.checker())
 	checkErr(builder.initCache())
 	checkErr(builder.initToken())
-	checkErr(builder.gitClone())
+	if builder.Builder.Source == enums.BuilderSourceDockerfile {
+		checkErr(builder.writeDockerfile())
+	} else {
+		checkErr(builder.gitClone())
+	}
 	checkErr(builder.build())
 	checkErr(builder.exportCache())
 }
@@ -125,6 +131,26 @@ func (b Builder) initCache() error {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (b Builder) writeDockerfile() error {
+	base64Bytes, err := base64.StdEncoding.DecodeString(ptr.To(b.Dockerfile))
+	if err != nil {
+		return err
+	}
+	dockerfileStr, err := compress.Decompress(base64Bytes)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(path.Join(workspace, "Dockerfile"))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(dockerfileStr)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -244,3 +270,6 @@ func (b Builder) exportCache() error {
 // docker run -it --rm --security-opt apparmor=unconfined -e SCM_CREDENTIAL_TYPE=none -e SCM_PROVIDER=github -e OCI_REGISTRY_DOMAIN=docker.com -e SCM_REPOSITORY=https://github.com/tosone/sudoku.git -e SCM_BRANCH=master -e OCI_NAME=test:dev -e BUILDKIT_INSECURE_REGISTRIES="10.1.0.1:3000@http,docker.io@http,test.com" --entrypoint '' docker.io/library/builder:dev sh
 
 // BUILDKITD_FLAGS="--config=/opt/sigma/buildkitd.toml" /usr/bin/buildctl-daemonless.sh build --local context=/code --local dockerfile=/code --progress plain --frontend gateway.v0 --opt source=docker/dockerfile:1.6 --output type=image,name=test:dev,push=false --export-cache type=local,mode=max,compression=gzip,dest=/opt/cache_out --import-cache type=local,src=/opt/cache_in
+
+// Add anno to manifest
+// https://github.com/moby/buildkit/blob/master/docs/annotations.md

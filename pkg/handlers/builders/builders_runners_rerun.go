@@ -17,6 +17,7 @@ package builders
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -44,12 +45,16 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 
 	builderService := h.builderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id not found: %v", err))
+		}
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
-	if builderObj.ID != req.ID {
-		log.Error().Int64("id", req.ID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
+	if builderObj.ID != req.BuilderID {
+		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
@@ -63,15 +68,16 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
 	}
 
-	if runnerObj.Status != enums.BuildStatusBuilding && runnerObj.Status != enums.BuildStatusFailed {
+	if runnerObj.Status != enums.BuildStatusSuccess && runnerObj.Status != enums.BuildStatusFailed {
 		log.Error().Str("status", runnerObj.Status.String()).Msgf("Builder runner status %s not support rerun", runnerObj.Status.String())
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Builder runner status %s not support rerun", runnerObj.Status.String()))
 	}
+
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStop,
 			RepositoryID: req.RepositoryID,
-			BuilderID:    req.ID,
+			BuilderID:    req.BuilderID,
 			RunnerID:     req.RunnerID,
 		})
 		if err != nil {
@@ -79,7 +85,8 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
 		}
 		builderService := h.builderServiceFactory.New(tx)
-		runnerObj := &models.BuilderRunner{
+		runnerObj = &models.BuilderRunner{
+			BuilderID: req.BuilderID,
 			Tag:       runnerObj.Tag,
 			ScmBranch: runnerObj.ScmBranch,
 		}
@@ -91,7 +98,7 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
 			RepositoryID: req.RepositoryID,
-			BuilderID:    req.ID,
+			BuilderID:    req.BuilderID,
 			RunnerID:     runnerObj.ID,
 		})
 		if err != nil {
@@ -103,5 +110,7 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return nil
+	return c.JSON(http.StatusOK, types.RunOrRerunRunnerResponse{
+		RunnerID: runnerObj.ID,
+	})
 }

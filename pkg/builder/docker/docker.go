@@ -35,6 +35,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
@@ -88,7 +90,16 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
-	return i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), dockertypes.ContainerStartOptions{})
+	err = i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), dockertypes.ContainerStartOptions{})
+	if err != nil {
+		return fmt.Errorf("Start container failed: %v", err)
+	}
+	builderService := i.builderServiceFactory.New()
+	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusBuilding})
+	if err != nil {
+		return fmt.Errorf("Update runner status failed: %v", err)
+	}
+	return nil
 }
 
 const (
@@ -100,6 +111,10 @@ const (
 func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 	err := i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
+		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
+			log.Info().Str("id", i.genContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
+			return nil
+		}
 		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Kill container failed")
 		return fmt.Errorf("Kill container failed: %v", err)
 	}

@@ -272,8 +272,16 @@ export interface IBuilderRunnerItem {
   tag: string;
   description?: string;
   scm_branch?: string;
+
   started_at?: string;
   ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+
   created_at: string;
   updated_at: string;
+}
+
+export interface IRunOrRerunRunnerResponse {
+  runner_id: number;
 }

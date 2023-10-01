@@ -16,8 +16,9 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { Dialog, Transition } from "@headlessui/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useSearchParams, useParams } from "react-router-dom";
 
@@ -28,7 +29,7 @@ import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
 
-import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder, IBuilderRunnerItem, IBuilderRunnerList } from "../../interfaces";
+import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder, IBuilderRunnerItem, IBuilderRunnerList, IRunOrRerunRunnerResponse } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -81,6 +82,65 @@ export default function ({ localServer }: { localServer: string }) {
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, [namespace, repository_id, builderObj])
+
+  const [createRunnerModal, setCreateRunnerModal] = useState(false);
+  const [tagTemplateText, setTagTemplateText] = useState("");
+  const [tagTemplateTextValid, setTagTemplateTextValid] = useState(true);
+  useEffect(() => {
+    if (tagTemplateText == "") {
+      return;
+    }
+    axios.get(localServer + `/api/v1/validators/tag?tag=${tagTemplateText}`).then(response => {
+      if (response?.status === 204) {
+        setTagTemplateTextValid(true);
+      } else {
+        setTagTemplateTextValid(false);
+      }
+    }).catch(error => {
+      console.log(error);
+      setTagTemplateTextValid(false);
+    });
+  }, [tagTemplateText]);
+  const [branchText, setBranchText] = useState("");
+  const [branchTextValid, setBranchTextValid] = useState(true);
+  useEffect(() => { branchText != "" && setBranchTextValid(/^[a-zA-Z0-9_-]{1,64}$/.test(branchText)) }, [branchText]);
+  const [descriptionText, setDescriptionText] = useState("");
+  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
+  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,50}$/.test(descriptionText)) }, [descriptionText]);
+
+  const createRunner = () => {
+    if (builderObj == undefined) {
+      return;
+    }
+    if (!(tagTemplateTextValid && branchTextValid && descriptionTextValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    if (builderObj.source !== "Dockerfile" && branchText === "") {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {
+      tag: tagTemplateText,
+    };
+    if (builderObj.source !== "Dockerfile") {
+      data["branch"] = branchText;
+    }
+    if (descriptionText !== "") {
+      data["description"] = descriptionText;
+    }
+    axios.post(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/run`, data).then(response => {
+      if (response?.status === 201) {
+        // TODO: redirect to log page
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
 
   return (
     <>
@@ -160,14 +220,14 @@ export default function ({ localServer }: { localServer: string }) {
                 {
                   builderObj === undefined ? null : (
                     <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                    // onClick={() => { setCreateNamespaceModal(true) }}
+                      onClick={() => { navigate(`/builders/setup/${repositoryObj?.builder?.id}?namespace=${namespace}&namespace_id=${repositoryObj?.namespace_id}&repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}&namespace_stick=true&repository_stick=true`); }}
                     >Update</button>
                   )
                 }
                 {
                   builderObj === undefined ? null : (
                     <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                    // onClick={() => { setCreateNamespaceModal(true) }}
+                      onClick={() => { setCreateRunnerModal(true) }}
                     >Build</button>
                   )
                 }
@@ -179,7 +239,7 @@ export default function ({ localServer }: { localServer: string }) {
               {
                 builderObj === undefined ? (
                   <div className="my-2 mx-2 text-gray-500 text-md">
-                    Please <Link to="" className="hover:underline-offset-1">configure</Link> the builder first.
+                    Please <Link to={`/builders/setup?namespace=${namespace}&namespace_id=${repositoryObj?.namespace_id}&repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}&namespace_stick=true&repository_stick=true`} className="hover:underline-offset-1">configure</Link> the builder first.
                   </div>
                 ) : (
                   <table className="min-w-full flex-1">
@@ -231,6 +291,173 @@ export default function ({ localServer }: { localServer: string }) {
           }
         </div>
       </div >
+
+      <Transition.Root show={createRunnerModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setCreateRunnerModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <label htmlFor="tagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
+                    <span className="text-red-600">*</span>Tag
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="tagTemplate"
+                      name="tagTemplate"
+                      placeholder="tag template"
+                      className={(tagTemplateTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={tagTemplateText}
+                      onChange={e => {
+                        setTagTemplateText(e.target.value);
+                      }}
+                    />
+                    {
+                      tagTemplateTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      tagTemplateTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid tag template, you can try 'main', '&#123;&#123;.ScmRef&#125;&#125;', '&#123;&#123;.ScmBrach&#125;&#125;'.
+                        </span>
+                      )
+                    }
+                  </p>
+                  {
+                    builderObj?.source !== "Dockerfile" ? (
+                      <>
+                        <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
+                          <span className="text-red-600">*</span>Branch
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            type="text"
+                            name="namespace"
+                            placeholder="1-64 characters"
+                            className={(branchTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={branchText}
+                            onChange={e => {
+                              setBranchText(e.target.value);
+                            }}
+                          />
+                          {
+                            branchTextValid ? (
+                              <div></div>
+                            ) : (
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                </svg>
+                              </div>
+                            )
+                          }
+                        </div>
+                        <p className="mt-1 text-xs text-red-600">
+                          {
+                            branchTextValid ? (
+                              <span></span>
+                            ) : (
+                              <span>
+                                Not a valid branch, you can try 'main', 'master', 'dev'.
+                              </span>
+                            )
+                          }
+                        </p>
+                      </>
+                    ) : null
+                  }
+
+                  <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <textarea
+                      name="description"
+                      placeholder="30 characters"
+                      className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={descriptionText}
+                      onChange={e => setDescriptionText(e.target.value)}
+                    />
+                    {
+                      descriptionTextValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      descriptionTextValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid description, max 50 characters.
+                        </span>
+                      )
+                    }
+                  </p>
+
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => createRunner()}
+                    >
+                      Create
+                    </button>
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                      onClick={() => setCreateRunnerModal(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
     </>
   )
 }

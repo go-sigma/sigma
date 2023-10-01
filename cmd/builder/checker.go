@@ -26,7 +26,7 @@ import (
 func (b *Builder) checker() error {
 	var err error
 
-	if !b.ScmCredentialType.IsValid() {
+	if b.Source != enums.BuilderSourceDockerfile && (b.ScmCredentialType == nil || !b.ScmCredentialType.IsValid()) {
 		return fmt.Errorf("SCM_CREDENTIAL_TYPE should be one of 'ssh', 'token' or 'none', but got '%s'", b.ScmCredentialType.String())
 	}
 
@@ -67,7 +67,7 @@ func (b *Builder) checker() error {
 		b.ScmPassword = ptr.Of(scmPassword)
 	}
 
-	if !b.ScmProvider.IsValid() {
+	if b.Source != enums.BuilderSourceDockerfile && (b.ScmProvider == nil || !b.ScmProvider.IsValid()) {
 		return fmt.Errorf("SCM_PROVIDER should be one of 'github', 'gitlab' or 'bitbucket', but got '%s'", b.ScmProvider.String())
 	}
 	for _, platform := range b.BuildkitPlatforms {

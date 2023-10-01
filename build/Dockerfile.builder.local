@@ -1,0 +1,15 @@
+FROM moby/buildkit:v0.12.1-rootless
+
+USER root
+RUN set -eux && \
+  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  apk add --no-cache git-lfs && \
+  mkdir -p /code/ && \
+  chown -R 1000:1000 /opt/ && \
+  chown -R 1000:1000 /code/
+
+COPY ./bin/sigma-builder /usr/local/bin/sigma-builder
+
+WORKDIR /code
+
+USER 1000:1000

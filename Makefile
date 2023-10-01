@@ -28,24 +28,22 @@ all: build
 
 ## Build:
 build: ## Build sigma and put the output binary in ./bin
-	@$(GOCMD) mod download
 	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
-## Build:
 build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@$(GOCMD) mod download
 	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 build-release: ## Build sigma for release and put the output binary in ./bin
-	@$(GOCMD) mod download
 	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-builder-release: ## Build sigma-builder for release and put the output binary in ./bin
-	@$(GOCMD) mod download
 	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
-build-linux: ## Build your project for linux and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+build-linux: ## Build sigma for linux and put the output binary in ./bin
+	@CGO_ENABLED=0 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+
+build-builder-linux: ## Build sigma-builder for release and put the output binary in ./bin
+	@GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 clean: ## Remove build related file
 	rm -fr ./bin
@@ -103,7 +101,10 @@ docker-build: ## Use the dockerfile to build the container
 	docker buildx build --platform=linux/amd64,linux/arm64 -f build/Dockerfile --rm --tag $(BINARY_NAME) .
 
 docker-build-local: build-linux ## Build the container with the local binary
-	docker build -f build/local.Dockerfile --rm --tag $(BINARY_NAME) .
+	docker build -f build/Dockerfile.local --rm --tag $(BINARY_NAME) .
+
+docker-build-builder-local: build-builder-linux # Build sigma builder image
+	docker build -f build/Dockerfile.builder.local --rm --tag $(BINARY_NAME) .
 
 docker-build-dev: ## Build the dev container
 	docker build -f build/Dockerfile --rm --tag $(BINARY_NAME) .

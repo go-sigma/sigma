@@ -28,7 +28,7 @@ import (
 )
 
 // GetReference handles the validate reference request
-// @Summary validate reference
+// @Summary Validate reference
 // @Tags Validator
 // @security BasicAuth
 // @Accept json

@@ -65,7 +65,7 @@ func (i *instance) informer(ctx context.Context) {
 								continue
 							}
 							go func(id string) {
-								err := i.logStore(ctx, event.Actor.ID, builderID, runnerID)
+								err := i.logStore(ctx, id, builderID, runnerID)
 								if err != nil {
 									log.Error().Err(err).Str("id", id).Msg("Get container log failed")
 								}
@@ -151,5 +151,5 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		return fmt.Errorf("Remove container failed: %v", err)
 	}
 
-	return err
+	return nil
 }
