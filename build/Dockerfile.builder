@@ -12,7 +12,7 @@ RUN set -eux && \
 
 RUN make build-builder
 
-FROM moby/buildkit:v0.12.1-rootless
+FROM moby/buildkit:v0.12.2-rootless
 
 USER root
 RUN set -eux && \

@@ -15,13 +15,9 @@
 package main
 
 import (
-	"context"
 	"encoding/base64"
-	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"math/big"
 	"net/url"
 	"os"
 	"os/exec"
@@ -31,11 +27,9 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v9"
-	"github.com/dustin/go-humanize"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -115,53 +109,6 @@ type Builder struct {
 	types.Builder
 
 	api api
-}
-
-func (b Builder) initCache() error {
-	reader, err := b.api.GetCache(context.Background(), b.BuilderID, b.RunnerID)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-	if reader != nil {
-		file, err := os.OpenFile(path.Join(cache, compressedCache), os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(file, reader)
-		if err != nil {
-			return err
-		}
-		err = file.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Cache file close failed")
-		}
-	}
-	if utils.IsFile(path.Join(cache, compressedCache)) {
-		log.Info().Msg("Start to decompress cache")
-		err := archiver.Unarchive(path.Join(cache, compressedCache), home)
-		if err != nil {
-			return fmt.Errorf("Decompress cache failed: %v", err)
-		}
-		fileInfo, err := os.Stat(path.Join(cache, compressedCache))
-		if err != nil {
-			return fmt.Errorf("Read compressed file failed: %v", err)
-		}
-		err = os.Rename(cacheOut, cacheIn)
-		if err != nil {
-			return fmt.Errorf("Rename cache_out to cache_in failed: %v", err)
-		}
-		log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Decompress cache success")
-	}
-	var dirs = []string{cacheOut, cacheIn}
-	for _, dir := range dirs {
-		if !utils.IsDir(dir) {
-			err := os.MkdirAll(dir, 0755)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func (b Builder) writeDockerfile() error {
@@ -315,9 +262,16 @@ func (b Builder) build(imageName string) error {
 		cmd.Args = append(cmd.Args, "--opt", fmt.Sprintf("platform=%s", strings.Join(platforms, ",")))
 	}
 	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile") // TODO: set frontend
-	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=true", imageName))
 	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut))
 	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))
+
+	if len(b.BuildkitPlatforms) > 1 {
+		cmd.Args = append(cmd.Args, "--output",
+			fmt.Sprintf("type=image,name=%s,annotation-index.org.opencontainers.sigma.builder_id=%d,annotation-index.org.opencontainers.sigma.runner_id=%d,push=true", imageName, b.BuilderID, b.RunnerID))
+	} else {
+		cmd.Args = append(cmd.Args, "--output",
+			fmt.Sprintf("type=image,name=%s,annotation.org.opencontainers.sigma.builder_id=%d,annotation.org.opencontainers.sigma.runner_id=%d,push=true", imageName, b.BuilderID, b.RunnerID))
+	}
 
 	buildkitdFlags := ""
 	if utils.IsFile(path.Join(homeSigma, buildkitdConfigFilename)) {
@@ -335,29 +289,6 @@ func (b Builder) build(imageName string) error {
 		return fmt.Errorf("Build image failed: %v", err)
 	}
 	log.Info().Msg("Finished build image")
-	return nil
-}
-
-func (b Builder) exportCache() error {
-	log.Info().Msg("Start to compress cache")
-	tgz := archiver.NewTarGz()
-	err := tgz.Archive([]string{path.Join(cacheOut)}, path.Join("/tmp", compressedCache))
-	if err != nil {
-		return fmt.Errorf("Compress cache failed: %v", err)
-	}
-	err = os.Rename(path.Join("/tmp", compressedCache), path.Join(cache, compressedCache))
-	if err != nil {
-		return fmt.Errorf("Move compressed file to dir failed")
-	}
-	fileInfo, err := os.Stat(path.Join(cache, compressedCache))
-	if err != nil {
-		return fmt.Errorf("Read compressed file failed: %v", err)
-	}
-	err = b.api.CreateCache(context.Background(), b.BuilderID, b.RunnerID, path.Join(cache, compressedCache))
-	if err != nil {
-		return fmt.Errorf("Export cache to server failed: %v", err)
-	}
-	log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
 	return nil
 }
 
