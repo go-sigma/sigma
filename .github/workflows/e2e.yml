@@ -25,7 +25,7 @@ jobs:
           echo '{"insecure-registries" : ["'$IP':3000"]}' | sudo tee /etc/docker/daemon.json
           sudo service docker restart
 
-          make docker-build-dev
+          make docker-build
       - name: Run sigma
         run: |
           docker run --name sigma -d -p 3000:3000 sigma:latest

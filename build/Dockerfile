@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.20.7-alpine3.18
+ARG GOLANG_VERSION=1.21.1-alpine3.18
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 
@@ -61,7 +61,7 @@ COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN make build-release
+RUN make build
 
 FROM alpine:${ALPINE_VERSION}
 

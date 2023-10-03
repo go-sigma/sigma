@@ -28,9 +28,12 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/dustin/go-humanize"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog/log"
@@ -82,7 +85,9 @@ func main() {
 	} else {
 		checkErr(builder.gitClone())
 	}
-	checkErr(builder.build())
+	imageName, err := builder.genTag()
+	checkErr(err)
+	checkErr(builder.build(imageName))
 	checkErr(builder.exportCache())
 }
 
@@ -230,7 +235,69 @@ func (b Builder) gitClone() error {
 	return nil
 }
 
-func (b Builder) build() error {
+func (b Builder) genTag() (string, error) {
+	var buildTagOption = BuildTagOption{}
+	if b.Source != enums.BuilderSourceDockerfile {
+		r, err := git.PlainOpen(workspace)
+		if err != nil {
+			return "", err
+		}
+		tagRefs, err := r.Tags()
+		if err != nil {
+			return "", err
+		}
+		var latestTag = struct {
+			ref  *plumbing.Reference
+			when time.Time
+		}{}
+		err = tagRefs.ForEach(func(tagRef *plumbing.Reference) error {
+			commitObj, err := r.CommitObject(tagRef.Hash())
+			if err != nil {
+				return err
+			}
+			if latestTag.ref == nil || commitObj.Committer.When.After(latestTag.when) {
+				latestTag.ref = tagRef
+				latestTag.when = commitObj.Committer.When
+			}
+			return nil
+		})
+		if err != nil {
+			return "", err
+		}
+
+		ref, err := r.Head()
+		if err != nil {
+			return "", err
+		}
+
+		branchName := ref.Name().Short()
+
+		buildTagOption = BuildTagOption{
+			ScmBranch: branchName,
+			ScmRef:    ref.Hash().String(),
+		}
+		if latestTag.ref != nil {
+			buildTagOption.ScmTag = strings.TrimPrefix(latestTag.ref.String(), "refs/tags/")
+		}
+	}
+
+	tagBytes, err := base64.StdEncoding.DecodeString(b.Tag)
+	if err != nil {
+		return "", err
+	}
+	tag, err := BuildTag(string(tagBytes), buildTagOption)
+	if err != nil {
+		return "", err
+	}
+	repositoryBytes, err := base64.StdEncoding.DecodeString(b.Repository)
+	if err != nil {
+		return "", err
+	}
+	domain := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(b.Endpoint, "https://"), "http://"), "/")
+	return fmt.Sprintf("%s/%s:%s", domain, string(repositoryBytes), tag), nil
+}
+
+func (b Builder) build(imageName string) error {
 	log.Info().Msg("Start to build image")
 	buildCtl, err := exec.LookPath("buildctl-daemonless.sh")
 	if err != nil {
@@ -247,10 +314,10 @@ func (b Builder) build() error {
 		}
 		cmd.Args = append(cmd.Args, "--opt", fmt.Sprintf("platform=%s", strings.Join(platforms, ",")))
 	}
-	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile")                         // TODO: set frontend
-	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=true", b.OciName))                      // TODO: set output push true
-	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut)) // TODO: set cache volume
-	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))                             // TODO: set cache volume
+	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile") // TODO: set frontend
+	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=true", imageName))
+	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut))
+	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))
 
 	buildkitdFlags := ""
 	if utils.IsFile(path.Join(homeSigma, buildkitdConfigFilename)) {

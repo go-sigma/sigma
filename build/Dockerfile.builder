@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.20.8-alpine3.18
+ARG GOLANG_VERSION=1.21.1-alpine3.18
 
 FROM golang:${GOLANG_VERSION} as builder
 
@@ -10,7 +10,7 @@ RUN set -eux && \
   sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache make bash ncurses build-base git git-lfs
 
-RUN make build-builder-release
+RUN make build-builder
 
 FROM moby/buildkit:v0.12.1-rootless
 

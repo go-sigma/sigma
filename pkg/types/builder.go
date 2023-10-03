@@ -25,6 +25,8 @@ type Builder struct {
 
 	Authorization string `env:"AUTHORIZATION,notEmpty"`
 	Endpoint      string `env:"ENDPOINT,notEmpty"`
+	Repository    string `env:"REPOSITORY,notEmpty"`
+	Tag           string `env:"TAG,notEmpty"`
 
 	Source enums.BuilderSource `env:"SOURCE,notEmpty"`
 
@@ -44,7 +46,7 @@ type Builder struct {
 	OciRegistryDomain   []string `env:"OCI_REGISTRY_DOMAIN" envSeparator:","`
 	OciRegistryUsername []string `env:"OCI_REGISTRY_USERNAME" envSeparator:","`
 	OciRegistryPassword []string `env:"OCI_REGISTRY_PASSWORD" envSeparator:","`
-	OciName             string   `env:"OCI_NAME,notEmpty"`
+	// OciName             string   `env:"OCI_NAME,notEmpty"`
 
 	BuildkitInsecureRegistries []string            `env:"BUILDKIT_INSECURE_REGISTRIES" envSeparator:","`
 	BuildkitCacheDir           string              `env:"BUILDKIT_CACHE_DIR" envDefault:"/tmp/buildkit"`

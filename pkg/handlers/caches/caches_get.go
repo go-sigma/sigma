@@ -58,5 +58,5 @@ func (h *handlers) GetCache(c echo.Context) error {
 }
 
 func (h *handlers) genPath(id int64) string {
-	return fmt.Sprintf("%s/%s", consts.DirCache, hash.MustString(strconv.FormatInt(id, 10)))
+	return fmt.Sprintf("%s/%s", consts.DirCache, utils.DirWithSlash(hash.MustString(strconv.FormatInt(id, 10))))
 }

@@ -36,7 +36,6 @@ import (
 
 // GetRunnerLog ...
 func (h *handlers) GetRunnerLog(c echo.Context) error {
-	fmt.Println("help")
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRunnerLog

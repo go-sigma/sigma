@@ -24,23 +24,19 @@ GOFLAGS          = -ldflags '-s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor
 
-all: build
+all: build build-builder
+
+all-linux: build-linux build-builder-linux
 
 ## Build:
 build: ## Build sigma and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
-
-build-release: ## Build sigma for release and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
-
-build-builder-release: ## Build sigma-builder for release and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
+	@GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 build-linux: ## Build sigma for linux and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-builder-linux: ## Build sigma-builder for release and put the output binary in ./bin
 	@GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder

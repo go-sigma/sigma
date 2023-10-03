@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -48,18 +49,26 @@ func builderRunner(ctx context.Context, data []byte) error {
 		return fmt.Errorf("Unmarshal payload failed: %v", err)
 	}
 	b := runner{
-		builderServiceFactory: dao.NewBuilderServiceFactory(),
+		builderServiceFactory:    dao.NewBuilderServiceFactory(),
+		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 	}
 	return b.runner(ctx, payload)
 }
 
 type runner struct {
-	builderServiceFactory dao.BuilderServiceFactory
+	builderServiceFactory    dao.BuilderServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) error {
 	if payload.Action == enums.DaemonBuilderActionStop {
 		return builder.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
+	}
+	repositoryService := b.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.Get(ctx, payload.RepositoryID)
+	if err != nil {
+		log.Error().Err(err).Int64("id", payload.RepositoryID).Msg("Get repository record failed")
+		return fmt.Errorf("Get repository record failed")
 	}
 	builderService := b.builderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, payload.RepositoryID)
@@ -84,10 +93,18 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 	// 	return fmt.Errorf("Create builder runner record failed: %v", err)
 	// }
 
+	platforms := []enums.OciPlatform{}
+	for _, p := range strings.Split(builderObj.BuildkitPlatforms, ",") {
+		platforms = append(platforms, enums.OciPlatform(p))
+	}
+
 	buildConfig := builder.BuilderConfig{
 		Builder: types.Builder{
 			BuilderID: payload.BuilderID,
 			RunnerID:  runnerObj.ID,
+
+			Repository: base64.StdEncoding.EncodeToString([]byte(repositoryObj.Name)),
+			Tag:        base64.StdEncoding.EncodeToString([]byte(runnerObj.Tag)),
 
 			Source: runnerObj.Builder.Source,
 
@@ -104,12 +121,13 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			ScmDepth:  builderObj.ScmDepth,
 			// ScmSubmodule: builderObj.ScmSubmodule,
 
-			OciRegistryDomain:   []string{"192.168.31.198:3000"},
-			OciRegistryUsername: []string{"sigma"},
-			OciRegistryPassword: []string{"sigma"},
-			OciName:             "192.168.31.198:3000/library/test:dev",
+			// OciRegistryDomain:   []string{"192.168.31.198:3000"},
+			// OciRegistryUsername: []string{"sigma"},
+			// OciRegistryPassword: []string{"sigma"},
+			// OciName: "192.168.31.198:3000/library/test:dev",
 
-			BuildkitInsecureRegistries: []string{"192.168.31.198:3000@http"},
+			BuildkitPlatforms:          platforms,
+			BuildkitInsecureRegistries: strings.Split(builderObj.BuildkitInsecureRegistries, ","), //  []string{"192.168.31.198:3000@http"},
 		},
 	}
 	if payload.Action == enums.DaemonBuilderActionStart { // nolint: gocritic

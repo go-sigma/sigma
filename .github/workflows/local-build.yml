@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.20"]
+        go: ["1.21"]
         node: ["18"]
     steps:
       - name: Checkout branch
@@ -39,4 +39,4 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           cd ..
-          make build-release
+          make build

@@ -85,7 +85,7 @@ func (b Builder) initToken() error {
 			return fmt.Errorf("Write private key failed: %v", err)
 		}
 	}
-	if len(b.OciRegistryDomain) != 0 {
+	{
 		if utils.IsFile(path.Join(homeSigma, dockerConfig)) {
 			err := os.Remove(path.Join(homeSigma, dockerConfig))
 			if err != nil {
@@ -103,12 +103,22 @@ func (b Builder) initToken() error {
 		cf.AuthConfigs = make(map[string]dockertypes.AuthConfig)
 		for index, domain := range b.OciRegistryDomain {
 			if len(b.OciRegistryUsername[index]) != 0 || len(b.OciRegistryPassword[index]) != 0 {
-				cf.AuthConfigs[domain] = dockertypes.AuthConfig{
-					// Username: b.OciRegistryUsername[index],
-					// Password: b.OciRegistryPassword[index],
-					RegistryToken: b.Authorization,
+				authConfig := dockertypes.AuthConfig{}
+				if len(b.Authorization) > 0 {
+					authConfig.RegistryToken = b.Authorization
 				}
+				if len(b.OciRegistryUsername[index]) > 0 {
+					authConfig.Username = b.OciRegistryUsername[index]
+				}
+				if len(b.OciRegistryPassword[index]) > 0 {
+					authConfig.Password = b.OciRegistryPassword[index]
+				}
+				cf.AuthConfigs[domain] = authConfig
 			}
+		}
+
+		cf.AuthConfigs[strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(b.Endpoint, "https://"), "http://"), "/")] = dockertypes.AuthConfig{
+			RegistryToken: b.Authorization,
 		}
 		err = cf.SaveToWriter(dockerConfigObj)
 		if err != nil {

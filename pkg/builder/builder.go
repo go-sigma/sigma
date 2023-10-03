@@ -94,12 +94,20 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 		return nil, err
 	}
 
+	if strings.HasPrefix(config.HTTP.InternalEndpoint, "https://") {
+		builderConfig.BuildkitInsecureRegistries = append(builderConfig.BuildkitInsecureRegistries, strings.TrimPrefix(config.HTTP.InternalEndpoint, "https://"))
+	} else if strings.HasPrefix(config.HTTP.InternalEndpoint, "http://") {
+		builderConfig.BuildkitInsecureRegistries = append(builderConfig.BuildkitInsecureRegistries, fmt.Sprintf("%s@http", strings.TrimPrefix(config.HTTP.InternalEndpoint, "http://")))
+	}
+
 	buildConfigEnvs := []string{
 		fmt.Sprintf("BUILDER_ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
 
 		fmt.Sprintf("ENDPOINT=%s", config.HTTP.InternalEndpoint),
 		fmt.Sprintf("AUTHORIZATION=%s", crypt.MustEncrypt(fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), authorization)),
+		fmt.Sprintf("REPOSITORY=%s", builderConfig.Repository),
+		fmt.Sprintf("TAG=%s", builderConfig.Tag),
 
 		fmt.Sprintf("SOURCE=%s", builderConfig.Source.String()),
 
@@ -107,7 +115,7 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 
 		fmt.Sprintf("OCI_REGISTRY_DOMAIN=%s", strings.Join(builderConfig.OciRegistryDomain, ",")),
 		fmt.Sprintf("OCI_REGISTRY_USERNAME=%s", strings.Join(builderConfig.OciRegistryUsername, ",")),
-		fmt.Sprintf("OCI_NAME=%s", builderConfig.OciName),
+		// fmt.Sprintf("OCI_NAME=%s", builderConfig.OciName),
 
 		fmt.Sprintf("BUILDKIT_INSECURE_REGISTRIES=%s", strings.Join(builderConfig.BuildkitInsecureRegistries, ",")),
 		fmt.Sprintf("BUILDKIT_CACHE_DIR=%s", builderConfig.BuildkitCacheDir),
