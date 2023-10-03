@@ -28,15 +28,16 @@ import (
 )
 
 // Providers list providers
-// @Summary List code repository providers
-// @security BasicAuth
-// @Tags CodeRepository
-// @Accept json
-// @Produce json
-// @Router /coderepos/providers [get]
-// @Success 200	{object} types.CommonList{items=[]types.ListCodeRepositoryProvidersResponse}
-// @Failure 401 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List code repository providers
+//	@security	BasicAuth
+//	@Tags		CodeRepository
+//	@Accept		json
+//	@Produce	json
+//	@Router		/coderepos/providers [get]
+//	@Success	200	{object}	types.CommonList{items=[]types.ListCodeRepositoryProvidersResponse}
+//	@Failure	401	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Providers(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

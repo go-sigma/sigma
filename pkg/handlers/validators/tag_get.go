@@ -31,15 +31,16 @@ import (
 )
 
 // GetTag handles the validate tag request
-// @Summary Validate tag
-// @Tags Validator
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /validators/tag [get]
-// @Param tag query string true "Reference"
-// @Success 204
-// @Failure 400 {object} xerrors.ErrCode
+//
+//	@Summary	Validate tag
+//	@Tags		Validator
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/validators/tag [get]
+//	@Param		tag	query	string	true	"Reference"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
 func (h *handlers) GetTag(c echo.Context) error {
 	var req types.GetValidatorTagRequest
 	err := utils.BindValidate(c, &req)

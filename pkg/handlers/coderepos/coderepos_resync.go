@@ -35,15 +35,16 @@ import (
 )
 
 // Resync resync all of the code repositories
-// @Summary Resync code repository
-// @security BasicAuth
-// @Tags CodeRepository
-// @Accept json
-// @Produce json
-// @Router /coderepos/{provider}/resync [get]
-// @Param provider path string true "search code repository with provider"
-// @Success 202
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Resync code repository
+//	@security	BasicAuth
+//	@Tags		CodeRepository
+//	@Accept		json
+//	@Produce	json
+//	@Router		/coderepos/{provider}/resync [get]
+//	@Param		provider	path	string	true	"search code repository with provider"
+//	@Success	202
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Resync(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

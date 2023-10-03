@@ -141,28 +141,18 @@ type PostOrPutBuilderRequest struct {
 
 // PostBuilderRequest ...
 type PostBuilderRequest struct {
-	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
-	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10" swaggerignore:"true"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10" swaggerignore:"true"`
 
-	PostOrPutBuilderRequest
-}
-
-// PostBuilderRequestSwagger ...
-type PostBuilderRequestSwagger struct {
 	PostOrPutBuilderRequest
 }
 
 // PutBuilderRequest represents the request to get a builder.
 type PutBuilderRequest struct {
-	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
-	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10"`
-	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10" swaggerignore:"true"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10" swaggerignore:"true"`
+	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10" swaggerignore:"true"`
 
-	PostOrPutBuilderRequest
-}
-
-// PutBuilderRequestSwagger
-type PutBuilderRequestSwagger struct {
 	PostOrPutBuilderRequest
 }
 

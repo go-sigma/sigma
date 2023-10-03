@@ -27,20 +27,21 @@ import (
 )
 
 // LogsWebhook handles the list webhook logs request
-// @Summary List webhook logs
-// @security BasicAuth
-// @Tags Webhook
-// @Accept json
-// @Produce json
-// @Router /webhooks/{webhook_id}/logs [get]
-// @Param webhook_id path int64 true "Webhook ID"
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Success 200	{object} types.CommonList{items=[]types.WebhookItem}
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
+//
+//	@Summary	List webhook logs
+//	@security	BasicAuth
+//	@Tags		Webhook
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks/{webhook_id}/logs [get]
+//	@Param		webhook_id	path		int64	true	"Webhook ID"
+//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort		query		string	false	"sort field"
+//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200			{object}	types.CommonList{items=[]types.WebhookItem}
+//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	401			{object}	xerrors.ErrCode
 func (h *handlers) LogsWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

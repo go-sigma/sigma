@@ -32,7 +32,18 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// GetCache ...
+// GetCache handles the get cache request
+//
+//	@Summary	Get cache
+//	@Tags		Cache
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	application/octet-stream
+//	@Router		/caches/ [get]
+//	@Param		builder_id	query		string	true	"Builder ID"
+//	@Success	200			{string}	file	"Cache content"
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) GetCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

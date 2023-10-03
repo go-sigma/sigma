@@ -20,7 +20,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
-	
+
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )

@@ -23,6 +23,149 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/caches/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "summary": "Get cache",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "builder_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cache content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "summary": "Create cache",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "builder_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Cache file",
+                        "name": "file",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "summary": "Delete cache",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "builder_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/coderepos/providers": {
             "get": {
                 "security": [
@@ -661,7 +804,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutBuilderRequestSwagger"
+                            "$ref": "#/definitions/types.PutBuilderRequest"
                         }
                     }
                 ],
@@ -951,7 +1094,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutNamespaceRequestSwagger"
+                            "$ref": "#/definitions/types.PutNamespaceRequest"
                         }
                     }
                 ],
@@ -1028,7 +1171,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PostBuilderRequestSwagger"
+                            "$ref": "#/definitions/types.PostBuilderRequest"
                         }
                     }
                 ],
@@ -1093,6 +1236,75 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Builder ID",
                         "name": "builder_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.BuilderItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Builder"
+                ],
+                "summary": "Get builder runner by runner id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace ID",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Repository ID",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Builder ID",
+                        "name": "builder_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Runner ID",
+                        "name": "runner_id",
                         "in": "path",
                         "required": true
                     }
@@ -1250,7 +1462,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PostRepositoryRequestSwagger"
+                            "$ref": "#/definitions/types.PostRepositoryRequest"
                         }
                     }
                 ],
@@ -1373,7 +1585,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutRepositoryRequestSwagger"
+                            "$ref": "#/definitions/types.PutRepositoryRequest"
                         }
                     }
                 ],
@@ -2114,7 +2326,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutWebhookRequestSwagger"
+                            "$ref": "#/definitions/types.PutWebhookRequest"
                         }
                     }
                 ],
@@ -2173,7 +2385,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PostWebhookRequestSwagger"
+                            "$ref": "#/definitions/types.PostWebhookRequest"
                         }
                     }
                 ],
@@ -3274,7 +3486,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PostBuilderRequestSwagger": {
+        "types.PostBuilderRequest": {
             "type": "object",
             "required": [
                 "buildkit_platforms"
@@ -3457,7 +3669,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PostRepositoryRequestSwagger": {
+        "types.PostRepositoryRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -3540,7 +3752,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PostWebhookRequestSwagger": {
+        "types.PostWebhookRequest": {
             "type": "object",
             "required": [
                 "enable",
@@ -3574,10 +3786,6 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "namespace_id": {
-                    "type": "integer",
-                    "example": 1
-                },
                 "retry_duration": {
                     "type": "integer",
                     "example": 5
@@ -3602,7 +3810,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutBuilderRequestSwagger": {
+        "types.PutBuilderRequest": {
             "type": "object",
             "required": [
                 "buildkit_platforms"
@@ -3737,13 +3945,17 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutNamespaceRequestSwagger": {
+        "types.PutNamespaceRequest": {
             "type": "object",
             "properties": {
                 "description": {
                     "type": "string",
                     "maxLength": 30,
                     "example": "i am just description"
+                },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10000
                 },
                 "size_limit": {
                     "type": "integer",
@@ -3763,7 +3975,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutRepositoryRequestSwagger": {
+        "types.PutRepositoryRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -3773,7 +3985,7 @@ const docTemplate = `{
                 },
                 "overview": {
                     "type": "string",
-                    "maxLength": 3000,
+                    "maxLength": 100000,
                     "example": "i am just overview"
                 },
                 "size_limit": {
@@ -3794,7 +4006,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutWebhookRequestSwagger": {
+        "types.PutWebhookRequest": {
             "type": "object",
             "properties": {
                 "enable": {

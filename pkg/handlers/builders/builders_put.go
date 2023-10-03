@@ -31,20 +31,21 @@ import (
 )
 
 // PutBuilder handles the put builder request
-// @Summary Update a builder by id
-// @Tags Builder
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
-// @Param namespace_id path string true "Namespace ID"
-// @Param repository_id path string true "Repository ID"
-// @Param builder_id path string true "Builder ID"
-// @Param message body types.PutBuilderRequestSwagger true "Builder object"
-// @Success 201
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Update a builder by id
+//	@Tags		Builder
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
+//	@Param		namespace_id	path	string					true	"Namespace ID"
+//	@Param		repository_id	path	string					true	"Repository ID"
+//	@Param		builder_id		path	string					true	"Builder ID"
+//	@Param		message			body	types.PutBuilderRequest	true	"Builder object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PutBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

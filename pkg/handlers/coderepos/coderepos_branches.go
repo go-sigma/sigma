@@ -28,15 +28,16 @@ import (
 )
 
 // ListBranches list all of the branches
-// @Summary List code repository branches
-// @security BasicAuth
-// @Tags CodeRepository
-// @Accept json
-// @Produce json
-// @Router /coderepos/{id}/branches [get]
-// @Param id path string true "code repository id"
-// @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryBranchItem}
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List code repository branches
+//	@security	BasicAuth
+//	@Tags		CodeRepository
+//	@Accept		json
+//	@Produce	json
+//	@Router		/coderepos/{id}/branches [get]
+//	@Param		id	path		string	true	"code repository id"
+//	@Success	200	{object}	types.CommonList{items=[]types.CodeRepositoryBranchItem}
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) ListBranches(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

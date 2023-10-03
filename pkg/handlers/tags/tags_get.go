@@ -26,18 +26,19 @@ import (
 )
 
 // GetTag handles the get tag request
-// @Summary Get tag
-// @Tags Tag
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/tags/{id} [get]
-// @Param namespace path string true "Namespace"
-// @Param id path string true "Tag ID"
-// @Param repository query string false "repository"
-// @Success 200 {object} types.TagItem
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Get tag
+//	@Tags		Tag
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/tags/{id} [get]
+//	@Param		namespace	path		string	true	"Namespace"
+//	@Param		id			path		string	true	"Tag ID"
+//	@Param		repository	query		string	false	"repository"
+//	@Success	200			{object}	types.TagItem
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) GetTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

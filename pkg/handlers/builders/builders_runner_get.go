@@ -32,7 +32,21 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// GetRunner ...
+// GetRunner handles the get builder runner request
+//
+//	@Summary	Get builder runner by runner id
+//	@Tags		Builder
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id} [get]
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		repository_id	path		string	true	"Repository ID"
+//	@Param		builder_id		path		string	true	"Builder ID"
+//	@Param		runner_id		path		string	true	"Runner ID"
+//	@Success	200				{object}	types.BuilderItem
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

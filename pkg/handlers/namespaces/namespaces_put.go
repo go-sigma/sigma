@@ -34,14 +34,15 @@ import (
 )
 
 // PutNamespace handles the put namespace request
-// @Summary Update namespace
-// @security BasicAuth
-// @Tags Namespace
-// @Accept json
-// @Produce json
-// @Router /namespaces/{id} [put]
-// @Param message body types.PutNamespaceRequestSwagger true "Namespace object"
-// @Success 204
+//
+//	@Summary	Update namespace
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{id} [put]
+//	@Param		message	body	types.PutNamespaceRequest	true	"Namespace object"
+//	@Success	204
 func (h *handlers) PutNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

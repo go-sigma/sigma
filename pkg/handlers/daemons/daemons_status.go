@@ -24,16 +24,17 @@ import (
 )
 
 // Status get the specific daemon task status
-// @Summary Get specific daemon task status
-// @Tags Daemon
-// @Accept json
-// @Produce json
-// @Router /daemons/{daemon}/ [get]
-// @Param daemon path string true "Daemon name"
-// @Param namespace_id query string false "Namespace ID"
-// @Success 202
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Get specific daemon task status
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/{daemon}/ [get]
+//	@Param		daemon			path	string	true	"Daemon name"
+//	@Param		namespace_id	query	string	false	"Namespace ID"
+//	@Success	202
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Status(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetEndpointResponse{
 		Endpoint: viper.GetString("server.endpoint"),

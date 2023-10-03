@@ -16,20 +16,20 @@ package main
 
 import "github.com/go-sigma/sigma/cmd"
 
-// @title sigma API
-// @version 1.0
+//	@title		sigma API
+//	@version	1.0
 
-// @contact.name sigma
-// @contact.url https://github.com/go-sigma/sigma
+//	@contact.name	sigma
+//	@contact.url	https://github.com/go-sigma/sigma
 
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0
 
-// @BasePath /api/v1
+//	@BasePath	/api/v1
 
-// @securityDefinitions.basic BasicAuth
-// @in header
-// @name Authorization
+//	@securityDefinitions.basic	BasicAuth
+//	@in							header
+//	@name						Authorization
 
 func main() {
 	cmd.Execute()

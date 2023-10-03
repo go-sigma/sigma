@@ -35,18 +35,19 @@ import (
 )
 
 // PutWebhook handles the put webhook request
-// @Summary Update a webhook
-// @Tags Webhook
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /webhook/{id} [put]
-// @Param id path string true "Webhook id"
-// @Param message body types.PutWebhookRequestSwagger true "Webhook object"
-// @Success 204
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Update a webhook
+//	@Tags		Webhook
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhook/{id} [put]
+//	@Param		id		path	string					true	"Webhook id"
+//	@Param		message	body	types.PutWebhookRequest	true	"Webhook object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PutWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

@@ -31,17 +31,18 @@ import (
 )
 
 // GetRepository handles the get repository request
-// @Summary Get repository
-// @Tags Repository
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/repositories/{id} [get]
-// @Param namespace path string true "Namespace"
-// @Param id path string true "Repository ID"
-// @Success 200 {object} types.RepositoryItem
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Get repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/repositories/{id} [get]
+//	@Param		namespace	path		string	true	"Namespace"
+//	@Param		id			path		string	true	"Repository ID"
+//	@Success	200			{object}	types.RepositoryItem
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) GetRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

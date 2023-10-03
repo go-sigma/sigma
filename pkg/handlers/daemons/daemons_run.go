@@ -19,16 +19,17 @@ import (
 )
 
 // Run the specific daemon task
-// @Summary Run the specific daemon task
-// @Tags Daemon
-// @Accept json
-// @Produce json
-// @Router /daemons/{daemon}/ [post]
-// @Param daemon path string true "Daemon name"
-// @Param namespace_id query string false "Namespace ID"
-// @Success 202
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Run the specific daemon task
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/{daemon}/ [post]
+//	@Param		daemon			path	string	true	"Daemon name"
+//	@Param		namespace_id	query	string	false	"Namespace ID"
+//	@Success	202
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Run(c echo.Context) error {
 	return nil
 }

@@ -28,16 +28,17 @@ import (
 )
 
 // ListOwner list all of the code repository owner
-// @Summary List code repository owners
-// @security BasicAuth
-// @Tags CodeRepository
-// @Accept json
-// @Produce json
-// @Router /coderepos/{provider}/owners [get]
-// @Param provider path string true "search code repository with provider"
-// @Param name query string false "search code repository with name"
-// @Success 200	{object} types.CommonList{items=[]types.CodeRepositoryOwnerItem}
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List code repository owners
+//	@security	BasicAuth
+//	@Tags		CodeRepository
+//	@Accept		json
+//	@Produce	json
+//	@Router		/coderepos/{provider}/owners [get]
+//	@Param		provider	path		string	true	"search code repository with provider"
+//	@Param		name		query		string	false	"search code repository with name"
+//	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryOwnerItem}
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) ListOwners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

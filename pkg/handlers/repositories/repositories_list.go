@@ -33,21 +33,22 @@ import (
 )
 
 // ListRepository handles the list repository request
-// @Summary List repository
-// @Tags Repository
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/repositories/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Param namespace path string true "namespace"
-// @Param name query string false "search repository with name"
-// @Success 200 {object} types.CommonList{items=[]types.RepositoryItem}
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/repositories/ [get]
+//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort		query		string	false	"sort field"
+//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
+//	@Param		namespace	path		string	true	"namespace"
+//	@Param		name		query		string	false	"search repository with name"
+//	@Success	200			{object}	types.CommonList{items=[]types.RepositoryItem}
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) ListRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

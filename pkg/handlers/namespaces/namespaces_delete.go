@@ -34,14 +34,15 @@ import (
 )
 
 // DeleteNamespace handles the delete namespace request
-// @Summary Delete namespace
-// @security BasicAuth
-// @Tags Namespace
-// @Accept json
-// @Produce json
-// @Router /namespaces/{id} [delete]
-// @Success 204
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Delete namespace
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{id} [delete]
+//	@Success	204
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) DeleteNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

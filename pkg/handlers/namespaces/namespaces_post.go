@@ -35,16 +35,17 @@ import (
 )
 
 // PostNamespace handles the post namespace request
-// @Summary Create namespace
-// @Tags Namespace
-// @Accept json
-// @Produce json
-// @Router /namespaces/ [post]
-// @Param message body types.PostNamespaceRequest true "Namespace object"
-// @security BasicAuth
-// @Success 201 {object} types.PostNamespaceResponse
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Create namespace
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/ [post]
+//	@Param		message	body	types.PostNamespaceRequest	true	"Namespace object"
+//	@security	BasicAuth
+//	@Success	201	{object}	types.PostNamespaceResponse
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PostNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

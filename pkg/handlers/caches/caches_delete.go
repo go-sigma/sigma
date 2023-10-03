@@ -29,7 +29,18 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// DeleteCache ...
+// DeleteCache handles the delete cache request
+//
+//	@Summary	Delete cache
+//	@Tags		Cache
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/caches/ [delete]
+//	@Param		builder_id	query	string	true	"Builder ID"
+//	@Success	204
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) DeleteCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

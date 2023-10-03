@@ -31,22 +31,23 @@ import (
 )
 
 // ListTag handles the list tag request
-// @Summary List tag
-// @Tags Tag
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/tags/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Param namespace path string true "namespace"
-// @Param repository query string false "repository"
-// @Param name query string false "search tag with name"
-// @Success 200 {object} types.CommonList{items=[]types.TagItem}
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List tag
+//	@Tags		Tag
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/tags/ [get]
+//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort		query		string	false	"sort field"
+//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
+//	@Param		namespace	path		string	true	"namespace"
+//	@Param		repository	query		string	false	"repository"
+//	@Param		name		query		string	false	"search tag with name"
+//	@Success	200			{object}	types.CommonList{items=[]types.TagItem}
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) ListTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

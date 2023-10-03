@@ -38,19 +38,20 @@ import (
 )
 
 // PostBuilder handles the post builder request
-// @Summary Create a builder for repository
-// @Tags Builder
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace_id}/repositories/{repository_id}/builders [post]
-// @Param namespace_id path string true "Namespace ID"
-// @Param repository_id path string true "Repository ID"
-// @Param message body types.PostBuilderRequestSwagger true "Builder object"
-// @Success 201
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Create a builder for repository
+//	@Tags		Builder
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders [post]
+//	@Param		namespace_id	path	string						true	"Namespace ID"
+//	@Param		repository_id	path	string						true	"Repository ID"
+//	@Param		message			body	types.PostBuilderRequest	true	"Builder object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PostBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

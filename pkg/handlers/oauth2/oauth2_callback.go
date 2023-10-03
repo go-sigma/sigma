@@ -45,17 +45,18 @@ import (
 )
 
 // Callback handles the oauth2 callback request
-// @Summary OAuth2 callback
-// @security BasicAuth
-// @Tags OAuth2
-// @Accept json
-// @Produce json
-// @Router /oauth2/{provider}/callback [get]
-// @Param provider path string true "oauth2 provider"
-// @Param code query string true "code"
-// @Param endpoint query string false "endpoint"
-// @Success 200	{object} types.Oauth2ClientIDResponse
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	OAuth2 callback
+//	@security	BasicAuth
+//	@Tags		OAuth2
+//	@Accept		json
+//	@Produce	json
+//	@Router		/oauth2/{provider}/callback [get]
+//	@Param		provider	path		string	true	"oauth2 provider"
+//	@Param		code		query		string	true	"code"
+//	@Param		endpoint	query		string	false	"endpoint"
+//	@Success	200			{object}	types.Oauth2ClientIDResponse
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) Callback(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

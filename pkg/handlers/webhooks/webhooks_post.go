@@ -32,18 +32,19 @@ import (
 )
 
 // PostWebhook handles the post webhook request
-// @Summary Create a webhook
-// @Tags Webhook
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /webhooks [post]
-// @Param namespace_id query int64 false "create webhook for namespace"
-// @Param message body types.PostWebhookRequestSwagger true "Webhook object"
-// @Success 201
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Create a webhook
+//	@Tags		Webhook
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks [post]
+//	@Param		namespace_id	query	int64						false	"create webhook for namespace"
+//	@Param		message			body	types.PostWebhookRequest	true	"Webhook object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PostWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

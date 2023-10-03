@@ -58,18 +58,8 @@ type DeleteRepositoryRequest struct {
 
 // PostRepositoryRequest represents the request to create a repository.
 type PostRepositoryRequest struct {
-	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
+	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test" swaggerignore:"true"`
 	Name        string            `json:"name" validate:"required,is_valid_repository" example:"test"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
-	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
-}
-
-// PostRepositoryRequestSwagger represents the request to create a repository.
-type PostRepositoryRequestSwagger struct {
-	Name        string            `json:"name" validate:"required" example:"test"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
 	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
@@ -84,19 +74,10 @@ type PostRepositoryResponse struct {
 
 // PutRepositoryRequest represents the request to update a repository.
 type PutRepositoryRequest struct {
-	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
-	ID          int64             `json:"id" param:"id" validate:"required,number" example:"1"`
+	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test" swaggerignore:"true"`
+	ID          int64             `json:"id" param:"id" validate:"required,number" example:"1" swaggerignore:"true"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
 	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
-}
-
-// PutRepositoryRequestSwagger represents the request to update a repository.
-type PutRepositoryRequestSwagger struct {
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
-	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
 	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`

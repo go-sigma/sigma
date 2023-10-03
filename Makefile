@@ -126,6 +126,7 @@ gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
 
 swagen: ## Generate swagger from code comments
+	@swag fmt
 	@swag init --output pkg/handlers/apidocs
 
 addlicense: ## Add license to all go files

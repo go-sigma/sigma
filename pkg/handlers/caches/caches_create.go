@@ -27,7 +27,19 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// CreateCache ...
+// CreateCache handles the create cache request
+//
+//	@Summary	Create cache
+//	@Tags		Cache
+//	@security	BasicAuth
+//	@Accept		application/octet-stream
+//	@Produce	json
+//	@Router		/caches/ [post]
+//	@Param		builder_id	query	string	true	"Builder ID"
+//	@Param		file		body	string	true	"Cache file"
+//	@Success	201
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) CreateCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -38,14 +50,8 @@ func (h *handlers) CreateCache(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	runnerID, err := strconv.ParseInt(urlValues.Get("runner_id"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
-	}
 	var req = types.CreateCacheRequest{
 		BuilderID: builderID,
-		RunnerID:  runnerID,
 	}
 
 	err = storage.Driver.Upload(ctx, h.genPath(req.BuilderID), c.Request().Body)
