@@ -19,12 +19,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -246,6 +248,16 @@ func (a *awss3) Reader(ctx context.Context, path string, offset int64) (io.ReadC
 		Key:    aws.String(a.sanitizePath(path)),
 		Range:  aws.String("bytes=" + strconv.FormatInt(offset, 10) + "-"),
 	})
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == s3.ErrCodeNoSuchKey {
+				fmt.Println(254, awsErr.Error())
+				return nil, os.ErrNotExist
+			}
+			return nil, awsErr
+		}
+		return nil, err
+	}
 	return resp.Body, err
 }
 

@@ -26,6 +26,14 @@ import (
 func (b *Builder) checker() error {
 	var err error
 
+	if b.Authorization != "" {
+		authorization, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.Authorization)
+		if err != nil {
+			return err
+		}
+		b.Authorization = authorization
+	}
+
 	if b.Source != enums.BuilderSourceDockerfile && (b.ScmCredentialType == nil || !b.ScmCredentialType.IsValid()) {
 		return fmt.Errorf("SCM_CREDENTIAL_TYPE should be one of 'ssh', 'token' or 'none', but got '%s'", b.ScmCredentialType.String())
 	}

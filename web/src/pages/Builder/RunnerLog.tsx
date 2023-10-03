@@ -61,9 +61,9 @@ export default function ({ localServer }: { localServer: string }) {
   }, [runner_id]);
 
   useEffect(() => {
-    term.open(document.getElementById("terminal") || new HTMLElement);
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
+    term.open(document.getElementById("terminal") || new HTMLElement);
     fitAddon.fit();
   }, [])
 
@@ -129,6 +129,9 @@ export default function ({ localServer }: { localServer: string }) {
       term.writeln('Pending...');
     } else if (runnerStatus === 'Building' || runnerStatus === 'Success' || runnerStatus === 'Failed') {
       term.clear();
+      // const fitAddon = new FitAddon();
+      // term.loadAddon(fitAddon);
+      // fitAddon.fit();
       let ws = new WebSocket(`${protocol}://${server}/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj?.id}/runners/${runnerId}/log`);
       const attachAddon = new AttachAddon(ws);
       term.loadAddon(attachAddon);
@@ -282,7 +285,7 @@ export default function ({ localServer }: { localServer: string }) {
             </div>
           </main>
           <div className="flex flex-1 overflow-y-auto">
-            <div className="container-children w-full h-full">
+            <div className="w-full h-full pt-2 pl-3 bg-black">
               <div id="terminal" className="h-full"></div>
             </div>
           </div>

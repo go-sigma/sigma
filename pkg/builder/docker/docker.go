@@ -72,11 +72,16 @@ var _ builder.Builder = instance{}
 
 // Start start a container to build oci image and push to registry
 func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig) error {
+	envs, err := builder.BuildEnv(builderConfig)
+	if err != nil {
+		return err
+	}
+
 	containerConfig := &container.Config{
 		Image:      "docker.io/library/builder:dev",
 		Entrypoint: []string{},
 		Cmd:        []string{"sigma-builder"},
-		Env:        builder.BuildEnv(builderConfig),
+		Env:        envs,
 		Labels: map[string]string{
 			"oci-image-builder": consts.AppName,
 			"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
@@ -86,7 +91,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	hostConfig := &container.HostConfig{
 		SecurityOpt: []string{"seccomp=unconfined", "apparmor=unconfined"},
 	}
-	_, err := i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
+	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}

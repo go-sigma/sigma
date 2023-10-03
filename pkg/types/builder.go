@@ -23,6 +23,9 @@ type Builder struct {
 	BuilderID int64 `env:"BUILDER_ID,notEmpty"`
 	RunnerID  int64 `env:"RUNNER_ID,notEmpty"`
 
+	Authorization string `env:"AUTHORIZATION,notEmpty"`
+	Endpoint      string `env:"ENDPOINT,notEmpty"`
+
 	Source enums.BuilderSource `env:"SOURCE,notEmpty"`
 
 	Dockerfile *string `env:"DOCKERFILE"`

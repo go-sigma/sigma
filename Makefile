@@ -98,16 +98,16 @@ endif
 
 ## Docker:
 docker-build: ## Use the dockerfile to build the container
-	docker buildx build --platform=linux/amd64,linux/arm64 -f build/Dockerfile --rm --tag $(BINARY_NAME) .
+	docker build -f build/Dockerfile --rm --tag $(BINARY_NAME) .
 
 docker-build-local: build-linux ## Build the container with the local binary
 	docker build -f build/Dockerfile.local --rm --tag $(BINARY_NAME) .
 
-docker-build-builder-local: build-builder-linux # Build sigma builder image
-	docker build -f build/Dockerfile.builder.local --rm --tag $(BINARY_NAME) .
+docker-build-builder: ## Build the dev container
+	docker build -f build/Dockerfile.builder --rm --tag $(BINARY_NAME)-builder .
 
-docker-build-dev: ## Build the dev container
-	docker build -f build/Dockerfile --rm --tag $(BINARY_NAME) .
+docker-build-builder-local: build-builder-linux # Build sigma builder image
+	docker build -f build/Dockerfile.builder.local --rm --tag $(BINARY_NAME)-builder .
 
 docker-release: ## Release the container with tag latest and version
 	docker tag $(BINARY_NAME) $(DOCKER_REGISTRY)$(BINARY_NAME):latest

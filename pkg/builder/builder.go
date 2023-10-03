@@ -20,14 +20,17 @@ import (
 	"io"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/crypt"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
 // Builder ...
@@ -72,10 +75,31 @@ func Initialize() error {
 }
 
 // BuildEnv ...
-func BuildEnv(builderConfig BuilderConfig) []string {
+func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
+	config := configs.GetConfiguration()
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	userService := dao.NewUserServiceFactory().New()
+	userObj, err := userService.GetByUsername(ctx, config.Auth.InternalUser.Username)
+	if err != nil {
+		return nil, err
+	}
+	tokenService, err := token.NewTokenService(config.Auth.Jwt.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	authorization, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
+	if err != nil {
+		return nil, err
+	}
+
 	buildConfigEnvs := []string{
 		fmt.Sprintf("BUILDER_ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
+
+		fmt.Sprintf("ENDPOINT=%s", config.HTTP.InternalEndpoint),
+		fmt.Sprintf("AUTHORIZATION=%s", crypt.MustEncrypt(fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), authorization)),
 
 		fmt.Sprintf("SOURCE=%s", builderConfig.Source.String()),
 
@@ -136,12 +160,15 @@ func BuildEnv(builderConfig BuilderConfig) []string {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("OCI_REGISTRY_PASSWORD=%s", strings.Join(passwords, ",")))
 	}
 
-	return buildConfigEnvs
+	return buildConfigEnvs, nil
 }
 
 // BuildK8sEnv ...
-func BuildK8sEnv(builderConfig BuilderConfig) []corev1.EnvVar {
-	envs := BuildEnv(builderConfig)
+func BuildK8sEnv(builderConfig BuilderConfig) ([]corev1.EnvVar, error) {
+	envs, err := BuildEnv(builderConfig)
+	if err != nil {
+		return nil, err
+	}
 	var k8sEnvs = make([]corev1.EnvVar, 0, len(envs))
 	for _, env := range envs {
 		s := strings.SplitN(env, "=", 2)
@@ -150,5 +177,5 @@ func BuildK8sEnv(builderConfig BuilderConfig) []corev1.EnvVar {
 			Value: s[1],
 		})
 	}
-	return k8sEnvs
+	return k8sEnvs, nil
 }

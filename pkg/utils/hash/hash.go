@@ -21,6 +21,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"hash"
 	"io"
 	"os"
@@ -97,6 +98,15 @@ func String(str string, method ...string) (hash string, err error) {
 	}
 	hash = hex.EncodeToString(h.Sum(nil))
 	return
+}
+
+// MustString ...
+func MustString(str string, method ...string) string {
+	hash, err := String(str, method...)
+	if err != nil {
+		panic(fmt.Sprintf("hash string failed: %v", err))
+	}
+	return hash
 }
 
 // File 哈希一个文件，输出 hex 的编码，method 支持：md5，sha1，sha256(默认)，sha512

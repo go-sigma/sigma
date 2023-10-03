@@ -16,8 +16,8 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { Fragment, useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useSearchParams, useParams } from "react-router-dom";
@@ -29,7 +29,7 @@ import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
 
-import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder, IBuilderRunnerItem, IBuilderRunnerList, IRunOrRerunRunnerResponse } from "../../interfaces";
+import { IRepositoryItem, IHTTPError, IBuilderItem, IOrder, IBuilderRunnerItem, IBuilderRunnerList } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function ({ localServer }: { localServer: string }) {
     if (builderObj === undefined) {
       return;
     }
-    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/`).then(response => {
+    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/?limit=${Settings.PageSize}&page=${page}`).then(response => {
       if (response?.status === 200) {
         const r = response.data as IBuilderRunnerList;
         setRunnerObjs(r.items);
@@ -272,7 +272,7 @@ export default function ({ localServer }: { localServer: string }) {
                       {
                         runnerObjs?.map(runnerObj => {
                           return (
-                            <TableItem key={runnerObj.id} runnerObj={runnerObj} />
+                            <TableItem key={runnerObj.id} namespace={namespace || ""} repository_id={repository_id} runnerObj={runnerObj} />
                           );
                         })
                       }
@@ -462,16 +462,16 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ runnerObj }: { runnerObj: IBuilderRunnerItem }) {
+function TableItem({ namespace, repository_id, runnerObj }: { namespace: string, repository_id: number, runnerObj: IBuilderRunnerItem }) {
   console.log(runnerObj, runnerObj.tag);
 
   const navigate = useNavigate();
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
-      // onClick={() => {
-      //   window.open(repository.clone_url, "_blank");
-      // }}
+        onClick={() => {
+          navigate(`/namespaces/${namespace}/repository/runner-logs/${runnerObj.id}?repository_id=${repository_id}`);
+        }}
       >
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">

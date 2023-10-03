@@ -85,7 +85,11 @@ type instance struct {
 
 // Start start a container to build oci image and push to registry
 func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig) error {
-	_, err := i.client.CoreV1().Pods(i.config.Builder.K8s.Namespace).Create(ctx, &corev1.Pod{
+	envs, err := builder.BuildK8sEnv(builderConfig)
+	if err != nil {
+		return err
+	}
+	_, err = i.client.CoreV1().Pods(i.config.Builder.K8s.Namespace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				"oci-image-builder": consts.AppName,
@@ -98,7 +102,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 				{
 					Image:   "docker.io/library/builder:dev",
 					Command: []string{"sigma-builder"},
-					Env:     builder.BuildK8sEnv(builderConfig),
+					Env:     envs,
 				},
 			},
 		},

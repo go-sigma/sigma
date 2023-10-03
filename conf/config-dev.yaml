@@ -76,7 +76,7 @@ http:
   # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
-  internalEndpoint:
+  internalEndpoint: http://192.168.31.198:3000
   tls:
     enabled: false
     certificate: ./conf/sigma.test.io.crt

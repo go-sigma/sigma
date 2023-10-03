@@ -41,6 +41,9 @@ const (
 	// BlobUploads represent blob uploads
 	// file always represent like: blob_uploads/{upload_id}
 	BlobUploads = "blob_uploads"
+	// DirCache for the image build cache
+	// file always represent like: caches/{builder_id}/{runner_id}
+	DirCache = "caches"
 	// BlobUploadParts represent blob upload parts
 	BlobUploadParts = "blob_upload_parts"
 	// BuilderLogs represent builder logs

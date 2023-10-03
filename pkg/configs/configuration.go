@@ -254,9 +254,9 @@ type ConfigurationAuthToken struct {
 
 // ConfigurationAuthJwt ...
 type ConfigurationAuthJwt struct {
-	Ttl        string `yaml:"ttl"`
-	RefreshTtl string `yaml:"refreshTtl"`
-	PrivateKey string `yaml:"privateKey"`
+	Ttl        time.Duration `yaml:"ttl"`
+	RefreshTtl time.Duration `yaml:"refreshTtl"`
+	PrivateKey string        `yaml:"privateKey"`
 }
 
 // ConfigurationAuthOauth2Github ...

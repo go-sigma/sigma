@@ -104,8 +104,9 @@ func (b Builder) initToken() error {
 		for index, domain := range b.OciRegistryDomain {
 			if len(b.OciRegistryUsername[index]) != 0 || len(b.OciRegistryPassword[index]) != 0 {
 				cf.AuthConfigs[domain] = dockertypes.AuthConfig{
-					Username: b.OciRegistryUsername[index],
-					Password: b.OciRegistryPassword[index],
+					// Username: b.OciRegistryUsername[index],
+					// Password: b.OciRegistryPassword[index],
+					RegistryToken: b.Authorization,
 				}
 			}
 		}

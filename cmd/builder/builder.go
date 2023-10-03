@@ -15,9 +15,12 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"math/big"
 	"net/url"
 	"os"
@@ -71,6 +74,7 @@ func main() {
 	var builder Builder
 	checkErr(env.Parse(&builder))
 	checkErr(builder.checker())
+	builder.api = NewAPI(builder.Authorization, builder.Endpoint)
 	checkErr(builder.initCache())
 	checkErr(builder.initToken())
 	if builder.Builder.Source == enums.BuilderSourceDockerfile {
@@ -104,9 +108,29 @@ func initialize() error {
 // Builder config for builder
 type Builder struct {
 	types.Builder
+
+	api api
 }
 
 func (b Builder) initCache() error {
+	reader, err := b.api.GetCache(context.Background(), b.BuilderID, b.RunnerID)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	if reader != nil {
+		file, err := os.OpenFile(path.Join(cache, compressedCache), os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(file, reader)
+		if err != nil {
+			return err
+		}
+		err = file.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Cache file close failed")
+		}
+	}
 	if utils.IsFile(path.Join(cache, compressedCache)) {
 		log.Info().Msg("Start to decompress cache")
 		err := archiver.Unarchive(path.Join(cache, compressedCache), home)
@@ -261,6 +285,10 @@ func (b Builder) exportCache() error {
 	fileInfo, err := os.Stat(path.Join(cache, compressedCache))
 	if err != nil {
 		return fmt.Errorf("Read compressed file failed: %v", err)
+	}
+	err = b.api.CreateCache(context.Background(), b.BuilderID, b.RunnerID, path.Join(cache, compressedCache))
+	if err != nil {
+		return fmt.Errorf("Export cache to server failed: %v", err)
 	}
 	log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
 	return nil
