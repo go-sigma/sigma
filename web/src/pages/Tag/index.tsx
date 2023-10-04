@@ -29,7 +29,6 @@ import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 
-import "./index.css";
 import TableItem from "./TableItem";
 
 import { ITagList, IHTTPError, IEndpoint } from "../../interfaces";

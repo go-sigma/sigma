@@ -58,15 +58,15 @@ func Serve(serverConfig ServerConfig) error {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			n := next(c)
 			log.Debug().
 				Str("method", c.Request().Method).
 				Str("path", c.Request().URL.Path).
 				Str("query", c.Request().URL.RawQuery).
-				Interface("req-header", c.Request().Header).
-				Interface("resp-header", c.Response().Header()).
-				Int("status", c.Response().Status).
+				// Interface("req-header", c.Request().Header).
+				// Interface("resp-header", c.Response().Header()).
+				// Int("status", c.Response().Status).
 				Msg("Request debugger")
+			n := next(c)
 			return n
 		}
 	}))

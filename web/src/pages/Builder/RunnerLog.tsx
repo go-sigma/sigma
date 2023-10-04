@@ -15,7 +15,6 @@
  */
 
 import 'xterm/css/xterm.css';
-import './index.css';
 
 import axios from "axios";
 import { Terminal } from "xterm";

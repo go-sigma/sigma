@@ -86,6 +86,8 @@ export default function ({ localServer }: { localServer: string }) {
     id: parseInt(searchParams.get('namespace_id') || "") || 0,
   } as INamespaceItem);
 
+  let backTo = searchParams.get('back_to') || "";
+
   useEffect(() => {
     let url = `${localServer}/api/v1/namespaces/?limit=${Settings.AutoCompleteSize}`;
     if (namespaceSearch != null && namespaceSearch !== "") {
@@ -436,7 +438,7 @@ export default function ({ localServer }: { localServer: string }) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${repositorySelected.id}/builders/`;
       axios.post(url, data as IBuilderItem).then(response => {
         if (response?.status === 201) {
-          // TODO: redirect to repo
+          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -449,9 +451,7 @@ export default function ({ localServer }: { localServer: string }) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}/builders/${id}`;
       axios.put(url, data as IBuilderItem).then(response => {
         if (response?.status === 204) {
-          console.log(response);
-
-          // TODO: redirect to repo
+          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -579,7 +579,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="namespace"
                             className={() => {
                               let cursor = ''
-                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                              if ((searchParams.get('namespace_stick') || '') === 'true') {
                                 cursor = 'cursor-not-allowed ';
                               }
                               return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
@@ -592,7 +592,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <Combobox.Button
                             className={() => {
                               let cursor = ''
-                              if ((searchParams.get('repository_stick') || '') === 'true') {
+                              if ((searchParams.get('namespace_stick') || '') === 'true') {
                                 cursor = 'cursor-not-allowed ';
                               }
                               return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
@@ -738,15 +738,28 @@ export default function ({ localServer }: { localServer: string }) {
                     Builder Source
                   </label>
                   <div className="mt-2 flex flex-row items-center h-[36px]">
-                    <Listbox value={builderSource} onChange={(source: string) => {
-                      setSearchParams({
-                        ...Object.fromEntries(searchParams.entries()),
-                        builder_source: source,
-                      });
-                      setBuilderSource(source);
-                    }}>
+                    <Listbox
+                      disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
+                      value={builderSource}
+                      onChange={(source: string) => {
+                        setSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          builder_source: source,
+                        });
+                        setBuilderSource(source);
+                      }}>
                       <div className="relative mt-1 w-full">
-                        <Listbox.Button className="relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm cursor-pointer">
+                        <Listbox.Button
+                          className={() => {
+                            let cursor = ''
+                            if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                              cursor = 'cursor-not-allowed ';
+                            } else {
+                              cursor = 'cursor-pointer ';
+                            }
+                            return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+                          }}
+                        >
                           <span className="block truncate">{builderSource}</span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronUpDownIcon
@@ -804,27 +817,44 @@ export default function ({ localServer }: { localServer: string }) {
                             Provider
                           </label>
                           <div className="mt-2">
-                            <Combobox value={codeRepositoryProviderSelected} onChange={(provider: ICodeRepositoryProviderItem) => {
-                              setSearchParams({
-                                ...Object.fromEntries(searchParams.entries()),
-                                provider: provider.provider,
-                              });
-                              setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
-                              setCodeRepositorySelected({} as ICodeRepositoryItem);
-                              setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                              setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCodeRepositoryProviderSelected(provider);
-                            }}>
+                            <Combobox
+                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
+                              value={codeRepositoryProviderSelected}
+                              onChange={(provider: ICodeRepositoryProviderItem) => {
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  provider: provider.provider,
+                                });
+                                setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
+                                setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositoryProviderSelected(provider);
+                              }}>
                               <div className="relative mt-1">
                                 <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                                   <Combobox.Input
                                     id="codeProviders"
-                                    className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    }}
                                     displayValue={(provider: ICodeRepositoryProviderItem) => provider.provider}
                                     onChange={(event) => { }}
                                   />
-                                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                  <Combobox.Button
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
+                                    }}
+                                  >
                                     <ChevronUpDownIcon
                                       className="h-5 w-5 text-gray-400"
                                       aria-hidden="true"
@@ -875,29 +905,46 @@ export default function ({ localServer }: { localServer: string }) {
                             Organization
                           </label>
                           <div className="mt-2">
-                            <Combobox value={codeRepositoryOwnerSelected} onChange={(owner: ICodeRepositoryOwnerItem) => {
-                              setSearchParams({
-                                ...Object.fromEntries(searchParams.entries()),
-                                code_repository_owner: owner.owner,
-                                code_repository_owner_id: owner.id.toString(),
-                              });
-                              setCodeRepositorySelected({} as ICodeRepositoryItem);
-                              setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                              setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCodeRepositoryOwnerSelected(owner);
-                            }}>
+                            <Combobox
+                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
+                              value={codeRepositoryOwnerSelected}
+                              onChange={(owner: ICodeRepositoryOwnerItem) => {
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  code_repository_owner: owner.owner,
+                                  code_repository_owner_id: owner.id.toString(),
+                                });
+                                setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositoryOwnerSelected(owner);
+                              }}>
                               <div className="relative mt-1">
                                 <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                                   <Combobox.Input
                                     id="codeOwners"
-                                    className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    }}
                                     displayValue={(owner: ICodeRepositoryOwnerItem) => owner.owner}
                                     onChange={(event) => {
                                       setCodeRepositoryOwnerSearch(event.target.value);
                                     }}
                                   />
-                                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                  <Combobox.Button
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
+                                    }}
+                                  >
                                     <ChevronUpDownIcon
                                       className="h-5 w-5 text-gray-400"
                                       aria-hidden="true"
@@ -949,28 +996,46 @@ export default function ({ localServer }: { localServer: string }) {
                             Repository
                           </label>
                           <div className="mt-2">
-                            <Combobox value={codeRepositorySelected} onChange={(cr: ICodeRepositoryItem) => {
-                              setSearchParams({
-                                ...Object.fromEntries(searchParams.entries()),
-                                code_repository_name: cr.name,
-                                code_repository_id: cr.id.toString(),
-                              });
-                              setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                              setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                              setCodeRepositorySelected(cr);
-                            }}>
+                            <Combobox
+                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
+                              value={codeRepositorySelected}
+                              onChange={(cr: ICodeRepositoryItem) => {
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  code_repository_name: cr.name,
+                                  code_repository_id: cr.id.toString(),
+                                });
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositorySelected(cr);
+                              }}>
                               <div className="relative mt-1">
                                 <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                                   <Combobox.Input
                                     id="coderepos"
-                                    className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                    }}
+                                    // className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
                                     displayValue={(cr: ICodeRepositoryItem) => cr.name}
                                     onChange={(event) => {
                                       setCodeRepositorySearch(event.target.value);
                                     }}
                                   />
-                                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                  <Combobox.Button
+                                    className={() => {
+                                      let cursor = ''
+                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
+                                        cursor = 'cursor-not-allowed ';
+                                      }
+                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
+                                    }}
+                                  >
                                     <ChevronUpDownIcon
                                       className="h-5 w-5 text-gray-400"
                                       aria-hidden="true"
@@ -1820,6 +1885,11 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="flex flex-1 justify-between sm:justify-end">
                 <button
                   className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  onClick={e => {
+                    if (backTo !== "") {
+                      navigate(backTo);
+                    }
+                  }}
                 >
                   Cancel
                 </button>
