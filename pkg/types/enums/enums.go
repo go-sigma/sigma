@@ -91,6 +91,7 @@ type LockerType string
 // Webhook,
 // Builder,
 // CodeRepository,
+// TagPushed,
 // )
 type Daemon string
 

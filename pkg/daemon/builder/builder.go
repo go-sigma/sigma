@@ -104,7 +104,7 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			RunnerID:  runnerObj.ID,
 
 			Repository: base64.StdEncoding.EncodeToString([]byte(repositoryObj.Name)),
-			Tag:        base64.StdEncoding.EncodeToString([]byte(runnerObj.Tag)),
+			Tag:        base64.StdEncoding.EncodeToString([]byte(runnerObj.RawTag)),
 
 			Source: runnerObj.Builder.Source,
 

@@ -306,3 +306,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace github.com/distribution/distribution/v3 => github.com/go-sigma/distribution/v3 v3.0.0-20231004092000-4e8a14d6b658

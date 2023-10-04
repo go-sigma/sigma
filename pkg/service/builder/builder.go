@@ -37,7 +37,7 @@ func BuildRunner(builder *models.Builder, option BuildRunnerOption) (*models.Bui
 		BuilderID: builder.ID,
 		Status:    enums.BuildStatusPending,
 
-		Tag:       option.Tag,
+		// Tag:       option.Tag,
 		ScmBranch: option.ScmBranch,
 	}
 	return runner, nil

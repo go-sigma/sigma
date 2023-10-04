@@ -389,9 +389,10 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `log` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
   -- common settings
-  `tag` varchar(30) NOT NULL, -- image tag
-  `description` varchar(256),
-  `scm_branch` varchar(30),
+  `tag` varchar(128), -- image tag
+  `raw_tag` varchar(255) NOT NULL, -- image tag
+  `description` varchar(255),
+  `scm_branch` varchar(255),
   `started_at` timestamp,
   `ended_at` timestamp,
   `duration` integer,

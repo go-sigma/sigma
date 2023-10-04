@@ -62,6 +62,12 @@ type DaemonBuilderPayload struct {
 	RepositoryID int64                     `json:"repository_id"`
 }
 
+// DaemonTagPushedPayload ...
+type DaemonTagPushedPayload struct {
+	RepositoryID int64  `json:"repository_id"`
+	Tag          string `json:"tag"`
+}
+
 // DaemonCodeRepositoryPayload ...
 type DaemonCodeRepositoryPayload struct {
 	User3rdPartyID int64 `json:"user_3rdparty_id"`

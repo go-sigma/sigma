@@ -91,6 +91,7 @@ func (h *handlers) ListRunners(c echo.Context) error {
 
 			Status:      runnerObj.Status,
 			Tag:         runnerObj.Tag,
+			RawTag:      runnerObj.RawTag,
 			Description: runnerObj.Description,
 			ScmBranch:   runnerObj.ScmBranch,
 

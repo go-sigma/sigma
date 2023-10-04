@@ -173,7 +173,8 @@ type BuilderRunnerItem struct {
 	Log       []byte            `json:"log" example:"log"`
 	Status    enums.BuildStatus `json:"status" example:"Success"`
 
-	Tag         string  `json:"tag" example:"v1.0"`
+	Tag         *string `json:"tag" example:"v1.0"`
+	RawTag      string  `json:"raw_tag" example:"v1.0"`
 	Description *string `json:"description" example:"description"`
 	ScmBranch   *string `json:"scm_branch" example:"main"`
 
@@ -192,7 +193,7 @@ type PostRunnerRun struct {
 	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required,number" example:"10"`
 	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10"`
 
-	Tag         string  `json:"tag" example:"test"` // TODO: validate
+	RawTag      string  `json:"raw_tag" example:"test"` // TODO: validate
 	Description *string `json:"description,omitempty" validate:"omitempty,max=50"`
 	ScmBranch   *string `json:"scm_branch,omitempty" validate:"omitempty,min=1,max=64" example:"main"`
 }

@@ -87,7 +87,7 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 		builderService := h.builderServiceFactory.New(tx)
 		runnerObj = &models.BuilderRunner{
 			BuilderID: req.BuilderID,
-			Tag:       runnerObj.Tag,
+			RawTag:    runnerObj.RawTag,
 			ScmBranch: runnerObj.ScmBranch,
 		}
 		err = builderService.CreateRunner(ctx, runnerObj)

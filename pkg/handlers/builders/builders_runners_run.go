@@ -63,7 +63,7 @@ func (h *handlers) PostRunnerRun(c echo.Context) error {
 		builderService := h.builderServiceFactory.New(tx)
 		runnerObj = &models.BuilderRunner{
 			BuilderID: req.BuilderID,
-			Tag:       req.Tag,
+			RawTag:    req.RawTag,
 			ScmBranch: req.ScmBranch,
 		}
 		err = builderService.CreateRunner(ctx, runnerObj)

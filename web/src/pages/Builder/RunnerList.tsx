@@ -121,7 +121,7 @@ export default function ({ localServer }: { localServer: string }) {
       return;
     }
     const data: { [key: string]: any } = {
-      tag: tagTemplateText,
+      raw_tag: tagTemplateText,
     };
     if (builderObj.source !== "Dockerfile") {
       data["branch"] = branchText;
@@ -463,8 +463,6 @@ export default function ({ localServer }: { localServer: string }) {
 }
 
 function TableItem({ namespace, repository_id, runnerObj }: { namespace: string, repository_id: number, runnerObj: IBuilderRunnerItem }) {
-  console.log(runnerObj, runnerObj.tag);
-
   const navigate = useNavigate();
   return (
     <tr className="align-middle">
@@ -476,7 +474,7 @@ function TableItem({ namespace, repository_id, runnerObj }: { namespace: string,
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
-              {runnerObj.tag}
+              {runnerObj.tag !== null ? runnerObj.tag : runnerObj.raw_tag}
               <span className="text-gray-500 font-normal ml-2">{runnerObj.description}</span>
             </span>
           </div>
