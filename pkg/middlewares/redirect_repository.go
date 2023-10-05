@@ -13,3 +13,45 @@
 // limitations under the License.
 
 package middlewares
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+)
+
+// RedirectRepository redirect to frontend repository when request path is a docker pull path
+// Note: namespace MUST be not 'api' or 'v2'
+func RedirectRepository(config configs.Configuration) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			ctx := log.Logger.WithContext(c.Request().Context())
+
+			reqPath := c.Request().URL.Path
+			if !strings.Contains(reqPath, "/") {
+				return next(c)
+			}
+			if c.Request().Method == http.MethodGet && !strings.HasPrefix(reqPath, "/api/v1/") && !strings.HasPrefix(reqPath, "/v2/") {
+				namespace := strings.SplitN(strings.TrimPrefix(reqPath, "/"), "/", 2)[0]
+				repository := strings.TrimPrefix(reqPath, "/")
+				if strings.Contains(repository, ":") {
+					repository = strings.SplitN(repository, ":", 2)[0]
+				}
+				repositoryObj, err := dao.NewRepositoryServiceFactory().New().GetByName(ctx, repository)
+				if err != nil {
+					log.Error().Err(err).Str("repository", repository).Msg("Get repository by name failed")
+					return next(c)
+				}
+				return c.Redirect(http.StatusTemporaryRedirect,
+					fmt.Sprintf("%s/#/namespaces/%s/repository/tags?repository=%s&repository_id=%d", config.HTTP.Endpoint, namespace, repository, repositoryObj.ID))
+			}
+			return next(c)
+		}
+	}
+}

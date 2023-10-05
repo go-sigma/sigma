@@ -39,6 +39,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/serializer"
 	"github.com/go-sigma/sigma/web"
 )
@@ -55,7 +56,7 @@ func Serve(serverConfig ServerConfig) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	// e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			log.Debug().
@@ -71,8 +72,11 @@ func Serve(serverConfig ServerConfig) error {
 		}
 	}))
 
+	config := ptr.To(configs.GetConfiguration())
+
 	e.Use(middleware.CORS())
 	e.Use(middlewares.Healthz())
+	e.Use(middlewares.RedirectRepository(config))
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
 	if viper.GetInt("log.level") < 1 {
