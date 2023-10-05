@@ -67,11 +67,15 @@ func Initialize() error {
 		return fmt.Errorf("builder driver %q not registered", typ)
 	}
 	var err error
+	err = logger.Initialize()
+	if err != nil {
+		return err
+	}
 	Driver, err = factory.New(configs.Configuration{})
 	if err != nil {
 		return err
 	}
-	return logger.Initialize()
+	return nil
 }
 
 // BuildEnv ...

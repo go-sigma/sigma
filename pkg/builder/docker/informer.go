@@ -17,12 +17,14 @@ package docker
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/zerolog/log"
 
-	builderlogger "github.com/go-sigma/sigma/pkg/builder/logger"
+	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -30,7 +32,9 @@ import (
 
 func (i *instance) informer(ctx context.Context) {
 	go func(ctx context.Context) {
-		eventsOpt := types.EventsOptions{}
+		eventsOpt := types.EventsOptions{
+			Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
+		}
 		events, errs := i.client.Events(ctx, eventsOpt)
 		for {
 			select {
@@ -39,6 +43,7 @@ func (i *instance) informer(ctx context.Context) {
 			case event := <-events:
 				switch event.Type { // nolint: gocritic
 				case "container":
+					log.Debug().Str("type", event.Type).Str("action", event.Action).Msg("Got a new docker event")
 					switch event.Action {
 					case "start":
 						container, err := i.client.ContainerInspect(ctx, event.Actor.ID)
@@ -85,13 +90,21 @@ func (i *instance) informer(ctx context.Context) {
 								continue
 							}
 						}
-						i.controlled.Remove(event.Actor.ID)
 
 						builderID, runnerID, err := i.getBuilderTaskID(container.ContainerJSONBase.Name)
 						if err != nil {
 							log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
 							continue
 						}
+
+						if !i.controlled.Contains(event.Actor.ID) {
+							err := i.logStore(ctx, event.Actor.ID, builderID, runnerID)
+							if err != nil {
+								log.Error().Err(err).Str("id", event.Actor.ID).Msg("Get container log failed")
+							}
+						}
+
+						i.controlled.Remove(event.Actor.ID)
 
 						builderService := i.builderServiceFactory.New()
 						updates := make(map[string]any, 1)
@@ -111,6 +124,8 @@ func (i *instance) informer(ctx context.Context) {
 						if err != nil {
 							log.Error().Err(err).Msg("Update runner failed")
 						}
+					case "destroy":
+						i.controlled.Remove(event.Actor.ID)
 					}
 				}
 			case err := <-errs:
@@ -135,7 +150,7 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		return fmt.Errorf("Get container logs failed: %v", err)
 	}
 
-	writer := builderlogger.Driver.Write(builderID, runnerID)
+	writer := logger.Driver.Write(builderID, runnerID)
 	_, err = stdcopy.StdCopy(writer, writer, reader)
 	if err != nil {
 		return fmt.Errorf("Copy container logs failed: %v", err)
@@ -151,5 +166,58 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		return fmt.Errorf("Remove container failed: %v", err)
 	}
 
+	return nil
+}
+
+func (i *instance) cacheList(ctx context.Context) error {
+	containers, err := i.client.ContainerList(ctx, types.ContainerListOptions{
+		All:     true,
+		Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("List containers failed")
+		return err
+	}
+	for _, container := range containers {
+		var name string
+		if len(container.Names) > 0 {
+			name = strings.TrimPrefix(container.Names[0], "/")
+		} else {
+			continue
+		}
+		builderID, runnerID, err := i.getBuilderTaskID(name)
+		if err != nil {
+			log.Error().Err(err).Msg("Parse builder task id failed")
+			continue
+		}
+		con, err := i.client.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			log.Error().Err(err).Str("id", container.ID).Msg("Inspect container failed")
+			continue
+		}
+		err = i.logStore(ctx, container.ID, builderID, runnerID)
+		if err != nil {
+			log.Error().Err(err).Str("id", container.ID).Msg("Get container log failed")
+			continue
+		}
+		updates := map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
+		if con.ContainerJSONBase != nil && con.ContainerJSONBase.State != nil {
+			if con.ContainerJSONBase.State.ExitCode == 0 {
+				updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusSuccess}
+				log.Info().Str("id", container.ID).Str("name", con.ContainerJSONBase.Name).Msg("Builder container succeed")
+			} else {
+				updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
+				log.Error().Int("ExitCode", con.ContainerJSONBase.State.ExitCode).
+					Str("Error", con.ContainerJSONBase.State.Error).
+					Bool("OOMKilled", con.ContainerJSONBase.State.OOMKilled).
+					Msg("Builder container exited")
+			}
+		}
+		builderService := i.builderServiceFactory.New()
+		err = builderService.UpdateRunner(ctx, builderID, runnerID, updates)
+		if err != nil {
+			log.Error().Err(err).Msg("Update runner failed")
+		}
+	}
 	return nil
 }

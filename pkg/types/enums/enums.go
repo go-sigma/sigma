@@ -47,6 +47,8 @@ type TaskCommonStatus string
 // Pending,
 // Scheduling,
 // Building,
+// Stopping,
+// Stopped,
 // )
 type BuildStatus string
 

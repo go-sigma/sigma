@@ -305,6 +305,10 @@ const (
 	BuildStatusScheduling BuildStatus = "Scheduling"
 	// BuildStatusBuilding is a BuildStatus of type Building.
 	BuildStatusBuilding BuildStatus = "Building"
+	// BuildStatusStopping is a BuildStatus of type Stopping.
+	BuildStatusStopping BuildStatus = "Stopping"
+	// BuildStatusStopped is a BuildStatus of type Stopped.
+	BuildStatusStopped BuildStatus = "Stopped"
 )
 
 var ErrInvalidBuildStatus = errors.New("not a valid BuildStatus")
@@ -327,6 +331,8 @@ var _BuildStatusValue = map[string]BuildStatus{
 	"Pending":    BuildStatusPending,
 	"Scheduling": BuildStatusScheduling,
 	"Building":   BuildStatusBuilding,
+	"Stopping":   BuildStatusStopping,
+	"Stopped":    BuildStatusStopped,
 }
 
 // ParseBuildStatus attempts to convert a string to a BuildStatus.

@@ -58,6 +58,10 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 		controlled:            mapset.NewSet[string](),
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}
+	err = i.cacheList(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	go i.informer(context.Background())
 	return i, nil
 }
@@ -100,7 +104,9 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		return fmt.Errorf("Start container failed: %v", err)
 	}
 	builderService := i.builderServiceFactory.New()
-	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusBuilding})
+	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{
+		query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusBuilding,
+	})
 	if err != nil {
 		return fmt.Errorf("Update runner status failed: %v", err)
 	}
@@ -114,7 +120,21 @@ const (
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
-	err := i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
+	var err error
+	defer func() {
+		status := enums.BuildStatusStopped
+		if err != nil {
+			status = enums.BuildStatusFailed
+		}
+		builderService := i.builderServiceFactory.New()
+		err := builderService.UpdateRunner(ctx, builderID, runnerID, map[string]any{
+			query.BuilderRunner.Status.ColumnName().String(): status,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Update runner status failed")
+		}
+	}()
+	err = i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
 		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
 			log.Info().Str("id", i.genContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")

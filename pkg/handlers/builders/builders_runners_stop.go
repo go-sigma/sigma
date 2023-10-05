@@ -23,6 +23,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -67,15 +68,29 @@ func (h *handlers) GetRunnerStop(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Builder runner status %s not support stop", runnerObj.Status.String()))
 	}
 
-	err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
-		Action:       enums.DaemonBuilderActionStop,
-		RepositoryID: req.RepositoryID,
-		BuilderID:    req.BuilderID,
-		RunnerID:     req.RunnerID,
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		builderService := h.builderServiceFactory.New(tx)
+		err = builderService.UpdateRunner(ctx, req.BuilderID, req.RunnerID, map[string]any{
+			query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusStopping,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Update runner status failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update runner status failed: %v", err))
+		}
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
+			Action:       enums.DaemonBuilderActionStop,
+			RepositoryID: req.RepositoryID,
+			BuilderID:    req.BuilderID,
+			RunnerID:     req.RunnerID,
+		})
+		if err != nil {
+			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
+		}
+		return nil
 	})
 	if err != nil {
-		log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
-		return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
+		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
 	return c.NoContent(http.StatusNoContent)
