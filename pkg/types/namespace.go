@@ -69,19 +69,11 @@ type DeleteNamespaceRequest struct {
 
 // PutNamespaceRequest represents the request to update a namespace.
 type PutNamespaceRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number"`
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
 
 	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	RepositoryLimit *int64            `json:"repository_limit" validate:"omitempty,numeric" example:"10000"`
 	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
-}
-
-// PutNamespaceRequestSwagger represents the request to update a namespace.
-type PutNamespaceRequestSwagger struct {
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 }

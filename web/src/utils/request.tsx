@@ -28,8 +28,10 @@ export const setupResponseInterceptor = (navigate: any) => {
   }, error => {
     if (error?.response?.status === 401) {
       navigate('/login');
-    } else {
+    } else if (error?.response?.status === 500) {
       return Promise.reject(error);
+    } else {
+      return Promise.resolve(error?.response);
     }
   })
 }

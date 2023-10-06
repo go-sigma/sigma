@@ -513,7 +513,7 @@ definitions:
         example: "1234567890"
         type: string
     type: object
-  types.PostBuilderRequestSwagger:
+  types.PostBuilderRequest:
     properties:
       buildkit_build_args:
         description: 'TODO: validate'
@@ -644,7 +644,7 @@ definitions:
         example: 21911
         type: integer
     type: object
-  types.PostRepositoryRequestSwagger:
+  types.PostRepositoryRequest:
     properties:
       description:
         example: i am just description
@@ -701,7 +701,7 @@ definitions:
         example: eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJYSW1hZ2VyIiwic3ViIjoieGltYWdlciIsImV4cCI6MTY4OTUwNDcxMSwibmJmIjoxNjg5NTAxMTExLCJpYXQiOjE2ODk1MDExMTEsImp0aSI6ImIxYTRmMGQ1LWNlNTUtNGU3ZS1hYjY1LWRhNTZiMDhhNjg2YSIsImRhdCI6InhpbWFnZXIifQ.cjuIJVnLl9yFB9zhv0KPZUq_M1Mb-tiyjHQXYowRAROEdu5t6HHYnFnl348IYFg51vGDh7ROBp1-pZIQJ5gCyM4rTuoYZneS7NPtb8sFjch3dDotVDXSpbppdkXZAPvEIwXKDKcmyMCsAAgep4A6gVeQ07RthUbITahCG3-ssF9NTojDgIyKysReju3BV5FOh_lbBwNXmfBnRUV11w8eApAuLEJhdNM_W50BdoHvUHAbwblDmanNonc9zAkzcQQZqndCNZJJ2hee7ZqOSByWDtxnLB5zbvLBV76BJf6EAW8zTYDW9fxWwSydhvmo5bSxgcI4LFzloUXO-Mj1TWVg2Lvjf3vAkmdYUxD8fhxE7x49i02TN4ohwtr3jI27vOh4Jv4FgMbu2SkZTVrfQ7ySpcWgX-UC2egXSs2fwpwoPyDZn4LmnDTZX4_PLqz7IgoeusrpFzHnfKD_mf3q-xq1ugJoNQRFWXFpF9fhWmYPsefoKlU349ZVqHg19QT2sFnSJBHWqL92NAr75vzUxxmxN61ZpXU70xZ54-qXMsu1V2jyGQl2wlFDPPb8jUWEh9cY_EmEarFAJPCBTAaxhdTpe8lR7b4WcbHtGu2zDQYpDvNOL7NKTLzjzn1COewvE2jkf0m9fL-u3RzrEIfo4eLBSBbUrrnpFit7CQFzxUZF5u9IWaSuicqwy7KoFt3PazsvQNYi9DYoGi5TVuI2EtdWYCSA09J5rL3GKkUkwZT0yMrea21xR9tpBU4LvJLM00bXYXLQGwISoSQ30pLGJiOskDADMrF-Wfg7JZi1KiUyA8jNgNebOw9VVBYxR7h33vKNDJPI2dZsqOYAwXqaTQTdJAm888yrpBRt22s2lsWhUBmvRgHpDFUHKUQHTFNZNOi_CeL4YTaoWhcS9j6ydtrteDz3gw783hY9_kSnER0GiYZNyMPMJYcQTteeESwCP0_eRgZDtc7jFU2ZDFSWshzWk7M53YQvuSw9j3r5l3yJ88qYLgJoqnLgGBHOfdz5zkzJkECEXzbmb05JB7cnJUNgg_AJSpI38P7906JBXsBmgXpjqDyFdYn89NbqGZqwcyKEquvEtDfdSAIAqlbVT-g8lkC14T3YD-CJwhK7u3lB-bFAASOdb4xjz5hcL9C7KoElMNGxuK0r-7bDYBVqQVSt_jqbAPufx3fgpz8D-S-43DkN7ZIZTCaLrocNZjgT74KXlCzBYnPgTAOvPxOPzOUxrwgXLKbloKSWSAr8eOEgR2bdF8WFI7NG6WunlJp55v9yc5KTTeuaoDQGZhuVzAH5A05NtDDerT7KHeoiI2_q9s_VrY6J1er6bWq2VI46iYl339ozgje10RCDWCbWzWiGeg
         type: string
     type: object
-  types.PostWebhookRequestSwagger:
+  types.PostWebhookRequest:
     properties:
       enable:
         example: true
@@ -721,9 +721,6 @@ definitions:
       event_tag:
         example: true
         type: boolean
-      namespace_id:
-        example: 1
-        type: integer
       retry_duration:
         example: 5
         type: integer
@@ -748,7 +745,7 @@ definitions:
     - ssl_verify
     - url
     type: object
-  types.PutBuilderRequestSwagger:
+  types.PutBuilderRequest:
     properties:
       buildkit_build_args:
         description: 'TODO: validate'
@@ -846,12 +843,15 @@ definitions:
     required:
     - buildkit_platforms
     type: object
-  types.PutNamespaceRequestSwagger:
+  types.PutNamespaceRequest:
     properties:
       description:
         example: i am just description
         maxLength: 30
         type: string
+      repository_limit:
+        example: 10000
+        type: integer
       size_limit:
         example: 10000
         type: integer
@@ -863,7 +863,7 @@ definitions:
         - $ref: '#/definitions/enums.Visibility'
         example: public
     type: object
-  types.PutRepositoryRequestSwagger:
+  types.PutRepositoryRequest:
     properties:
       description:
         example: i am just description
@@ -871,7 +871,7 @@ definitions:
         type: string
       overview:
         example: i am just overview
-        maxLength: 3000
+        maxLength: 100000
         type: string
       size_limit:
         example: 10000
@@ -884,7 +884,7 @@ definitions:
         - $ref: '#/definitions/enums.Visibility'
         example: public
     type: object
-  types.PutWebhookRequestSwagger:
+  types.PutWebhookRequest:
     properties:
       enable:
         example: true
@@ -938,6 +938,9 @@ definitions:
       name:
         example: busybox
         type: string
+      namespace_id:
+        example: 1
+        type: integer
       overview:
         example: i am just overview
         type: string
@@ -1141,6 +1144,96 @@ info:
   title: sigma API
   version: "1.0"
 paths:
+  /caches/:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Builder ID
+        in: query
+        name: builder_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete cache
+      tags:
+      - Cache
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Builder ID
+        in: query
+        name: builder_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Cache content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get cache
+      tags:
+      - Cache
+    post:
+      consumes:
+      - application/octet-stream
+      parameters:
+      - description: Builder ID
+        in: query
+        name: builder_id
+        required: true
+        type: string
+      - description: Cache file
+        in: body
+        name: file
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create cache
+      tags:
+      - Cache
   /coderepos/{id}/branches:
     get:
       consumes:
@@ -1510,6 +1603,54 @@ paths:
       summary: Get logs
       tags:
       - Daemon
+  /namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder ID
+        in: path
+        name: builder_id
+        required: true
+        type: string
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PutBuilderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update a builder by id
+      tags:
+      - Builder
   /namespaces/:
     get:
       consumes:
@@ -1652,7 +1793,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PutNamespaceRequestSwagger'
+          $ref: '#/definitions/types.PutNamespaceRequest'
       produces:
       - application/json
       responses:
@@ -1663,6 +1804,134 @@ paths:
       summary: Update namespace
       tags:
       - Namespace
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostBuilderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a builder for repository
+      tags:
+      - Builder
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder ID
+        in: path
+        name: builder_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.BuilderItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get builder runners by builder id
+      tags:
+      - Builder
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Builder ID
+        in: path
+        name: builder_id
+        required: true
+        type: string
+      - description: Runner ID
+        in: path
+        name: runner_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.BuilderItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get builder runner by runner id
+      tags:
+      - Builder
   /namespaces/{namespace}/repositories/:
     get:
       consumes:
@@ -1742,7 +2011,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PostRepositoryRequestSwagger'
+          $ref: '#/definitions/types.PostRepositoryRequest'
       produces:
       - application/json
       responses:
@@ -1853,7 +2122,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PutRepositoryRequestSwagger'
+          $ref: '#/definitions/types.PutRepositoryRequest'
       produces:
       - application/json
       responses:
@@ -2136,121 +2405,6 @@ paths:
       summary: Redirect oauth2 provider callback
       tags:
       - OAuth2
-  /repositories/{repository_id}/builders:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      - description: Builder object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostBuilderRequestSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Create a builder for repository
-      tags:
-      - Builder
-  /repositories/{repository_id}/builders/{id}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      - description: Builder ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.BuilderItem'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Get a builder by builder id
-      tags:
-      - Builder
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Repository ID
-        in: path
-        name: repository_id
-        required: true
-        type: string
-      - description: Builder ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Builder object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PutBuilderRequestSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Update a builder by id
-      tags:
-      - Builder
   /systems/endpoint:
     get:
       consumes:
@@ -2393,7 +2547,31 @@ paths:
             $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
-      summary: validate reference
+      summary: Validate reference
+      tags:
+      - Validator
+  /validators/tag:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reference
+        in: query
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate tag
       tags:
       - Validator
   /webhook/{id}:
@@ -2411,7 +2589,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PutWebhookRequestSwagger'
+          $ref: '#/definitions/types.PutWebhookRequest'
       produces:
       - application/json
       responses:
@@ -2448,7 +2626,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PostWebhookRequestSwagger'
+          $ref: '#/definitions/types.PostWebhookRequest'
       produces:
       - application/json
       responses:

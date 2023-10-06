@@ -37,14 +37,14 @@ type BuilderService interface {
 	Create(ctx context.Context, builder *models.Builder) error
 	// Update update the builder by id
 	Update(ctx context.Context, id int64, updates map[string]interface{}) error
-	// Get get builder by id
-	Get(ctx context.Context, id int64) (*models.Builder, error)
+	// Get get builder by repository id
+	Get(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// GetByRepositoryIDs get builders by repository ids
 	GetByRepositoryIDs(ctx context.Context, repositoryIDs []int64) (map[int64]*models.Builder, error)
 	// Get get builder by repository id
 	GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// CreateRunner creates a new builder runner record in the database
-	CreateRunner(ctx context.Context, log *models.BuilderRunner) error
+	CreateRunner(ctx context.Context, runner *models.BuilderRunner) error
 	// GetRunner get runner from object storage or database
 	GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error)
 	// ListRunners list builder runners
@@ -104,8 +104,8 @@ func (s builderService) Update(ctx context.Context, id int64, updates map[string
 }
 
 // Get get builder by id
-func (s builderService) Get(ctx context.Context, id int64) (*models.Builder, error) {
-	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.ID.Eq(id)).First()
+func (s builderService) Get(ctx context.Context, repositoryID int64) (*models.Builder, error) {
+	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.RepositoryID.Eq(repositoryID)).First()
 }
 
 // GetByRepositoryIDs get builders by repository ids
@@ -130,13 +130,13 @@ func (s builderService) GetByRepositoryID(ctx context.Context, repositoryID int6
 }
 
 // CreateRunner creates a new builder runner record in the database
-func (s builderService) CreateRunner(ctx context.Context, log *models.BuilderRunner) error {
-	return s.tx.BuilderRunner.WithContext(ctx).Create(log)
+func (s builderService) CreateRunner(ctx context.Context, runner *models.BuilderRunner) error {
+	return s.tx.BuilderRunner.WithContext(ctx).Create(runner)
 }
 
 // GetRunner get runner from object storage or database
 func (s builderService) GetRunner(ctx context.Context, id int64) (*models.BuilderRunner, error) {
-	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(id)).First()
+	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.ID.Eq(id)).Preload(s.tx.BuilderRunner.Builder).First()
 }
 
 // ListRunners list builder runners
@@ -151,17 +151,23 @@ func (s builderService) ListRunners(ctx context.Context, id int64, pagination ty
 		case enums.SortMethodAsc:
 			query = query.Order(field)
 		default:
-			query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+			query = query.Order(s.tx.BuilderRunner.CreatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+		query = query.Order(s.tx.BuilderRunner.CreatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // UpdateRunner update builder runner
 func (s builderService) UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error {
-	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(builderID), s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)
+	if len(updates) == 0 {
+		return nil
+	}
+	updates[query.BuilderRunner.ID.ColumnName().String()] = runnerID
+	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(
+		s.tx.BuilderRunner.BuilderID.Eq(builderID),
+		s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
-	dockertypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -35,6 +35,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
@@ -56,6 +58,10 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 		controlled:            mapset.NewSet[string](),
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}
+	err = i.cacheList(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	go i.informer(context.Background())
 	return i, nil
 }
@@ -70,11 +76,16 @@ var _ builder.Builder = instance{}
 
 // Start start a container to build oci image and push to registry
 func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig) error {
+	envs, err := builder.BuildEnv(builderConfig)
+	if err != nil {
+		return err
+	}
+
 	containerConfig := &container.Config{
 		Image:      "docker.io/library/builder:dev",
 		Entrypoint: []string{},
 		Cmd:        []string{"sigma-builder"},
-		Env:        builder.BuildEnv(builderConfig),
+		Env:        envs,
 		Labels: map[string]string{
 			"oci-image-builder": consts.AppName,
 			"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
@@ -84,11 +95,23 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	hostConfig := &container.HostConfig{
 		SecurityOpt: []string{"seccomp=unconfined", "apparmor=unconfined"},
 	}
-	_, err := i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
+	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
-	return i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), dockertypes.ContainerStartOptions{})
+	err = i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), types.ContainerStartOptions{})
+	if err != nil {
+		return fmt.Errorf("Start container failed: %v", err)
+	}
+	builderService := i.builderServiceFactory.New()
+	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{
+		query.BuilderRunner.Status.ColumnName().String():    enums.BuildStatusBuilding,
+		query.BuilderRunner.StartedAt.ColumnName().String(): time.Now(),
+	})
+	if err != nil {
+		return fmt.Errorf("Update runner status failed: %v", err)
+	}
+	return nil
 }
 
 const (
@@ -98,12 +121,33 @@ const (
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
-	err := i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
+	var err error
+	defer func() {
+		status := enums.BuildStatusStopped
+		if err != nil {
+			if !(strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")) {
+				status = enums.BuildStatusFailed
+			}
+		}
+		builderService := i.builderServiceFactory.New()
+		err := builderService.UpdateRunner(ctx, builderID, runnerID, map[string]any{
+			query.BuilderRunner.Status.ColumnName().String():    status,
+			query.BuilderRunner.StartedAt.ColumnName().String(): time.Now(),
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Update runner status failed")
+		}
+	}()
+	err = i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
+		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
+			log.Info().Str("id", i.genContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
+			return nil
+		}
 		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Kill container failed")
 		return fmt.Errorf("Kill container failed: %v", err)
 	}
-	err = i.client.ContainerRemove(ctx, i.genContainerID(builderID, runnerID), dockertypes.ContainerRemoveOptions{})
+	err = i.client.ContainerRemove(ctx, i.genContainerID(builderID, runnerID), types.ContainerRemoveOptions{})
 	if err != nil {
 		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Remove container failed")
 		return fmt.Errorf("Remove container failed: %v", err)
@@ -136,7 +180,7 @@ func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConf
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error {
-	reader, err := i.client.ContainerLogs(ctx, i.genContainerID(builderID, runnerID), dockertypes.ContainerLogsOptions{
+	reader, err := i.client.ContainerLogs(ctx, i.genContainerID(builderID, runnerID), types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,

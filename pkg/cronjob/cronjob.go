@@ -18,20 +18,22 @@ import "time"
 
 const (
 	// cronjobIterDuration each job iterate duration
-	cronjobIterDuration = time.Second * 30
+	CronjobIterDuration = time.Second * 30
 	// tickNextDuration tick the next runner if current get full of jobs
-	tickNextDuration = time.Second * 3
+	TickNextDuration = time.Second * 3
 	// maxJob each iterate get the maximum jobs
-	maxJob = 100
+	MaxJob = 100
 )
 
-var starter []func()
+// Starter ...
+var Starter []func()
 
-var stopper []func()
+// Stopper ...
+var Stopper []func()
 
 // Initialize ...
 func Initialize() {
-	for _, start := range starter {
+	for _, start := range Starter {
 		start()
 	}
 }

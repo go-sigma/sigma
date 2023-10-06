@@ -31,15 +31,16 @@ import (
 )
 
 // User3rdParty get user 3rdparty
-// @Summary Get code repository user 3rdparty
-// @security BasicAuth
-// @Tags CodeRepository
-// @Accept json
-// @Produce json
-// @Router /coderepos/{provider}/user3rdparty [get]
-// @Param provider path string true "get user 3rdParty with provider"
-// @Success 200 {object} types.GetCodeRepositoryUser3rdPartyResponse
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Get code repository user 3rdparty
+//	@security	BasicAuth
+//	@Tags		CodeRepository
+//	@Accept		json
+//	@Produce	json
+//	@Router		/coderepos/{provider}/user3rdparty [get]
+//	@Param		provider	path		string	true	"get user 3rdParty with provider"
+//	@Success	200			{object}	types.GetCodeRepositoryUser3rdPartyResponse
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) User3rdParty(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

@@ -28,7 +28,10 @@ import (
 
 // Handlers ...
 type Handlers interface {
+	// GetReference handles the validate reference request
 	GetReference(c echo.Context) error
+	// GetTag handles the validate tag request
+	GetTag(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -49,6 +52,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	validatorGroup := e.Group(consts.APIV1+"/validators", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	repositoryHandler := handlerNew()
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
+	validatorGroup.GET("/tag", repositoryHandler.GetTag)
 	return nil
 }
 

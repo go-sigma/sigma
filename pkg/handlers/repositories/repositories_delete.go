@@ -29,17 +29,18 @@ import (
 )
 
 // DeleteRepository handles the delete repository request
-// @Summary Delete repository
-// @Tags Repository
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/repositories/{id} [delete]
-// @Param namespace path string true "Namespace"
-// @Param id path string true "Repository ID"
-// @Success 204
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Delete repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/repositories/{id} [delete]
+//	@Param		namespace	path	string	true	"Namespace"
+//	@Param		id			path	string	true	"Repository ID"
+//	@Success	204
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) DeleteRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

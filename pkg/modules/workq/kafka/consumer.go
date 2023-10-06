@@ -18,8 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
-	"reflect"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -27,14 +25,14 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // ConsumerGroupHandler ...
 type ConsumerGroupHandler struct {
 	processingSemaphore chan struct{}
-	consumer            workq.Consumer
+	consumer            definition.Consumer
 	producer            sarama.SyncProducer
 }
 
@@ -97,14 +95,8 @@ type MessageWrapper struct {
 	Payload []byte
 }
 
-func init() {
-	workq.ConsumerClientFactories[path.Base(reflect.TypeOf(consumerFactory{}).PkgPath())] = &consumerFactory{}
-}
-
-type consumerFactory struct{}
-
 // NewWorkQueueConsumer ...
-func (f consumerFactory) New(_ configs.Configuration) error {
+func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[string]definition.Consumer) error {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
@@ -123,12 +115,12 @@ func (f consumerFactory) New(_ configs.Configuration) error {
 		log.Error().Err(err).Msg("Create producer failed")
 	}
 
-	for topic, c := range workq.TopicConsumers {
+	for topic, c := range topicHandlers {
 		consumerGroup, err := sarama.NewConsumerGroupFromClient(fmt.Sprintf("%s-%s", consts.AppName, topic), client)
 		if err != nil {
 			return err
 		}
-		go func(consumer workq.Consumer, topic string) {
+		go func(consumer definition.Consumer, topic string) {
 			for {
 				handler := &ConsumerGroupHandler{
 					processingSemaphore: make(chan struct{}, consumer.Concurrency),

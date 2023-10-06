@@ -23,29 +23,22 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // BuildRunnerOption ...
 type BuildRunnerOption struct {
-	Tag               string
-	ScmBranch         string
-	BuildkitPlatforms *string
+	Tag       string
+	ScmBranch *string
 }
 
 // BuildRunner ...
 func BuildRunner(builder *models.Builder, option BuildRunnerOption) (*models.BuilderRunner, error) {
-	buildkitPlatforms := builder.BuildkitPlatforms
-	if option.BuildkitPlatforms != nil {
-		buildkitPlatforms = ptr.To(option.BuildkitPlatforms)
-	}
 	runner := &models.BuilderRunner{
 		BuilderID: builder.ID,
 		Status:    enums.BuildStatusPending,
 
-		Tag:               option.Tag,
-		ScmBranch:         option.ScmBranch,
-		BuildkitPlatforms: buildkitPlatforms,
+		// Tag:       option.Tag,
+		ScmBranch: option.ScmBranch,
 	}
 	return runner, nil
 }

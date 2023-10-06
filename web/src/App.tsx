@@ -33,6 +33,8 @@ import CodeRepositoryList from './pages/CodeRepository/List';
 import BuilderRunner from './pages/CodeRepository/BuilderRunner';
 
 import BuildersSetup from './pages/Builder/Setup';
+import BuilderRunnerList from './pages/Builder/RunnerList';
+import BuilderRunnerLog from './pages/Builder/RunnerLog';
 
 import { setupResponseInterceptor } from './utils/request'
 
@@ -71,8 +73,10 @@ export default function App() {
         <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/repository/builder-runners" element={<BuilderRunner localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
+
+        <Route path="/namespaces/:namespace/repository/runners" element={<BuilderRunnerList localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/repository/runner-logs/:runner_id" element={<BuilderRunnerLog localServer={localServer} />} />
 
         <Route path="/coderepos" element={<CodeRepositoryHome localServer={localServer} />} />
         <Route path="/coderepos/:provider" element={<CodeRepositoryList localServer={localServer} />} />

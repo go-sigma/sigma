@@ -35,18 +35,19 @@ import (
 )
 
 // PostRepository handles the post repository request
-// @Summary Create repository
-// @Tags Repository
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/repositories/ [post]
-// @Param namespace path string true "Namespace name"
-// @Param message body types.PostRepositoryRequestSwagger true "Repository object"
-// @Success 201 {object} types.PostRepositoryResponse
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Create repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/repositories/ [post]
+//	@Param		namespace	path		string						true	"Namespace name"
+//	@Param		message		body		types.PostRepositoryRequest	true	"Repository object"
+//	@Success	201			{object}	types.PostRepositoryResponse
+//	@Failure	400			{object}	xerrors.ErrCode
+//	@Failure	404			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) PostRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

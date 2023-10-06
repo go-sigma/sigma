@@ -27,15 +27,16 @@ import (
 )
 
 // RedirectCallback Redirect oauth2 provider callback
-// @Summary Redirect oauth2 provider callback
-// @security BasicAuth
-// @Tags OAuth2
-// @Accept json
-// @Produce json
-// @Router /oauth2/{provider}/redirect_callback [get]
-// @Param provider path string true "oauth2 provider"
-// @Success 301
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Redirect oauth2 provider callback
+//	@security	BasicAuth
+//	@Tags		OAuth2
+//	@Accept		json
+//	@Produce	json
+//	@Router		/oauth2/{provider}/redirect_callback [get]
+//	@Param		provider	path	string	true	"oauth2 provider"
+//	@Success	301
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) RedirectCallback(c echo.Context) error {
 	var req types.Oauth2CallbackRequest
 	err := utils.BindValidate(c, &req)

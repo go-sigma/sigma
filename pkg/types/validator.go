@@ -18,3 +18,8 @@ package types
 type GetValidatorReferenceRequest struct {
 	Reference string `json:"reference" query:"reference" validate:"required"`
 }
+
+// GetValidatorTagRequest ...
+type GetValidatorTagRequest struct {
+	Tag string `json:"tag" query:"tag" validate:"required"`
+}

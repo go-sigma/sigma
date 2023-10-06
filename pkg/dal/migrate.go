@@ -34,7 +34,7 @@ var mysqlFS embed.FS
 var postgresqlFS embed.FS
 
 //go:embed migrations/sqlite3/*.sql
-var sqlite3FS embed.FS
+var sqliteFS embed.FS
 
 func migrateMysql(dsn string) error {
 	d, err := iofs.New(mysqlFS, "migrations/mysql")
@@ -79,7 +79,7 @@ func migratePostgres(dsn string) error {
 }
 
 func migrateSqlite(dsn string) error {
-	d, err := iofs.New(sqlite3FS, "migrations/sqlite3")
+	d, err := iofs.New(sqliteFS, "migrations/sqlite3")
 	if err != nil {
 		return err
 	}

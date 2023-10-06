@@ -305,6 +305,10 @@ const (
 	BuildStatusScheduling BuildStatus = "Scheduling"
 	// BuildStatusBuilding is a BuildStatus of type Building.
 	BuildStatusBuilding BuildStatus = "Building"
+	// BuildStatusStopping is a BuildStatus of type Stopping.
+	BuildStatusStopping BuildStatus = "Stopping"
+	// BuildStatusStopped is a BuildStatus of type Stopped.
+	BuildStatusStopped BuildStatus = "Stopped"
 )
 
 var ErrInvalidBuildStatus = errors.New("not a valid BuildStatus")
@@ -327,6 +331,8 @@ var _BuildStatusValue = map[string]BuildStatus{
 	"Pending":    BuildStatusPending,
 	"Scheduling": BuildStatusScheduling,
 	"Building":   BuildStatusBuilding,
+	"Stopping":   BuildStatusStopping,
+	"Stopped":    BuildStatusStopped,
 }
 
 // ParseBuildStatus attempts to convert a string to a BuildStatus.
@@ -573,6 +579,8 @@ const (
 	DaemonBuilder Daemon = "Builder"
 	// DaemonCodeRepository is a Daemon of type CodeRepository.
 	DaemonCodeRepository Daemon = "CodeRepository"
+	// DaemonTagPushed is a Daemon of type TagPushed.
+	DaemonTagPushed Daemon = "TagPushed"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")
@@ -597,6 +605,7 @@ var _DaemonValue = map[string]Daemon{
 	"Webhook":        DaemonWebhook,
 	"Builder":        DaemonBuilder,
 	"CodeRepository": DaemonCodeRepository,
+	"TagPushed":      DaemonTagPushed,
 }
 
 // ParseDaemon attempts to convert a string to a Daemon.

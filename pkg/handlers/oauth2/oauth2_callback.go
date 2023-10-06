@@ -31,11 +31,10 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -46,17 +45,18 @@ import (
 )
 
 // Callback handles the oauth2 callback request
-// @Summary OAuth2 callback
-// @security BasicAuth
-// @Tags OAuth2
-// @Accept json
-// @Produce json
-// @Router /oauth2/{provider}/callback [get]
-// @Param provider path string true "oauth2 provider"
-// @Param code query string true "code"
-// @Param endpoint query string false "endpoint"
-// @Success 200	{object} types.Oauth2ClientIDResponse
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	OAuth2 callback
+//	@security	BasicAuth
+//	@Tags		OAuth2
+//	@Accept		json
+//	@Produce	json
+//	@Router		/oauth2/{provider}/callback [get]
+//	@Param		provider	path		string	true	"oauth2 provider"
+//	@Param		code		query		string	true	"code"
+//	@Param		endpoint	query		string	false	"endpoint"
+//	@Success	200			{object}	types.Oauth2ClientIDResponse
+//	@Failure	500			{object}	xerrors.ErrCode
 func (h *handlers) Callback(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -227,7 +227,8 @@ func (h *handlers) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
+				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
@@ -252,7 +253,8 @@ func (h *handlers) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = daemon.Enqueue(consts.TopicCodeRepository, []byte(fmt.Sprintf(`{"user_3rdparty_id": %d}`, user3rdPartyObj.ID)))
+				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")

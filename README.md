@@ -7,7 +7,7 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
-Yet another harbor OCI artifact manager. Harbor is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager and well tested. And it never depends on [distribution](https://github.com/distribution/distribution) like harbor.
+Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, it never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/), no [distribution](https://github.com/distribution/distribution).
 
 ## Introduction
 

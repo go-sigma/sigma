@@ -302,7 +302,7 @@ export default function ({ localServer }: { localServer: string }) {
                   {
                     repositories?.map((repository, index) => {
                       return (
-                        <TableItem key={repository.id} repository={repository} />
+                        <TableItem key={repository.id} provider={provider || ""} repository={repository} />
                       );
                     })
                   }
@@ -323,7 +323,7 @@ export default function ({ localServer }: { localServer: string }) {
 }
 
 // TODO: if user have no namespace setup button just display a notification
-function TableItem({ repository }: { repository: ICodeRepositoryItem }) {
+function TableItem({ provider, repository }: { provider: string, repository: ICodeRepositoryItem }) {
   const navigate = useNavigate();
   return (
     <tr className="align-middle">
@@ -346,7 +346,7 @@ function TableItem({ repository }: { repository: ICodeRepositoryItem }) {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700"
         onClick={() => {
-          navigate("/builders/setup")
+          navigate(`/builders/setup?builder_source=CodeRepository&provider=${provider}&code_repository_stick=true&code_repository_owner=${repository.owner}&code_repository_owner_id=${repository.owner_id}&code_repository_name=${repository.name}&code_repository_id=${repository.id}&back_to=/coderepos/${provider}`)
         }}
       >
         Setup

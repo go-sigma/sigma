@@ -24,6 +24,7 @@ import (
 	"reflect"
 
 	gonanoid "github.com/matoous/go-nanoid"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -172,13 +173,51 @@ func (f *fs) Upload(ctx context.Context, path string, body io.Reader) error {
 	if body == nil {
 		return fmt.Errorf("body is nil")
 	}
+
+	temp, err := os.CreateTemp("", consts.AppName)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := os.Remove(temp.Name())
+		if err != nil {
+			log.Error().Err(err).Msg("Remove temp file failed")
+		}
+	}()
+	_, err = io.Copy(temp, body)
+	if err != nil {
+		return err
+	}
+
+	err = temp.Close()
+	if err != nil {
+		return err
+	}
+
+	temp, err = os.Open(temp.Name())
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = temp.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Close temp file failed")
+		}
+	}()
+
 	path = storage.SanitizePath(f.rootDirectory, path)
+	if utils.IsExist(path) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+	}
 	fp, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer fp.Close() // nolint: errcheck
-	_, err = io.Copy(fp, body)
+	_, err = io.Copy(fp, temp)
 	if err != nil {
 		return err
 	}

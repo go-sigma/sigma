@@ -30,16 +30,17 @@ import (
 )
 
 // Logout handles the logout request
-// @Summary Logout user
-// @security BasicAuth
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param message body types.PostUserLogoutRequest true "Logout user object"
-// @Router /users/logout [post]
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
-// @Success 204
+//
+//	@Summary	Logout user
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Param		message	body	types.PostUserLogoutRequest	true	"Logout user object"
+//	@Router		/users/logout [post]
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
+//	@Success	204
 func (h *handlers) Logout(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

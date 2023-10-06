@@ -127,9 +127,22 @@ type ConfigurationCache struct {
 	Database ConfigurationCacheDatabase `yaml:"database"`
 }
 
+type ConfigurationWorkQueueRedis struct {
+	Concurrency int `yaml:"concurrency"`
+}
+
+type ConfigurationWorkQueueDatabase struct {
+}
+
+type ConfigurationWorkQueueKafka struct {
+}
+
 // ConfigurationWorkQueue ...
 type ConfigurationWorkQueue struct {
-	Type enums.WorkQueueType `yaml:"type"`
+	Type     enums.WorkQueueType            `yaml:"type"`
+	Redis    ConfigurationWorkQueueRedis    `yaml:"redis"`
+	Database ConfigurationWorkQueueDatabase `yaml:"database"`
+	Kafka    ConfigurationWorkQueueKafka    `yaml:"kafka"`
 }
 
 // ConfigurationLocker ...
@@ -241,9 +254,9 @@ type ConfigurationAuthToken struct {
 
 // ConfigurationAuthJwt ...
 type ConfigurationAuthJwt struct {
-	Ttl        string `yaml:"ttl"`
-	RefreshTtl string `yaml:"refreshTtl"`
-	PrivateKey string `yaml:"privateKey"`
+	Ttl        time.Duration `yaml:"ttl"`
+	RefreshTtl time.Duration `yaml:"refreshTtl"`
+	PrivateKey string        `yaml:"privateKey"`
 }
 
 // ConfigurationAuthOauth2Github ...

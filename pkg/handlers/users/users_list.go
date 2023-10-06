@@ -28,18 +28,19 @@ import (
 )
 
 // List handles the list user request
-// @Summary List users with pagination
-// @Tags User
-// @Accept json
-// @Produce json
-// @Router /users/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Param name query string false "Username"
-// @Success 200 {object} types.CommonList{items=[]types.GetUserItem}
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	List users with pagination
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/ [get]
+//	@Param		limit	query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page	query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort	query		string	false	"sort field"
+//	@Param		method	query		string	false	"sort method"	Enums(asc, desc)
+//	@Param		name	query		string	false	"Username"
+//	@Success	200		{object}	types.CommonList{items=[]types.GetUserItem}
+//	@Failure	500		{object}	xerrors.ErrCode
 func (h *handlers) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

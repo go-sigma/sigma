@@ -29,16 +29,17 @@ import (
 )
 
 // GetNamespace handles the get namespace request
-// @Summary Get namespace
-// @security BasicAuth
-// @Tags Namespace
-// @Accept json
-// @Produce json
-// @Router /namespaces/{id} [get]
-// @Param id path string true "Namespace ID"
-// @Success 200 {object} types.NamespaceItem
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Get namespace
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{id} [get]
+//	@Param		id	path		string	true	"Namespace ID"
+//	@Success	200	{object}	types.NamespaceItem
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

@@ -15,26 +15,29 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
-	"math/big"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/caarlos0/env/v9"
-	"github.com/dustin/go-humanize"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/compress"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 const (
@@ -68,10 +71,17 @@ func main() {
 	var builder Builder
 	checkErr(env.Parse(&builder))
 	checkErr(builder.checker())
+	builder.api = NewAPI(builder.Authorization, builder.Endpoint)
 	checkErr(builder.initCache())
 	checkErr(builder.initToken())
-	checkErr(builder.gitClone())
-	checkErr(builder.build())
+	if builder.Builder.Source == enums.BuilderSourceDockerfile {
+		checkErr(builder.writeDockerfile())
+	} else {
+		checkErr(builder.gitClone())
+	}
+	imageName, err := builder.genTag()
+	checkErr(err)
+	checkErr(builder.build(imageName))
 	checkErr(builder.exportCache())
 }
 
@@ -97,33 +107,26 @@ func initialize() error {
 // Builder config for builder
 type Builder struct {
 	types.Builder
+
+	api api
 }
 
-func (b Builder) initCache() error {
-	if utils.IsFile(path.Join(cache, compressedCache)) {
-		log.Info().Msg("Start to decompress cache")
-		err := archiver.Unarchive(path.Join(cache, compressedCache), home)
-		if err != nil {
-			return fmt.Errorf("Decompress cache failed: %v", err)
-		}
-		fileInfo, err := os.Stat(path.Join(cache, compressedCache))
-		if err != nil {
-			return fmt.Errorf("Read compressed file failed: %v", err)
-		}
-		err = os.Rename(cacheOut, cacheIn)
-		if err != nil {
-			return fmt.Errorf("Rename cache_out to cache_in failed: %v", err)
-		}
-		log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Decompress cache success")
+func (b Builder) writeDockerfile() error {
+	base64Bytes, err := base64.StdEncoding.DecodeString(ptr.To(b.Dockerfile))
+	if err != nil {
+		return err
 	}
-	var dirs = []string{cacheOut, cacheIn}
-	for _, dir := range dirs {
-		if !utils.IsDir(dir) {
-			err := os.MkdirAll(dir, 0755)
-			if err != nil {
-				return err
-			}
-		}
+	dockerfileStr, err := compress.Decompress(base64Bytes)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(path.Join(workspace, "Dockerfile"))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(dockerfileStr)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -137,32 +140,32 @@ func (b Builder) gitClone() error {
 	if err != nil {
 		return fmt.Errorf("git not found: %v", err)
 	}
-	cmd := exec.Command(git, "clone", "--branch", b.ScmBranch)
-	if b.ScmDepth != 0 {
-		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(b.ScmDepth))
+	cmd := exec.Command(git, "clone", "--branch", ptr.To(b.ScmBranch))
+	if ptr.To(b.ScmDepth) != 0 {
+		cmd.Args = append(cmd.Args, "--depth", strconv.Itoa(ptr.To(b.ScmDepth)))
 	}
-	if b.ScmSubmodule {
+	if ptr.To(b.ScmSubmodule) {
 		cmd.Args = append(cmd.Args, "--recurse-submodules")
 	}
-	if b.ScmCredentialType == enums.ScmCredentialTypeSsh {
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeSsh {
 		cmd.Args = append(cmd.Args, "-i", path.Join(homeSigma, privateKey))
 		cmd.Env = append(os.Environ(), fmt.Sprintf("SSH_KNOWN_HOSTS=%s", path.Join(homeSigma, knownHosts)))
 	}
-	repository := b.ScmRepository
-	if b.ScmCredentialType == enums.ScmCredentialTypeToken {
+	repository := ptr.To(b.ScmRepository)
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeToken {
 		u, err := url.Parse(repository)
 		if err != nil {
 			return fmt.Errorf("SCM_REPOSITORY parse with url failed: %v", err)
 		}
-		repository = fmt.Sprintf("%s//%s@%s/%s", u.Scheme, b.ScmToken, u.Host, u.Path)
+		repository = fmt.Sprintf("%s//%s@%s/%s", u.Scheme, ptr.To(b.ScmToken), u.Host, u.Path)
 	}
-	if b.ScmCredentialType == enums.ScmCredentialTypeUsername {
+	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeUsername {
 		endpoint, err := transport.NewEndpoint(repository)
 		if err != nil {
 			return fmt.Errorf("transport.NewEndpoint failed: %v", err)
 		}
-		endpoint.User = b.ScmUsername
-		endpoint.Password = b.ScmPassword
+		endpoint.User = ptr.To(b.ScmUsername)
+		endpoint.Password = ptr.To(b.ScmPassword)
 		repository = endpoint.String()
 	}
 	cmd.Args = append(cmd.Args, repository, workspace)
@@ -179,7 +182,69 @@ func (b Builder) gitClone() error {
 	return nil
 }
 
-func (b Builder) build() error {
+func (b Builder) genTag() (string, error) {
+	var buildTagOption = BuildTagOption{}
+	if b.Source != enums.BuilderSourceDockerfile {
+		r, err := git.PlainOpen(workspace)
+		if err != nil {
+			return "", err
+		}
+		tagRefs, err := r.Tags()
+		if err != nil {
+			return "", err
+		}
+		var latestTag = struct {
+			ref  *plumbing.Reference
+			when time.Time
+		}{}
+		err = tagRefs.ForEach(func(tagRef *plumbing.Reference) error {
+			commitObj, err := r.CommitObject(tagRef.Hash())
+			if err != nil {
+				return err
+			}
+			if latestTag.ref == nil || commitObj.Committer.When.After(latestTag.when) {
+				latestTag.ref = tagRef
+				latestTag.when = commitObj.Committer.When
+			}
+			return nil
+		})
+		if err != nil {
+			return "", err
+		}
+
+		ref, err := r.Head()
+		if err != nil {
+			return "", err
+		}
+
+		branchName := ref.Name().Short()
+
+		buildTagOption = BuildTagOption{
+			ScmBranch: branchName,
+			ScmRef:    ref.Hash().String(),
+		}
+		if latestTag.ref != nil {
+			buildTagOption.ScmTag = strings.TrimPrefix(latestTag.ref.String(), "refs/tags/")
+		}
+	}
+
+	tagBytes, err := base64.StdEncoding.DecodeString(b.Tag)
+	if err != nil {
+		return "", err
+	}
+	tag, err := BuildTag(string(tagBytes), buildTagOption)
+	if err != nil {
+		return "", err
+	}
+	repositoryBytes, err := base64.StdEncoding.DecodeString(b.Repository)
+	if err != nil {
+		return "", err
+	}
+	domain := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(b.Endpoint, "https://"), "http://"), "/")
+	return fmt.Sprintf("%s/%s:%s", domain, string(repositoryBytes), tag), nil
+}
+
+func (b Builder) build(imageName string) error {
 	log.Info().Msg("Start to build image")
 	buildCtl, err := exec.LookPath("buildctl-daemonless.sh")
 	if err != nil {
@@ -196,10 +261,17 @@ func (b Builder) build() error {
 		}
 		cmd.Args = append(cmd.Args, "--opt", fmt.Sprintf("platform=%s", strings.Join(platforms, ",")))
 	}
-	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile")                         // TODO: set frontend
-	cmd.Args = append(cmd.Args, "--output", fmt.Sprintf("type=image,name=%s,push=true", b.OciName))                      // TODO: set output push true
-	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut)) // TODO: set cache volume
-	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))                             // TODO: set cache volume
+	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile") // TODO: set frontend
+	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut))
+	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))
+
+	if len(b.BuildkitPlatforms) > 1 {
+		cmd.Args = append(cmd.Args, "--output",
+			fmt.Sprintf("type=image,name=%s,annotation-index.org.opencontainers.sigma.builder_id=%d,annotation-index.org.opencontainers.sigma.runner_id=%d,push=true,oci-mediatypes=true", imageName, b.BuilderID, b.RunnerID))
+	} else {
+		cmd.Args = append(cmd.Args, "--output",
+			fmt.Sprintf("type=image,name=%s,annotation.org.opencontainers.sigma.builder_id=%d,annotation.org.opencontainers.sigma.runner_id=%d,push=true,oci-mediatypes=true", imageName, b.BuilderID, b.RunnerID))
+	}
 
 	buildkitdFlags := ""
 	if utils.IsFile(path.Join(homeSigma, buildkitdConfigFilename)) {
@@ -220,26 +292,10 @@ func (b Builder) build() error {
 	return nil
 }
 
-func (b Builder) exportCache() error {
-	log.Info().Msg("Start to compress cache")
-	tgz := archiver.NewTarGz()
-	err := tgz.Archive([]string{path.Join(cacheOut)}, path.Join("/tmp", compressedCache))
-	if err != nil {
-		return fmt.Errorf("Compress cache failed: %v", err)
-	}
-	err = os.Rename(path.Join("/tmp", compressedCache), path.Join(cache, compressedCache))
-	if err != nil {
-		return fmt.Errorf("Move compressed file to dir failed")
-	}
-	fileInfo, err := os.Stat(path.Join(cache, compressedCache))
-	if err != nil {
-		return fmt.Errorf("Read compressed file failed: %v", err)
-	}
-	log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
-	return nil
-}
-
 // docker run -it --rm --security-opt apparmor=unconfined -e SCM_CREDENTIAL_TYPE=none -e SCM_PROVIDER=github -e OCI_REGISTRY_DOMAIN=docker.com -e SCM_REPOSITORY=https://github.com/tosone/sudoku.git -e SCM_BRANCH=dev -e OCI_NAME=test:dev -e BUILDKIT_INSECURE_REGISTRIES="10.1.0.1:3000@http,docker.io@http,test.com" --entrypoint '' docker.io/library/builder:dev sh
 // docker run -it --rm --security-opt apparmor=unconfined -e SCM_CREDENTIAL_TYPE=none -e SCM_PROVIDER=github -e OCI_REGISTRY_DOMAIN=docker.com -e SCM_REPOSITORY=https://github.com/tosone/sudoku.git -e SCM_BRANCH=master -e OCI_NAME=test:dev -e BUILDKIT_INSECURE_REGISTRIES="10.1.0.1:3000@http,docker.io@http,test.com" --entrypoint '' docker.io/library/builder:dev sh
 
 // BUILDKITD_FLAGS="--config=/opt/sigma/buildkitd.toml" /usr/bin/buildctl-daemonless.sh build --local context=/code --local dockerfile=/code --progress plain --frontend gateway.v0 --opt source=docker/dockerfile:1.6 --output type=image,name=test:dev,push=false --export-cache type=local,mode=max,compression=gzip,dest=/opt/cache_out --import-cache type=local,src=/opt/cache_in
+
+// Add anno to manifest
+// https://github.com/moby/buildkit/blob/master/docs/annotations.md

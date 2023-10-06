@@ -65,6 +65,19 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 		}{
 			RelationField: field.NewRelation("Repository.Namespace", "models.Namespace"),
 		},
+		Builder: struct {
+			field.RelationField
+			Repository struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Repository.Builder", "models.Builder"),
+			Repository: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Repository.Builder.Repository", "models.Repository"),
+			},
+		},
 	}
 
 	_builder.fillFieldMap()
@@ -225,6 +238,12 @@ type builderBelongsToRepository struct {
 
 	Namespace struct {
 		field.RelationField
+	}
+	Builder struct {
+		field.RelationField
+		Repository struct {
+			field.RelationField
+		}
 	}
 }
 

@@ -30,16 +30,17 @@ import (
 )
 
 // GetWebhook handles the get webhook request
-// @Summary Get a webhook
-// @security BasicAuth
-// @Tags Webhook
-// @Accept json
-// @Produce json
-// @Router /webhooks/{id} [get]
-// @Param id path string true "Webhook id"
-// @Success 200	{object} types.CommonList{items=[]types.GetWebhookResponse}
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
+//
+//	@Summary	Get a webhook
+//	@security	BasicAuth
+//	@Tags		Webhook
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks/{id} [get]
+//	@Param		id	path		string	true	"Webhook id"
+//	@Success	200	{object}	types.CommonList{items=[]types.GetWebhookResponse}
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
 func (h *handlers) GetWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

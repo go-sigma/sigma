@@ -193,14 +193,14 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 	artifactObj.Blobs = blobObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		artifactService := h.artifactServiceFactory.New()
+		artifactService := h.artifactServiceFactory.New(tx)
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
 			return ptr.Of(xerrors.DSErrCodeUnknown)
 		}
 		if refs.Tag != "" {
-			tagService := h.tagServiceFactory.New()
+			tagService := h.tagServiceFactory.New(tx)
 			err = tagService.Create(ctx, &models.Tag{
 				RepositoryID: repositoryObj.ID,
 				ArtifactID:   artifactObj.ID,
@@ -215,6 +215,17 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 	})
 	if err != nil {
 		return err.(*xerrors.ErrCode)
+	}
+
+	if workq.ProducerClient != nil { // TODO: init in test
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+			RepositoryID: repositoryObj.ID,
+			Tag:          refs.Tag,
+		})
+		if err != nil {
+			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
+			return ptr.Of(xerrors.DSErrCodeUnknown)
+		}
 	}
 
 	if needScan(manifest, descriptor) {
@@ -272,6 +283,15 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 	})
 	if err != nil {
 		return err.(*xerrors.ErrCode)
+	}
+
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+		RepositoryID: repositoryObj.ID,
+		Tag:          refs.Tag,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
+		return ptr.Of(xerrors.DSErrCodeUnknown)
 	}
 
 	return nil

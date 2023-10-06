@@ -34,16 +34,17 @@ import (
 )
 
 // DeleteWebhook handles the delete webhook request
-// @Summary Delete a webhook
-// @security BasicAuth
-// @Tags Webhook
-// @Accept json
-// @Produce json
-// @Router /webhooks/{id} [delete]
-// @Param id path string true "Webhook id"
-// @Success 204
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
+//
+//	@Summary	Delete a webhook
+//	@security	BasicAuth
+//	@Tags		Webhook
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks/{id} [delete]
+//	@Param		id	path	string	true	"Webhook id"
+//	@Success	204
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
 func (h *handlers) DeleteWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

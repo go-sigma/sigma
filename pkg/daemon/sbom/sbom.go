@@ -32,13 +32,14 @@ import (
 	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
 )
 
 func init() {
-	workq.TopicConsumers[enums.DaemonSbom.String()] = workq.Consumer{
+	workq.TopicHandlers[enums.DaemonSbom.String()] = definition.Consumer{
 		Handler:     daemon.DecoratorArtifact(runner),
 		MaxRetry:    6,
 		Concurrency: 10,

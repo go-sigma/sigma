@@ -15,7 +15,6 @@
 package namespaces
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -28,19 +27,18 @@ import (
 )
 
 // HotNamespace handles the hot namespace request
-// @Summary Hot namespace
-// @security BasicAuth
-// @Tags Namespace
-// @Accept json
-// @Produce json
-// @Router /namespaces/hot [get]
-// @Success 200	{object} types.CommonList{items=[]types.NamespaceItem}
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
+//
+//	@Summary	Hot namespace
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/hot [get]
+//	@Success	200	{object}	types.CommonList{items=[]types.NamespaceItem}
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
 func (h *handlers) HotNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
-
-	fmt.Println("help help help")
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {

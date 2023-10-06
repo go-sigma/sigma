@@ -27,20 +27,21 @@ import (
 )
 
 // ListWebhook handles the list webhook request
-// @Summary List webhooks
-// @security BasicAuth
-// @Tags Webhook
-// @Accept json
-// @Produce json
-// @Router /webhooks/ [get]
-// @Param limit query int64 false "limit" minimum(10) maximum(100) default(10)
-// @Param page query int64 false "page" minimum(1) default(1)
-// @Param sort query string false "sort field"
-// @Param method query string false "sort method" Enums(asc, desc)
-// @Param namespace_id query int64 false "filter by namespace id"
-// @Success 200	{object} types.CommonList{items=[]types.WebhookItem}
-// @Failure 500 {object} xerrors.ErrCode
-// @Failure 401 {object} xerrors.ErrCode
+//
+//	@Summary	List webhooks
+//	@security	BasicAuth
+//	@Tags		Webhook
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks/ [get]
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Param		namespace_id	query		int64	false	"filter by namespace id"
+//	@Success	200				{object}	types.CommonList{items=[]types.WebhookItem}
+//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	401				{object}	xerrors.ErrCode
 func (h *handlers) ListWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

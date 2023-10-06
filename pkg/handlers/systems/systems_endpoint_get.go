@@ -23,12 +23,13 @@ import (
 )
 
 // GetEndpoint handles the get endpoint request
-// @Summary Get endpoint
-// @Tags System
-// @Accept json
-// @Produce json
-// @Router /systems/endpoint [get]
-// @Success 200 {object} types.GetEndpointResponse
+//
+//	@Summary	Get endpoint
+//	@Tags		System
+//	@Accept		json
+//	@Produce	json
+//	@Router		/systems/endpoint [get]
+//	@Success	200	{object}	types.GetEndpointResponse
 func (h *handlers) GetEndpoint(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetEndpointResponse{
 		Endpoint: h.config.HTTP.Endpoint,

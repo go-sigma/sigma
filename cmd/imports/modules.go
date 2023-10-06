@@ -13,10 +13,3 @@
 // limitations under the License.
 
 package imports
-
-import (
-	_ "github.com/go-sigma/sigma/pkg/modules/locker/database"
-	_ "github.com/go-sigma/sigma/pkg/modules/locker/redis"
-	_ "github.com/go-sigma/sigma/pkg/modules/workq/database"
-	_ "github.com/go-sigma/sigma/pkg/modules/workq/kafka"
-)

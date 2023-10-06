@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.20.6-alpine3.18
+ARG GOLANG_VERSION=1.21.2-alpine3.18
 
 FROM golang:${GOLANG_VERSION} as builder
 
@@ -7,16 +7,16 @@ COPY . /go/src/github.com/go-sigma/sigma
 WORKDIR /go/src/github.com/go-sigma/sigma
 
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache make bash ncurses build-base git git-lfs
 
-RUN make build-builder-release
+RUN make build-builder
 
-FROM moby/buildkit:v0.12.1-rootless
+FROM moby/buildkit:v0.12.2-rootless
 
 USER root
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache git-lfs && \
   mkdir -p /code/ && \
   chown -R 1000:1000 /opt/ && \

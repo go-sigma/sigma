@@ -31,19 +31,21 @@ import (
 )
 
 // PutBuilder handles the put builder request
-// @Summary Update a builder by id
-// @Tags Builder
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /repositories/{repository_id}/builders/{id} [put]
-// @Param repository_id path string true "Repository ID"
-// @Param id path string true "Builder ID"
-// @Param message body types.PutBuilderRequestSwagger true "Builder object"
-// @Success 201
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Update a builder by id
+//	@Tags		Builder
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
+//	@Param		namespace_id	path	string					true	"Namespace ID"
+//	@Param		repository_id	path	string					true	"Repository ID"
+//	@Param		builder_id		path	string					true	"Builder ID"
+//	@Param		message			body	types.PutBuilderRequest	true	"Builder object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PutBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -53,10 +55,17 @@ func (h *handlers) PutBuilder(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
+
+	compressedDockerfile, err := h.CompressDockerfile(req.Dockerfile)
+	if err != nil {
+		log.Error().Err(err).Msg("Dockerfile base64 decode failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Dockerfile base64 decode failed: %v", err))
+	}
+
 	updates := map[string]any{
 		query.Builder.Source.ColumnName().String():                     req.Source,
 		query.Builder.CodeRepositoryID.ColumnName().String():           req.CodeRepositoryID,
-		query.Builder.Dockerfile.ColumnName().String():                 req.Dockerfile,
+		query.Builder.Dockerfile.ColumnName().String():                 compressedDockerfile,
 		query.Builder.ScmRepository.ColumnName().String():              req.ScmRepository,
 		query.Builder.ScmCredentialType.ColumnName().String():          req.ScmCredentialType,
 		query.Builder.ScmSshKey.ColumnName().String():                  req.ScmSshKey,
@@ -79,14 +88,14 @@ func (h *handlers) PutBuilder(c echo.Context) error {
 	}
 	builderService := h.builderServiceFactory.New()
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		err = builderService.Update(ctx, req.ID, updates)
+		err = builderService.Update(ctx, req.BuilderID, updates)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Int64("id", req.ID).Msg("Builder id not found")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) not found", req.ID))
+				log.Error().Err(err).Int64("builder_id", req.BuilderID).Msg("Builder id not found")
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) not found", req.BuilderID))
 			}
-			log.Error().Err(err).Int64("id", req.ID).Msg("Builder find failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) find failed: %v", req.ID, err))
+			log.Error().Err(err).Int64("builder_id", req.BuilderID).Msg("Builder find failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) find failed: %v", req.BuilderID, err))
 		}
 		return nil
 	})

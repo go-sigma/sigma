@@ -18,16 +18,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/cronjob"
 	"github.com/go-sigma/sigma/pkg/daemon"
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/modules/timewheel"
 	"github.com/go-sigma/sigma/pkg/service/builder"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -39,8 +38,8 @@ import (
 var builderTw timewheel.TimeWheel
 
 func init() {
-	starter = append(starter, builderJob)
-	stopper = append(stopper, func() {
+	cronjob.Starter = append(cronjob.Starter, builderJob)
+	cronjob.Stopper = append(cronjob.Stopper, func() {
 		if builderTw != nil {
 			builderTw.Stop()
 		}
@@ -48,7 +47,7 @@ func init() {
 }
 
 func builderJob() {
-	builderTw = timewheel.NewTimeWheel(context.Background(), cronjobIterDuration)
+	builderTw = timewheel.NewTimeWheel(context.Background(), cronjob.CronjobIterDuration)
 
 	runner := builderRunner{
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
@@ -61,21 +60,26 @@ type builderRunner struct {
 }
 
 func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
-	rs := redsync.New(goredis.NewPool(dal.RedisCli))
-	mutex := rs.NewMutex(consts.LockerCronjobBuilder, redsync.WithRetryDelay(time.Second*3), redsync.WithTries(10), redsync.WithExpiry(time.Second*30))
-	err := mutex.Lock()
+	locker, err := locker.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Require redis lock failed")
+		log.Error().Err(err).Msg("New locker failed")
+		return
+	}
+	lock, err := locker.Lock(context.Background(), consts.LockerMigration, time.Second*30)
+	if err != nil {
+		log.Error().Err(err).Msg("Cronjob builder get locker failed")
 		return
 	}
 	defer func() {
-		if ok, err := mutex.Unlock(); !ok || err != nil {
-			log.Error().Err(err).Msg("Release redis lock failed")
+		err := lock.Unlock()
+		if err != nil {
+			log.Error().Err(err).Msg("Migrate locker release failed")
 		}
 	}()
+
 	ctx = log.Logger.WithContext(ctx)
 	builderService := r.builderServiceFactory.New()
-	builderObjs, err := builderService.GetByNextTrigger(ctx, time.Now(), maxJob)
+	builderObjs, err := builderService.GetByNextTrigger(ctx, time.Now(), cronjob.MaxJob)
 	if err != nil {
 		log.Error().Err(err).Msg("Get builders by next trigger failed")
 		return
@@ -101,7 +105,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			}
 			runner, err := builder.BuildRunner(builderObj, builder.BuildRunnerOption{
 				Tag:       tag,
-				ScmBranch: ptr.To(builderObj.CronBranch),
+				ScmBranch: builderObj.CronBranch,
 			})
 			if err != nil {
 				return err
@@ -125,7 +129,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			log.Error().Interface("builder", builderObj).Err(err).Msg("Cronjob create builder runner failed")
 		}
 	}
-	if len(builderObjs) >= maxJob {
-		tw.TickNext(tickNextDuration)
+	if len(builderObjs) >= cronjob.MaxJob {
+		tw.TickNext(cronjob.TickNextDuration)
 	}
 }

@@ -18,23 +18,7 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // PostWebhookRequest ...
 type PostWebhookRequest struct {
-	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1"`
-	Url             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
-	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
-	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`
-	RetryDuration   int     `json:"retry_duration" validate:"required" example:"5"`
-	Enable          bool    `json:"enable" validate:"required,boolean" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventRepository bool    `json:"event_repository" validate:"boolean" example:"true"`
-	EventTag        bool    `json:"event_tag" validate:"boolean" example:"true"`
-	EventArtifact   bool    `json:"event_artifact" validate:"boolean" example:"true"`
-	EventMember     bool    `json:"event_member" validate:"boolean" example:"true"`
-}
-
-// PostWebhookRequestSwagger ...
-type PostWebhookRequestSwagger struct {
-	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1"`
+	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1" swaggerignore:"true"`
 	Url             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
 	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
@@ -49,23 +33,8 @@ type PostWebhookRequestSwagger struct {
 }
 
 type PutWebhookRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number"`
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
 
-	Url             *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
-	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       *bool   `json:"ssl_verify,omitempty" validate:"omitempty,boolean" example:"true"`
-	RetryTimes      *int    `json:"retry_times,omitempty" validate:"omitempty,number" example:"3"`
-	RetryDuration   *int    `json:"retry_duration,omitempty" validate:"omitempty,number" example:"5"`
-	Enable          *bool   `json:"enable,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventRepository *bool   `json:"event_repository,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventTag        *bool   `json:"event_tag,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventArtifact   *bool   `json:"event_artifact,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventMember     *bool   `json:"event_member,omitempty" validate:"omitempty,boolean" example:"true"`
-}
-
-// PutWebhookRequestSwagger ...
-type PutWebhookRequestSwagger struct {
 	Url             *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
 	SslVerify       *bool   `json:"ssl_verify,omitempty" validate:"omitempty,boolean" example:"true"`

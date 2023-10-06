@@ -28,15 +28,16 @@ import (
 )
 
 // GetReference handles the validate reference request
-// @Summary validate reference
-// @Tags Validator
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /validators/reference [get]
-// @Param reference query string true "Reference"
-// @Success 204
-// @Failure 400 {object} xerrors.ErrCode
+//
+//	@Summary	Validate reference
+//	@Tags		Validator
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/validators/reference [get]
+//	@Param		reference	query	string	true	"Reference"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
 func (h *handlers) GetReference(c echo.Context) error {
 	var req types.GetValidatorReferenceRequest
 	err := utils.BindValidate(c, &req)

@@ -47,6 +47,8 @@ type TaskCommonStatus string
 // Pending,
 // Scheduling,
 // Building,
+// Stopping,
+// Stopped,
 // )
 type BuildStatus string
 
@@ -91,6 +93,7 @@ type LockerType string
 // Webhook,
 // Builder,
 // CodeRepository,
+// TagPushed,
 // )
 type Daemon string
 

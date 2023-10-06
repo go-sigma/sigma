@@ -30,19 +30,20 @@ import (
 )
 
 // PutRepository handles the put repository request
-// @Summary Update repository
-// @Tags Repository
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Router /namespaces/{namespace}/repositories/{id} [put]
-// @Param namespace path string true "Namespace name"
-// @Param id path string true "Repository id"
-// @Param message body types.PutRepositoryRequestSwagger true "Repository object"
-// @Success 204
-// @Failure 400 {object} xerrors.ErrCode
-// @Failure 404 {object} xerrors.ErrCode
-// @Failure 500 {object} xerrors.ErrCode
+//
+//	@Summary	Update repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace}/repositories/{id} [put]
+//	@Param		namespace	path	string						true	"Namespace name"
+//	@Param		id			path	string						true	"Repository id"
+//	@Param		message		body	types.PutRepositoryRequest	true	"Repository object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) PutRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

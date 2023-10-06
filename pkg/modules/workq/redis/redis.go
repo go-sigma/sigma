@@ -12,6 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// package logger support for builder log write to object storage or database,
-// and support for read builder history log.
-package logger
+package redis
+
+// mux := asynq.NewServeMux()
+// for taskType, handler := range tasks {
+// 	topic, ok := topics[taskType]
+// 	if !ok {
+// 		return fmt.Errorf("topic for daemon task %q not found", taskType)
+// 	}
+// 	mux.HandleFunc(topic, handler)
+// }
+
+// go func() {
+// 	err := asyncSrv.Run(mux)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("srv.Run error")
+// 	}
+// }()

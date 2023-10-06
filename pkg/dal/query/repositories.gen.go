@@ -40,6 +40,33 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.TagCount = field.NewInt64(tableName, "tag_count")
 	_repository.SizeLimit = field.NewInt64(tableName, "size_limit")
 	_repository.Size = field.NewInt64(tableName, "size")
+	_repository.Builder = repositoryHasOneBuilder{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Builder", "models.Builder"),
+		Repository: struct {
+			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
+			Builder struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Builder.Repository", "models.Repository"),
+			Namespace: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Builder.Repository.Namespace", "models.Namespace"),
+			},
+			Builder: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Builder.Repository.Builder", "models.Builder"),
+			},
+		},
+	}
+
 	_repository.Namespace = repositoryBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -68,7 +95,9 @@ type repository struct {
 	TagCount    field.Int64
 	SizeLimit   field.Int64
 	Size        field.Int64
-	Namespace   repositoryBelongsToNamespace
+	Builder     repositoryHasOneBuilder
+
+	Namespace repositoryBelongsToNamespace
 
 	fieldMap map[string]field.Expr
 }
@@ -124,7 +153,7 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *repository) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 14)
+	r.fieldMap = make(map[string]field.Expr, 15)
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
@@ -149,6 +178,87 @@ func (r repository) clone(db *gorm.DB) repository {
 func (r repository) replaceDB(db *gorm.DB) repository {
 	r.repositoryDo.ReplaceDB(db)
 	return r
+}
+
+type repositoryHasOneBuilder struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Repository struct {
+		field.RelationField
+		Namespace struct {
+			field.RelationField
+		}
+		Builder struct {
+			field.RelationField
+		}
+	}
+}
+
+func (a repositoryHasOneBuilder) Where(conds ...field.Expr) *repositoryHasOneBuilder {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a repositoryHasOneBuilder) WithContext(ctx context.Context) *repositoryHasOneBuilder {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a repositoryHasOneBuilder) Session(session *gorm.Session) *repositoryHasOneBuilder {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a repositoryHasOneBuilder) Model(m *models.Repository) *repositoryHasOneBuilderTx {
+	return &repositoryHasOneBuilderTx{a.db.Model(m).Association(a.Name())}
+}
+
+type repositoryHasOneBuilderTx struct{ tx *gorm.Association }
+
+func (a repositoryHasOneBuilderTx) Find() (result *models.Builder, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a repositoryHasOneBuilderTx) Append(values ...*models.Builder) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a repositoryHasOneBuilderTx) Replace(values ...*models.Builder) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a repositoryHasOneBuilderTx) Delete(values ...*models.Builder) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a repositoryHasOneBuilderTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a repositoryHasOneBuilderTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type repositoryBelongsToNamespace struct {

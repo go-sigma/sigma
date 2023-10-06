@@ -19,5 +19,6 @@ import (
 	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
 	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
 	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
+	_ "github.com/go-sigma/sigma/pkg/daemon/tagpushed"
 	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
 )

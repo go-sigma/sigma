@@ -29,7 +29,6 @@ import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 
-import "./index.css";
 import TableItem from "./TableItem";
 
 import { ITagList, IHTTPError, IEndpoint } from "../../interfaces";
@@ -152,10 +151,16 @@ export default function Tag({ localServer }: { localServer: string }) {
                 (
                   <div className="sm:flex sm:space-x-8">
                     <Link
-                      to={`/namespaces/${namespace}/repository/summary/?repository=${repository}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/summary?repository=${repository}&repository_id=${repository_id}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Summary
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repository_id}`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Runners
                     </Link>
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"

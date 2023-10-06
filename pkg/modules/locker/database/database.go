@@ -39,6 +39,7 @@ func New(config configs.Configuration) (definition.Locker, error) {
 
 type lock struct {
 	name                 string
+	release              bool
 	lockerServiceFactory dao.LockerServiceFactory
 }
 
@@ -48,24 +49,29 @@ func (l lockerDatabase) Lock(ctx context.Context, name string, expire time.Durat
 	if err != nil {
 		return nil, err
 	}
+	locker := &lock{
+		name:                 name,
+		lockerServiceFactory: l.lockerServiceFactory,
+	}
 	time.AfterFunc(expire, func() {
-		err = l.lockerServiceFactory.New().Delete(context.Background(), name)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		err = locker.Unlock()
+		if err != nil {
 			log.Error().Err(err).Msgf("Delete locker(%s) failed", name)
 		}
 	})
-	return &lock{
-		name:                 name,
-		lockerServiceFactory: l.lockerServiceFactory,
-	}, nil
+	return locker, nil
 }
 
 // Unlock ...
-func (l lock) Unlock() error {
-	err := l.lockerServiceFactory.New().Delete(context.Background(), l.name)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Msgf("Delete locker(%s) failed", l.name)
-		return err
+func (l *lock) Unlock() error {
+	if !l.release {
+		err := l.lockerServiceFactory.New().Delete(context.Background(), l.name)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Msgf("Delete locker(%s) failed", l.name)
+			return err
+		}
+		l.release = true
+		return nil
 	}
 	return nil
 }

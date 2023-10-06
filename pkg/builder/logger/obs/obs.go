@@ -22,6 +22,7 @@ import (
 	"io"
 	"path"
 	"reflect"
+	"strconv"
 
 	builderlogger "github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -86,6 +87,6 @@ func (w *writer) Close() error {
 }
 
 // Read returns a reader for the given id
-func (o *obs) Read(ctx context.Context, id string) (io.Reader, error) {
-	return o.storage.Reader(ctx, fmt.Sprintf("%s.log.gz", path.Join(consts.BuilderLogs, utils.DirWithSlash(id))), 0)
+func (o *obs) Read(ctx context.Context, id int64) (io.Reader, error) {
+	return o.storage.Reader(ctx, fmt.Sprintf("%s.log.gz", path.Join(consts.BuilderLogs, utils.DirWithSlash(strconv.FormatInt(id, 10)))), 0)
 }

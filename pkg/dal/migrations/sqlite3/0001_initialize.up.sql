@@ -378,24 +378,28 @@ CREATE TABLE IF NOT EXISTS `builders` (
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
+  `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `builder_id` bigint NOT NULL,
+  `builder_id` integer NOT NULL,
   `log` BLOB,
-  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building', 'Stopping', 'Stopped')) NOT NULL DEFAULT 'Pending',
   -- common settings
-  `tag` varchar(30) NOT NULL, -- image tag
-  `scm_branch` varchar(30) NOT NULL DEFAULT 'main',
-  `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
+  `tag` varchar(128), -- image tag
+  `raw_tag` varchar(255) NOT NULL, -- image tag
+  `description` varchar(255),
+  `scm_branch` varchar(255),
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` integer,
   -- other fields
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
+  `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );
 

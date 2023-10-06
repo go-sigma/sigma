@@ -98,7 +98,6 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 	}
 	findTagObj, err := s.tx.Tag.WithContext(ctx).Where(
 		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
-		s.tx.Tag.ArtifactID.Eq(tag.ArtifactID),
 		s.tx.Tag.Name.Eq(tag.Name)).First()
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -126,6 +125,15 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 		}
 		return nil
 	}
+	_, err = s.tx.Tag.WithContext(ctx).Where(
+		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
+		s.tx.Tag.Name.Eq(tag.Name)).Updates(map[string]any{
+		query.Tag.ArtifactID.ColumnName().String(): tag.ArtifactID,
+	})
+	if err != nil {
+		return err
+	}
+	findTagObj.ArtifactID = tag.ArtifactID
 	return copier.Copy(findTagObj, tag)
 }
 

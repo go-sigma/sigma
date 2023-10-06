@@ -22,7 +22,6 @@ import (
 	"io"
 	"path"
 	"reflect"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 
@@ -42,12 +41,12 @@ var _ builderlogger.Factory = factory{}
 // New returns a new filesystem storage driver
 func (f factory) New() (builderlogger.BuilderLogger, error) {
 	return &database{
-		db: dao.NewBuilderServiceFactory(),
+		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}, nil
 }
 
 type database struct {
-	db dao.BuilderServiceFactory
+	builderServiceFactory dao.BuilderServiceFactory
 }
 
 func (d *database) Write(builderID, runnerID int64) io.WriteCloser {
@@ -58,7 +57,7 @@ func (d *database) Write(builderID, runnerID int64) io.WriteCloser {
 		runnerID:  runnerID,
 		gw:        gw,
 		data:      buffer,
-		db:        d.db,
+		db:        d.builderServiceFactory,
 	}
 }
 
@@ -86,18 +85,15 @@ func (w *writer) Close() error {
 	log.Info().Int("len", len(data)).Msg("Create builder log success")
 	updates := map[string]any{
 		query.BuilderRunner.Log.ColumnName().String(): data,
+		query.BuilderRunner.ID.ColumnName().String():  w.runnerID,
 	}
 	return builderService.UpdateRunner(context.Background(), w.builderID, w.runnerID, updates)
 }
 
 // Read returns a reader for the given id
-func (d *database) Read(ctx context.Context, id string) (io.Reader, error) {
-	builderId, err := strconv.ParseInt(id, 10, 0)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse builder id: %v", err)
-	}
-	builderService := d.db.New()
-	builderLog, err := builderService.GetRunner(ctx, builderId)
+func (d *database) Read(ctx context.Context, id int64) (io.Reader, error) {
+	builderService := d.builderServiceFactory.New()
+	builderLog, err := builderService.GetRunner(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get builder log: %v", err)
 	}

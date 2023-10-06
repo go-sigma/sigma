@@ -15,12 +15,14 @@
 package workq
 
 import (
-	"context"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/modules/workq/database"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq/kafka"
+	"github.com/go-sigma/sigma/pkg/modules/workq/redis"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Message ...
@@ -29,63 +31,39 @@ type Message struct {
 	Payload []byte
 }
 
-type Consumer struct {
-	Handler     func(ctx context.Context, payload []byte) error
-	Concurrency int
-	MaxRetry    int
-	Timeout     time.Duration
-}
+var TopicHandlers = make(map[string]definition.Consumer)
 
-var TopicConsumers = make(map[string]Consumer)
-
-// WorkQueueProducer ...
-type WorkQueueProducer interface {
-	// Produce ...
-	Produce(ctx context.Context, topic string, payload any) error
-}
-
-// WorkQueueConsumer ...
-type WorkQueueConsumer interface {
-	// Consume ...
-	Run(ctx context.Context)
-}
-
-// ConsumerClientFactory ...
-type ConsumerClientFactory interface {
-	New(config configs.Configuration) error
-}
-
-// ProducerClientFactory ...
-type ProducerClientFactory interface {
-	New(config configs.Configuration) (WorkQueueProducer, error)
-}
-
-// ConsumerClientFactories ...
-var ConsumerClientFactories = make(map[string]ConsumerClientFactory, 5)
-
-// ProducerClientFactories ...
-var ProducerClientFactories = make(map[string]ProducerClientFactory, 5)
+// ProducerClient ...
+var ProducerClient definition.WorkQueueProducer
 
 // Initialize ...
 func Initialize(config configs.Configuration) error {
-	consumerClientFactory, ok := ConsumerClientFactories[strings.ToLower(config.WorkQueue.Type.String())]
-	if !ok {
-		return fmt.Errorf("Work queue consumer(%s) not support", config.WorkQueue.Type.String())
+	var err error
+	switch config.WorkQueue.Type {
+	case enums.WorkQueueTypeDatabase:
+		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeKafka:
+		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeRedis:
+		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
+	default:
+		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
 	}
-	err := consumerClientFactory.New(config)
 	if err != nil {
 		return err
 	}
-	producerClientFactory, ok := ProducerClientFactories[strings.ToLower(config.WorkQueue.Type.String())]
-	if !ok {
-		return fmt.Errorf("Work queue producer(%s) not support", config.WorkQueue.Type.String())
+	switch config.WorkQueue.Type {
+	case enums.WorkQueueTypeDatabase:
+		err = database.NewWorkQueueConsumer(config, TopicHandlers)
+	case enums.WorkQueueTypeKafka:
+		err = kafka.NewWorkQueueConsumer(config, TopicHandlers)
+	case enums.WorkQueueTypeRedis:
+		err = redis.NewWorkQueueConsumer(config, TopicHandlers)
+	default:
+		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
 	}
-	ProducerClient, err = producerClientFactory.New(config)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-
-// ProducerClient ...
-var ProducerClient WorkQueueProducer
