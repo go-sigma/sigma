@@ -161,6 +161,10 @@ func (s builderService) ListRunners(ctx context.Context, id int64, pagination ty
 
 // UpdateRunner update builder runner
 func (s builderService) UpdateRunner(ctx context.Context, builderID, runnerID int64, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	updates[query.BuilderRunner.ID.ColumnName().String()] = runnerID
 	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(
 		s.tx.BuilderRunner.BuilderID.Eq(builderID),
 		s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)

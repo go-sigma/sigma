@@ -451,7 +451,9 @@ CREATE TYPE builder_runner_status AS ENUM (
   'Doing',
   'Success',
   'Failed',
-  'Scheduling'
+  'Scheduling',
+  'Stopping',
+  'Stopped'
 );
 
 CREATE TABLE IF NOT EXISTS "builder_runners" (

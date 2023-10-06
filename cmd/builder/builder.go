@@ -267,10 +267,10 @@ func (b Builder) build(imageName string) error {
 
 	if len(b.BuildkitPlatforms) > 1 {
 		cmd.Args = append(cmd.Args, "--output",
-			fmt.Sprintf("type=image,name=%s,annotation-index.org.opencontainers.sigma.builder_id=%d,annotation-index.org.opencontainers.sigma.runner_id=%d,push=true", imageName, b.BuilderID, b.RunnerID))
+			fmt.Sprintf("type=image,name=%s,annotation-index.org.opencontainers.sigma.builder_id=%d,annotation-index.org.opencontainers.sigma.runner_id=%d,push=true,oci-mediatypes=true", imageName, b.BuilderID, b.RunnerID))
 	} else {
 		cmd.Args = append(cmd.Args, "--output",
-			fmt.Sprintf("type=image,name=%s,annotation.org.opencontainers.sigma.builder_id=%d,annotation.org.opencontainers.sigma.runner_id=%d,push=true", imageName, b.BuilderID, b.RunnerID))
+			fmt.Sprintf("type=image,name=%s,annotation.org.opencontainers.sigma.builder_id=%d,annotation.org.opencontainers.sigma.runner_id=%d,push=true,oci-mediatypes=true", imageName, b.BuilderID, b.RunnerID))
 	}
 
 	buildkitdFlags := ""

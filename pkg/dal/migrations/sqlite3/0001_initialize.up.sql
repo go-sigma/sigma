@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `builder_id` integer NOT NULL,
   `log` BLOB,
-  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building', 'Stopping', 'Stopped')) NOT NULL DEFAULT 'Pending',
   -- common settings
   `tag` varchar(128), -- image tag
   `raw_tag` varchar(255) NOT NULL, -- image tag

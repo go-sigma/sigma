@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -110,10 +111,16 @@ func (i *instance) informer(ctx context.Context) {
 						updates := make(map[string]any, 1)
 						if container.ContainerJSONBase != nil && container.ContainerJSONBase.State != nil {
 							if container.ContainerJSONBase.State.ExitCode == 0 {
-								updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusSuccess}
+								updates = map[string]any{
+									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
+									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+								}
 								log.Info().Str("id", event.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container succeed")
 							} else {
-								updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
+								updates = map[string]any{
+									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
+									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+								}
 								log.Error().Int("ExitCode", container.ContainerJSONBase.State.ExitCode).
 									Str("Error", container.ContainerJSONBase.State.Error).
 									Bool("OOMKilled", container.ContainerJSONBase.State.OOMKilled).
@@ -203,10 +210,16 @@ func (i *instance) cacheList(ctx context.Context) error {
 		updates := map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
 		if con.ContainerJSONBase != nil && con.ContainerJSONBase.State != nil {
 			if con.ContainerJSONBase.State.ExitCode == 0 {
-				updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusSuccess}
+				updates = map[string]any{
+					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
+					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+				}
 				log.Info().Str("id", container.ID).Str("name", con.ContainerJSONBase.Name).Msg("Builder container succeed")
 			} else {
-				updates = map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
+				updates = map[string]any{
+					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
+					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+				}
 				log.Error().Int("ExitCode", con.ContainerJSONBase.State.ExitCode).
 					Str("Error", con.ContainerJSONBase.State.Error).
 					Bool("OOMKilled", con.ContainerJSONBase.State.OOMKilled).

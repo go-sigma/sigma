@@ -61,6 +61,8 @@ type runner struct {
 }
 
 func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) error {
+	ctx = log.Logger.WithContext(ctx)
+
 	if payload.Action == enums.DaemonBuilderActionStop {
 		return builder.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
 	}

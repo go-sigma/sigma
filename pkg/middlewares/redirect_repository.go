@@ -34,7 +34,7 @@ func RedirectRepository(config configs.Configuration) echo.MiddlewareFunc {
 			ctx := log.Logger.WithContext(c.Request().Context())
 
 			reqPath := c.Request().URL.Path
-			if !strings.Contains(reqPath, "/") {
+			if !strings.Contains(strings.TrimPrefix(reqPath, "/"), "/") {
 				return next(c)
 			}
 			if c.Request().Method == http.MethodGet && !strings.HasPrefix(reqPath, "/api/v1/") && !strings.HasPrefix(reqPath, "/v2/") {

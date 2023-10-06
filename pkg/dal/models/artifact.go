@@ -56,7 +56,6 @@ type Artifact struct {
 }
 
 // AfterCreate ...
-// if something err occurs, the create will be aborted
 func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	if a == nil {
 		return nil
@@ -95,8 +94,7 @@ func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// BeforeDelete ...
-// if something err occurs, the delete will be aborted
+// BeforeUpdate ...
 func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
 	if a == nil {
 		return nil

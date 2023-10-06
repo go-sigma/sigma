@@ -389,7 +389,7 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `builder_id` bigint NOT NULL,
   `log` LONGBLOB,
-  `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building') NOT NULL DEFAULT 'Pending',
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Scheduling', 'Building', 'Stopping', 'Stopped') NOT NULL DEFAULT 'Pending',
   -- common settings
   `tag` varchar(128),
   `raw_tag` varchar(255) NOT NULL,

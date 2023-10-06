@@ -15,7 +15,6 @@
 package namespaces
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -40,8 +39,6 @@ import (
 //	@Failure	401	{object}	xerrors.ErrCode
 func (h *handlers) HotNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
-
-	fmt.Println("help help help")
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {

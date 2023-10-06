@@ -17,9 +17,11 @@ package models
 import (
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Builder represents a builder
@@ -92,4 +94,35 @@ type BuilderRunner struct {
 	Duration  *int64
 
 	Builder Builder
+}
+
+// AfterUpdate ...
+func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
+	if b == nil {
+		return nil
+	}
+
+	var runnerObj BuilderRunner
+	err := tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).First(&runnerObj).Error
+	if err != nil {
+		return err
+	}
+
+	if runnerObj.Duration != nil {
+		return nil
+	}
+
+	if runnerObj.StartedAt != nil && runnerObj.EndedAt != nil {
+		var duration = runnerObj.EndedAt.Sub(ptr.To(runnerObj.StartedAt))
+		err = tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).Updates(
+			map[string]any{
+				"duration": duration.Milliseconds(),
+				"id":       b.ID,
+			}).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

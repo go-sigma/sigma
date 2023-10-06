@@ -85,6 +85,7 @@ func (w *writer) Close() error {
 	log.Info().Int("len", len(data)).Msg("Create builder log success")
 	updates := map[string]any{
 		query.BuilderRunner.Log.ColumnName().String(): data,
+		query.BuilderRunner.ID.ColumnName().String():  w.runnerID,
 	}
 	return builderService.UpdateRunner(context.Background(), w.builderID, w.runnerID, updates)
 }
