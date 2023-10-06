@@ -151,10 +151,10 @@ func (s builderService) ListRunners(ctx context.Context, id int64, pagination ty
 		case enums.SortMethodAsc:
 			query = query.Order(field)
 		default:
-			query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+			query = query.Order(s.tx.BuilderRunner.CreatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.BuilderRunner.UpdatedAt.Desc())
+		query = query.Order(s.tx.BuilderRunner.CreatedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }

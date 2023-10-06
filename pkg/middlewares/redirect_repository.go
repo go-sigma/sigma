@@ -37,7 +37,7 @@ func RedirectRepository(config configs.Configuration) echo.MiddlewareFunc {
 			if !strings.Contains(strings.TrimPrefix(reqPath, "/"), "/") {
 				return next(c)
 			}
-			if c.Request().Method == http.MethodGet && !strings.HasPrefix(reqPath, "/api/v1/") && !strings.HasPrefix(reqPath, "/v2/") {
+			if !skipRedirect(c) {
 				namespace := strings.SplitN(strings.TrimPrefix(reqPath, "/"), "/", 2)[0]
 				repository := strings.TrimPrefix(reqPath, "/")
 				if strings.Contains(repository, ":") {
@@ -54,4 +54,23 @@ func RedirectRepository(config configs.Configuration) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func skipRedirect(c echo.Context) bool {
+	if c.Request().Method != http.MethodGet {
+		return true
+	}
+	reqPath := c.Request().URL.Path
+	if strings.HasPrefix(reqPath, "/api/v1/") {
+		return true
+	}
+	if strings.HasPrefix(reqPath, "/v2/") {
+		return true
+	}
+	if strings.HasPrefix(reqPath, "/assets") && (strings.HasSuffix(reqPath, ".ttf") ||
+		strings.HasSuffix(reqPath, ".css") ||
+		strings.HasSuffix(reqPath, ".js")) {
+		return true
+	}
+	return false
 }

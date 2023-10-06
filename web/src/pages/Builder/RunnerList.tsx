@@ -152,7 +152,11 @@ export default function ({ localServer }: { localServer: string }) {
     if (builderObj === undefined) {
       return;
     }
-    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/?limit=${Settings.PageSize}&page=${page}`).then(response => {
+    let url = localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/?limit=${Settings.PageSize}&page=${page}`
+    if (sortName !== "" && sortOrder !== IOrder.None) {
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`
+    }
+    axios.get(url).then(response => {
       if (response?.status === 200) {
         const r = response.data as IBuilderRunnerList;
         setRunnerObjs(r.items);
@@ -165,7 +169,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository_id, builderObj, refreshState]);
+  }, [namespace, repository_id, builderObj, refreshState, sortOrder, sortName]);
 
   return (
     <>
@@ -277,12 +281,12 @@ export default function ({ localServer }: { localServer: string }) {
                           <span className="lg:pl-2">Status</span>
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                          <OrderHeader text={"Cost"}
+                          <OrderHeader text={"Elapsed"}
                             orderStatus={costOrder} setOrder={e => {
                               resetOrder();
                               setCostOrder(e);
                               setSortOrder(e);
-                              setSortName("cost");
+                              setSortName("duration");
                             }} />
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
@@ -543,7 +547,7 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
         {runnerObj.status}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {dayjs().to(dayjs(runnerObj.created_at))}
+        {runnerObj.duration || "-"}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
         {dayjs().to(dayjs(runnerObj.created_at))}

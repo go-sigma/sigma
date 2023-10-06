@@ -210,19 +210,22 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
 				return ptr.Of(xerrors.DSErrCodeUnknown)
 			}
-			err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
-				RepositoryID: repositoryObj.ID,
-				Tag:          refs.Tag,
-			})
-			if err != nil {
-				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-				return ptr.Of(xerrors.DSErrCodeUnknown)
-			}
 		}
 		return nil
 	})
 	if err != nil {
 		return err.(*xerrors.ErrCode)
+	}
+
+	if workq.ProducerClient != nil { // TODO: init in test
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+			RepositoryID: repositoryObj.ID,
+			Tag:          refs.Tag,
+		})
+		if err != nil {
+			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
+			return ptr.Of(xerrors.DSErrCodeUnknown)
+		}
 	}
 
 	if needScan(manifest, descriptor) {
@@ -275,19 +278,20 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 				log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Create tag failed")
 				return ptr.Of(xerrors.DSErrCodeUnknown)
 			}
-			err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
-				RepositoryID: repositoryObj.ID,
-				Tag:          refs.Tag,
-			})
-			if err != nil {
-				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-				return ptr.Of(xerrors.DSErrCodeUnknown)
-			}
 		}
 		return nil
 	})
 	if err != nil {
 		return err.(*xerrors.ErrCode)
+	}
+
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+		RepositoryID: repositoryObj.ID,
+		Tag:          refs.Tag,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
+		return ptr.Of(xerrors.DSErrCodeUnknown)
 	}
 
 	return nil

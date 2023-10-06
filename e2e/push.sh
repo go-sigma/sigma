@@ -13,7 +13,7 @@ while [ $TIMES -gt 0 ]; do
 done
 
 if [ $TIMES -eq 0 ]; then
-  echo "XImager cannot be available within one minute."
+  echo "sigma cannot be available within one minute."
   exit 1
 fi
 

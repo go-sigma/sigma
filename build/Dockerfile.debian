@@ -67,7 +67,7 @@ COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN make build-release
+RUN make build
 
 FROM debian:${DEBIAN_VERSION}
 

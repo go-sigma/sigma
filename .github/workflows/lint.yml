@@ -38,10 +38,12 @@ jobs:
           cd web
           yarn install --frozen-lockfile
           yarn build
+          cd ..
+          make build
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.53.2
+          version: v1.54.2
           args: --deadline=10m --verbose
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
@@ -51,5 +53,5 @@ jobs:
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: ./build/local.Dockerfile
+          dockerfile: ./build/Dockerfile.local
           ignore: DL3018,DL3003
