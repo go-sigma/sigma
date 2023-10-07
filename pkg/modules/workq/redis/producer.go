@@ -45,7 +45,7 @@ func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[string
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic string, payload any) error {
+func (p *producer) Produce(ctx context.Context, topic string, payload any, _ definition.ProducerOption) error {
 	consumer, ok := p.topicHandlers[topic]
 	if !ok {
 		return fmt.Errorf("Topic %s not registered", topic)

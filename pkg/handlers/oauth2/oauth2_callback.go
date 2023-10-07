@@ -35,6 +35,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -205,7 +206,7 @@ func (h *handlers) Callback(c echo.Context) error {
 				userInfo.Username = fmt.Sprintf("%s-%s", userInfo.Username, gonanoid.Must(6))
 			}
 			err = query.Q.Transaction(func(tx *query.Query) error {
-				userService := dao.NewUserServiceFactory().New()
+				userService := dao.NewUserServiceFactory().New(tx)
 				userSignedObj = &models.User{
 					Username: userInfo.Username,
 					Email:    ptr.Of(userInfo.Email),
@@ -228,7 +229,7 @@ func (h *handlers) Callback(c echo.Context) error {
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
 				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
-					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
@@ -241,6 +242,7 @@ func (h *handlers) Callback(c echo.Context) error {
 			}
 		} else {
 			err = query.Q.Transaction(func(tx *query.Query) error {
+				userService := dao.NewUserServiceFactory().New(tx)
 				user3rdPartyObj = &models.User3rdParty{
 					Provider:     req.Provider,
 					AccountID:    ptr.Of(userInfo.ID),
@@ -254,7 +256,7 @@ func (h *handlers) Callback(c echo.Context) error {
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
 				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
-					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return xerrors.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")

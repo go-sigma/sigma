@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -68,22 +69,12 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
 	}
 
-	if runnerObj.Status != enums.BuildStatusSuccess && runnerObj.Status != enums.BuildStatusFailed {
+	if runnerObj.Status != enums.BuildStatusSuccess && runnerObj.Status != enums.BuildStatusFailed && runnerObj.Status != enums.BuildStatusStopped {
 		log.Error().Str("status", runnerObj.Status.String()).Msgf("Builder runner status %s not support rerun", runnerObj.Status.String())
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Builder runner status %s not support rerun", runnerObj.Status.String()))
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
-			Action:       enums.DaemonBuilderActionStop,
-			RepositoryID: req.RepositoryID,
-			BuilderID:    req.BuilderID,
-			RunnerID:     req.RunnerID,
-		})
-		if err != nil {
-			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
-		}
 		builderService := h.builderServiceFactory.New(tx)
 		runnerObj = &models.BuilderRunner{
 			BuilderID: req.BuilderID,
@@ -100,7 +91,7 @@ func (h *handlers) GetRunnerRerun(c echo.Context) error {
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,
 			RunnerID:     runnerObj.ID,
-		})
+		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))

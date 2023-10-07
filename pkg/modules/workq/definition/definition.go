@@ -17,8 +17,11 @@ package definition
 import (
 	"context"
 	"time"
+
+	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
+// Consumer ...
 type Consumer struct {
 	Handler     func(ctx context.Context, payload []byte) error
 	Concurrency int
@@ -26,8 +29,13 @@ type Consumer struct {
 	Timeout     time.Duration
 }
 
+// ProducerOption ...
+type ProducerOption struct {
+	Tx *query.Query
+}
+
 // WorkQueueProducer ...
 type WorkQueueProducer interface {
 	// Produce ...
-	Produce(ctx context.Context, topic string, payload any) error
+	Produce(ctx context.Context, topic string, payload any, option ProducerOption) error
 }
