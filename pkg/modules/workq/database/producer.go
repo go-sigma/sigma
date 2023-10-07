@@ -22,6 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -39,12 +40,16 @@ func NewWorkQueueProducer(_ configs.Configuration, _ map[string]definition.Consu
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic string, payload any) error {
+func (p *producer) Produce(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
+	tx := query.Q
+	if option.Tx != nil {
+		tx = option.Tx
+	}
 	wq := &models.WorkQueue{
 		Topic:   topic,
 		Payload: utils.MustMarshal(payload),
 		Version: uuid.New().String(),
 	}
-	workQueueService := p.workQueueServiceFactory.New()
+	workQueueService := p.workQueueServiceFactory.New(tx)
 	return workQueueService.Create(ctx, wq)
 }

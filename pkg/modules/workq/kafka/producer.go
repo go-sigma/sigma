@@ -50,7 +50,7 @@ type producer struct {
 	producer sarama.SyncProducer
 }
 
-func (p *producer) Produce(_ context.Context, topic string, payload any) error {
+func (p *producer) Produce(_ context.Context, topic string, payload any, _ definition.ProducerOption) error {
 	message := MessageWrapper{
 		Times:   0,
 		Payload: utils.MustMarshal(payload),
