@@ -23,15 +23,15 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/cronjob"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/modules/timewheel"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/service/builder"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -114,12 +114,12 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			if err != nil {
 				return err
 			}
-			builderJob := &types.DaemonBuilderPayload{
+
+			err = workq.ProducerClient.Produce(ctx, string(enums.DaemonBuilder), types.DaemonBuilderPayload{
 				Action:    enums.DaemonBuilderActionStart,
 				BuilderID: builderObj.ID,
 				RunnerID:  runner.ID,
-			}
-			err = daemon.Enqueue(consts.TopicBuilder, utils.MustMarshal(builderJob))
+			}, definition.ProducerOption{Tx: tx})
 			if err != nil {
 				return err
 			}

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set +e
+# set +e
 
 TIMES=12
 while [ $TIMES -gt 0 ]; do
@@ -17,7 +17,7 @@ if [ $TIMES -eq 0 ]; then
   exit 1
 fi
 
-set -e
+# set -e
 
 docker pull hello-world:latest
 docker tag hello-world:latest 127.0.0.1:3000/library/hello-world:latest
@@ -30,3 +30,5 @@ docker push 127.0.0.1:3000/library/hello-world:latest
 docker pull 127.0.0.1:3000/library/hello-world:latest
 docker push 127.0.0.1:3000/library/mysql:8
 docker pull 127.0.0.1:3000/library/mysql:8
+
+docker logs sigma

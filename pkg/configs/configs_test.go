@@ -21,11 +21,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func errChecker() error {
+func errChecker(config Configuration) error {
 	return fmt.Errorf("fake error")
 }
 
-func noErrChecker() error {
+func noErrChecker(config Configuration) error {
 	return nil
 }
 

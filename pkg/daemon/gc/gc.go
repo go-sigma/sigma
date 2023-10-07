@@ -22,18 +22,16 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonGc, runner))
-}
+// func init() {
+// 	utils.PanicIf(daemon.RegisterTask(enums.DaemonGc, runner))
+// }
 
 const pagination = 1000
 
@@ -45,6 +43,7 @@ type gc struct {
 	storageDriverFactory     storage.StorageDriverFactory
 }
 
+// nolint: unused
 func runner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonGcPayload
 	err := json.Unmarshal(task.Payload(), &payload)

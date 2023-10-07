@@ -14,7 +14,9 @@
 
 package configs
 
-type checker func() error
+import "github.com/go-sigma/sigma/pkg/utils/ptr"
+
+type checker func(cfg Configuration) error
 
 var checkers []checker
 
@@ -23,7 +25,7 @@ func Initialize() error {
 	defaultSettings()
 
 	for _, checker := range checkers {
-		err := checker()
+		err := checker(ptr.To(configuration))
 		if err != nil {
 			return err
 		}

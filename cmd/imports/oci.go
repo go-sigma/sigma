@@ -12,23 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configs
+package imports
 
 import (
-	"fmt"
-
-	"github.com/spf13/viper"
+	_ "github.com/distribution/distribution/v3/manifest/manifestlist"
+	_ "github.com/distribution/distribution/v3/manifest/ocischema"
+	_ "github.com/distribution/distribution/v3/manifest/schema2"
 )
-
-func init() {
-	checkers = append(checkers, checkDeploy)
-}
-
-func checkDeploy() error {
-	if viper.GetString("deploy") == "replica" {
-		if viper.GetString("redis.type") == "internal" {
-			return fmt.Errorf("Deploy replica should use external redis")
-		}
-	}
-	return nil
-}

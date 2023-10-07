@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -38,17 +37,11 @@ import (
 var (
 	// DB is the global database connection
 	DB *gorm.DB
-	// RedisCli ...
-	RedisCli redis.UniversalClient
 )
 
 // Initialize initializes the database connection
 func Initialize() error {
-	err := connectRedis()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	var dsn string
 	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
 	switch dbType {
@@ -118,14 +111,14 @@ func Initialize() error {
 	return nil
 }
 
-func connectRedis() error {
-	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
-	if err != nil {
-		return err
-	}
-	RedisCli = redis.NewClient(redisOpt)
-	return nil
-}
+// func connectRedis() error {
+// 	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
+// 	if err != nil {
+// 		return err
+// 	}
+// 	RedisCli = redis.NewClient(redisOpt)
+// 	return nil
+// }
 
 func connectMysql() (string, error) {
 	host := viper.GetString("database.mysql.host")

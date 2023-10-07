@@ -21,7 +21,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/cmds/distribution"
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -55,11 +54,11 @@ var distributionCmd = &cobra.Command{
 			return
 		}
 
-		err = daemon.InitializeClient()
-		if err != nil {
-			log.Error().Err(err).Msg("Initialize daemon client with error")
-			return
-		}
+		// err = daemon.InitializeClient()
+		// if err != nil {
+		// 	log.Error().Err(err).Msg("Initialize daemon client with error")
+		// 	return
+		// }
 
 		err = distribution.Serve()
 		if err != nil {

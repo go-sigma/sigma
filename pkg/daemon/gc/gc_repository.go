@@ -21,21 +21,20 @@ import (
 
 	"github.com/hibiken/asynq"
 
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func init() {
-	utils.PanicIf(daemon.RegisterTask(enums.DaemonGcRepository, gcRepositoryRunner))
-}
+// func init() {
+// 	utils.PanicIf(daemon.RegisterTask(enums.DaemonGcRepository, gcRepositoryRunner))
+// }
 
 // gcRepositoryRunner ...
+// nolint: unused
 func gcRepositoryRunner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonGcRepositoryPayload
 	err := json.Unmarshal(task.Payload(), &payload)
@@ -46,12 +45,14 @@ func gcRepositoryRunner(ctx context.Context, task *asynq.Task) error {
 	return gc.runner(ctx, payload)
 }
 
+// nolint: unused
 type gcRepository struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	daemonServiceFactory     dao.DaemonServiceFactory
 }
 
+// nolint: unused
 func (g gcRepository) runner(ctx context.Context, payload types.DaemonGcRepositoryPayload) error {
 	var namespaceID *int64
 	if payload.Scope != nil {
