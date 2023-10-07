@@ -24,10 +24,10 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/modules/cacher"
+	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 )
 
 //go:generate mockgen -destination=mocks/token.go -package=mocks github.com/go-sigma/sigma/pkg/utils/token TokenService
@@ -67,7 +67,7 @@ type TokenService interface {
 type tokenService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
-	redisCli   redis.UniversalClient
+	cacheCli   definition.Cacher[string]
 }
 
 // NewTokenService creates a new token service.
@@ -81,15 +81,14 @@ func NewTokenService(privateKeyString string) (TokenService, error) {
 		return nil, err
 	}
 	publicKey := &privateKey.PublicKey
-	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
+	cacheCli, err := cacher.New[string](consts.AppName+":expire:jwt", nil)
 	if err != nil {
-		return nil, fmt.Errorf("redis.ParseURL error: %v", err)
+		return nil, fmt.Errorf("New cacher failed: %v", err)
 	}
-	redisCli := redis.NewClient(redisOpt)
 	return &tokenService{
 		privateKey: privateKey,
 		publicKey:  publicKey,
-		redisCli:   redisCli,
+		cacheCli:   cacheCli,
 	}, nil
 }
 
@@ -135,8 +134,8 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, int6
 		return "", 0, fmt.Errorf("invalid token")
 	}
 
-	val, err := s.redisCli.Get(ctx, fmt.Sprintf(expireKey, id)).Result()
-	if err != nil && err != redis.Nil {
+	val, err := s.cacheCli.Get(ctx, id)
+	if err != nil && err != definition.ErrNotFound {
 		return "", 0, err
 	}
 	if val == expireVal {
@@ -152,7 +151,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, int6
 
 // Revoke revokes the token.
 func (s *tokenService) Revoke(ctx context.Context, id string) error {
-	_, err := s.redisCli.Set(ctx, fmt.Sprintf(expireKey, id), expireVal, viper.GetDuration("auth.jwt.refreshTtl")).Result()
+	err := s.cacheCli.Set(ctx, id, expireVal, time.Second*3600)
 	if err != nil {
 		return err
 	}

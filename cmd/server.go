@@ -21,7 +21,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/cmds/server"
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -54,11 +53,11 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		err = daemon.InitializeClient()
-		if err != nil {
-			log.Error().Err(err).Msg("Initialize daemon client with error")
-			return
-		}
+		// err = daemon.InitializeClient()
+		// if err != nil {
+		// 	log.Error().Err(err).Msg("Initialize daemon client with error")
+		// 	return
+		// }
 
 		err = server.Serve(server.ServerConfig{
 			WithoutDistribution: withoutDistribution,

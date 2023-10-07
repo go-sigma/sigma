@@ -30,3 +30,5 @@ docker push 127.0.0.1:3000/library/hello-world:latest
 docker pull 127.0.0.1:3000/library/hello-world:latest
 docker push 127.0.0.1:3000/library/mysql:8
 docker pull 127.0.0.1:3000/library/mysql:8
+
+docker logs sigma

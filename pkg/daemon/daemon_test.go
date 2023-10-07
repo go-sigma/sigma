@@ -14,20 +14,6 @@
 
 package daemon
 
-import (
-	"context"
-	"testing"
-	"time"
-
-	"github.com/alicebob/miniredis/v2"
-	"github.com/hibiken/asynq"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-)
-
 // func TestRegisterTask(t *testing.T) {
 // 	logger.SetLevel("debug")
 
@@ -40,36 +26,36 @@ import (
 // 	assert.Error(t, err)
 // }
 
-func TestInitializeServer(t *testing.T) {
-	logger.SetLevel("debug")
+// func TestInitializeServer(t *testing.T) {
+// 	logger.SetLevel("debug")
 
-	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
+// 	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	viper.SetDefault("daemon.gc.cron", "0 2 * * 6")
+// 	miniRedis := miniredis.RunT(t)
+// 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+// 	viper.SetDefault("daemon.gc.cron", "0 2 * * 6")
 
-	err := InitializeServer()
-	assert.NoError(t, err)
+// 	err := InitializeServer()
+// 	assert.NoError(t, err)
 
-	time.Sleep(1 * time.Second)
+// 	time.Sleep(1 * time.Second)
 
-	DeinitServer()
-}
+// 	DeinitServer()
+// }
 
-func TestInitializeClient(t *testing.T) {
-	logger.SetLevel("debug")
+// func TestInitializeClient(t *testing.T) {
+// 	logger.SetLevel("debug")
 
-	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
+// 	tasks = map[enums.Daemon]func(context.Context, *asynq.Task) error{}
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+// 	miniRedis := miniredis.RunT(t)
+// 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	err := InitializeClient()
-	assert.NoError(t, err)
+// 	err := InitializeClient()
+// 	assert.NoError(t, err)
 
-	time.Sleep(1 * time.Second)
+// 	time.Sleep(1 * time.Second)
 
-	err = DeinitClient()
-	assert.NoError(t, err)
-}
+// 	err = DeinitClient()
+// 	assert.NoError(t, err)
+// }

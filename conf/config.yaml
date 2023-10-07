@@ -28,13 +28,13 @@ database:
 deploy: single
 
 redis:
-  # redis type available: internal, external
-  type: internal
+  # redis type available: none, external
+  type: none
   url: redis://:sigma@localhost:6379/0
 
 cache:
   # the cache type available is: redis, inmemory, database
-  type: redis
+  type: database
   # please attention in multi
   inmemory:
     size: 10240

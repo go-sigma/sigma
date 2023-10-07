@@ -24,7 +24,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 const (
@@ -38,9 +40,15 @@ func TestNew(t *testing.T) {
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis:////"+miniRedis.Addr())
 
+	config := configs.GetConfiguration()
+	config.Redis.Type = enums.RedisTypeExternal
+	config.Redis.Url = "redis:////" + miniRedis.Addr()
+	config.Cache.Type = enums.CacherTypeRedis
+
 	_, err := NewTokenService(privateKeyString)
 	assert.Error(t, err)
 
+	config.Redis.Url = "redis://" + miniRedis.Addr()
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
 	viper.SetDefault("auth.jwt.expire", time.Second)

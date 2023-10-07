@@ -33,7 +33,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
@@ -91,10 +90,10 @@ func Serve(serverConfig ServerConfig) error {
 		if err != nil {
 			return err
 		}
-		err = daemon.InitializeServer()
-		if err != nil {
-			return err
-		}
+		// err = daemon.InitializeServer()
+		// if err != nil {
+		// 	return err
+		// }
 		err = workq.Initialize(configs.Configuration{
 			WorkQueue: configs.ConfigurationWorkQueue{
 				Type: enums.WorkQueueTypeDatabase,

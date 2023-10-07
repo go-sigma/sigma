@@ -13,19 +13,3 @@
 // limitations under the License.
 
 package configs
-
-import (
-	"fmt"
-
-	"github.com/go-sigma/sigma/pkg/types/enums"
-)
-
-// CheckDeploy ...
-func (c *Configuration) CheckDeploy() error {
-	if c.Deploy == enums.DeployReplica {
-		if c.Redis.Type == enums.RedisTypeInternal {
-			return fmt.Errorf("Deploy replica should use external redis")
-		}
-	}
-	return nil
-}

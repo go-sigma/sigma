@@ -25,7 +25,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jackc/pgx/v4"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
 
@@ -37,8 +36,14 @@ func init() {
 	checkers = append(checkers, checkRedis, checkDatabase, checkStorage)
 }
 
-func checkRedis() error {
-	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
+func checkRedis(config Configuration) error {
+	if config.Redis.Type == enums.RedisTypeNone {
+		return nil
+	}
+	if config.Redis.Type != enums.RedisTypeExternal {
+		return fmt.Errorf("Unknown redis type: %s", config.Redis.Type)
+	}
+	redisOpt, err := redis.ParseURL(config.Redis.Url)
 	if err != nil {
 		return fmt.Errorf("redis.ParseURL error: %v", err)
 	}
@@ -54,19 +59,14 @@ func checkRedis() error {
 	return nil
 }
 
-func checkDatabase() error {
-	dbType := viper.GetString("database.type")
+func checkDatabase(config Configuration) error {
+	dbType := config.Database.Type
 
-	typ, err := enums.ParseDatabase(dbType)
-	if err != nil {
-		return fmt.Errorf("database type is invalid, just support: %s, %s, %s", enums.DatabasePostgresql, enums.DatabaseMysql, enums.DatabaseSqlite3)
-	}
-
-	switch typ {
+	switch dbType {
 	case enums.DatabaseMysql:
-		return checkMysql()
+		return checkMysql(config)
 	case enums.DatabasePostgresql:
-		return checkPostgresql()
+		return checkPostgresql(config)
 	case enums.DatabaseSqlite3:
 		return nil
 	default:
@@ -74,14 +74,14 @@ func checkDatabase() error {
 	}
 }
 
-func checkMysql() error {
-	host := viper.GetString("database.mysql.host")
-	port := viper.GetString("database.mysql.port")
-	user := viper.GetString("database.mysql.user")
-	password := viper.GetString("database.mysql.password")
-	dbname := viper.GetString("database.mysql.database")
+func checkMysql(config Configuration) error {
+	host := config.Database.Mysql.Host
+	port := config.Database.Mysql.Port
+	user := config.Database.Mysql.User
+	password := config.Database.Mysql.Password
+	dbname := config.Database.Mysql.DBName
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname) // TODO: query values
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("sql.Open error: %v", err)
@@ -97,15 +97,15 @@ func checkMysql() error {
 	return nil
 }
 
-func checkPostgresql() error {
-	host := viper.GetString("database.postgres.host")
-	port := viper.GetString("database.postgres.port")
-	user := viper.GetString("database.postgres.user")
-	password := viper.GetString("database.postgres.password")
-	dbname := viper.GetString("database.postgres.dbname")
+func checkPostgresql(config Configuration) error {
+	host := config.Database.Postgresql.Host
+	port := config.Database.Postgresql.Port
+	user := config.Database.Postgresql.User
+	password := config.Database.Postgresql.Password
+	dbname := config.Database.Postgresql.DBName
 
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname))
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname))
 	if err != nil {
 		return fmt.Errorf("pgx.Connect error: %v", err)
 	}
@@ -116,24 +116,25 @@ func checkPostgresql() error {
 	return nil
 }
 
-func checkStorage() error {
-	switch viper.GetString("storage.type") {
+func checkStorage(config Configuration) error {
+	storageType := config.Storage.Type
+	switch storageType {
 	case "filesystem":
 		return nil
 	case "s3":
-		return checkStorageS3()
+		return checkStorageS3(config)
 	default:
 		return fmt.Errorf("Not support storage type")
 	}
 }
 
-func checkStorageS3() error {
-	endpoint := viper.GetString("storage.s3.endpoint")
-	region := viper.GetString("storage.s3.region")
-	ak := viper.GetString("storage.s3.ak")
-	sk := viper.GetString("storage.s3.sk")
-	bucket := viper.GetString("storage.s3.bucket")
-	forcePathStyle := viper.GetBool("storage.s3.forcePathStyle")
+func checkStorageS3(config Configuration) error {
+	endpoint := config.Storage.S3.Endpoint
+	region := config.Storage.S3.Region
+	ak := config.Storage.S3.Ak
+	sk := config.Storage.S3.Sk
+	bucket := config.Storage.S3.Bucket
+	forcePathStyle := config.Storage.S3.ForcePathStyle
 
 	sess, err := session.NewSession(&aws.Config{
 		Endpoint:         aws.String(endpoint),

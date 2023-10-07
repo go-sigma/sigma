@@ -65,17 +65,10 @@ RUN make build
 
 FROM alpine:${ALPINE_VERSION}
 
-RUN set -eux && \
-  apk add --no-cache redis yq
-
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY ./conf/config.yaml /etc/sigma/config.yaml
-COPY ./build/entrypoint.sh /entrypoint.sh
-COPY ./conf/redis.conf /etc/sigma/redis.conf
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
-
-ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["sigma", "server"]

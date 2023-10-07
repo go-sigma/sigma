@@ -30,7 +30,6 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
@@ -57,8 +56,8 @@ func TestPutManifestAsyncTask(t *testing.T) {
 	}()
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	err = daemon.InitializeClient()
-	assert.NoError(t, err)
+	// err = daemon.InitializeClient()
+	// assert.NoError(t, err)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -101,8 +100,8 @@ func TestPutManifest(t *testing.T) {
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	err = daemon.InitializeClient()
-	assert.NoError(t, err)
+	// err = daemon.InitializeClient()
+	// assert.NoError(t, err)
 
 	const (
 		namespaceName  = "test"

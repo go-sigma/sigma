@@ -72,34 +72,22 @@ RUN make build
 FROM debian:${DEBIAN_VERSION}
 
 ARG TARGETARCH=amd64
-ARG YQ_VERSION=v4.34.2
 
 RUN set -eux && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
-		redis \
-		wget \
     ca-certificates \
 		curl \
 		netbase \
     gnupg \
 	  dirmngr \
 	&& \
-  case "${TARGETARCH}" in \
-		amd64) export YQ_ARCH='amd64' ;; \
-		arm64) export YQ_ARCH='arm64' ;; \
-	esac; \
-  wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}.tar.gz -O - | tar xz && mv yq_linux_${YQ_ARCH} /usr/bin/yq && \
 	rm -rf /var/lib/apt/lists/*
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY ./conf/config.yaml /etc/sigma/config.yaml
-COPY ./build/entrypoint.sh /entrypoint.sh
-COPY ./conf/redis.conf /etc/sigma/redis.conf
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
-
-ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["sigma", "server"]

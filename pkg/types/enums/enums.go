@@ -60,7 +60,7 @@ type BuildStatus string
 type Database string
 
 // RedisType x ENUM(
-// internal,
+// none,
 // external,
 // )
 type RedisType string

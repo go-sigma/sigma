@@ -17,22 +17,30 @@ package inmemory
 import (
 	"context"
 	"fmt"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
+// ValueWithTtl ...
+type ValueWithTtl[T any] struct {
+	Value T
+	Ttl   *time.Time
+}
+
 type cacher[T any] struct {
-	cache   *lru.TwoQueueCache[string, T]
+	cache   *lru.TwoQueueCache[string, ValueWithTtl[T]]
 	prefix  string
 	fetcher definition.Fetcher[T]
 }
 
 // New returns a new Cacher.
 func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
-	cache, err := lru.New2Q[string, T](1024)
+	cache, err := lru.New2Q[string, ValueWithTtl[T]](10240)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +53,14 @@ func New[T any](config configs.Configuration, prefix string, fetcher definition.
 
 // Set sets the value of given key if it is new to the cache.
 // Param val should not be nil.
-func (c *cacher[T]) Set(ctx context.Context, key string, val T) error {
-	c.cache.Add(c.key(key), val)
+func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
+	value := ValueWithTtl[T]{
+		Value: val,
+	}
+	if len(ttls) > 0 {
+		value.Ttl = ptr.Of(time.Now().Add(ttls[0]))
+	}
+	c.cache.Add(c.key(key), value)
 	return nil
 }
 
@@ -57,7 +71,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 	result, ok := c.cache.Get(c.key(key))
 	if !ok {
 		if c.fetcher == nil {
-			return result, definition.ErrNotFound
+			return result.Value, definition.ErrNotFound
 		}
 		result, err := c.fetcher(key)
 		if err != nil {
@@ -69,7 +83,14 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 		}
 		return result, nil
 	}
-	return result, nil
+	if result.Ttl != nil && result.Ttl.After(time.Now()) {
+		return result.Value, nil
+	}
+	err := c.Del(ctx, key)
+	if err != nil {
+		return result.Value, err
+	}
+	return result.Value, nil
 }
 
 // Del deletes the value corresponding to the given key from the cache.

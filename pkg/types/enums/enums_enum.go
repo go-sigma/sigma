@@ -1387,8 +1387,8 @@ func (x Provider) Value() (driver.Value, error) {
 }
 
 const (
-	// RedisTypeInternal is a RedisType of type internal.
-	RedisTypeInternal RedisType = "internal"
+	// RedisTypeNone is a RedisType of type none.
+	RedisTypeNone RedisType = "none"
 	// RedisTypeExternal is a RedisType of type external.
 	RedisTypeExternal RedisType = "external"
 )
@@ -1408,7 +1408,7 @@ func (x RedisType) IsValid() bool {
 }
 
 var _RedisTypeValue = map[string]RedisType{
-	"internal": RedisTypeInternal,
+	"none":     RedisTypeNone,
 	"external": RedisTypeExternal,
 }
 

@@ -18,107 +18,110 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestCheckRedis(t *testing.T) {
-	viper.SetDefault("redis.url", "redis:///127.0.0.1:6379")
-	err := checkRedis()
+	err := checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeNone}})
+	assert.NoError(t, err)
+
+	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisType("invalid")}})
 	assert.Error(t, err)
 
 	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	err = checkRedis()
+	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, Url: "redis://" + miniRedis.Addr()}})
 	assert.NoError(t, err)
 
-	viper.SetDefault("redis.url", "redis://127.0.0.1:1100")
-	err = checkRedis()
+	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, Url: "redis://127.0.0.1:1100"}})
 	assert.Error(t, err)
 }
 
 func TestCheckDatabase(t *testing.T) {
-	viper.SetDefault("database.type", enums.DatabaseSqlite3.String())
-
-	err := checkDatabase()
+	err := checkDatabase(Configuration{Database: ConfigurationDatabase{Type: enums.DatabaseSqlite3}})
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.type", enums.DatabaseMysql.String())
-	viper.SetDefault("database.mysql.host", "127.0.0.1")
-	viper.SetDefault("database.mysql.port", "3306")
-	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "sigma")
-	viper.SetDefault("database.mysql.database", "sigma")
-
-	err = checkDatabase()
+	err = checkDatabase(Configuration{Database: ConfigurationDatabase{
+		Type: enums.DatabaseMysql,
+		Mysql: ConfigurationDatabaseMysql{
+			Host:     "127.0.0.1",
+			Port:     3306,
+			User:     "sigma",
+			Password: "sigma",
+			DBName:   "sigma",
+		},
+	}})
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
-	viper.SetDefault("database.postgres.host", "localhost")
-	viper.SetDefault("database.postgres.port", 5432)
-	viper.SetDefault("database.postgres.user", "sigma")
-	viper.SetDefault("database.postgres.password", "sigma")
-	viper.SetDefault("database.postgres.dbname", "sigma")
-
-	err = checkDatabase()
-	assert.NoError(t, err)
-
-	viper.SetDefault("database.type", "fake")
-
-	err = checkDatabase()
+	err = checkDatabase(Configuration{Database: ConfigurationDatabase{Type: enums.Database("invalid")}})
 	assert.Error(t, err)
 }
 
 func TestCheckMysql(t *testing.T) {
-	viper.SetDefault("database.type", enums.DatabaseMysql.String())
-	viper.SetDefault("database.mysql.host", "127.0.0.1")
-	viper.SetDefault("database.mysql.port", "3306")
-	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "sigma")
-	viper.SetDefault("database.mysql.database", "sigma")
+	var config = Configuration{
+		Database: ConfigurationDatabase{
+			Type: enums.DatabaseMysql,
+			Mysql: ConfigurationDatabaseMysql{
+				Host:     "127.0.0.1",
+				Port:     3306,
+				User:     "sigma",
+				Password: "sigma",
+				DBName:   "sigma",
+			},
+		},
+	}
 
-	err := checkMysql()
+	err := checkMysql(config)
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.mysql.port", "3310")
+	config.Database.Mysql.Port = 3310
 
-	err = checkMysql()
+	err = checkMysql(config)
 	assert.Error(t, err)
 }
 
 func TestCheckPostgresql(t *testing.T) {
-	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
-	viper.SetDefault("database.postgres.host", "localhost")
-	viper.SetDefault("database.postgres.port", 5432)
-	viper.SetDefault("database.postgres.user", "sigma")
-	viper.SetDefault("database.postgres.password", "sigma")
-	viper.SetDefault("database.postgres.dbname", "sigma")
+	var config = Configuration{
+		Database: ConfigurationDatabase{
+			Type: enums.DatabasePostgresql,
+			Postgresql: ConfigurationDatabasePostgresql{
+				Host:     "localhost",
+				Port:     5432,
+				User:     "sigma",
+				Password: "sigma",
+				DBName:   "sigma",
+			},
+		},
+	}
 
-	err := checkPostgresql()
+	err := checkPostgresql(config)
 	assert.NoError(t, err)
 
-	viper.SetDefault("database.postgres.port", 5433)
+	config.Database.Postgresql.Port = 5433
 
-	err = checkPostgresql()
+	err = checkPostgresql(config)
 	assert.Error(t, err)
 }
 
 func TestCheckS3(t *testing.T) {
-	viper.SetDefault("storage.s3.endpoint", "http://127.0.0.1:9000")
-	viper.SetDefault("storage.s3.region", "cn-north-1")
-	viper.SetDefault("storage.s3.ak", "sigma")
-	viper.SetDefault("storage.s3.sk", "sigma-sigma")
-	viper.SetDefault("storage.s3.bucket", "sigma")
-	viper.SetDefault("storage.s3.forcePathStyle", true)
-	viper.SetDefault("storage.type", "s3")
-
-	err := checkStorage()
+	config := Configuration{
+		Storage: ConfigurationStorage{
+			Type: "s3",
+			S3: ConfigurationStorageS3{
+				Endpoint:       "http://127.0.0.1:9000",
+				Region:         "cn-north-1",
+				Ak:             "sigma",
+				Sk:             "sigma-sigma",
+				Bucket:         "sigma",
+				ForcePathStyle: true,
+			},
+		},
+	}
+	err := checkStorage(config)
 	assert.NoError(t, err)
 
-	viper.SetDefault("storage.s3.endpoint", "http://localhost:9011")
-
-	err = checkStorage()
+	config.Storage.S3.Endpoint = "http://localhost:9011"
+	err = checkStorage(config)
 	assert.Error(t, err)
 }
