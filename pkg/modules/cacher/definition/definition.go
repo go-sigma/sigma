@@ -17,6 +17,7 @@ package definition
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 var (
@@ -31,7 +32,7 @@ type Fetcher[T any] func(key string) (T, error)
 type Cacher[T any] interface {
 	// Set sets the value of given key if it is new to the cache.
 	// Param val should not be nil.
-	Set(ctx context.Context, key string, val T) error
+	Set(ctx context.Context, key string, val T, ttls ...time.Duration) error
 	// Get tries to fetch a value corresponding to the given key from the cache.
 	// If error occurs during the first time fetching, it will be cached until the
 	// sequential fetching triggered by the refresh goroutine succeed.

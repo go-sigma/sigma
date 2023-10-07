@@ -17,6 +17,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
@@ -48,12 +49,16 @@ func New[T any](config configs.Configuration, prefix string, fetcher definition.
 
 // Set sets the value of given key if it is new to the cache.
 // Param val should not be nil.
-func (c *cacher[T]) Set(ctx context.Context, key string, val T) error {
+func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
 	content, err := jsoniter.MarshalToString(val)
 	if err != nil {
 		return fmt.Errorf("marshal value failed: %w", err)
 	}
-	return c.redisCli.Set(ctx, c.key(key), content, c.config.Cache.Redis.Ttl).Err()
+	var ttl = c.config.Cache.Redis.Ttl
+	if len(ttls) > 0 {
+		ttl = ttls[0]
+	}
+	return c.redisCli.Set(ctx, c.key(key), content, ttl).Err()
 }
 
 // Get tries to fetch a value corresponding to the given key from the cache.
@@ -65,7 +70,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 	if err != nil {
 		if err == redis.Nil {
 			if c.fetcher == nil {
-				return result, err
+				return result, definition.ErrNotFound
 			}
 			result, err = c.fetcher(key)
 			if err != nil {
@@ -79,6 +84,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 		}
 		return result, fmt.Errorf("get value failed: %w", err)
 	}
+
 	err = jsoniter.UnmarshalFromString(content, &result)
 	if err != nil {
 		return result, fmt.Errorf("unmarshal value failed: %w", err)

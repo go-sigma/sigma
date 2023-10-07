@@ -34,7 +34,7 @@ redis:
 
 cache:
   # the cache type available is: redis, inmemory, database
-  type: redis
+  type: database
   # please attention in multi
   inmemory:
     size: 10240

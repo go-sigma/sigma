@@ -15,8 +15,6 @@
 package cacher
 
 import (
-	"fmt"
-
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/database"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
@@ -39,7 +37,8 @@ func New[T any](prefix string, fetcher definition.Fetcher[T]) (definition.Cacher
 	case enums.CacherTypeDatabase:
 		cacher, err = database.New[T](config, prefix, fetcher)
 	default:
-		return nil, fmt.Errorf("Cacher %s not support", config.Cache.Type)
+		cacher, err = database.New[T](config, prefix, fetcher)
+		// return nil, fmt.Errorf("Cacher %s not support", config.Cache.Type)
 	}
 	return cacher, err
 }
