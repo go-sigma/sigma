@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -69,7 +68,7 @@ func (s *auditService) Create(ctx context.Context, audit *models.Audit) error {
 func (s *auditService) HotNamespace(ctx context.Context, userID int64, top int) ([]*models.Namespace, error) {
 	type result struct {
 		NamespaceID int64
-		CreatedAt   time.Time
+		CreatedAt   string
 		Count       int64
 	}
 	var rs []result

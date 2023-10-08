@@ -346,8 +346,8 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `repository_id` integer NOT NULL,
   `source` text CHECK (`source` IN ('SelfCodeRepository', 'CodeRepository', 'Dockerfile')) NOT NULL,
   -- source SelfCodeRepository
-  `scm_credential_type` varchar(16) NOT NULL,
-  `scm_repository` varchar(256) NOT NULL,
+  `scm_credential_type` varchar(16),
+  `scm_repository` varchar(256),
   `scm_ssh_key` BLOB,
   `scm_token` varchar(256),
   `scm_username` varchar(30),
@@ -409,7 +409,7 @@ CREATE TABLE IF NOT EXISTS `work_queues` (
   `payload` BLOB NOT NULL,
   `times` integer NOT NULL DEFAULT 0,
   `version` varchar(36) NOT NULL,
-  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building')) NOT NULL DEFAULT 'Pending',
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0

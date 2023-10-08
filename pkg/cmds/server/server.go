@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -66,6 +67,16 @@ func Serve(serverConfig ServerConfig) error {
 				// Interface("resp-header", c.Response().Header()).
 				// Int("status", c.Response().Status).
 				Msg("Request debugger")
+			reqPath := c.Request().URL.Path
+			if strings.HasPrefix(reqPath, "/assets/") {
+				if strings.HasSuffix(c.Request().URL.Path, ".js") ||
+					strings.HasSuffix(c.Request().URL.Path, ".css") ||
+					strings.HasSuffix(c.Request().URL.Path, ".svg") ||
+					strings.HasSuffix(c.Request().URL.Path, ".png") ||
+					strings.HasSuffix(c.Request().URL.Path, ".ttf") {
+					c.Response().Header().Add("Cache-Control", "max-age=3600")
+				}
+			}
 			n := next(c)
 			return n
 		}

@@ -23,6 +23,7 @@ import (
 	"path"
 	"reflect"
 	"strconv"
+	"strings"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/tencentyun/cos-go-sdk-v5"
@@ -58,7 +59,7 @@ func (f factory) New(config configs.Configuration) (storage.StorageDriver, error
 	return &tencentcos{
 		client:        c,
 		domain:        u.Host,
-		rootDirectory: config.Storage.RootDirectory,
+		rootDirectory: strings.TrimPrefix(config.Storage.RootDirectory, "/"),
 	}, nil
 }
 
