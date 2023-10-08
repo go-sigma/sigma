@@ -408,8 +408,8 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "repository_id" bigint NOT NULL,
   "source" builder_source NOT NULL,
   -- source SelfCodeRepository
-  "scm_credential_type" varchar(16) NOT NULL,
-  "scm_repository" varchar(256) NOT NULL,
+  "scm_credential_type" varchar(16),
+  "scm_repository" varchar(256),
   "scm_ssh_key" bytea,
   "scm_token" varchar(256),
   "scm_username" varchar(30),

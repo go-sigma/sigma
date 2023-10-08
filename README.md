@@ -7,11 +7,29 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
-Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, it never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/), no [distribution](https://github.com/distribution/distribution).
+Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, it never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/).
 
-## Introduction
+## Demo Server
 
-<https://user-images.githubusercontent.com/5346506/229798487-798225b1-e2bf-40a2-b5ab-588003c02f7b.mp4>
+Runs on aws ec2 (2C2G, Disk 20G), Linux distribution is Debian 12.1, Docker version 24.0.6.
+
+``` sh
+# Install Docker from get.docker.com
+./scripts/samples/init.sh
+
+# If your docker running with rootless mode,
+# make sure add net.ipv4.ip_unprivileged_port_start=0 to /etc/sysctl.conf and run sudo sysctl --system.
+docker run --name sigma -v /home/admin/config:/etc/sigma \
+  -v /var/run/docker.sock:/var/run/docker.sock -p 443:3000 \
+  -d ghcr.io/go-sigma/sigma:nightly-alpine
+
+# Add sample data
+./scripts/samples/samples.sh
+```
+
+Visit: <https://sigma.tosone.cn>, username/password: sigma/sigma.
+
+I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
 
 ## Architecture
 

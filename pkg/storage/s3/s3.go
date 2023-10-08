@@ -75,7 +75,7 @@ func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
 		S3:            s3.New(sess),
 		uploader:      s3manager.NewUploader(sess),
 		bucket:        bucket,
-		rootDirectory: viper.GetString("storage.rootDirectory"),
+		rootDirectory: strings.TrimPrefix(viper.GetString("storage.rootDirectory"), "/"),
 	}, nil
 }
 

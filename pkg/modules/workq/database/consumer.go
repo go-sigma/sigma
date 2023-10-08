@@ -17,7 +17,6 @@ package database
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,7 +68,7 @@ func (h *consumerHandler) consume(topic string) error {
 	workQueueService := dao.NewWorkQueueServiceFactory().New()
 	// daoCtx := log.Logger.WithContext(context.Background())
 	daoCtx := context.Background()
-	wq, err := workQueueService.Get(daoCtx, strings.ToLower(topic))
+	wq, err := workQueueService.Get(daoCtx, topic)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Trace().Err(err).Msgf("None task in topic(%s)", topic)

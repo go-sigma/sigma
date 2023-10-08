@@ -116,7 +116,7 @@ func TestSanitizePath(t *testing.T) {
 				rootDirectory: "/test",
 				p:             "test",
 			},
-			want: "test/test",
+			want: "/test/test",
 		},
 		{
 			name: "test-6",

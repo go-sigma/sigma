@@ -73,6 +73,12 @@ func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
 			return nil, err
 		}
 	}
+	if !utils.IsExist(path.Join(driver.rootDirectory, consts.DirCache)) {
+		err := os.MkdirAll(path.Join(driver.rootDirectory, consts.DirCache), 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return driver, nil
 }
 
@@ -169,7 +175,7 @@ func (f *fs) AbortUpload(ctx context.Context, _ string, uploadID string) error {
 }
 
 // Upload upload a file to the given path.
-func (f *fs) Upload(ctx context.Context, path string, body io.Reader) error {
+func (f *fs) Upload(ctx context.Context, p string, body io.Reader) error {
 	if body == nil {
 		return fmt.Errorf("body is nil")
 	}
@@ -205,14 +211,20 @@ func (f *fs) Upload(ctx context.Context, path string, body io.Reader) error {
 		}
 	}()
 
-	path = storage.SanitizePath(f.rootDirectory, path)
-	if utils.IsExist(path) {
-		err := os.RemoveAll(path)
+	p = storage.SanitizePath(f.rootDirectory, p)
+	if utils.IsExist(p) {
+		err := os.RemoveAll(p)
 		if err != nil {
 			return err
 		}
 	}
-	fp, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+	if !utils.IsDir(path.Dir(p)) {
+		err := os.MkdirAll(path.Dir(p), 0755)
+		if err != nil {
+			return err
+		}
+	}
+	fp, err := os.Create(p)
 	if err != nil {
 		return err
 	}

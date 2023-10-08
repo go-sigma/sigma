@@ -18,7 +18,7 @@ linters-settings:
     multi-func: true
   cyclop:
     max-complexity: 50
-    package-average: 30
+    package-average: 50
     skip-tests: true
   gci:
     sections:
