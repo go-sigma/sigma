@@ -15,7 +15,7 @@ RUN set -eux && yarn install --frozen-lockfile && yarn build
 FROM alpine:${ALPINE_VERSION} as syft
 
 ARG SYFT_VERSION=0.88.0
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 
 RUN set -eux && \
   apk add --no-cache wget && \
@@ -28,7 +28,7 @@ FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG TRIVY_VERSION=0.44.1
 ARG ORAS_VERSION=1.0.0
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 
 RUN set -eux && \
   apk add --no-cache wget && \
@@ -61,7 +61,7 @@ COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN make build
+RUN --mount=type=cache,target=/root/.cache/go-build make all
 
 FROM alpine:${ALPINE_VERSION}
 
@@ -70,5 +70,6 @@ COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
+COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma-builder /usr/local/bin/sigma-builder
 
 CMD ["sigma", "server"]

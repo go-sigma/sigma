@@ -26,7 +26,8 @@ jobs:
           sudo service docker restart
           echo $DOCKER_HOST
 
-          make docker-build
+          docker buildx create --use
+          docker buildx build -f build/Dockerfile --platform linux/amd64 --progress plain --output type=docker,dest=- -t sigma:latest . | docker load
       - name: Run sigma
         run: |
           docker run --name sigma -v /var/run/docker.sock:/var/run/docker.sock -d -p 3000:3000 sigma:latest
