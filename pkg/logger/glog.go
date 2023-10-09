@@ -49,13 +49,7 @@ func (l ZLogger) Info(ctx context.Context, msg string, opts ...interface{}) {
 // Trace is the trace log
 func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, int64), err error) {
 	zl := zerolog.Ctx(ctx)
-	var event *zerolog.Event
-
-	if err != nil {
-		event = zl.Error()
-	} else {
-		event = zl.Info()
-	}
+	var event = zl.Debug()
 
 	event = event.Str("elapsed", time.Since(begin).String())
 

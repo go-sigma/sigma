@@ -22,8 +22,6 @@ import Header from "../../components/Header";
 
 import { ScaleIcon } from '@heroicons/react/24/outline';
 
-import "./index.css";
-
 const cards = [
   { name: 'Account balance1', href: '#', icon: ScaleIcon, amount: '$30,659.45' },
   { name: 'Account balance2', href: '#', icon: ScaleIcon, amount: '$30,659.45' },

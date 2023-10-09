@@ -179,7 +179,7 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen max-h-screen flex overflow-hidden bg-white">
-        <Menu localServer={localServer} item="repositories" namespace={namespace} />
+        <Menu localServer={localServer} item="repositories" namespace={namespace} repository={repositoryObj?.name} selfClick={true} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"
@@ -204,8 +204,13 @@ export default function ({ localServer }: { localServer: string }) {
                       <li>
                         <div className="flex items-center">
                           <span className="text-gray-500 text-sm ml-1">/</span>
-                          <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                          {/* <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">
                             {repositoryObj?.name?.substring((namespace?.length || 0) + 1)}
+                          </span> */}
+                          <span className="ml-1 inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                            <Link to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}`} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                              {repositoryObj?.name?.substring((namespace?.length || 0) + 1)}
+                            </Link>
                           </span>
                           <span className="text-gray-500 text-sm ml-1">/</span>
                         </div>

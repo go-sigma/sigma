@@ -30,7 +30,6 @@ import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
 
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
-import BuilderRunner from './pages/CodeRepository/BuilderRunner';
 
 import BuildersSetup from './pages/Builder/Setup';
 import BuilderRunnerList from './pages/Builder/RunnerList';
@@ -60,7 +59,7 @@ export default function App() {
         style={{ top: "3rem" }}
       />
       <Routes>
-        <Route path="/" element={<Home localServer={localServer} />} />
+        <Route path="/" element={<Namespaces localServer={localServer} />} />
 
         <Route path="/home" element={<Home localServer={localServer} />} />
 
