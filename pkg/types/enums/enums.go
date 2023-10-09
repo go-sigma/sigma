@@ -218,3 +218,10 @@ type DaemonBuilderAction string
 // SelfCodeRepository,
 // )
 type BuilderSource string
+
+// StorageType x ENUM(
+// s3,
+// filesystem,
+// cos,
+// )
+type StorageType string

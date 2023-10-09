@@ -119,9 +119,9 @@ func checkPostgresql(config Configuration) error {
 func checkStorage(config Configuration) error {
 	storageType := config.Storage.Type
 	switch storageType {
-	case "filesystem":
+	case enums.StorageTypeFilesystem:
 		return nil
-	case "s3":
+	case enums.StorageTypeS3:
 		return checkStorageS3(config)
 	default:
 		return fmt.Errorf("Not support storage type")

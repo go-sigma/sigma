@@ -54,13 +54,13 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-func (f factory) New(_ configs.Configuration) (storage.StorageDriver, error) {
-	endpoint := viper.GetString("storage.s3.endpoint")
-	region := viper.GetString("storage.s3.region")
-	ak := viper.GetString("storage.s3.ak")
-	sk := viper.GetString("storage.s3.sk")
-	bucket := viper.GetString("storage.s3.bucket")
-	forcePathStyle := viper.GetBool("storage.s3.forcePathStyle")
+func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
+	endpoint := config.Storage.S3.Endpoint
+	region := config.Storage.S3.Region
+	ak := config.Storage.S3.Ak
+	sk := config.Storage.S3.Sk
+	bucket := config.Storage.S3.Bucket
+	forcePathStyle := config.Storage.S3.ForcePathStyle
 
 	sess, err := session.NewSession(&aws.Config{
 		Endpoint:         aws.String(endpoint),

@@ -22,35 +22,33 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 func TestNew(t *testing.T) {
-	viper.Reset()
-
-	viper.SetDefault("storage.filesystem.path", "test")
-	viper.SetDefault("storage.rootDirectory", "storage")
+	var config = configs.Configuration{}
+	config.Storage.Filesystem.Path = "test"
+	config.Storage.RootDirectory = "storage"
 
 	f := factory{}
-	driver, err := f.New(configs.Configuration{})
+	driver, err := f.New(config)
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 
-	err = os.WriteFile("test/storage/unit-test", []byte("test"), 0600)
+	err = os.WriteFile("storage/test/unit-test", []byte("test"), 0600)
 	assert.NoError(t, err)
 	err = driver.Move(context.Background(), "unit-test", "unit-test-2")
 	assert.NoError(t, err)
-	_, err = os.Stat("test/storage/unit-test")
+	_, err = os.Stat("storage/test/unit-test")
 	assert.True(t, errors.Is(err, os.ErrNotExist))
-	_, err = os.Stat("test/storage/unit-test-2")
+	_, err = os.Stat("storage/test/unit-test-2")
 	assert.NoError(t, err)
-	err = driver.Delete(context.Background(), "test/storage/unit-test-2")
+	err = driver.Delete(context.Background(), "storage/test/unit-test-2")
 	assert.NoError(t, err)
 
-	err = os.WriteFile("test/storage/unit-test", []byte("test"), 0600)
+	err = os.WriteFile("storage/test/unit-test", []byte("test"), 0600)
 	assert.NoError(t, err)
 	reader, err := driver.Reader(context.Background(), "unit-test", 0)
 	assert.NoError(t, err)
