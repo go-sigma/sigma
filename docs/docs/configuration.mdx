@@ -1,0 +1,129 @@
+---
+title: Configuration
+---
+
+``` yaml
+log:
+  level: debug
+  # proxy for another registry(eg: docker.io) log level
+  proxyLevel: info
+
+database:
+  # The database type to use. Supported types are: sqlite3, mysql, postgresql
+  type: sqlite3
+  sqlite3:
+    path: sigma.db
+  mysql:
+    host: localhost
+    port: 3306
+    user: sigma
+    password: sigma
+    dbname: sigma
+  postgresql:
+    host: localhost
+    port: 5432
+    user: sigma
+    password: sigma
+    dbname: sigma
+    sslmode: disable
+
+redis:
+  # redis type available: none, external
+  # none: means never use redis
+  # external: means use the specific redis instance
+  type: none
+  url: redis://:sigma@localhost:6379/0
+
+cache:
+  # the cache type available is: redis, inmemory, database
+  type: redis
+  inmemory:
+    size: 10240
+  redis:
+    ttl: 72h
+  database:
+    size: 10240
+    threshold: 0.2
+
+workqueue:
+  # the workqueue type available: redis, kafka, database
+  type: redis
+  redis:
+    concurrency: 10
+  kafka: {}
+  database: {}
+
+locker:
+  # the locker type available: redis, database
+  type: database
+  database: {}
+  redis: {}
+
+namespace:
+  # push image to registry, if namespace not exist, it will be created automatically
+  autoCreate: false
+  # the automatic created namespace visibility, available: public, private
+  visibility: public
+
+http:
+  # endpoint can be a domain or domain with port, eg: http://sigma.test.io, https://sigma.test.io:30080, http://127.0.0.1:3000
+  # this endpoint will be used to generate the token service url in auth middleware,
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default,
+  # because the front page need show this endpoint.
+  endpoint:
+  # in some cases, daemon may pull image and scan it, but we don't want to pull image from public registry domain,
+  # so use this internal domain to pull image from registry.
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
+  # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
+  # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
+  # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
+  internalEndpoint:
+  tls:
+    enabled: false
+    certificate: ./conf/sigma.test.io.crt
+    key: ./conf/sigma.test.io.key
+storage:
+  rootdirectory: ./storage
+  type: filesystem
+  filesystem:
+    path: /var/lib/sigma/oci/
+  s3:
+    ak: sigma
+    sk: sigma-sigma
+    endpoint: http://127.0.0.1:9000
+    region: cn-north-1
+    bucket: sigma
+    forcePathStyle: true
+# Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
+proxy:
+  enabled: false
+  endpoint: https://registry-1.docker.io
+  tlsVerify: true
+  username: ""
+  password: ""
+daemon:
+  gc:
+    # if blob not associate with artifact
+    retention: 72h
+    # At 02:00 on Saturday
+    cron: 0 2 * * 6
+auth:
+  internalUser:
+    username: internal-sigma
+    password: internal-sigma
+  admin:
+    username: sigma
+    password: sigma
+  token:
+    realm: ""
+    service: ""
+  jwt:
+    ttl: 1h
+    refreshTtl: 24h
+    privateKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSB"
+  oauth2:
+    github:
+      clientId: "e5f9fa9e372dfac66aed"
+      clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"
+
+```
