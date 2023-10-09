@@ -22,25 +22,26 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestNew(t *testing.T) {
-	viper.Reset()
-	viper.SetDefault("storage.s3.endpoint", "http://localhost:9010")
-	viper.SetDefault("storage.s3.region", "cn-north-1")
-	viper.SetDefault("storage.s3.ak", "sigma")
-	viper.SetDefault("storage.s3.sk", "sigma-sigma")
-	viper.SetDefault("storage.s3.bucket", "sigma")
-	viper.SetDefault("storage.s3.forcePathStyle", true)
+	var config = configs.Configuration{}
+	config.Storage.Type = enums.StorageTypeS3
+	config.Storage.S3.Endpoint = "http://localhost:9010"
+	config.Storage.S3.Region = "cn-north-1"
+	config.Storage.S3.Ak = "sigma"
+	config.Storage.S3.Sk = "sigma-sigma"
+	config.Storage.S3.Bucket = "sigma"
+	config.Storage.S3.ForcePathStyle = true
 
 	ctx := context.Background()
 
 	var f = factory{}
-	driver, err := f.New(configs.Configuration{})
+	driver, err := f.New(config)
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 
@@ -55,8 +56,8 @@ func TestNew(t *testing.T) {
 
 	//---------------------------- wrong endpoint ---------------------
 
-	viper.SetDefault("storage.s3.endpoint", "http://localhost:9000")
-	driver, err = f.New(configs.Configuration{})
+	config.Storage.S3.Endpoint = "http://localhost:9000"
+	driver, err = f.New(config)
 	assert.NoError(t, err)
 	assert.NotNil(t, driver)
 

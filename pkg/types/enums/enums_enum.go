@@ -1731,6 +1731,92 @@ func (x SortMethod) Value() (driver.Value, error) {
 }
 
 const (
+	// StorageTypeS3 is a StorageType of type s3.
+	StorageTypeS3 StorageType = "s3"
+	// StorageTypeFilesystem is a StorageType of type filesystem.
+	StorageTypeFilesystem StorageType = "filesystem"
+	// StorageTypeCos is a StorageType of type cos.
+	StorageTypeCos StorageType = "cos"
+)
+
+var ErrInvalidStorageType = errors.New("not a valid StorageType")
+
+// String implements the Stringer interface.
+func (x StorageType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x StorageType) IsValid() bool {
+	_, err := ParseStorageType(string(x))
+	return err == nil
+}
+
+var _StorageTypeValue = map[string]StorageType{
+	"s3":         StorageTypeS3,
+	"filesystem": StorageTypeFilesystem,
+	"cos":        StorageTypeCos,
+}
+
+// ParseStorageType attempts to convert a string to a StorageType.
+func ParseStorageType(name string) (StorageType, error) {
+	if x, ok := _StorageTypeValue[name]; ok {
+		return x, nil
+	}
+	return StorageType(""), fmt.Errorf("%s is %w", name, ErrInvalidStorageType)
+}
+
+// MustParseStorageType converts a string to a StorageType, and panics if is not valid.
+func MustParseStorageType(name string) StorageType {
+	val, err := ParseStorageType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errStorageTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *StorageType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = StorageType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseStorageType(v)
+	case []byte:
+		*x, err = ParseStorageType(string(v))
+	case StorageType:
+		*x = v
+	case *StorageType:
+		if v == nil {
+			return errStorageTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errStorageTypeNilPtr
+		}
+		*x, err = ParseStorageType(*v)
+	default:
+		return errors.New("invalid type for StorageType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x StorageType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// TaskCommonStatusPending is a TaskCommonStatus of type Pending.
 	TaskCommonStatusPending TaskCommonStatus = "Pending"
 	// TaskCommonStatusDoing is a TaskCommonStatus of type Doing.

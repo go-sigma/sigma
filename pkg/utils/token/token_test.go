@@ -21,7 +21,6 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -38,7 +37,6 @@ func TestNew(t *testing.T) {
 	logger.SetLevel("debug")
 
 	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis:////"+miniRedis.Addr())
 
 	config := configs.GetConfiguration()
 	config.Redis.Type = enums.RedisTypeExternal
@@ -49,9 +47,6 @@ func TestNew(t *testing.T) {
 	assert.Error(t, err)
 
 	config.Redis.Url = "redis://" + miniRedis.Addr()
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	viper.SetDefault("auth.jwt.expire", time.Second)
 
 	_, err = NewTokenService(privateKeyString + "-")
 	assert.Error(t, err)

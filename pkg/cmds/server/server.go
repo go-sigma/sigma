@@ -123,7 +123,7 @@ func Serve(serverConfig ServerConfig) error {
 		return err
 	}
 
-	err = storage.Initialize(configs.Configuration{})
+	err = storage.Initialize(config)
 	if err != nil {
 		return err
 	}
