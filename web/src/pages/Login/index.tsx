@@ -33,7 +33,7 @@ export default function Login({ localServer }: { localServer: string }) {
         const resp = response.data as IUserLoginResponse;
         localStorage.setItem("token", resp.token);
         localStorage.setItem("refresh_token", resp.refresh_token);
-        navigate("/");
+        navigate("/namespaces");
       }).catch(err => {
         console.log(err)
       })
@@ -95,9 +95,9 @@ export default function Login({ localServer }: { localServer: string }) {
                     }}
                   />
                 </div>
-                <div className="h-1">
+                {/* <div className="h-1">
                   <p className="text-red-600 text-sm">xxx</p>
-                </div>
+                </div> */}
               </div>
 
               <div>
@@ -117,9 +117,9 @@ export default function Login({ localServer }: { localServer: string }) {
                     }}
                   />
                 </div>
-                <div className="h-1">
+                {/* <div className="h-1">
                   <p className="text-red-600 text-sm">xxx</p>
-                </div>
+                </div> */}
               </div>
 
               <div className="flex items-center justify-between">

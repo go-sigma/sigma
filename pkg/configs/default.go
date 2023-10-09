@@ -30,6 +30,10 @@ func defaultSettings() {
 	viper.SetDefault("server.endpoint", "http://127.0.0.1:3000")
 	viper.SetDefault("server.internalEndpoint", "http://127.0.0.1:3000")
 
-	// configuration.HTTP.Endpoint = "http://127.0.0.1:3000"
-	// configuration.HTTP.InternalEndpoint = "http://127.0.0.1:3000"
+	if configuration.HTTP.Endpoint == "" {
+		configuration.HTTP.Endpoint = "http://127.0.0.1:3000"
+	}
+	if configuration.HTTP.InternalEndpoint == "" {
+		configuration.HTTP.InternalEndpoint = "http://127.0.0.1:3000"
+	}
 }

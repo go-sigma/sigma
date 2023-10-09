@@ -22,7 +22,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Toast from "../../components/Notification";
 import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
 
-export default function ({ localServer, item, namespace, repository, tag }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string }) {
+export default function ({ localServer, item, namespace, repository, tag, selfClick }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [menuActive, setMenuActive] = useState(item === "" ? "home" : item);
   const navigate = useNavigate();
@@ -164,7 +164,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
           }
           <nav className="px-3 mt-6">
             <div className="space-y-1">
-              {
+              {/* {
                 !isAnonymous && (
                   <Link to={`/home`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "home" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                     setMenuActive("home");
@@ -178,7 +178,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                     Home
                   </Link>
                 )
-              }
+              } */}
               <Link to={`/namespaces`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "namespaces" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                 setMenuActive("namespaces");
                 item === "namespaces" && e.preventDefault();
@@ -192,9 +192,9 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
               </Link>
               {
                 (item === "repositories" || item === "tags" || item === "artifacts") && (
-                  <Link to={`/namespaces/${namespace}/repositories`} className={`text-gray-700 group flex items-center px-4 py-2 text-sm font-medium rounded-md ${menuActive === "repositories" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+                  <Link to={`/namespaces/${namespace}/repositories?repository=${repository}`} className={`text-gray-700 group flex items-center px-6 py-2 text-sm font-medium rounded-md ${menuActive === "repositories" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                     setMenuActive("repositories");
-                    item === "repositories" && e.preventDefault();
+                    (item === "repositories" && selfClick !== true) && e.preventDefault();
                   }}>
                     <span className="text-gray-400 mr-3 h-6 w-6">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -207,7 +207,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
               }
               {
                 (item === "tags" || item === "artifacts") && (
-                  <Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}`} className={`text-gray-700 group flex items-center px-4 py-2 text-sm font-medium rounded-md ${menuActive === "tags" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+                  <Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}`} className={`text-gray-700 group flex items-center px-6 py-2 text-sm font-medium rounded-md ${menuActive === "tags" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                     setMenuActive("tags");
                     item === "tags" && e.preventDefault();
                   }}>
@@ -247,7 +247,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                 </span>
                 Code Repository
               </Link>
-              {
+              {/* {
                 !isAnonymous && (
                   <Link to={`/settings`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "settings" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                     setMenuActive("settings");
@@ -262,7 +262,7 @@ export default function ({ localServer, item, namespace, repository, tag }: { lo
                     Setting
                   </Link>
                 )
-              }
+              } */}
             </div>
             <div className="mt-8">
               {
