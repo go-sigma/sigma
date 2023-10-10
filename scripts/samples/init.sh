@@ -1,5 +1,5 @@
 #!/bin/sh
 
-sudo curl -sSL https://get.docker.io/ | sh
+curl -fsSL https://get.docker.com -o install-docker.sh
 
-sudo apt update && sudo apt upgrade -y
+sudo sh install-docker.sh

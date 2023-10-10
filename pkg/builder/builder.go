@@ -60,18 +60,18 @@ type Factory interface {
 // DriverFactories ...
 var DriverFactories = make(map[string]Factory)
 
-func Initialize() error {
-	typ := "docker"
-	factory, ok := DriverFactories[typ]
+func Initialize(config configs.Configuration) error {
+	typ := config.Daemon.Builder.Type
+	factory, ok := DriverFactories[typ.String()]
 	if !ok {
-		return fmt.Errorf("builder driver %q not registered", typ)
+		return fmt.Errorf("builder driver %s not registered", typ.String())
 	}
 	var err error
 	err = logger.Initialize()
 	if err != nil {
 		return err
 	}
-	Driver, err = factory.New(configs.Configuration{})
+	Driver, err = factory.New(config)
 	if err != nil {
 		return err
 	}

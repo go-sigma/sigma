@@ -229,9 +229,30 @@ type ConfigurationDaemonGc struct {
 	Cron      string `yaml:"cron"`
 }
 
+// ConfigurationDaemonDocker ...
+type ConfigurationDaemonDocker struct {
+	Sock    *string `yaml:"sock"`
+	Network string  `yaml:"network"`
+}
+
+// ConfigurationDaemonKubernetes ...
+type ConfigurationDaemonKubernetes struct {
+	Kubeconfig *string `yaml:"kubeconfig"`
+	Namespace  *string `yaml:"namespace"`
+}
+
+// ConfigurationDaemonBuilder ...
+type ConfigurationDaemonBuilder struct {
+	Type       enums.BuilderType             `yaml:"type"`
+	Image      string                        `yaml:"image"`
+	Docker     ConfigurationDaemonDocker     `yaml:"docker"`
+	Kubernetes ConfigurationDaemonKubernetes `yaml:"kubernetes"`
+}
+
 // ConfigurationDaemon ...
 type ConfigurationDaemon struct {
-	Gc ConfigurationDaemonGc `yaml:"gc"`
+	Gc      ConfigurationDaemonGc      `yaml:"gc"`
+	Builder ConfigurationDaemonBuilder `yaml:"builder"`
 }
 
 // ConfigurationAuthInternalUser ...

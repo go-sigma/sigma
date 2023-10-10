@@ -32,19 +32,16 @@ import (
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Worker is the worker initialization
 func Worker() error {
-	err := builder.Initialize()
+	config := ptr.To(configs.GetConfiguration())
+	err := builder.Initialize(config)
 	if err != nil {
 		return err
 	}
-
-	// err = daemon.InitializeServer()
-	// if err != nil {
-	// 	return err
-	// }
 
 	err = workq.Initialize(configs.Configuration{
 		WorkQueue: configs.ConfigurationWorkQueue{

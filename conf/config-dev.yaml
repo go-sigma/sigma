@@ -75,6 +75,7 @@ http:
   # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
   # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
+  # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
   internalEndpoint: http://192.168.31.198:3000
   tls:
@@ -93,6 +94,7 @@ storage:
     region: cn-north-1
     bucket: sigma
     forcePathStyle: true
+
 # Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
 proxy:
   enabled: false
@@ -100,12 +102,24 @@ proxy:
   tlsVerify: true
   username: ""
   password: ""
+
+# daemon task config
 daemon:
   gc:
     # if blob not associate with artifact
     retention: 72h
     # At 02:00 on Saturday
     cron: 0 2 * * 6
+  builder:
+    image: sigma-builder:latest
+    type: docker
+    docker:
+      sock:
+      network: sigma
+    kubernetes:
+      kubeconfig:
+      namespace:
+
 auth:
   internalUser:
     username: internal-sigma

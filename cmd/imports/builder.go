@@ -16,7 +16,7 @@ package imports
 
 import (
 	_ "github.com/go-sigma/sigma/pkg/builder/docker"
-	_ "github.com/go-sigma/sigma/pkg/builder/k8s"
+	_ "github.com/go-sigma/sigma/pkg/builder/kubernetes"
 	_ "github.com/go-sigma/sigma/pkg/builder/logger/database"
 	_ "github.com/go-sigma/sigma/pkg/builder/logger/obs"
 	_ "github.com/go-sigma/sigma/pkg/builder/podman"

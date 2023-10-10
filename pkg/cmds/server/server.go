@@ -97,14 +97,10 @@ func Serve(serverConfig ServerConfig) error {
 		handlers.InitializeDistribution(e)
 	}
 	if !serverConfig.WithoutWorker {
-		err := builder.Initialize()
+		err := builder.Initialize(config)
 		if err != nil {
 			return err
 		}
-		// err = daemon.InitializeServer()
-		// if err != nil {
-		// 	return err
-		// }
 		err = workq.Initialize(configs.Configuration{
 			WorkQueue: configs.ConfigurationWorkQueue{
 				Type: enums.WorkQueueTypeDatabase,

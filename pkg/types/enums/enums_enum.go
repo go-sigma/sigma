@@ -479,6 +479,89 @@ func (x BuilderSource) Value() (driver.Value, error) {
 }
 
 const (
+	// BuilderTypeDocker is a BuilderType of type docker.
+	BuilderTypeDocker BuilderType = "docker"
+	// BuilderTypeKubernetes is a BuilderType of type kubernetes.
+	BuilderTypeKubernetes BuilderType = "kubernetes"
+)
+
+var ErrInvalidBuilderType = errors.New("not a valid BuilderType")
+
+// String implements the Stringer interface.
+func (x BuilderType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x BuilderType) IsValid() bool {
+	_, err := ParseBuilderType(string(x))
+	return err == nil
+}
+
+var _BuilderTypeValue = map[string]BuilderType{
+	"docker":     BuilderTypeDocker,
+	"kubernetes": BuilderTypeKubernetes,
+}
+
+// ParseBuilderType attempts to convert a string to a BuilderType.
+func ParseBuilderType(name string) (BuilderType, error) {
+	if x, ok := _BuilderTypeValue[name]; ok {
+		return x, nil
+	}
+	return BuilderType(""), fmt.Errorf("%s is %w", name, ErrInvalidBuilderType)
+}
+
+// MustParseBuilderType converts a string to a BuilderType, and panics if is not valid.
+func MustParseBuilderType(name string) BuilderType {
+	val, err := ParseBuilderType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errBuilderTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *BuilderType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = BuilderType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseBuilderType(v)
+	case []byte:
+		*x, err = ParseBuilderType(string(v))
+	case BuilderType:
+		*x = v
+	case *BuilderType:
+		if v == nil {
+			return errBuilderTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errBuilderTypeNilPtr
+		}
+		*x, err = ParseBuilderType(*v)
+	default:
+		return errors.New("invalid type for BuilderType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x BuilderType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// CacherTypeInmemory is a CacherType of type inmemory.
 	CacherTypeInmemory CacherType = "inmemory"
 	// CacherTypeRedis is a CacherType of type redis.

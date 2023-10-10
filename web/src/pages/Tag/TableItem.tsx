@@ -78,10 +78,14 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
         <span>  {imageConfigObj.os}/{imageConfigObj.architecture}</span>
       </td>
       <td className="text-right text-xs">
-        {distros(sbomObj.distro?.name) === "" ? "" : (
-          <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative mr-1" />
-        )}
-        {distroName(sbomObj.distro?.name) === "" ? "-" : distroName(sbomObj.distro.name) + " " + sbomObj.distro.version}
+        <div className='flex flex-row-reverse gap-1'>
+          <div className=''>
+            {distroName(sbomObj.distro?.name) === "" ? "-" : distroName(sbomObj.distro.name) + " " + sbomObj.distro.version}
+          </div>
+          {distros(sbomObj.distro?.name) === "" ? "" : (
+            <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative" />
+          )}
+        </div>
       </td>
       <td className="text-right text-xs">
         {humanFormat(artifact.blob_size || 0)}
@@ -96,7 +100,7 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
         <span className="bg-red-800 text-white text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300"><span>{vulnerabilityObj.critical || 0}</span> C</span>
         <span className="bg-red-300 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.high || 0} H</span>
         <span className="bg-amber-400 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.medium || 0} M</span>
-        <span className="bg-amber-200 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} H</span>
+        <span className="bg-amber-200 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} L</span>
       </td>
     </tr>
   );

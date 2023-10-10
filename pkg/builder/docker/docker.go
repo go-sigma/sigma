@@ -54,6 +54,7 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 		return nil, fmt.Errorf("Create docker client failed: %v", err)
 	}
 	i := &instance{
+		config:                config,
 		client:                cli,
 		controlled:            mapset.NewSet[string](),
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
@@ -67,6 +68,7 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 }
 
 type instance struct {
+	config                configs.Configuration
 	client                *client.Client
 	controlled            mapset.Set[string] // the controlled container in docker container
 	builderServiceFactory dao.BuilderServiceFactory
@@ -82,7 +84,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	}
 
 	containerConfig := &container.Config{
-		Image:      "docker.io/library/builder:dev",
+		Image:      i.config.Daemon.Builder.Image,
 		Entrypoint: []string{},
 		Cmd:        []string{"sigma-builder"},
 		Env:        envs,
@@ -94,6 +96,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	}
 	hostConfig := &container.HostConfig{
 		SecurityOpt: []string{"seccomp=unconfined", "apparmor=unconfined"},
+		NetworkMode: container.NetworkMode(i.config.Daemon.Builder.Docker.Network),
 	}
 	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 	if err != nil {
