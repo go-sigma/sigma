@@ -18,6 +18,8 @@ export default function (name: string) {
   switch (name) {
     case "alpine":
       return "alpine.png";
+    case "debian":
+      return "debian.png";
     default:
       return "";
   }
@@ -31,6 +33,8 @@ export function distroName(name: string) {
       return "Ubuntu";
     case "centos":
       return "CentOs";
+    case "debian":
+      return "Debian"
     default:
       return "";
   }

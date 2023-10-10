@@ -76,6 +76,7 @@ http:
   # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
   # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
+  # if http.tls.enabled is true, internalEndpoint should start with 'https://'
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
   internalEndpoint:
   tls:
@@ -137,5 +138,4 @@ auth:
     github:
       clientId: "e5f9fa9e372dfac66aed"
       clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"
-
 ```

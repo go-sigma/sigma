@@ -21,21 +21,25 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	syftTypes "github.com/anchore/syft/syft/formats/syftjson/model"
 	"github.com/anchore/syft/syft/source"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/daemon"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
 func init() {
@@ -62,24 +66,50 @@ type Report struct {
 
 func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
 	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
-	image := fmt.Sprintf("%s/%s@%s", utils.TrimHTTP(viper.GetString("server.internalEndpoint")), artifact.Repository.Name, artifact.Digest)
+
+	config := ptr.To(configs.GetConfiguration())
+	userService := dao.NewUserServiceFactory().New()
+	userObj, err := userService.GetByUsername(ctx, config.Auth.InternalUser.Username)
+	if err != nil {
+		return err
+	}
+	tokenService, err := token.NewTokenService(config.Auth.Jwt.PrivateKey)
+	if err != nil {
+		return err
+	}
+	authorization, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
+	if err != nil {
+		return err
+	}
+
+	image := fmt.Sprintf("%s/%s@%s", utils.TrimHTTP(config.HTTP.InternalEndpoint), artifact.Repository.Name, artifact.Digest)
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
-	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, image)
+
+	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, fmt.Sprintf("registry:%s", image))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	cmd.Env = append(cmd.Env, fmt.Sprintf("SYFT_REGISTRY_AUTH_TOKEN=%s", authorization))
+	if strings.HasPrefix(config.HTTP.InternalEndpoint, "http://") {
+		cmd.Env = append(cmd.Env, "SYFT_REGISTRY_INSECURE_USE_HTTP=true")
+	}
+	if strings.HasPrefix(config.HTTP.InternalEndpoint, "https://") {
+		cmd.Env = append(cmd.Env, "SYFT_REGISTRY_INSECURE_SKIP_TLS_VERIFY=true")
+	}
 
-	log.Info().Str("artifactDigest", artifact.Digest).Str("command", cmd.String()).Msg("Start sbom artifact")
+	log.Info().Str("artifactDigest", artifact.Digest).Strs("env", cmd.Env).Str("command", cmd.String()).Msg("Start sbom artifact")
 
 	defer func() {
-		err := os.Remove(filename)
-		if err != nil {
-			log.Warn().Err(err).Msg("Remove file failed")
+		if utils.IsFile(filename) {
+			err := os.Remove(filename)
+			if err != nil {
+				log.Warn().Err(err).Msg("Remove file failed")
+			}
 		}
 	}()
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Run syft failed")
 		statusChan <- daemon.DecoratorArtifactStatus{
