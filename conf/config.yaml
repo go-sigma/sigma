@@ -29,6 +29,8 @@ deploy: single
 
 redis:
   # redis type available: none, external
+  # none: means never use redis
+  # external: means use the specific redis instance
   type: none
   url: redis://:sigma@localhost:6379/0
 
@@ -105,12 +107,24 @@ proxy:
   tlsVerify: true
   username: ""
   password: ""
+
+# daemon task config
 daemon:
   gc:
     # if blob not associate with artifact
     retention: 72h
     # At 02:00 on Saturday
     cron: 0 2 * * 6
+  builder:
+    image: sigma-builder:latest
+    type: docker
+    docker:
+      sock:
+      network: sigma
+    kubernetes:
+      kubeconfig:
+      namespace:
+
 auth:
   internalUser:
     username: internal-sigma

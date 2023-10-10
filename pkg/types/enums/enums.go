@@ -225,3 +225,9 @@ type BuilderSource string
 // cos,
 // )
 type StorageType string
+
+// BuilderType x ENUM(
+// docker,
+// kubernetes,
+// )
+type BuilderType string

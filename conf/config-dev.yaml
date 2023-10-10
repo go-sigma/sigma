@@ -93,6 +93,7 @@ storage:
     region: cn-north-1
     bucket: sigma
     forcePathStyle: true
+
 # Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
 proxy:
   enabled: false
@@ -100,12 +101,24 @@ proxy:
   tlsVerify: true
   username: ""
   password: ""
+
+# daemon task config
 daemon:
   gc:
     # if blob not associate with artifact
     retention: 72h
     # At 02:00 on Saturday
     cron: 0 2 * * 6
+  builder:
+    image: sigma-builder:latest
+    type: docker
+    docker:
+      sock:
+      network: sigma
+    kubernetes:
+      kubeconfig:
+      namespace:
+
 auth:
   internalUser:
     username: internal-sigma

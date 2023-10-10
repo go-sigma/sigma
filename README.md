@@ -15,16 +15,17 @@ Runs on aws ec2 (2C2G, Disk 20G), Linux distribution is Debian 12.1, Docker vers
 
 ``` sh
 # Install Docker from get.docker.com
-./scripts/samples/init.sh
+sh ./scripts/samples/init.sh
 
 # If your docker running with rootless mode,
 # make sure add net.ipv4.ip_unprivileged_port_start=0 to /etc/sysctl.conf and run sudo sysctl --system.
+docker network create sigma
 docker run --name sigma -v /home/admin/config:/etc/sigma \
   -v /var/run/docker.sock:/var/run/docker.sock -p 443:3000 \
-  -d ghcr.io/go-sigma/sigma:nightly-alpine
+  -d --net sigma ghcr.io/go-sigma/sigma:nightly-alpine
 
 # Add sample data
-./scripts/samples/samples.sh
+sh ./scripts/samples/samples.sh
 ```
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/sigma
