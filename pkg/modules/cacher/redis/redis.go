@@ -54,7 +54,7 @@ func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Dur
 	if err != nil {
 		return fmt.Errorf("marshal value failed: %w", err)
 	}
-	var ttl = c.config.Cache.Redis.Ttl
+	var ttl = c.config.Cache.Ttl
 	if len(ttls) > 0 {
 		ttl = ttls[0]
 	}

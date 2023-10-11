@@ -144,7 +144,7 @@ func (b Builder) initCache() error {
 		if err != nil {
 			return fmt.Errorf("Rename cache_out to cache_in failed: %v", err)
 		}
-		log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Decompress cache success")
+		log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("Decompress cache success")
 	}
 	var dirs = []string{cacheOut, cacheIn}
 	for _, dir := range dirs {
@@ -177,6 +177,6 @@ func (b Builder) exportCache() error {
 	if err != nil {
 		return fmt.Errorf("Export cache to server failed: %v", err)
 	}
-	log.Info().Str("size", humanize.BigBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
+	log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
 	return nil
 }

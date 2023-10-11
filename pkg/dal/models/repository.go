@@ -15,13 +15,13 @@
 package models
 
 import (
-	"errors"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Repository represents a repository
@@ -56,7 +56,7 @@ func (a *Repository) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 	if namespaceObj.RepositoryLimit > 0 && namespaceObj.RepositoryCount+1 > namespaceObj.RepositoryLimit {
-		return errors.New("namespace's repository quota exceeded")
+		return xerrors.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
 	}
 	err = tx.Model(&Namespace{}).Where(&Namespace{ID: a.NamespaceID}).UpdateColumns(
 		map[string]any{

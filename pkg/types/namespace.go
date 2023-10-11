@@ -47,7 +47,7 @@ type PostNamespaceRequest struct {
 	Name            string            `json:"name" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
 	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	RepositoryLimit int64             `json:"repository_limit" validate:"omitempty,numeric" example:"10000"`
+	RepositoryLimit *int64            `json:"repository_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 }

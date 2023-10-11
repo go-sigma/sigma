@@ -47,7 +47,7 @@ var _ storage.Factory = factory{}
 
 // New returns a new filesystem storage driver
 func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
-	driver := &fs{rootDirectory: path.Join(config.Storage.RootDirectory, config.Storage.Filesystem.Path)}
+	driver := &fs{rootDirectory: path.Join(config.Storage.Filesystem.Path, config.Storage.RootDirectory)}
 	if !utils.IsExist(driver.rootDirectory) {
 		err := os.MkdirAll(driver.rootDirectory, 0755)
 		if err != nil {

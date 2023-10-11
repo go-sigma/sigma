@@ -16,8 +16,11 @@ package xerrors
 
 import (
 	"fmt"
+	"math"
+	"math/big"
 	"net/http"
 
+	"github.com/dustin/go-humanize"
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 
@@ -109,6 +112,13 @@ var (
 	DSErrCodeDenied = ErrCode{
 		Code:           "DENIED",
 		Title:          "requested access to the resource is denied",
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+
+	DSErrCodeResourceQuotaExceed = ErrCode{
+		Code:           "DENIED",
+		Title:          "requested access to the resource quota is exceed",
 		Description:    `The access controller denied access for the operation on a resource.`,
 		HTTPStatusCode: http.StatusForbidden,
 	}
@@ -280,3 +290,75 @@ var (
 		HTTPStatusCode: http.StatusBadRequest,
 	}
 )
+
+// GenDSErrCodeResourceSizeQuotaExceedNamespace ...
+func GenDSErrCodeResourceSizeQuotaExceedNamespace(name string, current, limit, increase int64) ErrCode {
+	c := ErrCode{
+		Code: "DENIED",
+		Title: fmt.Sprintf("requested access to the size quota is exceed, namespace(%s) size quota %s/%s(%s%%), increasing size is %s",
+			name,
+			humanize.BigIBytes(big.NewInt(current)),
+			humanize.BigIBytes(big.NewInt(limit)), humanize.Ftoa(toFixed(float64(current)/float64(limit)*100, 1)),
+			humanize.BigIBytes(big.NewInt(increase))),
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+	return c
+}
+
+// GenDSErrCodeResourceSizeQuotaExceedRepository ...
+func GenDSErrCodeResourceSizeQuotaExceedRepository(name string, current, limit, increase int64) ErrCode {
+	c := ErrCode{
+		Code: "DENIED",
+		Title: fmt.Sprintf("requested access to the size quota is exceed, repository(%s) size quota %s/%s(%s%%), increasing size is %s",
+			name,
+			humanize.BigIBytes(big.NewInt(current)),
+			humanize.BigIBytes(big.NewInt(limit)), humanize.Ftoa(toFixed(float64(current)/float64(limit)*100, 1)),
+			humanize.BigIBytes(big.NewInt(increase))),
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+	return c
+}
+
+func round(num float64) int {
+	return int(num + math.Copysign(0.5, num))
+}
+
+func toFixed(num float64, precision int) float64 {
+	output := math.Pow(10, float64(precision))
+	return float64(round(num*output)) / output
+}
+
+// GenDSErrCodeResourceCountQuotaExceedRepository ...
+func GenDSErrCodeResourceCountQuotaExceedRepository(name string, limit int64) ErrCode {
+	c := ErrCode{
+		Code:           "DENIED",
+		Title:          fmt.Sprintf("requested access to the resource count quota is exceed, repository(%s) tag count quota is %d", name, limit),
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+	return c
+}
+
+// GenDSErrCodeResourceCountQuotaExceedNamespaceRepository ...
+func GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(name string, limit int64) ErrCode {
+	c := ErrCode{
+		Code:           "DENIED",
+		Title:          fmt.Sprintf("requested access to the resource count quota is exceed, namespace(%s) repository count quota is %d", name, limit),
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+	return c
+}
+
+// GenDSErrCodeResourceCountQuotaExceedNamespaceTag ...
+func GenDSErrCodeResourceCountQuotaExceedNamespaceTag(name string, limit int64) ErrCode {
+	c := ErrCode{
+		Code:           "DENIED",
+		Title:          fmt.Sprintf("requested access to the resource count quota is exceed, namespace(%s) tag count quota is %d", name, limit),
+		Description:    `The access controller denied access for the operation on a resource.`,
+		HTTPStatusCode: http.StatusForbidden,
+	}
+	return c
+}

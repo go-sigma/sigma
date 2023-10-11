@@ -133,6 +133,7 @@ auth:
   jwt:
     ttl: 1h
     refreshTtl: 24h
+    # generate the key with: openssl genrsa 4096 | base64
     privateKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSB"
   oauth2:
     github:

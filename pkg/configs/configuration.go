@@ -105,7 +105,6 @@ type ConfigurationRedis struct {
 
 // ConfigurationCacheRedis ...
 type ConfigurationCacheRedis struct {
-	Ttl time.Duration `yaml:"ttl"`
 }
 
 // ConfigurationCacheInmemory ...
@@ -122,6 +121,7 @@ type ConfigurationCacheDatabase struct {
 // ConfigurationCache ...
 type ConfigurationCache struct {
 	Type     enums.CacherType           `yaml:"type"`
+	Ttl      time.Duration              `yaml:"ttl"`
 	Redis    ConfigurationCacheRedis    `yaml:"redis"`
 	Inmemory ConfigurationCacheInmemory `yaml:"inmemory"`
 	Database ConfigurationCacheDatabase `yaml:"database"`

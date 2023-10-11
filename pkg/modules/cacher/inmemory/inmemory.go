@@ -33,6 +33,7 @@ type ValueWithTtl[T any] struct {
 }
 
 type cacher[T any] struct {
+	config  configs.Configuration
 	cache   *lru.TwoQueueCache[string, ValueWithTtl[T]]
 	prefix  string
 	fetcher definition.Fetcher[T]
@@ -45,6 +46,7 @@ func New[T any](config configs.Configuration, prefix string, fetcher definition.
 		return nil, err
 	}
 	return &cacher[T]{
+		config:  config,
 		cache:   cache,
 		prefix:  prefix,
 		fetcher: fetcher,
@@ -56,6 +58,7 @@ func New[T any](config configs.Configuration, prefix string, fetcher definition.
 func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
 	value := ValueWithTtl[T]{
 		Value: val,
+		Ttl:   ptr.Of(time.Now().Add(c.config.Cache.Ttl)),
 	}
 	if len(ttls) > 0 {
 		value.Ttl = ptr.Of(time.Now().Add(ttls[0]))
@@ -77,7 +80,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 		if err != nil {
 			return result, err
 		}
-		err = c.Set(ctx, key, result)
+		err = c.Set(ctx, key, result, c.config.Cache.Ttl)
 		if err != nil {
 			return result, fmt.Errorf("Set value failed: %w", err)
 		}

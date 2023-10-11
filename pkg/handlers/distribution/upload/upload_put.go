@@ -72,6 +72,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 			log.Error().Err(err).Msg("Abort upload failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
+		return c.NoContent(http.StatusCreated)
 	}
 
 	repository := h.getRepository(c)

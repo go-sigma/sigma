@@ -102,6 +102,10 @@ func (h *handler) PutManifest(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Create repository failed")
+		e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota limit error
+		if ok {
+			return xerrors.NewDSError(c, e)
+		}
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
@@ -148,7 +152,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 		artifactObj.Type = enums.ArtifactTypeImageIndex
 		err := h.putManifestIndex(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
-			return xerrors.NewDSError(c, ptr.To(err))
+			e, ok := err.(xerrors.ErrCode)
+			if ok {
+				return xerrors.NewDSError(c, e)
+			}
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 	} else {
 		for _, reference := range manifest.References() {
@@ -172,7 +180,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 		artifactObj.Type = h.getArtifactType(descriptor, manifest)
 		err := h.putManifestManifest(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
-			return xerrors.NewDSError(c, ptr.To(err))
+			e, ok := err.(xerrors.ErrCode)
+			if ok {
+				return xerrors.NewDSError(c, e)
+			}
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 	}
 
@@ -183,12 +195,12 @@ func (h *handler) PutManifest(c echo.Context) error {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (h *handler) putManifestManifest(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) *xerrors.ErrCode {
+func (h *handler) putManifestManifest(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) error {
 	blobService := h.blobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Find blobs failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
+		return xerrors.DSErrCodeUnknown
 	}
 
 	artifactObj.Blobs = blobObjs
@@ -198,7 +210,11 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
-			return ptr.Of(xerrors.DSErrCodeUnknown)
+			e, ok := err.(xerrors.ErrCode)
+			if ok {
+				return e
+			}
+			return xerrors.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
 			tagService := h.tagServiceFactory.New(tx)
@@ -209,7 +225,11 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
-				return ptr.Of(xerrors.DSErrCodeUnknown)
+				e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota error
+				if ok {
+					return e
+				}
+				return xerrors.DSErrCodeUnknown
 			}
 			if workq.ProducerClient != nil { // TODO: init in test
 				err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
@@ -218,14 +238,27 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-					return ptr.Of(xerrors.DSErrCodeUnknown)
+					return xerrors.DSErrCodeUnknown
 				}
+			}
+		}
+		if workq.ProducerClient != nil {
+			err = workq.ProducerClient.Produce(ctx, enums.DaemonArtifactPushed.String(), types.DaemonArtifactPushedPayload{
+				RepositoryID: repositoryObj.ID,
+			}, definition.ProducerOption{Tx: tx})
+			if err != nil {
+				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
+				return xerrors.DSErrCodeUnknown
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		return err.(*xerrors.ErrCode)
+		e, ok := err.(xerrors.ErrCode)
+		if ok {
+			return e
+		}
+		return xerrors.DSErrCodeUnknown
 	}
 
 	if needScan(manifest, descriptor) {
@@ -250,12 +283,12 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (h *handler) putManifestIndex(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) *xerrors.ErrCode {
+func (h *handler) putManifestIndex(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) error {
 	artifactService := h.artifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repositoryObj.Name).Strs("digests", digests).Msg("Get artifacts failed")
-		return ptr.Of(xerrors.DSErrCodeUnknown)
+		return xerrors.DSErrCodeUnknown
 	}
 
 	artifactObj.ArtifactIndexes = artifactObjs
@@ -265,7 +298,11 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
-			return ptr.Of(xerrors.DSErrCodeUnknown)
+			e, ok := err.(xerrors.ErrCode)
+			if ok {
+				return e
+			}
+			return xerrors.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
 			tagService := h.tagServiceFactory.New(tx)
@@ -276,7 +313,11 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Create tag failed")
-				return ptr.Of(xerrors.DSErrCodeUnknown)
+				e, ok := err.(xerrors.ErrCode)
+				if ok {
+					return e
+				}
+				return xerrors.DSErrCodeUnknown
 			}
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
@@ -285,12 +326,16 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-			return ptr.Of(xerrors.DSErrCodeUnknown)
+			return xerrors.DSErrCodeUnknown
 		}
 		return nil
 	})
 	if err != nil {
-		return err.(*xerrors.ErrCode)
+		e, ok := err.(xerrors.ErrCode)
+		if ok {
+			return e
+		}
+		return xerrors.DSErrCodeUnknown
 	}
 
 	return nil

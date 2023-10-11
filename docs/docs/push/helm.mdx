@@ -7,13 +7,13 @@ description: Push helm chart to sigma
 
 ### Generate a sample helm chart
 
-``` sh
+``` bash
 helm create demo
 ```
 
 This command will create 'demo' directory, and a sample helm chart in it.
 
-``` sh
+``` bash
 helm package demo
 ```
 
@@ -26,14 +26,14 @@ You can see the v3.13.0 [release note](https://github.com/helm/helm/releases/tag
 
 Before helm version v3.13.0:
 
-``` sh
+``` bash
 helm registry login --insecure -u sigma -p sigma 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --insecure-skip-tls-verify
 ```
 
 After helm version v3.13.0:
 
-``` sh
+``` bash
 helm registry login -u sigma -p sigma 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --plain-http
 ```

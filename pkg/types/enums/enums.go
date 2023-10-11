@@ -94,6 +94,7 @@ type LockerType string
 // Builder,
 // CodeRepository,
 // TagPushed,
+// ArtifactPushed,
 // )
 type Daemon string
 

@@ -664,6 +664,8 @@ const (
 	DaemonCodeRepository Daemon = "CodeRepository"
 	// DaemonTagPushed is a Daemon of type TagPushed.
 	DaemonTagPushed Daemon = "TagPushed"
+	// DaemonArtifactPushed is a Daemon of type ArtifactPushed.
+	DaemonArtifactPushed Daemon = "ArtifactPushed"
 )
 
 var ErrInvalidDaemon = errors.New("not a valid Daemon")
@@ -689,6 +691,7 @@ var _DaemonValue = map[string]Daemon{
 	"Builder":        DaemonBuilder,
 	"CodeRepository": DaemonCodeRepository,
 	"TagPushed":      DaemonTagPushed,
+	"ArtifactPushed": DaemonArtifactPushed,
 }
 
 // ParseDaemon attempts to convert a string to a Daemon.
