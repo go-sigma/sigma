@@ -19,16 +19,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	"github.com/shirou/gopsutil/v3/process"
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/builder"
@@ -159,49 +156,6 @@ func Serve(serverConfig ServerConfig) error {
 	err = e.Shutdown(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
-	}
-
-	if viper.GetString("deploy") == "single" && viper.GetString("redis.type") == "internal" {
-		_, err := os.Stat(consts.RedisPid)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil
-			}
-			return err
-		}
-		pidBytes, err := os.ReadFile(consts.RedisPid)
-		if err != nil {
-			return err
-		}
-		pid, err := strconv.ParseInt(string(pidBytes), 10, 0)
-		if err != nil {
-			return err
-		}
-		exist, err := process.PidExists(int32(pid))
-		if err != nil {
-			return err
-		}
-		if exist {
-			ps, err := process.NewProcess(int32(pid))
-			if err != nil {
-				return err
-			}
-			err = ps.SendSignal(syscall.SIGTERM)
-			if err != nil {
-				return err
-			}
-			maxTimes := 10
-			for i := 0; i < maxTimes; i++ {
-				exist, err := process.PidExists(int32(pid))
-				if err != nil {
-					return err
-				}
-				if !exist {
-					break
-				}
-				log.Info().Msg("Redis process is still here, wait for a moment")
-			}
-		}
 	}
 
 	return nil
