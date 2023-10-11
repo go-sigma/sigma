@@ -97,7 +97,11 @@ func (h *handlers) PostRepository(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Interface("repositoryObj", repositoryObj).Msg("Repository create failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		e, ok := err.(xerrors.ErrCode) // maybe got exceed repository count quota limit error
+		if ok {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create repository failed: %v", err)))
 	}
 
 	return c.JSON(http.StatusCreated, types.PostRepositoryResponse{ID: repositoryObj.ID})

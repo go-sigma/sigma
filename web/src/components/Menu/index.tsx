@@ -271,7 +271,7 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                     <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" id="teams-headline">
                       Hot namespace
                     </h3>
-                    <div className="mt-1 space-y-1" role="group" aria-labelledby="teams-headline">
+                    <div className="mt-3 space-y-1" role="group" aria-labelledby="teams-headline">
                       {
                         hotNamespaceList.map((ns: INamespaceItem, index: number) => {
                           return (
@@ -283,7 +283,15 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                                 item === "repositories" && ns.name === namespace && e.preventDefault();
                               }}
                             >
-                              <span className="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
+                              {
+                                index == 0 ? (
+                                  <span className="w-2.5 h-2.5 mr-4 bg-red-500 rounded-full" aria-hidden="true"></span>
+                                ) : index == 1 ? (
+                                  <span className="w-2.5 h-2.5 mr-4 bg-amber-500 rounded-full" aria-hidden="true"></span>
+                                ) : (
+                                  <span className="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
+                                )
+                              }
                               <span className="truncate">
                                 {ns.name}
                               </span>

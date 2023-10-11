@@ -89,6 +89,12 @@ func (h *handlers) PostNamespace(c echo.Context) error {
 	if ptr.To(req.SizeLimit) > 0 {
 		namespaceObj.SizeLimit = ptr.To(req.SizeLimit)
 	}
+	if ptr.To(req.RepositoryLimit) > 0 {
+		namespaceObj.RepositoryLimit = ptr.To(req.RepositoryLimit)
+	}
+	if ptr.To(req.TagLimit) > 0 {
+		namespaceObj.TagLimit = ptr.To(req.TagLimit)
+	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceService := h.namespaceServiceFactory.New(tx)
 		err = namespaceService.Create(ctx, namespaceObj)

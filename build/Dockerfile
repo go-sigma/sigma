@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.21.2-alpine3.18
+ARG GOLANG_VERSION=1.21.3-alpine3.18
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 
@@ -14,7 +14,7 @@ RUN set -eux && yarn install --frozen-lockfile && yarn build
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.88.0
+ARG SYFT_VERSION=0.93.0
 ARG TARGETARCH
 
 RUN set -eux && \
@@ -26,7 +26,7 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
-ARG TRIVY_VERSION=0.44.1
+ARG TRIVY_VERSION=0.45.1
 ARG ORAS_VERSION=1.0.0
 ARG TARGETARCH
 
@@ -71,5 +71,8 @@ COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
 COPY --from=trivy /opt/trivy/metadata.json /opt/trivy/db/metadata.json
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
+
+VOLUME /var/lib/sigma
+VOLUME /etc/sigma
 
 CMD ["sigma", "server"]

@@ -131,5 +131,5 @@ func SanitizePath(rootDirectory, p string) string {
 	if rootDirectory == "" || rootDirectory == "." || rootDirectory == "./" || rootDirectory == "/" {
 		return p
 	}
-	return path.Join(strings.TrimPrefix(rootDirectory, "./"), p)
+	return path.Join(strings.TrimPrefix(rootDirectory, "./"), strings.TrimPrefix(p, "./"))
 }

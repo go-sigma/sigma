@@ -56,6 +56,7 @@ func main() {
 	)
 
 	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})
+	g.ApplyInterface(func(models.ArtifactSizeByNamespaceOrRepository) {}, models.Artifact{})
 
 	g.Execute()
 }

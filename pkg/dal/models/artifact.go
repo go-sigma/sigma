@@ -16,13 +16,14 @@ package models
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
+	"gorm.io/gen"
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Artifact represents an artifact
@@ -55,6 +56,15 @@ type Artifact struct {
 	Tags            []*Tag      `gorm:"foreignKey:ArtifactID;"`
 }
 
+// ArtifactSizeByNamespaceOrRepository ...
+type ArtifactSizeByNamespaceOrRepository interface {
+	// SELECT sum(blobs_size) as size FROM @@table WHERE repository_id in (
+	// SELECT id from repositories where namespace_id = @namespaceID)
+	ArtifactSizeByNamespace(namespaceID int64) (gen.T, error)
+	// SELECT sum(blobs_size) as size FROM @@table WHERE repository_id = @repositoryID
+	ArtifactSizeByRepository(repositoryID int64) (gen.T, error)
+}
+
 // AfterCreate ...
 func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	if a == nil {
@@ -71,10 +81,10 @@ func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 	if namespaceObj.SizeLimit > 0 && namespaceObj.Size+a.BlobsSize > namespaceObj.SizeLimit {
-		return errors.New("namespace's size quota exceeded")
+		return xerrors.GenDSErrCodeResourceSizeQuotaExceedNamespace(namespaceObj.Name, namespaceObj.Size, namespaceObj.SizeLimit, a.BlobsSize)
 	}
 	if repositoryObj.SizeLimit > 0 && repositoryObj.Size+a.BlobsSize > repositoryObj.SizeLimit {
-		return errors.New("repository's size quota exceeded")
+		return xerrors.GenDSErrCodeResourceSizeQuotaExceedRepository(repositoryObj.Name, repositoryObj.Size, repositoryObj.SizeLimit, a.BlobsSize)
 	}
 
 	// we should check all the checker here, and update the size and tag count

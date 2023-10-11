@@ -6,6 +6,7 @@ package query
 
 import (
 	"context"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -804,6 +805,37 @@ func (a artifactManyToManyBlobsTx) Count() int64 {
 }
 
 type artifactDo struct{ gen.DO }
+
+// SELECT sum(blobs_size) as size FROM @@table WHERE repository_id in (
+// SELECT repository_id from repositories where namespace_id = @namespaceID)
+func (a artifactDo) ArtifactSizeByNamespace(namespaceID int64) (result models.Artifact, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, namespaceID)
+	generateSQL.WriteString("SELECT sum(blobs_size) as size FROM artifacts WHERE repository_id in ( SELECT repository_id from repositories where namespace_id = ?) ")
+
+	var executeSQL *gorm.DB
+	executeSQL = a.UnderlyingDB().Raw(generateSQL.String(), params...).Take(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
+// SELECT sum(blobs_size) as size FROM @@table WHERE repository_id = @repositoryID
+func (a artifactDo) ArtifactSizeByRepository(repositoryID int64) (result models.Artifact, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, repositoryID)
+	generateSQL.WriteString("SELECT sum(blobs_size) as size FROM artifacts WHERE repository_id = ? ")
+
+	var executeSQL *gorm.DB
+	executeSQL = a.UnderlyingDB().Raw(generateSQL.String(), params...).Take(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
 
 func (a artifactDo) Debug() *artifactDo {
 	return a.withDO(a.DO.Debug())

@@ -63,6 +63,7 @@ func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Dur
 	}
 	value := ValueWithTtl{
 		Value: content,
+		Ttl:   ptr.Of(time.Now().Add(c.config.Cache.Ttl)),
 	}
 	if len(ttls) > 0 {
 		value.Ttl = ptr.Of(time.Now().Add(ttls[0]))
@@ -85,7 +86,7 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 			if err != nil {
 				return result, err
 			}
-			err = c.Set(ctx, key, result)
+			err = c.Set(ctx, key, result, c.config.Cache.Ttl)
 			if err != nil {
 				return result, fmt.Errorf("set value failed: %w", err)
 			}

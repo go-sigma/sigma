@@ -15,6 +15,7 @@
 package imports
 
 import (
+	_ "github.com/go-sigma/sigma/pkg/daemon/afpushed"
 	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
 	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
 	_ "github.com/go-sigma/sigma/pkg/daemon/gc"

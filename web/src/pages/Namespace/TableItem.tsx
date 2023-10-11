@@ -85,12 +85,11 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
       visibility: namespaceVisibility,
     } as INamespaceItem, {}).then(response => {
       if (response.status === 204) {
-        setNamespaceText("");
-        setDescriptionText("");
-        setNamespaceVisibility("private")
-        setRepositoryCountLimit(0);
-        setTagCountLimit(0);
-        setSizeLimit(0);
+        setDescriptionText(descriptionText);
+        setNamespaceVisibility(namespaceVisibility)
+        setRepositoryCountLimit(repositoryCountLimit);
+        setTagCountLimit(tagCountLimit);
+        setSizeLimit(realSizeLimit);
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;

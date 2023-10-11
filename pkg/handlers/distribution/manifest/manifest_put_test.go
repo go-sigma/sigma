@@ -56,8 +56,6 @@ func TestPutManifestAsyncTask(t *testing.T) {
 	}()
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	// err = daemon.InitializeClient()
-	// assert.NoError(t, err)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -100,8 +98,6 @@ func TestPutManifest(t *testing.T) {
 
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-	// err = daemon.InitializeClient()
-	// assert.NoError(t, err)
 
 	const (
 		namespaceName  = "test"

@@ -16,11 +16,12 @@ package models
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
+
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Tag represents a tag
@@ -60,10 +61,10 @@ func (a *Tag) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	if namespaceObj.TagLimit > 0 && namespaceObj.TagCount+1 > namespaceObj.TagLimit {
-		return errors.New("namespace's tag quota exceeded")
+		return xerrors.GenDSErrCodeResourceCountQuotaExceedNamespaceTag(namespaceObj.Name, namespaceObj.TagLimit)
 	}
 	if repositoryObj.TagLimit > 0 && repositoryObj.TagCount+1 > repositoryObj.TagLimit {
-		return errors.New("repository's tag quota exceeded")
+		return xerrors.GenDSErrCodeResourceCountQuotaExceedRepository(repositoryObj.Name, repositoryObj.TagLimit)
 	}
 
 	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumns(
