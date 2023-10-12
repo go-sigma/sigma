@@ -18,6 +18,14 @@ jobs:
     name: image-build-alpine
     runs-on: ubuntu-22.04
     steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+        shell: bash
       - name: Checkout branch
         uses: actions/checkout@v3
         with:
@@ -64,6 +72,14 @@ jobs:
     name: image-build-debian
     runs-on: ubuntu-22.04
     steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+        shell: bash
       - name: Checkout branch
         uses: actions/checkout@v3
         with:
@@ -110,6 +126,14 @@ jobs:
     name: image-build-builder
     runs-on: ubuntu-22.04
     steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+        shell: bash
       - name: Checkout branch
         uses: actions/checkout@v3
         with:
