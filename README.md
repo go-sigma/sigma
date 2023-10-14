@@ -28,7 +28,7 @@ docker run --name sigma -v /home/admin/config:/etc/sigma \
 sh ./scripts/samples/samples.sh
 ```
 
-Visit: <https://sigma.tosone.cn>, username/password: sigma/sigma
+Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
 I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
 

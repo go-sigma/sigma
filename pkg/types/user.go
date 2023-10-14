@@ -40,8 +40,8 @@ type UserItem = GetUserItem
 
 // PostUserLoginRequest ...
 type PostUserLoginRequest struct {
-	Username string `json:"username" validate:"required,alphanum,min=2,max=20"`
-	Password string `json:"password" validate:"required,min=5,max=20"`
+	Username string `json:"username" validate:"required,is_valid_username,min=2,max=20"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password"`
 }
 
 // PostUserLoginResponse ...
@@ -62,9 +62,9 @@ type PostUserTokenResponse struct {
 
 // PostUserSignupRequest ...
 type PostUserSignupRequest struct {
-	Username string `json:"username" validate:"required,alphanum,min=2,max=20" example:"sigma"`
-	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
-	Email    string `json:"email" validate:"required,email" example:"test@gmail.com"`
+	Username string `json:"username" validate:"required,is_valid_username,min=2,max=20" example:"sigma"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
+	Email    string `json:"email" validate:"required,is_valid_email" example:"test@gmail.com"`
 }
 
 // PostUserSignupResponse ...
@@ -86,31 +86,31 @@ type PostUserLogoutRequest struct {
 
 // PostUserRecoverPasswordRequest ...
 type PostUserRecoverPasswordRequest struct {
-	Username string `json:"username" validate:"required,alphanum,min=2,max=20" example:"test"`
-	Email    string `json:"email" validate:"required,email" email:"test@email.com"`
+	Username string `json:"username" validate:"required,is_valid_username,min=2,max=20" example:"test"`
+	Email    string `json:"email" validate:"required,is_valid_email" email:"test@email.com"`
 }
 
 // PostUserRecoverResetPasswordRequest...
 type PostUserRecoverResetPasswordRequest struct {
 	Code     string `json:"code" param:"code" validate:"required" example:"123456"`
-	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
 }
 
-// PostUserSelfResetPasswordRequest ...
-type PostUserSelfResetPasswordRequest struct {
-	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
+// PutUserSelfResetPasswordRequest ...
+type PutUserSelfResetPasswordRequest struct {
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
 }
 
 // PostUserResetPasswordPasswordRequest ...
 type PostUserResetPasswordPasswordRequest struct {
 	ID       int64  `json:"id" param:"id" validate:"required" example:"123"`
-	Password string `json:"password" validate:"required,min=5,max=20" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
 }
 
 // PutUserSelfRequest ...
 type PutUserSelfRequest struct {
-	Username *string `json:"username,omitempty" validate:"omitempty,alphanum,min=2,max=20" example:"sigma"`
-	Email    *string `json:"email,omitempty" validate:"omitempty,email" example:"test@mail.com"`
+	Username *string `json:"username,omitempty" validate:"omitempty,is_valid_username,min=2,max=20" example:"sigma"`
+	Email    *string `json:"email,omitempty" validate:"omitempty,is_valid_email" example:"test@mail.com"`
 }
 
 // ListCodeRepositoryProvidersResponse ...

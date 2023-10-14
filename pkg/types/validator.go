@@ -23,3 +23,8 @@ type GetValidatorReferenceRequest struct {
 type GetValidatorTagRequest struct {
 	Tag string `json:"tag" query:"tag" validate:"required"`
 }
+
+// GetValidatorPasswordRequest ...
+type GetValidatorPasswordRequest struct {
+	Password string `json:"password" query:"password" validate:"required"`
+}

@@ -23,6 +23,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	pwdvalidate "github.com/wagslane/go-password-validator"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -59,6 +60,9 @@ func Initialize(e *echo.Echo) {
 
 // register registers the validators
 func register(v *validator.Validate) {
+	v.RegisterValidation("is_valid_email", ValidateEmail)                           // nolint:errcheck
+	v.RegisterValidation("is_valid_username", ValidateUsername)                     // nolint:errcheck
+	v.RegisterValidation("is_valid_password", ValidatePassword)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_namespace", ValidateNamespace)                   // nolint:errcheck
 	v.RegisterValidation("is_valid_repository", ValidateRepository)                 // nolint:errcheck
 	v.RegisterValidation("is_valid_digest", ValidateDigest)                         // nolint:errcheck
@@ -67,6 +71,24 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
 	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
+}
+
+// ValidatePassword validates the password
+func ValidatePassword(field validator.FieldLevel) bool {
+	password := field.Field().String()
+	return pwdvalidate.Validate(password, consts.PwdStrength) == nil
+}
+
+// ValidateEmail validates the email
+func ValidateEmail(field validator.FieldLevel) bool {
+	email := field.Field().String()
+	return consts.RegexEmail.MatchString(email)
+}
+
+// ValidateUsername validates the username
+func ValidateUsername(field validator.FieldLevel) bool {
+	username := field.Field().String()
+	return consts.RegexUsername.MatchString(username)
 }
 
 // ValidateRepository validates the repository name

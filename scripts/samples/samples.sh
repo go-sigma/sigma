@@ -2,7 +2,7 @@
 
 set -e
 
-docker login sigma.tosone.cn -u sigma -p sigma
+docker login sigma.tosone.cn -u sigma -p Admin@123
 
 push_image() {
   docker pull "$2"

@@ -69,5 +69,5 @@ func (h *handlers) SelfPut(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return c.NoContent(http.StatusAccepted)
+	return c.NoContent(http.StatusNoContent)
 }

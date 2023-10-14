@@ -87,7 +87,7 @@ const (
 
 var (
 	// PwdStrength represents the password strength
-	PwdStrength = pwdvalidate.GetEntropy("1923432198Aa@")
+	PwdStrength = pwdvalidate.GetEntropy("Admin@123")
 	// Alphanum alphabet num
 	Alphanum = "abcdefghijklmnopqrstuvwxyz0123456789"
 )
