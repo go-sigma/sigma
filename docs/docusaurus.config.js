@@ -6,7 +6,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Sigma',
+  title: 'sigma',
   tagline: 'Sigma are cool',
   favicon: 'img/favicon.svg',
 
@@ -52,14 +52,13 @@ const config = {
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: require.resolve('./src/css/custom.scss'),
         },
       }),
     ],
   ],
 
   themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
@@ -74,7 +73,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Docs',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
@@ -87,11 +86,23 @@ const config = {
           },
         ],
       },
+      colorMode: {
+        defaultMode: 'dark',
+        disableSwitch: true,
+      },
       prism: {
-        theme: require('prism-react-renderer/themes/dracula'),
+        theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
+        additionalLanguages: [
+          'docker',
+          'bash',
+          'yaml',
+        ],
       },
     }),
+    plugins: [
+      'docusaurus-plugin-sass',
+    ]
 };
 
 module.exports = config;

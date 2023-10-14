@@ -237,8 +237,8 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                 )
               }
               <Link to={`/coderepos`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
-                setMenuActive("namespaces");
-                item === "namespaces" && e.preventDefault();
+                setMenuActive("coderepos");
+                item === "coderepos" && e.preventDefault();
               }}>
                 <span className="text-gray-400 mr-3 h-6 w-6">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">

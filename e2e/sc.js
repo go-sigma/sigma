@@ -15,7 +15,7 @@ export default function () {
     headers: { 'Content-Type': 'application/json' },
   });
   check(response, {
-    'user login status is 200': (r) => r.status === 200,
+    'user login status is 200': r => r.status === 200,
   });
 
   const token = JSON.parse(response.body).token;
@@ -27,7 +27,7 @@ export default function () {
     },
   });
   check(response, {
-    'create namespace status is 201': (r) => r.status === 201,
+    'create namespace status is 201': r => r.status === 201,
   });
   const namespaceId = JSON.parse(response.body).id;
 
@@ -38,7 +38,7 @@ export default function () {
     },
   });
   check(response, {
-    'delete namespace status is 204': (r) => r.status === 204,
+    'delete namespace status is 204': r => r.status === 204,
   });
 
   let limit = 100;
@@ -50,6 +50,6 @@ export default function () {
     },
   });
   check(response, {
-    'list namespace status is 200': (r) => r.status === 200,
+    'list namespace status is 200': r => r.status === 200,
   });
 }
