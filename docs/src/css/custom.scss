@@ -1,0 +1,362 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme="dark"] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+$primary-blue: #161f31;
+$secondary-blue: #0565ff;
+$red: #dc382c;
+$white: #ffffff;
+$black: #000000;
+$primary-black: #0c0e10;
+$secondary-black: #2e2e2e;
+$zircon: #f8faff;
+$grey: #707070;
+$grey-light: #e0dfdf;
+$grey-dark: #c2c0c0;
+$purple: #5961ff;
+$purple-hover: #3f41a0;
+$purple-light: #f2f5fe;
+$purple-lighter: #f9faff;
+
+$lato: "Lato", sans-serif;
+
+$roboto: "Roboto Mono", monospace;
+
+:root {
+  --chill: #e3ebed;
+  --ui: #dfdfdf;
+  --primary-blue: #161f31;
+  --secondary-blue: #0565ff;
+  --red: #dc382c;
+  --white: #ffffff;
+  --black: #000000;
+  --primary-black: #0c0e10;
+  --secondary-black: #2e2e2e;
+  --zircon: #f8faff;
+  --grey: #707070;
+  --grey-light: #e0dfdf;
+  --grey-dark: #c2c0c0;
+  --violet: #3e41a0;
+  --purple: #5961ff;
+  --purple-hover: #3f41a0;
+  --purple-light: #f2f5fe;
+  --purple-lighter: #f9faff;
+}
+
+/* dark mode */
+
+@mixin dark {
+  html[data-theme="dark"] & {
+    @content;
+  }
+}
+
+/* media queries */
+@mixin desktop {
+  @media only screen and (min-width: 997px) {
+    @content;
+  }
+}
+
+@mixin desktop-tablet {
+  @media only screen and (min-width: 751px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media only screen and (min-width: 751px) and (max-width: 996px) {
+    @content;
+  }
+}
+
+@mixin tablet-mobile {
+  @media only screen and (max-width: 996px) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media only screen and (max-width: 750px) {
+    @content;
+  }
+}
+
+.rds-hero {
+  margin-top: -63px;
+  padding: 100px 0 100px;
+  background-color: #1b1b1d;
+  color: $white;
+  flex: 1 1 0%;
+
+  @media only screen and (min-width: 1000px) and (max-width: 1000px) {
+    padding-left: 30px;
+    padding-right: 30px;
+
+    .row {
+      flex-wrap: nowrap;
+    }
+
+    .col--7 {
+      min-width: 1500px;
+    }
+
+    .col--5 {
+      flex: 1 !important;
+      max-width: none !important;
+    }
+  }
+
+  @include mobile {
+    padding: 71px 0 62px;
+  }
+
+  .row {
+    align-items: center;
+
+    .col {
+      @include tablet-mobile {
+        &:first-child {
+          order: 2;
+        }
+
+        &:last-child {
+          order: 1;
+        }
+      }
+    }
+  }
+
+  .hero-title {
+    margin: 0;
+    line-height: 1.1;
+    font-size: 50px;
+    font-weight: 500;
+    font-family: $roboto;
+
+    @include tablet-mobile {
+      text-align: center;
+    }
+
+    @include mobile {
+      line-height: 1.25;
+      font-size: 32px;
+    }
+  }
+
+  .hero-subtitle {
+    margin: 17px 0 0 0;
+    line-height: 2;
+    font-size: 18px;
+    font-weight: 400;
+    font-family: $roboto;
+
+    @include tablet-mobile {
+      text-align: center;
+    }
+
+    @include mobile {
+      margin-top: 13px;
+      font-size: 14px;
+    }
+  }
+
+  .hero-started {
+    margin-top: 40px;
+  }
+
+  .boxes {
+    display: flex;
+    margin-top: 100px;
+
+    @include mobile {
+      flex-direction: column;
+      margin-top: 36px;
+    }
+
+    .box {
+      flex: 1;
+      position: relative;
+      border: 1px dashed $red;
+      border-radius: 10px;
+      transition: background-color 0.2s ease-in-out;
+
+      @include mobile {
+        margin: 0 auto;
+        max-width: 282px;
+      }
+
+      &:hover {
+        background-color: $red;
+      }
+
+      &:not(:first-child) {
+        @include desktop-tablet {
+          margin-left: 12px;
+        }
+
+        @include mobile {
+          margin-top: 25px;
+        }
+      }
+
+      .bg {
+        display: none;
+        position: absolute;
+      }
+
+      &.box-create .bg {
+        top: 900px;
+        left: 520px;
+      }
+
+      &.box-develop .bg {
+        top: 900px;
+        left: 520px;
+      }
+
+      &.box-explore .bg {
+        top: 900px;
+        left: 520px;
+      }
+
+      &.box-operate .bg {
+        top: 900px;
+        left: 520px;
+      }
+
+      .icon {
+        display: flex;
+        align-items: center;
+        padding: 5px 21px 0;
+        height: 69px;
+
+        @include mobile {
+          justify-content: center;
+        }
+
+        svg {
+          @include mobile {
+            zoom: 1.1;
+          }
+        }
+      }
+
+      .text {
+        padding: 0 16px 23px 21px;
+
+        @include mobile {
+          padding-bottom: 25px;
+        }
+
+        .title {
+          margin: 0;
+          line-height: 1.5;
+          font-size: 18px;
+          font-weight: 400;
+
+          @include mobile {
+            text-align: center;
+            line-height: 1.2;
+            font-size: 22px;
+          }
+        }
+
+        .description {
+          margin: 10px 0 0 0;
+          line-height: 1.5;
+          font-size: 14.5px;
+
+          @include mobile {
+            margin-top: 10px;
+            text-align: center;
+            line-height: 1.6;
+            font-size: 16px;
+          }
+        }
+
+        .more {
+          display: flex;
+          align-items: center;
+          margin-top: 14px;
+          line-height: 1.2;
+          font-size: 14.5px;
+          font-weight: 700;
+
+          @include mobile {
+            justify-content: center;
+            font-size: 16px;
+          }
+
+          svg {
+            margin-left: 8px;
+            flex: 0 0 14px;
+
+            path {
+              transition: fill 0.2s ease-in-out;
+            }
+          }
+        }
+      }
+
+      &:hover .text .more svg path {
+        fill: $white;
+      }
+
+      .link {
+        z-index: 5;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+        text-indent: -9999px;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .illustration {
+    max-width: 100%;
+
+    @media only screen and (min-width: 997px) and (max-width: 1100px) {
+      float: right;
+      margin-left: 0;
+      zoom: 0.8;
+    }
+
+    @include tablet-mobile {
+      display: block;
+      margin: 0 auto 48px;
+      zoom: 0.48;
+    }
+  }
+}

@@ -1,9 +1,7 @@
 assets/sigma.ai filter=lfs diff=lfs merge=lfs -text
 assets/sigma.png filter=lfs diff=lfs merge=lfs -text
-assets/sigma.svg filter=lfs diff=lfs merge=lfs -text
 assets/sigma-low.png filter=lfs diff=lfs merge=lfs -text
 assets/title.ai filter=lfs diff=lfs merge=lfs -text
-assets/title.svg filter=lfs diff=lfs merge=lfs -text
 docs/static/img/header.jpg filter=lfs diff=lfs merge=lfs -text
 docs/static/img/logo.svg filter=lfs diff=lfs merge=lfs -text
 docs/static/img/undraw_docusaurus_mountain.svg filter=lfs diff=lfs merge=lfs -text
