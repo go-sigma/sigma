@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import _ from 'lodash';
 import axios from "axios";
 import { useClickAway } from 'react-use';
-import { useEffect, useRef, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
+import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
 import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
 
@@ -37,7 +40,10 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
     }
   });
 
+  const [userID, setUserID] = useState(0);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [refresh, setRefresh] = useState({});
 
   // get user info
   useEffect(() => {
@@ -46,6 +52,8 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         if (response.status === 200) {
           const user = response.data as IUserSelf;
           setUsername(user.username);
+          setEmail(user.email);
+          setUserID(user.id);
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -55,7 +63,7 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
     }
-  }, [])
+  }, [refresh])
 
   const [hotNamespaceTotal, setHotNamespaceTotal] = useState(0);
   const [hotNamespaceList, setHotNamespaceList] = useState<INamespaceItem[]>([]);
@@ -111,7 +119,109 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [])
+  }, []);
+
+  const [updateProfileModal, setCreateRunnerModal] = useState(false);
+
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameInputValid, setUsernameInputValid] = useState(true);
+  useEffect(() => {
+    if (usernameInput.length > 0) {
+      setUsernameInputValid(Regex.Username.test(usernameInput))
+    }
+  }, [usernameInput]);
+
+  const [emailInput, setEmailInput] = useState("");
+  const [emailInputValid, setEmailInputValid] = useState(true);
+  useEffect(() => {
+    if (emailInput.length > 0) {
+      setEmailInputValid(Regex.Email.test(emailInput));
+    }
+  }, [emailInput]);
+
+  const updateUser = () => {
+    if (!(usernameInputValid && emailInputValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {};
+    if (usernameInput.length > 0) {
+      data['username'] = usernameInput;
+    }
+    if (emailInput.length > 0) {
+      data['email'] = emailInput;
+    }
+    if (_.size(data) > 0) {
+      let url = `${localServer}/api/v1/users/self`;
+      axios.put(url, data).then(response => {
+        if (response?.status === 204) {
+          Toast({ level: "success", title: "Success", message: "User profile update success" });
+          setCreateRunnerModal(false);
+          setRefresh({});
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        }
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    }
+  }
+
+  const [updatePasswordModal, setUpdatePasswordModal] = useState(false);
+
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordInputValid, setPasswordInputValid] = useState(true);
+  useEffect(() => {
+    if (passwordInput.length > 0) {
+      axios.get(localServer + `/api/v1/validators/password?password=${passwordInput}`).then(response => {
+        if (response?.status === 204) {
+          setPasswordInputValid(true);
+        } else {
+          setPasswordInputValid(false);
+        }
+      }).catch(error => {
+        console.log(error);
+        setPasswordInputValid(false);
+      });
+    }
+  }, [passwordInput])
+  const [repeatPasswordInput, setRepeatPasswordInput] = useState("");
+  const [repeatPasswordInputValid, setRepeatPasswordInputValid] = useState(true);
+  useEffect(() => {
+    if (repeatPasswordInput.length > 0) {
+      setRepeatPasswordInputValid(passwordInput === repeatPasswordInput);
+    }
+  })
+
+  const updatePassword = () => {
+    if (!(passwordInputValid && repeatPasswordInputValid)) {
+      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {};
+    if (passwordInput.length > 0) {
+      data['password'] = passwordInput;
+    }
+    if (_.size(data) > 0) {
+      let url = `${localServer}/api/v1/users/self/reset-password`;
+      axios.put(url, data).then(response => {
+        if (response?.status === 204) {
+          Toast({ level: "success", title: "Success", message: "User password update success" });
+          setUpdatePasswordModal(false);
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        }
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    }
+  }
+
+  const [aboutModal, setAboutModal] = useState(false);
 
   return (
     <div className="flex flex-shrink-0">
@@ -146,16 +256,31 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                 <div className={showProfileMenu ? "" : "hidden"}>
                   <div className="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200">
                     <div className="py-1">
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">View profile</div>
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Settings</div>
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Notifications</div>
-                    </div>
-                    <div className="py-1">
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Get desktop app</div>
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">Support</div>
+                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        onClick={e => {
+                          setShowProfileMenu(false);
+                          setCreateRunnerModal(true);
+                          setUsernameInput(username);
+                          setEmailInput(email);
+                        }}
+                      >Update profile</div>
+                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        onClick={e => {
+                          setUpdatePasswordModal(true);
+                          setPasswordInput("");
+                          setRepeatPasswordInput("");
+                        }}
+                      >Reset password</div>
                     </div>
                     <div className="py-1">
                       <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" onClick={logout}>Logout</div>
+                    </div>
+                    <div className="py-1">
+                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        onClick={e => {
+                          setAboutModal(true);
+                        }}
+                      >About</div>
                     </div>
                   </div>
                 </div>
@@ -312,6 +437,302 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
           </a>
         </div>
       </div>
+
+      <Transition.Root show={updateProfileModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setCreateRunnerModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <label htmlFor="usernameInput" className="block text-sm font-medium leading-6 text-gray-900">
+                    Username
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="usernameInput"
+                      name="usernameInput"
+                      placeholder="username"
+                      className={(usernameInputValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={usernameInput}
+                      onChange={e => {
+                        setUsernameInput(e.target.value);
+                      }}
+                    />
+                    {
+                      usernameInputValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      usernameInputValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid username, you can try 'test', 'test-1', 'test_1', 'test@1'.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="emailInput" className="block text-sm font-medium leading-6 text-gray-900">
+                    Email
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="emailInput"
+                      name="emailInput"
+                      placeholder="email"
+                      className={(emailInputValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={emailInput}
+                      onChange={e => {
+                        setEmailInput(e.target.value);
+                      }}
+                    />
+                    {
+                      emailInputValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      emailInputValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid email, you can try 'test@example.com'.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => updateUser()}
+                    >
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                      onClick={() => setCreateRunnerModal(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      <Transition.Root show={updatePasswordModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setUpdatePasswordModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <label htmlFor="passwordInput" className="block text-sm font-medium leading-6 text-gray-900">
+                    Password
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="passwordInput"
+                      name="passwordInput"
+                      placeholder="password"
+                      className={(passwordInputValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={passwordInput}
+                      onChange={e => {
+                        setPasswordInput(e.target.value);
+                      }}
+                    />
+                    {
+                      passwordInputValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      passwordInputValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid password, you can try 'Amin@123'.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <label htmlFor="repeatPasswordInput" className="block text-sm font-medium leading-6 text-gray-900">
+                    Repeat password
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="repeatPasswordInput"
+                      name="repeatPasswordInput"
+                      placeholder="repeat password"
+                      className={(repeatPasswordInputValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={repeatPasswordInput}
+                      onChange={e => {
+                        setRepeatPasswordInput(e.target.value);
+                      }}
+                    />
+                    {
+                      repeatPasswordInputValid ? (
+                        <div></div>
+                      ) : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    {
+                      repeatPasswordInputValid ? (
+                        <span></span>
+                      ) : (
+                        <span>
+                          Not a valid password, you should input same password.
+                        </span>
+                      )
+                    }
+                  </p>
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => updatePassword()}
+                    >
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                      onClick={() => setUpdatePasswordModal(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      <Transition.Root show={aboutModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setUpdatePasswordModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <span className='text-sm'>
+                    <a href='https://docs.sigma.tosone.cn' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>sigma</a> is a painless self-hosted all in one software development service, it includes OCI artifact manager, garbage collection, namespace quota, multiarch artifact, OCI image build. It is similar to <a href='https://goharbor.io/' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>Harbor</a>, but <a href='https://github.com/distribution/distribution' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>distribution</a> is implement by itself, all of the service can be startup with one command.
+                  </span>
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                      onClick={e => setAboutModal(false)}
+                    >
+                      OK
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
     </div >
   );
 }

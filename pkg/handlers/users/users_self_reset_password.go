@@ -33,7 +33,7 @@ import (
 func (h *handlers) SelfResetPassword(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.PostUserSelfResetPasswordRequest
+	var req types.PutUserSelfResetPasswordRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -74,5 +74,5 @@ func (h *handlers) SelfResetPassword(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return c.NoContent(http.StatusAccepted)
+	return c.NoContent(http.StatusNoContent)
 }

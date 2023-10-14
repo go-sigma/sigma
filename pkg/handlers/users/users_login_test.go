@@ -65,7 +65,7 @@ func TestLogin(t *testing.T) {
 
 	viper.SetDefault("auth.internalUser.password", "internal-sigma")
 	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.password", "Admin@123")
 	viper.SetDefault("auth.admin.username", "sigma")
 	err = inits.Initialize()
 	assert.NoError(t, err)
@@ -77,7 +77,7 @@ func TestLogin(t *testing.T) {
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"sigma"}`))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"Admin@123"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -120,7 +120,7 @@ func TestLoginMockToken(t *testing.T) {
 
 	viper.SetDefault("auth.internalUser.password", "internal-sigma")
 	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.password", "Admin@123")
 	viper.SetDefault("auth.admin.username", "sigma")
 	err = inits.Initialize()
 	assert.NoError(t, err)
@@ -140,7 +140,7 @@ func TestLoginMockToken(t *testing.T) {
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"sigma"}`))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"Admin@123"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -148,7 +148,7 @@ func TestLoginMockToken(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"sigma"}`))
+	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"Admin@123"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
@@ -188,7 +188,7 @@ func TestLoginMockPassword(t *testing.T) {
 
 	viper.SetDefault("auth.internalUser.password", "internal-sigma")
 	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.password", "Admin@123")
 	viper.SetDefault("auth.admin.username", "sigma")
 	err = inits.Initialize()
 	assert.NoError(t, err)
@@ -197,7 +197,7 @@ func TestLoginMockPassword(t *testing.T) {
 	userHandler, err := handlerNew(inject{passwordService: passwordMock})
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"sigma"}`))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"Admin@123"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -228,7 +228,7 @@ func TestLoginMockDAO(t *testing.T) {
 
 	viper.SetDefault("auth.internalUser.password", "internal-sigma")
 	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
+	viper.SetDefault("auth.admin.password", "Admin@123")
 	viper.SetDefault("auth.admin.username", "sigma")
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 

@@ -16,7 +16,6 @@ package users
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -61,7 +60,7 @@ func (h *handlers) Logout(c echo.Context) error {
 			if errors.Is(err, token.ErrRevoked) {
 				continue
 			}
-			log.Error().Err(err).Msg("Revoke token failed")
+			log.Error().Err(err).Str("token", t).Msg("Revoke token failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 		}
 		ids.Insert(id)
@@ -74,8 +73,6 @@ func (h *handlers) Logout(c echo.Context) error {
 	}
 
 	ids.Insert(jti)
-
-	fmt.Println("82", ids)
 
 	for {
 		id, ok := ids.PopAny()

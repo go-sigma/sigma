@@ -6,7 +6,7 @@ export const options = {
 };
 
 const username = 'sigma';
-const password = 'sigma';
+const password = 'Admin@123';
 
 const host = "https://sigma.tosone.cn";
 

@@ -132,7 +132,7 @@ auth:
     password: internal-sigma
   admin:
     username: sigma
-    password: sigma
+    password: Admin@123
   token:
     realm: ""
     service: ""

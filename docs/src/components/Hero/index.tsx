@@ -39,6 +39,13 @@ function Hero() {
                   to={useBaseUrl('docs/sigma')}>
                   Get started
                 </Link>
+                <Link
+                  className={clsx(
+                    'button button--outline button--secondary button--lg hero-try-demo',
+                  )}
+                  to={"https://sigma.tosone.cn"}>
+                  Try demo
+                </Link>
               </div>
               <div className="col col--4">
                 <SvgHero color="#FFFFFF" className="illustration" />

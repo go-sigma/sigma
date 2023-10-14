@@ -2526,6 +2526,30 @@ paths:
       summary: Logout user
       tags:
       - User
+  /validators/password:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Password
+        in: query
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate password
+      tags:
+      - Validator
   /validators/reference:
     get:
       consumes:

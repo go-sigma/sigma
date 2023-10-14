@@ -32,6 +32,8 @@ type Handlers interface {
 	GetReference(c echo.Context) error
 	// GetTag handles the validate tag request
 	GetTag(c echo.Context) error
+	// GetPassword handles the validate password request
+	GetPassword(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -53,6 +55,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	repositoryHandler := handlerNew()
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)
+	validatorGroup.GET("/password", repositoryHandler.GetPassword)
 	return nil
 }
 
