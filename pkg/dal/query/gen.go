@@ -35,6 +35,7 @@ var (
 	Locker                        *locker
 	Namespace                     *namespace
 	Repository                    *repository
+	Setting                       *setting
 	Tag                           *tag
 	User                          *user
 	User3rdParty                  *user3rdParty
@@ -64,6 +65,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Locker = &Q.Locker
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
+	Setting = &Q.Setting
 	Tag = &Q.Tag
 	User = &Q.User
 	User3rdParty = &Q.User3rdParty
@@ -94,6 +96,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Locker:                        newLocker(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
 		Repository:                    newRepository(db, opts...),
+		Setting:                       newSetting(db, opts...),
 		Tag:                           newTag(db, opts...),
 		User:                          newUser(db, opts...),
 		User3rdParty:                  newUser3rdParty(db, opts...),
@@ -125,6 +128,7 @@ type Query struct {
 	Locker                        locker
 	Namespace                     namespace
 	Repository                    repository
+	Setting                       setting
 	Tag                           tag
 	User                          user
 	User3rdParty                  user3rdParty
@@ -157,6 +161,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Locker:                        q.Locker.clone(db),
 		Namespace:                     q.Namespace.clone(db),
 		Repository:                    q.Repository.clone(db),
+		Setting:                       q.Setting.clone(db),
 		Tag:                           q.Tag.clone(db),
 		User:                          q.User.clone(db),
 		User3rdParty:                  q.User3rdParty.clone(db),
@@ -196,6 +201,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Locker:                        q.Locker.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
 		Repository:                    q.Repository.replaceDB(db),
+		Setting:                       q.Setting.replaceDB(db),
 		Tag:                           q.Tag.replaceDB(db),
 		User:                          q.User.replaceDB(db),
 		User3rdParty:                  q.User3rdParty.replaceDB(db),
@@ -225,6 +231,7 @@ type queryCtx struct {
 	Locker                        *lockerDo
 	Namespace                     *namespaceDo
 	Repository                    *repositoryDo
+	Setting                       *settingDo
 	Tag                           *tagDo
 	User                          *userDo
 	User3rdParty                  *user3rdPartyDo
@@ -254,6 +261,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Locker:                        q.Locker.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),
 		Repository:                    q.Repository.WithContext(ctx),
+		Setting:                       q.Setting.WithContext(ctx),
 		Tag:                           q.Tag.WithContext(ctx),
 		User:                          q.User.WithContext(ctx),
 		User3rdParty:                  q.User3rdParty.WithContext(ctx),

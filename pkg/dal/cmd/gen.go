@@ -53,6 +53,7 @@ func main() {
 		models.WorkQueue{},
 		models.Locker{},
 		models.Cache{},
+		models.Setting{},
 	)
 
 	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})

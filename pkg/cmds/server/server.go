@@ -53,7 +53,6 @@ func Serve(serverConfig ServerConfig) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-	// e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			log.Debug().

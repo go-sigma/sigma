@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `repository_id` bigint NOT NULL,
   `artifact_id` bigint NOT NULL,
-  `name` varchar(64) NOT NULL,
+  `name` varchar(128) NOT NULL,
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
@@ -423,9 +423,17 @@ CREATE TABLE IF NOT EXISTS `caches` (
   `val` BLOB NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `caches_unique_with_key` UNIQUE (`key`, `deleted_at`)
+  `deleted_at` bigint NOT NULL DEFAULT 0
 );
 
 CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
+
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `key` varchar(256) NOT NULL UNIQUE,
+  `val` BLOB,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0
+);
 
