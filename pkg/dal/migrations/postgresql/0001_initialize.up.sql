@@ -191,6 +191,7 @@ CREATE TYPE artifact_type AS ENUM (
   'cnab',
   'wasm',
   'provenance',
+  'cosign',
   'unknown'
 );
 

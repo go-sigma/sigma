@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `raw` BLOB NOT NULL,
   `config_raw` BLOB,
   `config_media_type` varchar(256),
-  `type` text CHECK (`type` IN ('image', 'imageIndex', 'chart', 'cnab', 'wasm', 'provenance', 'unknown')) NOT NULL DEFAULT 'unknown',
+  `type` text CHECK (`type` IN ('image', 'imageIndex', 'chart', 'cnab', 'wasm', 'provenance', 'cosign', 'unknown')) NOT NULL DEFAULT 'unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,

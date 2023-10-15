@@ -99,6 +99,7 @@ export interface IArtifact {
   raw: string;
   config_media_type: string;
   config_raw: string;
+  type: string;
   size: number;
   blob_size: number;
   last_pull: string;

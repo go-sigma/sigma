@@ -131,6 +131,7 @@ type SortMethod string
 // cnab,
 // wasm,
 // provenance,
+// cosign,
 // unknown,
 // )
 type ArtifactType string
