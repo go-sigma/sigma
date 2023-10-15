@@ -62,7 +62,7 @@ func (f *cacheServiceFactory) New(txs ...*query.Query) CacheService {
 	}
 }
 
-// Create creates a new work queue record in the database
+// Create creates a new cache record in the database
 func (s cacheService) Save(ctx context.Context, key string, val []byte, size int64, threshold float64) error {
 	total, err := s.tx.Cache.WithContext(ctx).Count()
 	if err != nil {

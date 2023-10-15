@@ -46,3 +46,9 @@ DROP TABLE IF EXISTS `code_repositories`;
 
 DROP TABLE IF EXISTS `user_recover_codes`;
 
+DROP TABLE IF EXISTS `work_queues`;
+
+DROP TABLE IF EXISTS `caches`;
+
+DROP TABLE IF EXISTS `settings`;
+

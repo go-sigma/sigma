@@ -807,13 +807,13 @@ func (a artifactManyToManyBlobsTx) Count() int64 {
 type artifactDo struct{ gen.DO }
 
 // SELECT sum(blobs_size) as size FROM @@table WHERE repository_id in (
-// SELECT repository_id from repositories where namespace_id = @namespaceID)
+// SELECT id from repositories where namespace_id = @namespaceID)
 func (a artifactDo) ArtifactSizeByNamespace(namespaceID int64) (result models.Artifact, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
 	params = append(params, namespaceID)
-	generateSQL.WriteString("SELECT sum(blobs_size) as size FROM artifacts WHERE repository_id in ( SELECT repository_id from repositories where namespace_id = ?) ")
+	generateSQL.WriteString("SELECT sum(blobs_size) as size FROM artifacts WHERE repository_id in ( SELECT id from repositories where namespace_id = ?) ")
 
 	var executeSQL *gorm.DB
 	executeSQL = a.UnderlyingDB().Raw(generateSQL.String(), params...).Take(&result) // ignore_security_alert
