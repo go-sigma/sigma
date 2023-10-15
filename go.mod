@@ -10,8 +10,8 @@ require (
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
 	github.com/anchore/syft v0.93.0
-	github.com/aquasecurity/trivy v0.45.1
-	github.com/aws/aws-sdk-go v1.45.24
+	github.com/aquasecurity/trivy v0.46.0
+	github.com/aws/aws-sdk-go v1.45.25
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.77.2
@@ -27,7 +27,7 @@ require (
 	github.com/go-git/go-git/v5 v5.9.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redsync/redsync/v4 v4.9.4
-	github.com/go-resty/resty/v2 v2.9.1
+	github.com/go-resty/resty/v2 v2.10.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
@@ -44,7 +44,7 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/moby/buildkit v0.12.2
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20230727214836-6bc87156eacf
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231012181449-3f685837a664
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/robfig/cron/v3 v3.0.1
@@ -97,7 +97,7 @@ require (
 	github.com/anchore/packageurl-go v0.1.1-0.20230104203445-02e0a6721501 // indirect
 	github.com/anchore/stereoscope v0.0.0-20230925132944-bf05af58eb44 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/aquasecurity/trivy-db v0.0.0-20230831170347-f732860d4917 // indirect
+	github.com/aquasecurity/trivy-db v0.0.0-20231005141211-4fc651f7ac8d // indirect
 	github.com/becheran/wildmatch-go v1.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -216,7 +216,7 @@ require (
 	github.com/mozillazg/go-httpheader v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/opencontainers/runc v1.1.7 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.2 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect

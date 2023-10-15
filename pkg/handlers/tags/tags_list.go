@@ -101,9 +101,10 @@ func (h *handlers) ListTag(c echo.Context) error {
 			artifacts = append(artifacts, types.TagItemArtifact{
 				ID:              item.ID,
 				Digest:          item.Digest,
+				MediaType:       item.ContentType,
 				Raw:             string(item.Raw),
-				ConfigRaw:       string(item.ConfigRaw),
 				ConfigMediaType: ptr.To(item.ConfigMediaType),
+				ConfigRaw:       string(item.ConfigRaw),
 				Type:            string(item.Type),
 				Size:            item.Size,
 				BlobSize:        item.BlobsSize,
@@ -121,9 +122,10 @@ func (h *handlers) ListTag(c echo.Context) error {
 			Artifact: types.TagItemArtifact{
 				ID:              tag.Artifact.ID,
 				Digest:          tag.Artifact.Digest,
+				MediaType:       tag.Artifact.ContentType,
 				Raw:             string(tag.Artifact.Raw),
-				ConfigRaw:       string(tag.Artifact.ConfigRaw),
 				ConfigMediaType: ptr.To(tag.Artifact.ConfigMediaType),
+				ConfigRaw:       string(tag.Artifact.ConfigRaw),
 				Type:            string(tag.Artifact.Type),
 				Size:            tag.Artifact.Size,
 				BlobSize:        tag.Artifact.BlobsSize,

@@ -4212,6 +4212,10 @@
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "media_type": {
+                    "type": "string",
+                    "example": "application/vnd.oci.image.manifest.v1+json"
+                },
                 "pull_times": {
                     "type": "integer",
                     "example": 10
