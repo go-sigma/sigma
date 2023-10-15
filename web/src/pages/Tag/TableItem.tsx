@@ -36,9 +36,12 @@ export default function ({ namespace, repository, artifact, artifacts }: { names
   return (
     <tbody>
       {
-        artifactObj.mediaType === "application/vnd.oci.image.manifest.v1+json" || artifactObj.mediaType === "application/vnd.docker.distribution.manifest.v2+json" ? (
+        artifactObj.mediaType === "application/vnd.oci.image.manifest.v1+json" ||
+          artifactObj.mediaType === "application/vnd.docker.distribution.manifest.v2+json" ||
+          artifact.config_media_type == "application/vnd.cncf.helm.config.v1+json" ? (
           <DetailItem artifact={artifact} />
-        ) : artifactObj.mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" || artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
+        ) : artifactObj.mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" ||
+          artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
           artifacts.map((artifact: IArtifact, index: number) => {
             return (
               !skipManifest(artifact.raw) && (
@@ -75,7 +78,14 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
         </code>
       </td>
       <td className="text-right text-xs">
-        <span>  {imageConfigObj.os}/{imageConfigObj.architecture}</span>
+        {
+          imageConfigObj.os === undefined ||
+            imageConfigObj.architecture === undefined ||
+            imageConfigObj.os === "" ||
+            imageConfigObj.architecture === "" ? "-" : (
+            <span>{imageConfigObj.os}/{imageConfigObj.architecture}</span>
+          )
+        }
       </td>
       <td className="text-right text-xs">
         <div className='flex flex-row-reverse gap-1'>

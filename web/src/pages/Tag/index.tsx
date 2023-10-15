@@ -28,6 +28,8 @@ import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
+import HelmSvg from "../../components/svg/helm";
+import DockerSvg from "../../components/svg/docker";
 
 import TableItem from "./TableItem";
 
@@ -86,16 +88,6 @@ export default function Tag({ localServer }: { localServer: string }) {
   }
 
   useEffect(fetchTags, [refresh, page]);
-
-  const imageDomain = () => {
-    if (localServer.startsWith("http://")) {
-      return localServer.substring(7);
-    } else if (localServer.startsWith("https://")) {
-      return localServer.substring(8)
-    } else {
-      return localServer;
-    }
-  }
 
   return (
     <Fragment>
@@ -208,8 +200,26 @@ export default function Tag({ localServer }: { localServer: string }) {
                     <div key={tag.id} className="p-4 border-t border-gray-200 hover:shadow-md last:hover:shadow-none">
                       {/* first row begin */}
                       <div className="flex">
-                        <div className="flex-1">
-                          <span className="font-semibold text-gray-600">
+                        <div className="flex-1 flex gap-1">
+                          {
+                            tag.artifact.config_media_type === "application/vnd.cncf.helm.config.v1+json" ? (
+                              <HelmSvg />
+                            ) : tag.artifact.media_type === "application/vnd.oci.image.manifest.v1+json" ||
+                              tag.artifact.media_type === "application/vnd.docker.distribution.manifest.v2+json" ||
+                              tag.artifact.media_type === "application/vnd.docker.distribution.manifest.list.v2+json" ||
+                              tag.artifact.media_type === "application/vnd.oci.image.index.v1+json" ? (
+                              <DockerSvg />
+                            ) : null
+                          }
+                          <span className="font-semibold text-gray-600 cursor-pointer"
+                            id={"tooltip-tag-name-" + index}
+                            onClick={e => {
+                              copyToClipboard(`${tag.name}`);
+                              let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
+                                document.getElementById("tooltip-tag-name-" + index.toString()), { triggerType: "click" });
+                              tooltip.show();
+                            }}
+                          >
                             {tag.name}
                           </span>
                         </div>
@@ -217,12 +227,28 @@ export default function Tag({ localServer }: { localServer: string }) {
                           <code className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
                             id={"tooltip-top-btn-" + index}
                             onClick={e => {
-                              copyToClipboard(`docker pull ${trimHTTP(endpoint)}/${repository}:${tag.name}`);
+                              let copyText = `docker pull ${trimHTTP(endpoint)}/${repository}:${tag.name}`;
+                              if (tag.artifact.config_media_type === "application/vnd.cncf.helm.config.v1+json") {
+                                copyText = `helm pull ${trimHTTP(endpoint)}/${repository} --version ${tag.name}`
+                              }
+                              copyToClipboard(copyText);
                               let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
                                 document.getElementById("tooltip-top-btn-" + index.toString()), { triggerType: "click" });
                               tooltip.show();
                             }}
-                          >docker pull {trimHTTP(endpoint)}/{repository}:{tag.name}</code>
+                          >
+                            {
+                              tag.artifact.config_media_type === "application/vnd.cncf.helm.config.v1+json" ? (
+                                <>
+                                  helm pull {trimHTTP(endpoint)}/{repository} --version {tag.name}
+                                </>
+                              ) : (
+                                <>
+                                  docker pull {trimHTTP(endpoint)}/{repository}:{tag.name}
+                                </>
+                              )
+                            }
+                          </code>
                         </div>
                       </div>
                       {/* first row end */}

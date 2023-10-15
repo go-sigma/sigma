@@ -28,7 +28,7 @@ function Hero() {
 
                 <h2 className="hero-subtitle">
                   <Typed
-                    strings={['>_ Made by developers for you by heart']}
+                    strings={['>_ Made with heart']}
                     typeSpeed={75}
                   />
                 </h2>

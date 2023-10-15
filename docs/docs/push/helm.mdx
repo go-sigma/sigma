@@ -27,13 +27,21 @@ You can see the v3.13.0 [release note](https://github.com/helm/helm/releases/tag
 Before helm version v3.13.0:
 
 ``` bash
-helm registry login --insecure -u sigma -p sigma 127.0.0.1:3000
+helm registry login --insecure -u sigma -p Admin@123 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --insecure-skip-tls-verify
 ```
 
 After helm version v3.13.0:
 
 ``` bash
-helm registry login -u sigma -p sigma 127.0.0.1:3000
+helm registry login -u sigma -p Admin@123 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --plain-http
+```
+
+### Pull the helm chart from sigma
+
+``` bash
+# before v3.13.0
+# helm pull oci://127.0.0.1:3000/library/demo --version 0.1.0 --insecure-skip-tls-verify
+helm pull oci://127.0.0.1:3000/library/demo --version 0.1.0 --plain-http
 ```

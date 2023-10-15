@@ -95,7 +95,9 @@ export interface IArtifactList {
 export interface IArtifact {
   id: number;
   digest: string;
+  media_type: string;
   raw: string;
+  config_media_type: string;
   config_raw: string;
   size: number;
   blob_size: number;
