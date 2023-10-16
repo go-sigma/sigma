@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
+package version
 
-type GetEndpointResponse struct {
-	Endpoint string `json:"endpoint" example:"https://example.com:3000"`
-}
+var (
+	// Version ...
+	Version = ""
+	// GitHash ...
+	GitHash = ""
+	// BuildDate ...
+	BuildDate = ""
+)

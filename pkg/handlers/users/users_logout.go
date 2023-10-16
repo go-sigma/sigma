@@ -18,6 +18,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -57,7 +58,7 @@ func (h *handlers) Logout(c echo.Context) error {
 		}
 		id, _, err := h.tokenService.Validate(ctx, t)
 		if err != nil {
-			if errors.Is(err, token.ErrRevoked) {
+			if errors.Is(err, token.ErrRevoked) || errors.Is(err, jwt.ErrTokenExpired) {
 				continue
 			}
 			log.Error().Err(err).Str("token", t).Msg("Revoke token failed")

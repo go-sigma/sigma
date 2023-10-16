@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package types
 
-const (
-	// SettingSignPrivateKey is the private key for signing
-	SettingSignPrivateKey = "signing.private_key"
-	// SettingSignPublicKey is the public key for signing
-	SettingSignPublicKey = "signing.public_key"
-)
+// GetSystemEndpointResponse ...
+type GetSystemEndpointResponse struct {
+	Endpoint string `json:"endpoint" example:"https://example.com:3000"`
+}
+
+// GetSystemVersionResponse ...
+type GetSystemVersionResponse struct {
+	Version   string `json:"version" example:"v1.0.0"`
+	GitHash   string `json:"git_hash" example:"4225b69a"`
+	BuildDate string `json:"build_date" example:"2023-10-16T11:25:45Z"`
+}

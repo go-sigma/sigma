@@ -36,7 +36,7 @@ import (
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Status(c echo.Context) error {
-	return c.JSON(http.StatusOK, types.GetEndpointResponse{
+	return c.JSON(http.StatusOK, types.GetSystemEndpointResponse{
 		Endpoint: viper.GetString("server.endpoint"),
 	})
 }

@@ -31,6 +31,8 @@ import (
 type Handlers interface {
 	// GetEndpoint handles the get endpoint request
 	GetEndpoint(c echo.Context) error
+	// GetVersion handles the get version request
+	GetVersion(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -56,6 +58,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	repositoryHandler := handlerNew()
 	systemGroup.GET("/endpoint", repositoryHandler.GetEndpoint)
+	systemGroup.GET("/version", repositoryHandler.GetVersion)
 	return nil
 }
 

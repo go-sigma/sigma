@@ -17,9 +17,9 @@ WHITE            := $(shell tput -Txterm setaf 7)
 CYAN             := $(shell tput -Txterm setaf 6)
 RESET            := $(shell tput -Txterm sgr0)
 
-GOLDFLAGS        += -X github.com/go-sigma/sigma/cmd.version=$(shell git describe --tags --dirty --always)
-GOLDFLAGS        += -X github.com/go-sigma/sigma/cmd.buildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
-GOLDFLAGS        += -X github.com/go-sigma/sigma/cmd.gitHash=$(shell git rev-parse --short HEAD)
+GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.Version=$(shell git describe --tags --dirty --always)
+GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.BuildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)'
 
 .PHONY: all test build vendor

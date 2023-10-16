@@ -20,12 +20,13 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+
+	"github.com/go-sigma/sigma/pkg/version"
 )
 
 // You can copy & paste this ascii graphic and use it e.g. as mail signature
 // Font: doh   Reflection: no   Adjustment: left   Stretch: no      Width: 280	 Text: sigma
-const banner = `
-                   iiii
+const banner = `                   iiii
                   i::::i
                    iiii
 
@@ -49,23 +50,17 @@ s::::::::::::::s i::::::i g::::::::::::::::g m::::m   m::::m   m::::ma:::::aaaa:
                              ggg::::::ggg
                                 gggggg`
 
-var (
-	version   = ""
-	gitHash   = ""
-	buildDate = ""
-)
-
 // versionCmd represents the worker command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show version of sigma",
 	Run: func(_ *cobra.Command, _ []string) {
 		color.Cyan(banner)
-		fmt.Printf("Version:     %s\n", version)
+		fmt.Printf("Version:     %s\n", version.Version)
 		fmt.Printf("GoVersion:   %s\n", runtime.Version())
 		fmt.Printf("Platform:    %s/%s\n", runtime.GOOS, runtime.GOARCH)
-		fmt.Printf("BuildDate:   %s\n", buildDate)
-		fmt.Printf("GitCommit:   %s\n", gitHash)
+		fmt.Printf("BuildDate:   %s\n", version.BuildDate)
+		fmt.Printf("GitCommit:   %s\n", version.GitHash)
 	},
 }
 
