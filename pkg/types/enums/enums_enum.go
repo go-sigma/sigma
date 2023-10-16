@@ -25,6 +25,8 @@ const (
 	ArtifactTypeWasm ArtifactType = "wasm"
 	// ArtifactTypeProvenance is a ArtifactType of type provenance.
 	ArtifactTypeProvenance ArtifactType = "provenance"
+	// ArtifactTypeCosign is a ArtifactType of type cosign.
+	ArtifactTypeCosign ArtifactType = "cosign"
 	// ArtifactTypeUnknown is a ArtifactType of type unknown.
 	ArtifactTypeUnknown ArtifactType = "unknown"
 )
@@ -50,6 +52,7 @@ var _ArtifactTypeValue = map[string]ArtifactType{
 	"cnab":       ArtifactTypeCnab,
 	"wasm":       ArtifactTypeWasm,
 	"provenance": ArtifactTypeProvenance,
+	"cosign":     ArtifactTypeCosign,
 	"unknown":    ArtifactTypeUnknown,
 }
 

@@ -196,7 +196,7 @@ export default function Tag({ localServer }: { localServer: string }) {
             <div className="flex flex-col border-b border-gray-200">
               {
                 tagList.items?.map((tag, index) => {
-                  return (
+                  return tag.artifact.type === "cosign" ? null : (
                     <div key={tag.id} className="p-4 border-t border-gray-200 hover:shadow-md last:hover:shadow-none">
                       {/* first row begin */}
                       <div className="flex">

@@ -397,6 +397,8 @@ func (h *handler) getArtifactType(descriptor distribution.Descriptor, manifest d
 	for _, descriptor := range references {
 		if descriptor.MediaType == "application/vnd.in-toto+json" {
 			return enums.ArtifactTypeProvenance
+		} else if descriptor.MediaType == "application/vnd.dev.cosign.simplesigning.v1+json" {
+			return enums.ArtifactTypeCosign
 		}
 	}
 	var mediaType string
