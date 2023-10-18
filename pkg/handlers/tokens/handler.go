@@ -24,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -83,7 +84,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	if err != nil {
 		return err
 	}
-	tokenGroup := e.Group(consts.APIV1)
+	tokenGroup := e.Group(consts.APIV1, middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	tokenGroup.GET("/tokens", userHandler.Token)
 	return nil
 }
