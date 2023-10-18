@@ -29,8 +29,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
 
@@ -62,13 +62,14 @@ type Clients interface {
 
 // clients is the implementation of Clients
 type clients struct {
+	config   configs.Configuration
 	cli      *resty.Client
 	endpoint string
 }
 
 // ClientsFactory ...
 type ClientsFactory interface {
-	New() (Clients, error)
+	New(config configs.Configuration) (Clients, error)
 }
 
 type clientsFactory struct{}
@@ -79,25 +80,26 @@ func NewClientsFactory() ClientsFactory {
 }
 
 // New returns a new Clients
-func (c clientsFactory) New() (Clients, error) {
+func (c clientsFactory) New(config configs.Configuration) (Clients, error) {
 	client := resty.New()
-	if !viper.GetBool("proxy.tlsVerify") {
+	if !config.Proxy.TlsVerify {
 		client = resty.NewWithClient(&http.Client{
 			Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}, // nolint: gosec
 		})
 	}
-	if viper.GetString("log.proxyLevel") == "debug" {
+	if config.Log.ProxyLevel.String() == "debug" {
 		client.SetDebug(true)
 	}
 	client.SetHeader("User-Agent", consts.UserAgent)
-	client.SetRetryCount(3)
+	client.SetRetryCount(3) // TODO: set in config
 	client.AddRetryCondition(func(r *resty.Response, err error) bool {
 		return err != nil || r.StatusCode() >= http.StatusInternalServerError || r.StatusCode() == http.StatusTooManyRequests
 	})
 
 	clients := &clients{
+		config:   config,
 		cli:      client,
-		endpoint: strings.TrimSuffix(viper.GetString("proxy.endpoint"), "/"),
+		endpoint: strings.TrimSuffix(config.Proxy.Endpoint, "/"),
 	}
 
 	err := clients.AuthToken()
@@ -118,10 +120,10 @@ func (c *clients) AuthToken() error {
 		return nil
 	}
 	if cha.Scheme == "basic" {
-		if viper.GetString("proxy.username") == "" || viper.GetString("proxy.password") == "" {
+		if c.config.Proxy.Username == "" || c.config.Proxy.Password == "" {
 			return fmt.Errorf("no username or password")
 		}
-		c.cli.SetBasicAuth(viper.GetString("proxy.username"), viper.GetString("proxy.password"))
+		c.cli.SetBasicAuth(c.config.Proxy.Username, c.config.Proxy.Password)
 		_, err = c.ping()
 		if err != nil {
 			return err
@@ -189,8 +191,11 @@ func (c *clients) token(cha challenge.Challenge) (string, error) {
 	if cha.Parameters["scope"] != "" {
 		req.SetQueryParam("scope", cha.Parameters["scope"])
 	}
-	if viper.GetString("proxy.username") != "" && viper.GetString("proxy.password") != "" {
-		req.SetBasicAuth(viper.GetString("proxy.username"), viper.GetString("proxy.password"))
+	if c.config.Proxy.Username != "" && c.config.Proxy.Password != "" {
+		req.SetBasicAuth(c.config.Proxy.Username, c.config.Proxy.Password)
+	}
+	if c.config.Proxy.Token != "" {
+		req.SetHeader("Authorization", "Bearer "+c.config.Proxy.Token)
 	}
 	resp, err := req.Get(cha.Parameters["realm"])
 	if err != nil {

@@ -97,7 +97,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 
 // headManifestFallbackProxy ...
 func (h *handler) headManifestFallbackProxy(c echo.Context) error {
-	statusCode, header, _, err := fallbackProxy(c)
+	statusCode, header, _, err := h.fallbackProxy(c)
 	if err != nil {
 		log.Error().Err(err).Int("status", statusCode).Msg("Fallback proxy failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

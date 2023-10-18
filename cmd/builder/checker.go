@@ -95,5 +95,11 @@ func (b *Builder) checker() error {
 		}
 	}
 
+	signingPrivateKey, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.SigningPrivateKey)
+	if err != nil {
+		return fmt.Errorf("Decrypt signing private key failed: %v", err)
+	}
+	b.SigningPrivateKey = signingPrivateKey
+
 	return nil
 }

@@ -25,6 +25,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -104,6 +105,12 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 		builderConfig.BuildkitInsecureRegistries = append(builderConfig.BuildkitInsecureRegistries, fmt.Sprintf("%s@http", strings.TrimPrefix(config.HTTP.InternalEndpoint, "http://")))
 	}
 
+	settingService := dao.NewSettingServiceFactory().New()
+	privateKey, err := settingService.Get(ctx, consts.SettingSignPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
 	buildConfigEnvs := []string{
 		fmt.Sprintf("BUILDER_ID=%d", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%d", builderConfig.RunnerID),
@@ -119,7 +126,6 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 
 		fmt.Sprintf("OCI_REGISTRY_DOMAIN=%s", strings.Join(builderConfig.OciRegistryDomain, ",")),
 		fmt.Sprintf("OCI_REGISTRY_USERNAME=%s", strings.Join(builderConfig.OciRegistryUsername, ",")),
-		// fmt.Sprintf("OCI_NAME=%s", builderConfig.OciName),
 
 		fmt.Sprintf("BUILDKIT_INSECURE_REGISTRIES=%s", strings.Join(builderConfig.BuildkitInsecureRegistries, ",")),
 		fmt.Sprintf("BUILDKIT_CACHE_DIR=%s", builderConfig.BuildkitCacheDir),
@@ -127,6 +133,8 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 		fmt.Sprintf("BUILDKIT_DOCKERFILE=%s", builderConfig.BuildkitDockerfile),
 		fmt.Sprintf("BUILDKIT_PLATFORMS=%s", utils.StringsJoin(builderConfig.BuildkitPlatforms, ",")),
 		fmt.Sprintf("BUILDKIT_BUILD_ARGS=%s", strings.Join(builderConfig.BuildkitBuildArgs, ",")),
+
+		fmt.Sprintf("SIGNING_PRIVATE_KEY=%s", crypt.MustEncrypt(fmt.Sprintf("%d-%d", builderConfig.BuilderID, builderConfig.RunnerID), string(privateKey.Val))),
 	}
 	if builderConfig.Dockerfile != nil {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("DOCKERFILE=%s", ptr.To(builderConfig.Dockerfile)))

@@ -46,7 +46,6 @@ type Builder struct {
 	OciRegistryDomain   []string `env:"OCI_REGISTRY_DOMAIN" envSeparator:","`
 	OciRegistryUsername []string `env:"OCI_REGISTRY_USERNAME" envSeparator:","`
 	OciRegistryPassword []string `env:"OCI_REGISTRY_PASSWORD" envSeparator:","`
-	// OciName             string   `env:"OCI_NAME,notEmpty"`
 
 	BuildkitInsecureRegistries []string            `env:"BUILDKIT_INSECURE_REGISTRIES" envSeparator:","`
 	BuildkitCacheDir           string              `env:"BUILDKIT_CACHE_DIR" envDefault:"/tmp/buildkit"`
@@ -54,6 +53,8 @@ type Builder struct {
 	BuildkitDockerfile         string              `env:"BUILDKIT_DOCKERFILE" envDefault:"Dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `env:"BUILDKIT_PLATFORMS" envSeparator:","`
 	BuildkitBuildArgs          []string            `env:"BUILDKIT_BUILD_ARGS" envSeparator:","`
+
+	SigningPrivateKey string `env:"SIGNING_PRIVATE_KEY,notEmpty"`
 }
 
 // GetBuilderRequest represents the request to get a builder.

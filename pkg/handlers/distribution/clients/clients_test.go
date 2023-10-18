@@ -26,10 +26,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestBasicAuthToken(t *testing.T) {
@@ -51,14 +52,17 @@ func TestBasicAuthToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.proxyLevel", "debug")
-	viper.SetDefault("proxy.endpoint", srv.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  srv.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.NoError(t, err)
 }
 
@@ -81,14 +85,17 @@ func TestTLSBasicAuthToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", srv.URL)
-	viper.SetDefault("proxy.tlsVerify", false)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  srv.URL,
+			TlsVerify: false,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.NoError(t, err)
 }
 
@@ -129,16 +136,19 @@ func TestBearerAuthToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", srv.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  srv.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.NoError(t, err)
 }
 
@@ -189,16 +199,19 @@ func TestDoRequest(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", srv.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	f := NewClientsFactory()
-	clients, err := f.New()
+	clients, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  srv.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.NoError(t, err)
 
 	statusCode, _, bodyReader, err := clients.DoRequest(context.Background(), http.MethodGet, "/v2/_catalog", nil)
@@ -212,14 +225,18 @@ func TestDoRequest(t *testing.T) {
 func TestDoRequestPing1(t *testing.T) {
 	cUsername := "sigma"
 	cPassword := "sigma"
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", "http://127.0.0.1:10010")
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
 
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  "http://127.0.0.1:10010",
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }
 
@@ -234,14 +251,23 @@ func TestDoRequestPing2(t *testing.T) {
 	s := httptest.NewServer(mux)
 	defer s.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
+	// viper.SetDefault("log.level", "info")
+	// viper.SetDefault("proxy.endpoint", s.URL)
+	// viper.SetDefault("proxy.tlsVerify", true)
+	// viper.SetDefault("proxy.username", cUsername)
+	// viper.SetDefault("proxy.password", cPassword)
 
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }
 
@@ -256,14 +282,17 @@ func TestDoRequestPing3(t *testing.T) {
 	s := httptest.NewServer(mux)
 	defer s.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }
 
@@ -283,14 +312,17 @@ func TestDoRequestPing4(t *testing.T) {
 	s := httptest.NewServer(mux)
 	defer s.Close()
 
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }
 
@@ -307,15 +339,17 @@ func TestDoRequestNoUsername(t *testing.T) {
 	s := httptest.NewServer(mux)
 	defer s.Close()
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", "")
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+			Username:  "",
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }
 
@@ -342,14 +376,16 @@ func TestDoRequestPingBasicAuth(t *testing.T) {
 
 	wwwAuthenticate = fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, s.URL+"/token", "registry.docker.io", "repository:library/alpine:pull")
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	f := NewClientsFactory()
-	_, err := f.New()
+	_, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+			Username:  cUsername,
+			Password:  cPassword,
+		}})
 	assert.Error(t, err)
 }

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"flag"
 	"fmt"
@@ -33,6 +34,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/signing"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -82,6 +84,7 @@ func main() {
 	imageName, err := builder.genTag()
 	checkErr(err)
 	checkErr(builder.build(imageName))
+	checkErr(builder.sign(imageName))
 	checkErr(builder.exportCache())
 }
 
@@ -290,6 +293,15 @@ func (b Builder) build(imageName string) error {
 	}
 	log.Info().Msg("Finished build image")
 	return nil
+}
+
+func (b Builder) sign(imageName string) error {
+	s := signing.NewSigning(signing.Options{
+		Type:      enums.SigningTypeCosign,
+		Http:      strings.HasPrefix(b.Endpoint, "http://"),
+		Multiarch: len(b.BuildkitPlatforms) > 1,
+	})
+	return s.Sign(context.Background(), b.Authorization, b.SigningPrivateKey, imageName)
 }
 
 // docker run -it --rm --security-opt apparmor=unconfined -e SCM_CREDENTIAL_TYPE=none -e SCM_PROVIDER=github -e OCI_REGISTRY_DOMAIN=docker.com -e SCM_REPOSITORY=https://github.com/tosone/sudoku.git -e SCM_BRANCH=dev -e OCI_NAME=test:dev -e BUILDKIT_INSECURE_REGISTRIES="10.1.0.1:3000@http,docker.io@http,test.com" --entrypoint '' docker.io/library/builder:dev sh

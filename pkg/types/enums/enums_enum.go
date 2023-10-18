@@ -1737,6 +1737,86 @@ func (x ScmProvider) Value() (driver.Value, error) {
 }
 
 const (
+	// SigningTypeCosign is a SigningType of type cosign.
+	SigningTypeCosign SigningType = "cosign"
+)
+
+var ErrInvalidSigningType = errors.New("not a valid SigningType")
+
+// String implements the Stringer interface.
+func (x SigningType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x SigningType) IsValid() bool {
+	_, err := ParseSigningType(string(x))
+	return err == nil
+}
+
+var _SigningTypeValue = map[string]SigningType{
+	"cosign": SigningTypeCosign,
+}
+
+// ParseSigningType attempts to convert a string to a SigningType.
+func ParseSigningType(name string) (SigningType, error) {
+	if x, ok := _SigningTypeValue[name]; ok {
+		return x, nil
+	}
+	return SigningType(""), fmt.Errorf("%s is %w", name, ErrInvalidSigningType)
+}
+
+// MustParseSigningType converts a string to a SigningType, and panics if is not valid.
+func MustParseSigningType(name string) SigningType {
+	val, err := ParseSigningType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errSigningTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *SigningType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = SigningType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseSigningType(v)
+	case []byte:
+		*x, err = ParseSigningType(string(v))
+	case SigningType:
+		*x = v
+	case *SigningType:
+		if v == nil {
+			return errSigningTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errSigningTypeNilPtr
+		}
+		*x, err = ParseSigningType(*v)
+	default:
+		return errors.New("invalid type for SigningType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x SigningType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// SortMethodAsc is a SortMethod of type asc.
 	SortMethodAsc SortMethod = "asc"
 	// SortMethodDesc is a SortMethod of type desc.

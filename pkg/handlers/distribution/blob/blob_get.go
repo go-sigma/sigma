@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
@@ -59,7 +60,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
 			f := clients.NewClientsFactory()
-			cli, err := f.New()
+			cli, err := f.New(*configs.GetConfiguration()) // TODO: config param
 			if err != nil {
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")

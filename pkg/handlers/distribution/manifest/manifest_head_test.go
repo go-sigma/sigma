@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -60,7 +61,19 @@ func TestHeadManifestFallbackProxy(t *testing.T) {
 	viper.SetDefault("proxy.endpoint", s.URL)
 	viper.SetDefault("proxy.tlsVerify", true)
 
-	handler := &handler{}
+	handler := &handler{
+		config: configs.Configuration{
+			Log: configs.ConfigurationLog{
+				ProxyLevel: enums.LogLevelDebug,
+			},
+			Proxy: configs.ConfigurationProxy{
+				Endpoint:  s.URL,
+				TlsVerify: true,
+				// Username:  cUsername,
+				// Password:  cPassword,
+			},
+		},
+	}
 
 	req := httptest.NewRequest(http.MethodHead, "/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

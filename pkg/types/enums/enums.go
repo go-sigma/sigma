@@ -233,3 +233,8 @@ type StorageType string
 // kubernetes,
 // )
 type BuilderType string
+
+// SigningType x ENUM(
+// cosign,
+// )
+type SigningType string

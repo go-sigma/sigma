@@ -221,6 +221,7 @@ type ConfigurationProxy struct {
 	TlsVerify bool   `yaml:"tlsVerify"`
 	Username  string `yaml:"username"`
 	Password  string `yaml:"password"`
+	Token     string `yaml:"token"`
 }
 
 // ConfigurationDaemonGc ...
