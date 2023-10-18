@@ -22,8 +22,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -39,25 +40,15 @@ import (
 //	@Failure	401	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) Token(c echo.Context) error {
-	ctx := log.Logger.WithContext(c.Request().Context())
-
-	username, pwd, ok := c.Request().BasicAuth()
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
 	if !ok {
-		log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
-	}
-
-	userService := h.userServiceFactory.New()
-	user, err := userService.GetByUsername(ctx, username)
-	if err != nil {
-		log.Error().Err(err).Msg("Get user by username failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
-	}
-
-	verify := h.passwordService.Verify(pwd, ptr.To(user.Password))
-	if !verify {
-		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
 	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))

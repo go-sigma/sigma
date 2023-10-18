@@ -15,12 +15,9 @@
 package token
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
@@ -28,16 +25,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	passwordmock "github.com/go-sigma/sigma/pkg/utils/password/mocks"
-	tokenmock "github.com/go-sigma/sigma/pkg/utils/token/mocks"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -76,32 +70,8 @@ func TestToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	var tokenTimes int
-	tokenMock := tokenmock.NewMockTokenService(ctrl)
-	tokenMock.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(_ int64, _ time.Duration) (string, error) {
-		if tokenTimes == 0 {
-			tokenTimes++
-			return "test", nil
-		} else {
-			return "", fmt.Errorf("test")
-		}
-	}).Times(2)
-	var passwordTimes int
-	passwordMock := passwordmock.NewMockPassword(ctrl)
-	passwordMock.EXPECT().Verify(gomock.Any(), gomock.Any()).DoAndReturn(func(_, _ string) bool {
-		if passwordTimes == 0 { // nolint: gocritic
-			passwordTimes++
-			return true
-		} else if passwordTimes == 1 {
-			passwordTimes++
-			return false
-		} else {
-			return true
-		}
-	}).Times(3)
-
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
-	userHandler, err := handlerNew(inject{tokenService: tokenMock, passwordService: passwordMock})
+	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -112,11 +82,14 @@ func TestToken(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
 
+	userObj := &models.User{Username: "test-token", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.SetBasicAuth("sigma", "sigma")
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = userHandler.Token(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
@@ -129,15 +102,6 @@ func TestToken(t *testing.T) {
 	err = userHandler.Token(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
-
-	req = httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("sigma", "sigma")
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	err = userHandler.Token(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }
 
 func TestTokenMockDAO(t *testing.T) {
@@ -175,17 +139,8 @@ func TestTokenMockDAO(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockUserService := daomock.NewMockUserService(ctrl)
-	daoMockUserService.EXPECT().GetByUsername(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.User, error) {
-		return nil, fmt.Errorf("test")
-	}).Times(1)
-	daoMockUserServiceFactory := daomock.NewMockUserServiceFactory(ctrl)
-	daoMockUserServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.UserService {
-		return daoMockUserService
-	}).Times(1)
-
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
-	userHandler, err := handlerNew(inject{userServiceFactory: daoMockUserServiceFactory})
+	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
