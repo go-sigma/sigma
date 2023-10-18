@@ -89,6 +89,28 @@ func TestParse(t *testing.T) {
 		{
 			name: "test6",
 			args: args{
+				name: "kubernetes-helm/test/tiller@sha256:4ca2a277f1dc3ddd0da33a258096de9a1cf5b9d9bd96b27ee78763ee2248c28c",
+			},
+			want:    "docker.io",
+			want1:   "kubernetes-helm",
+			want2:   "kubernetes-helm/test/tiller",
+			want3:   "sha256:4ca2a277f1dc3ddd0da33a258096de9a1cf5b9d9bd96b27ee78763ee2248c28c",
+			wantErr: false,
+		},
+		{
+			name: "test7",
+			args: args{
+				name: "kubernetes-helm/test/tiller:v1@sha256:4ca2a277f1dc3ddd0da33a258096de9a1cf5b9d9bd96b27ee78763ee2248c28c",
+			},
+			want:    "docker.io",
+			want1:   "kubernetes-helm",
+			want2:   "kubernetes-helm/test/tiller",
+			want3:   "v1",
+			wantErr: false,
+		},
+		{
+			name: "test8",
+			args: args{
 				name: "kubernetes-helm/test/tiller",
 			},
 			want:    "docker.io",
@@ -98,7 +120,7 @@ func TestParse(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "test7",
+			name: "test9",
 			args: args{
 				name: "busybox",
 			},

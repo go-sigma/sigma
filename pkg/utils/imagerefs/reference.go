@@ -35,16 +35,24 @@ func Parse(name string) (string, string, string, string, error) {
 	named = reference.TagNameOnly(named)
 	domain := reference.Domain(named)
 	path := reference.Path(named)
+
+	var tagOrDigest string
 	tagged, ok := named.(reference.Tagged)
 	if !ok {
-		return "", "", "", "", fmt.Errorf("reference is not tagged: %v, %s", named, name)
+		digested, ok := named.(reference.Digested)
+		if !ok {
+			return "", "", "", "", fmt.Errorf("reference is not tagged or digested: %v, %s", named, name)
+		}
+		tagOrDigest = digested.Digest().String()
+	} else {
+		tagOrDigest = tagged.Tag()
 	}
-	tag := tagged.Tag()
+
 	if !strings.Contains(path, "/") {
 		return "", "", "", "", fmt.Errorf("invalid reference: %s", name)
 	}
 	parts := strings.Split(path, "/")
 	ns := parts[0]
 	repo := path
-	return domain, ns, repo, tag, nil
+	return domain, ns, repo, tagOrDigest, nil
 }
