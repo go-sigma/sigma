@@ -29,10 +29,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/systems/endpoint [get]
-//	@Success	200	{object}	types.GetEndpointResponse
+//	@Success	200	{object}	types.GetSystemEndpointResponse
 func (h *handlers) GetEndpoint(c echo.Context) error {
-	return c.JSON(http.StatusOK, types.GetEndpointResponse{
+	return c.JSON(http.StatusOK, types.GetSystemEndpointResponse{
 		Endpoint: h.config.HTTP.Endpoint,
-		// Endpoint: "http://localhost:3000",
 	})
 }

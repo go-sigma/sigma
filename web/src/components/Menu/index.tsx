@@ -23,7 +23,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
-import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint } from "../../interfaces";
+import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion } from "../../interfaces";
 
 export default function ({ localServer, item, namespace, repository, tag, selfClick }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -222,6 +222,24 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
   }
 
   const [aboutModal, setAboutModal] = useState(false);
+
+  const [version, setVersion] = useState<IVersion>();
+
+  useEffect(() => {
+    let url = `${localServer}/api/v1/systems/version`;
+    axios.get(url).then(response => {
+      if (response?.status === 200) {
+        let e = response.data as IVersion;
+        setVersion(e);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [])
 
   return (
     <div className="flex flex-shrink-0">
@@ -715,7 +733,7 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
               >
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                   <span className='text-sm'>
-                    <a href='https://docs.sigma.tosone.cn' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>sigma</a> is a painless self-hosted all in one software development service, it includes OCI artifact manager, garbage collection, namespace quota, multiarch artifact, OCI image build. It is similar to <a href='https://goharbor.io/' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>Harbor</a>, but <a href='https://github.com/distribution/distribution' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>distribution</a> is implement by itself, all of the service can be startup with one command.
+                    <a href='https://docs.sigma.tosone.cn' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>sigma</a> (<a href={'https://github.com/go-sigma/sigma/tree/' + version?.git_hash} target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>{version?.version}</a>) is a painless self-hosted all in one software development service, it includes OCI artifact manager, garbage collection, namespace quota, multiarch artifact, OCI image build. It is similar to <a href='https://goharbor.io/' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>Harbor</a>, but <a href='https://github.com/distribution/distribution' target='_blank' className='font-semibold text-purple-600 hover:text-purple-500 underline'>distribution</a> is implement by itself, all of the service can be startup with one command.
                   </span>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button

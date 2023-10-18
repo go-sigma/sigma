@@ -356,10 +356,22 @@ definitions:
         example: "2006-01-02 15:04:05"
         type: string
     type: object
-  types.GetEndpointResponse:
+  types.GetSystemEndpointResponse:
     properties:
       endpoint:
         example: https://example.com:3000
+        type: string
+    type: object
+  types.GetSystemVersionResponse:
+    properties:
+      build_date:
+        example: "2023-10-16T11:25:45Z"
+        type: string
+      git_hash:
+        example: 4225b69a
+        type: string
+      version:
+        example: v1.0.0
         type: string
     type: object
   types.GetUserItem:
@@ -2418,8 +2430,22 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.GetEndpointResponse'
+            $ref: '#/definitions/types.GetSystemEndpointResponse'
       summary: Get endpoint
+      tags:
+      - System
+  /systems/version:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSystemVersionResponse'
+      summary: Get version
       tags:
       - System
   /tokens:

@@ -2041,7 +2041,29 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.GetEndpointResponse"
+                            "$ref": "#/definitions/types.GetSystemEndpointResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/systems/version": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Get version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetSystemVersionResponse"
                         }
                     }
                 }
@@ -3297,12 +3319,29 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GetEndpointResponse": {
+        "types.GetSystemEndpointResponse": {
             "type": "object",
             "properties": {
                 "endpoint": {
                     "type": "string",
                     "example": "https://example.com:3000"
+                }
+            }
+        },
+        "types.GetSystemVersionResponse": {
+            "type": "object",
+            "properties": {
+                "build_date": {
+                    "type": "string",
+                    "example": "2023-10-16T11:25:45Z"
+                },
+                "git_hash": {
+                    "type": "string",
+                    "example": "4225b69a"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "v1.0.0"
                 }
             }
         },

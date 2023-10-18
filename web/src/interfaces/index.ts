@@ -289,3 +289,9 @@ export interface IBuilderRunnerItem {
 export interface IRunOrRerunRunnerResponse {
   runner_id: number;
 }
+
+export interface IVersion {
+  version: string;
+  git_hash: string;
+  build_date: string;
+}
