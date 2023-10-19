@@ -91,6 +91,7 @@ func TestTagService(t *testing.T) {
 				Size:         123,
 				ContentType:  "test",
 				Raw:          []byte("test"),
+				Type:         enums.ArtifactTypeImage,
 			},
 		}
 		err = tagService.Create(ctx, tagObj)
@@ -111,7 +112,7 @@ func TestTagService(t *testing.T) {
 		assert.Equal(t, tag3.PullTimes, int64(1))
 		assert.True(t, tag3.LastPull.Valid)
 
-		tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, types.Pagination{
+		tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, nil, types.Pagination{
 			Limit: ptr.Of(int(100)),
 			Page:  ptr.Of(int(0)),
 		}, types.Sortable{})

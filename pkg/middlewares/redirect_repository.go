@@ -72,5 +72,8 @@ func skipRedirect(c echo.Context) bool {
 		strings.HasSuffix(reqPath, ".js")) {
 		return true
 	}
+	if strings.HasPrefix(reqPath, "/swagger") {
+		return true
+	}
 	return false
 }

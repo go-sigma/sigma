@@ -141,7 +141,7 @@ func TestListTag(t *testing.T) {
 	defer ctrl.Finish()
 
 	daoMockTagService := daomock.NewMockTagService(ctrl)
-	daoMockTagService.EXPECT().ListTag(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ types.Pagination, _ types.Sortable) ([]*models.Tag, int64, error) {
+	daoMockTagService.EXPECT().ListTag(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ *string, _ []enums.ArtifactType, _ types.Pagination, _ types.Sortable) ([]*models.Tag, int64, error) {
 		return nil, 0, fmt.Errorf("test")
 	}).Times(1)
 	daoMockTagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)

@@ -1733,6 +1733,26 @@ const docTemplate = `{
                         "description": "search tag with name",
                         "name": "name",
                         "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "image",
+                                "imageIndex",
+                                "chart",
+                                "cnab",
+                                "cosign",
+                                "wasm",
+                                "provenance",
+                                "unknown"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "search tag with type",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
