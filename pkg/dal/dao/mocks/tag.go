@@ -15,6 +15,7 @@ import (
 	dao "github.com/go-sigma/sigma/pkg/dal/dao"
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	types "github.com/go-sigma/sigma/pkg/types"
+	enums "github.com/go-sigma/sigma/pkg/types/enums"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -227,9 +228,9 @@ func (mr *MockTagServiceMockRecorder) ListByDtPagination(arg0, arg1, arg2 any, a
 }
 
 // ListTag mocks base method.
-func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Tag, int64, error) {
+func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string, arg3 []enums.ArtifactType, arg4 types.Pagination, arg5 types.Sortable) ([]*models.Tag, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTag", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "ListTag", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].([]*models.Tag)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -237,7 +238,7 @@ func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string,
 }
 
 // ListTag indicates an expected call of ListTag.
-func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1, arg2, arg3, arg4, arg5)
 }

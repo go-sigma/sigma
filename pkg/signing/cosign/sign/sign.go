@@ -32,8 +32,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 )
 
-// COSIGN_PASSWORD= ./cosign sign --tlog-upload=false --allow-http-registry --key cosign.key --registry-token eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzaWdtYSIsInN1YiI6IjIiLCJleHAiOjE2OTc2OTYxMDMsIm5iZiI6MTY5NzYwOTcwMywiaWF0IjoxNjk3NjA5NzAzLCJqdGkiOiIyYzIzNWNkOC0xYmJiLTRiNGYtODYyMi1iNjI2NDZiNTE3Y2EiLCJ1aWQiOiIyIn0.W_8F6Sh2Sj21lQm_ezwQHYvNTKSUdoYHru2hOrWqKtakx6s0arzW3NAyCo7ygSdjFpX18ZcSrsaOTDkccOYNmP-66ffYxLdV2PtfP8yGP-HkdvnO1cuTTUc5a25Xbn1nx2pJTDFpUKkehuBpSQ63pVnricRkQyxx-b7umg8i8MckMsSoX8eHM_IxKoFeKcMfmXqZb_RqDIzAXR2EBRTwPw16kZFD_ROtRTpeKihnXlUTcOz8t7ULoikBwNukwDG0nHXPwK4FQ64Rj-JyjGbRnSSJQTz0IhdnwFOW62_yHKic-4eK9MfWAlMvEXweV_uC1wbop-n5I84UtMPlQ0CT6Rz2iVHVkwPE4dZc9pLcBAv0UJJOnjPxQz5OUetBfIBgP9Kz7q7amA7qWf1fmq0Gf-GL7SkIqBp1ca45Fsqg2NOnNxOzxAPYUprQrQ9ObyooEJN85tTjQsIGmNMC853C9aPDN7pNBVWyba5I_xKFzaRNeO3BvdLjs8cq9K_SYgHA_yfZe-VBrfqc-jSx-t4HFxP429F9CBMKpz1JnH_ROg94Y5FAO9NgG9Jy0thZsMK6DjyiX_sG8sSeB4FULvmP7RV03ghMEu3nObDYeOxkKtUoNuGtL_BvVkOUF7zhvhQsjbeWOIOJVcJy-ljNk8AFnTZwpZQ0PAbWceRxFEEw-iw 10.3.198.80:3000/library/redis@sha256:b355b79a3117c4bfa2e8a05d5ed0496a19e542444d5ccf0328632091238a0136
-
 type signing struct {
 	Multiarch bool
 	Http      bool
@@ -81,8 +79,9 @@ func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
 	cmd.Args = append(cmd.Args, "--key", temp.Name())
 	cmd.Args = append(cmd.Args, "--registry-token", token)
 	cmd.Args = append(cmd.Args, imageRef)
+	cmd.Env = append(cmd.Env, "COSIGN_PASSWORD=")
 
-	return nil
+	return cmd.Run()
 }
 
 // GetDigest ...

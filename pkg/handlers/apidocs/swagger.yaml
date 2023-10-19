@@ -2202,6 +2202,22 @@ paths:
         in: query
         name: name
         type: string
+      - collectionFormat: multi
+        description: search tag with type
+        in: query
+        items:
+          enum:
+          - image
+          - imageIndex
+          - chart
+          - cnab
+          - cosign
+          - wasm
+          - provenance
+          - unknown
+          type: string
+        name: type
+        type: array
       produces:
       - application/json
       responses:

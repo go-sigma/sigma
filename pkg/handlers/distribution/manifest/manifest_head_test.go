@@ -69,8 +69,6 @@ func TestHeadManifestFallbackProxy(t *testing.T) {
 			Proxy: configs.ConfigurationProxy{
 				Endpoint:  s.URL,
 				TlsVerify: true,
-				// Username:  cUsername,
-				// Password:  cPassword,
 			},
 		},
 	}

@@ -16,6 +16,7 @@ package dao
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"time"
@@ -51,7 +52,7 @@ type TagService interface {
 	// ListByDtPagination lists the tags by the specified repository and pagination.
 	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...int64) ([]*models.Tag, error)
 	// ListTag lists the tags by the specified request.
-	ListTag(ctx context.Context, repositoryID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
+	ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
 	// CountArtifact counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
@@ -203,9 +204,20 @@ func (s *tagService) ListByDtPagination(ctx context.Context, repository string, 
 }
 
 // ListTag lists the tags by the specified request.
-func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
+func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
+	var mTypes []driver.Valuer
+	if len(types) > 0 {
+		for _, t := range types {
+			mTypes = append(mTypes, t)
+		}
+	}
 	pagination = utils.NormalizePagination(pagination)
 	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
+	if len(types) > 0 {
+		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID), s.tx.Artifact.Type.In(mTypes...))
+	} else {
+		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID))
+	}
 	if name != nil {
 		query = query.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
@@ -213,20 +225,22 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query.Order(field.Desc())
+			query = query.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query.Order(field)
+			query = query.Order(field)
 		default:
-			query.Order(s.tx.Tag.UpdatedAt.Desc())
+			query = query.Order(s.tx.Tag.UpdatedAt.Desc())
 		}
 	} else {
-		query.Order(s.tx.Tag.UpdatedAt.Desc())
+		query = query.Order(s.tx.Tag.UpdatedAt.Desc())
 	}
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
-	query.Preload(s.tx.Tag.Artifact.Vulnerability)
-	query.Preload(s.tx.Tag.Artifact.Sbom)
+	if len(types) > 0 {
+		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
+	} else {
+		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	}
+	query = query.Preload(s.tx.Tag.Artifact.Vulnerability)
+	query = query.Preload(s.tx.Tag.Artifact.Sbom)
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 

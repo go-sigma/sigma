@@ -38,13 +38,14 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace}/tags/ [get]
-//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
-//	@Param		sort		query		string	false	"sort field"
-//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		namespace	path		string	true	"namespace"
-//	@Param		repository	query		string	false	"repository"
-//	@Param		name		query		string	false	"search tag with name"
+//	@Param		limit		query		int64		false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64		false	"page"	minimum(1)	default(1)
+//	@Param		sort		query		string		false	"sort field"
+//	@Param		method		query		string		false	"sort method"	Enums(asc, desc)
+//	@Param		namespace	path		string		true	"namespace"
+//	@Param		repository	query		string		false	"repository"
+//	@Param		name		query		string		false	"search tag with name"
+//	@Param		type		query		[]string	false	"search tag with type"	Enums(image, imageIndex, chart, cnab, cosign, wasm, provenance, unknown)	collectionFormat(multi)
 //	@Success	200			{object}	types.CommonList{items=[]types.TagItem}
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
@@ -85,7 +86,7 @@ func (h *handlers) ListTag(c echo.Context) error {
 	}
 
 	tagService := h.tagServiceFactory.New()
-	tags, total, err := tagService.ListTag(ctx, repositoryObj.ID, req.Name, req.Pagination, req.Sortable)
+	tags, total, err := tagService.ListTag(ctx, repositoryObj.ID, req.Name, req.Type, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List tag from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -95,6 +96,7 @@ func (h *handlers) ListTag(c echo.Context) error {
 	for _, tag := range tags {
 		if tag.Artifact == nil {
 			log.Error().Str("image", fmt.Sprintf("%s:%s", repositoryObj.Name, tag.Name)).Msg("Some tag's artifact reference invalid")
+			continue
 		}
 		var artifacts []types.TagItemArtifact
 		for _, item := range tag.Artifact.ArtifactIndexes {

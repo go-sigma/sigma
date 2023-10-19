@@ -14,6 +14,8 @@
 
 package types
 
+import "github.com/go-sigma/sigma/pkg/types/enums"
+
 // TagItemArtifact ...
 type TagItemArtifact struct {
 	ID              int64  `json:"id" example:"1"`
@@ -53,7 +55,8 @@ type ListTagRequest struct {
 	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"library"`
 	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository" example:"library/busybox"`
 
-	Name *string `json:"name" query:"name"`
+	Name *string              `json:"name" query:"name"`
+	Type []enums.ArtifactType `json:"type" query:"type"`
 }
 
 // DeleteTagRequest represents the request to delete a tag.
