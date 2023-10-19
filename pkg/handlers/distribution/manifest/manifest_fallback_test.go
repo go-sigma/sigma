@@ -27,7 +27,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestFallbackProxy(t *testing.T) {
@@ -77,7 +79,7 @@ func TestFallbackProxy(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "info")
+	viper.SetDefault("log.level", "debug")
 	viper.SetDefault("proxy.endpoint", srv.URL)
 	viper.SetDefault("proxy.tlsVerify", true)
 	viper.SetDefault("proxy.username", cUsername)
@@ -90,7 +92,20 @@ func TestFallbackProxy(t *testing.T) {
 	e := echo.New()
 	c := e.NewContext(req, rec)
 
-	statusCode, _, bodyBytes, err := fallbackProxy(c)
+	h := handler{
+		config: configs.Configuration{
+			Log: configs.ConfigurationLog{
+				ProxyLevel: enums.LogLevelDebug,
+			},
+			Proxy: configs.ConfigurationProxy{
+				Endpoint:  srv.URL,
+				TlsVerify: true,
+				Username:  cUsername,
+				Password:  cPassword,
+			},
+		},
+	}
+	statusCode, _, bodyBytes, err := h.fallbackProxy(c)
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)

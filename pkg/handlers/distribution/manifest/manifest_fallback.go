@@ -25,7 +25,7 @@ import (
 )
 
 // fallbackProxy cannot found the manifest, proxy to the origin registry
-func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
+func (h *handler) fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
 	var headers = make(http.Header)
 	headers.Add(echo.HeaderAccept, "application/vnd.docker.distribution.manifest.v2+json")
 	headers.Add(echo.HeaderAccept, "application/vnd.oci.image.manifest.v1+json")
@@ -33,7 +33,7 @@ func fallbackProxy(c echo.Context) (int, http.Header, []byte, error) {
 	headers.Add(echo.HeaderAccept, "application/vnd.oci.image.index.v1+json")
 
 	f := clients.NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(h.config) // TODO: config param
 	if err != nil {
 		return 0, nil, nil, err
 	}

@@ -23,10 +23,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/hash"
 )
 
@@ -48,13 +49,15 @@ func TestGetBlob(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	descriptor, reader, err := cli.GetBlob(context.Background(), "library/busybox", dgest)
@@ -86,13 +89,15 @@ func TestGetBlob1(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
@@ -117,13 +122,15 @@ func TestGetBlob2(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
@@ -148,13 +155,15 @@ func TestGetBlob3(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	s.Close()
@@ -179,13 +188,15 @@ func TestGetBlob4(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
@@ -210,13 +221,15 @@ func TestHeadBlob(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	descriptor, err := cli.HeadBlob(context.Background(), "library/busybox", dgest)
@@ -244,13 +257,15 @@ func TestHeadBlob2(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	_, err = cli.HeadBlob(context.Background(), "library/busybox", dgest)
@@ -275,13 +290,15 @@ func TestHeadBlob3(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	s.Close()
@@ -306,13 +323,15 @@ func TestHeadBlob4(t *testing.T) {
 	})
 	s := httptest.NewServer(mux)
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	f := NewClientsFactory()
-	cli, err := f.New()
+	cli, err := f.New(configs.Configuration{
+		Log: configs.ConfigurationLog{
+			ProxyLevel: enums.LogLevelDebug,
+		},
+		Proxy: configs.ConfigurationProxy{
+			Endpoint:  s.URL,
+			TlsVerify: true,
+		}})
 	assert.NoError(t, err)
 
 	_, err = cli.HeadBlob(context.Background(), "library/busybox", dgest)

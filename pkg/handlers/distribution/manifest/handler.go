@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -40,6 +41,8 @@ type Handlers interface {
 var _ Handlers = &handler{}
 
 type handler struct {
+	config configs.Configuration
+
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory

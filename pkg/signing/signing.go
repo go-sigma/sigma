@@ -12,29 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package systems
+package signing
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/version"
+	"github.com/go-sigma/sigma/pkg/signing/cosign/sign"
+	"github.com/go-sigma/sigma/pkg/signing/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// GetEndpoint handles the get version request
-//
-//	@Summary	Get version
-//	@Tags		System
-//	@Accept		json
-//	@Produce	json
-//	@Router		/systems/version [get]
-//	@Success	200	{object}	types.GetSystemVersionResponse
-func (h *handlers) GetVersion(c echo.Context) error {
-	return c.JSON(http.StatusOK, types.GetSystemVersionResponse{
-		Version:   version.Version,
-		GitHash:   version.GitHash,
-		BuildDate: version.BuildDate,
-	})
+// Options ...
+type Options struct {
+	Type enums.SigningType
+
+	Http      bool
+	Multiarch bool
+}
+
+// NewSigning ...
+func NewSigning(opt Options) definition.Signing {
+	switch opt.Type {
+	case enums.SigningTypeCosign:
+		return sign.New(opt.Http, opt.Multiarch)
+	default:
+		return sign.New(opt.Http, opt.Multiarch)
+	}
 }
