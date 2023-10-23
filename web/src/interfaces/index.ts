@@ -27,6 +27,24 @@ export interface IHTTPError {
   description: string;
 }
 
+export interface IUserItem {
+  id: number;
+  username: string;
+  email: string;
+  status: string;
+  last_login: string;
+  namespace_count: number;
+  namespace_limit: number;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IUserList {
+  items: IUserItem[];
+  total: number;
+}
+
 export interface IUserSelf {
   id: number;
   username: string;

@@ -18,7 +18,10 @@ import axios from 'axios';
 
 axios.interceptors.request.use((config: any) => {
   const token = localStorage.getItem('token');
-  token && (config.headers.Authorization = "Bearer " + token);
+  if ((config.headers.Authorization === undefined || config.headers.Authorization === null) &&
+    token !== undefined) {
+    config.headers.Authorization = "Bearer " + token
+  }
   return config;
 });
 

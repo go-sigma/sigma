@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
@@ -45,6 +46,10 @@ type Handlers interface {
 	ResetPassword(c echo.Context) error
 	// List handles the list user request
 	List(c echo.Context) error
+	// Put handles the put request
+	Put(c echo.Context) error
+	// Post handles the post request
+	Post(c echo.Context) error
 
 	// RecoverPassword handles the recover user's password
 	RecoverPassword(c echo.Context) error
@@ -60,6 +65,7 @@ type Handlers interface {
 }
 
 type handlers struct {
+	config             configs.Configuration
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
@@ -102,7 +108,8 @@ func handlerNew(injects ...inject) (Handlers, error) {
 
 type factory struct{}
 
-var skipAuths = []string{"post:/api/v1/users/login", "get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
+// "post:/api/v1/users/login",
+var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
 func (f factory) Initialize(e *echo.Echo) error {
 	userGroup := e.Group(consts.APIV1 + "/users")
@@ -118,6 +125,8 @@ func (f factory) Initialize(e *echo.Echo) error {
 	}))
 
 	userGroup.GET("/", userHandler.List)
+	userGroup.POST("/", userHandler.Post)
+	userGroup.PUT("/:id", userHandler.Put)
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.POST("/logout", userHandler.Logout)
 	userGroup.GET("/signup", userHandler.Signup)

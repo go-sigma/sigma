@@ -60,6 +60,8 @@ func Initialize(e *echo.Echo) {
 
 // register registers the validators
 func register(v *validator.Validate) {
+	v.RegisterValidation("is_valid_user_role", ValidateUserRole)                    // nolint:errcheck
+	v.RegisterValidation("is_valid_user_status", ValidateUserStatue)                // nolint:errcheck
 	v.RegisterValidation("is_valid_email", ValidateEmail)                           // nolint:errcheck
 	v.RegisterValidation("is_valid_username", ValidateUsername)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_password", ValidatePassword)                     // nolint:errcheck
@@ -71,6 +73,20 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
 	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
+}
+
+// ValidateUserRole validates the user role
+func ValidateUserRole(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseUserRole(v)
+	return err == nil
+}
+
+// ValidateUserStatue validates the user status
+func ValidateUserStatue(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseUserStatus(v)
+	return err == nil
 }
 
 // ValidatePassword validates the password

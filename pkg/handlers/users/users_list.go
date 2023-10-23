@@ -39,7 +39,7 @@ import (
 //	@Param		sort	query		string	false	"sort field"
 //	@Param		method	query		string	false	"sort method"	Enums(asc, desc)
 //	@Param		name	query		string	false	"Username"
-//	@Success	200		{object}	types.CommonList{items=[]types.GetUserItem}
+//	@Success	200		{object}	types.CommonList{items=[]types.UserItem}
 //	@Failure	500		{object}	xerrors.ErrCode
 func (h *handlers) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
@@ -53,17 +53,21 @@ func (h *handlers) List(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	userService := h.userServiceFactory.New()
-	userObjs, total, err := userService.List(ctx, req.Name, req.Pagination, req.Sortable)
+	userObjs, total, err := userService.ListWithoutUsername(ctx, h.config.Auth.InternalUser.Username, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List user failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 	var resp = make([]any, 0, len(userObjs))
 	for _, o := range userObjs {
-		resp = append(resp, types.GetUserItem{
-			ID:       o.ID,
-			Username: o.Username,
-			Email:    ptr.To(o.Email),
+		resp = append(resp, types.UserItem{
+			ID:             o.ID,
+			Username:       o.Username,
+			Email:          ptr.To(o.Email),
+			Status:         o.Status,
+			LastLogin:      o.LastLogin.Format(consts.DefaultTimePattern),
+			NamespaceLimit: o.NamespaceLimit,
+			NamespaceCount: o.NamespaceCount,
 
 			CreatedAt: o.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: o.UpdatedAt.Format(consts.DefaultTimePattern),

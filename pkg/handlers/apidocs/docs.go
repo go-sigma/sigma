@@ -1089,6 +1089,13 @@ const docTemplate = `{
                 "summary": "Update namespace",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Namespace id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Namespace object",
                         "name": "message",
                         "in": "body",
@@ -2195,12 +2202,85 @@ const docTemplate = `{
                                         "items": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/types.GetUserItem"
+                                                "$ref": "#/definitions/types.UserItem"
                                             }
                                         }
                                     }
                                 }
                             ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "description": "User object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/login": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Login user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.PostUserLoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
                         }
                     },
                     "500": {
@@ -2249,6 +2329,40 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/xerrors.ErrCode"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -2985,6 +3099,30 @@ const docTemplate = `{
                 "TaskCommonStatusFailed"
             ]
         },
+        "enums.UserRole": {
+            "type": "string",
+            "enum": [
+                "Root",
+                "Admin",
+                "User"
+            ],
+            "x-enum-varnames": [
+                "UserRoleRoot",
+                "UserRoleAdmin",
+                "UserRoleUser"
+            ]
+        },
+        "enums.UserStatus": {
+            "type": "string",
+            "enum": [
+                "Active",
+                "Inactive"
+            ],
+            "x-enum-varnames": [
+                "UserStatusActive",
+                "UserStatusInactive"
+            ]
+        },
         "enums.Visibility": {
             "type": "string",
             "enum": [
@@ -3362,28 +3500,6 @@ const docTemplate = `{
                 "version": {
                     "type": "string",
                     "example": "v1.0.0"
-                }
-            }
-        },
-        "types.GetUserItem": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
@@ -3814,6 +3930,26 @@ const docTemplate = `{
                 }
             }
         },
+        "types.PostUserLoginResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "types.PostUserLogoutRequest": {
             "type": "object",
             "required": [
@@ -3830,6 +3966,45 @@ const docTemplate = `{
                         "123",
                         "234"
                     ]
+                }
+            }
+        },
+        "types.PostUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test@gmail.com"
+                },
+                "namespace_limit": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 10
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 5,
+                    "example": "Admin@123"
+                },
+                "role": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.UserRole"
+                        }
+                    ],
+                    "example": "Admin"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 2,
+                    "example": "sigma"
                 }
             }
         },
@@ -4315,6 +4490,43 @@ const docTemplate = `{
                 "vulnerability": {
                     "type": "string",
                     "example": "{\"critical\":0,\"high\":0,\"medium\":0,\"low\":0}"
+                }
+            }
+        },
+        "types.UserItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "namespace_count": {
+                    "type": "integer"
+                },
+                "namespace_limit": {
+                    "type": "integer"
+                },
+                "role": {
+                    "$ref": "#/definitions/enums.UserRole"
+                },
+                "status": {
+                    "$ref": "#/definitions/enums.UserStatus"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

@@ -3,10 +3,19 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username` varchar(64) NOT NULL,
   `password` varchar(256),
   `email` varchar(256),
+  `last_login` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `namespace_limit` bigint NOT NULL DEFAULT 0,
+  `namespace_count` bigint NOT NULL DEFAULT 0,
+  `status` ENUM ('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  `role` ENUM ('Root', 'Admin', 'User') NOT NULL DEFAULT 'User',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`)
+  UNIQUE KEY `users_unique_with_username` (`username`, `deleted_at`),
+  KEY `users_idx_created_at` (`created_at`),
+  KEY `users_idx_status` (`status`),
+  KEY `users_idx_role` (`role`),
+  KEY `users_idx_last_login` (`last_login`)
 );
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (

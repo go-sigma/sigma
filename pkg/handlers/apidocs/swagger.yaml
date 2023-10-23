@@ -100,6 +100,24 @@ definitions:
     - TaskCommonStatusDoing
     - TaskCommonStatusSuccess
     - TaskCommonStatusFailed
+  enums.UserRole:
+    enum:
+    - Root
+    - Admin
+    - User
+    type: string
+    x-enum-varnames:
+    - UserRoleRoot
+    - UserRoleAdmin
+    - UserRoleUser
+  enums.UserStatus:
+    enum:
+    - Active
+    - Inactive
+    type: string
+    x-enum-varnames:
+    - UserStatusActive
+    - UserStatusInactive
   enums.Visibility:
     enum:
     - private
@@ -372,21 +390,6 @@ definitions:
         type: string
       version:
         example: v1.0.0
-        type: string
-    type: object
-  types.GetUserItem:
-    properties:
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      username:
         type: string
     type: object
   types.GetWebhookLogResponse:
@@ -688,6 +691,19 @@ definitions:
         example: 21911
         type: integer
     type: object
+  types.PostUserLoginResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      refresh_token:
+        type: string
+      token:
+        type: string
+      username:
+        type: string
+    type: object
   types.PostUserLogoutRequest:
     properties:
       tokens:
@@ -700,6 +716,34 @@ definitions:
         type: array
     required:
     - tokens
+    type: object
+  types.PostUserRequest:
+    properties:
+      email:
+        example: test@gmail.com
+        type: string
+      namespace_limit:
+        example: 10
+        minimum: 0
+        type: integer
+      password:
+        example: Admin@123
+        maxLength: 20
+        minLength: 5
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/enums.UserRole'
+        example: Admin
+      username:
+        example: sigma
+        maxLength: 20
+        minLength: 2
+        type: string
+    required:
+    - email
+    - password
+    - username
     type: object
   types.PostUserTokenResponse:
     properties:
@@ -1069,6 +1113,31 @@ definitions:
         type: string
       vulnerability:
         example: '{"critical":0,"high":0,"medium":0,"low":0}'
+        type: string
+    type: object
+  types.UserItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      last_login:
+        type: string
+      namespace_count:
+        type: integer
+      namespace_limit:
+        type: integer
+      role:
+        $ref: '#/definitions/enums.UserRole'
+      status:
+        $ref: '#/definitions/enums.UserStatus'
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      username:
         type: string
     type: object
   types.WebhookItem:
@@ -1803,6 +1872,11 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Namespace id
+        in: path
+        name: id
+        required: true
+        type: string
       - description: Namespace object
         in: body
         name: message
@@ -2532,7 +2606,7 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.GetUserItem'
+                    $ref: '#/definitions/types.UserItem'
                   type: array
               type: object
         "500":
@@ -2540,6 +2614,74 @@ paths:
           schema:
             $ref: '#/definitions/xerrors.ErrCode'
       summary: List users with pagination
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: Create user
+      tags:
+      - User
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      summary: Update user
+      tags:
+      - User
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.PostUserLoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Login user
       tags:
       - User
   /users/logout:

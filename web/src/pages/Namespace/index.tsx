@@ -42,7 +42,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
   const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(0);
   const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
-  useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit])
+  useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit]);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
   useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])

@@ -28,14 +28,24 @@ export default function Login({ localServer }: { localServer: string }) {
   const [password, setPassword] = useState("");
   const login = (username: string, password: string) => {
     let url = localServer + `/api/v1/users/login`;
-    axios.post(url, { "username": username, "password": password })
+    axios.post(url, {}, {
+      headers: {
+        "Authorization": "Basic " + btoa(username + ":" + password),
+      },
+    })
       .then(response => {
-        const resp = response.data as IUserLoginResponse;
-        localStorage.setItem("token", resp.token);
-        localStorage.setItem("refresh_token", resp.refresh_token);
-        navigate("/namespaces");
+        if (response?.status === 200) {
+          const resp = response.data as IUserLoginResponse;
+          localStorage.setItem("token", resp.token);
+          localStorage.setItem("refresh_token", resp.refresh_token);
+          navigate("/namespaces");
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        }
       }).catch(err => {
-        console.log(err)
+        const errorcode = err.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       })
   }
 
