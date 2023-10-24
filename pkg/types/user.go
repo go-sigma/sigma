@@ -18,6 +18,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
+// GetUserListRequest ...
 type GetUserListRequest struct {
 	Pagination
 	Sortable
@@ -26,22 +27,40 @@ type GetUserListRequest struct {
 	Name *string `json:"name" query:"name"`
 }
 
-type GetUserItem struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
+// PostUserRequest ...
+type PostUserRequest struct {
+	Username       string         `json:"username" validate:"required,is_valid_username,min=2,max=20" example:"sigma"`
+	Password       string         `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"Admin@123"`
+	Email          string         `json:"email" validate:"required,is_valid_email" example:"test@gmail.com"`
+	NamespaceLimit *int64         `json:"namespace_limit,omitempty" validate:"omitempty,min=0" example:"10"`
+	Role           enums.UserRole `json:"role" validate:"omitempty,is_valid_user_role" example:"Admin"`
+}
 
-	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+// PutUserRequest ...
+type PutUserRequest struct {
+	UserID int64 `param:"id" validate:"required,number" example:"10" swaggerignore:"true"`
+
+	Username       *string           `json:"username,omitempty" validate:"omitempty,is_valid_username,min=2,max=20" example:"sigma"`
+	Password       *string           `json:"password,omitempty" validate:"omitempty,min=5,max=20,is_valid_password" example:"Admin@123"`
+	Email          *string           `json:"email,omitempty" validate:"omitempty,is_valid_email" example:"test@gmail.com"`
+	Status         *enums.UserStatus `json:"status,omitempty" validate:"omitempty,is_valid_user_status" example:"Active"`
+	NamespaceLimit *int64            `json:"namespace_limit,omitempty" validate:"omitempty,min=0" example:"10"`
+	Role           *enums.UserRole   `json:"role,omitempty" validate:"omitempty,is_valid_user_role" example:"Admin"`
 }
 
 // UserItem ...
-type UserItem = GetUserItem
+type UserItem struct {
+	ID             int64            `json:"id"`
+	Username       string           `json:"username"`
+	Email          string           `json:"email"`
+	Status         enums.UserStatus `json:"status"`
+	LastLogin      string           `json:"last_login"`
+	Role           enums.UserRole   `json:"role"`
+	NamespaceLimit int64            `json:"namespace_limit"`
+	NamespaceCount int64            `json:"namespace_count"`
 
-// PostUserLoginRequest ...
-type PostUserLoginRequest struct {
-	Username string `json:"username" validate:"required,is_valid_username,min=2,max=20"`
-	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password"`
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // PostUserLoginResponse ...
@@ -98,7 +117,7 @@ type PostUserRecoverResetPasswordRequest struct {
 
 // PutUserSelfResetPasswordRequest ...
 type PutUserSelfResetPasswordRequest struct {
-	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"Admin@123"`
 }
 
 // PostUserResetPasswordPasswordRequest ...

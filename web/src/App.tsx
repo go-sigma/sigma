@@ -35,6 +35,9 @@ import BuildersSetup from './pages/Builder/Setup';
 import BuilderRunnerList from './pages/Builder/RunnerList';
 import BuilderRunnerLog from './pages/Builder/RunnerLog';
 
+import Setting from './pages/Setting';
+import SettingUsers from './pages/Setting/Users';
+
 import { setupResponseInterceptor } from './utils/request'
 
 const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
@@ -83,6 +86,9 @@ export default function App() {
 
         <Route path="/builders/setup" element={<BuildersSetup localServer={localServer} />} />
         <Route path="/builders/setup/:id" element={<BuildersSetup localServer={localServer} />} />
+
+        <Route path="/settings" element={<Setting localServer={localServer} />} />
+        <Route path="/settings/users" element={<SettingUsers localServer={localServer} />} />
 
       </Routes>
     </>

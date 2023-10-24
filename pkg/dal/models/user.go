@@ -29,9 +29,14 @@ type User struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Username string
-	Password *string
-	Email    *string
+	Username       string
+	Password       *string
+	Email          *string
+	LastLogin      time.Time        `gorm:"autoCreateTime"`
+	Status         enums.UserStatus `gorm:"default:Active"`
+	Role           enums.UserRole   `gorm:"default:User"`
+	NamespaceLimit int64            `gorm:"default:0"`
+	NamespaceCount int64            `gorm:"default:0"`
 }
 
 // User3rdParty ...

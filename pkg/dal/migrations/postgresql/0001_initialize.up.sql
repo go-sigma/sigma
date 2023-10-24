@@ -11,16 +11,40 @@ CREATE TYPE daemon_status AS ENUM (
   'Failed'
 );
 
+CREATE TYPE user_status AS ENUM (
+  'Active',
+  'Inactive'
+);
+
+CREATE TYPE user_role AS ENUM (
+  'Root',
+  'Admin',
+  'User'
+);
+
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "username" varchar(64) NOT NULL,
   "password" varchar(256) NOT NULL,
   "email" varchar(256),
+  "last_login" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "namespace_limit" bigint NOT NULL DEFAULT 0,
+  "namespace_count" bigint NOT NULL DEFAULT 0,
+  "status" user_status NOT NULL DEFAULT 'Active',
+  "role" user_role NOT NULL DEFAULT 'User',
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
+
+CREATE INDEX "users_idx_created_at" ON "users" ("created_at");
+
+CREATE INDEX "users_idx_status" ON "users" ("status");
+
+CREATE INDEX "users_idx_role" ON "users" ("role");
+
+CREATE INDEX "users_idx_last_login" ON "users" ("last_login");
 
 CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   "id" bigserial PRIMARY KEY,

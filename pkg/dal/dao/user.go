@@ -45,6 +45,8 @@ type UserService interface {
 	UpdateUser3rdParty(ctx context.Context, id int64, updates map[string]any) error
 	// List all users with pagination
 	List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
+	// ListWithoutUsername all users with pagination, and without specific username
+	ListWithoutUsername(ctx context.Context, expect string, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// UpdateByID updates the namespace with the specified namespace ID.
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 	// Count gets the total number of users.
@@ -129,6 +131,29 @@ func (s *userService) UpdateUser3rdParty(ctx context.Context, id int64, updates 
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// ListWithoutUsername all users with pagination, and without specific username
+func (s *userService) ListWithoutUsername(ctx context.Context, expect string, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Neq(expect))
+	if name != nil {
+		query = query.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	field, ok := s.tx.User.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.User.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.User.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // List all users with pagination

@@ -34,6 +34,10 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Email = field.NewString(tableName, "email")
+	_user.Status = field.NewField(tableName, "status")
+	_user.LastLogin = field.NewTime(tableName, "last_login")
+	_user.NamespaceLimit = field.NewInt64(tableName, "namespace_limit")
+	_user.NamespaceCount = field.NewInt64(tableName, "namespace_count")
 
 	_user.fillFieldMap()
 
@@ -43,14 +47,18 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	Username  field.String
-	Password  field.String
-	Email     field.String
+	ALL            field.Asterisk
+	CreatedAt      field.Time
+	UpdatedAt      field.Time
+	DeletedAt      field.Uint
+	ID             field.Int64
+	Username       field.String
+	Password       field.String
+	Email          field.String
+	Status         field.Field
+	LastLogin      field.Time
+	NamespaceLimit field.Int64
+	NamespaceCount field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -74,6 +82,10 @@ func (u *user) updateTableName(table string) *user {
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Email = field.NewString(table, "email")
+	u.Status = field.NewField(table, "status")
+	u.LastLogin = field.NewTime(table, "last_login")
+	u.NamespaceLimit = field.NewInt64(table, "namespace_limit")
+	u.NamespaceCount = field.NewInt64(table, "namespace_count")
 
 	u.fillFieldMap()
 
@@ -98,7 +110,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 7)
+	u.fieldMap = make(map[string]field.Expr, 11)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
@@ -106,6 +118,10 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["email"] = u.Email
+	u.fieldMap["status"] = u.Status
+	u.fieldMap["last_login"] = u.LastLogin
+	u.fieldMap["namespace_limit"] = u.NamespaceLimit
+	u.fieldMap["namespace_count"] = u.NamespaceCount
 }
 
 func (u user) clone(db *gorm.DB) user {

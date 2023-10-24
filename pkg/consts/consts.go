@@ -20,6 +20,8 @@ import (
 	"time"
 
 	pwdvalidate "github.com/wagslane/go-password-validator"
+
+	"github.com/go-sigma/sigma/pkg/version"
 )
 
 const (
@@ -63,7 +65,7 @@ const (
 )
 
 // UserAgent represents the user agent
-var UserAgent = fmt.Sprintf("sigma/%s (https://github.com/go-sigma/sigma)", APIVersion)
+var UserAgent = fmt.Sprintf("sigma/%s (https://github.com/go-sigma/sigma)", version.Version)
 
 const (
 	// AuthModel represents the auth model
@@ -82,7 +84,7 @@ const (
 	e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 	[matchers]
-	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && urlMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin"`
+	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && urlMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin" || r.sub == "root"`
 )
 
 var (

@@ -2075,6 +2075,175 @@ func (x TaskCommonStatus) Value() (driver.Value, error) {
 }
 
 const (
+	// UserRoleRoot is a UserRole of type Root.
+	UserRoleRoot UserRole = "Root"
+	// UserRoleAdmin is a UserRole of type Admin.
+	UserRoleAdmin UserRole = "Admin"
+	// UserRoleUser is a UserRole of type User.
+	UserRoleUser UserRole = "User"
+)
+
+var ErrInvalidUserRole = errors.New("not a valid UserRole")
+
+// String implements the Stringer interface.
+func (x UserRole) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UserRole) IsValid() bool {
+	_, err := ParseUserRole(string(x))
+	return err == nil
+}
+
+var _UserRoleValue = map[string]UserRole{
+	"Root":  UserRoleRoot,
+	"Admin": UserRoleAdmin,
+	"User":  UserRoleUser,
+}
+
+// ParseUserRole attempts to convert a string to a UserRole.
+func ParseUserRole(name string) (UserRole, error) {
+	if x, ok := _UserRoleValue[name]; ok {
+		return x, nil
+	}
+	return UserRole(""), fmt.Errorf("%s is %w", name, ErrInvalidUserRole)
+}
+
+// MustParseUserRole converts a string to a UserRole, and panics if is not valid.
+func MustParseUserRole(name string) UserRole {
+	val, err := ParseUserRole(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errUserRoleNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *UserRole) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = UserRole("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseUserRole(v)
+	case []byte:
+		*x, err = ParseUserRole(string(v))
+	case UserRole:
+		*x = v
+	case *UserRole:
+		if v == nil {
+			return errUserRoleNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errUserRoleNilPtr
+		}
+		*x, err = ParseUserRole(*v)
+	default:
+		return errors.New("invalid type for UserRole")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x UserRole) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// UserStatusActive is a UserStatus of type Active.
+	UserStatusActive UserStatus = "Active"
+	// UserStatusInactive is a UserStatus of type Inactive.
+	UserStatusInactive UserStatus = "Inactive"
+)
+
+var ErrInvalidUserStatus = errors.New("not a valid UserStatus")
+
+// String implements the Stringer interface.
+func (x UserStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UserStatus) IsValid() bool {
+	_, err := ParseUserStatus(string(x))
+	return err == nil
+}
+
+var _UserStatusValue = map[string]UserStatus{
+	"Active":   UserStatusActive,
+	"Inactive": UserStatusInactive,
+}
+
+// ParseUserStatus attempts to convert a string to a UserStatus.
+func ParseUserStatus(name string) (UserStatus, error) {
+	if x, ok := _UserStatusValue[name]; ok {
+		return x, nil
+	}
+	return UserStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidUserStatus)
+}
+
+// MustParseUserStatus converts a string to a UserStatus, and panics if is not valid.
+func MustParseUserStatus(name string) UserStatus {
+	val, err := ParseUserStatus(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errUserStatusNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *UserStatus) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = UserStatus("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseUserStatus(v)
+	case []byte:
+		*x, err = ParseUserStatus(string(v))
+	case UserStatus:
+		*x = v
+	case *UserStatus:
+		if v == nil {
+			return errUserStatusNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errUserStatusNilPtr
+		}
+		*x, err = ParseUserStatus(*v)
+	default:
+		return errors.New("invalid type for UserStatus")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x UserStatus) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// VisibilityPrivate is a Visibility of type private.
 	VisibilityPrivate Visibility = "private"
 	// VisibilityPublic is a Visibility of type public.

@@ -238,3 +238,17 @@ type BuilderType string
 // cosign,
 // )
 type SigningType string
+
+// UserStatus x ENUM(
+// Active,
+// Inactive,
+// )
+type UserStatus string
+
+// Root is available for user role, but it just create by initialized data
+
+// UserRole x ENUM(
+// Admin,
+// User,
+// )
+type UserRole string

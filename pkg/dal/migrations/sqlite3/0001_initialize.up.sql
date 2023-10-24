@@ -3,11 +3,24 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username` varchar(64) NOT NULL,
   `password` varchar(256),
   `email` varchar(256),
+  `last_login` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `namespace_limit` bigint NOT NULL DEFAULT 0,
+  `namespace_count` bigint NOT NULL DEFAULT 0,
+  `status` text CHECK (`status` IN ('Active', 'Inactive')) NOT NULL DEFAULT 'Active',
+  `role` text CHECK (`role` IN ('Root', 'Admin', 'User')) NOT NULL DEFAULT 'User',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `users_unique_with_username` UNIQUE (`username`, `deleted_at`)
 );
+
+CREATE INDEX `users_idx_created_at` ON `users` (`created_at`);
+
+CREATE INDEX `users_idx_status` ON `users` (`status`);
+
+CREATE INDEX `users_idx_role` ON `users` (`role`);
+
+CREATE INDEX `users_idx_last_login` ON `users` (`last_login`);
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   `id` integer PRIMARY KEY AUTOINCREMENT,

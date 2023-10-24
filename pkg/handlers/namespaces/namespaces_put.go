@@ -41,6 +41,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{id} [put]
+//	@Param		id		path	string						true	"Namespace id"
 //	@Param		message	body	types.PutNamespaceRequest	true	"Namespace object"
 //	@Success	204
 func (h *handlers) PutNamespace(c echo.Context) error {

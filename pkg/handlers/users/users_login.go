@@ -15,40 +15,54 @@
 package users
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Login handles the login request
+//
+//	@Summary	Login user
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/login [post]
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
+//	@Success	200	{object}	types.PostUserLoginResponse
 func (h *handlers) Login(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.PostUserLoginRequest
-	err := utils.BindValidate(c, &req)
-	if err != nil {
-		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
 	userService := h.userServiceFactory.New()
-	user, err := userService.GetByUsername(ctx, req.Username)
+	err := userService.UpdateByID(ctx, user.ID, map[string]any{
+		query.User.LastLogin.ColumnName().String(): time.Now(),
+	})
 	if err != nil {
-		log.Error().Err(err).Msg("Get user by username failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
-	}
-
-	verify := h.passwordService.Verify(req.Password, ptr.To(user.Password))
-	if !verify {
-		log.Error().Err(err).Msg("Verify password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Invalid username or password")
+		log.Error().Err(err).Msg("Update user last login failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
 	refreshToken, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))

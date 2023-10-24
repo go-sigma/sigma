@@ -78,6 +78,8 @@ http:
   # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
   internalEndpoint: http://192.168.31.198:3000
+  # eg: http://sigma-distribution:3000
+  internalDistributionEndpoint:
   tls:
     enabled: false
     certificate: ./conf/sigma.test.io.crt

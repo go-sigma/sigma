@@ -165,9 +165,10 @@ type ConfigurationHttpTLS struct {
 
 // ConfigurationHTTP ...
 type ConfigurationHTTP struct {
-	Endpoint         string               `yaml:"endpoint"`
-	InternalEndpoint string               `yaml:"internalEndpoint"`
-	TLS              ConfigurationHttpTLS `yaml:"tls"`
+	Endpoint                     string               `yaml:"endpoint"`
+	InternalEndpoint             string               `yaml:"internalEndpoint"`
+	InternalDistributionEndpoint string               `yaml:"internalDistributionEndpoint"`
+	TLS                          ConfigurationHttpTLS `yaml:"tls"`
 }
 
 // ConfigurationStorageFilesystem ...

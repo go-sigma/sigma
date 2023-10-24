@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func defaultSettings() {
@@ -35,5 +37,14 @@ func defaultSettings() {
 	}
 	if configuration.HTTP.InternalEndpoint == "" {
 		configuration.HTTP.InternalEndpoint = "http://127.0.0.1:3000"
+	}
+	if configuration.Auth.Jwt.Ttl == 0 {
+		configuration.Auth.Jwt.Ttl = time.Hour
+	}
+	if configuration.Auth.Jwt.RefreshTtl == 0 {
+		configuration.Auth.Jwt.RefreshTtl = time.Hour * 24
+	}
+	if configuration.Namespace.Visibility.String() == "" {
+		configuration.Namespace.Visibility = enums.VisibilityPrivate
 	}
 }
