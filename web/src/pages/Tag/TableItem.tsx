@@ -72,12 +72,25 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
   let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;
   return (
     <tr className="hover:bg-gray-50 cursor-pointer">
-      <td className="text-left">
+      <td className="text-left w-[180px]">
         <code className="text-xs underline underline-offset-1 text-blue-600 hover:text-blue-500">
           {cutDigest(artifact.digest)}
         </code>
       </td>
-      <td className="text-right text-xs">
+      <td className="text-left text-xs w-[180px]">
+        Image
+      </td>
+      <td className="text-left text-xs w-[180px]">
+        <div className='flex gap-1'>
+          {distros(sbomObj.distro?.name) === "" ? "" : (
+            <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative" />
+          )}
+          <div className=''>
+            {distroName(sbomObj.distro?.name) === "" ? "-" : distroName(sbomObj.distro.name) + " " + sbomObj.distro.version}
+          </div>
+        </div>
+      </td>
+      <td className="text-left text-xs w-[180px]">
         {
           imageConfigObj.os === undefined ||
             imageConfigObj.architecture === undefined ||
@@ -87,30 +100,23 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
           )
         }
       </td>
-      <td className="text-right text-xs">
-        <div className='flex flex-row-reverse gap-1'>
-          <div className=''>
-            {distroName(sbomObj.distro?.name) === "" ? "-" : distroName(sbomObj.distro.name) + " " + sbomObj.distro.version}
-          </div>
-          {distros(sbomObj.distro?.name) === "" ? "" : (
-            <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative" />
-          )}
-        </div>
+      <td className="text-left text-xs w-[180px]">
+        Verified
       </td>
-      <td className="text-right text-xs">
-        {humanFormat(artifact.blob_size || 0)}
-      </td>
-      <td className="text-right text-xs">
+      <td className="text-left text-xs w-[180px]">
         {(artifact.pull_times || 0) > 0 ? dayjs().to(dayjs(artifact.last_pull)) : "Never pulled"}
       </td>
-      <td className="text-right text-xs">
+      {/* <td className="text-right text-xs w-[180px]">
         {artifact.pull_times}
-      </td>
-      <td className="text-right text-xs">
+      </td> */}
+      <td className="text-right text-xs w-[220px]">
         <span className="bg-red-800 text-white text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300"><span>{vulnerabilityObj.critical || 0}</span> C</span>
         <span className="bg-red-300 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.high || 0} H</span>
         <span className="bg-amber-400 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.medium || 0} M</span>
-        <span className="bg-amber-200 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} L</span>
+        <span className="bg-amber-200 text-gray-800 text-xs font-medium px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} L</span>
+      </td>
+      <td className="text-right text-xs w-[180px]">
+        {humanFormat(artifact.blob_size || 0)}
       </td>
     </tr>
   );

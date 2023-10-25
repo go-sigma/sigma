@@ -4414,6 +4414,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "latest"
                 },
+                "pull_times": {
+                    "type": "integer",
+                    "example": 10
+                },
                 "pushed_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"

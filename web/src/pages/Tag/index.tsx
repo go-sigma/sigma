@@ -254,35 +254,44 @@ export default function Tag({ localServer }: { localServer: string }) {
                       {/* first row end */}
 
                       {/* second row begin */}
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs text-gray-600">
                         Last pushed <span className="font-semibold">{dayjs().to(dayjs(tag.pushed_at))}</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600">
+                        Pull times <span className="font-semibold">{tag.pull_times === undefined ? 0 : tag.pull_times}</span>
                       </div>
                       {/* second row end */}
 
                       {/* third row begin */}
-                      <table className="min-w-full">
+                      <table className="mt-2 min-w-full">
                         <thead>
                           <tr className="">
-                            <th className="pt-5 pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Digest
                             </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                              Os/Arch
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Type
                             </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Distro
                             </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                              Size
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Os/Arch
                             </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Signing
+                            </th>
+                            <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Last pull
                             </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            {/* <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Pull Times
-                            </th>
-                            <th className="pt-5 pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            </th> */}
+                            <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Vulnerabilities
+                            </th>
+                            <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Size
                             </th>
                           </tr>
                         </thead>

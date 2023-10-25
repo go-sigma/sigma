@@ -134,6 +134,7 @@ export interface ITag {
   name: string;
   artifact: IArtifact;
   artifacts: IArtifact[];
+  pull_times: number;
   pushed_at: string;
   created_at: string;
   updated_at: string;
