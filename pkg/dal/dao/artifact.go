@@ -334,7 +334,7 @@ func (s *artifactService) UpdateSbom(ctx context.Context, artifactID int64, upda
 	if len(updates) == 0 {
 		return nil
 	}
-	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ID.Eq(artifactID)).UpdateColumns(updates)
+	_, err := s.tx.ArtifactSbom.WithContext(ctx).Where(s.tx.ArtifactSbom.ArtifactID.Eq(artifactID)).UpdateColumns(updates)
 	return err
 }
 
@@ -343,7 +343,7 @@ func (s *artifactService) UpdateVulnerability(ctx context.Context, artifactID in
 	if len(updates) == 0 {
 		return nil
 	}
-	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ID.Eq(artifactID)).UpdateColumns(updates)
+	_, err := s.tx.ArtifactVulnerability.WithContext(ctx).Where(s.tx.ArtifactVulnerability.ArtifactID.Eq(artifactID)).UpdateColumns(updates)
 	return err
 }
 

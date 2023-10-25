@@ -68,7 +68,7 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, [namespace, repository])
 
   const fetchTags = () => {
-    let url = localServer + `/api/v1/namespaces/${namespace}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=image&type=imageIndex`;
+    let url = localServer + `/api/v1/namespaces/${namespace}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=image&type=imageIndex&type=chart`;
     if (searchTag !== "") {
       url += `&name=${searchTag}`;
     }
@@ -201,16 +201,6 @@ export default function Tag({ localServer }: { localServer: string }) {
                       {/* first row begin */}
                       <div className="flex">
                         <div className="flex-1 flex gap-1">
-                          {
-                            tag.artifact.config_media_type === "application/vnd.cncf.helm.config.v1+json" ? (
-                              <HelmSvg />
-                            ) : tag.artifact.media_type === "application/vnd.oci.image.manifest.v1+json" ||
-                              tag.artifact.media_type === "application/vnd.docker.distribution.manifest.v2+json" ||
-                              tag.artifact.media_type === "application/vnd.docker.distribution.manifest.list.v2+json" ||
-                              tag.artifact.media_type === "application/vnd.oci.image.index.v1+json" ? (
-                              <DockerSvg />
-                            ) : null
-                          }
                           <span className="font-semibold text-gray-600 cursor-pointer"
                             id={"tooltip-tag-name-" + index}
                             onClick={e => {

@@ -16,6 +16,7 @@ package daemon
 
 import (
 	"context"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 	"github.com/tidwall/gjson"
@@ -52,13 +53,17 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 			return err
 		}
 
+		var waitAllEvents = &sync.WaitGroup{}
+		waitAllEvents.Add(1)
+
 		var statusChan = make(chan DecoratorArtifactStatus, 1)
-		defer close(statusChan)
 		go func() {
+			defer waitAllEvents.Done()
+			ctx := log.Logger.WithContext(ctx)
 			for status := range statusChan {
 				switch status.Daemon {
 				case enums.DaemonVulnerability:
-					err = artifactService.UpdateVulnerability(context.Background(), id,
+					err = artifactService.UpdateVulnerability(ctx, id,
 						map[string]any{
 							query.ArtifactVulnerability.Raw.ColumnName().String():     status.Raw,
 							query.ArtifactVulnerability.Result.ColumnName().String():  status.Result,
@@ -69,7 +74,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 						},
 					)
 				case enums.DaemonSbom:
-					err = artifactService.UpdateSbom(context.Background(),
+					err = artifactService.UpdateSbom(ctx,
 						id,
 						map[string]any{
 							query.ArtifactSbom.Raw.ColumnName().String():     status.Raw,
@@ -93,6 +98,8 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 		if err != nil {
 			return err
 		}
+
+		waitAllEvents.Wait()
 
 		return nil
 	}

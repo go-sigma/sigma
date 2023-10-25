@@ -77,8 +77,8 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
           {cutDigest(artifact.digest)}
         </code>
       </td>
-      <td className="text-left text-xs w-[180px]">
-        Image
+      <td className="text-left text-xs w-[180px] capitalize">
+        {artifact.type}
       </td>
       <td className="text-left text-xs w-[180px]">
         <div className='flex gap-1'>

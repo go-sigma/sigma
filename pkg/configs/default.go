@@ -47,4 +47,7 @@ func defaultSettings() {
 	if configuration.Namespace.Visibility.String() == "" {
 		configuration.Namespace.Visibility = enums.VisibilityPrivate
 	}
+	if configuration.Cache.Ttl == 0 {
+		configuration.Cache.Ttl = 72 * time.Hour
+	}
 }

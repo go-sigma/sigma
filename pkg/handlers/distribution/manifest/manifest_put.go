@@ -272,7 +272,17 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 	if len(manifest.References()) > 0 {
 		ref := manifest.References()[0]
 		// only image can be scanned
-		if ref.MediaType == "application/vnd.docker.container.image.v1+json" || ref.MediaType == "application/vnd.oci.image.config.v1+json" {
+		references := manifest.References()
+		for _, descriptor := range references {
+			if descriptor.MediaType == "application/vnd.in-toto+json" ||
+				descriptor.MediaType == "application/vnd.dev.cosign.simplesigning.v1+json" ||
+				descriptor.MediaType == "application/vnd.cncf.helm.chart.content.v1.tar+gzip" ||
+				descriptor.MediaType == "application/vnd.cncf.helm.config.v1+json" {
+				return false
+			}
+		}
+		if ref.MediaType == "application/vnd.docker.container.image.v1+json" ||
+			ref.MediaType == "application/vnd.oci.image.config.v1+json" {
 			return true
 		}
 	}

@@ -241,6 +241,8 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 	}
 	query = query.Preload(s.tx.Tag.Artifact.Vulnerability)
 	query = query.Preload(s.tx.Tag.Artifact.Sbom)
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
