@@ -41,6 +41,7 @@ type TagItem struct {
 	ID        int64             `json:"id" example:"1"`
 	Name      string            `json:"name" example:"latest"`
 	PushedAt  string            `json:"pushed_at" example:"2006-01-02 15:04:05"`
+	PullTimes int64             `json:"pull_times" example:"10"`
 	Artifact  TagItemArtifact   `json:"artifact"`
 	Artifacts []TagItemArtifact `json:"artifacts"`
 	CreatedAt string            `json:"created_at" example:"2006-01-02 15:04:05"`

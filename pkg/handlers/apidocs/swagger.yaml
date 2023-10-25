@@ -1037,6 +1037,9 @@ definitions:
       name:
         example: latest
         type: string
+      pull_times:
+        example: 10
+        type: integer
       pushed_at:
         example: "2006-01-02 15:04:05"
         type: string

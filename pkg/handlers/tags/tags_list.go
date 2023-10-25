@@ -139,6 +139,7 @@ func (h *handlers) ListTag(c echo.Context) error {
 				UpdatedAt:       tag.Artifact.UpdatedAt.Format(consts.DefaultTimePattern),
 			},
 			Artifacts: artifacts,
+			PullTimes: tag.PullTimes,
 			PushedAt:  tag.PushedAt.Format(consts.DefaultTimePattern),
 			CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
