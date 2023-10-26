@@ -65,6 +65,7 @@ type Report struct {
 }
 
 func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
+	defer close(statusChan)
 	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
 
 	config := ptr.To(configs.GetConfiguration())

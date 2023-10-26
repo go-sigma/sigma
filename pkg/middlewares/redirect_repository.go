@@ -75,5 +75,11 @@ func skipRedirect(c echo.Context) bool {
 	if strings.HasPrefix(reqPath, "/swagger") {
 		return true
 	}
+	if strings.HasPrefix(reqPath, "/distros") &&
+		(strings.HasSuffix(reqPath, ".png") ||
+			strings.HasSuffix(reqPath, ".jpg") ||
+			strings.HasSuffix(reqPath, ".svg")) {
+		return true
+	}
 	return false
 }

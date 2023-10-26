@@ -1,5 +1,6 @@
 import http from "k6/http";
 import { check } from 'k6';
+import encoding from 'k6/encoding';
 
 export const options = {
   iterations: 1,
@@ -11,8 +12,11 @@ const password = 'Admin@123';
 const host = "https://sigma.tosone.cn";
 
 export default function () {
-  let response = http.post(`${host}/api/v1/users/login`, JSON.stringify({ username, password }), {
-    headers: { 'Content-Type': 'application/json' },
+  let response = http.post(`${host}/api/v1/users/login`, null, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ' + encoding.b64encode(`${username}:${password}`),
+    },
   });
   check(response, {
     'user login status is 200': r => r.status === 200,
