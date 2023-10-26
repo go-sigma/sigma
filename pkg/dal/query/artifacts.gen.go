@@ -44,6 +44,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.LastPull = field.NewField(tableName, "last_pull")
 	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
+	_artifact.ReferrerID = field.NewInt64(tableName, "referrer_id")
 	_artifact.Vulnerability = artifactHasOneVulnerability{
 		db: db.Session(&gorm.Session{}),
 
@@ -61,6 +62,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 						field.RelationField
 					}
 				}
+			}
+			Referrer struct {
+				field.RelationField
 			}
 			Vulnerability struct {
 				field.RelationField
@@ -122,6 +126,11 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 						RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.Repository", "models.Repository"),
 					},
 				},
+			},
+			Referrer: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Vulnerability.Artifact.Referrer", "models.Artifact"),
 			},
 			Vulnerability: struct {
 				field.RelationField
@@ -201,6 +210,12 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 		RelationField: field.NewRelation("Repository", "models.Repository"),
 	}
 
+	_artifact.Referrer = artifactBelongsToReferrer{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Referrer", "models.Artifact"),
+	}
+
 	_artifact.ArtifactIndexes = artifactManyToManyArtifactIndexes{
 		db: db.Session(&gorm.Session{}),
 
@@ -238,6 +253,7 @@ type artifact struct {
 	LastPull        field.Field
 	PushedAt        field.Time
 	PullTimes       field.Int64
+	ReferrerID      field.Int64
 	Vulnerability   artifactHasOneVulnerability
 
 	Sbom artifactHasOneSbom
@@ -245,6 +261,8 @@ type artifact struct {
 	Tags artifactHasManyTags
 
 	Repository artifactBelongsToRepository
+
+	Referrer artifactBelongsToReferrer
 
 	ArtifactIndexes artifactManyToManyArtifactIndexes
 
@@ -281,6 +299,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.LastPull = field.NewField(table, "last_pull")
 	a.PushedAt = field.NewTime(table, "pushed_at")
 	a.PullTimes = field.NewInt64(table, "pull_times")
+	a.ReferrerID = field.NewInt64(table, "referrer_id")
 
 	a.fillFieldMap()
 
@@ -305,7 +324,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 22)
+	a.fieldMap = make(map[string]field.Expr, 24)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -322,6 +341,7 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["last_pull"] = a.LastPull
 	a.fieldMap["pushed_at"] = a.PushedAt
 	a.fieldMap["pull_times"] = a.PullTimes
+	a.fieldMap["referrer_id"] = a.ReferrerID
 
 }
 
@@ -353,6 +373,9 @@ type artifactHasOneVulnerability struct {
 					field.RelationField
 				}
 			}
+		}
+		Referrer struct {
+			field.RelationField
 		}
 		Vulnerability struct {
 			field.RelationField
@@ -659,6 +682,77 @@ func (a artifactBelongsToRepositoryTx) Clear() error {
 }
 
 func (a artifactBelongsToRepositoryTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type artifactBelongsToReferrer struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a artifactBelongsToReferrer) Where(conds ...field.Expr) *artifactBelongsToReferrer {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a artifactBelongsToReferrer) WithContext(ctx context.Context) *artifactBelongsToReferrer {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactBelongsToReferrer) Session(session *gorm.Session) *artifactBelongsToReferrer {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a artifactBelongsToReferrer) Model(m *models.Artifact) *artifactBelongsToReferrerTx {
+	return &artifactBelongsToReferrerTx{a.db.Model(m).Association(a.Name())}
+}
+
+type artifactBelongsToReferrerTx struct{ tx *gorm.Association }
+
+func (a artifactBelongsToReferrerTx) Find() (result *models.Artifact, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a artifactBelongsToReferrerTx) Append(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a artifactBelongsToReferrerTx) Replace(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a artifactBelongsToReferrerTx) Delete(values ...*models.Artifact) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a artifactBelongsToReferrerTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a artifactBelongsToReferrerTx) Count() int64 {
 	return a.tx.Count()
 }
 

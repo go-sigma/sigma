@@ -51,6 +51,9 @@ type Artifact struct {
 	Vulnerability ArtifactVulnerability `gorm:"foreignKey:ArtifactID;"`
 	Sbom          ArtifactSbom          `gorm:"foreignKey:ArtifactID;"`
 
+	ReferrerID *int64
+	Referrer   *Artifact
+
 	ArtifactIndexes []*Artifact `gorm:"many2many:artifact_artifacts;"`
 	Blobs           []*Blob     `gorm:"many2many:artifact_blobs;"`
 	Tags            []*Tag      `gorm:"foreignKey:ArtifactID;"`

@@ -81,6 +81,8 @@ type ArtifactService interface {
 	GetNamespaceSize(ctx context.Context, namespaceID int64) (int64, error)
 	// GetRepositorySize get the specific repository size
 	GetRepositorySize(ctx context.Context, repositoryID int64) (int64, error)
+	// GetReferrers ...
+	GetReferrers(ctx context.Context, repositoryID int64, digest string, artifactTypes []string) ([]*models.Artifact, error)
 }
 
 type artifactService struct {
@@ -363,4 +365,18 @@ func (s *artifactService) GetRepositorySize(ctx context.Context, repositoryID in
 		return 0, err
 	}
 	return result.Size, nil
+}
+
+// GetReferrers ...
+func (s *artifactService) GetReferrers(ctx context.Context, repositoryID int64, digest string, artifactTypes []string) ([]*models.Artifact, error) {
+	artifactObj, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Where(s.tx.Artifact.Digest.Eq(digest)).First()
+	if err != nil {
+		return nil, err
+	}
+	query := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID))
+	if len(artifactTypes) > 0 {
+		query = query.Where(s.tx.Artifact.ConfigMediaType.In(artifactTypes...))
+	}
+	return query.Where(s.tx.Artifact.ReferrerID.Eq(artifactObj.ID)).Find()
 }

@@ -48,6 +48,7 @@ require (
 	github.com/moby/buildkit v0.12.2
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231016131659-3940529fe6c0
 	github.com/opencontainers/go-digest v1.0.0
+	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.31.0
@@ -218,7 +219,6 @@ require (
 	github.com/mozillazg/go-httpheader v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/opencontainers/runc v1.1.7 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.2 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect

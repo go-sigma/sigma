@@ -303,6 +303,21 @@ func (mr *MockArtifactServiceMockRecorder) GetNamespaceSize(arg0, arg1 any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceSize", reflect.TypeOf((*MockArtifactService)(nil).GetNamespaceSize), arg0, arg1)
 }
 
+// GetReferrers mocks base method.
+func (m *MockArtifactService) GetReferrers(arg0 context.Context, arg1 int64, arg2 string, arg3 []string) ([]*models.Artifact, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReferrers", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*models.Artifact)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReferrers indicates an expected call of GetReferrers.
+func (mr *MockArtifactServiceMockRecorder) GetReferrers(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReferrers", reflect.TypeOf((*MockArtifactService)(nil).GetReferrers), arg0, arg1, arg2, arg3)
+}
+
 // GetRepositorySize mocks base method.
 func (m *MockArtifactService) GetRepositorySize(arg0 context.Context, arg1 int64) (int64, error) {
 	m.ctrl.T.Helper()

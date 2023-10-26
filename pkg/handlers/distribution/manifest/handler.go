@@ -36,6 +36,8 @@ type Handlers interface {
 	PutManifest(ctx echo.Context) error
 	// DeleteManifest ...
 	DeleteManifest(ctx echo.Context) error
+	// GetReferrer ...
+	GetReferrer(ctx echo.Context) error
 }
 
 var _ Handlers = &handler{}
@@ -113,6 +115,8 @@ func (f factory) Initialize(c echo.Context) error {
 		default:
 			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
+	} else if strings.HasSuffix(urix, "/referrers") && method == http.MethodGet {
+		return manifestHandler.GetReferrer(c)
 	}
 	return distribution.ErrNext
 }
