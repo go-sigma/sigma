@@ -7,11 +7,11 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
-Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, it never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/).
+Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, that never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/).
 
 ## Demo Server
 
-Runs on aws ec2 (2C2G, Disk 20G), Linux distribution is Debian 12.1, Docker version 24.0.6.
+It runs on AWS ec2 (2C2G, Disk 20G), Linux distribution is Debian 12.1, Docker version 24.0.6.
 
 ``` sh
 # Install Docker from get.docker.com
@@ -34,7 +34,7 @@ I will periodically reboot the container, and since the container doesn't have a
 
 ## Architecture
 
-Wait for me to complete draw the architecture.
+I was hoping you could wait for me to finish drawing the architecture.
 
 ## Quick Start
 
@@ -49,7 +49,7 @@ cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
 
 - [x] Support docker registry v2 protocol.
 - [x] Support OCI Image v1 Format and OCI Image Index v1 Format.
-- [x] Support OCI artifact such as helm and so on.
+- [x] Support OCI artifacts such as helm and so on.
 - [x] Support OCI sbom.
 - [x] Support Image security scan.
 - [x] Support registry proxy.
