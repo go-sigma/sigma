@@ -170,11 +170,13 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `type` text CHECK (`type` IN ('image', 'imageIndex', 'chart', 'cnab', 'wasm', 'provenance', 'cosign', 'unknown')) NOT NULL DEFAULT 'unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
+  `referrer_id` integer,
   `pull_times` bigint NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
+  FOREIGN KEY (`referrer_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
 );
 

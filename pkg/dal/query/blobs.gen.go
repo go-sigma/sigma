@@ -73,6 +73,11 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 				},
 			},
 		},
+		Referrer: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Artifacts.Referrer", "models.Artifact"),
+		},
 		Vulnerability: struct {
 			field.RelationField
 			Artifact struct {
@@ -250,6 +255,9 @@ type blobManyToManyArtifacts struct {
 				field.RelationField
 			}
 		}
+	}
+	Referrer struct {
+		field.RelationField
 	}
 	Vulnerability struct {
 		field.RelationField

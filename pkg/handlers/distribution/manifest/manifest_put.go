@@ -16,6 +16,7 @@ package manifest
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	"github.com/distribution/distribution/v3"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -134,6 +136,13 @@ func (h *handler) PutManifest(c echo.Context) error {
 		ContentType:  contentType,
 		Raw:          bodyBytes,
 	}
+
+	referrerID, err := h.getArtifactReferrer(ctx, repository, manifest)
+	if err != nil {
+		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Get artifact referrer failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	artifactObj.ReferrerID = referrerID
 
 	artifactService := h.artifactServiceFactory.New()
 	tryFindArtifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
@@ -427,4 +436,50 @@ func (h *handler) getArtifactType(descriptor distribution.Descriptor, manifest d
 		return enums.ArtifactTypeChart
 	}
 	return enums.ArtifactTypeUnknown
+}
+
+// getArtifactReferrer ...
+func (h *handler) getArtifactReferrer(ctx context.Context, repository string, manifest distribution.Manifest) (*int64, error) {
+	mediaType, data, err := manifest.Payload()
+	if err != nil {
+		return nil, err
+	}
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.GetByName(ctx, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	var digest string
+
+	if mediaType == imgspecv1.MediaTypeImageManifest { // nolint: gocritic
+		var decoded imgspecv1.Manifest
+		err = json.Unmarshal(data, &decoded)
+		if err != nil {
+			return nil, err
+		}
+		if decoded.Subject == nil {
+			return nil, nil
+		}
+		digest = decoded.Subject.Digest.String()
+	} else if mediaType == imgspecv1.MediaTypeImageIndex {
+		var decoded imgspecv1.Index
+		err = json.Unmarshal(data, &decoded)
+		if err != nil {
+			return nil, err
+		}
+		if decoded.Subject == nil {
+			return nil, nil
+		}
+		digest = decoded.Subject.Digest.String()
+	} else {
+		return nil, nil
+	}
+
+	artifactService := h.artifactServiceFactory.New()
+	artifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, digest)
+	if err != nil {
+		return nil, err
+	}
+	return ptr.Of(artifactObj.ID), nil
 }

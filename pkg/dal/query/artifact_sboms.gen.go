@@ -74,6 +74,11 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 				},
 			},
 		},
+		Referrer: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Artifact.Referrer", "models.Artifact"),
+		},
 		Vulnerability: struct {
 			field.RelationField
 			Artifact struct {
@@ -258,6 +263,9 @@ type artifactSbomBelongsToArtifact struct {
 				field.RelationField
 			}
 		}
+	}
+	Referrer struct {
+		field.RelationField
 	}
 	Vulnerability struct {
 		field.RelationField
