@@ -70,12 +70,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-test-sqlite3-
       - name: Run tests
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_SQLITE }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
         run: |
           CI_DATABASE_TYPE=sqlite3 go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+      - name: Run tests
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_SQLITE }}
+          COS_AK: ${{ secrets.COS_AK }}
+          COS_SK: ${{ secrets.COS_SK }}
+        run: |
+          CI_DATABASE_TYPE=sqlite3 go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -141,12 +150,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-test-postgresql-
       - name: Run tests
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
         run: |
           CI_DATABASE_TYPE=postgresql go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+      - name: Run tests
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
+          COS_AK: ${{ secrets.COS_AK }}
+          COS_SK: ${{ secrets.COS_SK }}
+        run: |
+          CI_DATABASE_TYPE=postgresql go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -213,12 +231,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-test-mysql-
       - name: Run tests
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_MYSQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
         run: |
           CI_DATABASE_TYPE=mysql go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+      - name: Run tests
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_MYSQL }}
+          COS_AK: ${{ secrets.COS_AK }}
+          COS_SK: ${{ secrets.COS_SK }}
+        run: |
+          CI_DATABASE_TYPE=mysql go test -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
