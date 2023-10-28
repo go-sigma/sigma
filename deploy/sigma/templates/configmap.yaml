@@ -16,22 +16,22 @@ data:
         path: {{ .Chart.Name }}.db
       mysql:
         host: {{ .Release.Name }}-mysql
-        port: 3306
-        user: sigma
-        password: sigma
+        port: {{ .Values.mysql.primary.service.ports.mysql }}
+        user: {{ .Values.mysql.auth.username }}
+        password: {{ .Values.mysql.auth.password }}
         dbname: sigma
       postgresql:
-        host: localhost
+        host:  {{ .Release.Name }}-postgresql
         port: 5432
         user: sigma
         password: sigma
         dbname: sigma
         sslmode: disable
     redis:
-      url: redis://:sigma@{{ .Release.Name }}-redis-master:6379/0
+      url: redis://:{{ .Values.redis.auth.password }}@{{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis }}/0
     http:
-      server: 0.0.0.0:3000
-      worker: 0.0.0.0:3001
+      server: 0.0.0.0:{{.Values.service.server.port}}
+      worker: 0.0.0.0:{{.Values.service.worker.port}}
     daemon:
       gc:
         # if blob not associate with artifact
@@ -44,11 +44,13 @@ data:
       filesystem:
         path: /
       s3:
-        ak: sigma
-        sk: sigma-sigma
-        endpoint: http://{{ .Release.Name }}-minio:9000
+        ak: {{ .Values.minio.accessKey }}
+        sk: {{ .Values.minio.secretKey }}
+        endpoint: http://{{ .Release.Name }}-minio:{{ .Values.minio.service.port }}
         region: cn-north-1
-        bucket: sigma
+        {{- range .Values.minio.buckets }}
+        bucket: {{ .name | quote }}
+        {{end}}
         forcePathStyle: true
     proxy:
       enabled: true
@@ -64,7 +66,7 @@ data:
         password: internal-sigma
       admin:
         username: sigma
-        password: sigma
+        password: {{ randAlphaNum 8 | b64enc | trunc 8 }}
       token:
         realm: ""
         service: ""
