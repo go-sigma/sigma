@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sigma.fullname" . }}
+  name: {{ include "sigma.distribution" . }}
   labels:
-    {{- include "sigma.labels" . | nindent 4 }}
+    {{- include "sigma.distribution.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "sigma.selectorLabels" . | nindent 6 }}
+      {{- include "sigma.distribution.labels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "sigma.selectorLabels" . | nindent 8 }}
+        {{- include "sigma.distribution.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -27,56 +27,30 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ printf "%s-server" .Chart.Name }}
+        - name: {{ printf "%s-distribution" .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - server
+            - distribution
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.service.distribution.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: {{ .Values.service.distribution.port }}
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: {{ .Values.service.distribution.port }}
           volumeMounts:
             - name: "config"
               mountPath: "/etc/sigma/config.yaml"
               subPath: "config.yaml"
-              readOnly: false
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-        - name: {{ printf "%s-worker" .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args:
-            - worker
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          volumeMounts:
-            - name: "config"
-              mountPath: "/etc/sigma/config.yaml"
-              subPath: "config.yaml"
-              readOnly: false
+              readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

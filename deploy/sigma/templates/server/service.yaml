@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sigma.server" . }}
+  labels:
+    {{- include "sigma.server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.server.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "sigma.server.labels" . | nindent 4 }}

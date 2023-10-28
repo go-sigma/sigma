@@ -6,8 +6,13 @@ VERSION          ?= 0.0.0
 SERVICE_PORT     ?= 3000
 DOCKER_REGISTRY  ?= docker.io/tosone
 DOCKER_PLATFORMS ?= linux/amd64,linux/arm64
-
+APPNAME          ?= sigma
+NAMESPACE        ?= sigma
+KUBECONFIG       ?= ~/.kube/config
+REPOSITORY       ?= ghcr.io/go-sigma/sigma
+TAG              ?= nightly-alpine
 MIGRATION_NAME   ?=
+RANDOM_PASSWORD  := $(shell openssl rand -base64 6 | tr -d '/+' | tr '[:upper:]' '[:lower:]' | head -c 8)
 
 SHELL            := /bin/bash
 
@@ -109,6 +114,24 @@ addlicense: ## Add license to all go files
 	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2023 -c "sigma"
 	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2023 -c "sigma"
 	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "sigma"
+
+## Kube:
+kube_deploy: ## Deploy sigma on k8s using helm
+	@if [ -z $(KUBECONFIG) ]; then \
+        KUBECONFIG=$$HOME/.kube/config; \
+    fi;
+	@helm upgrade --install $(APPNAME) ./deploy/sigma --create-namespace --namespace $(NAMESPACE) \
+	--set image.repository=$(REPOSITORY) \
+	--set image.tag=$(TAG) \
+	--set mysql.auth.rootPassword=$(RANDOM_PASSWORD) \
+	--set mysql.auth.password=$(RANDOM_PASSWORD) \
+	--set redis.auth.password=$(RANDOM_PASSWORD) \
+	--set minio.secretKey=$(RANDOM_PASSWORD) \
+	--kubeconfig $(KUBECONFIG)
+
+kube_undeploy: ## Uninstall sigma on k8s using helm
+	@KUBECONFIG=$(KUBECONFIG)
+	@helm uninstall $(APPNAME) -n$(NAMESPACE)
 
 ## Help:
 help: ## Show this help.

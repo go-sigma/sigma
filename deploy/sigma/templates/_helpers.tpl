@@ -33,6 +33,7 @@ Create chart name and version as used by the chart label.
 {{/*
 Common labels
 */}}
+
 {{- define "sigma.labels" -}}
 helm.sh/chart: {{ include "sigma.chart" . }}
 {{ include "sigma.selectorLabels" . }}
@@ -42,6 +43,22 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
+{{- define "sigma.server.labels" -}}
+app.kubernetes.io/name: {{ template "sigma.server" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "sigma.worker.labels" -}}
+app.kubernetes.io/name: {{ template "sigma.worker" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "sigma.distribution.labels" -}}
+app.kubernetes.io/name: {{ template "sigma.distribution" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+
 {{/*
 Selector labels
 */}}
@@ -49,3 +66,15 @@ Selector labels
 app.kubernetes.io/name: {{ include "sigma.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{- define "sigma.server" -}}
+  {{- printf "%s-server" (include "common.names.fullname" .) -}}
+{{- end -}}
+
+{{- define "sigma.worker" -}}
+  {{- printf "%s-worker" (include "common.names.fullname" .) -}}
+{{- end -}}
+
+{{- define "sigma.distribution" -}}
+  {{- printf "%s-distribution" (include "common.names.fullname" .) -}}
+{{- end -}}
