@@ -43,6 +43,8 @@ type TagService interface {
 	GetByID(ctx context.Context, tagID int64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
 	GetByName(ctx context.Context, repositoryID int64, tag string) (*models.Tag, error)
+	// GetByArtifactID ...
+	GetByArtifactID(ctx context.Context, repositoryID, artifactID int64) (*models.Tag, error)
 	// DeleteByName deletes the tag with the specified tag name.
 	DeleteByName(ctx context.Context, repositoryID int64, tag string) error
 	// DeleteByArtifactID deletes the tag with the specified artifact ID.
@@ -155,6 +157,11 @@ func (s *tagService) GetByName(ctx context.Context, repositoryID int64, tag stri
 		Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).
 		Preload(s.tx.Tag.Artifact).
 		First()
+}
+
+// GetByArtifactID ...
+func (s *tagService) GetByArtifactID(ctx context.Context, repositoryID, artifactID int64) (*models.Tag, error) {
+	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.ArtifactID.Eq(artifactID)).First()
 }
 
 // DeleteByName deletes the tag with the specified tag name.

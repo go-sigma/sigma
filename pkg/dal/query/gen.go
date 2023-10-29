@@ -31,6 +31,12 @@ var (
 	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
+	DaemonGcArtifactRecord        *daemonGcArtifactRecord
+	DaemonGcArtifactRunner        *daemonGcArtifactRunner
+	DaemonGcBlobRecord            *daemonGcBlobRecord
+	DaemonGcBlobRunner            *daemonGcBlobRunner
+	DaemonGcRepositoryRecord      *daemonGcRepositoryRecord
+	DaemonGcRepositoryRunner      *daemonGcRepositoryRunner
 	DaemonLog                     *daemonLog
 	Locker                        *locker
 	Namespace                     *namespace
@@ -61,6 +67,12 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
+	DaemonGcArtifactRecord = &Q.DaemonGcArtifactRecord
+	DaemonGcArtifactRunner = &Q.DaemonGcArtifactRunner
+	DaemonGcBlobRecord = &Q.DaemonGcBlobRecord
+	DaemonGcBlobRunner = &Q.DaemonGcBlobRunner
+	DaemonGcRepositoryRecord = &Q.DaemonGcRepositoryRecord
+	DaemonGcRepositoryRunner = &Q.DaemonGcRepositoryRunner
 	DaemonLog = &Q.DaemonLog
 	Locker = &Q.Locker
 	Namespace = &Q.Namespace
@@ -92,6 +104,12 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
+		DaemonGcArtifactRecord:        newDaemonGcArtifactRecord(db, opts...),
+		DaemonGcArtifactRunner:        newDaemonGcArtifactRunner(db, opts...),
+		DaemonGcBlobRecord:            newDaemonGcBlobRecord(db, opts...),
+		DaemonGcBlobRunner:            newDaemonGcBlobRunner(db, opts...),
+		DaemonGcRepositoryRecord:      newDaemonGcRepositoryRecord(db, opts...),
+		DaemonGcRepositoryRunner:      newDaemonGcRepositoryRunner(db, opts...),
 		DaemonLog:                     newDaemonLog(db, opts...),
 		Locker:                        newLocker(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
@@ -124,6 +142,12 @@ type Query struct {
 	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
+	DaemonGcArtifactRecord        daemonGcArtifactRecord
+	DaemonGcArtifactRunner        daemonGcArtifactRunner
+	DaemonGcBlobRecord            daemonGcBlobRecord
+	DaemonGcBlobRunner            daemonGcBlobRunner
+	DaemonGcRepositoryRecord      daemonGcRepositoryRecord
+	DaemonGcRepositoryRunner      daemonGcRepositoryRunner
 	DaemonLog                     daemonLog
 	Locker                        locker
 	Namespace                     namespace
@@ -157,6 +181,12 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.clone(db),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.clone(db),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.clone(db),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.clone(db),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.clone(db),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.clone(db),
 		DaemonLog:                     q.DaemonLog.clone(db),
 		Locker:                        q.Locker.clone(db),
 		Namespace:                     q.Namespace.clone(db),
@@ -197,6 +227,12 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.replaceDB(db),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.replaceDB(db),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.replaceDB(db),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.replaceDB(db),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.replaceDB(db),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.replaceDB(db),
 		DaemonLog:                     q.DaemonLog.replaceDB(db),
 		Locker:                        q.Locker.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
@@ -227,6 +263,12 @@ type queryCtx struct {
 	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
+	DaemonGcArtifactRecord        *daemonGcArtifactRecordDo
+	DaemonGcArtifactRunner        *daemonGcArtifactRunnerDo
+	DaemonGcBlobRecord            *daemonGcBlobRecordDo
+	DaemonGcBlobRunner            *daemonGcBlobRunnerDo
+	DaemonGcRepositoryRecord      *daemonGcRepositoryRecordDo
+	DaemonGcRepositoryRunner      *daemonGcRepositoryRunnerDo
 	DaemonLog                     *daemonLogDo
 	Locker                        *lockerDo
 	Namespace                     *namespaceDo
@@ -257,6 +299,12 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.WithContext(ctx),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.WithContext(ctx),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.WithContext(ctx),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.WithContext(ctx),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.WithContext(ctx),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.WithContext(ctx),
 		DaemonLog:                     q.DaemonLog.WithContext(ctx),
 		Locker:                        q.Locker.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),

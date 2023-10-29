@@ -37,6 +37,8 @@ type NamespaceService interface {
 	Create(ctx context.Context, namespace *models.Namespace) error
 	// FindAll ...
 	FindAll(ctx context.Context) ([]*models.Namespace, error)
+	// FindWithCursor ...
+	FindWithCursor(ctx context.Context, limit int64, last int64) ([]*models.Namespace, error)
 	// UpdateQuota updates the namespace quota.
 	UpdateQuota(ctx context.Context, namespaceID, limit int64) error
 	// Get gets the namespace with the specified namespace ID.
@@ -88,6 +90,11 @@ func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Name
 // FindAll ...
 func (s *namespaceService) FindAll(ctx context.Context) ([]*models.Namespace, error) {
 	return s.tx.Namespace.WithContext(ctx).Find()
+}
+
+// FindWithCursor ...
+func (s *namespaceService) FindWithCursor(ctx context.Context, limit int64, last int64) ([]*models.Namespace, error) {
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(last)).Limit(int(limit)).Order(s.tx.Namespace.ID).Find()
 }
 
 // UpdateQuota updates the namespace quota.

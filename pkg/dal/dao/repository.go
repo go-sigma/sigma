@@ -160,7 +160,9 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 
 // FindAll ...
 func (s *repositoryService) FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error) {
-	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Gt(last), s.tx.Repository.NamespaceID.Eq(namespaceID)).Limit(int(limit)).Find()
+	return s.tx.Repository.WithContext(ctx).
+		Where(s.tx.Repository.ID.Gt(last), s.tx.Repository.NamespaceID.Eq(namespaceID)).
+		Limit(int(limit)).Order(s.tx.Repository.ID).Find()
 }
 
 // Get gets the repository with the specified repository ID.

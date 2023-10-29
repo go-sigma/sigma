@@ -54,10 +54,18 @@ func main() {
 		models.Locker{},
 		models.Cache{},
 		models.Setting{},
+		models.DaemonGcRepositoryRunner{},
+		models.DaemonGcRepositoryRecord{},
+		models.DaemonGcArtifactRunner{},
+		models.DaemonGcArtifactRecord{},
+		models.DaemonGcBlobRunner{},
+		models.DaemonGcBlobRecord{},
 	)
 
 	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})
 	g.ApplyInterface(func(models.ArtifactSizeByNamespaceOrRepository) {}, models.Artifact{})
+	g.ApplyInterface(func(models.ArtifactAssociated) {}, models.Artifact{})
+	g.ApplyInterface(func(models.BlobAssociateWithArtifact) {}, models.Blob{})
 
 	g.Execute()
 }

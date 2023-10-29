@@ -21,6 +21,7 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -83,6 +84,8 @@ type ArtifactService interface {
 	GetRepositorySize(ctx context.Context, repositoryID int64) (int64, error)
 	// GetReferrers ...
 	GetReferrers(ctx context.Context, repositoryID int64, digest string, artifactTypes []string) ([]*models.Artifact, error)
+	// IsArtifactAssociatedWithArtifact ...
+	IsArtifactAssociatedWithArtifact(ctx context.Context, artifactID int64) error
 }
 
 type artifactService struct {
@@ -379,4 +382,17 @@ func (s *artifactService) GetReferrers(ctx context.Context, repositoryID int64, 
 		query = query.Where(s.tx.Artifact.ConfigMediaType.In(artifactTypes...))
 	}
 	return query.Where(s.tx.Artifact.ReferrerID.Eq(artifactObj.ID)).Find()
+}
+
+// IsArtifactAssociatedWithArtifact ...
+func (s *artifactService) IsArtifactAssociatedWithArtifact(ctx context.Context, artifactID int64) error {
+	result, err := s.tx.Artifact.WithContext(ctx).ArtifactAssociated(artifactID)
+	if err != nil {
+		return err
+	}
+	r := cast.ToStringMapInt64(result)
+	if r["count"] == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

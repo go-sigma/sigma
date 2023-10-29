@@ -28,8 +28,6 @@ DROP TABLE IF EXISTS `casbin_rules`;
 
 DROP TABLE IF EXISTS `audits`;
 
-DROP TABLE IF EXISTS `daemon_logs`;
-
 DROP TABLE IF EXISTS `webhooks`;
 
 DROP TABLE IF EXISTS `webhook_logs`;
@@ -53,4 +51,16 @@ DROP TABLE IF EXISTS `work_queues`;
 DROP TABLE IF EXISTS `caches`;
 
 DROP TABLE IF EXISTS `settings`;
+
+DROP TABLE IF EXISTS `daemon_gc_repository_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_repository_records`;
+
+DROP TABLE IF EXISTS `daemon_gc_artifact_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_artifact_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
 

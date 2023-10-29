@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/go-sigma/sigma">
-    <img alt="sigma" src="https://media.githubusercontent.com/media/go-sigma/sigma/main/assets/sigma.svg" width="220"/>
+    <img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/main/assets/sigma.svg" width="220"/>
   </a>
 </p>
 <h1 align="center">sigma</h1>

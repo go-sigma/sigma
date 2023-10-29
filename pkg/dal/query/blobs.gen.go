@@ -6,6 +6,7 @@ package query
 
 import (
 	"context"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -357,6 +358,22 @@ func (a blobManyToManyArtifactsTx) Count() int64 {
 }
 
 type blobDo struct{ gen.DO }
+
+// SELECT blob_id FROM artifact_blobs WHERE blob_id in (@ids)
+func (b blobDo) BlobAssociateWithArtifact(ids []int64) (result map[string]interface{}, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, ids)
+	generateSQL.WriteString("SELECT blob_id FROM artifact_blobs WHERE blob_id in (?) ")
+
+	result = make(map[string]interface{})
+	var executeSQL *gorm.DB
+	executeSQL = b.UnderlyingDB().Raw(generateSQL.String(), params...).Take(result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
 
 func (b blobDo) Debug() *blobDo {
 	return b.withDO(b.DO.Debug())

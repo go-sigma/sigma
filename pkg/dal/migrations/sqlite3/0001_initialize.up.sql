@@ -273,17 +273,74 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES blobs (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `daemon_logs` (
+CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `namespace_id` integer,
-  `type` text CHECK (`type` IN ('Gc', 'Vulnerability', 'Sbom')) NOT NULL,
-  `action` text CHECK (`action` IN ('create', 'update', 'delete', 'pull', 'push')) NOT NULL,
-  `resource` varchar(256) NOT NULL,
-  `status` text CHECK (`status` IN ('Success', 'Failed')) NOT NULL,
-  `message` BLOB,
+  `log` BLOB,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
+  `namespace_id` bigint NOT NULL,
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `runner_id` integer NOT NULL,
+  `repository` varchar(64) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `log` BLOB,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
+  `namespace_id` bigint NOT NULL,
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `runner_id` integer NOT NULL,
+  `digest` varchar(256) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `log` BLOB,
+  `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
+  `id` integer PRIMARY KEY AUTOINCREMENT,
+  `runner_id` integer NOT NULL,
+  `digest` varchar(256) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_blob_runners` (`id`)
 );
 
 CREATE TABLE `casbin_rules` (
