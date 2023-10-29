@@ -1,5 +1,5 @@
 ARG GOLANG_VERSION=1.21.3-alpine3.18
-ARG BUILDKIT_VERSION=v0.12.2-rootless
+ARG BUILDKIT_VERSION=v0.12.3-rootless
 
 FROM golang:${GOLANG_VERSION} as cosign
 
