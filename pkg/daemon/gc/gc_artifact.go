@@ -16,90 +16,191 @@ package gc
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"sync"
 	"time"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func (g gc) gcArtifact(ctx context.Context, scope string) error {
-	namespaceService := g.namespaceServiceFactory.New()
-	var namespaceObjs []*models.Namespace
-	if scope != "" {
-		namespaceObj, err := namespaceService.GetByName(ctx, scope)
-		if err != nil {
-			return err
-		}
-		namespaceObjs = []*models.Namespace{namespaceObj}
-	} else {
-		var err error
-		namespaceObjs, err = namespaceService.FindAll(ctx)
-		if err != nil {
-			return err
-		}
+func init() {
+	workq.TopicHandlers[enums.DaemonGcArtifact.String()] = definition.Consumer{
+		Handler:     decorator(enums.DaemonGcArtifact),
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
+}
+
+func (g gc) gcArtifactRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+	defer close(statusChan)
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing}
+	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(ctx, runnerID)
+	if err != nil {
+		statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err)}
+		return fmt.Errorf("Get gc artifact runner failed: %v", err)
 	}
 
-	timeTarget := time.Now().Add(-1 * viper.GetDuration("daemon.gc.retention"))
+	namespaceService := g.namespaceServiceFactory.New()
 
-	repositoryService := g.repositoryServiceFactory.New()
-	artifactService := g.artifactServiceFactory.New()
-	for _, namespaceObj := range namespaceObjs {
-		var repositoryCurIndex int64
+	deleteArtifactWithNamespaceChanOnce.Do(g.deleteArtifactWithNamespace)
+	deleteArtifactCheckChanOnce.Do(g.deleteArtifactCheck)
+	deleteArtifactChanOnce.Do(g.deleteArtifact)
+
+	if runnerObj.NamespaceID != nil {
+		deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.NamespaceID)}
+	} else {
+		var namespaceCurIndex int64
 		for {
-			repositoryObjs, err := repositoryService.FindAll(ctx, namespaceObj.ID, pagination, repositoryCurIndex)
+			namespaceObjs, err := namespaceService.FindWithCursor(ctx, pagination, namespaceCurIndex)
 			if err != nil {
 				return err
 			}
-			for _, repositoryObj := range repositoryObjs {
-				var artifactCurIndex int64
-				for {
-					artifactObjs, err := artifactService.FindWithLastPull(ctx, repositoryObj.ID, timeTarget, pagination, artifactCurIndex)
-					if err != nil {
-						return err
-					}
-					var artifactIDs = make([]int64, 0, pagination)
-					for _, artifactObj := range artifactObjs {
-						artifactIDs = append(artifactIDs, artifactObj.ID)
-					}
-					associateArtifactIDs, err := artifactService.FindAssociateWithArtifact(ctx, artifactIDs)
-					if err != nil {
-						return err
-					}
-					associateTagIDs, err := artifactService.FindAssociateWithTag(ctx, artifactIDs)
-					if err != nil {
-						return err
-					}
-					artifactSets := mapset.NewSet(artifactIDs...)
-					artifactSets.RemoveAll(associateArtifactIDs...)
-					artifactSets.RemoveAll(associateTagIDs...)
-
-					artifactSlices := artifactSets.ToSlice()
-					if len(artifactSlices) > 0 {
-						err = artifactService.DeleteByIDs(ctx, artifactSlices)
-						if err != nil {
-							return err
-						}
-						var digests []string
-						for _, a := range artifactObjs {
-							digests = append(digests, a.Digest)
-						}
-						log.Info().Ints64("id", artifactSlices).Strs("digest", digests).Msg("Delete artifact success")
-					}
-
-					if len(artifactObjs) < pagination {
-						break
-					}
-					artifactCurIndex = artifactObjs[len(artifactObjs)-1].ID
-				}
+			for _, ns := range namespaceObjs {
+				deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ns.ID}
 			}
-			if len(repositoryObjs) < pagination {
+			if len(namespaceObjs) < pagination {
 				break
 			}
-			repositoryCurIndex = repositoryObjs[len(repositoryObjs)-1].ID
+			namespaceCurIndex = namespaceObjs[len(namespaceObjs)-1].ID
 		}
 	}
 	return nil
+}
+
+type artifactWithNamespaceTask struct {
+	RunnerID    int64
+	NamespaceID int64
+}
+
+var deleteArtifactWithNamespaceChan = make(chan artifactWithNamespaceTask, 100)
+
+var deleteArtifactWithNamespaceChanOnce = sync.Once{}
+
+func (g gc) deleteArtifactWithNamespace() {
+	ctx := log.Logger.WithContext(context.Background())
+	repositoryService := g.repositoryServiceFactory.New()
+	artifactService := g.artifactServiceFactory.New()
+	go func() {
+		for task := range deleteArtifactWithNamespaceChan {
+			var repositoryCurIndex int64
+			timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
+			for {
+				repositoryObjs, err := repositoryService.FindAll(ctx, task.NamespaceID, pagination, repositoryCurIndex)
+				if err != nil {
+					log.Error().Err(err).Int64("namespaceID", task.NamespaceID).Msg("List repository failed")
+					continue
+				}
+				for _, repositoryObj := range repositoryObjs {
+					var artifactCurIndex int64
+					for {
+						artifactObjs, err := artifactService.FindWithLastPull(ctx, repositoryObj.ID, timeTarget, pagination, artifactCurIndex)
+						if err != nil {
+							log.Error().Err(err).Msg("List artifact failed")
+							continue
+						}
+						for _, a := range artifactObjs {
+							deleteArtifactCheckChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+						}
+						if len(artifactObjs) < pagination {
+							break
+						}
+						artifactCurIndex = artifactObjs[len(artifactObjs)-1].ID
+					}
+				}
+				if len(repositoryObjs) < pagination {
+					break
+				}
+				repositoryCurIndex = repositoryObjs[len(repositoryObjs)-1].ID
+			}
+		}
+	}()
+}
+
+type artifactTask struct {
+	RunnerID int64
+	Artifact models.Artifact
+}
+
+var deleteArtifactCheckChan = make(chan artifactTask, 100)
+
+var deleteArtifactCheckChanOnce = sync.Once{}
+
+func (g gc) deleteArtifactCheck() {
+	ctx := log.Logger.WithContext(context.Background())
+	artifactService := g.artifactServiceFactory.New()
+	tagService := g.tagServiceFactory.New()
+	go func() {
+		for task := range deleteArtifactChan {
+			// 1. check manifest referrer associate with another artifact
+			if task.Artifact.ReferrerID != nil {
+				continue
+			}
+			// 2. check tag associate with this artifact
+			_, err := tagService.GetByArtifactID(ctx, task.Artifact.RepositoryID, task.Artifact.ID)
+			if err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get tag by artifact failed")
+				}
+				continue
+			}
+			// 3. check manifest index associate with this artifact
+			err = artifactService.IsArtifactAssociatedWithArtifact(ctx, task.Artifact.ID)
+			if err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
+				}
+				continue
+			}
+			// 4. delete the artifact that referrer to this artifact
+			delArtifacts, err := artifactService.GetReferrers(ctx, task.Artifact.RepositoryID, task.Artifact.Digest, nil)
+			if err != nil {
+				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get artifact referrers failed")
+				continue
+			}
+			for _, a := range delArtifacts {
+				deleteArtifactChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+			}
+			deleteArtifactChan <- task
+		}
+	}()
+}
+
+var deleteArtifactChan = make(chan artifactTask, 100)
+
+var deleteArtifactChanOnce = sync.Once{}
+
+func (g gc) deleteArtifact() {
+	ctx := log.Logger.WithContext(context.Background())
+	go func() {
+		for task := range deleteArtifactChan {
+			err := query.Q.Transaction(func(tx *query.Query) error {
+				err := g.artifactServiceFactory.New(tx).DeleteByID(ctx, task.Artifact.ID)
+				if err != nil {
+					return err
+				}
+				err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(ctx, []*models.DaemonGcArtifactRecord{{
+					RunnerID: task.RunnerID,
+					Digest:   task.Artifact.Digest,
+				}})
+				if err != nil {
+					return err
+				}
+				log.Info().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
+				return nil
+			})
+			if err != nil {
+				log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
+			}
+		}
+	}()
 }

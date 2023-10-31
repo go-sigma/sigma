@@ -15,18 +15,9 @@
 package gc
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-
-	"github.com/hibiken/asynq"
-	"github.com/rs/zerolog/log"
-
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/storage"
-	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // func init() {
@@ -38,36 +29,40 @@ const pagination = 1000
 type gc struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	daemonServiceFactory     dao.DaemonServiceFactory
 	storageDriverFactory     storage.StorageDriverFactory
+	config                   configs.Configuration
 }
 
-// nolint: unused
-func runner(ctx context.Context, task *asynq.Task) error {
-	var payload types.DaemonGcPayload
-	err := json.Unmarshal(task.Payload(), &payload)
-	if err != nil {
-		return err
-	}
-	var g = gc{
-		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
-		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
-		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-		blobServiceFactory:       dao.NewBlobServiceFactory(),
-		storageDriverFactory:     storage.NewStorageDriverFactory(),
-	}
-	ctx = log.Logger.WithContext(ctx)
-	switch payload.Target {
-	case enums.GcTargetBlobsAndArtifacts:
-		err = g.gcArtifact(ctx, ptr.To(payload.Scope))
-		if err != nil {
-			return err
-		}
-		return g.gcBlobs(ctx)
-	case enums.GcTargetArtifacts:
-		return g.gcArtifact(ctx, ptr.To(payload.Scope))
-	default:
-		return fmt.Errorf("payload target is not valid: %s", payload.Target.String())
-	}
-}
+// // nolint: unused
+// func runner(ctx context.Context, task *asynq.Task) error {
+// 	var payload types.DaemonGcPayload
+// 	err := json.Unmarshal(task.Payload(), &payload)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var g = gc{
+// 		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+// 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+// 		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+// 		blobServiceFactory:       dao.NewBlobServiceFactory(),
+// 		storageDriverFactory:     storage.NewStorageDriverFactory(),
+// 		config:                   ptr.To(configs.GetConfiguration()),
+// 	}
+// 	ctx = log.Logger.WithContext(ctx)
+// 	switch payload.Target {
+// 	case enums.GcTargetBlobsAndArtifacts:
+// 		err = g.gcArtifact(ctx, ptr.To(payload.Scope))
+// 		if err != nil {
+// 			return err
+// 		}
+// 		return g.gcBlobRunner(ctx)
+// 	case enums.GcTargetArtifacts:
+// 		return g.gcArtifact(ctx, ptr.To(payload.Scope))
+// 	default:
+// 		return fmt.Errorf("payload target is not valid: %s", payload.Target.String())
+// 	}
+// }

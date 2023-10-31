@@ -275,9 +275,9 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `log` BLOB,
+  `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
-  `namespace_id` bigint NOT NULL,
+  `namespace_id` bigint,
   `started_at` timestamp,
   `ended_at` timestamp,
   `duration` bigint,
@@ -299,9 +299,9 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `log` BLOB,
+  `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
-  `namespace_id` bigint NOT NULL,
+  `namespace_id` bigint,
   `started_at` timestamp,
   `ended_at` timestamp,
   `duration` bigint,
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `log` BLOB,
+  `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `started_at` timestamp,
   `ended_at` timestamp,

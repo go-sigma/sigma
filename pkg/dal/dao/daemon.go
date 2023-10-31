@@ -41,24 +41,51 @@ type DaemonService interface {
 	Delete(ctx context.Context, id int64) error
 	// List lists all daemon log
 	List(ctx context.Context, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonLog, int64, error)
+
 	// GetGcRepositoryRunner ...
 	GetGcRepositoryRunner(ctx context.Context, runnerID int64) (*models.DaemonGcRepositoryRunner, error)
+	// GetLastGcRepositoryRunner ...
+	GetLastGcRepositoryRunner(ctx context.Context, namespaceID *int64) (*models.DaemonGcRepositoryRunner, error)
+	// CreateGcRepositoryRunner ...
+	CreateGcRepositoryRunner(ctx context.Context, runnerObj *models.DaemonGcRepositoryRunner) error
+	// ListGcRepositoryRunners ...
+	ListGcRepositoryRunners(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error)
 	// CreateGcRepositoryRecords ...
 	CreateGcRepositoryRecords(ctx context.Context, records []*models.DaemonGcRepositoryRecord) error
 	// UpdateGcRepositoryRunner ...
 	UpdateGcRepositoryRunner(ctx context.Context, runnerID int64, updates map[string]interface{}) error
+	// ListGcRepositoryRecords lists all gc repository records.
+	ListGcRepositoryRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error)
+
 	// GetGcBlobRunner ...
 	GetGcBlobRunner(ctx context.Context, runnerID int64) (*models.DaemonGcBlobRunner, error)
+	// GetLastGcBlobRunner ...
+	GetLastGcBlobRunner(ctx context.Context) (*models.DaemonGcBlobRunner, error)
+	// ListLastGcBlobRunner ...
+	ListLastGcBlobRunner(ctx context.Context, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRunner, int64, error)
+	// CreateGcBlobRunner ...
+	CreateGcBlobRunner(ctx context.Context, runnerObj *models.DaemonGcBlobRunner) error
 	// CreateGcBlobRecords ...
 	CreateGcBlobRecords(ctx context.Context, records []*models.DaemonGcBlobRecord) error
 	// UpdateGcBlobRunner ...
 	UpdateGcBlobRunner(ctx context.Context, runnerID int64, updates map[string]interface{}) error
+	// ListGcBlobRecords ...
+	ListGcBlobRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRecord, int64, error)
+
 	// GetGcArtifactRunner ...
 	GetGcArtifactRunner(ctx context.Context, runnerID int64) (*models.DaemonGcArtifactRunner, error)
+	// GetLastGcArtifactRunner ...
+	GetLastGcArtifactRunner(ctx context.Context, namespaceID *int64) (*models.DaemonGcArtifactRunner, error)
+	// ListLastGcArtifactRunner ...
+	ListLastGcArtifactRunner(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error)
+	// CreateGcArtifactRunner ...
+	CreateGcArtifactRunner(ctx context.Context, runnerObj *models.DaemonGcArtifactRunner) error
 	// CreateGcArtifactRecords ...
 	CreateGcArtifactRecords(ctx context.Context, records []*models.DaemonGcArtifactRecord) error
 	// UpdateGcArtifactRunner ...
 	UpdateGcArtifactRunner(ctx context.Context, runnerID int64, updates map[string]interface{}) error
+	// ListGcArtifactRecords ...
+	ListGcArtifactRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error)
 }
 
 type daemonService struct {
@@ -134,11 +161,28 @@ func (s *daemonService) GetGcRepositoryRunner(ctx context.Context, runnerID int6
 	return s.tx.DaemonGcRepositoryRunner.WithContext(ctx).Where(s.tx.DaemonGcRepositoryRunner.ID.Eq(runnerID)).First()
 }
 
+// CreateGcRepositoryRunner ...
+func (s *daemonService) CreateGcRepositoryRunner(ctx context.Context, runnerObj *models.DaemonGcRepositoryRunner) error {
+	return s.tx.DaemonGcRepositoryRunner.WithContext(ctx).Create(runnerObj)
+}
+
+// GetLastGcRepositoryRunner ...
+func (s *daemonService) GetLastGcRepositoryRunner(ctx context.Context, namespaceID *int64) (*models.DaemonGcRepositoryRunner, error) {
+	query := s.tx.DaemonGcRepositoryRunner.WithContext(ctx)
+	if namespaceID == nil {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.IsNull())
+	} else {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.Eq(ptr.To(namespaceID)))
+	}
+	return query.Order(s.tx.DaemonGcRepositoryRunner.CreatedAt.Desc()).First()
+}
+
 // CreateGcRepositoryRecord ...
 func (s *daemonService) CreateGcRepositoryRecords(ctx context.Context, records []*models.DaemonGcRepositoryRecord) error {
 	return s.tx.DaemonGcRepositoryRecord.WithContext(ctx).CreateInBatches(records, consts.InsertBatchSize)
 }
 
+// UpdateGcRepositoryRunner ...
 func (s *daemonService) UpdateGcRepositoryRunner(ctx context.Context, runnerID int64, updates map[string]interface{}) error {
 	if len(updates) == 0 {
 		return nil
@@ -153,9 +197,149 @@ func (s *daemonService) UpdateGcRepositoryRunner(ctx context.Context, runnerID i
 	return nil
 }
 
+// ListLastGcArtifactRunner ...
+func (s *daemonService) ListLastGcArtifactRunner(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcArtifactRunner.WithContext(ctx)
+	if namespaceID == nil {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.IsNull())
+	} else {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.Eq(ptr.To(namespaceID)))
+	}
+	field, ok := s.tx.DaemonGcArtifactRunner.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcArtifactRunner.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcArtifactRunner.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListLastGcBlobRunner ...
+func (s *daemonService) ListLastGcBlobRunner(ctx context.Context, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRunner, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcBlobRunner.WithContext(ctx)
+	field, ok := s.tx.DaemonGcBlobRunner.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcBlobRunner.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcBlobRunner.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListGcRepositoryRunners ...
+func (s *daemonService) ListGcRepositoryRunners(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcRepositoryRunner.WithContext(ctx)
+	if namespaceID == nil {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.IsNull())
+	} else {
+		query = query.Where(s.tx.DaemonGcRepositoryRunner.NamespaceID.Eq(ptr.To(namespaceID)))
+	}
+	field, ok := s.tx.DaemonGcRepositoryRunner.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcRepositoryRunner.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcRepositoryRunner.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListGcRepositoryRecords lists all gc repository records.
+func (s *daemonService) ListGcRepositoryRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcRepositoryRecord.WithContext(ctx).Where(s.tx.DaemonGcRepositoryRecord.RunnerID.Eq(runnerID))
+	field, ok := s.tx.DaemonGcRepositoryRecord.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcRepositoryRecord.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcRepositoryRecord.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListGcBlobRecords ...
+func (s *daemonService) ListGcBlobRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRecord, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcBlobRecord.WithContext(ctx).Where(s.tx.DaemonGcBlobRecord.RunnerID.Eq(runnerID))
+	field, ok := s.tx.DaemonGcBlobRecord.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcBlobRecord.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcBlobRecord.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListGcArtifactRecords ...
+func (s *daemonService) ListGcArtifactRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	query := s.tx.DaemonGcArtifactRecord.WithContext(ctx).Where(s.tx.DaemonGcArtifactRecord.RunnerID.Eq(runnerID))
+	field, ok := s.tx.DaemonGcArtifactRecord.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			query = query.Order(field.Desc())
+		case enums.SortMethodAsc:
+			query = query.Order(field)
+		default:
+			query = query.Order(s.tx.DaemonGcArtifactRecord.UpdatedAt.Desc())
+		}
+	} else {
+		query = query.Order(s.tx.DaemonGcArtifactRecord.UpdatedAt.Desc())
+	}
+	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
 // GetGcBlobRunner ...
 func (s *daemonService) GetGcBlobRunner(ctx context.Context, runnerID int64) (*models.DaemonGcBlobRunner, error) {
 	return s.tx.DaemonGcBlobRunner.WithContext(ctx).Where(s.tx.DaemonGcBlobRunner.ID.Eq(runnerID)).First()
+}
+
+// GetLastGcBlobRunner ...
+func (s *daemonService) GetLastGcBlobRunner(ctx context.Context) (*models.DaemonGcBlobRunner, error) {
+	return s.tx.DaemonGcBlobRunner.WithContext(ctx).Order(s.tx.DaemonGcBlobRunner.CreatedAt.Desc()).First()
+}
+
+// CreateGcBlobRunner ...
+func (s *daemonService) CreateGcBlobRunner(ctx context.Context, runnerObj *models.DaemonGcBlobRunner) error {
+	return s.tx.DaemonGcBlobRunner.WithContext(ctx).Create(runnerObj)
 }
 
 // CreateGcBlobRecords ...
@@ -181,6 +365,22 @@ func (s *daemonService) UpdateGcBlobRunner(ctx context.Context, runnerID int64, 
 // GetGcArtifactRunner ...
 func (s *daemonService) GetGcArtifactRunner(ctx context.Context, runnerID int64) (*models.DaemonGcArtifactRunner, error) {
 	return s.tx.DaemonGcArtifactRunner.WithContext(ctx).Where(s.tx.DaemonGcArtifactRunner.ID.Eq(runnerID)).First()
+}
+
+// GetLastGcArtifactRunner ...
+func (s *daemonService) GetLastGcArtifactRunner(ctx context.Context, namespaceID *int64) (*models.DaemonGcArtifactRunner, error) {
+	query := s.tx.DaemonGcArtifactRunner.WithContext(ctx)
+	if namespaceID == nil {
+		query = query.Where(s.tx.DaemonGcArtifactRunner.NamespaceID.IsNull())
+	} else {
+		query = query.Where(s.tx.DaemonGcArtifactRunner.NamespaceID.Eq(ptr.To(namespaceID)))
+	}
+	return query.Order(s.tx.DaemonGcArtifactRunner.CreatedAt.Desc()).First()
+}
+
+// CreateGcArtifactRunner ...
+func (s *daemonService) CreateGcArtifactRunner(ctx context.Context, runnerObj *models.DaemonGcArtifactRunner) error {
+	return s.tx.DaemonGcArtifactRunner.WithContext(ctx).Create(runnerObj)
 }
 
 // CreateGcArtifactRecords ...

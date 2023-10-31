@@ -16,22 +16,38 @@ package gc
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func (g gc) gcBlobs(ctx context.Context) error {
+func init() {
+	workq.TopicHandlers[enums.DaemonGcBlob.String()] = definition.Consumer{
+		Handler:     decorator(enums.DaemonGcBlob),
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
+}
+
+func (g gc) gcBlobRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+	defer close(statusChan)
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+
 	blobService := g.blobServiceFactory.New()
 
-	timeTarget := time.Now().Add(-1 * viper.GetDuration("daemon.gc.retention"))
+	timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
 
 	var curIndex int64
 	for {
@@ -59,9 +75,11 @@ func (g gc) gcBlobs(ctx context.Context) error {
 					}
 				}
 			}
-			err = g.deleteBlob(ctx, notAssociateBlobs)
-			if err != nil {
-				return err
+			if len(notAssociateBlobs) > 0 {
+				deleteBlobChanOnce.Do(g.deleteBlob)
+				for _, blob := range notAssociateBlobs {
+					deleteBlobChan <- blobTask{RunnerID: runnerID, Blob: ptr.To(blob)}
+				}
 			}
 		}
 		if len(blobs) < pagination {
@@ -72,28 +90,39 @@ func (g gc) gcBlobs(ctx context.Context) error {
 	return nil
 }
 
-func (g gc) deleteBlob(ctx context.Context, blobs []*models.Blob) error {
-	if len(blobs) == 0 {
-		return nil
-	}
-	storageDriver := g.storageDriverFactory.New()
-	for _, blob := range blobs {
+type blobTask struct {
+	RunnerID int64
+	Blob     models.Blob
+}
+
+var deleteBlobChan = make(chan blobTask, 100)
+
+var deleteBlobChanOnce = sync.Once{}
+
+func (g gc) deleteBlob() {
+	ctx := log.Logger.WithContext(context.Background())
+	for task := range deleteBlobChan {
 		err := query.Q.Transaction(func(tx *query.Query) error {
-			err := storageDriver.Delete(ctx, utils.GenPathByDigest(digest.Digest(blob.Digest)))
+			err := g.blobServiceFactory.New(tx).DeleteByID(ctx, task.Blob.ID)
 			if err != nil {
 				return err
 			}
-			blobService := g.blobServiceFactory.New(tx)
-			err = blobService.DeleteByID(ctx, blob.ID)
+			err = g.daemonServiceFactory.New(tx).CreateGcBlobRecords(ctx, []*models.DaemonGcBlobRecord{{
+				RunnerID: task.RunnerID,
+				Digest:   task.Blob.Digest,
+			}})
 			if err != nil {
 				return err
 			}
-			log.Info().Str("digest", blob.Digest).Msg("Delete blob success")
+			err = g.storageDriverFactory.New().Delete(ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
+			if err != nil {
+				return err
+			}
+			log.Info().Str("digest", task.Blob.Digest).Msg("Delete blob success")
 			return nil
 		})
 		if err != nil {
-			return err
+			log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
 		}
 	}
-	return nil
 }

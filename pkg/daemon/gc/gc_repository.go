@@ -16,78 +16,54 @@ package gc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"time"
 
-	"github.com/hibiken/asynq"
-
-	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// func init() {
-// 	utils.PanicIf(daemon.RegisterTask(enums.DaemonGcRepository, gcRepositoryRunner))
-// }
+func init() {
+	workq.TopicHandlers[enums.DaemonGcRepository.String()] = definition.Consumer{
+		Handler:     decorator(enums.DaemonGcRepository),
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
+}
 
-// gcRepositoryRunner ...
-// nolint: unused
-func gcRepositoryRunner(ctx context.Context, task *asynq.Task) error {
-	var payload types.DaemonGcRepositoryPayload
-	err := json.Unmarshal(task.Payload(), &payload)
+func (g gc) gcRepositoryRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+	defer close(statusChan)
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(ctx, runnerID)
 	if err != nil {
-		return fmt.Errorf("Unmarshal payload failed: %v", err)
+		statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
+		return fmt.Errorf("Get gc repository runner failed: %v", err)
 	}
-	gc := gcRepository{}
-	return gc.runner(ctx, payload)
-}
-
-// nolint: unused
-type gcRepository struct {
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	daemonServiceFactory     dao.DaemonServiceFactory
-}
-
-// nolint: unused
-func (g gcRepository) runner(ctx context.Context, payload types.DaemonGcRepositoryPayload) error {
-	var namespaceID *int64
-	if payload.Scope != nil {
-		namespaceService := g.namespaceServiceFactory.New()
-		namespaceObj, err := namespaceService.GetByName(ctx, ptr.To(payload.Scope))
-		if err != nil {
-			return err
-		}
-		namespaceID = ptr.Of(namespaceObj.ID)
-	}
-	err := query.Q.Transaction(func(tx *query.Query) error {
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		repositoryService := g.repositoryServiceFactory.New(tx)
-		deletedRepositoryObjs, err := repositoryService.DeleteEmpty(ctx, namespaceID)
+		deletedRepositoryObjs, err := repositoryService.DeleteEmpty(ctx, runnerObj.NamespaceID)
 		if err != nil {
 			return err
 		}
 		daemonService := g.daemonServiceFactory.New(tx)
-		daemonLogs := make([]*models.DaemonLog, 0, len(deletedRepositoryObjs))
+		daemonLogs := make([]*models.DaemonGcRepositoryRecord, 0, len(deletedRepositoryObjs))
 		for _, obj := range deletedRepositoryObjs {
-			daemonLogs = append(daemonLogs, &models.DaemonLog{
-				NamespaceID: namespaceID,
-				Type:        enums.DaemonGcRepository,
-				Action:      enums.AuditActionDelete,
-				Resource:    obj,
-				Status:      enums.TaskCommonStatusSuccess,
-			})
+			daemonLogs = append(daemonLogs, &models.DaemonGcRepositoryRecord{RunnerID: runnerID, Repository: obj})
 		}
-		err = daemonService.CreateMany(ctx, daemonLogs)
+		err = daemonService.CreateGcRepositoryRecords(ctx, daemonLogs)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
-		return err
+		statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Gc empty repository failed: %v", err)}
+		return fmt.Errorf("Gc empty repository failed: %v", err)
 	}
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusSuccess}
 	return nil
 }
