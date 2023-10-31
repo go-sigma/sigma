@@ -23,6 +23,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	"github.com/robfig/cron/v3"
 	pwdvalidate "github.com/wagslane/go-password-validator"
 
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -60,6 +61,9 @@ func Initialize(e *echo.Echo) {
 
 // register registers the validators
 func register(v *validator.Validate) {
+	v.RegisterValidation("is_valid_retention_pattern", ValidateRetentionPattern)    // nolint:errcheck
+	v.RegisterValidation("is_valid_retention_rule_type", ValidateRetentionRuleType) // nolint:errcheck
+	v.RegisterValidation("is_valid_cron_rule", ValidateCronRule)                    // nolint:errcheck
 	v.RegisterValidation("is_valid_user_role", ValidateUserRole)                    // nolint:errcheck
 	v.RegisterValidation("is_valid_user_status", ValidateUserStatue)                // nolint:errcheck
 	v.RegisterValidation("is_valid_email", ValidateEmail)                           // nolint:errcheck
@@ -73,6 +77,35 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
 	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
+}
+
+// ValidateRetentionPattern ...
+func ValidateRetentionPattern(field validator.FieldLevel) bool {
+	patterns := strings.Split(field.Field().String(), ",")
+	for _, pattern := range patterns {
+		if pattern == "" {
+			return false
+		}
+		_, err := regexp.Compile(pattern)
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// ValidateRetentionRuleType ...
+func ValidateRetentionRuleType(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseRetentionRuleType(v)
+	return err == nil
+}
+
+// ValidateCronRule ...
+func ValidateCronRule(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := cron.ParseStandard(v)
+	return err == nil
 }
 
 // ValidateUserRole validates the user role

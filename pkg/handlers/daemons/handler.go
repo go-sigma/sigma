@@ -29,41 +29,73 @@ import (
 
 // Handler is the interface for the system handlers
 type Handlers interface {
-	// Run run the specific daemon task
-	Run(c echo.Context) error
-	// Status get the specific daemon task status
-	Status(c echo.Context) error
-	// Logs get the specific daemon task logs
-	Logs(c echo.Context) error
+	// UpdateGcTagRule ...
+	UpdateGcTagRule(c echo.Context) error
+	// GetGcTagRule
+	GetGcTagRule(c echo.Context) error
+	// GetGcTagLatestRunner ...
+	GetGcTagLatestRunner(c echo.Context) error
+	// CreateGcTagRunner ...
+	CreateGcTagRunner(c echo.Context) error
+	// ListGcTagRunners ...
+	ListGcTagRunners(c echo.Context) error
+	// GetGcTagRunner ...
+	GetGcTagRunner(c echo.Context) error
+	// ListGcTagRecords ...
+	ListGcTagRecords(c echo.Context) error
+	// GetGcTagRecord ...
+	GetGcTagRecord(c echo.Context) error
 
-	// GcRepositoryRun ...
-	GcRepositoryRun(c echo.Context) error
-	// GcRepositoryRunners ...
-	GcRepositoryRunners(c echo.Context) error
-	// GcRepositoryGet ...
-	GcRepositoryGet(c echo.Context) error
-	// GcRepositoryRecords ...
-	GcRepositoryRecords(c echo.Context) error
-	// GcRepositoryRecord ...
-	GcRepositoryRecord(c echo.Context) error
+	// UpdateGcRepositoryRule ...
+	UpdateGcRepositoryRule(c echo.Context) error
+	// GetGcRepositoryRule
+	GetGcRepositoryRule(c echo.Context) error
+	// GetGcRepositoryLatestRunner ...
+	GetGcRepositoryLatestRunner(c echo.Context) error
+	// CreateGcRepositoryRunner ...
+	CreateGcRepositoryRunner(c echo.Context) error
+	// ListGcRepositoryRunners ...
+	ListGcRepositoryRunners(c echo.Context) error
+	// GetGcRepositoryRunner ...
+	GetGcRepositoryRunner(c echo.Context) error
+	// ListGcRepositoryRecords ...
+	ListGcRepositoryRecords(c echo.Context) error
+	// GetGcRepositoryRecord ...
+	GetGcRepositoryRecord(c echo.Context) error
 
-	// GcArtifactRun ...
-	GcArtifactRun(c echo.Context) error
-	// GcArtifactGet ...
-	GcArtifactGet(c echo.Context) error
-	// GcArtifactRecords ...
-	GcArtifactRecords(c echo.Context) error
-	// GcArtifactRecord ...
-	GcArtifactRecord(c echo.Context) error
+	// UpdateGcArtifactRule ...
+	UpdateGcArtifactRule(c echo.Context) error
+	// GetGcArtifactRule
+	GetGcArtifactRule(c echo.Context) error
+	// GetGcArtifactLatestRunner ...
+	GetGcArtifactLatestRunner(c echo.Context) error
+	// CreateGcArtifactRunner ...
+	CreateGcArtifactRunner(c echo.Context) error
+	// ListGcArtifactRunners ...
+	ListGcArtifactRunners(c echo.Context) error
+	// GetGcArtifactRunner ...
+	GetGcArtifactRunner(c echo.Context) error
+	// ListGcArtifactRecords ...
+	ListGcArtifactRecords(c echo.Context) error
+	// GetGcArtifactRecord ...
+	GetGcArtifactRecord(c echo.Context) error
 
-	// GcBlobRun ...
-	GcBlobRun(c echo.Context) error
-	// GcBlobGet ...
-	GcBlobGet(c echo.Context) error
-	// GcBlobRecords ...
-	GcBlobRecords(c echo.Context) error
-	// GcBlobRecord ...
-	GcBlobRecord(c echo.Context) error
+	// UpdateGcBlobRule ...
+	UpdateGcBlobRule(c echo.Context) error
+	// GetGcBlobRule
+	GetGcBlobRule(c echo.Context) error
+	// GetGcBlobLatestRunner ...
+	GetGcBlobLatestRunner(c echo.Context) error
+	// CreateGcBlobRunner ...
+	CreateGcBlobRunner(c echo.Context) error
+	// ListGcBlobRunners ...
+	ListGcBlobRunners(c echo.Context) error
+	// GetGcBlobRunner ...
+	GetGcBlobRunner(c echo.Context) error
+	// ListGcBlobRecords ...
+	ListGcBlobRecords(c echo.Context) error
+	// GetGcBlobRecord ...
+	GetGcBlobRecord(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -96,26 +128,43 @@ type factory struct{}
 func (f factory) Initialize(e *echo.Echo) error {
 	daemonGroup := e.Group(consts.APIV1+"/daemons", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	repositoryHandler := handlerNew()
-	daemonGroup.POST("/:name/", repositoryHandler.Run)
-	daemonGroup.GET("/:name/", repositoryHandler.Run)
-	daemonGroup.GET("/:name/logs", repositoryHandler.Logs)
+	daemonHandler := handlerNew()
 
-	daemonGroup.POST("/gc-repository/", repositoryHandler.GcRepositoryRun)
-	daemonGroup.GET("/gc-repository/", repositoryHandler.GcRepositoryRunners)
-	daemonGroup.GET("/gc-repository/detail", repositoryHandler.GcRepositoryGet)
-	daemonGroup.GET("/gc-repository/:runner_id/", repositoryHandler.GcRepositoryRecords)
-	daemonGroup.GET("/gc-repository/:runner_id/records/:record_id", repositoryHandler.GcRepositoryRecord)
+	daemonGroup.PUT("/gc-tag/:namespace_id/", daemonHandler.UpdateGcTagRule)
+	daemonGroup.GET("/gc-tag/:namespace_id/", daemonHandler.GetGcTagRule)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/latest", daemonHandler.GetGcTagLatestRunner)
+	daemonGroup.POST("/gc-tag/:namespace_id/runners/", daemonHandler.CreateGcTagRunner)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/", daemonHandler.ListGcTagRunners)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id", daemonHandler.GetGcTagRunner)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcTagRecords)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcTagRecord)
 
-	daemonGroup.POST("/gc-artifact/", repositoryHandler.GcArtifactRun)
-	daemonGroup.GET("/gc-artifact/", repositoryHandler.GcArtifactRecords)
-	daemonGroup.GET("/gc-artifact/detail", repositoryHandler.GcArtifactGet)
-	daemonGroup.GET("/gc-artifact/:id", repositoryHandler.GcArtifactRecord)
+	daemonGroup.PUT("/gc-repository/:namespace_id/", daemonHandler.UpdateGcRepositoryRule)
+	daemonGroup.GET("/gc-repository/:namespace_id/", daemonHandler.GetGcRepositoryRule)
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/latest", daemonHandler.GetGcRepositoryLatestRunner)
+	daemonGroup.POST("/gc-repository/:namespace_id/runners/", daemonHandler.CreateGcRepositoryRunner)
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/", daemonHandler.ListGcRepositoryRunners)
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id", daemonHandler.GetGcRepositoryRunner)
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcRepositoryRecords)
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcRepositoryRecord)
 
-	daemonGroup.POST("/gc-blob/", repositoryHandler.GcBlobRun)
-	daemonGroup.GET("/gc-blob/", repositoryHandler.GcBlobRecords)
-	daemonGroup.GET("/gc-blob/detail", repositoryHandler.GcBlobGet)
-	daemonGroup.GET("/gc-blob/:id", repositoryHandler.GcBlobRecord)
+	daemonGroup.PUT("/gc-artifact/:namespace_id/", daemonHandler.UpdateGcArtifactRule)
+	daemonGroup.GET("/gc-artifact/:namespace_id/", daemonHandler.GetGcArtifactRule)
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/latest", daemonHandler.GetGcArtifactLatestRunner)
+	daemonGroup.POST("/gc-artifact/:namespace_id/runners/", daemonHandler.CreateGcArtifactRunner)
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/", daemonHandler.ListGcArtifactRunners)
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id", daemonHandler.GetGcArtifactRunner)
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcArtifactRecords)
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcArtifactRecord)
+
+	daemonGroup.PUT("/gc-blob/:namespace_id/", daemonHandler.UpdateGcBlobRule)
+	daemonGroup.GET("/gc-blob/:namespace_id/", daemonHandler.GetGcBlobRule)
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/latest", daemonHandler.GetGcBlobLatestRunner)
+	daemonGroup.POST("/gc-blob/:namespace_id/runners/", daemonHandler.CreateGcBlobRunner)
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/", daemonHandler.ListGcBlobRunners)
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id", daemonHandler.GetGcBlobRunner)
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcBlobRecords)
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcBlobRecord)
 
 	return nil
 }

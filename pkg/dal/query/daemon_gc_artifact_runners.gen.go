@@ -31,16 +31,21 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 	_daemonGcArtifactRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_daemonGcArtifactRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_daemonGcArtifactRunner.ID = field.NewInt64(tableName, "id")
+	_daemonGcArtifactRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcArtifactRunner.Status = field.NewField(tableName, "status")
 	_daemonGcArtifactRunner.Message = field.NewBytes(tableName, "message")
-	_daemonGcArtifactRunner.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_daemonGcArtifactRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcArtifactRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcArtifactRunner.Duration = field.NewInt64(tableName, "duration")
-	_daemonGcArtifactRunner.Namespace = daemonGcArtifactRunnerBelongsToNamespace{
+	_daemonGcArtifactRunner.Rule = daemonGcArtifactRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Namespace", "models.Namespace"),
+		RelationField: field.NewRelation("Rule", "models.DaemonGcArtifactRule"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Rule.Namespace", "models.Namespace"),
+		},
 	}
 
 	_daemonGcArtifactRunner.fillFieldMap()
@@ -51,18 +56,18 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 type daemonGcArtifactRunner struct {
 	daemonGcArtifactRunnerDo daemonGcArtifactRunnerDo
 
-	ALL         field.Asterisk
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
-	DeletedAt   field.Uint
-	ID          field.Int64
-	Status      field.Field
-	Message     field.Bytes
-	NamespaceID field.Int64
-	StartedAt   field.Time
-	EndedAt     field.Time
-	Duration    field.Int64
-	Namespace   daemonGcArtifactRunnerBelongsToNamespace
+	ALL       field.Asterisk
+	CreatedAt field.Time
+	UpdatedAt field.Time
+	DeletedAt field.Uint
+	ID        field.Int64
+	RuleID    field.Int64
+	Status    field.Field
+	Message   field.Bytes
+	StartedAt field.Time
+	EndedAt   field.Time
+	Duration  field.Int64
+	Rule      daemonGcArtifactRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -83,9 +88,9 @@ func (d *daemonGcArtifactRunner) updateTableName(table string) *daemonGcArtifact
 	d.UpdatedAt = field.NewTime(table, "updated_at")
 	d.DeletedAt = field.NewUint(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
+	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")
 	d.Message = field.NewBytes(table, "message")
-	d.NamespaceID = field.NewInt64(table, "namespace_id")
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
@@ -122,9 +127,9 @@ func (d *daemonGcArtifactRunner) fillFieldMap() {
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
+	d.fieldMap["rule_id"] = d.RuleID
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["message"] = d.Message
-	d.fieldMap["namespace_id"] = d.NamespaceID
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
@@ -141,13 +146,17 @@ func (d daemonGcArtifactRunner) replaceDB(db *gorm.DB) daemonGcArtifactRunner {
 	return d
 }
 
-type daemonGcArtifactRunnerBelongsToNamespace struct {
+type daemonGcArtifactRunnerBelongsToRule struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	Namespace struct {
+		field.RelationField
+	}
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespace) Where(conds ...field.Expr) *daemonGcArtifactRunnerBelongsToNamespace {
+func (a daemonGcArtifactRunnerBelongsToRule) Where(conds ...field.Expr) *daemonGcArtifactRunnerBelongsToRule {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -160,27 +169,27 @@ func (a daemonGcArtifactRunnerBelongsToNamespace) Where(conds ...field.Expr) *da
 	return &a
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespace) WithContext(ctx context.Context) *daemonGcArtifactRunnerBelongsToNamespace {
+func (a daemonGcArtifactRunnerBelongsToRule) WithContext(ctx context.Context) *daemonGcArtifactRunnerBelongsToRule {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespace) Session(session *gorm.Session) *daemonGcArtifactRunnerBelongsToNamespace {
+func (a daemonGcArtifactRunnerBelongsToRule) Session(session *gorm.Session) *daemonGcArtifactRunnerBelongsToRule {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespace) Model(m *models.DaemonGcArtifactRunner) *daemonGcArtifactRunnerBelongsToNamespaceTx {
-	return &daemonGcArtifactRunnerBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+func (a daemonGcArtifactRunnerBelongsToRule) Model(m *models.DaemonGcArtifactRunner) *daemonGcArtifactRunnerBelongsToRuleTx {
+	return &daemonGcArtifactRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
 }
 
-type daemonGcArtifactRunnerBelongsToNamespaceTx struct{ tx *gorm.Association }
+type daemonGcArtifactRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Find() (result *models.Namespace, err error) {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Find() (result *models.DaemonGcArtifactRule, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Append(values ...*models.Namespace) (err error) {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Append(values ...*models.DaemonGcArtifactRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -188,7 +197,7 @@ func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Append(values ...*models.Nam
 	return a.tx.Append(targetValues...)
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Replace(values ...*models.Namespace) (err error) {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Replace(values ...*models.DaemonGcArtifactRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -196,7 +205,7 @@ func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Replace(values ...*models.Na
 	return a.tx.Replace(targetValues...)
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Delete(values ...*models.Namespace) (err error) {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Delete(values ...*models.DaemonGcArtifactRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -204,11 +213,11 @@ func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Delete(values ...*models.Nam
 	return a.tx.Delete(targetValues...)
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Clear() error {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a daemonGcArtifactRunnerBelongsToNamespaceTx) Count() int64 {
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 

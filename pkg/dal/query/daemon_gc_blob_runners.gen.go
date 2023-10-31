@@ -31,11 +31,17 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 	_daemonGcBlobRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_daemonGcBlobRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_daemonGcBlobRunner.ID = field.NewInt64(tableName, "id")
+	_daemonGcBlobRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcBlobRunner.Status = field.NewField(tableName, "status")
 	_daemonGcBlobRunner.Message = field.NewBytes(tableName, "message")
 	_daemonGcBlobRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcBlobRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcBlobRunner.Duration = field.NewInt64(tableName, "duration")
+	_daemonGcBlobRunner.Rule = daemonGcBlobRunnerBelongsToRule{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Rule", "models.DaemonGcBlobRule"),
+	}
 
 	_daemonGcBlobRunner.fillFieldMap()
 
@@ -50,11 +56,13 @@ type daemonGcBlobRunner struct {
 	UpdatedAt field.Time
 	DeletedAt field.Uint
 	ID        field.Int64
+	RuleID    field.Int64
 	Status    field.Field
 	Message   field.Bytes
 	StartedAt field.Time
 	EndedAt   field.Time
 	Duration  field.Int64
+	Rule      daemonGcBlobRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -75,6 +83,7 @@ func (d *daemonGcBlobRunner) updateTableName(table string) *daemonGcBlobRunner {
 	d.UpdatedAt = field.NewTime(table, "updated_at")
 	d.DeletedAt = field.NewUint(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
+	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")
 	d.Message = field.NewBytes(table, "message")
 	d.StartedAt = field.NewTime(table, "started_at")
@@ -108,16 +117,18 @@ func (d *daemonGcBlobRunner) GetFieldByName(fieldName string) (field.OrderExpr, 
 }
 
 func (d *daemonGcBlobRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 9)
+	d.fieldMap = make(map[string]field.Expr, 11)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
+	d.fieldMap["rule_id"] = d.RuleID
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["message"] = d.Message
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
+
 }
 
 func (d daemonGcBlobRunner) clone(db *gorm.DB) daemonGcBlobRunner {
@@ -128,6 +139,77 @@ func (d daemonGcBlobRunner) clone(db *gorm.DB) daemonGcBlobRunner {
 func (d daemonGcBlobRunner) replaceDB(db *gorm.DB) daemonGcBlobRunner {
 	d.daemonGcBlobRunnerDo.ReplaceDB(db)
 	return d
+}
+
+type daemonGcBlobRunnerBelongsToRule struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a daemonGcBlobRunnerBelongsToRule) Where(conds ...field.Expr) *daemonGcBlobRunnerBelongsToRule {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToRule) WithContext(ctx context.Context) *daemonGcBlobRunnerBelongsToRule {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToRule) Session(session *gorm.Session) *daemonGcBlobRunnerBelongsToRule {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToRule) Model(m *models.DaemonGcBlobRunner) *daemonGcBlobRunnerBelongsToRuleTx {
+	return &daemonGcBlobRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
+}
+
+type daemonGcBlobRunnerBelongsToRuleTx struct{ tx *gorm.Association }
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Find() (result *models.DaemonGcBlobRule, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Append(values ...*models.DaemonGcBlobRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Replace(values ...*models.DaemonGcBlobRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Delete(values ...*models.DaemonGcBlobRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a daemonGcBlobRunnerBelongsToRuleTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type daemonGcBlobRunnerDo struct{ gen.DO }

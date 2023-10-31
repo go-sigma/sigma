@@ -37,6 +37,72 @@ type DaemonLog struct {
 	Message     []byte
 }
 
+// DaemonGcTagRule ...
+type DaemonGcTagRule struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID *int64
+	Namespace   *Namespace
+
+	IsRunning           bool `gorm:"default:false"`
+	CronEnabled         bool `gorm:"default:false"`
+	CronRule            *string
+	CronNextTrigger     *time.Time
+	RetentionRuleType   *enums.RetentionRuleType
+	RetentionRuleAmount *int64
+	RetentionPattern    []byte
+}
+
+// DaemonGcTagRunner ...
+type DaemonGcTagRunner struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	RuleID int64
+	Rule   DaemonGcTagRule
+
+	Message []byte
+	Status  enums.TaskCommonStatus
+
+	StartedAt *time.Time
+	EndedAt   *time.Time
+	Duration  *int64
+}
+
+// DaemonGcTagRecords ...
+type DaemonGcTagRecord struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	RunnerID int64
+	Runner   DaemonGcTagRunner
+
+	Tag string
+}
+
+// DaemonGcRepositoryRule ...
+type DaemonGcRepositoryRule struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID *int64
+	Namespace   *Namespace
+
+	IsRunning       bool `gorm:"default:false"`
+	CronEnabled     bool `gorm:"default:false"`
+	CronRule        *string
+	CronNextTrigger *time.Time
+}
+
 // DaemonGcRepositoryRunner ...
 type DaemonGcRepositoryRunner struct {
 	CreatedAt time.Time
@@ -44,15 +110,15 @@ type DaemonGcRepositoryRunner struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Status      enums.TaskCommonStatus `gorm:"status"`
-	Message     []byte
-	NamespaceID *int64
+	RuleID int64
+	Rule   DaemonGcTagRule
+
+	Status  enums.TaskCommonStatus `gorm:"status"`
+	Message []byte
 
 	StartedAt *time.Time
 	EndedAt   *time.Time
 	Duration  *int64
-
-	Namespace *Namespace
 }
 
 // DaemonGcRepositoryRecord ...
@@ -62,10 +128,26 @@ type DaemonGcRepositoryRecord struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	RunnerID   int64
-	Repository string
+	RunnerID int64
+	Runner   DaemonGcRepositoryRunner
 
-	Runner DaemonGcRepositoryRunner
+	Repository string
+}
+
+// DaemonGcArtifactRule ...
+type DaemonGcArtifactRule struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID *int64
+	Namespace   *Namespace
+
+	IsRunning       bool `gorm:"default:false"`
+	CronEnabled     bool `gorm:"default:false"`
+	CronRule        *string
+	CronNextTrigger *time.Time
 }
 
 type DaemonGcArtifactRunner struct {
@@ -74,17 +156,18 @@ type DaemonGcArtifactRunner struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Status      enums.TaskCommonStatus `gorm:"status"`
-	Message     []byte
-	NamespaceID *int64
+	RuleID int64
+	Rule   DaemonGcArtifactRule
+
+	Status  enums.TaskCommonStatus `gorm:"status"`
+	Message []byte
 
 	StartedAt *time.Time
 	EndedAt   *time.Time
 	Duration  *int64
-
-	Namespace *Namespace
 }
 
+// DaemonGcArtifactRecord ...
 type DaemonGcArtifactRecord struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -97,11 +180,28 @@ type DaemonGcArtifactRecord struct {
 	Runner DaemonGcArtifactRunner
 }
 
+// DaemonGcBlobRule ...
+type DaemonGcBlobRule struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+	ID        int64                 `gorm:"primaryKey"`
+
+	IsRunning       bool `gorm:"default:false"`
+	CronEnabled     bool `gorm:"default:false"`
+	CronRule        *string
+	CronNextTrigger *time.Time
+}
+
+// DaemonGcBlobRunner ...
 type DaemonGcBlobRunner struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
+
+	RuleID int64
+	Rule   DaemonGcBlobRule
 
 	Status  enums.TaskCommonStatus `gorm:"status"`
 	Message []byte
@@ -118,7 +218,7 @@ type DaemonGcBlobRecord struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	RunnerID int64
-	Digest   string
+	Runner   DaemonGcBlobRunner
 
-	Runner DaemonGcBlobRunner
+	Digest string
 }

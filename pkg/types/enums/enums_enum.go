@@ -1568,6 +1568,89 @@ func (x RedisType) Value() (driver.Value, error) {
 }
 
 const (
+	// RetentionRuleTypeDay is a RetentionRuleType of type Day.
+	RetentionRuleTypeDay RetentionRuleType = "Day"
+	// RetentionRuleTypeQuantity is a RetentionRuleType of type Quantity.
+	RetentionRuleTypeQuantity RetentionRuleType = "Quantity"
+)
+
+var ErrInvalidRetentionRuleType = errors.New("not a valid RetentionRuleType")
+
+// String implements the Stringer interface.
+func (x RetentionRuleType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RetentionRuleType) IsValid() bool {
+	_, err := ParseRetentionRuleType(string(x))
+	return err == nil
+}
+
+var _RetentionRuleTypeValue = map[string]RetentionRuleType{
+	"Day":      RetentionRuleTypeDay,
+	"Quantity": RetentionRuleTypeQuantity,
+}
+
+// ParseRetentionRuleType attempts to convert a string to a RetentionRuleType.
+func ParseRetentionRuleType(name string) (RetentionRuleType, error) {
+	if x, ok := _RetentionRuleTypeValue[name]; ok {
+		return x, nil
+	}
+	return RetentionRuleType(""), fmt.Errorf("%s is %w", name, ErrInvalidRetentionRuleType)
+}
+
+// MustParseRetentionRuleType converts a string to a RetentionRuleType, and panics if is not valid.
+func MustParseRetentionRuleType(name string) RetentionRuleType {
+	val, err := ParseRetentionRuleType(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errRetentionRuleTypeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *RetentionRuleType) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = RetentionRuleType("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseRetentionRuleType(v)
+	case []byte:
+		*x, err = ParseRetentionRuleType(string(v))
+	case RetentionRuleType:
+		*x = v
+	case *RetentionRuleType:
+		if v == nil {
+			return errRetentionRuleTypeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errRetentionRuleTypeNilPtr
+		}
+		*x, err = ParseRetentionRuleType(*v)
+	default:
+		return errors.New("invalid type for RetentionRuleType")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x RetentionRuleType) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// ScmCredentialTypeSsh is a ScmCredentialType of type ssh.
 	ScmCredentialTypeSsh ScmCredentialType = "ssh"
 	// ScmCredentialTypeToken is a ScmCredentialType of type token.

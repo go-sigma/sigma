@@ -37,6 +37,11 @@ func newDaemonGcBlobRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRecord
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Runner", "models.DaemonGcBlobRunner"),
+		Rule: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Runner.Rule", "models.DaemonGcBlobRule"),
+		},
 	}
 
 	_daemonGcBlobRecord.fillFieldMap()
@@ -129,6 +134,10 @@ type daemonGcBlobRecordBelongsToRunner struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	Rule struct {
+		field.RelationField
+	}
 }
 
 func (a daemonGcBlobRecordBelongsToRunner) Where(conds ...field.Expr) *daemonGcBlobRecordBelongsToRunner {

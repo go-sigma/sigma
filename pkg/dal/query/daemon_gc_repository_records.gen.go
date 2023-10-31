@@ -37,10 +37,18 @@ func newDaemonGcRepositoryRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Runner", "models.DaemonGcRepositoryRunner"),
-		Namespace: struct {
+		Rule: struct {
 			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
 		}{
-			RelationField: field.NewRelation("Runner.Namespace", "models.Namespace"),
+			RelationField: field.NewRelation("Runner.Rule", "models.DaemonGcTagRule"),
+			Namespace: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Runner.Rule.Namespace", "models.Namespace"),
+			},
 		},
 	}
 
@@ -135,8 +143,11 @@ type daemonGcRepositoryRecordBelongsToRunner struct {
 
 	field.RelationField
 
-	Namespace struct {
+	Rule struct {
 		field.RelationField
+		Namespace struct {
+			field.RelationField
+		}
 	}
 }
 

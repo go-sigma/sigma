@@ -56,8 +56,8 @@ func (g gc) gcArtifactRunner(ctx context.Context, runnerID int64, statusChan cha
 	deleteArtifactCheckChanOnce.Do(g.deleteArtifactCheck)
 	deleteArtifactChanOnce.Do(g.deleteArtifact)
 
-	if runnerObj.NamespaceID != nil {
-		deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.NamespaceID)}
+	if runnerObj.Rule.NamespaceID != nil {
+		deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {

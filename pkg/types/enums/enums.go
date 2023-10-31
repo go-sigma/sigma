@@ -255,3 +255,9 @@ type UserStatus string
 // User,
 // )
 type UserRole string
+
+// RetentionRuleType x ENUM(
+// Day,
+// Quantity,
+// )
+type RetentionRuleType string

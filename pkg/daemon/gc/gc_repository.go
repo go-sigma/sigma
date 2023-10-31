@@ -45,7 +45,7 @@ func (g gc) gcRepositoryRunner(ctx context.Context, runnerID int64, statusChan c
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repositoryService := g.repositoryServiceFactory.New(tx)
-		deletedRepositoryObjs, err := repositoryService.DeleteEmpty(ctx, runnerObj.NamespaceID)
+		deletedRepositoryObjs, err := repositoryService.DeleteEmpty(ctx, runnerObj.Rule.NamespaceID)
 		if err != nil {
 			return err
 		}

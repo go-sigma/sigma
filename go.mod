@@ -5,13 +5,13 @@ go 1.21.3
 require (
 	code.gitea.io/sdk/gitea v0.16.0
 	github.com/BurntSushi/toml v1.3.2
-	github.com/IBM/sarama v1.41.3
+	github.com/IBM/sarama v1.42.0
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
 	github.com/anchore/syft v0.94.0
-	github.com/aquasecurity/trivy v0.46.0
-	github.com/aws/aws-sdk-go v1.46.6
+	github.com/aquasecurity/trivy v0.46.1
+	github.com/aws/aws-sdk-go v1.47.3
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.77.2
@@ -23,10 +23,10 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.15.0
-	github.com/glebarez/sqlite v1.9.0
+	github.com/glebarez/sqlite v1.10.0
 	github.com/go-git/go-git/v5 v5.10.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redsync/redsync/v4 v4.10.0
+	github.com/go-redsync/redsync/v4 v4.11.0
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
@@ -46,10 +46,10 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/buildkit v0.12.3
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231016131659-3940529fe6c0
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231101194043-f2182352d4cc
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
-	github.com/redis/go-redis/v9 v9.2.1
+	github.com/redis/go-redis/v9 v9.3.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.31.0
 	github.com/smartystreets/goconvey v1.8.1

@@ -31,16 +31,21 @@ func newDaemonGcRepositoryRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 	_daemonGcRepositoryRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_daemonGcRepositoryRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_daemonGcRepositoryRunner.ID = field.NewInt64(tableName, "id")
+	_daemonGcRepositoryRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcRepositoryRunner.Status = field.NewField(tableName, "status")
 	_daemonGcRepositoryRunner.Message = field.NewBytes(tableName, "message")
-	_daemonGcRepositoryRunner.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_daemonGcRepositoryRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcRepositoryRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcRepositoryRunner.Duration = field.NewInt64(tableName, "duration")
-	_daemonGcRepositoryRunner.Namespace = daemonGcRepositoryRunnerBelongsToNamespace{
+	_daemonGcRepositoryRunner.Rule = daemonGcRepositoryRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Namespace", "models.Namespace"),
+		RelationField: field.NewRelation("Rule", "models.DaemonGcTagRule"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Rule.Namespace", "models.Namespace"),
+		},
 	}
 
 	_daemonGcRepositoryRunner.fillFieldMap()
@@ -51,18 +56,18 @@ func newDaemonGcRepositoryRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 type daemonGcRepositoryRunner struct {
 	daemonGcRepositoryRunnerDo daemonGcRepositoryRunnerDo
 
-	ALL         field.Asterisk
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
-	DeletedAt   field.Uint
-	ID          field.Int64
-	Status      field.Field
-	Message     field.Bytes
-	NamespaceID field.Int64
-	StartedAt   field.Time
-	EndedAt     field.Time
-	Duration    field.Int64
-	Namespace   daemonGcRepositoryRunnerBelongsToNamespace
+	ALL       field.Asterisk
+	CreatedAt field.Time
+	UpdatedAt field.Time
+	DeletedAt field.Uint
+	ID        field.Int64
+	RuleID    field.Int64
+	Status    field.Field
+	Message   field.Bytes
+	StartedAt field.Time
+	EndedAt   field.Time
+	Duration  field.Int64
+	Rule      daemonGcRepositoryRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -83,9 +88,9 @@ func (d *daemonGcRepositoryRunner) updateTableName(table string) *daemonGcReposi
 	d.UpdatedAt = field.NewTime(table, "updated_at")
 	d.DeletedAt = field.NewUint(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
+	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")
 	d.Message = field.NewBytes(table, "message")
-	d.NamespaceID = field.NewInt64(table, "namespace_id")
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
@@ -122,9 +127,9 @@ func (d *daemonGcRepositoryRunner) fillFieldMap() {
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
+	d.fieldMap["rule_id"] = d.RuleID
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["message"] = d.Message
-	d.fieldMap["namespace_id"] = d.NamespaceID
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
@@ -141,13 +146,17 @@ func (d daemonGcRepositoryRunner) replaceDB(db *gorm.DB) daemonGcRepositoryRunne
 	return d
 }
 
-type daemonGcRepositoryRunnerBelongsToNamespace struct {
+type daemonGcRepositoryRunnerBelongsToRule struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	Namespace struct {
+		field.RelationField
+	}
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespace) Where(conds ...field.Expr) *daemonGcRepositoryRunnerBelongsToNamespace {
+func (a daemonGcRepositoryRunnerBelongsToRule) Where(conds ...field.Expr) *daemonGcRepositoryRunnerBelongsToRule {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -160,27 +169,27 @@ func (a daemonGcRepositoryRunnerBelongsToNamespace) Where(conds ...field.Expr) *
 	return &a
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespace) WithContext(ctx context.Context) *daemonGcRepositoryRunnerBelongsToNamespace {
+func (a daemonGcRepositoryRunnerBelongsToRule) WithContext(ctx context.Context) *daemonGcRepositoryRunnerBelongsToRule {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespace) Session(session *gorm.Session) *daemonGcRepositoryRunnerBelongsToNamespace {
+func (a daemonGcRepositoryRunnerBelongsToRule) Session(session *gorm.Session) *daemonGcRepositoryRunnerBelongsToRule {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespace) Model(m *models.DaemonGcRepositoryRunner) *daemonGcRepositoryRunnerBelongsToNamespaceTx {
-	return &daemonGcRepositoryRunnerBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+func (a daemonGcRepositoryRunnerBelongsToRule) Model(m *models.DaemonGcRepositoryRunner) *daemonGcRepositoryRunnerBelongsToRuleTx {
+	return &daemonGcRepositoryRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
 }
 
-type daemonGcRepositoryRunnerBelongsToNamespaceTx struct{ tx *gorm.Association }
+type daemonGcRepositoryRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Find() (result *models.Namespace, err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Find() (result *models.DaemonGcTagRule, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Append(values ...*models.Namespace) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Append(values ...*models.DaemonGcTagRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -188,7 +197,7 @@ func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Append(values ...*models.N
 	return a.tx.Append(targetValues...)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Replace(values ...*models.Namespace) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Replace(values ...*models.DaemonGcTagRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -196,7 +205,7 @@ func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Replace(values ...*models.
 	return a.tx.Replace(targetValues...)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Delete(values ...*models.Namespace) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Delete(values ...*models.DaemonGcTagRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -204,11 +213,11 @@ func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Delete(values ...*models.N
 	return a.tx.Delete(targetValues...)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Clear() error {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a daemonGcRepositoryRunnerBelongsToNamespaceTx) Count() int64 {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 

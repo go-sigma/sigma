@@ -37,10 +37,18 @@ func newDaemonGcArtifactRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Runner", "models.DaemonGcArtifactRunner"),
-		Namespace: struct {
+		Rule: struct {
 			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
 		}{
-			RelationField: field.NewRelation("Runner.Namespace", "models.Namespace"),
+			RelationField: field.NewRelation("Runner.Rule", "models.DaemonGcArtifactRule"),
+			Namespace: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Runner.Rule.Namespace", "models.Namespace"),
+			},
 		},
 	}
 
@@ -135,8 +143,11 @@ type daemonGcArtifactRecordBelongsToRunner struct {
 
 	field.RelationField
 
-	Namespace struct {
+	Rule struct {
 		field.RelationField
+		Namespace struct {
+			field.RelationField
+		}
 	}
 }
 

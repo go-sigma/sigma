@@ -35,11 +35,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// UpdateGcArtifactRule ...
-func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
+// UpdateGcTagRule ...
+func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.UpdateGcArtifactRuleRequest
+	var req types.UpdateGcTagRuleRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -50,14 +50,14 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
-		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc artifact rule is running")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
+		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc tag rule is running")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc tag rule is running")
 	}
 	var nextTrigger *time.Time
 	if req.CronRule != nil {
@@ -67,27 +67,27 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 	updates := make(map[string]any, 5)
 	if req.CronEnabled {
 		if req.CronRule != nil {
-			updates[query.DaemonGcArtifactRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
-			updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
+			updates[query.DaemonGcTagRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
+			updates[query.DaemonGcTagRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 		}
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule
-			err = daemonService.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
+			err = daemonService.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
 				NamespaceID:     namespaceID,
 				CronEnabled:     req.CronEnabled,
 				CronRule:        req.CronRule,
 				CronNextTrigger: nextTrigger,
 			})
 			if err != nil {
-				log.Error().Err(err).Msg("Create gc artifact rule failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact rule failed: %v", err))
+				log.Error().Err(err).Msg("Create gc tag rule failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc tag rule failed: %v", err))
 			}
 		}
-		err = daemonService.UpdateGcArtifactRule(ctx, ruleObj.ID, updates)
+		err = daemonService.UpdateGcTagRule(ctx, ruleObj.ID, updates)
 		if err != nil {
-			log.Error().Err(err).Msg("Update gc artifact rule failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
+			log.Error().Err(err).Msg("Update gc tag rule failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc tag rule failed: %v", err))
 		}
 		return nil
 	})
@@ -101,11 +101,11 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcArtifactRule
-func (h *handlers) GetGcArtifactRule(c echo.Context) error {
+// GetGcTagRule
+func (h *handlers) GetGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.UpdateGcArtifactRuleRequest
+	var req types.GetGcTagRuleRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -116,29 +116,29 @@ func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc artifact rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact rule not found: %v", err))
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GetGcArtifactRuleResponse{
+	return c.JSON(http.StatusOK, types.GetGcTagRuleResponse{
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
-		CronNextTrigger: ptr.Of(""),
+		CronNextTrigger: ptr.Of(""), // response utc time, fe format with tz
 		CreatedAt:       ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:       ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 
-// GetGcArtifactLatestRunner ...
-func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
+// GetGcTagLatestRunner ...
+func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.GetGcArtifactLatestRunnerRequest
+	var req types.GetGcTagLatestRunnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -149,21 +149,17 @@ func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc artifact rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact rule not found: %v", err))
-		}
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
-	}
-	runnerObj, err := daemonService.GetGcArtifactLatestRunner(ctx, ruleObj.ID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GcArtifactRunnerItem{
+	runnerObj, err := daemonService.GetGcTagLatestRunner(ctx, ruleObj.ID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
+	}
+	return c.JSON(http.StatusOK, types.GcTagRunnerItem{
 		ID:        runnerObj.ID,
 		Status:    runnerObj.Status,
 		Message:   string(runnerObj.Message),
@@ -172,11 +168,11 @@ func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
 	})
 }
 
-// CreateGcArtifactRunner ...
-func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
+// CreateGcTagRunner ...
+func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.CreateGcArtifactRunnerRequest
+	var req types.CreateGcTagRunnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -187,32 +183,32 @@ func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc artifact rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact rule not found: %v", err))
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
-		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc artifact rule is running")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
+		log.Error().Int64("NamespaceID", req.NamespaceID).Msg("The gc tag rule is running")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc tag rule is running")
 	}
-	err = daemonService.CreateGcArtifactRunner(ctx, &models.DaemonGcArtifactRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending})
+	err = daemonService.CreateGcTagRunner(ctx, &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending})
 	if err != nil {
-		log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc artifact runner failed: %v", err)
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gc artifact runner failed: %v", err))
+		log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gc tag runner failed: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
-// ListGcArtifactRunners ...
-func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
+// ListGcTagRunners ...
+func (h *handlers) ListGcTagRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.ListGcArtifactRunnersRequest
+	var req types.ListGcTagRunnersRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -223,19 +219,19 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc artifact rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonService.ListGcArtifactRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
+	runnerObjs, total, err := daemonService.ListGcTagRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List gc artifact rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc artifact rule failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		resp = append(resp, types.GcArtifactRunnerItem{
+		resp = append(resp, types.GcTagRunnerItem{
 			ID:        runnerObj.ID,
 			Status:    runnerObj.Status,
 			Message:   string(runnerObj.Message),
@@ -246,31 +242,31 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcArtifactRunner ...
-func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
+// GetGcTagRunner ...
+func (h *handlers) GetGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.GetGcArtifactRunnerRequest
+	var req types.GetGcTagRunnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	daemonService := h.daemonServiceFactory.New()
-	runnerObj, err := daemonService.GetGcArtifactRunner(ctx, req.RunnerID)
+	runnerObj, err := daemonService.GetGcTagRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag runner not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact runner failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact runner failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag runner failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag runner failed: %v", err))
 	}
 	if ptr.To(runnerObj.Rule.NamespaceID) != req.NamespaceID {
-		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
+		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag runner not found: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GcArtifactRunnerItem{
+	return c.JSON(http.StatusOK, types.GcTagRunnerItem{
 		ID:        runnerObj.ID,
 		Status:    runnerObj.Status,
 		Message:   string(runnerObj.Message),
@@ -279,27 +275,27 @@ func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
 	})
 }
 
-// ListGcArtifactRecords ...
-func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
+// ListGcTagRecords ...
+func (h *handlers) ListGcTagRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.ListGcArtifactRecordsRequest
+	var req types.ListGcTagRecordsRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	daemonService := h.daemonServiceFactory.New()
-	recordObjs, total, err := daemonService.ListGcArtifactRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
+	recordObjs, total, err := daemonService.ListGcTagRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc artifact records failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc artifact records failed: %v", err))
+		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc tag records failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc tag records failed: %v", err))
 	}
 	var resp = make([]any, 0, len(recordObjs))
 	for _, recordObj := range recordObjs {
-		resp = append(resp, types.GcArtifactRecordItem{
+		resp = append(resp, types.GcTagRecordItem{
 			ID:        recordObj.ID,
-			Digest:    recordObj.Digest,
+			Tag:       recordObj.Tag,
 			CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
@@ -307,11 +303,11 @@ func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcArtifactRecord ...
-func (h *handlers) GetGcArtifactRecord(c echo.Context) error {
+// GetGcTagRecord ...
+func (h *handlers) GetGcTagRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.GetGcArtifactRecordRequest
+	var req types.GetGcTagRecordRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -322,27 +318,27 @@ func (h *handlers) GetGcArtifactRecord(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	recordObj, err := daemonService.GetGcArtifactRecord(ctx, req.RecordID)
+	recordObj, err := daemonService.GetGcTagRecord(ctx, req.RecordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact record not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact record not found: %v", err))
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag record not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact record failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact record failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag record failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag record failed: %v", err))
 	}
 	if recordObj.Runner.ID != req.RunnerID || recordObj.Runner.Rule.ID != ruleObj.ID {
-		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact record not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact record not found: %v", err))
+		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag record not found: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GcArtifactRecordItem{
+	return c.JSON(http.StatusOK, types.GcTagRecordItem{
 		ID:        recordObj.ID,
-		Digest:    recordObj.Digest,
+		Tag:       recordObj.Tag,
 		CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
