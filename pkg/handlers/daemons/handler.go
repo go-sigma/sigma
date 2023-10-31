@@ -35,6 +35,35 @@ type Handlers interface {
 	Status(c echo.Context) error
 	// Logs get the specific daemon task logs
 	Logs(c echo.Context) error
+
+	// GcRepositoryRun ...
+	GcRepositoryRun(c echo.Context) error
+	// GcRepositoryRunners ...
+	GcRepositoryRunners(c echo.Context) error
+	// GcRepositoryGet ...
+	GcRepositoryGet(c echo.Context) error
+	// GcRepositoryRecords ...
+	GcRepositoryRecords(c echo.Context) error
+	// GcRepositoryRecord ...
+	GcRepositoryRecord(c echo.Context) error
+
+	// GcArtifactRun ...
+	GcArtifactRun(c echo.Context) error
+	// GcArtifactGet ...
+	GcArtifactGet(c echo.Context) error
+	// GcArtifactRecords ...
+	GcArtifactRecords(c echo.Context) error
+	// GcArtifactRecord ...
+	GcArtifactRecord(c echo.Context) error
+
+	// GcBlobRun ...
+	GcBlobRun(c echo.Context) error
+	// GcBlobGet ...
+	GcBlobGet(c echo.Context) error
+	// GcBlobRecords ...
+	GcBlobRecords(c echo.Context) error
+	// GcBlobRecord ...
+	GcBlobRecord(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -71,6 +100,23 @@ func (f factory) Initialize(e *echo.Echo) error {
 	daemonGroup.POST("/:name/", repositoryHandler.Run)
 	daemonGroup.GET("/:name/", repositoryHandler.Run)
 	daemonGroup.GET("/:name/logs", repositoryHandler.Logs)
+
+	daemonGroup.POST("/gc-repository/", repositoryHandler.GcRepositoryRun)
+	daemonGroup.GET("/gc-repository/", repositoryHandler.GcRepositoryRunners)
+	daemonGroup.GET("/gc-repository/detail", repositoryHandler.GcRepositoryGet)
+	daemonGroup.GET("/gc-repository/:runner_id/", repositoryHandler.GcRepositoryRecords)
+	daemonGroup.GET("/gc-repository/:runner_id/records/:record_id", repositoryHandler.GcRepositoryRecord)
+
+	daemonGroup.POST("/gc-artifact/", repositoryHandler.GcArtifactRun)
+	daemonGroup.GET("/gc-artifact/", repositoryHandler.GcArtifactRecords)
+	daemonGroup.GET("/gc-artifact/detail", repositoryHandler.GcArtifactGet)
+	daemonGroup.GET("/gc-artifact/:id", repositoryHandler.GcArtifactRecord)
+
+	daemonGroup.POST("/gc-blob/", repositoryHandler.GcBlobRun)
+	daemonGroup.GET("/gc-blob/", repositoryHandler.GcBlobRecords)
+	daemonGroup.GET("/gc-blob/detail", repositoryHandler.GcBlobGet)
+	daemonGroup.GET("/gc-blob/:id", repositoryHandler.GcBlobRecord)
+
 	return nil
 }
 
