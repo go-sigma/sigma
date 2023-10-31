@@ -50,4 +50,7 @@ func defaultSettings() {
 	if configuration.Cache.Ttl == 0 {
 		configuration.Cache.Ttl = 72 * time.Hour
 	}
+	if configuration.Daemon.Gc.Retention == 0 {
+		configuration.Daemon.Gc.Retention = 72 * time.Hour
+	}
 }

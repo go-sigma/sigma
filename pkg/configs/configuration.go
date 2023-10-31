@@ -227,8 +227,8 @@ type ConfigurationProxy struct {
 
 // ConfigurationDaemonGc ...
 type ConfigurationDaemonGc struct {
-	Retention string `yaml:"retention"`
-	Cron      string `yaml:"cron"`
+	Retention time.Duration `yaml:"retention"`
+	Cron      string        `yaml:"cron"`
 }
 
 // ConfigurationDaemonDocker ...

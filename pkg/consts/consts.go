@@ -61,7 +61,7 @@ const (
 	// WebhookSecretHeader ...
 	WebhookSecretHeader = "X-Sigma-Signature-256" // nolint: gosec
 	// InsertBatchSize ...
-	InsertBatchSize = 100
+	InsertBatchSize = 10
 )
 
 // UserAgent represents the user agent

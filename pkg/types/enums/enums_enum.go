@@ -659,6 +659,12 @@ const (
 	DaemonGc Daemon = "Gc"
 	// DaemonGcRepository is a Daemon of type GcRepository.
 	DaemonGcRepository Daemon = "GcRepository"
+	// DaemonGcArtifact is a Daemon of type GcArtifact.
+	DaemonGcArtifact Daemon = "GcArtifact"
+	// DaemonGcBlob is a Daemon of type GcBlob.
+	DaemonGcBlob Daemon = "GcBlob"
+	// DaemonGcTag is a Daemon of type GcTag.
+	DaemonGcTag Daemon = "GcTag"
 	// DaemonWebhook is a Daemon of type Webhook.
 	DaemonWebhook Daemon = "Webhook"
 	// DaemonBuilder is a Daemon of type Builder.
@@ -690,6 +696,9 @@ var _DaemonValue = map[string]Daemon{
 	"Sbom":           DaemonSbom,
 	"Gc":             DaemonGc,
 	"GcRepository":   DaemonGcRepository,
+	"GcArtifact":     DaemonGcArtifact,
+	"GcBlob":         DaemonGcBlob,
+	"GcTag":          DaemonGcTag,
 	"Webhook":        DaemonWebhook,
 	"Builder":        DaemonBuilder,
 	"CodeRepository": DaemonCodeRepository,
@@ -2075,8 +2084,6 @@ func (x TaskCommonStatus) Value() (driver.Value, error) {
 }
 
 const (
-	// UserRoleRoot is a UserRole of type Root.
-	UserRoleRoot UserRole = "Root"
 	// UserRoleAdmin is a UserRole of type Admin.
 	UserRoleAdmin UserRole = "Admin"
 	// UserRoleUser is a UserRole of type User.
@@ -2098,7 +2105,6 @@ func (x UserRole) IsValid() bool {
 }
 
 var _UserRoleValue = map[string]UserRole{
-	"Root":  UserRoleRoot,
 	"Admin": UserRoleAdmin,
 	"User":  UserRoleUser,
 }
