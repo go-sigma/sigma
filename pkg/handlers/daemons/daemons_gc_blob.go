@@ -101,7 +101,7 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 func (h *handlers) GetGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.UpdateGcBlobRuleRequest
+	var req types.GetGcBlobRuleRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -157,7 +157,7 @@ func (h *handlers) GetGcBlobLatestRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc blob latest runner failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob latest runner failed: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GcTagRunnerItem{
+	return c.JSON(http.StatusOK, types.GcBlobRunnerItem{
 		ID:        runnerObj.ID,
 		Status:    runnerObj.Status,
 		Message:   string(runnerObj.Message),
@@ -222,7 +222,7 @@ func (h *handlers) ListGcBlobRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		resp = append(resp, types.GcArtifactRunnerItem{
+		resp = append(resp, types.GcBlobRunnerItem{
 			ID:        runnerObj.ID,
 			Status:    runnerObj.Status,
 			Message:   string(runnerObj.Message),
@@ -319,7 +319,7 @@ func (h *handlers) GetGcBlobRecord(c echo.Context) error {
 		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc blob record not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc blob record not found: %v", err))
 	}
-	return c.JSON(http.StatusOK, types.GcArtifactRecordItem{
+	return c.JSON(http.StatusOK, types.GcBlobRecordItem{
 		ID:        recordObj.ID,
 		Digest:    recordObj.Digest,
 		CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),

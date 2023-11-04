@@ -105,7 +105,7 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.UpdateGcArtifactRuleRequest
+	var req types.GetGcArtifactRuleRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")

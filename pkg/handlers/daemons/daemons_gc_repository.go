@@ -98,15 +98,6 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 		}
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
 	}
-	// err = daemonService.UpdateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
-	// 	NamespaceID: namespaceID,
-	// 	CronEnabled: req.CronEnabled,
-	// 	CronRule:    req.CronRule, // TODO: next trigger
-	// })
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Update gc artifact rule failed")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update gc artifact rule failed: %v", err))
-	// }
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -217,7 +208,7 @@ func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
 func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.ListGcArtifactRunnersRequest
+	var req types.ListGcRepositoryRunnersRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -240,7 +231,7 @@ func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		resp = append(resp, types.GcArtifactRunnerItem{
+		resp = append(resp, types.GcRepositoryRunnerItem{
 			ID:        runnerObj.ID,
 			Status:    runnerObj.Status,
 			Message:   string(runnerObj.Message),
