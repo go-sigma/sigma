@@ -143,7 +143,7 @@ func NewDaemonServiceFactory() DaemonServiceFactory {
 }
 
 // New ...
-func (f *daemonServiceFactory) New(txs ...*query.Query) DaemonService {
+func (s *daemonServiceFactory) New(txs ...*query.Query) DaemonService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

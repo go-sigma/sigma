@@ -68,7 +68,7 @@ type ArtifactService interface {
 	CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error)
 	// DeleteByID deletes the artifact with the specified artifact ID.
 	DeleteByID(ctx context.Context, id int64) error
-	// DeleteByID deletes the artifact with the specified artifact ID.
+	// DeleteByIDs deletes the artifact with the specified artifact ID.
 	DeleteByIDs(ctx context.Context, ids []int64) error
 	// CreateSbom create a new artifact sbom.
 	CreateSbom(ctx context.Context, sbom *models.ArtifactSbom) error
@@ -104,7 +104,7 @@ func NewArtifactServiceFactory() ArtifactServiceFactory {
 	return &artifactServiceFactory{}
 }
 
-func (f *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
+func (s *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -119,7 +119,7 @@ func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact)
 	return s.tx.Artifact.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(artifact)
 }
 
-// FindAll ...
+// FindWithLastPull ...
 func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
@@ -129,21 +129,21 @@ func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int
 }
 
 // FindAssociateWithTag ...
-func (b *artifactService) FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error) {
+func (s *artifactService) FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error) {
 	var result []int64
-	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM tags WHERE artifact_id in (?)", ids).Scan(&result).Error
+	err := s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM tags WHERE artifact_id in (?)", ids).Scan(&result).Error
 	return result, err
 }
 
 // FindAssociateWithArtifact ...
-func (b *artifactService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
+func (s *artifactService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
 	var artifacts []int64
-	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM artifact_artifacts WHERE artifact_id in (?)", ids).Scan(&artifacts).Error
+	err := s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_id FROM artifact_artifacts WHERE artifact_id in (?)", ids).Scan(&artifacts).Error
 	if err != nil {
 		return nil, err
 	}
 	var artifactIndexes []int64
-	err = b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_index_id FROM artifact_artifacts WHERE artifact_index_id in (?)", ids).Scan(&artifactIndexes).Error
+	err = s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_index_id FROM artifact_artifacts WHERE artifact_index_id in (?)", ids).Scan(&artifactIndexes).Error
 	if err != nil {
 		return nil, err
 	}
@@ -377,11 +377,11 @@ func (s *artifactService) GetReferrers(ctx context.Context, repositoryID int64, 
 	if err != nil {
 		return nil, err
 	}
-	query := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID))
+	q := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID))
 	if len(artifactTypes) > 0 {
-		query = query.Where(s.tx.Artifact.ConfigMediaType.In(artifactTypes...))
+		q = q.Where(s.tx.Artifact.ConfigMediaType.In(artifactTypes...))
 	}
-	return query.Where(s.tx.Artifact.ReferrerID.Eq(artifactObj.ID)).Find()
+	return q.Where(s.tx.Artifact.ReferrerID.Eq(artifactObj.ID)).Find()
 }
 
 // IsArtifactAssociatedWithArtifact ...

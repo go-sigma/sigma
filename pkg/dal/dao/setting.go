@@ -53,7 +53,7 @@ func NewSettingServiceFactory() SettingServiceFactory {
 	return &settingServiceFactory{}
 }
 
-func (f *settingServiceFactory) New(txs ...*query.Query) SettingService {
+func (s *settingServiceFactory) New(txs ...*query.Query) SettingService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -63,7 +63,7 @@ func (f *settingServiceFactory) New(txs ...*query.Query) SettingService {
 	}
 }
 
-// Create creates a new setting record in the database
+// Save creates a new setting record in the database
 func (s settingService) Save(ctx context.Context, key string, val []byte) error {
 	var setting = models.Setting{Key: key, Val: val}
 	return s.tx.Setting.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(&setting)

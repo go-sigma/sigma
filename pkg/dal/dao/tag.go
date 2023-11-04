@@ -39,7 +39,7 @@ import (
 type TagService interface {
 	// Create save a new tag if conflict do nothing.
 	Create(ctx context.Context, tag *models.Tag, options ...Option) error
-	// Get gets the tag with the specified tag ID.
+	// GetByID gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID int64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
 	GetByName(ctx context.Context, repositoryID int64, tag string) (*models.Tag, error)
@@ -55,7 +55,7 @@ type TagService interface {
 	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...int64) ([]*models.Tag, error)
 	// ListTag lists the tags by the specified request.
 	ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
-	// CountArtifact counts the artifacts by the specified request.
+	// CountTag counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
@@ -83,7 +83,7 @@ func NewTagServiceFactory() TagServiceFactory {
 	return &tagServiceFactory{}
 }
 
-func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
+func (s *tagServiceFactory) New(txs ...*query.Query) TagService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -140,15 +140,15 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 	return copier.Copy(findTagObj, tag)
 }
 
-// Get gets the tag with the specified tag ID.
+// GetByID gets the tag with the specified tag ID.
 func (s *tagService) GetByID(ctx context.Context, tagID int64) (*models.Tag, error) {
-	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
-	query.Preload(s.tx.Tag.Artifact.Vulnerability)
-	query.Preload(s.tx.Tag.Artifact.Sbom)
-	return query.First()
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	q.Preload(s.tx.Tag.Artifact.Vulnerability)
+	q.Preload(s.tx.Tag.Artifact.Sbom)
+	return q.First()
 }
 
 // GetByName gets the tag with the specified tag name.
@@ -219,41 +219,41 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 		}
 	}
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
 	if len(types) > 0 {
-		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID), s.tx.Artifact.Type.In(mTypes...))
+		q = q.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID), s.tx.Artifact.Type.In(mTypes...))
 	} else {
-		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID))
+		q = q.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID))
 	}
 	if name != nil {
-		query = query.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.Tag.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.Tag.UpdatedAt.Desc())
+			q = q.Order(s.tx.Tag.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.Tag.UpdatedAt.Desc())
+		q = q.Order(s.tx.Tag.UpdatedAt.Desc())
 	}
 	if len(types) > 0 {
-		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
 	} else {
-		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
 	}
-	query = query.Preload(s.tx.Tag.Artifact.Vulnerability)
-	query = query.Preload(s.tx.Tag.Artifact.Sbom)
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	q = q.Preload(s.tx.Tag.Artifact.Vulnerability)
+	q = q.Preload(s.tx.Tag.Artifact.Sbom)
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
-// CountArtifact counts the artifacts by the specified request.
+// CountTag counts the artifacts by the specified request.
 func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (int64, error) {
 	return s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).

@@ -49,7 +49,7 @@ func NewAuditServiceFactory() AuditServiceFactory {
 	return &auditServiceFactory{}
 }
 
-func (f *auditServiceFactory) New(txs ...*query.Query) AuditService {
+func (s *auditServiceFactory) New(txs ...*query.Query) AuditService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

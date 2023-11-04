@@ -36,7 +36,7 @@ import (
 
 // RepositoryService is the interface that provides the repository service methods.
 type RepositoryService interface {
-	// Save saves the repository.
+	// Create saves the repository.
 	Create(ctx context.Context, repositoryObj *models.Repository, autoCreateNamespace AutoCreateNamespace) error
 	// FindAll ...
 	FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error)
@@ -77,7 +77,7 @@ func NewRepositoryServiceFactory() RepositoryServiceFactory {
 }
 
 // New creates a new repository service.
-func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
+func (s *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -87,6 +87,7 @@ func (f *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	}
 }
 
+// AutoCreateNamespace ...
 type AutoCreateNamespace struct {
 	AutoCreate bool
 	Visibility enums.Visibility
@@ -189,24 +190,24 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 // ListRepository lists all repositories.
 func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		query = query.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.Repository.UpdatedAt.Desc())
+			q = q.Order(s.tx.Repository.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.Repository.UpdatedAt.Desc())
+		q = q.Order(s.tx.Repository.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // UpdateRepository ...
@@ -226,11 +227,11 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, upda
 
 // CountRepository counts all repositories.
 func (s *repositoryService) CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error) {
-	query := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		query = query.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
-	return query.Count()
+	return q.Count()
 }
 
 // DeleteByID deletes the repository with the specified repository ID.
@@ -268,14 +269,14 @@ func (s *repositoryService) CountByNamespace(ctx context.Context, namespaceIDs [
 
 // DeleteEmpty delete all of empty repository
 func (s *repositoryService) DeleteEmpty(ctx context.Context, namespaceID *int64) ([]string, error) {
-	query := s.tx.Repository.WithContext(ctx).
+	q := s.tx.Repository.WithContext(ctx).
 		LeftJoin(s.tx.Artifact, s.tx.Repository.ID.EqCol(s.tx.Artifact.RepositoryID)).
 		LeftJoin(s.tx.Tag, s.tx.Repository.ID.EqCol(s.tx.Tag.RepositoryID)).
 		Where(s.tx.Artifact.RepositoryID.IsNull(), s.tx.Tag.RepositoryID.IsNull())
 	if namespaceID != nil {
-		query = query.Where(s.tx.Repository.NamespaceID.Eq(ptr.To(namespaceID)))
+		q = q.Where(s.tx.Repository.NamespaceID.Eq(ptr.To(namespaceID)))
 	}
-	repositoryObjs, err := query.Find()
+	repositoryObjs, err := q.Find()
 	if err != nil {
 		return nil, err
 	}

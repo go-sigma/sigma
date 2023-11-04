@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -67,7 +68,7 @@ func NewBlobServiceFactory() BlobServiceFactory {
 }
 
 // New creates a new blob service.
-func (f *blobServiceFactory) New(txs ...*query.Query) BlobService {
+func (s *blobServiceFactory) New(txs ...*query.Query) BlobService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -78,39 +79,39 @@ func (f *blobServiceFactory) New(txs ...*query.Query) BlobService {
 }
 
 // Create creates a new blob.
-func (b *blobService) Create(ctx context.Context, blob *models.Blob) error {
-	return b.tx.Blob.WithContext(ctx).Create(blob)
+func (s *blobService) Create(ctx context.Context, blob *models.Blob) error {
+	return s.tx.Blob.WithContext(ctx).Create(blob)
 }
 
 // FindWithLastPull ...
-func (b *blobService) FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error) {
-	return b.tx.Blob.WithContext(ctx).
-		Where(b.tx.Blob.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
-		Or(b.tx.Blob.LastPull.IsNull(), b.tx.Blob.UpdatedAt.Lt(before)).
-		Where(b.tx.Blob.ID.Gt(last)).Find()
+func (s *blobService) FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error) {
+	return s.tx.Blob.WithContext(ctx).
+		Where(s.tx.Blob.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
+		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before)).
+		Where(s.tx.Blob.ID.Gt(last)).Find()
 }
 
 // FindAssociateWithArtifact ...
-func (b *blobService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
+func (s *blobService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
 	var result []int64
-	err := b.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT blob_id FROM artifact_blobs WHERE blob_id in (?)", ids).Scan(&result).Error
+	err := s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT blob_id FROM artifact_blobs WHERE blob_id in (?)", ids).Scan(&result).Error
 	return result, err
 }
 
 // FindByDigest finds the blob with the specified digest.
-func (b *blobService) FindByDigest(ctx context.Context, digest string) (*models.Blob, error) {
-	return b.tx.Blob.WithContext(ctx).Where(b.tx.Blob.Digest.Eq(digest)).First()
+func (s *blobService) FindByDigest(ctx context.Context, digest string) (*models.Blob, error) {
+	return s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.Digest.Eq(digest)).First()
 }
 
 // FindByDigests finds the blobs with the specified digests.
-func (b *blobService) FindByDigests(ctx context.Context, digests []string) ([]*models.Blob, error) {
-	return b.tx.Blob.WithContext(ctx).Where(b.tx.Blob.Digest.In(digests...)).Find()
+func (s *blobService) FindByDigests(ctx context.Context, digests []string) ([]*models.Blob, error) {
+	return s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.Digest.In(digests...)).Find()
 }
 
 // Exists checks if the blob with the specified digest exists.
-func (b *blobService) Exists(ctx context.Context, digest string) (bool, error) {
-	blob, err := b.tx.Blob.WithContext(ctx).Where(b.tx.Blob.Digest.Eq(digest)).First()
-	if err != nil && err != gorm.ErrRecordNotFound {
+func (s *blobService) Exists(ctx context.Context, digest string) (bool, error) {
+	blob, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.Digest.Eq(digest)).First()
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, err
 	}
 	return blob != nil, nil
