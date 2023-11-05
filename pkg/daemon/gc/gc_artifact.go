@@ -24,10 +24,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -41,23 +44,54 @@ func init() {
 	}
 }
 
-func (g gc) gcArtifactRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+type artifactWithNamespaceTask struct {
+	RunnerID    int64
+	NamespaceID int64
+}
+
+type artifactTask struct {
+	RunnerID int64
+	Artifact models.Artifact
+}
+
+type gcArtifact struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
+	daemonServiceFactory     dao.DaemonServiceFactory
+	storageDriverFactory     storage.StorageDriverFactory
+	config                   configs.Configuration
+
+	deleteArtifactWithNamespaceChan     chan artifactWithNamespaceTask
+	deleteArtifactWithNamespaceChanOnce *sync.Once
+	deleteArtifactCheckChan             chan artifactTask
+	deleteArtifactCheckChanOnce         *sync.Once
+	deleteArtifactChan                  chan artifactTask
+	deleteArtifactChanOnce              *sync.Once
+
+	waitAllDone *sync.WaitGroup
+}
+
+func (g gcArtifact) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
 	defer close(statusChan)
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing}
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(ctx, runnerID)
 	if err != nil {
-		statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err)}
-		return fmt.Errorf("Get gc artifact runner failed: %v", err)
+		statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
+		return fmt.Errorf("get gc artifact runner failed: %v", err)
 	}
 
 	namespaceService := g.namespaceServiceFactory.New()
 
-	deleteArtifactWithNamespaceChanOnce.Do(g.deleteArtifactWithNamespace)
-	deleteArtifactCheckChanOnce.Do(g.deleteArtifactCheck)
-	deleteArtifactChanOnce.Do(g.deleteArtifact)
+	g.deleteArtifactWithNamespaceChanOnce.Do(g.deleteArtifactWithNamespace)
+	g.deleteArtifactCheckChanOnce.Do(g.deleteArtifactCheck)
+	g.deleteArtifactChanOnce.Do(g.deleteArtifact)
+	g.waitAllDone.Add(3)
 
 	if runnerObj.Rule.NamespaceID != nil {
-		deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+		g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
@@ -66,7 +100,7 @@ func (g gc) gcArtifactRunner(ctx context.Context, runnerID int64, statusChan cha
 				return err
 			}
 			for _, ns := range namespaceObjs {
-				deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ns.ID}
+				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ns.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -74,24 +108,21 @@ func (g gc) gcArtifactRunner(ctx context.Context, runnerID int64, statusChan cha
 			namespaceCurIndex = namespaceObjs[len(namespaceObjs)-1].ID
 		}
 	}
+
+	g.waitAllDone.Wait()
+
+	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusSuccess, Ended: true}
+
 	return nil
 }
 
-type artifactWithNamespaceTask struct {
-	RunnerID    int64
-	NamespaceID int64
-}
-
-var deleteArtifactWithNamespaceChan = make(chan artifactWithNamespaceTask, 100)
-
-var deleteArtifactWithNamespaceChanOnce = sync.Once{}
-
-func (g gc) deleteArtifactWithNamespace() {
+func (g gcArtifact) deleteArtifactWithNamespace() {
 	ctx := log.Logger.WithContext(context.Background())
 	repositoryService := g.repositoryServiceFactory.New()
 	artifactService := g.artifactServiceFactory.New()
 	go func() {
-		for task := range deleteArtifactWithNamespaceChan {
+		defer g.waitAllDone.Done()
+		for task := range g.deleteArtifactWithNamespaceChan {
 			var repositoryCurIndex int64
 			timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
 			for {
@@ -109,7 +140,7 @@ func (g gc) deleteArtifactWithNamespace() {
 							continue
 						}
 						for _, a := range artifactObjs {
-							deleteArtifactCheckChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+							g.deleteArtifactCheckChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
 						}
 						if len(artifactObjs) < pagination {
 							break
@@ -126,21 +157,13 @@ func (g gc) deleteArtifactWithNamespace() {
 	}()
 }
 
-type artifactTask struct {
-	RunnerID int64
-	Artifact models.Artifact
-}
-
-var deleteArtifactCheckChan = make(chan artifactTask, 100)
-
-var deleteArtifactCheckChanOnce = sync.Once{}
-
-func (g gc) deleteArtifactCheck() {
+func (g gcArtifact) deleteArtifactCheck() {
 	ctx := log.Logger.WithContext(context.Background())
 	artifactService := g.artifactServiceFactory.New()
 	tagService := g.tagServiceFactory.New()
 	go func() {
-		for task := range deleteArtifactChan {
+		defer g.waitAllDone.Done()
+		for task := range g.deleteArtifactChan {
 			// 1. check manifest referrer associate with another artifact
 			if task.Artifact.ReferrerID != nil {
 				continue
@@ -168,21 +191,18 @@ func (g gc) deleteArtifactCheck() {
 				continue
 			}
 			for _, a := range delArtifacts {
-				deleteArtifactChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+				g.deleteArtifactChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
 			}
-			deleteArtifactChan <- task
+			g.deleteArtifactChan <- task
 		}
 	}()
 }
 
-var deleteArtifactChan = make(chan artifactTask, 100)
-
-var deleteArtifactChanOnce = sync.Once{}
-
-func (g gc) deleteArtifact() {
+func (g gcArtifact) deleteArtifact() {
 	ctx := log.Logger.WithContext(context.Background())
 	go func() {
-		for task := range deleteArtifactChan {
+		defer g.waitAllDone.Done()
+		for task := range g.deleteArtifactChan {
 			err := query.Q.Transaction(func(tx *query.Query) error {
 				err := g.artifactServiceFactory.New(tx).DeleteByID(ctx, task.Artifact.ID)
 				if err != nil {

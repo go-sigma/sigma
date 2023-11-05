@@ -19,10 +19,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -35,13 +38,24 @@ func init() {
 	}
 }
 
-func (g gc) gcRepositoryRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+type gcRepository struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
+	daemonServiceFactory     dao.DaemonServiceFactory
+	storageDriverFactory     storage.StorageDriverFactory
+	config                   configs.Configuration
+}
+
+// Run ...
+func (g gcRepository) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
 	defer close(statusChan)
 	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(ctx, runnerID)
 	if err != nil {
 		statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
-		return fmt.Errorf("Get gc repository runner failed: %v", err)
+		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repositoryService := g.repositoryServiceFactory.New(tx)
@@ -62,7 +76,7 @@ func (g gc) gcRepositoryRunner(ctx context.Context, runnerID int64, statusChan c
 	})
 	if err != nil {
 		statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Gc empty repository failed: %v", err)}
-		return fmt.Errorf("Gc empty repository failed: %v", err)
+		return fmt.Errorf("gc empty repository failed: %v", err)
 	}
 	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusSuccess}
 	return nil

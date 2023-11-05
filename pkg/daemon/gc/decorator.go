@@ -18,63 +18,74 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/tidwall/gjson"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
+
+const pagination = 1000
 
 // decoratorStatus is a status for decorator
 type decoratorStatus struct {
 	Daemon  enums.Daemon
 	Status  enums.TaskCommonStatus
 	Message string
+	Started bool
+	Ended   bool
 }
 
-// decorator is a decorator for daemon task runners
+// decorator is a decorator for daemon gc task runners
 func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 	return func(ctx context.Context, payload []byte) error {
 		ctx = log.Logger.WithContext(ctx)
 		id := gjson.GetBytes(payload, "runner_id").Int()
 
-		var g = gc{
-			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
-			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
-			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-			blobServiceFactory:       dao.NewBlobServiceFactory(),
-			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			storageDriverFactory:     storage.NewStorageDriverFactory(),
-			config:                   ptr.To(configs.GetConfiguration()),
+		var gc = initGc(daemon)
+		if gc == nil {
+			return fmt.Errorf("daemon %s not support", daemon.String())
 		}
+
+		daemonService := dao.NewDaemonServiceFactory().New()
 
 		var statusChan = make(chan decoratorStatus, 1)
 		var waitAllEvents = &sync.WaitGroup{}
 		waitAllEvents.Add(1)
 		go func() {
 			defer waitAllEvents.Done()
+
+			var startedAt time.Time
+
 			var err error
 			for status := range statusChan {
+				var updates = map[string]any{
+					"status":  status.Status,
+					"message": status.Message,
+				}
+				if status.Started {
+					startedAt = time.Now()
+					updates["started_at"] = startedAt
+				}
+				if status.Ended {
+					endedAt := time.Now()
+					updates["ended_at"] = endedAt
+					updates["duration"] = endedAt.Sub(startedAt).Milliseconds()
+				}
 				switch status.Daemon {
+				case enums.DaemonGcArtifact:
+					err = daemonService.UpdateGcArtifactRunner(ctx, id, updates)
 				case enums.DaemonGcRepository:
-					err = g.daemonServiceFactory.New().UpdateGcRepositoryRunner(ctx, id,
-						map[string]any{
-							query.DaemonGcRepositoryRunner.Status.ColumnName().String():  status.Status,
-							query.DaemonGcRepositoryRunner.Message.ColumnName().String(): status.Message,
-						},
-					)
+					err = daemonService.UpdateGcRepositoryRunner(ctx, id, updates)
 				case enums.DaemonGcBlob:
-					err = g.daemonServiceFactory.New().UpdateGcRepositoryRunner(ctx, id,
-						map[string]any{
-							query.DaemonGcRepositoryRunner.Status.ColumnName().String():  status.Status,
-							query.DaemonGcRepositoryRunner.Message.ColumnName().String(): status.Message,
-						},
-					)
+					err = daemonService.UpdateGcRepositoryRunner(ctx, id, updates)
+				case enums.DaemonGcTag:
+					err = daemonService.UpdateGcTagRunner(ctx, id, updates)
 				default:
 					continue
 				}
@@ -84,26 +95,78 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 			}
 		}()
 
-		var err error
-		switch daemon {
-		case enums.DaemonGcRepository:
-			err = g.gcRepositoryRunner(ctx, id, statusChan)
-		case enums.DaemonGcBlob:
-			err = g.gcBlobRunner(ctx, id, statusChan)
-		case enums.DaemonGcArtifact:
-			err = g.gcArtifactRunner(ctx, id, statusChan)
-		case enums.DaemonGcTag:
-			err = g.gcTagRunner(ctx, id, statusChan)
-		default:
-			return fmt.Errorf("Daemon %s is not support", daemon)
-		}
-
+		err := gc.Run(ctx, id, statusChan)
 		if err != nil {
-			return fmt.Errorf("Gc runner(%s) failed: %v", daemon.String(), err)
+			return fmt.Errorf("gc runner(%s) failed: %v", daemon.String(), err)
 		}
 
 		waitAllEvents.Wait()
 
+		return nil
+	}
+}
+
+// Runner ...
+type Runner interface {
+	// Run ...
+	Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error
+}
+
+func initGc(daemon enums.Daemon) Runner {
+	switch daemon {
+	case enums.DaemonGcArtifact:
+		return &gcArtifact{
+			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+			blobServiceFactory:       dao.NewBlobServiceFactory(),
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
+			storageDriverFactory:     storage.NewStorageDriverFactory(),
+			config:                   ptr.To(configs.GetConfiguration()),
+
+			deleteArtifactWithNamespaceChan:     make(chan artifactWithNamespaceTask, 100),
+			deleteArtifactWithNamespaceChanOnce: &sync.Once{},
+			deleteArtifactCheckChan:             make(chan artifactTask, 100),
+			deleteArtifactCheckChanOnce:         &sync.Once{},
+			deleteArtifactChan:                  make(chan artifactTask, 100),
+			deleteArtifactChanOnce:              &sync.Once{},
+
+			waitAllDone: &sync.WaitGroup{},
+		}
+	case enums.DaemonGcRepository:
+		return &gcRepository{
+			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+			blobServiceFactory:       dao.NewBlobServiceFactory(),
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
+			storageDriverFactory:     storage.NewStorageDriverFactory(),
+			config:                   ptr.To(configs.GetConfiguration()),
+		}
+	case enums.DaemonGcTag:
+		return &gcTag{
+			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+			blobServiceFactory:       dao.NewBlobServiceFactory(),
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
+			storageDriverFactory:     storage.NewStorageDriverFactory(),
+			config:                   ptr.To(configs.GetConfiguration()),
+		}
+	case enums.DaemonGcBlob:
+		return &gcBlob{
+			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+			blobServiceFactory:       dao.NewBlobServiceFactory(),
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
+			storageDriverFactory:     storage.NewStorageDriverFactory(),
+			config:                   ptr.To(configs.GetConfiguration()),
+
+			deleteBlobChan:     make(chan blobTask, 100),
+			deleteBlobChanOnce: &sync.Once{},
+		}
+	default:
 		return nil
 	}
 }

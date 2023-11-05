@@ -23,10 +23,13 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -41,13 +44,34 @@ func init() {
 	}
 }
 
-func (g gc) gcBlobRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+type blobTask struct {
+	RunnerID int64
+	Blob     models.Blob
+}
+
+type gcBlob struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
+	daemonServiceFactory     dao.DaemonServiceFactory
+	storageDriverFactory     storage.StorageDriverFactory
+	config                   configs.Configuration
+
+	deleteBlobChan     chan blobTask
+	deleteBlobChanOnce *sync.Once
+}
+
+// Run ...
+func (g gcBlob) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
 	defer close(statusChan)
 	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
 
 	blobService := g.blobServiceFactory.New()
 
 	timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
+
+	g.deleteBlobChanOnce.Do(g.deleteBlob)
 
 	var curIndex int64
 	for {
@@ -76,9 +100,8 @@ func (g gc) gcBlobRunner(ctx context.Context, runnerID int64, statusChan chan de
 				}
 			}
 			if len(notAssociateBlobs) > 0 {
-				deleteBlobChanOnce.Do(g.deleteBlob)
 				for _, blob := range notAssociateBlobs {
-					deleteBlobChan <- blobTask{RunnerID: runnerID, Blob: ptr.To(blob)}
+					g.deleteBlobChan <- blobTask{RunnerID: runnerID, Blob: ptr.To(blob)}
 				}
 			}
 		}
@@ -90,18 +113,9 @@ func (g gc) gcBlobRunner(ctx context.Context, runnerID int64, statusChan chan de
 	return nil
 }
 
-type blobTask struct {
-	RunnerID int64
-	Blob     models.Blob
-}
-
-var deleteBlobChan = make(chan blobTask, 100)
-
-var deleteBlobChanOnce = sync.Once{}
-
-func (g gc) deleteBlob() {
+func (g gcBlob) deleteBlob() {
 	ctx := log.Logger.WithContext(context.Background())
-	for task := range deleteBlobChan {
+	for task := range g.deleteBlobChan {
 		err := query.Q.Transaction(func(tx *query.Query) error {
 			err := g.blobServiceFactory.New(tx).DeleteByID(ctx, task.Blob.ID)
 			if err != nil {

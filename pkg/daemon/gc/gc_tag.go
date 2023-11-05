@@ -18,8 +18,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -32,6 +35,17 @@ func init() {
 	}
 }
 
-func (g gc) gcTagRunner(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
+type gcTag struct {
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
+	daemonServiceFactory     dao.DaemonServiceFactory
+	storageDriverFactory     storage.StorageDriverFactory
+	config                   configs.Configuration
+}
+
+func (g gcTag) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
 	return nil
 }
