@@ -28,6 +28,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -51,13 +53,17 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+		}
+		log.Error().Err(err).Msg("Get gc repository rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
-		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc artifact rule is running")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
+		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc repository rule is running")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc repository rule is running")
 	}
 	var nextTrigger *time.Time
 	if req.CronRule != nil {
@@ -92,8 +98,8 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota limit error
-		if ok {
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
 			return xerrors.NewHTTPError(c, e)
 		}
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
@@ -101,7 +107,7 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcRepositoryRule
+// GetGcRepositoryRule ...
 func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -150,12 +156,20 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	runnerObj, err := daemonService.GetGcRepositoryLatestRunner(ctx, ruleObj.ID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
@@ -196,11 +210,29 @@ func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
 		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc repository rule is running")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc repository rule is running")
 	}
-	err = daemonService.CreateGcRepositoryRunner(ctx, &models.DaemonGcRepositoryRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending})
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		runnerObj := &models.DaemonGcRepositoryRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		err = daemonService.CreateGcRepositoryRunner(ctx, runnerObj)
+		if err != nil {
+			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
+		}
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcRepository.String(),
+			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
+		}
+		return nil
+	})
 	if err != nil {
-		log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gc repository runner failed: %v", err))
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
 	}
+
 	return c.NoContent(http.StatusCreated)
 }
 
@@ -220,7 +252,11 @@ func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc artifact rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
@@ -319,7 +355,11 @@ func (h *handlers) GetGcRepositoryRecord(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}

@@ -27,11 +27,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handler is the interface for the system handlers
+// Handlers is the interface for the gc handlers
 type Handlers interface {
 	// UpdateGcTagRule ...
 	UpdateGcTagRule(c echo.Context) error
-	// GetGcTagRule
+	// GetGcTagRule ...
 	GetGcTagRule(c echo.Context) error
 	// GetGcTagLatestRunner ...
 	GetGcTagLatestRunner(c echo.Context) error
@@ -48,7 +48,7 @@ type Handlers interface {
 
 	// UpdateGcRepositoryRule ...
 	UpdateGcRepositoryRule(c echo.Context) error
-	// GetGcRepositoryRule
+	// GetGcRepositoryRule ...
 	GetGcRepositoryRule(c echo.Context) error
 	// GetGcRepositoryLatestRunner ...
 	GetGcRepositoryLatestRunner(c echo.Context) error
@@ -65,7 +65,7 @@ type Handlers interface {
 
 	// UpdateGcArtifactRule ...
 	UpdateGcArtifactRule(c echo.Context) error
-	// GetGcArtifactRule
+	// GetGcArtifactRule ...
 	GetGcArtifactRule(c echo.Context) error
 	// GetGcArtifactLatestRunner ...
 	GetGcArtifactLatestRunner(c echo.Context) error
@@ -82,7 +82,7 @@ type Handlers interface {
 
 	// UpdateGcBlobRule ...
 	UpdateGcBlobRule(c echo.Context) error
-	// GetGcBlobRule
+	// GetGcBlobRule ...
 	GetGcBlobRule(c echo.Context) error
 	// GetGcBlobLatestRunner ...
 	GetGcBlobLatestRunner(c echo.Context) error

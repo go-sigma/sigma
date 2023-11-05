@@ -35,8 +35,7 @@ type TaskProxyArtifact struct {
 
 // DaemonGcPayload is the gc daemon payload
 type DaemonGcPayload struct {
-	Target enums.GcTarget `json:"target"`
-	Scope  *string        `json:"scope,omitempty"`
+	RunnerID int64 `json:"runner_id"`
 }
 
 // DaemonGcRepositoryPayload ...

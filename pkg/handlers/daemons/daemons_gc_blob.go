@@ -28,6 +28,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -88,8 +90,8 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota limit error
-		if ok {
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
 			return xerrors.NewHTTPError(c, e)
 		}
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
@@ -191,11 +193,29 @@ func (h *handlers) CreateGcBlobRunner(c echo.Context) error {
 		log.Error().Int64("NamespaceID", req.NamespaceID).Msg("The gc blob rule is running")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc blob rule is running")
 	}
-	err = daemonService.CreateGcBlobRunner(ctx, &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending})
-	if err != nil {
-		log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc blob runner failed: %v", err)
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gc blob runner failed: %v", err))
-	}
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		runnerObj := &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		err = daemonService.CreateGcBlobRunner(ctx, runnerObj)
+		if err != nil {
+			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc blob runner failed: %v", err)
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc blob runner failed: %v", err))
+		}
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcBlob.String(),
+			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcBlob.String())
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()))
+		}
+		if err != nil {
+			var e xerrors.ErrCode
+			if errors.As(err, &e) {
+				return xerrors.NewHTTPError(c, e)
+			}
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+		}
+		return nil
+	})
+
 	return c.NoContent(http.StatusCreated)
 }
 
@@ -211,7 +231,11 @@ func (h *handlers) ListGcBlobRunners(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc blob rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc blob rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc blob rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
@@ -302,7 +326,11 @@ func (h *handlers) GetGcBlobRecord(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc blob rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc blob rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc blob rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}

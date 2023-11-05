@@ -28,6 +28,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -51,7 +53,11 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
@@ -92,8 +98,8 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota limit error
-		if ok {
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
 			return xerrors.NewHTTPError(c, e)
 		}
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
@@ -101,7 +107,7 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcTagRule
+// GetGcTagRule ...
 func (h *handlers) GetGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -150,12 +156,20 @@ func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
 	runnerObj, err := daemonService.GetGcTagLatestRunner(ctx, ruleObj.ID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
@@ -196,11 +210,29 @@ func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 		log.Error().Int64("NamespaceID", req.NamespaceID).Msg("The gc tag rule is running")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc tag rule is running")
 	}
-	err = daemonService.CreateGcTagRunner(ctx, &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending})
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		runnerObj := &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		err = daemonService.CreateGcTagRunner(ctx, runnerObj)
+		if err != nil {
+			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc tag runner failed: %v", err))
+		}
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcTag.String(),
+			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcTag.String())
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcTag.String()))
+		}
+		return nil
+	})
 	if err != nil {
-		log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create gc tag runner failed: %v", err))
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
 	}
+
 	return c.NoContent(http.StatusCreated)
 }
 
@@ -220,7 +252,11 @@ func (h *handlers) ListGcTagRunners(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc artifact rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
@@ -319,7 +355,11 @@ func (h *handlers) GetGcTagRecord(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
+		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
