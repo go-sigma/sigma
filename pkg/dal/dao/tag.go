@@ -39,6 +39,10 @@ import (
 type TagService interface {
 	// Create save a new tag if conflict do nothing.
 	Create(ctx context.Context, tag *models.Tag, options ...Option) error
+	// FindWithQuantityCursor ...
+	FindWithQuantityCursor(ctx context.Context, repositoryID int64, quantity, limit int, last int64) ([]*models.Tag, error)
+	// FindWithDayCursor ...
+	FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error)
 	// GetByID gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID int64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
@@ -138,6 +142,28 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 	}
 	findTagObj.ArtifactID = tag.ArtifactID
 	return copier.Copy(findTagObj, tag)
+}
+
+// FindWithQuantityCursor ...
+func (s *tagService) FindWithQuantityCursor(ctx context.Context, repositoryID int64, quantity, limit int, last int64) ([]*models.Tag, error) {
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Order(s.tx.Tag.UpdatedAt.Desc())
+	if last == 0 {
+		q = q.Offset(quantity)
+	} else {
+		q = q.Where(s.tx.Tag.ID.Gt(last))
+	}
+	return q.Limit(limit).Find()
+}
+
+// FindWithDayCursor ...
+func (s *tagService) FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error) {
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Order(s.tx.Tag.UpdatedAt.Desc())
+	if last == 0 {
+		q = q.Where(s.tx.Tag.UpdatedAt.Gt(time.Now().Add(time.Hour * 24 * time.Duration(day))))
+	} else {
+		q = q.Where(s.tx.Tag.ID.Gt(last))
+	}
+	return q.Limit(limit).Find()
 }
 
 // GetByID gets the tag with the specified tag ID.

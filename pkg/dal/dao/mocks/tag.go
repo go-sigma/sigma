@@ -163,6 +163,36 @@ func (mr *MockTagServiceMockRecorder) DeleteByName(arg0, arg1, arg2 any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByName", reflect.TypeOf((*MockTagService)(nil).DeleteByName), arg0, arg1, arg2)
 }
 
+// FindWithDayCursor mocks base method.
+func (m *MockTagService) FindWithDayCursor(arg0 context.Context, arg1 int64, arg2, arg3 int, arg4 int64) ([]*models.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindWithDayCursor", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*models.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindWithDayCursor indicates an expected call of FindWithDayCursor.
+func (mr *MockTagServiceMockRecorder) FindWithDayCursor(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithDayCursor", reflect.TypeOf((*MockTagService)(nil).FindWithDayCursor), arg0, arg1, arg2, arg3, arg4)
+}
+
+// FindWithQuantityCursor mocks base method.
+func (m *MockTagService) FindWithQuantityCursor(arg0 context.Context, arg1 int64, arg2, arg3 int, arg4 int64) ([]*models.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindWithQuantityCursor", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*models.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindWithQuantityCursor indicates an expected call of FindWithQuantityCursor.
+func (mr *MockTagServiceMockRecorder) FindWithQuantityCursor(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithQuantityCursor", reflect.TypeOf((*MockTagService)(nil).FindWithQuantityCursor), arg0, arg1, arg2, arg3, arg4)
+}
+
 // GetByArtifactID mocks base method.
 func (m *MockTagService) GetByArtifactID(arg0 context.Context, arg1, arg2 int64) (*models.Tag, error) {
 	m.ctrl.T.Helper()

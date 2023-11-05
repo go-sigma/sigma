@@ -79,6 +79,11 @@ type DaemonCodeRepositoryPayload struct {
 	User3rdPartyID int64 `json:"user_3rdparty_id"`
 }
 
+// RetentionPatternPayload ...
+type RetentionPatternPayload struct {
+	Patterns []string `json:"patterns"`
+}
+
 // UpdateGcArtifactRuleRequest ...
 type UpdateGcArtifactRuleRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
