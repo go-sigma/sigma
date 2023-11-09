@@ -1891,7 +1891,7 @@ paths:
       - BasicAuth: []
       summary: Get gc artifact rule
       tags:
-      - Daemons
+      - Daemon
     put:
       consumes:
       - application/json
@@ -1928,7 +1928,7 @@ paths:
       - BasicAuth: []
       summary: Update gc artifact rule
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-artifact/{namespace_id}/runners/:
     get:
       consumes:
@@ -1993,7 +1993,7 @@ paths:
       - BasicAuth: []
       summary: List gc artifact runners
       tags:
-      - Daemons
+      - Daemon
     post:
       consumes:
       - application/json
@@ -2030,7 +2030,7 @@ paths:
       - BasicAuth: []
       summary: Create gc artifact runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-artifact/{namespace_id}/runners/{runner_id}:
     get:
       consumes:
@@ -2069,7 +2069,7 @@ paths:
       - BasicAuth: []
       summary: List gc artifact runners
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/:
     get:
       consumes:
@@ -2139,7 +2139,7 @@ paths:
       - BasicAuth: []
       summary: List gc artifact records
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/{record_id}:
     get:
       consumes:
@@ -2183,7 +2183,7 @@ paths:
       - BasicAuth: []
       summary: Get gc artifact record
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-artifact/{namespace_id}/runners/latest:
     get:
       consumes:
@@ -2217,7 +2217,7 @@ paths:
       - BasicAuth: []
       summary: Get gc artifact latest runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/:
     get:
       consumes:
@@ -2251,7 +2251,7 @@ paths:
       - BasicAuth: []
       summary: Get gc blob rule
       tags:
-      - Daemons
+      - Daemon
     put:
       consumes:
       - application/json
@@ -2288,7 +2288,7 @@ paths:
       - BasicAuth: []
       summary: Update gc blob rule
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/runners/:
     get:
       consumes:
@@ -2353,7 +2353,7 @@ paths:
       - BasicAuth: []
       summary: List gc blob runners
       tags:
-      - Daemons
+      - Daemon
     post:
       consumes:
       - application/json
@@ -2390,7 +2390,7 @@ paths:
       - BasicAuth: []
       summary: Create gc blob runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/runners/{runner_id}:
     get:
       consumes:
@@ -2429,7 +2429,7 @@ paths:
       - BasicAuth: []
       summary: List gc blob runners
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/:
     get:
       consumes:
@@ -2499,7 +2499,7 @@ paths:
       - BasicAuth: []
       summary: List gc blob records
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/{record_id}:
     get:
       consumes:
@@ -2543,7 +2543,7 @@ paths:
       - BasicAuth: []
       summary: Get gc blob record
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-blob/{namespace_id}/runners/latest:
     get:
       consumes:
@@ -2577,7 +2577,7 @@ paths:
       - BasicAuth: []
       summary: Get gc blob latest runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/:
     get:
       consumes:
@@ -2611,7 +2611,7 @@ paths:
       - BasicAuth: []
       summary: Get gc repository rule
       tags:
-      - Daemons
+      - Daemon
     put:
       consumes:
       - application/json
@@ -2648,7 +2648,7 @@ paths:
       - BasicAuth: []
       summary: Update gc repository rule
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/runners/:
     get:
       consumes:
@@ -2713,7 +2713,7 @@ paths:
       - BasicAuth: []
       summary: List gc repository runners
       tags:
-      - Daemons
+      - Daemon
     post:
       consumes:
       - application/json
@@ -2750,7 +2750,7 @@ paths:
       - BasicAuth: []
       summary: Create gc repository runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/runners/{runner_id}:
     get:
       consumes:
@@ -2789,7 +2789,7 @@ paths:
       - BasicAuth: []
       summary: List gc repository runners
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/:
     get:
       consumes:
@@ -2859,7 +2859,7 @@ paths:
       - BasicAuth: []
       summary: List gc repository records
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/{record_id}:
     get:
       consumes:
@@ -2903,7 +2903,7 @@ paths:
       - BasicAuth: []
       summary: Get gc repository record
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-repository/{namespace_id}/runners/latest:
     get:
       consumes:
@@ -2937,7 +2937,7 @@ paths:
       - BasicAuth: []
       summary: Get gc repository latest runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/:
     get:
       consumes:
@@ -2971,7 +2971,7 @@ paths:
       - BasicAuth: []
       summary: Get gc tag rule
       tags:
-      - Daemons
+      - Daemon
     put:
       consumes:
       - application/json
@@ -3008,7 +3008,7 @@ paths:
       - BasicAuth: []
       summary: Update gc tag rule
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/runners/:
     get:
       consumes:
@@ -3073,7 +3073,7 @@ paths:
       - BasicAuth: []
       summary: List gc tag runners
       tags:
-      - Daemons
+      - Daemon
     post:
       consumes:
       - application/json
@@ -3110,7 +3110,7 @@ paths:
       - BasicAuth: []
       summary: Create gc tag runner
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/runners/{runner_id}:
     get:
       consumes:
@@ -3149,7 +3149,7 @@ paths:
       - BasicAuth: []
       summary: List gc tag runners
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/:
     get:
       consumes:
@@ -3219,7 +3219,7 @@ paths:
       - BasicAuth: []
       summary: List gc tag records
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/{record_id}:
     get:
       consumes:
@@ -3263,7 +3263,7 @@ paths:
       - BasicAuth: []
       summary: Get gc tag record
       tags:
-      - Daemons
+      - Daemon
   /daemons/gc-tag/{namespace_id}/runners/latest:
     get:
       consumes:
@@ -3297,7 +3297,7 @@ paths:
       - BasicAuth: []
       summary: Get gc tag latest runner
       tags:
-      - Daemons
+      - Daemon
   /namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}:
     put:
       consumes:

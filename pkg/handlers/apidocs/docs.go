@@ -585,7 +585,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc artifact rule",
                 "parameters": [
@@ -637,7 +637,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Update gc artifact rule",
                 "parameters": [
@@ -697,7 +697,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc artifact runners",
                 "parameters": [
@@ -797,7 +797,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Create gc artifact runner",
                 "parameters": [
@@ -857,7 +857,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc artifact latest runner",
                 "parameters": [
@@ -911,7 +911,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc artifact runners",
                 "parameters": [
@@ -972,7 +972,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc artifact records",
                 "parameters": [
@@ -1081,7 +1081,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc artifact record",
                 "parameters": [
@@ -1149,7 +1149,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc blob rule",
                 "parameters": [
@@ -1201,7 +1201,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Update gc blob rule",
                 "parameters": [
@@ -1261,7 +1261,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc blob runners",
                 "parameters": [
@@ -1361,7 +1361,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Create gc blob runner",
                 "parameters": [
@@ -1421,7 +1421,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc blob latest runner",
                 "parameters": [
@@ -1475,7 +1475,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc blob runners",
                 "parameters": [
@@ -1536,7 +1536,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc blob records",
                 "parameters": [
@@ -1645,7 +1645,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc blob record",
                 "parameters": [
@@ -1713,7 +1713,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc repository rule",
                 "parameters": [
@@ -1765,7 +1765,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Update gc repository rule",
                 "parameters": [
@@ -1825,7 +1825,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc repository runners",
                 "parameters": [
@@ -1925,7 +1925,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Create gc repository runner",
                 "parameters": [
@@ -1985,7 +1985,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc repository latest runner",
                 "parameters": [
@@ -2039,7 +2039,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc repository runners",
                 "parameters": [
@@ -2100,7 +2100,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc repository records",
                 "parameters": [
@@ -2209,7 +2209,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc repository record",
                 "parameters": [
@@ -2277,7 +2277,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc tag rule",
                 "parameters": [
@@ -2329,7 +2329,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Update gc tag rule",
                 "parameters": [
@@ -2389,7 +2389,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc tag runners",
                 "parameters": [
@@ -2489,7 +2489,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Create gc tag runner",
                 "parameters": [
@@ -2549,7 +2549,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc tag latest runner",
                 "parameters": [
@@ -2603,7 +2603,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc tag runners",
                 "parameters": [
@@ -2664,7 +2664,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "List gc tag records",
                 "parameters": [
@@ -2773,7 +2773,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Daemons"
+                    "Daemon"
                 ],
                 "summary": "Get gc tag record",
                 "parameters": [

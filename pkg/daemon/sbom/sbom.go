@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	syftTypes "github.com/anchore/syft/syft/formats/syftjson/model"
+	syftTypes "github.com/anchore/syft/syft/format/syftjson/model"
 	"github.com/anchore/syft/syft/source"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
