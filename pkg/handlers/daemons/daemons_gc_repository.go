@@ -37,7 +37,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// UpdateGcRepositoryRule ...
+// UpdateGcRepositoryRule handles the update gc repository rule request
+//
+//	@Summary	Update gc repository rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/ [put]
+//	@Param		namespace_id	path	int64								true	"Namespace id"
+//	@Param		message			body	types.UpdateGcRepositoryRuleRequest	true	"Gc repository rule object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -107,7 +120,19 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcRepositoryRule ...
+// GetGcRepositoryRule handles the get gc repository rule request
+//
+//	@Summary	Get gc repository rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GetGcRepositoryRuleResponse
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -140,7 +165,19 @@ func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 	})
 }
 
-// GetGcRepositoryLatestRunner ...
+// GetGcRepositoryLatestRunner handles the get gc repository latest runner request
+//
+//	@Summary	Get gc repository latest runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/latest [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GcRepositoryRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -182,7 +219,20 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 	})
 }
 
-// CreateGcRepositoryRunner ...
+// CreateGcRepositoryRunner handles the create gc repository runner request
+//
+//	@Summary	Create gc repository runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/ [post]
+//	@Param		namespace_id	path	int64									true	"Namespace id"
+//	@Param		message			body	types.CreateGcRepositoryRunnerRequest	true	"Gc repository runner object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -236,7 +286,23 @@ func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-// ListGcRepositoryRunners ...
+// ListGcRepositoryRunners handles the list gc repository runners request
+//
+//	@Summary	List gc repository runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcRepositoryRunnerItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -278,7 +344,20 @@ func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcRepositoryRunner ...
+// GetGcRepositoryRunner handles the get gc repository runner request
+//
+//	@Summary	List gc repository runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/{runner_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Success	200				{object}	types.GcRepositoryRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -311,7 +390,24 @@ func (h *handlers) GetGcRepositoryRunner(c echo.Context) error {
 	})
 }
 
-// ListGcRepositoryRecords ...
+// ListGcRepositoryRecords handles the list gc repository records request
+//
+//	@Summary	List gc repository records
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcRepositoryRecordItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcRepositoryRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -339,7 +435,21 @@ func (h *handlers) ListGcRepositoryRecords(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcRepositoryRecord ...
+// GetGcRepositoryRecord handles the get gc repository record request
+//
+//	@Summary	Get gc repository record
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		record_id		path		int64	true	"Record id"
+//	@Success	200				{object}	types.GcRepositoryRecordItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcRepositoryRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

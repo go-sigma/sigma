@@ -37,7 +37,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// UpdateGcTagRule ...
+// UpdateGcTagRule handles the update gc tag rule request
+//
+//	@Summary	Update gc tag rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/ [put]
+//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		message			body	types.UpdateGcTagRuleRequest	true	"Gc tag rule object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -107,7 +120,19 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcTagRule ...
+// GetGcTagRule handles the get gc tag rule request
+//
+//	@Summary	Get gc tag rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GetGcTagRuleResponse
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -140,7 +165,19 @@ func (h *handlers) GetGcTagRule(c echo.Context) error {
 	})
 }
 
-// GetGcTagLatestRunner ...
+// GetGcTagLatestRunner handles the get gc tag latest runner request
+//
+//	@Summary	Get gc tag latest runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/latest [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GcTagRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -182,7 +219,20 @@ func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	})
 }
 
-// CreateGcTagRunner ...
+// CreateGcTagRunner handles the create gc tag runner request
+//
+//	@Summary	Create gc tag runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/ [post]
+//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		message			body	types.CreateGcTagRunnerRequest	true	"Gc tag runner object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -236,7 +286,23 @@ func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-// ListGcTagRunners ...
+// ListGcTagRunners handles the list gc tag runners request
+//
+//	@Summary	List gc tag runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcTagRunnerItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcTagRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -278,7 +344,20 @@ func (h *handlers) ListGcTagRunners(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcTagRunner ...
+// GetGcTagRunner handles the get gc tag runner request
+//
+//	@Summary	List gc tag runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/{runner_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Success	200				{object}	types.GcTagRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -311,7 +390,24 @@ func (h *handlers) GetGcTagRunner(c echo.Context) error {
 	})
 }
 
-// ListGcTagRecords ...
+// ListGcTagRecords handles the list gc tag records request
+//
+//	@Summary	List gc tag records
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcTagRecordItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcTagRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -339,7 +435,21 @@ func (h *handlers) ListGcTagRecords(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcTagRecord ...
+// GetGcTagRecord handles the get gc tag record request
+//
+//	@Summary	Get gc tag record
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		record_id		path		int64	true	"Record id"
+//	@Success	200				{object}	types.GcTagRecordItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcTagRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

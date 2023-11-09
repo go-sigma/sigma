@@ -37,7 +37,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// UpdateGcArtifactRule ...
+// UpdateGcArtifactRule handles the update gc artifact rule request
+//
+//	@Summary	Update gc artifact rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/ [put]
+//	@Param		namespace_id	path	int64								true	"Namespace id"
+//	@Param		message			body	types.UpdateGcArtifactRuleRequest	true	"Gc artifact rule object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -103,7 +116,19 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcArtifactRule ...
+// GetGcArtifactRule handles the get gc artifact rule request
+//
+//	@Summary	Get gc artifact rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GetGcArtifactRuleResponse
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -136,7 +161,19 @@ func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 	})
 }
 
-// GetGcArtifactLatestRunner ...
+// GetGcArtifactLatestRunner handles the get gc artifact latest runner request
+//
+//	@Summary	Get gc artifact latest runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/latest [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GcArtifactRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -178,7 +215,20 @@ func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
 	})
 }
 
-// CreateGcArtifactRunner ...
+// CreateGcArtifactRunner handles the create gc artifact runner request
+//
+//	@Summary	Create gc artifact runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/ [post]
+//	@Param		namespace_id	path	int64								true	"Namespace id"
+//	@Param		message			body	types.CreateGcArtifactRunnerRequest	true	"Gc artifact runner object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -231,7 +281,23 @@ func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-// ListGcArtifactRunners ...
+// ListGcArtifactRunners handles the list gc artifact runners request
+//
+//	@Summary	List gc artifact runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcArtifactRunnerItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -273,7 +339,20 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcArtifactRunner ...
+// GetGcArtifactRunner handles the get gc artifact runner request
+//
+//	@Summary	List gc artifact runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Success	200				{object}	types.GcArtifactRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -306,7 +385,24 @@ func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
 	})
 }
 
-// ListGcArtifactRecords ...
+// ListGcArtifactRecords handles the list gc artifact records request
+//
+//	@Summary	List gc artifact records
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcArtifactRecordItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -334,7 +430,21 @@ func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcArtifactRecord ...
+// GetGcArtifactRecord handles the get gc artifact record request
+//
+//	@Summary	Get gc artifact record
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		record_id		path		int64	true	"Record id"
+//	@Success	200				{object}	types.GcArtifactRecordItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcArtifactRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

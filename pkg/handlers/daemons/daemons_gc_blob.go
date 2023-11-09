@@ -37,7 +37,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// UpdateGcBlobRule ...
+// UpdateGcBlobRule handles the update gc blob rule request
+//
+//	@Summary	Update gc blob rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/ [put]
+//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		message			body	types.UpdateGcBlobRuleRequest	true	"Gc blob rule object"
+//	@Success	204
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -99,7 +112,19 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetGcBlobRule ...
+// GetGcBlobRule handles the get gc blob rule request
+//
+//	@Summary	Get gc blob rule
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GetGcBlobRuleResponse
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -129,7 +154,19 @@ func (h *handlers) GetGcBlobRule(c echo.Context) error {
 	})
 }
 
-// GetGcBlobLatestRunner ...
+// GetGcBlobLatestRunner handles the get gc blob latest runner request
+//
+//	@Summary	Get gc blob latest runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/latest [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Success	200				{object}	types.GcBlobRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcBlobLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -168,7 +205,20 @@ func (h *handlers) GetGcBlobLatestRunner(c echo.Context) error {
 	})
 }
 
-// CreateGcBlobRunner ...
+// CreateGcBlobRunner handles the create gc blob runner request
+//
+//	@Summary	Create gc blob runner
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/ [post]
+//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		message			body	types.CreateGcBlobRunnerRequest	true	"Gc blob runner object"
+//	@Success	201
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handlers) CreateGcBlobRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -219,7 +269,23 @@ func (h *handlers) CreateGcBlobRunner(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-// ListGcBlobRunners ...
+// ListGcBlobRunners handles the list gc blob runners request
+//
+//	@Summary	List gc blob runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcBlobRunnerItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcBlobRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -257,7 +323,20 @@ func (h *handlers) ListGcBlobRunners(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcBlobRunner ...
+// GetGcBlobRunner handles the get gc blob runner request
+//
+//	@Summary	List gc blob runners
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Success	200				{object}	types.GcBlobRunnerItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcBlobRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -286,7 +365,24 @@ func (h *handlers) GetGcBlobRunner(c echo.Context) error {
 	})
 }
 
-// ListGcBlobRecords ...
+// ListGcBlobRecords handles the list gc blob records request
+//
+//	@Summary	List gc blob records
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/ [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Success	200				{object}	types.CommonList{items=[]types.GcBlobRecordItem}
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) ListGcBlobRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -314,7 +410,21 @@ func (h *handlers) ListGcBlobRecords(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
 }
 
-// GetGcBlobRecord ...
+// GetGcBlobRecord handles the get gc blob record request
+//
+//	@Summary	Get gc blob record
+//	@security	BasicAuth
+//	@Tags		Daemon
+//	@Accept		json
+//	@Produce	json
+//	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
+//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		record_id		path		int64	true	"Record id"
+//	@Success	200				{object}	types.GcBlobRecordItem
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handlers) GetGcBlobRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
