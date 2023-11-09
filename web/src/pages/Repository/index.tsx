@@ -16,7 +16,7 @@
 
 import axios from "axios";
 import { useDebounce } from "react-use";
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
@@ -41,6 +41,8 @@ export default function ({ localServer }: { localServer: string }) {
   const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
+  const [searchParams] = useSearchParams();
+  const namespaceId = searchParams.get('namespace_id');
 
   const [repositoryText, setRepositoryText] = useState("");
   const [repositoryTextValid, setRepositoryTextValid] = useState(true);
@@ -224,7 +226,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Webhook
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-daemon-tasks`}
+                      to={`/namespaces/${namespace}/namespace-daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Daemon task

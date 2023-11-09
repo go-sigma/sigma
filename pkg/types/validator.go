@@ -24,7 +24,12 @@ type GetValidatorTagRequest struct {
 	Tag string `json:"tag" query:"tag" validate:"required"`
 }
 
-// GetValidatorPasswordRequest ...
-type GetValidatorPasswordRequest struct {
-	Password string `json:"password" query:"password" validate:"required"`
+// ValidatePasswordRequest ...
+type ValidatePasswordRequest struct {
+	Password string `json:"password" validate:"required" example:"Admin@123"`
+}
+
+// ValidateCronRequest ...
+type ValidateCronRequest struct {
+	Cron string `json:"cron" validate:"required" example:"0 0 * * 6"`
 }

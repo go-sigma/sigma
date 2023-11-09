@@ -15,6 +15,7 @@
  */
 
 import { ToastContainer } from 'react-toastify';
+import { Toaster } from 'react-hot-toast';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Tag from "./pages/Tag";
@@ -22,8 +23,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
-import LoginCallback from './pages/Login/Callback';
 import Summary from './pages/Repository/Summary';
+import LoginCallback from './pages/Login/Callback';
 import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
@@ -49,6 +50,7 @@ export default function App() {
 
   return (
     <>
+      <Toaster />
       <ToastContainer
         position="top-right"
         autoClose={5000}

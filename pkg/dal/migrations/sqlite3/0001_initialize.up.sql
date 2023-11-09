@@ -328,7 +328,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `rule_id` bigint,
+  `rule_id` bigint NOT NULL,
   `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `started_at` timestamp,

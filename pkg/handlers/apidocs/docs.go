@@ -572,193 +572,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/daemons/{daemon}/": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Daemon"
-                ],
-                "summary": "Get specific daemon task status",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Daemon"
-                ],
-                "summary": "Run the specific daemon task",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/daemons/{daemon}/logs": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Daemon"
-                ],
-                "summary": "Get logs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 10,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 1,
-                        "description": "page",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sort field",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "asc",
-                            "desc"
-                        ],
-                        "type": "string",
-                        "description": "sort method",
-                        "name": "method",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/types.CommonList"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "items": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/types.DaemonLogItem"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
         "/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}": {
             "put": {
                 "security": [
@@ -2373,6 +2186,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/validators/cron": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validator"
+                ],
+                "summary": "Validate cron",
+                "parameters": [
+                    {
+                        "description": "Validate cron object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ValidateCronRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/validators/password": {
             "get": {
                 "security": [
@@ -2392,11 +2246,13 @@ const docTemplate = `{
                 "summary": "Validate password",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "query",
-                        "required": true
+                        "description": "Validate password object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ValidatePasswordRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2978,23 +2834,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "enums.AuditAction": {
-            "type": "string",
-            "enum": [
-                "create",
-                "update",
-                "delete",
-                "pull",
-                "push"
-            ],
-            "x-enum-varnames": [
-                "AuditActionCreate",
-                "AuditActionUpdate",
-                "AuditActionDelete",
-                "AuditActionPull",
-                "AuditActionPush"
-            ]
-        },
         "enums.BuilderSource": {
             "type": "string",
             "enum": [
@@ -3102,12 +2941,10 @@ const docTemplate = `{
         "enums.UserRole": {
             "type": "string",
             "enum": [
-                "Root",
                 "Admin",
                 "User"
             ],
             "x-enum-varnames": [
-                "UserRoleRoot",
                 "UserRoleAdmin",
                 "UserRoleUser"
             ]
@@ -3408,42 +3245,6 @@ const docTemplate = `{
                 "total": {
                     "type": "integer",
                     "example": 1
-                }
-            }
-        },
-        "types.DaemonLogItem": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.AuditAction"
-                        }
-                    ],
-                    "example": "delete"
-                },
-                "created_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "message": {
-                    "type": "string",
-                    "example": "something error occurred"
-                },
-                "resource": {
-                    "type": "string",
-                    "example": "test"
-                },
-                "status": {
-                    "$ref": "#/definitions/enums.TaskCommonStatus"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
                 }
             }
         },
@@ -4531,6 +4332,30 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "types.ValidateCronRequest": {
+            "type": "object",
+            "required": [
+                "cron"
+            ],
+            "properties": {
+                "cron": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                }
+            }
+        },
+        "types.ValidatePasswordRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "Admin@123"
                 }
             }
         },

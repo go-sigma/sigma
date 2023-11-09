@@ -395,6 +395,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `rule_id` bigint NOT NULL,
   `message` LONGBLOB,
   `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
   `started_at` timestamp,
