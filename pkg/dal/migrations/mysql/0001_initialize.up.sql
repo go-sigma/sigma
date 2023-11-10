@@ -313,6 +313,8 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `namespace_id` bigint,
+  `is_running` tinyint NOT NULL DEFAULT 0,
+  `retention_day` int NOT NULL,
   `cron_enabled` tinyint NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,

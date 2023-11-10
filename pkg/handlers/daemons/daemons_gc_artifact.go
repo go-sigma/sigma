@@ -98,6 +98,7 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 				log.Error().Err(err).Msg("Create gc artifact rule failed")
 				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact rule failed: %v", err))
 			}
+			return nil
 		}
 		err = daemonService.UpdateGcArtifactRule(ctx, ruleObj.ID, updates)
 		if err != nil {

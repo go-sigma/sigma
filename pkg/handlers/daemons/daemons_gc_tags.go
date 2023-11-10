@@ -102,6 +102,7 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 				log.Error().Err(err).Msg("Create gc tag rule failed")
 				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc tag rule failed: %v", err))
 			}
+			return nil
 		}
 		err = daemonService.UpdateGcTagRule(ctx, ruleObj.ID, updates)
 		if err != nil {

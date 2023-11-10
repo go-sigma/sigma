@@ -314,3 +314,12 @@ export interface IVersion {
   git_hash: string;
   build_date: string;
 }
+
+export interface IGcRepositoryRule {
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}

@@ -556,6 +556,9 @@ definitions:
       cron_rule:
         example: 0 0 * * *
         type: string
+      retention_day:
+        example: 10
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -1363,9 +1366,15 @@ definitions:
       namespace_id:
         example: 10
         type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
     required:
     - cron_enabled
     - namespace_id
+    - retention_day
     type: object
   types.UpdateGcTagRuleRequest:
     properties:

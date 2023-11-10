@@ -33,6 +33,7 @@ func newDaemonGcRepositoryRule(db *gorm.DB, opts ...gen.DOOption) daemonGcReposi
 	_daemonGcRepositoryRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcRepositoryRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_daemonGcRepositoryRule.IsRunning = field.NewBool(tableName, "is_running")
+	_daemonGcRepositoryRule.RetentionDay = field.NewInt(tableName, "retention_day")
 	_daemonGcRepositoryRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcRepositoryRule.CronRule = field.NewString(tableName, "cron_rule")
 	_daemonGcRepositoryRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
@@ -57,6 +58,7 @@ type daemonGcRepositoryRule struct {
 	ID              field.Int64
 	NamespaceID     field.Int64
 	IsRunning       field.Bool
+	RetentionDay    field.Int
 	CronEnabled     field.Bool
 	CronRule        field.String
 	CronNextTrigger field.Time
@@ -83,6 +85,7 @@ func (d *daemonGcRepositoryRule) updateTableName(table string) *daemonGcReposito
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")
 	d.IsRunning = field.NewBool(table, "is_running")
+	d.RetentionDay = field.NewInt(table, "retention_day")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
 	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
@@ -114,13 +117,14 @@ func (d *daemonGcRepositoryRule) GetFieldByName(fieldName string) (field.OrderEx
 }
 
 func (d *daemonGcRepositoryRule) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 10)
+	d.fieldMap = make(map[string]field.Expr, 11)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["namespace_id"] = d.NamespaceID
 	d.fieldMap["is_running"] = d.IsRunning
+	d.fieldMap["retention_day"] = d.RetentionDay
 	d.fieldMap["cron_enabled"] = d.CronEnabled
 	d.fieldMap["cron_rule"] = d.CronRule
 	d.fieldMap["cron_next_trigger"] = d.CronNextTrigger

@@ -94,6 +94,7 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 				log.Error().Err(err).Msg("Create gc blob rule failed")
 				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc blob rule failed: %v", err))
 			}
+			return nil
 		}
 		err = daemonService.UpdateGcBlobRule(ctx, ruleObj.ID, updates)
 		if err != nil {

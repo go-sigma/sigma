@@ -66,11 +66,7 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
-		}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc repository rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
@@ -84,7 +80,8 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 		nextTrigger = ptr.Of(schedule.Next(time.Now()))
 	}
 	updates := make(map[string]any, 5)
-	if req.CronEnabled {
+	updates[query.DaemonGcRepositoryRule.RetentionDay.ColumnName().String()] = req.RetentionDay
+	if ptr.To(req.CronEnabled) {
 		if req.CronRule != nil {
 			updates[query.DaemonGcRepositoryRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
 			updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
@@ -94,7 +91,8 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
 				NamespaceID:     namespaceID,
-				CronEnabled:     req.CronEnabled,
+				RetentionDay:    req.RetentionDay,
+				CronEnabled:     ptr.To(req.CronEnabled),
 				CronRule:        req.CronRule,
 				CronNextTrigger: nextTrigger,
 			})
@@ -102,6 +100,7 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 				log.Error().Err(err).Msg("Create gc artifact rule failed")
 				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact rule failed: %v", err))
 			}
+			return nil
 		}
 		err = daemonService.UpdateGcRepositoryRule(ctx, ruleObj.ID, updates)
 		if err != nil {
@@ -157,6 +156,7 @@ func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GetGcRepositoryRuleResponse{
+		RetentionDay:    ruleObj.RetentionDay,
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
 		CronNextTrigger: ptr.Of(""), // response utc time, fe format with tz

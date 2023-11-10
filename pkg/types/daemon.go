@@ -246,8 +246,9 @@ type GetGcBlobRecordRequest struct {
 type UpdateGcRepositoryRuleRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 
-	CronEnabled bool    `json:"cron_enabled" validate:"required,boolean" example:"true"`
-	CronRule    *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
+	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	CronEnabled  *bool   `json:"cron_enabled,omitempty" example:"true"`
+	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
 }
 
 // GetGcRepositoryRuleRequest ...
@@ -257,6 +258,7 @@ type GetGcRepositoryRuleRequest struct {
 
 // GetGcRepositoryRuleResponse ...
 type GetGcRepositoryRuleResponse struct {
+	RetentionDay    int     `json:"retention_day" example:"10"`
 	CronEnabled     bool    `json:"cron_enabled" example:"true"`
 	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * *"`
 	CronNextTrigger *string `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`

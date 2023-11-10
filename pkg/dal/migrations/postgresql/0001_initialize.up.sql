@@ -384,7 +384,9 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_records" (
 CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   "id" bigserial PRIMARY KEY,
   "namespace_id" bigint,
-  "cron_enabled" tinyint NOT NULL DEFAULT 0,
+  `is_running` smallint NOT NULL DEFAULT 0,
+  `retention_day` integer NOT NULL,
+  "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

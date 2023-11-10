@@ -5849,6 +5849,10 @@
                     "type": "string",
                     "example": "0 0 * * *"
                 },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -6946,7 +6950,8 @@
             "type": "object",
             "required": [
                 "cron_enabled",
-                "namespace_id"
+                "namespace_id",
+                "retention_day"
             ],
             "properties": {
                 "cron_enabled": {
@@ -6959,6 +6964,12 @@
                 },
                 "namespace_id": {
                     "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
                     "example": 10
                 }
             }

@@ -16,21 +16,20 @@
 
 import axios from "axios";
 import { Tooltip } from 'flowbite';
-import rToast from 'react-hot-toast';
-import { Switch } from '@headlessui/react';
+import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { useParams, useSearchParams, Link } from 'react-router-dom';
+import parser from 'cron-parser';
+import dayjs from 'dayjs';
 
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
-import { IHTTPError } from "../../interfaces";
-import Toast from "../../components/Notification";
-
-const notify = () => rToast('Here is your toast.');
+import { IGcRepositoryRule, IHTTPError } from "../../interfaces";
+import Notification from "../../components/Notification";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -41,23 +40,7 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [gcTagRuleExist, setGcTagRuleExist] = useState(false);
   const [gcArtifactRuleExist, setGcArtifactRuleExist] = useState(false);
 
-  useEffect(() => {
-    let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        setGcRepositoryRuleExist(true);
-      } else if (response?.status === 404) {
-        console.log("test");
-        setGcRepositoryRuleExist(false);
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-    })
-  }, [])
+
 
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/`;
@@ -69,11 +52,11 @@ export default function Repository({ localServer }: { localServer: string }) {
         setGcTagRuleExist(false);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }, [])
 
@@ -87,21 +70,94 @@ export default function Repository({ localServer }: { localServer: string }) {
         setGcArtifactRuleExist(false);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }, []);
 
   const [gcRepositoryRuleConfigModal, setGcRepositoryRuleConfigModal] = useState(false);
 
-  const [namespaceCountLimit, setNamespaceCountLimit] = useState<string | number>(0);
-  const [namespaceCountLimitValid, setNamespaceCountLimitValid] = useState(true);
-  useEffect(() => { setNamespaceCountLimitValid(Number.isInteger(namespaceCountLimit) && parseInt(namespaceCountLimit.toString()) >= 0) }, [namespaceCountLimit]);
+  const [gcRepositoryRetentionDays, setGcRepositoryRetentionDays] = useState<string | number>(0);
+  const [gcRepositoryRetentionDaysValid, setGcRepositoryRetentionDaysValid] = useState(true);
+  useEffect(() => { setGcRepositoryRetentionDaysValid(Number.isInteger(gcRepositoryRetentionDays) && parseInt(gcRepositoryRetentionDays.toString()) >= 0 && parseInt(gcRepositoryRetentionDays.toString()) <= 180) }, [gcRepositoryRetentionDays]);
 
   const [gcRepositoryCronEnabled, setGcRepositoryCronEnabled] = useState(false);
+
+  const [gcRepositoryCronRule, setGcRepositoryCronRule] = useState("");
+  const [gcRepositoryCronRuleValid, setGcRepositoryCronRuleValid] = useState(true);
+  const [gcRepositoryCronRuleNextRunAt, setGcRepositoryCronRuleNextRunAt] = useState("");
+
+  useEffect(() => {
+    let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
+    axios.get(url).then(response => {
+      if (response?.status === 200) {
+        const gcRepositoryRule = response.data as IGcRepositoryRule;
+        setGcRepositoryRuleExist(true);
+        setGcRepositoryRetentionDays(gcRepositoryRule.retention_day);
+        setGcRepositoryCronEnabled(gcRepositoryRule.cron_enabled);
+        if (gcRepositoryRule.cron_enabled) {
+          setGcRepositoryCronRule(gcRepositoryRule.cron_rule == undefined ? "" : gcRepositoryRule.cron_rule);
+        }
+      } else if (response?.status === 404) {
+        console.log("test");
+        setGcRepositoryRuleExist(false);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    })
+  }, [])
+
+  useEffect(() => {
+    if (gcRepositoryCronRule.length > 0) {
+      axios.post(localServer + `/api/v1/validators/cron`, {
+        cron: gcRepositoryCronRule,
+      }).then(response => {
+        if (response?.status === 204) {
+          setGcRepositoryCronRuleValid(true);
+          let next = parser.parseExpression(gcRepositoryCronRule).next()
+          setGcRepositoryCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
+        } else {
+          setGcRepositoryCronRuleValid(false);
+        }
+      }).catch(error => {
+        console.log(error);
+        setGcRepositoryCronRuleValid(false);
+      });
+    }
+  }, [gcRepositoryCronRule]);
+
+  const createOrUpdateGcRepository = () => {
+    if (!(gcRepositoryRetentionDaysValid && ((gcRepositoryCronEnabled && gcRepositoryCronRuleValid) || !gcRepositoryCronEnabled))) {
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {
+      retention_day: gcRepositoryRetentionDays,
+      cron_enabled: gcRepositoryCronEnabled,
+    };
+    if (gcRepositoryCronEnabled) {
+      data["cron_rule"] = gcRepositoryCronRule;
+    }
+    axios.put(localServer + `/api/v1/daemons/gc-repository/${namespaceId}/`, data).then(response => {
+      if (response?.status === 204) {
+        Notification({ level: "success", title: "Success", message: "Create user success" });
+        setGcRepositoryRuleConfigModal(false);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
 
   return (
     <Fragment>
@@ -231,7 +287,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
                                     onClick={e => {
-                                      rToast.success('Task pushed into work queue');
+                                      Toast.success('Task pushed into work queue');
                                     }}
                                   >
                                     Run
@@ -400,7 +456,7 @@ export default function Repository({ localServer }: { localServer: string }) {
       <div
         id="tooltip-retention-days"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-80">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
         Retention the empty repository for specific days,
         0 means delete immediately, available 0-180
         <div className="tooltip-arrow" data-popper-arrow></div>
@@ -409,7 +465,7 @@ export default function Repository({ localServer }: { localServer: string }) {
         id="tooltip-cron-rule"
         role="tooltip"
         className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
-        '0 0 * * 6' means run at 00:00 on Saturday
+        '0 0 * * 6' means run at 00:00 every Saturday
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <Transition.Root show={gcRepositoryRuleConfigModal} as={Fragment}>
@@ -437,163 +493,185 @@ export default function Repository({ localServer }: { localServer: string }) {
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                  <div className="grid grid-cols-6 gap-4">
-                    <div className="col-span-2 flex flex-row">
-                      <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                        <div className="flex">
-                          <span className="text-red-600">*</span>
-                          <span className="leading-6 ">Retention Days</span>
-                          <div className="flex flex-row cursor-pointer"
-                            id="gcRepositoryRetentionDaysHelp"
-                            onClick={e => {
-                              let tooltip = new Tooltip(document.getElementById("tooltip-retention-days"),
-                                document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                              tooltip.show();
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                            </svg>
-                          </div>
-                          <span>:</span>
-                        </div>
-                      </label>
-                    </div>
-                    <div className="col-span-4">
-                      <div className="relative mt-1 rounded-md shadow-sm">
-                        <input
-                          type="number"
-                          id="namespace_count_limit"
-                          name="namespace_count_limit"
-                          placeholder="0 means no limit"
-                          className={(namespaceCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={namespaceCountLimit}
-                          onChange={e => setNamespaceCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                        />
-                        {
-                          namespaceCountLimitValid ? null : (
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
+                  >
+                    Garbage collect empty repository config
+                  </Dialog.Title>
+                  <div className="flex flex-col gap-0 mt-4">
+                    <div className="grid grid-cols-6 gap-4">
+                      <div className="col-span-2 flex flex-row">
+                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                          <div className="flex">
+                            <span className="text-red-600">*</span>
+                            <span className="leading-6 ">Retention Days</span>
+                            <div className="flex flex-row cursor-pointer"
+                              id="gcRepositoryRetentionDaysHelp"
+                              onClick={e => {
+                                let tooltip = new Tooltip(document.getElementById("tooltip-retention-days"),
+                                  document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
+                                tooltip.show();
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                               </svg>
                             </div>
-                          )
-                        }
-                      </div>
-                      <p className="mt-1 text-xs text-red-600">
-                        {
-                          namespaceCountLimitValid ? null : (
-                            <span>
-                              Not a valid namespace count limit, should be non-negative integer.
-                            </span>
-                          )
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-6 gap-4">
-                    <div className="col-span-2 flex flex-row">
-                      <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                        <div className="flex">
-                          <span className="text-red-600">*</span>
-                          <span className="leading-6 ">Cron Enabled</span>
-                          {/* <div className="flex flex-row cursor-pointer"
-                            id="gcRepositoryRetentionDaysHelp"
-                            onClick={e => {
-                              let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
-                                document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                              tooltip.show();
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                            </svg>
-                          </div> */}
-                          <span>:</span>
-                        </div>
-                      </label>
-                    </div>
-                    <div className="col-span-4">
-                      <div className="mt-0.5 flex flex-row items-center h-[36px]">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" checked={gcRepositoryCronEnabled} className="sr-only peer" onChange={e => {
-                            setGcRepositoryCronEnabled(e.target.checked);
-                          }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span>:</span>
+                          </div>
                         </label>
                       </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-6 gap-4">
-                    <div className="col-span-2 flex flex-row">
-                      <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                        <div className="flex">
-                          <span className="text-red-600">*</span>
-                          <span className="leading-6 ">Cron Rule</span>
-                          <div className="flex flex-row cursor-pointer"
-                            id="gcRepositoryRuleHelp"
-                            onClick={e => {
-                              let tooltip = new Tooltip(document.getElementById("tooltip-cron-rule"),
-                                document.getElementById("gcRepositoryRuleHelp"), { triggerType: "click" });
-                              tooltip.show();
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                            </svg>
-                          </div>
-                          <span>:</span>
+                      <div className="col-span-4">
+                        <div className="relative rounded-md shadow-sm">
+                          <input
+                            type="text"
+                            id="namespace_count_limit"
+                            name="namespace_count_limit"
+                            placeholder="0 means no limit"
+                            className={(gcRepositoryRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcRepositoryRetentionDays}
+                            onChange={e => setGcRepositoryRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                          />
+                          {
+                            gcRepositoryRetentionDaysValid ? null : (
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                </svg>
+                              </div>
+                            )
+                          }
                         </div>
-                      </label>
+
+                      </div>
                     </div>
-                    <div className="col-span-4">
-                      <div className="relative mt-1 rounded-md shadow-sm">
-                        <input
-                          type="number"
-                          id="namespace_count_limit"
-                          name="namespace_count_limit"
-                          placeholder="0 means no limit"
-                          className={(namespaceCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={namespaceCountLimit}
-                          onChange={e => setNamespaceCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                        />
+                    <div className="grid grid-cols-6 gap-4">
+                      <div className="col-span-2"></div>
+                      <div className="col-span-4">
                         {
-                          namespaceCountLimitValid ? null : (
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                              </svg>
-                            </div>
+                          gcRepositoryRetentionDaysValid ? null : (
+                            <p className="mt-1 text-xs text-red-600">
+                              <span>
+                                Not a valid retention days limit, available 0-180.
+                              </span>
+                            </p>
                           )
                         }
                       </div>
-                      <p className="mt-1 text-xs text-red-600">
-                        {
-                          namespaceCountLimitValid ? null : (
-                            <span>
-                              Not a valid namespace count limit, should be non-negative integer.
-                            </span>
-                          )
-                        }
-                      </p>
                     </div>
-                  </div>
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                    // onClick={() => createUser()}
-                    >
-                      Create
-                    </button>
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                    // onClick={() => setCreateUserModal(false)}
-                    >
-                      Cancel
-                    </button>
+                    <div className="grid grid-cols-6 gap-4 mt-4">
+                      <div className="col-span-2 flex flex-row">
+                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                          <div className="flex">
+                            <span className="text-red-600">*</span>
+                            <span className="leading-6 ">Cron Enabled</span>
+                            <span>:</span>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-span-4">
+                        <div className="mt-0.5 flex flex-row items-center h-[36px]">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked={gcRepositoryCronEnabled} className="sr-only peer" onChange={e => {
+                              setGcRepositoryCronEnabled(e.target.checked);
+                            }} />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    {
+                      !gcRepositoryCronEnabled ? null : (
+                        <>
+                          <div className="grid grid-cols-6 gap-4 mt-4">
+                            <div className="col-span-2 flex flex-row">
+                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                                <div className="flex">
+                                  <span className="text-red-600">*</span>
+                                  <span className="leading-6 ">Cron Rule</span>
+                                  <div className="flex flex-row cursor-pointer"
+                                    id="gcRepositoryRuleHelp"
+                                    onClick={e => {
+                                      let tooltip = new Tooltip(document.getElementById("tooltip-cron-rule"),
+                                        document.getElementById("gcRepositoryRuleHelp"), { triggerType: "click" });
+                                      tooltip.show();
+                                    }}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                    </svg>
+                                  </div>
+                                  <span>:</span>
+                                </div>
+                              </label>
+                            </div>
+
+                            <div className="col-span-4">
+                              <div className="relative rounded-md shadow-sm">
+                                <input
+                                  type="text"
+                                  id="gc_repository_cron_rule"
+                                  name="gc_repository_cron_rule"
+                                  placeholder="cron rule"
+                                  className={(gcRepositoryCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                                  value={gcRepositoryCronRule}
+                                  onChange={e => setGcRepositoryCronRule(e.target.value)}
+                                />
+                                {
+                                  gcRepositoryCronRuleValid ? null : (
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                      </svg>
+                                    </div>
+                                  )
+                                }
+                              </div>
+
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-6 gap-4">
+                            <div className="col-span-2">
+                            </div>
+                            <div className="col-span-4">
+                              {
+                                !gcRepositoryCronRuleValid ? (
+                                  <p className="mt-1 text-xs text-red-600">
+                                    <span>
+                                      Not a valid cron rule, you can try '0 0 * * 6'.
+                                    </span>
+                                  </p>
+                                ) : gcRepositoryCronRule == "" ? null : (
+                                  <p className="mt-1 text-xs text-gray-600">
+                                    <span>
+                                      Next run at '{gcRepositoryCronRuleNextRunAt}'.
+                                    </span>
+                                  </p>
+                                )
+                              }
+                            </div>
+                          </div>
+                        </>
+                      )
+                    }
+                    <div className="flex flex-row-reverse mt-5">
+                      <button
+                        type="button"
+                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                        onClick={e => createOrUpdateGcRepository()}
+                      >
+                        Create
+                      </button>
+                      <button
+                        type="button"
+                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                        onClick={e => { setGcRepositoryRuleConfigModal(false) }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

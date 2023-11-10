@@ -98,6 +98,7 @@ type DaemonGcRepositoryRule struct {
 	Namespace   *Namespace
 
 	IsRunning       bool `gorm:"default:false"`
+	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
 	CronNextTrigger *time.Time

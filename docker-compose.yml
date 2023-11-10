@@ -84,7 +84,7 @@ services:
       timeout: 5s
       retries: 10
   pgadmin:
-    image: dpage/pgadmin4:7.5
+    image: dpage/pgadmin4:7.8
     ports:
       - "5050:80"
     environment:
