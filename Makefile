@@ -4,8 +4,8 @@ GOVET             = $(GOCMD) vet
 BINARY_NAME       = sigma
 VERSION          ?= 0.0.0
 SERVICE_PORT     ?= 3000
-DOCKER_REGISTRY  ?= docker.io/tosone
-DOCKER_PLATFORMS ?= linux/amd64,linux/arm64
+DOCKER_REGISTRY  ?= ghcr.io/go-sigma
+
 APPNAME          ?= sigma
 NAMESPACE        ?= sigma
 KUBECONFIG       ?= ~/.kube/config
@@ -26,6 +26,21 @@ GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.Version=$(shell git
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.BuildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)'
+
+BUILDARCH        ?= $(shell uname -m)
+
+# canonicalized names for host architecture
+ifeq ($(BUILDARCH),aarch64)
+  BUILDARCH=arm64
+endif
+ifeq ($(BUILDARCH),x86_64)
+  BUILDARCH=amd64
+endif
+ifeq ($(BUILDARCH),armv7l)
+  BUILDARCH=armv7
+endif
+
+DOCKER_PLATFORMS ?= linux/$(BUILDARCH)
 
 .PHONY: all test build vendor
 
@@ -77,17 +92,11 @@ endif
 	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
 
 ## Docker:
-docker-build: ## Use the dockerfile to build the container
-	docker buildx build -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=image,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=true .
+docker-build: ## Use the dockerfile to build the sigma image
+	docker buildx build -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true .
 
-docker-build-local: build-linux ## Build the container with the local binary
-	docker buildx build -f build/Dockerfile.local --platform $(DOCKER_PLATFORMS) --progress plain --output type=image,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=true .
-
-docker-build-builder: ## Build the dev container
-	docker buildx build -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=image,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=true .
-
-docker-build-builder-local: build-builder-linux # Build sigma builder image
-	docker buildx build -f build/Dockerfile.builder.local --platform $(DOCKER_PLATFORMS) --progress plain --output type=image,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=true .
+docker-build-builder: ## Use the dockerfile to build the sigma-builder image
+	docker buildx build -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true .
 
 ## Format:
 format: sql-format

@@ -63,8 +63,10 @@ type TagService interface {
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
+	// CountByRepositories counts the tags by the specified repositories.
+	CountByRepositories(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error)
 	// CountByRepository counts the tags by the specified repository.
-	CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error)
+	CountByRepository(ctx context.Context, repositoryID int64) (int64, error)
 	// DeleteByID deletes the tag with the specified tag ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// CountByArtifact counts the tags by the specified artifact.
@@ -344,8 +346,8 @@ func (s *tagService) CountByNamespace(ctx context.Context, namespaceIDs []int64)
 	return tagCount, nil
 }
 
-// CountByRepository counts the tags by the specified repository.
-func (s *tagService) CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
+// CountByRepositories counts the tags by the specified repositories.
+func (s *tagService) CountByRepositories(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
 	tagCount := make(map[int64]int64)
 	var count []struct {
 		RepositoryID int64 `gorm:"column:repository_id"`
@@ -363,4 +365,9 @@ func (s *tagService) CountByRepository(ctx context.Context, repositoryIDs []int6
 		tagCount[c.RepositoryID] = c.Count
 	}
 	return tagCount, nil
+}
+
+// CountByRepository counts the tags by the specified repository.
+func (s *tagService) CountByRepository(ctx context.Context, repositoryID int64) (int64, error) {
+	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Count()
 }

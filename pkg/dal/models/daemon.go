@@ -112,7 +112,7 @@ type DaemonGcRepositoryRunner struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	RuleID int64
-	Rule   DaemonGcTagRule
+	Rule   DaemonGcRepositoryRule
 
 	Status  enums.TaskCommonStatus `gorm:"status"`
 	Message []byte

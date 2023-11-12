@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `cron_enabled` integer NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
-  `retention_rule_type` ENUM ('Day', 'Quantity'),
+  `retention_rule_type` text CHECK (`retention_rule_type` IN ('Day', 'Quantity')) NOT NULL DEFAULT 'Day',
   `retention_rule_amount` integer,
   `retention_pattern` BLOB,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

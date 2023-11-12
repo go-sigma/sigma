@@ -33,3 +33,8 @@ type ValidatePasswordRequest struct {
 type ValidateCronRequest struct {
 	Cron string `json:"cron" validate:"required" example:"0 0 * * 6"`
 }
+
+// ValidateRegexpRequest ...
+type ValidateRegexpRequest struct {
+	Regex string `json:"regex" validate:"required" example:"^v.*$"`
+}

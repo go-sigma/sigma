@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.21.3
+go 1.21.4
 
 require (
 	code.gitea.io/sdk/gitea v0.16.0
@@ -11,7 +11,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
 	github.com/anchore/syft v0.96.0
 	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.47.7
+	github.com/aws/aws-sdk-go v1.47.9
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.77.2
@@ -65,7 +65,7 @@ require (
 	github.com/xanzy/go-gitlab v0.93.2
 	go.uber.org/mock v0.3.0
 	golang.org/x/crypto v0.15.0
-	golang.org/x/exp v0.0.0-20231108232855-2478ac86f678
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/net v0.18.0
 	golang.org/x/oauth2 v0.14.0
 	gopkg.in/yaml.v3 v3.0.1

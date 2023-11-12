@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-const pagination = 1000
+const pagination = 10
 
 // decoratorStatus is a status for decorator
 type decoratorStatus struct {
@@ -47,7 +47,7 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 		ctx = log.Logger.WithContext(ctx)
 		id := gjson.GetBytes(payload, "runner_id").Int()
 
-		var gc = initGc(daemon)
+		var gc = initGc(ctx, daemon)
 		if gc == nil {
 			return fmt.Errorf("daemon %s not support", daemon.String())
 		}
@@ -112,7 +112,7 @@ type Runner interface {
 	Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error
 }
 
-func initGc(daemon enums.Daemon) Runner {
+func initGc(ctx context.Context, daemon enums.Daemon) Runner {
 	switch daemon {
 	case enums.DaemonGcArtifact:
 		return &gcArtifact{
@@ -124,34 +124,44 @@ func initGc(daemon enums.Daemon) Runner {
 			storageDriverFactory:     storage.NewStorageDriverFactory(),
 			config:                   ptr.To(configs.GetConfiguration()),
 
-			deleteArtifactWithNamespaceChan:     make(chan artifactWithNamespaceTask, 100),
+			deleteArtifactWithNamespaceChan:     make(chan artifactWithNamespaceTask, pagination),
 			deleteArtifactWithNamespaceChanOnce: &sync.Once{},
-			deleteArtifactCheckChan:             make(chan artifactTask, 100),
+			deleteArtifactCheckChan:             make(chan artifactTask, pagination),
 			deleteArtifactCheckChanOnce:         &sync.Once{},
-			deleteArtifactChan:                  make(chan artifactTask, 100),
+			deleteArtifactChan:                  make(chan artifactTask, pagination),
 			deleteArtifactChanOnce:              &sync.Once{},
 
 			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcRepository:
 		return &gcRepository{
+			ctx:    log.Logger.WithContext(ctx),
+			config: ptr.To(configs.GetConfiguration()),
+
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
-			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-			blobServiceFactory:       dao.NewBlobServiceFactory(),
-			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			storageDriverFactory:     storage.NewStorageDriverFactory(),
-			config:                   ptr.To(configs.GetConfiguration()),
+			tagServiceFactory:        dao.NewTagServiceFactory(),
 		}
 	case enums.DaemonGcTag:
 		return &gcTag{
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
 			blobServiceFactory:       dao.NewBlobServiceFactory(),
-			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			storageDriverFactory:     storage.NewStorageDriverFactory(),
 			config:                   ptr.To(configs.GetConfiguration()),
+
+			deleteTagWithNamespaceChan:      make(chan tagWithNamespaceTask, pagination),
+			deleteTagWithNamespaceChanOnce:  &sync.Once{},
+			deleteTagWithRepositoryChan:     make(chan tagWithRepositoryTask, pagination),
+			deleteTagWithRepositoryChanOnce: &sync.Once{},
+			deleteTagCheckPatternChan:       make(chan tagTask, pagination),
+			deleteTagCheckPatternChanOnce:   &sync.Once{},
+			deleteTagChan:                   make(chan tagTask, pagination),
+			deleteTagChanOnce:               &sync.Once{},
+
+			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcBlob:
 		return &gcBlob{

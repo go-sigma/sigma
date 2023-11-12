@@ -1,10 +1,15 @@
 version: "2"
 services:
   sigma:
-    image: sigma:latest
+    container_name: sigma
+    image: ghcr.io/go-sigma/sigma:latest
     ports:
       - "3000:3000"
-    command: server
+    command: ["sigma", "server"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD/conf/config-compose.yaml:/etc/sigma/config.yaml
+    restart: always
     depends_on:
       mysql:
         condition: service_healthy
@@ -15,6 +20,7 @@ services:
       minio:
         condition: service_healthy
   mysql:
+    container_name: mysql
     image: mysql:8.0
     ports:
       - "3306:3306"
@@ -24,11 +30,22 @@ services:
       MYSQL_USER: sigma
       MYSQL_PASSWORD: sigma
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "sigma",
+          "--password=sigma",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
   redis:
+    container_name: redis
     image: redis:7.0-alpine
     ports:
       - "6379:6379"
@@ -39,6 +56,7 @@ services:
       timeout: 5s
       retries: 10
   minio:
+    container_name: minio
     image: quay.io/minio/minio:RELEASE.2023-08-04T17-40-21Z
     ports:
       - "9000:9000"
@@ -55,6 +73,7 @@ services:
       timeout: 5s
       retries: 10
   postgres:
+    container_name: postgres
     image: postgres:15-alpine
     ports:
       - "5432:5432"
@@ -68,13 +87,14 @@ services:
       timeout: 5s
       retries: 10
   pma:
+    container_name: pma
     image: phpmyadmin/phpmyadmin:5.2.1
     ports:
       - "8080:80"
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_USER: sigma
+      PMA_USER: root
       PMA_PASSWORD: sigma
     depends_on:
       - mysql
@@ -84,6 +104,7 @@ services:
       timeout: 5s
       retries: 10
   pgadmin:
+    container_name: pgadmin
     image: dpage/pgadmin4:7.8
     ports:
       - "5050:80"

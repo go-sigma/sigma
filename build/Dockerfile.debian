@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.21.3-bookworm
+ARG GOLANG_VERSION=1.21.4-bookworm
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 ARG DEBIAN_VERSION=bookworm-slim
@@ -58,7 +58,7 @@ RUN set -eux && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
-		git-lfs \
+		git \
 	&& \
 	rm -rf /var/lib/apt/lists/*
 
@@ -67,7 +67,7 @@ COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN --mount=type=cache,target=/root/.cache/go-build make build
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build make build
 
 FROM debian:${DEBIAN_VERSION}
 

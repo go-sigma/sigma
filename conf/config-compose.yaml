@@ -1,0 +1,150 @@
+# this file used as default config in the container.
+
+log:
+  level: debug
+  proxyLevel: info
+
+database:
+  # The database type to use. Supported types are: sqlite3, mysql, postgresql
+  type: mysql
+  sqlite3:
+    path: /var/lib/sigma/sigma.db
+  mysql:
+    host: mysql
+    port: 3306
+    user: sigma
+    password: sigma
+    dbname: sigma
+  postgresql:
+    host: localhost
+    port: 5432
+    user: sigma
+    password: sigma
+    dbname: sigma
+    sslmode: disable
+
+# deploy available: single, replica
+# replica should use external redis
+deploy: single
+
+redis:
+  # redis type available: none, external
+  # none: means never use redis
+  # external: means use the specific redis instance
+  type: none
+  url: redis://:sigma@localhost:6379/0
+
+cache:
+  # the cache type available is: redis, inmemory, database
+  type: database
+  ttl: 72h
+  # please attention in multi
+  inmemory:
+    size: 10240
+  redis:
+  database:
+    size: 10240
+    threshold: 0.2
+
+workqueue:
+  # the workqueue type available: redis, kafka, database
+  type: redis
+  redis:
+    concurrency: 10
+  kafka: {}
+  database: {}
+
+locker:
+  # the locker type available: redis, database
+  type: database
+  database: {}
+  redis: {}
+
+namespace:
+  # push image to registry, if namespace not exist, it will be created automatically
+  autoCreate: false
+  # the automatic created namespace visibility, available: public, private
+  visibility: public
+
+http:
+  # endpoint can be a domain or domain with port, eg: http://sigma.test.io, https://sigma.test.io:30080, http://127.0.0.1:3000
+  # this endpoint will be used to generate the token service url in auth middleware,
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default,
+  # because the front page need show this endpoint.
+  endpoint:
+  # in some cases, daemon may pull image and scan it, but we don't want to pull image from public registry domain,
+  # so use this internal domain to pull image from registry.
+  # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
+  # in k8s cluster, it will be set to the distribution service which is used to pull image from registry, eg: http://registry.default.svc.cluster.local:3000
+  # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
+  # if http.tls.enabled is true, internalEndpoint should start with https://
+  # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
+  internalEndpoint:
+  # eg: http://sigma-distribution:3000
+  internalDistributionEndpoint:
+  tls:
+    enabled: false
+    certificate: ./conf/sigma.test.io.crt
+    key: ./conf/sigma.test.io.key
+
+storage:
+  rootdirectory: ./storage
+  type: filesystem
+  filesystem:
+    path: /var/lib/sigma/
+  s3:
+    ak: sigma
+    sk: sigma-sigma
+    endpoint: http://127.0.0.1:9000
+    region: cn-north-1
+    bucket: sigma
+    forcePathStyle: true
+  cos:
+    ak: xxxx
+    sk: xxxx
+    endpoint: https://xxxxxxx
+
+# Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
+proxy:
+  enabled: false
+  endpoint: https://registry-1.docker.io
+  tlsVerify: true
+  username: ""
+  password: ""
+
+# daemon task config
+daemon:
+  gc:
+    # if blob not associate with artifact
+    retention: 72h
+    # At 02:00 on Saturday
+    cron: 0 2 * * 6
+  builder:
+    image: sigma-builder:latest
+    type: docker
+    docker:
+      sock:
+      network: sigma
+    kubernetes:
+      kubeconfig:
+      namespace:
+
+auth:
+  internalUser:
+    username: internal-sigma
+    password: internal-sigma
+  admin:
+    username: sigma
+    password: Admin@123
+  token:
+    realm: ""
+    service: ""
+  jwt:
+    ttl: 1h
+    refreshTtl: 24h
+    # generate the key with: openssl genrsa 4096 | base64
+    privateKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS2dJQkFBS0NBZ0VBcHNISUFnRUpZSnFRcWRyZDNBWlhiVmROTFBQRklQcndKdEVoZ0JyVmV4MlY1UVRZCkVETnBHWkhwbUxrekpqbTJCOEd6blJEdDNaOGNlRnFFU3RxdU9CdUQ5VlYyYisvZS9ZSzcrVlF6aFpuQUhNZGgKbk5UUklxRFJqckF1UmhDN3U5MmR1b0w0S2s0a0JZNTRBa2JxQnRJZytZUXd1ODBnbDJrTjR0L3hqcWFveXl1VApDSGV3OXlwa3BONFFQTGZ1TU1OYjhYUktSdFV2cGlVekZkRmpGTkQ4eS9haVBkVlRYdVRNbGhUNjcvOXphbXlRCmtUU1V5c1l3aUtLSlRxb0N5SkFMTXRtekNrVHNTY0cxeURhcjh2cldWWDdtMnpVR0pRaW5QTllpV1JSS3IySWMKbUVTRXM3ZkROWm8zbnNka05sWEZNUWorZWVVa25Ebmk1VmtENFV1aVpBTmNXTHE4ckpBV0hTTEFtcUltK1BGUgpJVmZvcDZ0d3M5dXlUNWR2d0s2cldJcE9RRG5iZWhSM2FmU2ljY2YzQXVGNldLTFVJd05hanBhaThPdWZmYkFkClpSVTBBa2pFb2h5a1JxZnBqTEFGelBtaXdlYmo3OVdZaktlbXhIaVMxTlNEZFhnVHFRd2d0emFtQmlSbTkwYncKNk54VVRadU5hN1NQVnhvYWNZTHdSWnY4RUR0VFZyVEtMbEhZMEVCS0xPWGpLUEdUWXV0S2RDK3ZHWXhwTC9vVwoxVm5qWXpkYlhsR1VGQkRaczh5K2FsMEFRYVNDejVNUXVaYjdYVW9oTWRYRm1YT2FETnEyK3hsMU9DdFkrWlp1CnFnWEJKcE9BQlhOWjZKNlY4Ly9kaGViVUV3aWo5TlZ4YkJFRjZjWGJZdlJDODdwSzFvVEdHbi84bWtFQ0F3RUEKQVFLQ0FnRUFpR3FzWVI5UitZcFlYK3VoWlhaMm5RYzNKbGdCWXRxR0RXczErYU42RXU2QUNrdHRLY3UwNWVzYwo2d2hPbEszUGdRYndGY1Njb3BtZ1k4REF5cStjcUYreUVzZ29US2d4aHJnbGFIRitlSVB2eWxzOU9seEsvZ1lMCmlLd09IdGxmaXU5Z01nMGtVUTk5bm1JUFFPV2NXNW9ZeWFaZmE3TUNQM3I4bGlYWGFYaGpTMW5KUGJzVXRRNGsKS1U5VWZ5ZUVucldpaUtNMmhEMndiajJ1VGVIdUtVQlNIZFVVb25yYWFoM0lVOXF6OGhQSzZqd0lCQkc4eXlsWQoyTjRHYjZqYkFCSCtaMG42a3FNUm5jRHZJZXUvdk5XQTg0NE44ek9zWkMxeENtNnV5S3ExOGtYVDJLanMya3l4ClVDOXA0dVdBMElaWCs2WTg3NkVKMHhmenl1V0lLcnQwNmRIeDdGOFdkNGpiQXJmMW1ZSlFRblgwNTBpMXBVcDEKdmlhT3AvSnhXcUZtRWRCcE1lc214S0NRRTM0OHoxZkRUUUdSVnRHNWZyZ00wS2dMRkJLL25kVDhQdkNzMWx1NQpwc2JzLzRSRm40SCtPQk9JZTFIb3B5dDlGNklXbi9Cc2gySWN5TWs4dnMzMkd3Mm1WSkVBMUR6RVVhU2JSakxxCm1NYnMyMkJ3WGxHUURCT1JFSG1UUi9uRHloRVlib0RhNWlCcUhSV0c5QUlEaXBKODNYNEI5L29QVDRuOElPeGsKSmJQNDAvL3pJSnJLSHZWL3lNUldpN2F5cjVSamtWNWpPbTdxKzFpeUhXMytBcWhEZnVoakxIT3RJUWppYjB0Rwo2WUREbjZaNXo1WVo0d2l3TCtBUWtRb3dRYmU2NHJYbXBYWFVBNzhBQlRTV21wWGFWZkVDZ2dFQkFNN3NQMnNGCjdZYXdVRmQxeks4K3cyYXp1WHZFWHBBbE5ubWF4N1F1Z1VBRTgwRjlPRi82Wkx4cHNRenB5OW40bzNubWhaVnUKRzFFcmtFeEhnU09HSHNsRjJyU1lqbDg5SkVoOGNuaGFWeXVkMUFNby96SWt5YmpGdWxBTHpLWXJhKy9FcjF5WQp4b2lNYS9DakpURkhLR095RFpHMC9rNXRCdVIycTZVa3ZwaHFFSTBPc1R0Sk1sTWhpb1c0T0l1dHBUVGVmM3FWCk9oR2luNWgwK2hMNWFqMkpIMlpCemNvUSs4T0kwaDYwWlg0MTdHQld2a1M3TmtOY0p4cGpSTzBrbXF2Y3ZYWVMKTnc5aEZLM2pPR2V2ZTBvcFpDcTJoaHBGUGlvTVEyTk83NEJWeFM1dGxlZWluazFmcVAvZjZ3TitJL2d0MG42egpQYU9iczhHT3hzMVVROVVDZ2dFQkFNNU94eTJyd3BnMzIyOG1Ic2wyNncyeWxyMWFuaXJ6QTkzYzdlQnVVakVuCmJEQzdDS01HTTF0eGgwcUJISmlkcENyK2VFZDUvWHR5akEwc2liUlNHcVNPSmg2Qk1oNUdRRElMN0hiLzF4NGIKNSs0YXAxQTRiWGh1VEpNVGRlMFozcUVnYmU0Zjk3WHpBbWFRR09CcEdSSU5FUzRCSmhreThQSkkrRS9CaHZpMQovRmZDNkM5VzJTMC9GRE1aOGREeXR6ZU52TUFFRCtQOEZQVGE4a0U3TmovR1RjMUllY2NJRmF5SXlkTGsvZWV6ClI5aXdKZGJLdVJaVXBUOUVLOWhNYjM3MGcxWitHOXl4VHJKbmxlQVZneVF3RDlzMUJEZ0ZCbGozME1DQ3NHQTkKRE5xdklQRTJCeGVwQVNMTUZEb04wcVR5SS92eUU5aExyQ0F3dDdLZGJyMENnZ0VBV3RGZDFEODV6USs5YzJXRQpmTFh6VlRRMGlKbmJWekMrQkFsbTlUSWtFRkViNHZadXM5RldQVXUySlpESG85ZDVDSnVncmNFeHhDSjJwc1FMCmJlZ0R3eHNocm5uMm90NVcrbW1FWkVaaVZBWmxjeTJmTkFicGNtdDJKb1BIUW5kMFhEdmJLNnp5RmlScmk2WlAKUUoyV29Jc1pZWVlxeDRrYXFWTmNhcE1DQkNzcE1IL3VVYk1DbjNIdE5sdHdsZjJVc091bXo4cUhQZzQrTmMvQgpvbXBOc3N4b041MVNFUW43TmdyckRnYm5OTW0rQVZxUkQrR0xJMjFpekRZZG5tZWVheWZyRDlOV3p5MHd3bEVrCkJINEVncncvOW04OTFISG5vdFRYRHRNcVV3MVNDZHFYSEo5SEUzYVUyaGtSTU90QUprRVdUZjJsWkJXR2c4R0MKaDhRZ01RS0NBUUVBeDJVU1VzellGZUNlb0ExNjRnS2lhYW02MFNZOUNvdTNwLzM0bHRwcGJBS0xLWW9MYmV6MwpSQ0UwdmtpTlI5L01wSlV2MFAxUmhiZVBMc2htQ3piemN5bkVJK1dBZUF3enpXc0N6M3l6Ly9DK3Q3MWhDa0tQCll6OVBtVExNM2kwTHBEVkFxazZSVG5TaFZGbGZBYjN5TWlVWS9wcXpwTlU4VlI4N2gzSW5Ma2hOck5DL01jbkIKdTE1aytvTFAyY0JNWGxBS0pwZUdlRFhTVjFrcG5PeEtvVmJiS1ZZc0JMYUdwQ3ZNekp6djNibkQ3ZVZKblJCdgoxT3BZa0E0bVJqYVI2R1VRYjA4UlJMckZzZDQxMTg5UzRXM21WVm9uU3JGb2tpSnB5elpFbTY5RnRqSmZKMkt0CmRpdXM0bUhXQnNvSFZjNkdBdUxVVlUvRis1SzZhTktLRFFLQ0FRRUF2VHRzZmNlVFE1cjRTTFlUMTlnMU5GMVgKckFPaUhzVHQ5TFNZUXNZUmpEcGZqR0t1b29jN091Q1ZGdGYwa1ArUkliODJIK05QRVNPMXlpclNzMTVaWnFobAorTXpmY1YrL1dHOVovZlAyUG5ZYVFCeWFOWkNMK3dSTW5nbXJycnF1RjZSRXk1UHQ5Z2pkaU1heXhSSzlVODVKCkY4WFVqcmhuVTJYMUxHTFAzaEoxV0lUbTh6V2RlcytyZU1JR2RNL3grajRBbW80R3FuMzd1U05WRkR4QVhuV2gKRzhPejBaa0dXb25Xai9CRVhnR2RiVk5uVldLQWpodUlRbkZwbHR4R3VpNzhyS09lSEhHVElEUDNZK1h5ZW9ZbAoxVTNtYWVrUGxEaURlUlBmemhjRFBJc0h2b3VoUVZCSlAxRTh2d1VpZkJ1bTEzSDZ5SjdKajcrR29Rb2diZz09Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
+  oauth2:
+    github:
+      clientId: "e5f9fa9e372dfac66aed"
+      clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"

@@ -29,7 +29,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -65,14 +64,15 @@ type tagTask struct {
 }
 
 type gcTag struct {
+	ctx    context.Context
+	config configs.Configuration
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
 	daemonServiceFactory     dao.DaemonServiceFactory
-	storageDriverFactory     storage.StorageDriverFactory
-	config                   configs.Configuration
 
 	deleteTagWithNamespaceChan      chan tagWithNamespaceTask
 	deleteTagWithNamespaceChanOnce  *sync.Once
@@ -136,14 +136,13 @@ func (g gcTag) Run(ctx context.Context, runnerID int64, statusChan chan decorato
 }
 
 func (g gcTag) deleteTagWithNamespace() {
-	ctx := log.Logger.WithContext(context.Background())
 	repositoryService := g.repositoryServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		for task := range g.deleteTagWithNamespaceChan {
 			var repositoryCurIndex int64
 			for {
-				repositoryObjs, err := repositoryService.FindAll(ctx, task.NamespaceID, pagination, repositoryCurIndex)
+				repositoryObjs, err := repositoryService.FindAll(g.ctx, task.NamespaceID, pagination, repositoryCurIndex)
 				if err != nil {
 					log.Error().Err(err).Int64("namespaceID", task.NamespaceID).Msg("List repository failed")
 					continue
@@ -162,7 +161,6 @@ func (g gcTag) deleteTagWithNamespace() {
 }
 
 func (g gcTag) deleteTagWithRepository() {
-	ctx := log.Logger.WithContext(context.Background())
 	tagService := g.tagServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
@@ -172,9 +170,9 @@ func (g gcTag) deleteTagWithRepository() {
 				var tagObjs []*models.Tag
 				var err error
 				if ptr.To(task.Runner.Rule.RetentionRuleType) == enums.RetentionRuleTypeQuantity {
-					tagObjs, err = tagService.FindWithQuantityCursor(ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
+					tagObjs, err = tagService.FindWithQuantityCursor(g.ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
 				} else if ptr.To(task.Runner.Rule.RetentionRuleType) == enums.RetentionRuleTypeDay {
-					tagObjs, err = tagService.FindWithDayCursor(ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
+					tagObjs, err = tagService.FindWithDayCursor(g.ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
 				}
 				if err != nil {
 					log.Error().Err(err).Msg("List artifact failed")
@@ -229,12 +227,11 @@ func (g gcTag) deleteTagCheckPattern() {
 }
 
 func (g gcTag) deleteTag() {
-	ctx := log.Logger.WithContext(context.Background())
 	tagService := g.tagServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		for task := range g.deleteTagChan {
-			err := tagService.DeleteByID(ctx, task.Tag.ID)
+			err := tagService.DeleteByID(g.ctx, task.Tag.ID)
 			if err != nil {
 				log.Error().Err(err).Int64("id", task.Tag.ID).Msg("Delete tag by id failed")
 			}

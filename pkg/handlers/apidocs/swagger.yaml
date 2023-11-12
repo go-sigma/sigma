@@ -1372,7 +1372,6 @@ definitions:
         minimum: 0
         type: integer
     required:
-    - cron_enabled
     - namespace_id
     - retention_day
     type: object
@@ -4405,6 +4404,31 @@ paths:
       security:
       - BasicAuth: []
       summary: Validate reference
+      tags:
+      - Validator
+  /validators/regexp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Validate regexp object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.ValidateCronRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate regexp
       tags:
       - Validator
   /validators/tag:
