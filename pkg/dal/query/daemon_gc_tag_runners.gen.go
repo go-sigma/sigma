@@ -37,6 +37,8 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 	_daemonGcTagRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcTagRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcTagRunner.Duration = field.NewInt64(tableName, "duration")
+	_daemonGcTagRunner.SuccessCount = field.NewInt64(tableName, "success_count")
+	_daemonGcTagRunner.FailedCount = field.NewInt64(tableName, "failed_count")
 	_daemonGcTagRunner.Rule = daemonGcTagRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
@@ -56,18 +58,20 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 type daemonGcTagRunner struct {
 	daemonGcTagRunnerDo daemonGcTagRunnerDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	RuleID    field.Int64
-	Message   field.Bytes
-	Status    field.Field
-	StartedAt field.Time
-	EndedAt   field.Time
-	Duration  field.Int64
-	Rule      daemonGcTagRunnerBelongsToRule
+	ALL          field.Asterisk
+	CreatedAt    field.Time
+	UpdatedAt    field.Time
+	DeletedAt    field.Uint
+	ID           field.Int64
+	RuleID       field.Int64
+	Message      field.Bytes
+	Status       field.Field
+	StartedAt    field.Time
+	EndedAt      field.Time
+	Duration     field.Int64
+	SuccessCount field.Int64
+	FailedCount  field.Int64
+	Rule         daemonGcTagRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -94,6 +98,8 @@ func (d *daemonGcTagRunner) updateTableName(table string) *daemonGcTagRunner {
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
+	d.SuccessCount = field.NewInt64(table, "success_count")
+	d.FailedCount = field.NewInt64(table, "failed_count")
 
 	d.fillFieldMap()
 
@@ -122,7 +128,7 @@ func (d *daemonGcTagRunner) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (d *daemonGcTagRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 11)
+	d.fieldMap = make(map[string]field.Expr, 13)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
@@ -133,6 +139,8 @@ func (d *daemonGcTagRunner) fillFieldMap() {
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
+	d.fieldMap["success_count"] = d.SuccessCount
+	d.fieldMap["failed_count"] = d.FailedCount
 
 }
 

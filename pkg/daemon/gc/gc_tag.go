@@ -139,6 +139,7 @@ func (g gcTag) deleteTagWithNamespace() {
 	repositoryService := g.repositoryServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteTagWithRepositoryChan)
 		for task := range g.deleteTagWithNamespaceChan {
 			var repositoryCurIndex int64
 			for {
@@ -156,7 +157,6 @@ func (g gcTag) deleteTagWithNamespace() {
 				repositoryCurIndex = repositoryObjs[len(repositoryObjs)-1].ID
 			}
 		}
-		close(g.deleteTagWithRepositoryChan)
 	}()
 }
 
@@ -164,6 +164,7 @@ func (g gcTag) deleteTagWithRepository() {
 	tagService := g.tagServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteTagCheckPatternChan)
 		for task := range g.deleteTagWithRepositoryChan {
 			var artifactCurIndex int64
 			for {
@@ -187,13 +188,13 @@ func (g gcTag) deleteTagWithRepository() {
 				artifactCurIndex = tagObjs[len(tagObjs)-1].ID
 			}
 		}
-		close(g.deleteTagCheckPatternChan)
 	}()
 }
 
 func (g gcTag) deleteTagCheckPattern() {
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteTagChan)
 		for task := range g.deleteTagCheckPatternChan {
 			if len(task.Runner.Rule.RetentionPattern) == 0 {
 				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
@@ -222,7 +223,6 @@ func (g gcTag) deleteTagCheckPattern() {
 				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
 			}
 		}
-		close(g.deleteTagChan)
 	}()
 }
 

@@ -37,6 +37,8 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 	_daemonGcArtifactRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcArtifactRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcArtifactRunner.Duration = field.NewInt64(tableName, "duration")
+	_daemonGcArtifactRunner.SuccessCount = field.NewInt64(tableName, "success_count")
+	_daemonGcArtifactRunner.FailedCount = field.NewInt64(tableName, "failed_count")
 	_daemonGcArtifactRunner.Rule = daemonGcArtifactRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
@@ -56,18 +58,20 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 type daemonGcArtifactRunner struct {
 	daemonGcArtifactRunnerDo daemonGcArtifactRunnerDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	RuleID    field.Int64
-	Status    field.Field
-	Message   field.Bytes
-	StartedAt field.Time
-	EndedAt   field.Time
-	Duration  field.Int64
-	Rule      daemonGcArtifactRunnerBelongsToRule
+	ALL          field.Asterisk
+	CreatedAt    field.Time
+	UpdatedAt    field.Time
+	DeletedAt    field.Uint
+	ID           field.Int64
+	RuleID       field.Int64
+	Status       field.Field
+	Message      field.Bytes
+	StartedAt    field.Time
+	EndedAt      field.Time
+	Duration     field.Int64
+	SuccessCount field.Int64
+	FailedCount  field.Int64
+	Rule         daemonGcArtifactRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -94,6 +98,8 @@ func (d *daemonGcArtifactRunner) updateTableName(table string) *daemonGcArtifact
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
+	d.SuccessCount = field.NewInt64(table, "success_count")
+	d.FailedCount = field.NewInt64(table, "failed_count")
 
 	d.fillFieldMap()
 
@@ -122,7 +128,7 @@ func (d *daemonGcArtifactRunner) GetFieldByName(fieldName string) (field.OrderEx
 }
 
 func (d *daemonGcArtifactRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 11)
+	d.fieldMap = make(map[string]field.Expr, 13)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
@@ -133,6 +139,8 @@ func (d *daemonGcArtifactRunner) fillFieldMap() {
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
+	d.fieldMap["success_count"] = d.SuccessCount
+	d.fieldMap["failed_count"] = d.FailedCount
 
 }
 

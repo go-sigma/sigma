@@ -39,6 +39,7 @@ type decoratorStatus struct {
 	Message string
 	Started bool
 	Ended   bool
+	Updates map[string]any
 }
 
 // decorator is a decorator for daemon gc task runners
@@ -76,6 +77,11 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 					endedAt := time.Now()
 					updates["ended_at"] = endedAt
 					updates["duration"] = endedAt.Sub(startedAt).Milliseconds()
+				}
+				if len(status.Updates) != 0 {
+					for key, val := range status.Updates {
+						updates[key] = val
+					}
 				}
 				switch status.Daemon {
 				case enums.DaemonGcArtifact:

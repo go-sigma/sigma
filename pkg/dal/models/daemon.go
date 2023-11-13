@@ -69,9 +69,11 @@ type DaemonGcTagRunner struct {
 	Message []byte
 	Status  enums.TaskCommonStatus
 
-	StartedAt *time.Time
-	EndedAt   *time.Time
-	Duration  *int64
+	StartedAt    *time.Time
+	EndedAt      *time.Time
+	Duration     *int64
+	SuccessCount *int64
+	FailedCount  *int64
 }
 
 // DaemonGcTagRecords ...
@@ -119,9 +121,11 @@ type DaemonGcRepositoryRunner struct {
 	Status  enums.TaskCommonStatus `gorm:"status"`
 	Message []byte
 
-	StartedAt *time.Time
-	EndedAt   *time.Time
-	Duration  *int64
+	StartedAt    *time.Time
+	EndedAt      *time.Time
+	Duration     *int64
+	SuccessCount *int64
+	FailedCount  *int64
 }
 
 // DaemonGcRepositoryRecord ...
@@ -167,9 +171,11 @@ type DaemonGcArtifactRunner struct {
 	Status  enums.TaskCommonStatus `gorm:"status"`
 	Message []byte
 
-	StartedAt *time.Time
-	EndedAt   *time.Time
-	Duration  *int64
+	StartedAt    *time.Time
+	EndedAt      *time.Time
+	Duration     *int64
+	SuccessCount *int64
+	FailedCount  *int64
 }
 
 // DaemonGcArtifactRecord ...
@@ -213,9 +219,11 @@ type DaemonGcBlobRunner struct {
 	Status  enums.TaskCommonStatus `gorm:"status"`
 	Message []byte
 
-	StartedAt *time.Time
-	EndedAt   *time.Time
-	Duration  *int64
+	StartedAt    *time.Time
+	EndedAt      *time.Time
+	Duration     *int64
+	SuccessCount *int64
+	FailedCount  *int64
 }
 
 type DaemonGcBlobRecord struct {

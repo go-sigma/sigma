@@ -49,14 +49,15 @@ type repositoryWithNamespaceTask struct {
 
 // repositoryTask ...
 type repositoryTask struct {
-	Runner       models.DaemonGcRepositoryRunner
-	RepositoryID int64
+	Runner     models.DaemonGcRepositoryRunner
+	Repository models.Repository
 }
 
 // repositoryTaskCollectRecord ...
 type repositoryTaskCollectRecord struct {
 	Status     enums.GcRecordStatus
-	Repository string
+	Runner     models.DaemonGcRepositoryRunner
+	Repository models.Repository
 }
 
 type gcRepository struct {
@@ -96,7 +97,8 @@ func (g gcRepository) Run(ctx context.Context, runnerID int64, runnerChan chan d
 	g.deleteRepositoryWithNamespaceChanOnce.Do(g.deleteRepositoryWithNamespace)
 	g.deleteRepositoryCheckRepositoryChanOnce.Do(g.deleteRepositoryCheck)
 	g.deleteRepositoryChanOnce.Do(g.deleteRepository)
-	g.waitAllDone.Add(3)
+	g.collectRecordChanOnce.Do(g.collectRecord)
+	g.waitAllDone.Add(4)
 
 	namespaceService := g.namespaceServiceFactory.New()
 
@@ -130,6 +132,7 @@ func (g gcRepository) deleteRepositoryWithNamespace() {
 	repositoryService := g.repositoryServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteRepositoryCheckRepositoryChan)
 		for task := range g.deleteRepositoryWithNamespaceChan {
 			var repositoryCurIndex int64
 			for {
@@ -139,7 +142,7 @@ func (g gcRepository) deleteRepositoryWithNamespace() {
 					continue
 				}
 				for _, repositoryObj := range repositoryObjs {
-					g.deleteRepositoryCheckRepositoryChan <- repositoryTask{Runner: task.Runner, RepositoryID: repositoryObj.ID}
+					g.deleteRepositoryCheckRepositoryChan <- repositoryTask{Runner: task.Runner, Repository: ptr.To(repositoryObj)}
 				}
 				if len(repositoryObjs) < pagination {
 					break
@@ -147,7 +150,6 @@ func (g gcRepository) deleteRepositoryWithNamespace() {
 				repositoryCurIndex = repositoryObjs[len(repositoryObjs)-1].ID
 			}
 		}
-		close(g.deleteRepositoryCheckRepositoryChan)
 	}()
 }
 
@@ -156,19 +158,20 @@ func (g gcRepository) deleteRepositoryCheck() {
 	repositoryService := g.repositoryServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteRepositoryChan)
 		for task := range g.deleteRepositoryCheckRepositoryChan {
-			count, err := tagService.CountByRepository(g.ctx, task.RepositoryID)
+			count, err := tagService.CountByRepository(g.ctx, task.Repository.ID)
 			if err != nil {
-				log.Error().Err(err).Int64("RepositoryID", task.RepositoryID).Msg("Get repository tag count failed")
+				log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Get repository tag count failed")
 				continue
 			}
 			if count > 0 {
 				continue
 			}
 			if task.Runner.Rule.RetentionDay == 0 {
-				repositoryObj, err := repositoryService.Get(g.ctx, task.RepositoryID)
+				repositoryObj, err := repositoryService.Get(g.ctx, task.Repository.ID)
 				if err != nil {
-					log.Error().Err(err).Int64("RepositoryID", task.RepositoryID).Msg("Get repository by id failed")
+					log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Get repository by id failed")
 					continue
 				}
 				if !repositoryObj.UpdatedAt.Before(time.Now().Add(-1 * 24 * time.Duration(task.Runner.Rule.RetentionDay) * time.Hour)) {
@@ -184,12 +187,15 @@ func (g gcRepository) deleteRepository() {
 	repositoryService := g.repositoryServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.collectRecordChan)
 		for task := range g.deleteRepositoryChan {
-			err := repositoryService.DeleteByID(g.ctx, task.RepositoryID)
+			err := repositoryService.DeleteByID(g.ctx, task.Repository.ID)
 			if err != nil {
-				log.Error().Err(err).Int64("RepositoryID", task.RepositoryID).Msg("Delete repository by id failed")
+				log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Delete repository by id failed")
+				g.collectRecordChan <- repositoryTaskCollectRecord{Status: enums.GcRecordStatusFailed, Repository: task.Repository, Runner: task.Runner}
 				continue
 			}
+			g.collectRecordChan <- repositoryTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Repository: task.Repository, Runner: task.Runner}
 		}
 	}()
 }
@@ -199,6 +205,12 @@ func (g gcRepository) collectRecord() {
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer func() {
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
+				"success_count": successCount,
+				"failed_count":  failedCount,
+			}}
+		}()
 		for task := range g.collectRecordChan {
 			err := daemonService.CreateGcRepositoryRecords(g.ctx, []*models.DaemonGcRepositoryRecord{})
 			if err != nil {

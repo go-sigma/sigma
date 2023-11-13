@@ -37,6 +37,8 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 	_daemonGcBlobRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcBlobRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcBlobRunner.Duration = field.NewInt64(tableName, "duration")
+	_daemonGcBlobRunner.SuccessCount = field.NewInt64(tableName, "success_count")
+	_daemonGcBlobRunner.FailedCount = field.NewInt64(tableName, "failed_count")
 	_daemonGcBlobRunner.Rule = daemonGcBlobRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
@@ -51,18 +53,20 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 type daemonGcBlobRunner struct {
 	daemonGcBlobRunnerDo daemonGcBlobRunnerDo
 
-	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
-	ID        field.Int64
-	RuleID    field.Int64
-	Status    field.Field
-	Message   field.Bytes
-	StartedAt field.Time
-	EndedAt   field.Time
-	Duration  field.Int64
-	Rule      daemonGcBlobRunnerBelongsToRule
+	ALL          field.Asterisk
+	CreatedAt    field.Time
+	UpdatedAt    field.Time
+	DeletedAt    field.Uint
+	ID           field.Int64
+	RuleID       field.Int64
+	Status       field.Field
+	Message      field.Bytes
+	StartedAt    field.Time
+	EndedAt      field.Time
+	Duration     field.Int64
+	SuccessCount field.Int64
+	FailedCount  field.Int64
+	Rule         daemonGcBlobRunnerBelongsToRule
 
 	fieldMap map[string]field.Expr
 }
@@ -89,6 +93,8 @@ func (d *daemonGcBlobRunner) updateTableName(table string) *daemonGcBlobRunner {
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
+	d.SuccessCount = field.NewInt64(table, "success_count")
+	d.FailedCount = field.NewInt64(table, "failed_count")
 
 	d.fillFieldMap()
 
@@ -117,7 +123,7 @@ func (d *daemonGcBlobRunner) GetFieldByName(fieldName string) (field.OrderExpr, 
 }
 
 func (d *daemonGcBlobRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 11)
+	d.fieldMap = make(map[string]field.Expr, 13)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
@@ -128,6 +134,8 @@ func (d *daemonGcBlobRunner) fillFieldMap() {
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
+	d.fieldMap["success_count"] = d.SuccessCount
+	d.fieldMap["failed_count"] = d.FailedCount
 
 }
 
