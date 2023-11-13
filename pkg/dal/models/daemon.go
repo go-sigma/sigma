@@ -84,7 +84,9 @@ type DaemonGcTagRecord struct {
 	RunnerID int64
 	Runner   DaemonGcTagRunner
 
-	Tag string
+	Tag     string
+	Status  enums.GcRecordStatus
+	Message []byte
 }
 
 // DaemonGcRepositoryRule ...
@@ -133,6 +135,8 @@ type DaemonGcRepositoryRecord struct {
 	Runner   DaemonGcRepositoryRunner
 
 	Repository string
+	Status     enums.GcRecordStatus
+	Message    []byte
 }
 
 // DaemonGcArtifactRule ...
@@ -176,9 +180,11 @@ type DaemonGcArtifactRecord struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	RunnerID int64
-	Digest   string
+	Runner   DaemonGcArtifactRunner
 
-	Runner DaemonGcArtifactRunner
+	Digest  string
+	Status  enums.GcRecordStatus
+	Message []byte
 }
 
 // DaemonGcBlobRule ...
@@ -221,5 +227,7 @@ type DaemonGcBlobRecord struct {
 	RunnerID int64
 	Runner   DaemonGcBlobRunner
 
-	Digest string
+	Digest  string
+	Status  enums.GcRecordStatus
+	Message []byte
 }

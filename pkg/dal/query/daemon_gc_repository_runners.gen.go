@@ -40,7 +40,7 @@ func newDaemonGcRepositoryRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 	_daemonGcRepositoryRunner.Rule = daemonGcRepositoryRunnerBelongsToRule{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Rule", "models.DaemonGcTagRule"),
+		RelationField: field.NewRelation("Rule", "models.DaemonGcRepositoryRule"),
 		Namespace: struct {
 			field.RelationField
 		}{
@@ -185,11 +185,11 @@ func (a daemonGcRepositoryRunnerBelongsToRule) Model(m *models.DaemonGcRepositor
 
 type daemonGcRepositoryRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
-func (a daemonGcRepositoryRunnerBelongsToRuleTx) Find() (result *models.DaemonGcTagRule, err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Find() (result *models.DaemonGcRepositoryRule, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToRuleTx) Append(values ...*models.DaemonGcTagRule) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Append(values ...*models.DaemonGcRepositoryRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -197,7 +197,7 @@ func (a daemonGcRepositoryRunnerBelongsToRuleTx) Append(values ...*models.Daemon
 	return a.tx.Append(targetValues...)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToRuleTx) Replace(values ...*models.DaemonGcTagRule) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Replace(values ...*models.DaemonGcRepositoryRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -205,7 +205,7 @@ func (a daemonGcRepositoryRunnerBelongsToRuleTx) Replace(values ...*models.Daemo
 	return a.tx.Replace(targetValues...)
 }
 
-func (a daemonGcRepositoryRunnerBelongsToRuleTx) Delete(values ...*models.DaemonGcTagRule) (err error) {
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Delete(values ...*models.DaemonGcRepositoryRule) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v

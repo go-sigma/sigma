@@ -53,6 +53,12 @@ type repositoryTask struct {
 	RepositoryID int64
 }
 
+// repositoryTaskCollectRecord ...
+type repositoryTaskCollectRecord struct {
+	Status     enums.GcRecordStatus
+	Repository string
+}
+
 type gcRepository struct {
 	ctx    context.Context
 	config configs.Configuration
@@ -68,17 +74,22 @@ type gcRepository struct {
 	deleteRepositoryCheckRepositoryChanOnce *sync.Once
 	deleteRepositoryChan                    chan repositoryTask
 	deleteRepositoryChanOnce                *sync.Once
+	collectRecordChan                       chan repositoryTaskCollectRecord
+	collectRecordChanOnce                   *sync.Once
+
+	runnerChan chan decoratorStatus
 
 	waitAllDone *sync.WaitGroup
 }
 
 // Run ...
-func (g gcRepository) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
-	defer close(statusChan)
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+func (g gcRepository) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
+	defer close(runnerChan)
+	g.runnerChan = runnerChan
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(ctx, runnerID)
 	if err != nil {
-		statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
+		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
 		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
 
@@ -110,7 +121,7 @@ func (g gcRepository) Run(ctx context.Context, runnerID int64, statusChan chan d
 	close(g.deleteRepositoryWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }
@@ -177,6 +188,27 @@ func (g gcRepository) deleteRepository() {
 			err := repositoryService.DeleteByID(g.ctx, task.RepositoryID)
 			if err != nil {
 				log.Error().Err(err).Int64("RepositoryID", task.RepositoryID).Msg("Delete repository by id failed")
+				continue
+			}
+		}
+	}()
+}
+
+func (g gcRepository) collectRecord() {
+	var successCount, failedCount int64
+	daemonService := g.daemonServiceFactory.New()
+	go func() {
+		defer g.waitAllDone.Done()
+		for task := range g.collectRecordChan {
+			err := daemonService.CreateGcRepositoryRecords(g.ctx, []*models.DaemonGcRepositoryRecord{})
+			if err != nil {
+				log.Error().Err(err).Msg("Create gc repository record failed")
+				continue
+			}
+			if task.Status == enums.GcRecordStatusSuccess {
+				successCount++
+			} else {
+				failedCount++
 			}
 		}
 	}()

@@ -33,6 +33,8 @@ func newDaemonGcBlobRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRecord
 	_daemonGcBlobRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcBlobRecord.RunnerID = field.NewInt64(tableName, "runner_id")
 	_daemonGcBlobRecord.Digest = field.NewString(tableName, "digest")
+	_daemonGcBlobRecord.Status = field.NewField(tableName, "status")
+	_daemonGcBlobRecord.Message = field.NewBytes(tableName, "message")
 	_daemonGcBlobRecord.Runner = daemonGcBlobRecordBelongsToRunner{
 		db: db.Session(&gorm.Session{}),
 
@@ -59,6 +61,8 @@ type daemonGcBlobRecord struct {
 	ID        field.Int64
 	RunnerID  field.Int64
 	Digest    field.String
+	Status    field.Field
+	Message   field.Bytes
 	Runner    daemonGcBlobRecordBelongsToRunner
 
 	fieldMap map[string]field.Expr
@@ -82,6 +86,8 @@ func (d *daemonGcBlobRecord) updateTableName(table string) *daemonGcBlobRecord {
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")
 	d.Digest = field.NewString(table, "digest")
+	d.Status = field.NewField(table, "status")
+	d.Message = field.NewBytes(table, "message")
 
 	d.fillFieldMap()
 
@@ -110,13 +116,15 @@ func (d *daemonGcBlobRecord) GetFieldByName(fieldName string) (field.OrderExpr, 
 }
 
 func (d *daemonGcBlobRecord) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 7)
+	d.fieldMap = make(map[string]field.Expr, 9)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["runner_id"] = d.RunnerID
 	d.fieldMap["digest"] = d.Digest
+	d.fieldMap["status"] = d.Status
+	d.fieldMap["message"] = d.Message
 
 }
 

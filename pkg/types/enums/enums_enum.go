@@ -1019,6 +1019,89 @@ func (x Deploy) Value() (driver.Value, error) {
 }
 
 const (
+	// GcRecordStatusSuccess is a GcRecordStatus of type Success.
+	GcRecordStatusSuccess GcRecordStatus = "Success"
+	// GcRecordStatusFailed is a GcRecordStatus of type Failed.
+	GcRecordStatusFailed GcRecordStatus = "Failed"
+)
+
+var ErrInvalidGcRecordStatus = errors.New("not a valid GcRecordStatus")
+
+// String implements the Stringer interface.
+func (x GcRecordStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x GcRecordStatus) IsValid() bool {
+	_, err := ParseGcRecordStatus(string(x))
+	return err == nil
+}
+
+var _GcRecordStatusValue = map[string]GcRecordStatus{
+	"Success": GcRecordStatusSuccess,
+	"Failed":  GcRecordStatusFailed,
+}
+
+// ParseGcRecordStatus attempts to convert a string to a GcRecordStatus.
+func ParseGcRecordStatus(name string) (GcRecordStatus, error) {
+	if x, ok := _GcRecordStatusValue[name]; ok {
+		return x, nil
+	}
+	return GcRecordStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidGcRecordStatus)
+}
+
+// MustParseGcRecordStatus converts a string to a GcRecordStatus, and panics if is not valid.
+func MustParseGcRecordStatus(name string) GcRecordStatus {
+	val, err := ParseGcRecordStatus(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errGcRecordStatusNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *GcRecordStatus) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = GcRecordStatus("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseGcRecordStatus(v)
+	case []byte:
+		*x, err = ParseGcRecordStatus(string(v))
+	case GcRecordStatus:
+		*x = v
+	case *GcRecordStatus:
+		if v == nil {
+			return errGcRecordStatusNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errGcRecordStatusNilPtr
+		}
+		*x, err = ParseGcRecordStatus(*v)
+	default:
+		return errors.New("invalid type for GcRecordStatus")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x GcRecordStatus) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// GcTargetBlobsAndArtifacts is a GcTarget of type blobsAndArtifacts.
 	GcTargetBlobsAndArtifacts GcTarget = "blobsAndArtifacts"
 	// GcTargetArtifacts is a GcTarget of type artifacts.

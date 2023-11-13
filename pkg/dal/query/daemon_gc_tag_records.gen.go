@@ -33,6 +33,8 @@ func newDaemonGcTagRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRecord {
 	_daemonGcTagRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcTagRecord.RunnerID = field.NewInt64(tableName, "runner_id")
 	_daemonGcTagRecord.Tag = field.NewString(tableName, "tag")
+	_daemonGcTagRecord.Status = field.NewField(tableName, "status")
+	_daemonGcTagRecord.Message = field.NewBytes(tableName, "message")
 	_daemonGcTagRecord.Runner = daemonGcTagRecordBelongsToRunner{
 		db: db.Session(&gorm.Session{}),
 
@@ -67,6 +69,8 @@ type daemonGcTagRecord struct {
 	ID        field.Int64
 	RunnerID  field.Int64
 	Tag       field.String
+	Status    field.Field
+	Message   field.Bytes
 	Runner    daemonGcTagRecordBelongsToRunner
 
 	fieldMap map[string]field.Expr
@@ -90,6 +94,8 @@ func (d *daemonGcTagRecord) updateTableName(table string) *daemonGcTagRecord {
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")
 	d.Tag = field.NewString(table, "tag")
+	d.Status = field.NewField(table, "status")
+	d.Message = field.NewBytes(table, "message")
 
 	d.fillFieldMap()
 
@@ -118,13 +124,15 @@ func (d *daemonGcTagRecord) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (d *daemonGcTagRecord) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 7)
+	d.fieldMap = make(map[string]field.Expr, 9)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["runner_id"] = d.RunnerID
 	d.fieldMap["tag"] = d.Tag
+	d.fieldMap["status"] = d.Status
+	d.fieldMap["message"] = d.Message
 
 }
 

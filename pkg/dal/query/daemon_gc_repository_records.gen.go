@@ -33,6 +33,8 @@ func newDaemonGcRepositoryRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 	_daemonGcRepositoryRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcRepositoryRecord.RunnerID = field.NewInt64(tableName, "runner_id")
 	_daemonGcRepositoryRecord.Repository = field.NewString(tableName, "repository")
+	_daemonGcRepositoryRecord.Status = field.NewField(tableName, "status")
+	_daemonGcRepositoryRecord.Message = field.NewBytes(tableName, "message")
 	_daemonGcRepositoryRecord.Runner = daemonGcRepositoryRecordBelongsToRunner{
 		db: db.Session(&gorm.Session{}),
 
@@ -43,7 +45,7 @@ func newDaemonGcRepositoryRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 				field.RelationField
 			}
 		}{
-			RelationField: field.NewRelation("Runner.Rule", "models.DaemonGcTagRule"),
+			RelationField: field.NewRelation("Runner.Rule", "models.DaemonGcRepositoryRule"),
 			Namespace: struct {
 				field.RelationField
 			}{
@@ -67,6 +69,8 @@ type daemonGcRepositoryRecord struct {
 	ID         field.Int64
 	RunnerID   field.Int64
 	Repository field.String
+	Status     field.Field
+	Message    field.Bytes
 	Runner     daemonGcRepositoryRecordBelongsToRunner
 
 	fieldMap map[string]field.Expr
@@ -90,6 +94,8 @@ func (d *daemonGcRepositoryRecord) updateTableName(table string) *daemonGcReposi
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")
 	d.Repository = field.NewString(table, "repository")
+	d.Status = field.NewField(table, "status")
+	d.Message = field.NewBytes(table, "message")
 
 	d.fillFieldMap()
 
@@ -118,13 +124,15 @@ func (d *daemonGcRepositoryRecord) GetFieldByName(fieldName string) (field.Order
 }
 
 func (d *daemonGcRepositoryRecord) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 7)
+	d.fieldMap = make(map[string]field.Expr, 9)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["runner_id"] = d.RunnerID
 	d.fieldMap["repository"] = d.Repository
+	d.fieldMap["status"] = d.Status
+	d.fieldMap["message"] = d.Message
 
 }
 

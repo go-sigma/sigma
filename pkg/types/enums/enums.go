@@ -41,6 +41,12 @@ type Deploy string
 // )
 type TaskCommonStatus string
 
+// GcRecordStatus x ENUM(
+// Success,
+// Failed,
+// )
+type GcRecordStatus string
+
 // BuildStatus x ENUM(
 // Success,
 // Failed,
