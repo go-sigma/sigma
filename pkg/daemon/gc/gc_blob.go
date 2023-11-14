@@ -16,6 +16,7 @@ package gc
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -45,33 +46,60 @@ func init() {
 }
 
 type blobTask struct {
-	RunnerID int64
-	Blob     models.Blob
+	Runner models.DaemonGcBlobRunner
+	Blob   models.Blob
+}
+
+type blobTaskCollectRecord struct {
+	Status  enums.GcRecordStatus
+	Runner  models.DaemonGcBlobRunner
+	Blob    models.Blob
+	Message *string
 }
 
 type gcBlob struct {
+	ctx    context.Context
+	config configs.Configuration
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
 	daemonServiceFactory     dao.DaemonServiceFactory
 	storageDriverFactory     storage.StorageDriverFactory
-	config                   configs.Configuration
 
-	deleteBlobChan     chan blobTask
-	deleteBlobChanOnce *sync.Once
+	deleteBlobChan        chan blobTask
+	deleteBlobChanOnce    *sync.Once
+	collectRecordChan     chan blobTaskCollectRecord
+	collectRecordChanOnce *sync.Once
+
+	runnerChan chan decoratorStatus
+
+	waitAllDone *sync.WaitGroup
 }
 
 // Run ...
-func (g gcBlob) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
-	defer close(statusChan)
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+func (g gcBlob) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
+	defer close(runnerChan)
+	g.runnerChan = runnerChan
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+
+	runnerObj, err := g.daemonServiceFactory.New().GetGcBlobRunner(ctx, runnerID)
+	if err != nil {
+		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc blob runner failed: %v", err), Ended: true}
+		return fmt.Errorf("get gc blob runner failed: %v", err)
+	}
 
 	blobService := g.blobServiceFactory.New()
 
-	timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
+	timeTarget := time.Now()
+	if runnerObj.Rule.RetentionDay > 0 {
+		timeTarget = time.Now().Add(-1 * time.Duration(runnerObj.Rule.RetentionDay) * 24 * time.Hour)
+	}
 
 	g.deleteBlobChanOnce.Do(g.deleteBlob)
+	g.collectRecordChanOnce.Do(g.collectRecord)
+	g.waitAllDone.Add(2)
 
 	var curIndex int64
 	for {
@@ -91,17 +119,17 @@ func (g gcBlob) Run(ctx context.Context, runnerID int64, statusChan chan decorat
 		notAssociateBlobIDs.RemoveAll(associateBlobIDs...)
 		notAssociateBlobSlice := notAssociateBlobIDs.ToSlice()
 		if len(notAssociateBlobSlice) > 0 {
-			var notAssociateBlobs = make([]*models.Blob, 0, pagination)
+			var notAssociateBlobObjs = make([]*models.Blob, 0, pagination)
 			for _, id := range notAssociateBlobSlice {
 				for _, blob := range blobs {
 					if blob.ID == id {
-						notAssociateBlobs = append(notAssociateBlobs, blob)
+						notAssociateBlobObjs = append(notAssociateBlobObjs, blob)
 					}
 				}
 			}
-			if len(notAssociateBlobs) > 0 {
-				for _, blob := range notAssociateBlobs {
-					g.deleteBlobChan <- blobTask{RunnerID: runnerID, Blob: ptr.To(blob)}
+			if len(notAssociateBlobObjs) > 0 {
+				for _, blob := range notAssociateBlobObjs {
+					g.deleteBlobChan <- blobTask{Runner: ptr.To(runnerObj), Blob: ptr.To(blob)}
 				}
 			}
 		}
@@ -110,6 +138,11 @@ func (g gcBlob) Run(ctx context.Context, runnerID int64, statusChan chan decorat
 		}
 		curIndex = blobs[len(blobs)-1].ID
 	}
+	close(g.deleteBlobChan)
+	g.waitAllDone.Wait()
+
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+
 	return nil
 }
 
@@ -122,7 +155,7 @@ func (g gcBlob) deleteBlob() {
 				return err
 			}
 			err = g.daemonServiceFactory.New(tx).CreateGcBlobRecords(ctx, []*models.DaemonGcBlobRecord{{
-				RunnerID: task.RunnerID,
+				RunnerID: task.Runner.ID,
 				Digest:   task.Blob.Digest,
 			}})
 			if err != nil {
@@ -137,6 +170,46 @@ func (g gcBlob) deleteBlob() {
 		})
 		if err != nil {
 			log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
+			g.collectRecordChan <- blobTaskCollectRecord{
+				Status:  enums.GcRecordStatusFailed,
+				Blob:    task.Blob,
+				Runner:  task.Runner,
+				Message: ptr.Of(fmt.Sprintf("Delete repository by id failed: %v", err)),
+			}
+			continue
 		}
 	}
+}
+
+func (g gcBlob) collectRecord() {
+	var successCount, failedCount int64
+	daemonService := g.daemonServiceFactory.New()
+	go func() {
+		defer g.waitAllDone.Done()
+		defer func() {
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
+				"success_count": successCount,
+				"failed_count":  failedCount,
+			}}
+		}()
+		for task := range g.collectRecordChan {
+			err := daemonService.CreateGcBlobRecords(g.ctx, []*models.DaemonGcBlobRecord{
+				{
+					RunnerID: task.Runner.ID,
+					Digest:   task.Blob.Digest,
+					Status:   task.Status,
+					Message:  []byte(ptr.To(task.Message)),
+				},
+			})
+			if err != nil {
+				log.Error().Err(err).Msg("Create gc blob record failed")
+				continue
+			}
+			if task.Status == enums.GcRecordStatusSuccess {
+				successCount++
+			} else {
+				failedCount++
+			}
+		}
+	}()
 }

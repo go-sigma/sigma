@@ -201,6 +201,7 @@ type DaemonGcBlobRule struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	IsRunning       bool `gorm:"default:false"`
+	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
 	CronNextTrigger *time.Time

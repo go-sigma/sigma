@@ -394,7 +394,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   "id" bigserial PRIMARY KEY,
   "namespace_id" bigint,
   "is_running" smallint NOT NULL DEFAULT 0,
-  "retention_day" integer NOT NULL,
+  "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
@@ -432,6 +432,20 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_records" (
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_repository_runners" ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_rules" (
+  "id" bigserial PRIMARY KEY,
+  "namespace_id" bigint,
+  "is_running" smallint NOT NULL DEFAULT 0,
+  "retention_day" integer NOT NULL DEFAULT 0,
+  "cron_enabled" smallint NOT NULL DEFAULT 0,
+  "cron_rule" varchar(30),
+  "cron_next_trigger" timestamp,
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
+);
+
 CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "id" bigserial PRIMARY KEY,
   "rule_id" bigint NOT NULL,
@@ -445,7 +459,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" integer NOT NULL DEFAULT 0,
-  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_repository_records" ("id")
+  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_artifact_rules" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
@@ -462,6 +476,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "id" bigserial PRIMARY KEY,
+  "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,

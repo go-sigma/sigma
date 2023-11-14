@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `namespace_id` integer,
   `is_running` integer NOT NULL DEFAULT 0,
-  `retention_day` integer NOT NULL,
+  `retention_day` integer NOT NULL DEFAULT 0,
   `cron_enabled` integer NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
@@ -363,6 +363,8 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `namespace_id` integer,
+  `is_running` integer NOT NULL DEFAULT 0,
+  `retention_day` integer NOT NULL DEFAULT 0,
   `cron_enabled` integer NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
@@ -403,6 +405,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `is_running` integer NOT NULL DEFAULT 0,
+  `retention_day` integer NOT NULL DEFAULT 0,
   `cron_enabled` integer NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,

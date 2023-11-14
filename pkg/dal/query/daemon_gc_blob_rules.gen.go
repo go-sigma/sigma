@@ -32,6 +32,7 @@ func newDaemonGcBlobRule(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRule {
 	_daemonGcBlobRule.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_daemonGcBlobRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcBlobRule.IsRunning = field.NewBool(tableName, "is_running")
+	_daemonGcBlobRule.RetentionDay = field.NewInt(tableName, "retention_day")
 	_daemonGcBlobRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcBlobRule.CronRule = field.NewString(tableName, "cron_rule")
 	_daemonGcBlobRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
@@ -50,6 +51,7 @@ type daemonGcBlobRule struct {
 	DeletedAt       field.Uint
 	ID              field.Int64
 	IsRunning       field.Bool
+	RetentionDay    field.Int
 	CronEnabled     field.Bool
 	CronRule        field.String
 	CronNextTrigger field.Time
@@ -74,6 +76,7 @@ func (d *daemonGcBlobRule) updateTableName(table string) *daemonGcBlobRule {
 	d.DeletedAt = field.NewUint(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.IsRunning = field.NewBool(table, "is_running")
+	d.RetentionDay = field.NewInt(table, "retention_day")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
 	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
@@ -105,12 +108,13 @@ func (d *daemonGcBlobRule) GetFieldByName(fieldName string) (field.OrderExpr, bo
 }
 
 func (d *daemonGcBlobRule) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 8)
+	d.fieldMap = make(map[string]field.Expr, 9)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["is_running"] = d.IsRunning
+	d.fieldMap["retention_day"] = d.RetentionDay
 	d.fieldMap["cron_enabled"] = d.CronEnabled
 	d.fieldMap["cron_rule"] = d.CronRule
 	d.fieldMap["cron_next_trigger"] = d.CronNextTrigger

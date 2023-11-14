@@ -45,16 +45,26 @@ func init() {
 }
 
 type artifactWithNamespaceTask struct {
-	RunnerID    int64
+	Runner      models.DaemonGcArtifactRunner
 	NamespaceID int64
 }
 
 type artifactTask struct {
-	RunnerID int64
+	Runner   models.DaemonGcArtifactRunner
 	Artifact models.Artifact
 }
 
+type artifactTaskCollectRecord struct {
+	Status   enums.GcRecordStatus
+	Runner   models.DaemonGcArtifactRunner
+	Artifact models.Artifact
+	Message  *string
+}
+
 type gcArtifact struct {
+	ctx    context.Context
+	config configs.Configuration
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -62,7 +72,6 @@ type gcArtifact struct {
 	blobServiceFactory       dao.BlobServiceFactory
 	daemonServiceFactory     dao.DaemonServiceFactory
 	storageDriverFactory     storage.StorageDriverFactory
-	config                   configs.Configuration
 
 	deleteArtifactWithNamespaceChan     chan artifactWithNamespaceTask
 	deleteArtifactWithNamespaceChanOnce *sync.Once
@@ -70,16 +79,21 @@ type gcArtifact struct {
 	deleteArtifactCheckChanOnce         *sync.Once
 	deleteArtifactChan                  chan artifactTask
 	deleteArtifactChanOnce              *sync.Once
+	collectRecordChan                   chan artifactTaskCollectRecord
+	collectRecordChanOnce               *sync.Once
+
+	runnerChan chan decoratorStatus
 
 	waitAllDone *sync.WaitGroup
 }
 
-func (g gcArtifact) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
-	defer close(statusChan)
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
+func (g gcArtifact) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
+	defer close(runnerChan)
+	g.runnerChan = runnerChan
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(ctx, runnerID)
 	if err != nil {
-		statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
+		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc artifact runner failed: %v", err)
 	}
 
@@ -88,10 +102,11 @@ func (g gcArtifact) Run(ctx context.Context, runnerID int64, statusChan chan dec
 	g.deleteArtifactWithNamespaceChanOnce.Do(g.deleteArtifactWithNamespace)
 	g.deleteArtifactCheckChanOnce.Do(g.deleteArtifactCheck)
 	g.deleteArtifactChanOnce.Do(g.deleteArtifact)
-	g.waitAllDone.Add(3)
+	g.collectRecordChanOnce.Do(g.collectRecord)
+	g.waitAllDone.Add(4)
 
 	if runnerObj.Rule.NamespaceID != nil {
-		g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+		g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
@@ -100,7 +115,7 @@ func (g gcArtifact) Run(ctx context.Context, runnerID int64, statusChan chan dec
 				return err
 			}
 			for _, ns := range namespaceObjs {
-				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{RunnerID: runnerID, NamespaceID: ns.ID}
+				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ns.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -111,13 +126,12 @@ func (g gcArtifact) Run(ctx context.Context, runnerID int64, statusChan chan dec
 
 	g.waitAllDone.Wait()
 
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }
 
 func (g gcArtifact) deleteArtifactWithNamespace() {
-	ctx := log.Logger.WithContext(context.Background())
 	repositoryService := g.repositoryServiceFactory.New()
 	artifactService := g.artifactServiceFactory.New()
 	go func() {
@@ -126,7 +140,7 @@ func (g gcArtifact) deleteArtifactWithNamespace() {
 			var repositoryCurIndex int64
 			timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
 			for {
-				repositoryObjs, err := repositoryService.FindAll(ctx, task.NamespaceID, pagination, repositoryCurIndex)
+				repositoryObjs, err := repositoryService.FindAll(g.ctx, task.NamespaceID, pagination, repositoryCurIndex)
 				if err != nil {
 					log.Error().Err(err).Int64("namespaceID", task.NamespaceID).Msg("List repository failed")
 					continue
@@ -134,13 +148,13 @@ func (g gcArtifact) deleteArtifactWithNamespace() {
 				for _, repositoryObj := range repositoryObjs {
 					var artifactCurIndex int64
 					for {
-						artifactObjs, err := artifactService.FindWithLastPull(ctx, repositoryObj.ID, timeTarget, pagination, artifactCurIndex)
+						artifactObjs, err := artifactService.FindWithLastPull(g.ctx, repositoryObj.ID, timeTarget, pagination, artifactCurIndex)
 						if err != nil {
 							log.Error().Err(err).Msg("List artifact failed")
 							continue
 						}
 						for _, a := range artifactObjs {
-							g.deleteArtifactCheckChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+							g.deleteArtifactCheckChan <- artifactTask{Runner: task.Runner, Artifact: ptr.To(a)}
 						}
 						if len(artifactObjs) < pagination {
 							break
@@ -158,7 +172,6 @@ func (g gcArtifact) deleteArtifactWithNamespace() {
 }
 
 func (g gcArtifact) deleteArtifactCheck() {
-	ctx := log.Logger.WithContext(context.Background())
 	artifactService := g.artifactServiceFactory.New()
 	tagService := g.tagServiceFactory.New()
 	go func() {
@@ -169,7 +182,7 @@ func (g gcArtifact) deleteArtifactCheck() {
 				continue
 			}
 			// 2. check tag associate with this artifact
-			_, err := tagService.GetByArtifactID(ctx, task.Artifact.RepositoryID, task.Artifact.ID)
+			_, err := tagService.GetByArtifactID(g.ctx, task.Artifact.RepositoryID, task.Artifact.ID)
 			if err != nil {
 				if !errors.Is(err, gorm.ErrRecordNotFound) {
 					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get tag by artifact failed")
@@ -177,7 +190,7 @@ func (g gcArtifact) deleteArtifactCheck() {
 				continue
 			}
 			// 3. check manifest index associate with this artifact
-			err = artifactService.IsArtifactAssociatedWithArtifact(ctx, task.Artifact.ID)
+			err = artifactService.IsArtifactAssociatedWithArtifact(g.ctx, task.Artifact.ID)
 			if err != nil {
 				if !errors.Is(err, gorm.ErrRecordNotFound) {
 					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
@@ -185,13 +198,13 @@ func (g gcArtifact) deleteArtifactCheck() {
 				continue
 			}
 			// 4. delete the artifact that referrer to this artifact
-			delArtifacts, err := artifactService.GetReferrers(ctx, task.Artifact.RepositoryID, task.Artifact.Digest, nil)
+			delArtifacts, err := artifactService.GetReferrers(g.ctx, task.Artifact.RepositoryID, task.Artifact.Digest, nil)
 			if err != nil {
 				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get artifact referrers failed")
 				continue
 			}
 			for _, a := range delArtifacts {
-				g.deleteArtifactChan <- artifactTask{RunnerID: task.RunnerID, Artifact: ptr.To(a)}
+				g.deleteArtifactChan <- artifactTask{Runner: task.Runner, Artifact: ptr.To(a)}
 			}
 			g.deleteArtifactChan <- task
 		}
@@ -199,27 +212,67 @@ func (g gcArtifact) deleteArtifactCheck() {
 }
 
 func (g gcArtifact) deleteArtifact() {
-	ctx := log.Logger.WithContext(context.Background())
 	go func() {
 		defer g.waitAllDone.Done()
 		for task := range g.deleteArtifactChan {
 			err := query.Q.Transaction(func(tx *query.Query) error {
-				err := g.artifactServiceFactory.New(tx).DeleteByID(ctx, task.Artifact.ID)
+				err := g.artifactServiceFactory.New(tx).DeleteByID(g.ctx, task.Artifact.ID)
 				if err != nil {
 					return err
 				}
-				err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(ctx, []*models.DaemonGcArtifactRecord{{
-					RunnerID: task.RunnerID,
+				err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(g.ctx, []*models.DaemonGcArtifactRecord{{
+					RunnerID: task.Runner.ID,
 					Digest:   task.Artifact.Digest,
 				}})
 				if err != nil {
 					return err
 				}
-				log.Info().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
+				log.Debug().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
 				return nil
 			})
 			if err != nil {
 				log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
+				g.collectRecordChan <- artifactTaskCollectRecord{
+					Status:   enums.GcRecordStatusFailed,
+					Artifact: task.Artifact,
+					Runner:   task.Runner,
+					Message:  ptr.Of(fmt.Sprintf("Delete blob failed: %v", err)),
+				}
+				continue
+			}
+			g.collectRecordChan <- artifactTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Artifact: task.Artifact, Runner: task.Runner}
+		}
+	}()
+}
+
+func (g gcArtifact) collectRecord() {
+	var successCount, failedCount int64
+	daemonService := g.daemonServiceFactory.New()
+	go func() {
+		defer g.waitAllDone.Done()
+		defer func() {
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
+				"success_count": successCount,
+				"failed_count":  failedCount,
+			}}
+		}()
+		for task := range g.collectRecordChan {
+			err := daemonService.CreateGcArtifactRecords(g.ctx, []*models.DaemonGcArtifactRecord{
+				{
+					RunnerID: task.Runner.ID,
+					Digest:   task.Artifact.Digest,
+					Status:   task.Status,
+					Message:  []byte(ptr.To(task.Message)),
+				},
+			})
+			if err != nil {
+				log.Error().Err(err).Msg("Create gc repository record failed")
+				continue
+			}
+			if task.Status == enums.GcRecordStatusSuccess {
+				successCount++
+			} else {
+				failedCount++
 			}
 		}
 	}()

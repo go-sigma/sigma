@@ -148,6 +148,17 @@ func initGc(ctx context.Context, daemon enums.Daemon) Runner {
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 			tagServiceFactory:        dao.NewTagServiceFactory(),
+
+			deleteRepositoryWithNamespaceChan:       make(chan repositoryWithNamespaceTask, pagination),
+			deleteRepositoryWithNamespaceChanOnce:   &sync.Once{},
+			deleteRepositoryCheckRepositoryChan:     make(chan repositoryTask, pagination),
+			deleteRepositoryCheckRepositoryChanOnce: &sync.Once{},
+			deleteRepositoryChan:                    make(chan repositoryTask, pagination),
+			deleteRepositoryChanOnce:                &sync.Once{},
+			collectRecordChan:                       make(chan repositoryTaskCollectRecord, pagination),
+			collectRecordChanOnce:                   &sync.Once{},
+
+			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcTag:
 		return &gcTag{

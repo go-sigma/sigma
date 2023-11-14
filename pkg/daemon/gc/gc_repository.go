@@ -58,6 +58,7 @@ type repositoryTaskCollectRecord struct {
 	Status     enums.GcRecordStatus
 	Runner     models.DaemonGcRepositoryRunner
 	Repository models.Repository
+	Message    *string
 }
 
 type gcRepository struct {
@@ -192,7 +193,12 @@ func (g gcRepository) deleteRepository() {
 			err := repositoryService.DeleteByID(g.ctx, task.Repository.ID)
 			if err != nil {
 				log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Delete repository by id failed")
-				g.collectRecordChan <- repositoryTaskCollectRecord{Status: enums.GcRecordStatusFailed, Repository: task.Repository, Runner: task.Runner}
+				g.collectRecordChan <- repositoryTaskCollectRecord{
+					Status:     enums.GcRecordStatusFailed,
+					Repository: task.Repository,
+					Runner:     task.Runner,
+					Message:    ptr.Of(fmt.Sprintf("Delete repository by id failed: %v", err)),
+				}
 				continue
 			}
 			g.collectRecordChan <- repositoryTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Repository: task.Repository, Runner: task.Runner}
@@ -212,7 +218,14 @@ func (g gcRepository) collectRecord() {
 			}}
 		}()
 		for task := range g.collectRecordChan {
-			err := daemonService.CreateGcRepositoryRecords(g.ctx, []*models.DaemonGcRepositoryRecord{})
+			err := daemonService.CreateGcRepositoryRecords(g.ctx, []*models.DaemonGcRepositoryRecord{
+				{
+					RunnerID:   task.Runner.ID,
+					Repository: task.Repository.Name,
+					Status:     task.Status,
+					Message:    []byte(ptr.To(task.Message)),
+				},
+			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create gc repository record failed")
 				continue

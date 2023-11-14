@@ -63,6 +63,14 @@ type tagTask struct {
 	Tag    models.Tag
 }
 
+// tagTaskCollectRecord ...
+type tagTaskCollectRecord struct {
+	Status  enums.GcRecordStatus
+	Runner  models.DaemonGcTagRunner
+	Tag     models.Tag
+	Message *string
+}
+
 type gcTag struct {
 	ctx    context.Context
 	config configs.Configuration
@@ -82,17 +90,22 @@ type gcTag struct {
 	deleteTagCheckPatternChanOnce   *sync.Once
 	deleteTagChan                   chan tagTask
 	deleteTagChanOnce               *sync.Once
+	collectRecordChan               chan tagTaskCollectRecord
+	collectRecordChanOnce           *sync.Once
+
+	runnerChan chan decoratorStatus
 
 	waitAllDone *sync.WaitGroup
 }
 
 // Run ...
-func (g gcTag) Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error {
-	defer close(statusChan)
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
+func (g gcTag) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
+	defer close(runnerChan)
+	g.runnerChan = runnerChan
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcTagRunner(ctx, runnerID)
 	if err != nil {
-		statusChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
+		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc tag runner failed: %v", err)
 	}
 
@@ -107,7 +120,8 @@ func (g gcTag) Run(ctx context.Context, runnerID int64, statusChan chan decorato
 	g.deleteTagWithRepositoryChanOnce.Do(g.deleteTagWithRepository)
 	g.deleteTagCheckPatternChanOnce.Do(g.deleteTagCheckPattern)
 	g.deleteTagChanOnce.Do(g.deleteTag)
-	g.waitAllDone.Add(4)
+	g.collectRecordChanOnce.Do(g.collectRecord)
+	g.waitAllDone.Add(5)
 
 	if runnerObj.Rule.NamespaceID != nil {
 		g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
@@ -130,7 +144,7 @@ func (g gcTag) Run(ctx context.Context, runnerID int64, statusChan chan decorato
 	close(g.deleteTagWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	statusChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }
@@ -234,6 +248,46 @@ func (g gcTag) deleteTag() {
 			err := tagService.DeleteByID(g.ctx, task.Tag.ID)
 			if err != nil {
 				log.Error().Err(err).Int64("id", task.Tag.ID).Msg("Delete tag by id failed")
+				g.collectRecordChan <- tagTaskCollectRecord{
+					Status:  enums.GcRecordStatusFailed,
+					Tag:     task.Tag,
+					Runner:  task.Runner,
+					Message: ptr.Of(fmt.Sprintf("Delete tag by id failed: %v", err)),
+				}
+				continue
+			}
+		}
+	}()
+}
+
+func (g gcTag) collectRecord() {
+	var successCount, failedCount int64
+	daemonService := g.daemonServiceFactory.New()
+	go func() {
+		defer g.waitAllDone.Done()
+		defer func() {
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
+				"success_count": successCount,
+				"failed_count":  failedCount,
+			}}
+		}()
+		for task := range g.collectRecordChan {
+			err := daemonService.CreateGcTagRecords(g.ctx, []*models.DaemonGcTagRecord{
+				{
+					RunnerID: task.Runner.ID,
+					Tag:      task.Tag.Name,
+					Status:   task.Status,
+					Message:  []byte(ptr.To(task.Message)),
+				},
+			})
+			if err != nil {
+				log.Error().Err(err).Msg("Create gc tag record failed")
+				continue
+			}
+			if task.Status == enums.GcRecordStatusSuccess {
+				successCount++
+			} else {
+				failedCount++
 			}
 		}
 	}()
