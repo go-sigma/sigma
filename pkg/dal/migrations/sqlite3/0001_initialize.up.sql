@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
   `retention_rule_type` text CHECK (`retention_rule_type` IN ('Day', 'Quantity')) NOT NULL DEFAULT 'Quantity',
-  `retention_rule_amount` integer not null default 1,
+  `retention_rule_amount` integer NOT NULL DEFAULT 1,
   `retention_pattern` varchar(64),
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -329,7 +329,8 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
@@ -371,7 +372,8 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (

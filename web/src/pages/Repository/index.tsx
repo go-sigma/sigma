@@ -226,7 +226,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Webhook
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-daemon-tasks?namespace_id=${namespaceId}`}
+                      to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Daemon task

@@ -78,6 +78,7 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 	}
 	updates := make(map[string]any, 5)
 	updates[query.DaemonGcBlobRule.RetentionDay.ColumnName().String()] = req.RetentionDay
+	updates[query.DaemonGcBlobRule.CronEnabled.ColumnName().String()] = req.CronEnabled
 	if req.CronEnabled {
 		updates[query.DaemonGcBlobRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
 		updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
@@ -86,9 +87,9 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcBlobRule(ctx, &models.DaemonGcBlobRule{
 				CronEnabled:     req.CronEnabled,
+				RetentionDay:    req.RetentionDay,
 				CronRule:        req.CronRule,
 				CronNextTrigger: nextTrigger,
-				RetentionDay:    req.RetentionDay,
 			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create gc blob rule failed")

@@ -30,7 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -69,9 +68,7 @@ type gcArtifact struct {
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
 	daemonServiceFactory     dao.DaemonServiceFactory
-	storageDriverFactory     storage.StorageDriverFactory
 
 	deleteArtifactWithNamespaceChan     chan artifactWithNamespaceTask
 	deleteArtifactWithNamespaceChanOnce *sync.Once
@@ -186,18 +183,18 @@ func (g gcArtifact) deleteArtifactCheck() {
 			}
 			// 2. check tag associate with this artifact
 			_, err := tagService.GetByArtifactID(g.ctx, task.Artifact.RepositoryID, task.Artifact.ID)
-			if err != nil {
-				if !errors.Is(err, gorm.ErrRecordNotFound) {
-					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get tag by artifact failed")
-				}
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get tag by artifact failed")
+			}
+			if err == nil {
 				continue
 			}
 			// 3. check manifest index associate with this artifact
 			err = artifactService.IsArtifactAssociatedWithArtifact(g.ctx, task.Artifact.ID)
-			if err != nil {
-				if !errors.Is(err, gorm.ErrRecordNotFound) {
-					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
-				}
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
+			}
+			if err == nil {
 				continue
 			}
 			// 4. delete the artifact that referrer to this artifact
@@ -224,14 +221,14 @@ func (g gcArtifact) deleteArtifact() {
 				if err != nil {
 					return err
 				}
-				err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(g.ctx, []*models.DaemonGcArtifactRecord{{
-					RunnerID: task.Runner.ID,
-					Digest:   task.Artifact.Digest,
-				}})
-				if err != nil {
-					return err
-				}
-				log.Debug().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
+				// err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(g.ctx, []*models.DaemonGcArtifactRecord{{
+				// 	RunnerID: task.Runner.ID,
+				// 	Digest:   task.Artifact.Digest,
+				// }})
+				// if err != nil {
+				// 	return err
+				// }
+				// log.Debug().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
 				return nil
 			})
 			if err != nil {

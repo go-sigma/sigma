@@ -86,16 +86,16 @@ type RetentionPatternPayload struct {
 
 // UpdateGcArtifactRuleRequest ...
 type UpdateGcArtifactRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number" example:"10"`
 
-	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	RetentionDay int     `json:"retention_day" validate:"gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
 	CronEnabled  bool    `json:"cron_enabled" example:"true"`
 	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcArtifactRuleRequest ...
 type GetGcArtifactRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GetGcArtifactRuleResponse ...
@@ -110,26 +110,32 @@ type GetGcArtifactRuleResponse struct {
 
 // GetGcArtifactLatestRunnerRequest ...
 type GetGcArtifactLatestRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GcArtifactRunnerItem ...
 type GcArtifactRunnerItem struct {
-	ID        int64                  `json:"id" example:"1"`
-	Status    enums.TaskCommonStatus `json:"status" example:"Pending"`
-	Message   string                 `json:"message" example:"log"`
-	CreatedAt string                 `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64                  `json:"id" example:"1"`
+	Status       enums.TaskCommonStatus `json:"status" example:"Pending"`
+	Message      string                 `json:"message" example:"log"`
+	SuccessCount *int64                 `json:"success_count" example:"1"`
+	FailedCount  *int64                 `json:"failed_count" example:"1"`
+	StartedAt    *string                `json:"started_at" example:"2006-01-02 15:04:05"`
+	EndedAt      *string                `json:"ended_at" example:"2006-01-02 15:04:05"`
+	RawDuration  *int64                 `json:"raw_duration" example:"10"`
+	Duration     *string                `json:"duration" example:"1h"`
+	CreatedAt    string                 `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CreateGcArtifactRunnerRequest ...
 type CreateGcArtifactRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // ListGcArtifactRunnersRequest ...
 type ListGcArtifactRunnersRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 
 	Pagination
 	Sortable
@@ -137,13 +143,13 @@ type ListGcArtifactRunnersRequest struct {
 
 // GetGcArtifactRunnerRequest ...
 type GetGcArtifactRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 }
 
 // ListGcArtifactRecordsRequest ...
 type ListGcArtifactRecordsRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 
 	Pagination
@@ -152,31 +158,33 @@ type ListGcArtifactRecordsRequest struct {
 
 // GcArtifactRecordItem ...
 type GcArtifactRecordItem struct {
-	ID        int64  `json:"id" example:"1"`
-	Digest    string `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
-	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID        int64                `json:"id" example:"1"`
+	Digest    string               `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
+	Status    enums.GcRecordStatus `json:"status" example:"Success"`
+	Message   string               `json:"message" example:"log"`
+	CreatedAt string               `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string               `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetGcArtifactRecordRequest ...
 type GetGcArtifactRecordRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 	RecordID    int64 `json:"record_id" param:"record_id" validate:"required,number"`
 }
 
 // UpdateGcBlobRuleRequest ...
 type UpdateGcBlobRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number" example:"10"`
 
-	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	RetentionDay int     `json:"retention_day" validate:"gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
 	CronEnabled  bool    `json:"cron_enabled" example:"true"`
 	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcBlobRuleRequest ...
 type GetGcBlobRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GetGcBlobRuleResponse ...
@@ -191,7 +199,7 @@ type GetGcBlobRuleResponse struct {
 
 // GetGcBlobLatestRunnerRequest ...
 type GetGcBlobLatestRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GcBlobRunnerItem ...
@@ -205,12 +213,12 @@ type GcBlobRunnerItem struct {
 
 // CreateGcBlobRunnerRequest ...
 type CreateGcBlobRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // ListGcBlobRunnersRequest ...
 type ListGcBlobRunnersRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 
 	Pagination
 	Sortable
@@ -218,13 +226,13 @@ type ListGcBlobRunnersRequest struct {
 
 // GetGcBlobRunnerRequest ...
 type GetGcBlobRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 }
 
 // ListGcBlobRecordsRequest ...
 type ListGcBlobRecordsRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 
 	Pagination
@@ -241,23 +249,23 @@ type GcBlobRecordItem struct {
 
 // GetGcBlobRecordRequest ...
 type GetGcBlobRecordRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 	RecordID    int64 `json:"record_id" param:"record_id" validate:"required,number"`
 }
 
 // UpdateGcRepositoryRuleRequest ...
 type UpdateGcRepositoryRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number" example:"10"`
 
-	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	RetentionDay int     `json:"retention_day" validate:"gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
 	CronEnabled  *bool   `json:"cron_enabled,omitempty" example:"true"`
 	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcRepositoryRuleRequest ...
 type GetGcRepositoryRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GetGcRepositoryRuleResponse ...
@@ -272,7 +280,7 @@ type GetGcRepositoryRuleResponse struct {
 
 // GetGcRepositoryLatestRunnerRequest ...
 type GetGcRepositoryLatestRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GcRepositoryRunnerItem ...
@@ -286,12 +294,12 @@ type GcRepositoryRunnerItem struct {
 
 // CreateGcRepositoryRunnerRequest ...
 type CreateGcRepositoryRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // ListGcRepositoryRunnersRequest ...
 type ListGcRepositoryRunnersRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 
 	Pagination
 	Sortable
@@ -299,13 +307,13 @@ type ListGcRepositoryRunnersRequest struct {
 
 // GetGcRepositoryRunnerRequest ...
 type GetGcRepositoryRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 }
 
 // ListGcRepositoryRecordsRequest ...
 type ListGcRepositoryRecordsRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 
 	Pagination
@@ -322,14 +330,14 @@ type GcRepositoryRecordItem struct {
 
 // GetGcRepositoryRecordRequest ...
 type GetGcRepositoryRecordRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 	RecordID    int64 `json:"record_id" param:"record_id" validate:"required,number"`
 }
 
 // UpdateGcTagRuleRequest ...
 type UpdateGcTagRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number" example:"10"`
 
 	CronEnabled         bool                    `json:"cron_enabled" example:"true"`
 	CronRule            *string                 `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
@@ -340,7 +348,7 @@ type UpdateGcTagRuleRequest struct {
 
 // GetGcTagRuleRequest ...
 type GetGcTagRuleRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GetGcTagRuleResponse ...
@@ -357,7 +365,7 @@ type GetGcTagRuleResponse struct {
 
 // GetGcTagLatestRunnerRequest ...
 type GetGcTagLatestRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // GcTagRunnerItem ...
@@ -371,12 +379,12 @@ type GcTagRunnerItem struct {
 
 // CreateGcTagRunnerRequest ...
 type CreateGcTagRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 }
 
 // ListGcTagRunnersRequest ...
 type ListGcTagRunnersRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 
 	Pagination
 	Sortable
@@ -384,13 +392,13 @@ type ListGcTagRunnersRequest struct {
 
 // GetGcTagRunnerRequest ...
 type GetGcTagRunnerRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 }
 
 // ListGcTagRecordsRequest ...
 type ListGcTagRecordsRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 
 	Pagination
@@ -407,7 +415,7 @@ type GcTagRecordItem struct {
 
 // GetGcTagRecordRequest ...
 type GetGcTagRecordRequest struct {
-	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"number"`
 	RunnerID    int64 `json:"runner_id" param:"runner_id" validate:"required,number"`
 	RecordID    int64 `json:"record_id" param:"record_id" validate:"required,number"`
 }

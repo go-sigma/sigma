@@ -15,16 +15,16 @@
  */
 
 import axios from "axios";
+import dayjs from 'dayjs';
+import parser from 'cron-parser';
 import { Tooltip } from 'flowbite';
 import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
-import parser from 'cron-parser';
-import dayjs from 'dayjs';
+import { useParams, useSearchParams, Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
@@ -38,9 +38,12 @@ const retentionAmountType = [
 ];
 
 export default function ({ localServer }: { localServer: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get('namespace_id');
+  const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
 
   const [gcRepositoryRuleExist, setGcRepositoryRuleExist] = useState(false);
   const [gcTagRuleExist, setGcTagRuleExist] = useState(false);
@@ -87,6 +90,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [gcArtifactCronRuleNextRunAt, setGcArtifactCronRuleNextRunAt] = useState("");
 
   useEffect(() => {
+    if (location.pathname !== "/settings/daemon-tasks") {
+      return;
+    }
     let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
@@ -294,11 +300,11 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.put(localServer + `/api/v1/daemons/gc-repository/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
-        let message = "Create garbage collect empty repository config"
+        let message = "Create garbage collect empty repository config success"
         if (gcRepositoryRuleExist) {
-          message = "Update garbage collect empty repository config"
+          message = "Update garbage collect empty repository config success"
         }
-        Notification({ level: "success", title: "Success", message: message });
+        Toast.success(message);
         setGcRepositoryRuleConfigModal(false);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -329,11 +335,11 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.put(localServer + `/api/v1/daemons/gc-artifact/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
-        let message = "Create garbage collect artifact config"
+        let message = "Create garbage collect artifact config success"
         if (gcArtifactRuleExist) {
-          message = "Update garbage collect artifact config"
+          message = "Update garbage collect artifact config success"
         }
-        Notification({ level: "success", title: "Success", message: message });
+        Toast.success(message);
         setGcArtifactRuleConfigModal(false);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -364,11 +370,11 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.put(localServer + `/api/v1/daemons/gc-blob/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
-        let message = "Create garbage collect blob config";
+        let message = "Create garbage collect blob config success";
         if (gcBlobRuleExist) {
-          message = "Update garbage collect blob config";
+          message = "Update garbage collect blob config success";
         }
-        Notification({ level: "success", title: "Success", message: message });
+        Toast.success(message);
         setGcBlobRuleConfigModal(false);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -412,9 +418,22 @@ export default function ({ localServer }: { localServer: string }) {
         if (gcTagRuleExist) {
           message = "Update garbage collect tag config success"
         }
-        Notification({ level: "success", title: "Success", message: message });
         Toast.success(message);
         setGcTagRuleConfigModal(false);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  const createGcArtifactRunner = () => {
+    axios.post(localServer + `/api/v1/daemons/gc-artifact/${namespaceId}/runners/`, {}).then(response => {
+      if (response?.status === 201) {
+        Toast.success("Garbage collect artifact will run in seconds");
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -433,39 +452,43 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item="repositories" namespace={namespace} />
+        <IMenu localServer={localServer} item={location.pathname == "/settings/daemon-tasks" ? "daemon-tasks" : "repositories"} namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-visible">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title="Namespace - Daemon Task" props={
-              (
-                <div className="sm:flex sm:space-x-8">
-                  <Link
-                    to={`/namespaces/${namespace}/repositories`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Repository list
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/namespace-users`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Users
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/namespace-webhooks`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Webhook
-                  </Link>
-                  <Link
-                    to="#"
-                    className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
-                  >
-                    Daemon task
-                  </Link>
-                </div>
-              )
-            } />
+            <Header title={location.pathname == "/settings/daemon-tasks" ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
+              props={
+                location.pathname == "/settings/daemon-tasks" ? null : (
+                  <div className="sm:flex sm:space-x-8">
+                    <Link
+                      to={`/namespaces/${namespace}/repositories`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Repository list
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/namespace-users`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Users
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Webhook
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
+                      className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
+                      onClick={e => {
+                        e.preventDefault();
+                      }}
+                    >
+                      Daemon task
+                    </Link>
+                  </div>
+                )
+              } />
             <div className="flex flex-1 overflow-visible">
               <div className="align-middle inline-block min-w-full border-gray-200">
                 <table className="min-w-full flex-1 overflow-visible">
@@ -490,11 +513,11 @@ export default function ({ localServer }: { localServer: string }) {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
+                    <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                      // onClick={() => {
-                      //   navigate(`/namespaces/${namespace}/repository/tags?repository=${repository.name}&repository_id=${repository.id}`);
-                      // }}
+                        onClick={() => {
+                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-repository?namespace_id=${namespaceId}`);
+                        }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
                           Garbage collect the empty repositories
@@ -549,7 +572,7 @@ export default function ({ localServer }: { localServer: string }) {
                                   <div
                                     className={
                                       (active ? 'bg-gray-100' : '') +
-                                      (gcRepositoryRuleExist ? 'cursor-point' : 'cursor-not-allowed') +
+                                      (gcRepositoryRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
                                     onClick={e => {
@@ -565,11 +588,11 @@ export default function ({ localServer }: { localServer: string }) {
                         </Menu>
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                      // onClick={() => {
-                      //   navigate(`/namespaces/${namespace}/repository/tags?repository=${repository.name}&repository_id=${repository.id}`);
-                      // }}
+                        onClick={() => {
+                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-tag?namespace_id=${namespaceId}`);
+                        }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
                           Garbage collect the tags
@@ -639,11 +662,11 @@ export default function ({ localServer }: { localServer: string }) {
                         </Menu>
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                      // onClick={() => {
-                      //   navigate(`/namespaces/${namespace}/repository/tags?repository=${repository.name}&repository_id=${repository.id}`);
-                      // }}
+                        onClick={() => {
+                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-artifact?namespace_id=${namespaceId}`);
+                        }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
                           Garbage collect the artifacts
@@ -698,10 +721,10 @@ export default function ({ localServer }: { localServer: string }) {
                                   <div
                                     className={
                                       (active ? 'bg-gray-100' : '') +
-                                      (gcArtifactRuleExist ? 'cursor-point' : 'cursor-not-allowed') +
+                                      (gcArtifactRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
-                                  // onClick={e => { setUpdateRepositoryModal(true) }}
+                                    onClick={e => { createGcArtifactRunner() }}
                                   >
                                     Run
                                   </div>
@@ -713,12 +736,12 @@ export default function ({ localServer }: { localServer: string }) {
                       </td>
                     </tr>
                     {
-                      namespaceId === "0" ? null : (
-                        <tr>
+                      namespaceId !== 0 ? null : (
+                        <tr className="border-b">
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                          // onClick={() => {
-                          //   navigate(`/namespaces/${namespace}/repository/tags?repository=${repository.name}&repository_id=${repository.id}`);
-                          // }}
+                            onClick={() => {
+                              navigate(`/namespaces/${namespace}/daemon-tasks/gc-blob?namespace_id=${namespaceId}`);
+                            }}
                           >
                             <div className="flex items-center space-x-3 lg:pl-2">
                               Garbage collect the blobs
@@ -773,7 +796,7 @@ export default function ({ localServer }: { localServer: string }) {
                                       <div
                                         className={
                                           (active ? 'bg-gray-100' : '') +
-                                          (gcBlobRuleExist ? 'cursor-point' : 'cursor-not-allowed') +
+                                          (gcBlobRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                           ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                         }
                                       // onClick={e => { setUpdateRepositoryModal(true) }}
@@ -815,7 +838,7 @@ export default function ({ localServer }: { localServer: string }) {
         id="tooltip-gc-blob-retention-days"
         role="tooltip"
         className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
-        Retention the empty blob for specific days,
+        Retention the blob for specific days,
         0 means delete immediately, available 0-180
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
@@ -1055,7 +1078,9 @@ export default function ({ localServer }: { localServer: string }) {
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={e => createOrUpdateGcBlob()}
                       >
-                        Create
+                        {
+                          gcBlobRuleExist ? "Update" : "Create"
+                        }
                       </button>
                       <button
                         type="button"
@@ -1265,7 +1290,9 @@ export default function ({ localServer }: { localServer: string }) {
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={e => createOrUpdateGcRepository()}
                       >
-                        Create
+                        {
+                          gcRepositoryRuleExist ? "Update" : "Create"
+                        }
                       </button>
                       <button
                         type="button"
@@ -1472,7 +1499,9 @@ export default function ({ localServer }: { localServer: string }) {
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={e => createOrUpdateGcArtifact()}
                       >
-                        Create
+                        {
+                          gcArtifactRuleExist ? "Update" : "Create"
+                        }
                       </button>
                       <button
                         type="button"
@@ -1802,7 +1831,9 @@ export default function ({ localServer }: { localServer: string }) {
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                         onClick={e => createOrUpdateGcTag()}
                       >
-                        Create
+                        {
+                          gcTagRuleExist ? "Update" : "Create"
+                        }
                       </button>
                       <button
                         type="button"

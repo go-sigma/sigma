@@ -45,7 +45,6 @@ func main() {
 		models.Blob{},
 		models.BlobUpload{},
 		models.CasbinRule{},
-		models.DaemonLog{},
 		models.Webhook{},
 		models.WebhookLog{},
 		models.Builder{},

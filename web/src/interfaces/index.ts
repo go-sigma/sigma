@@ -352,3 +352,36 @@ export interface IGcBlobRule {
   created_at: string;
   updated_at: string;
 }
+
+export interface IGcArtifactRunnerItem {
+  id: number;
+  status: string;
+  message: string;
+  success_count?: number;
+  failed_count?: number;
+  started_at?: string;
+  ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRunnerList {
+  items: IGcArtifactRunnerItem[];
+  total: number;
+}
+
+export interface IGcArtifactRecordItem {
+  id: number;
+  digest: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRecordList {
+  items: IGcArtifactRecordItem[];
+  total: number;
+}

@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hako/durafmt"
 	"github.com/labstack/echo/v4"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -81,6 +82,7 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 	}
 	updates := make(map[string]any, 5)
 	updates[query.DaemonGcArtifactRule.RetentionDay.ColumnName().String()] = req.RetentionDay
+	updates[query.DaemonGcArtifactRule.CronEnabled.ColumnName().String()] = req.CronEnabled
 	if req.CronEnabled {
 		updates[query.DaemonGcArtifactRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
 		updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
@@ -89,6 +91,7 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
 				NamespaceID:     namespaceID,
+				RetentionDay:    req.RetentionDay,
 				CronEnabled:     req.CronEnabled,
 				CronRule:        req.CronRule,
 				CronNextTrigger: nextTrigger,
@@ -329,12 +332,29 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
+		var startedAt, endedAt string
+		if runnerObj.StartedAt != nil {
+			startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+		}
+		if runnerObj.EndedAt != nil {
+			endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+		}
+		var duration *string
+		if runnerObj.Duration != nil {
+			duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+		}
 		resp = append(resp, types.GcArtifactRunnerItem{
-			ID:        runnerObj.ID,
-			Status:    runnerObj.Status,
-			Message:   string(runnerObj.Message),
-			CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:           runnerObj.ID,
+			Status:       runnerObj.Status,
+			SuccessCount: runnerObj.SuccessCount,
+			FailedCount:  runnerObj.FailedCount,
+			RawDuration:  runnerObj.Duration,
+			Duration:     duration,
+			StartedAt:    ptr.Of(startedAt),
+			EndedAt:      ptr.Of(endedAt),
+			Message:      string(runnerObj.Message),
+			CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -424,6 +444,8 @@ func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
 		resp = append(resp, types.GcArtifactRecordItem{
 			ID:        recordObj.ID,
 			Digest:    recordObj.Digest,
+			Status:    recordObj.Status,
+			Message:   string(recordObj.Message),
 			CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})

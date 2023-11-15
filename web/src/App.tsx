@@ -56,6 +56,7 @@ export default function App() {
       <Toaster
         toastOptions={{
           style: {
+            maxWidth: "500px",
             fontSize: "0.875rem",
             lineHeight: "1.25rem",
           }
@@ -85,7 +86,11 @@ export default function App() {
         <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
+
+        <Route path="/namespaces/:namespace/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/daemon-tasks/:resource/:runner_id/records" element={<DaemonTaskRecords localServer={localServer} />} />
+
         <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
@@ -101,6 +106,7 @@ export default function App() {
 
         <Route path="/settings" element={<Setting localServer={localServer} />} />
         <Route path="/settings/users" element={<SettingUsers localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
 
       </Routes>
     </>

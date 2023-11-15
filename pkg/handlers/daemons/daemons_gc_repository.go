@@ -81,6 +81,7 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	}
 	updates := make(map[string]any, 5)
 	updates[query.DaemonGcRepositoryRule.RetentionDay.ColumnName().String()] = req.RetentionDay
+	updates[query.DaemonGcRepositoryRule.CronEnabled.ColumnName().String()] = req.CronEnabled
 	if ptr.To(req.CronEnabled) {
 		updates[query.DaemonGcRepositoryRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
 		updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)

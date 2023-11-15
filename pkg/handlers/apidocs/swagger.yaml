@@ -325,29 +325,21 @@ definitions:
     properties:
       namespace_id:
         type: integer
-    required:
-    - namespace_id
     type: object
   types.CreateGcBlobRunnerRequest:
     properties:
       namespace_id:
         type: integer
-    required:
-    - namespace_id
     type: object
   types.CreateGcRepositoryRunnerRequest:
     properties:
       namespace_id:
         type: integer
-    required:
-    - namespace_id
     type: object
   types.CreateGcTagRunnerRequest:
     properties:
       namespace_id:
         type: integer
-    required:
-    - namespace_id
     type: object
   types.GcArtifactRecordItem:
     properties:
@@ -369,16 +361,34 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
       id:
         example: 1
         type: integer
       message:
         example: log
         type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
       status:
         allOf:
         - $ref: '#/definitions/enums.TaskCommonStatus'
         example: Pending
+      success_count:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -518,8 +528,11 @@ definitions:
         example: "2021-01-01 00:00:00"
         type: string
       cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
+      retention_day:
+        example: 10
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -536,8 +549,11 @@ definitions:
         example: "2021-01-01 00:00:00"
         type: string
       cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
+      retention_day:
+        example: 10
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -554,7 +570,7 @@ definitions:
         example: "2021-01-01 00:00:00"
         type: string
       cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
       retention_day:
         example: 10
@@ -575,7 +591,7 @@ definitions:
         example: "2021-01-01 00:00:00"
         type: string
       cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
       retention_pattern:
         example: v*,1.*
@@ -1341,37 +1357,7 @@ definitions:
         example: true
         type: boolean
       cron_rule:
-        example: 0 0 * * *
-        type: string
-      namespace_id:
-        example: 10
-        type: integer
-    required:
-    - cron_enabled
-    - namespace_id
-    type: object
-  types.UpdateGcBlobRuleRequest:
-    properties:
-      cron_enabled:
-        example: true
-        type: boolean
-      cron_rule:
-        example: 0 0 * * *
-        type: string
-      namespace_id:
-        example: 10
-        type: integer
-    required:
-    - cron_enabled
-    - namespace_id
-    type: object
-  types.UpdateGcRepositoryRuleRequest:
-    properties:
-      cron_enabled:
-        example: true
-        type: boolean
-      cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
       namespace_id:
         example: 10
@@ -1381,9 +1367,40 @@ definitions:
         maximum: 180
         minimum: 0
         type: integer
-    required:
-    - namespace_id
-    - retention_day
+    type: object
+  types.UpdateGcBlobRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
+    type: object
+  types.UpdateGcRepositoryRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
     type: object
   types.UpdateGcTagRuleRequest:
     properties:
@@ -1391,7 +1408,7 @@ definitions:
         example: true
         type: boolean
       cron_rule:
-        example: 0 0 * * *
+        example: 0 0 * * 6
         type: string
       namespace_id:
         example: 10
@@ -1408,8 +1425,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.RetentionRuleType'
         example: Day
-    required:
-    - namespace_id
     type: object
   types.UserItem:
     properties:

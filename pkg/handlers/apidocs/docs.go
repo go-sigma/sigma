@@ -5557,9 +5557,6 @@ const docTemplate = `{
         },
         "types.CreateGcArtifactRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5568,9 +5565,6 @@ const docTemplate = `{
         },
         "types.CreateGcBlobRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5579,9 +5573,6 @@ const docTemplate = `{
         },
         "types.CreateGcRepositoryRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5590,9 +5581,6 @@ const docTemplate = `{
         },
         "types.CreateGcTagRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5627,6 +5615,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -5635,6 +5635,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "log"
                 },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
                 "status": {
                     "allOf": [
                         {
@@ -5642,6 +5650,10 @@ const docTemplate = `{
                         }
                     ],
                     "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -5846,7 +5858,11 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
                 },
                 "updated_at": {
                     "type": "string",
@@ -5871,7 +5887,11 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
                 },
                 "updated_at": {
                     "type": "string",
@@ -5896,7 +5916,7 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "retention_day": {
                     "type": "integer",
@@ -5925,7 +5945,7 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "retention_pattern": {
                     "type": "string",
@@ -6971,10 +6991,6 @@ const docTemplate = `{
         },
         "types.UpdateGcArtifactRuleRequest": {
             "type": "object",
-            "required": [
-                "cron_enabled",
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -6982,20 +6998,22 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
                     "example": 10
                 }
             }
         },
         "types.UpdateGcBlobRuleRequest": {
             "type": "object",
-            "required": [
-                "cron_enabled",
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -7003,20 +7021,22 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
                     "example": 10
                 }
             }
         },
         "types.UpdateGcRepositoryRuleRequest": {
             "type": "object",
-            "required": [
-                "namespace_id",
-                "retention_day"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -7024,7 +7044,7 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
@@ -7040,9 +7060,6 @@ const docTemplate = `{
         },
         "types.UpdateGcTagRuleRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -7050,7 +7067,7 @@ const docTemplate = `{
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",

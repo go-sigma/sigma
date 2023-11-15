@@ -127,10 +127,9 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			tagServiceFactory:        dao.NewTagServiceFactory(),
 			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-			blobServiceFactory:       dao.NewBlobServiceFactory(),
 			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			storageDriverFactory:     storage.NewStorageDriverFactory(),
 
 			deleteArtifactWithNamespaceChan:     make(chan artifactWithNamespaceTask, pagination),
 			deleteArtifactWithNamespaceChanOnce: &sync.Once{},
@@ -138,6 +137,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			deleteArtifactCheckChanOnce:         &sync.Once{},
 			deleteArtifactChan:                  make(chan artifactTask, pagination),
 			deleteArtifactChanOnce:              &sync.Once{},
+			collectRecordChan:                   make(chan artifactTaskCollectRecord, pagination),
+			collectRecordChanOnce:               &sync.Once{},
 
 			runnerChan: runnerChan,
 

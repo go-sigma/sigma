@@ -79,7 +79,10 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 		schedule, _ := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow).Parse(ptr.To(req.CronRule))
 		nextTrigger = ptr.Of(schedule.Next(time.Now()))
 	}
-	updates := make(map[string]any, 5)
+	updates := make(map[string]any, 6)
+	updates[query.DaemonGcTagRule.CronEnabled.ColumnName().String()] = req.CronEnabled
+	updates[query.DaemonGcTagRule.RetentionRuleType.ColumnName().String()] = req.RetentionRuleType
+	updates[query.DaemonGcTagRule.RetentionRuleAmount.ColumnName().String()] = req.RetentionRuleAmount
 	if req.CronEnabled {
 		if req.CronRule != nil {
 			updates[query.DaemonGcTagRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
@@ -89,8 +92,6 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	if req.RetentionPattern != nil {
 		updates[query.DaemonGcTagRule.RetentionPattern.ColumnName().String()] = ptr.To(req.RetentionPattern)
 	}
-	updates[query.DaemonGcTagRule.RetentionRuleType.ColumnName().String()] = req.RetentionRuleType
-	updates[query.DaemonGcTagRule.RetentionRuleAmount.ColumnName().String()] = req.RetentionRuleAmount
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcTagRule(ctx, &models.DaemonGcTagRule{

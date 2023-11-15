@@ -5549,9 +5549,6 @@
         },
         "types.CreateGcArtifactRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5560,9 +5557,6 @@
         },
         "types.CreateGcBlobRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5571,9 +5565,6 @@
         },
         "types.CreateGcRepositoryRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5582,9 +5573,6 @@
         },
         "types.CreateGcTagRunnerRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "namespace_id": {
                     "type": "integer"
@@ -5619,6 +5607,18 @@
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -5627,6 +5627,14 @@
                     "type": "string",
                     "example": "log"
                 },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
                 "status": {
                     "allOf": [
                         {
@@ -5634,6 +5642,10 @@
                         }
                     ],
                     "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -5838,7 +5850,11 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
                 },
                 "updated_at": {
                     "type": "string",
@@ -5863,7 +5879,11 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
                 },
                 "updated_at": {
                     "type": "string",
@@ -5888,7 +5908,7 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "retention_day": {
                     "type": "integer",
@@ -5917,7 +5937,7 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "retention_pattern": {
                     "type": "string",
@@ -6963,10 +6983,6 @@
         },
         "types.UpdateGcArtifactRuleRequest": {
             "type": "object",
-            "required": [
-                "cron_enabled",
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -6974,20 +6990,22 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
                     "example": 10
                 }
             }
         },
         "types.UpdateGcBlobRuleRequest": {
             "type": "object",
-            "required": [
-                "cron_enabled",
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -6995,20 +7013,22 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
                     "example": 10
                 }
             }
         },
         "types.UpdateGcRepositoryRuleRequest": {
             "type": "object",
-            "required": [
-                "namespace_id",
-                "retention_day"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -7016,7 +7036,7 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",
@@ -7032,9 +7052,6 @@
         },
         "types.UpdateGcTagRuleRequest": {
             "type": "object",
-            "required": [
-                "namespace_id"
-            ],
             "properties": {
                 "cron_enabled": {
                     "type": "boolean",
@@ -7042,7 +7059,7 @@
                 },
                 "cron_rule": {
                     "type": "string",
-                    "example": "0 0 * * *"
+                    "example": "0 0 * * 6"
                 },
                 "namespace_id": {
                     "type": "integer",

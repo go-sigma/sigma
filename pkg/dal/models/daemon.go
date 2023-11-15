@@ -23,19 +23,19 @@ import (
 )
 
 // DaemonLog represents an artifact
-type DaemonLog struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        int64                 `gorm:"primaryKey"`
+// type DaemonLog struct {
+// 	CreatedAt time.Time
+// 	UpdatedAt time.Time
+// 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
+// 	ID        int64                 `gorm:"primaryKey"`
 
-	NamespaceID *int64
-	Type        enums.Daemon
-	Action      enums.AuditAction
-	Resource    string
-	Status      enums.TaskCommonStatus
-	Message     []byte
-}
+// 	NamespaceID *int64
+// 	Type        enums.Daemon
+// 	Action      enums.AuditAction
+// 	Resource    string
+// 	Status      enums.TaskCommonStatus
+// 	Message     []byte
+// }
 
 // DaemonGcTagRule ...
 type DaemonGcTagRule struct {
@@ -87,7 +87,7 @@ type DaemonGcTagRecord struct {
 	Runner   DaemonGcTagRunner
 
 	Tag     string
-	Status  enums.GcRecordStatus
+	Status  enums.GcRecordStatus `gorm:"default:Success"`
 	Message []byte
 }
 
@@ -139,7 +139,7 @@ type DaemonGcRepositoryRecord struct {
 	Runner   DaemonGcRepositoryRunner
 
 	Repository string
-	Status     enums.GcRecordStatus
+	Status     enums.GcRecordStatus `gorm:"default:Success"`
 	Message    []byte
 }
 
@@ -190,7 +190,7 @@ type DaemonGcArtifactRecord struct {
 	Runner   DaemonGcArtifactRunner
 
 	Digest  string
-	Status  enums.GcRecordStatus
+	Status  enums.GcRecordStatus `gorm:"default:Success"`
 	Message []byte
 }
 
@@ -238,6 +238,6 @@ type DaemonGcBlobRecord struct {
 	Runner   DaemonGcBlobRunner
 
 	Digest  string
-	Status  enums.GcRecordStatus
+	Status  enums.GcRecordStatus `gorm:"default:Success"`
 	Message []byte
 }
