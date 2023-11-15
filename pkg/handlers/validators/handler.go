@@ -61,7 +61,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)
 	validatorGroup.POST("/password", repositoryHandler.GetPassword)
 	validatorGroup.POST("/cron", repositoryHandler.ValidateCron)
-	validatorGroup.POST("/regex", repositoryHandler.ValidateRegexp)
+	validatorGroup.POST("/regexp", repositoryHandler.ValidateRegexp)
 	return nil
 }
 

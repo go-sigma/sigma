@@ -82,10 +82,8 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 	updates := make(map[string]any, 5)
 	updates[query.DaemonGcRepositoryRule.RetentionDay.ColumnName().String()] = req.RetentionDay
 	if ptr.To(req.CronEnabled) {
-		if req.CronRule != nil {
-			updates[query.DaemonGcRepositoryRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
-			updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
-		}
+		updates[query.DaemonGcRepositoryRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
+		updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule

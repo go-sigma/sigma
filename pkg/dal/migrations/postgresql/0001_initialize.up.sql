@@ -342,14 +342,14 @@ CREATE TYPE retention_rule_type AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_tag_rules" (
   "id" bigserial PRIMARY KEY,
-  "is_running" smallint,
+  "is_running" smallint NOT NULL DEFAULT 0,
   "namespace_id" bigint,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
-  "retention_rule_type" retention_rule_type,
-  "retention_rule_amount" bigint,
-  "retention_pattern" bytea,
+  "retention_rule_type" retention_rule_type not null default 'Quantity',
+  "retention_rule_amount" bigint not null default 1,
+  "retention_pattern" varchar(64),
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,

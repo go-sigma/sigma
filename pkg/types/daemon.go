@@ -88,8 +88,9 @@ type RetentionPatternPayload struct {
 type UpdateGcArtifactRuleRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 
-	CronEnabled bool    `json:"cron_enabled" validate:"required,boolean" example:"true"`
-	CronRule    *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
+	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	CronEnabled  bool    `json:"cron_enabled" example:"true"`
+	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcArtifactRuleRequest ...
@@ -99,8 +100,9 @@ type GetGcArtifactRuleRequest struct {
 
 // GetGcArtifactRuleResponse ...
 type GetGcArtifactRuleResponse struct {
+	RetentionDay    int     `json:"retention_day" example:"10"`
 	CronEnabled     bool    `json:"cron_enabled" example:"true"`
-	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * *"`
+	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * 6"`
 	CronNextTrigger *string `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`
 	CreatedAt       string  `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt       string  `json:"updated_at" example:"2006-01-02 15:04:05"`
@@ -167,8 +169,9 @@ type GetGcArtifactRecordRequest struct {
 type UpdateGcBlobRuleRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 
-	CronEnabled bool    `json:"cron_enabled" validate:"required,boolean" example:"true"`
-	CronRule    *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
+	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
+	CronEnabled  bool    `json:"cron_enabled" example:"true"`
+	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcBlobRuleRequest ...
@@ -178,8 +181,9 @@ type GetGcBlobRuleRequest struct {
 
 // GetGcBlobRuleResponse ...
 type GetGcBlobRuleResponse struct {
+	RetentionDay    int     `json:"retention_day" example:"10"`
 	CronEnabled     bool    `json:"cron_enabled" example:"true"`
-	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * *"`
+	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * 6"`
 	CronNextTrigger *string `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`
 	CreatedAt       string  `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt       string  `json:"updated_at" example:"2006-01-02 15:04:05"`
@@ -248,7 +252,7 @@ type UpdateGcRepositoryRuleRequest struct {
 
 	RetentionDay int     `json:"retention_day" validate:"required,gte=0,lte=180" example:"10" minimum:"0" maximum:"180"`
 	CronEnabled  *bool   `json:"cron_enabled,omitempty" example:"true"`
-	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
+	CronRule     *string `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
 }
 
 // GetGcRepositoryRuleRequest ...
@@ -260,7 +264,7 @@ type GetGcRepositoryRuleRequest struct {
 type GetGcRepositoryRuleResponse struct {
 	RetentionDay    int     `json:"retention_day" example:"10"`
 	CronEnabled     bool    `json:"cron_enabled" example:"true"`
-	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * *"`
+	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * 6"`
 	CronNextTrigger *string `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`
 	CreatedAt       string  `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt       string  `json:"updated_at" example:"2006-01-02 15:04:05"`
@@ -327,11 +331,11 @@ type GetGcRepositoryRecordRequest struct {
 type UpdateGcTagRuleRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10"`
 
-	CronEnabled         bool                     `json:"cron_enabled" validate:"required,boolean" example:"true"`
-	CronRule            *string                  `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * *"`
-	RetentionRuleType   *enums.RetentionRuleType `json:"retention_rule_type,omitempty" validate:"omitempty,is_valid_retention_rule_type" example:"Day"`
-	RetentionRuleAmount *int64                   `json:"retention_rule_amount,omitempty" validate:"omitempty,number" example:"1"`
-	RetentionPattern    string                   `json:"retention_pattern,omitempty" validate:"omitempty,is_valid_retention_pattern" example:"v*,1.*"`
+	CronEnabled         bool                    `json:"cron_enabled" example:"true"`
+	CronRule            *string                 `json:"cron_rule,omitempty" validate:"omitempty,is_valid_cron_rule" example:"0 0 * * 6"`
+	RetentionRuleType   enums.RetentionRuleType `json:"retention_rule_type" validate:"is_valid_retention_rule_type" example:"Day"`
+	RetentionRuleAmount int64                   `json:"retention_rule_amount" validate:"number,gte=1,lte=180" example:"1"  minimum:"1" maximum:"180"`
+	RetentionPattern    *string                 `json:"retention_pattern,omitempty" validate:"omitempty,is_valid_retention_pattern" example:"v*,1.*"`
 }
 
 // GetGcTagRuleRequest ...
@@ -341,11 +345,14 @@ type GetGcTagRuleRequest struct {
 
 // GetGcTagRuleResponse ...
 type GetGcTagRuleResponse struct {
-	CronEnabled     bool    `json:"cron_enabled" example:"true"`
-	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * *"`
-	CronNextTrigger *string `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`
-	CreatedAt       string  `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt       string  `json:"updated_at" example:"2006-01-02 15:04:05"`
+	CronEnabled         bool                    `json:"cron_enabled" example:"true"`
+	CronRule            *string                 `json:"cron_rule,omitempty" example:"0 0 * * 6"`
+	CronNextTrigger     *string                 `json:"cron_next_trigger,omitempty" example:"2021-01-01 00:00:00"`
+	RetentionRuleType   enums.RetentionRuleType `json:"retention_rule_type,omitempty" example:"Day"`
+	RetentionRuleAmount int64                   `json:"retention_rule_amount,omitempty"  example:"1"`
+	RetentionPattern    *string                 `json:"retention_pattern,omitempty" example:"v*,1.*"`
+	CreatedAt           string                  `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt           string                  `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetGcTagLatestRunnerRequest ...

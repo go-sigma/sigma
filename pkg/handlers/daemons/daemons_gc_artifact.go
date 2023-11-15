@@ -80,11 +80,10 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 		nextTrigger = ptr.Of(schedule.Next(time.Now()))
 	}
 	updates := make(map[string]any, 5)
+	updates[query.DaemonGcArtifactRule.RetentionDay.ColumnName().String()] = req.RetentionDay
 	if req.CronEnabled {
-		if req.CronRule != nil {
-			updates[query.DaemonGcArtifactRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
-			updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
-		}
+		updates[query.DaemonGcArtifactRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
+		updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule
@@ -154,6 +153,7 @@ func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GetGcArtifactRuleResponse{
+		RetentionDay:    ruleObj.RetentionDay,
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
 		CronNextTrigger: ptr.Of(""),

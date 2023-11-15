@@ -16,7 +16,6 @@ package gc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"sync"
@@ -29,7 +28,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -108,9 +106,9 @@ func (g gcTag) Run(runnerID int64) error {
 		return fmt.Errorf("get gc tag runner failed: %v", err)
 	}
 
-	if ptr.To(runnerObj.Rule.RetentionRuleType) != enums.RetentionRuleTypeDay && ptr.To(runnerObj.Rule.RetentionRuleType) != enums.RetentionRuleTypeQuantity {
-		log.Error().Err(err).Interface("RetentionRuleType", ptr.To(runnerObj.Rule.RetentionRuleType))
-		return fmt.Errorf("gc tag rule retention type is invalid: %v", ptr.To(runnerObj.Rule.RetentionRuleType))
+	if runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
+		log.Error().Err(err).Interface("RetentionRuleType", runnerObj.Rule.RetentionRuleType).Msg("Gc tag rule retention type is invalid")
+		return fmt.Errorf("gc tag rule retention type is invalid: %v", runnerObj.Rule.RetentionRuleType)
 	}
 
 	namespaceService := g.namespaceServiceFactory.New()
@@ -184,10 +182,10 @@ func (g gcTag) deleteTagWithRepository() {
 			for {
 				var tagObjs []*models.Tag
 				var err error
-				if ptr.To(task.Runner.Rule.RetentionRuleType) == enums.RetentionRuleTypeQuantity {
-					tagObjs, err = tagService.FindWithQuantityCursor(g.ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
-				} else if ptr.To(task.Runner.Rule.RetentionRuleType) == enums.RetentionRuleTypeDay {
-					tagObjs, err = tagService.FindWithDayCursor(g.ctx, task.RepositoryID, int(ptr.To(task.Runner.Rule.RetentionRuleAmount)), pagination, artifactCurIndex)
+				if task.Runner.Rule.RetentionRuleType == enums.RetentionRuleTypeQuantity {
+					tagObjs, err = tagService.FindWithQuantityCursor(g.ctx, task.RepositoryID, int(task.Runner.Rule.RetentionRuleAmount), pagination, artifactCurIndex)
+				} else if task.Runner.Rule.RetentionRuleType == enums.RetentionRuleTypeDay {
+					tagObjs, err = tagService.FindWithDayCursor(g.ctx, task.RepositoryID, int(task.Runner.Rule.RetentionRuleAmount), pagination, artifactCurIndex)
 				}
 				if err != nil {
 					log.Error().Err(err).Msg("List artifact failed")
@@ -210,32 +208,14 @@ func (g gcTag) deleteTagCheckPattern() {
 		defer g.waitAllDone.Done()
 		defer close(g.deleteTagChan)
 		for task := range g.deleteTagCheckPatternChan {
-			if len(task.Runner.Rule.RetentionPattern) == 0 {
+			if len(ptr.To(task.Runner.Rule.RetentionPattern)) == 0 {
 				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
 				continue
 			}
-			var patternPayload types.RetentionPatternPayload
-			err := json.Unmarshal(task.Runner.Rule.RetentionPattern, &patternPayload)
-			if err != nil {
-				log.Error().Err(err).Str("pattern", string(task.Runner.Rule.RetentionPattern)).Msg("Unmarshal payload failed")
-				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
+			if regexp.MustCompile(ptr.To(task.Runner.Rule.RetentionPattern)).MatchString(task.Tag.Name) {
 				continue
 			}
-			if len(patternPayload.Patterns) == 0 {
-				log.Error().Err(err).Msg("Unmarshal pattern payload length is zero")
-				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
-				continue
-			}
-			var matched bool
-			for _, pattern := range patternPayload.Patterns {
-				if regexp.MustCompile(pattern).MatchString(task.Tag.Name) {
-					matched = true
-					break
-				}
-			}
-			if !matched { // every pattern not match this tag, should delete the tag
-				g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag}
-			}
+			g.deleteTagChan <- tagTask{Runner: task.Runner, Tag: task.Tag} // pattern not match this tag, should delete the tag
 		}
 	}()
 }

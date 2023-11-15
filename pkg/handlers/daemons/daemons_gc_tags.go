@@ -66,11 +66,7 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
-		}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc tag rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
@@ -90,13 +86,21 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 			updates[query.DaemonGcTagRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 		}
 	}
+	if req.RetentionPattern != nil {
+		updates[query.DaemonGcTagRule.RetentionPattern.ColumnName().String()] = ptr.To(req.RetentionPattern)
+	}
+	updates[query.DaemonGcTagRule.RetentionRuleType.ColumnName().String()] = req.RetentionRuleType
+	updates[query.DaemonGcTagRule.RetentionRuleAmount.ColumnName().String()] = req.RetentionRuleAmount
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
-				NamespaceID:     namespaceID,
-				CronEnabled:     req.CronEnabled,
-				CronRule:        req.CronRule,
-				CronNextTrigger: nextTrigger,
+				NamespaceID:         namespaceID,
+				CronEnabled:         req.CronEnabled,
+				CronRule:            req.CronRule,
+				CronNextTrigger:     nextTrigger,
+				RetentionPattern:    req.RetentionPattern,
+				RetentionRuleType:   req.RetentionRuleType,
+				RetentionRuleAmount: req.RetentionRuleAmount,
 			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create gc tag rule failed")
@@ -158,11 +162,14 @@ func (h *handlers) GetGcTagRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GetGcTagRuleResponse{
-		CronEnabled:     ruleObj.CronEnabled,
-		CronRule:        ruleObj.CronRule,
-		CronNextTrigger: ptr.Of(""), // response utc time, fe format with tz
-		CreatedAt:       ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:       ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CronEnabled:         ruleObj.CronEnabled,
+		CronRule:            ruleObj.CronRule,
+		CronNextTrigger:     ptr.Of(""), // response utc time, fe format with tz
+		RetentionRuleType:   ruleObj.RetentionRuleType,
+		RetentionRuleAmount: ruleObj.RetentionRuleAmount,
+		RetentionPattern:    ruleObj.RetentionPattern,
+		CreatedAt:           ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:           ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 

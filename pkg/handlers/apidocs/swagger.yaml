@@ -577,6 +577,16 @@ definitions:
       cron_rule:
         example: 0 0 * * *
         type: string
+      retention_pattern:
+        example: v*,1.*
+        type: string
+      retention_rule_amount:
+        example: 1
+        type: integer
+      retention_rule_type:
+        allOf:
+        - $ref: '#/definitions/enums.RetentionRuleType'
+        example: Day
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -1391,13 +1401,14 @@ definitions:
         type: string
       retention_rule_amount:
         example: 1
+        maximum: 180
+        minimum: 1
         type: integer
       retention_rule_type:
         allOf:
         - $ref: '#/definitions/enums.RetentionRuleType'
         example: Day
     required:
-    - cron_enabled
     - namespace_id
     type: object
   types.UserItem:

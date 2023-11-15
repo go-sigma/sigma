@@ -51,9 +51,9 @@ type DaemonGcTagRule struct {
 	CronEnabled         bool `gorm:"default:false"`
 	CronRule            *string
 	CronNextTrigger     *time.Time
-	RetentionRuleType   *enums.RetentionRuleType
-	RetentionRuleAmount *int64
-	RetentionPattern    []byte
+	RetentionRuleType   enums.RetentionRuleType
+	RetentionRuleAmount int64
+	RetentionPattern    *string
 }
 
 // DaemonGcTagRunner ...
@@ -154,6 +154,7 @@ type DaemonGcArtifactRule struct {
 	Namespace   *Namespace
 
 	IsRunning       bool `gorm:"default:false"`
+	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
 	CronNextTrigger *time.Time

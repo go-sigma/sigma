@@ -32,7 +32,7 @@ func (h *handlers) ValidateRegexp(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	_, err = regexp.Compile(req.Regex)
+	_, err = regexp.Compile(req.Regexp)
 	if err != nil {
 		log.Error().Err(err).Msg("Parse regex failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Parse regex failed: %v", err))

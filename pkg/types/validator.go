@@ -36,5 +36,5 @@ type ValidateCronRequest struct {
 
 // ValidateRegexpRequest ...
 type ValidateRegexpRequest struct {
-	Regex string `json:"regex" validate:"required" example:"^v.*$"`
+	Regexp string `json:"regexp" validate:"required" example:"^v.*$"`
 }

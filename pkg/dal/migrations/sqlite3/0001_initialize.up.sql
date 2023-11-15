@@ -275,14 +275,14 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `is_running` integer,
   `namespace_id` integer,
+  `is_running` integer NOT NULL DEFAULT 0,
   `cron_enabled` integer NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
-  `retention_rule_type` text CHECK (`retention_rule_type` IN ('Day', 'Quantity')) NOT NULL DEFAULT 'Day',
-  `retention_rule_amount` integer,
-  `retention_pattern` BLOB,
+  `retention_rule_type` text CHECK (`retention_rule_type` IN ('Day', 'Quantity')) NOT NULL DEFAULT 'Quantity',
+  `retention_rule_amount` integer not null default 1,
+  `retention_pattern` varchar(64),
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` integer NOT NULL DEFAULT 0,

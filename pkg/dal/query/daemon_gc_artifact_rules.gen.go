@@ -33,6 +33,7 @@ func newDaemonGcArtifactRule(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifact
 	_daemonGcArtifactRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcArtifactRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_daemonGcArtifactRule.IsRunning = field.NewBool(tableName, "is_running")
+	_daemonGcArtifactRule.RetentionDay = field.NewInt(tableName, "retention_day")
 	_daemonGcArtifactRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcArtifactRule.CronRule = field.NewString(tableName, "cron_rule")
 	_daemonGcArtifactRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
@@ -57,6 +58,7 @@ type daemonGcArtifactRule struct {
 	ID              field.Int64
 	NamespaceID     field.Int64
 	IsRunning       field.Bool
+	RetentionDay    field.Int
 	CronEnabled     field.Bool
 	CronRule        field.String
 	CronNextTrigger field.Time
@@ -83,6 +85,7 @@ func (d *daemonGcArtifactRule) updateTableName(table string) *daemonGcArtifactRu
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")
 	d.IsRunning = field.NewBool(table, "is_running")
+	d.RetentionDay = field.NewInt(table, "retention_day")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
 	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
@@ -114,13 +117,14 @@ func (d *daemonGcArtifactRule) GetFieldByName(fieldName string) (field.OrderExpr
 }
 
 func (d *daemonGcArtifactRule) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 10)
+	d.fieldMap = make(map[string]field.Expr, 11)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["namespace_id"] = d.NamespaceID
 	d.fieldMap["is_running"] = d.IsRunning
+	d.fieldMap["retention_day"] = d.RetentionDay
 	d.fieldMap["cron_enabled"] = d.CronEnabled
 	d.fieldMap["cron_rule"] = d.CronRule
 	d.fieldMap["cron_next_trigger"] = d.CronNextTrigger

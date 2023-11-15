@@ -77,11 +77,10 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 		nextTrigger = ptr.Of(schedule.Next(time.Now()))
 	}
 	updates := make(map[string]any, 5)
+	updates[query.DaemonGcBlobRule.RetentionDay.ColumnName().String()] = req.RetentionDay
 	if req.CronEnabled {
-		if req.CronRule != nil {
-			updates[query.DaemonGcBlobRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
-			updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
-		}
+		updates[query.DaemonGcBlobRule.CronRule.ColumnName().String()] = ptr.To(req.CronRule)
+		updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		if ruleObj == nil { // rule not found, we need create the rule
@@ -89,6 +88,7 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 				CronEnabled:     req.CronEnabled,
 				CronRule:        req.CronRule,
 				CronNextTrigger: nextTrigger,
+				RetentionDay:    req.RetentionDay,
 			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create gc blob rule failed")
@@ -147,6 +147,7 @@ func (h *handlers) GetGcBlobRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GetGcBlobRuleResponse{
+		RetentionDay:    ruleObj.RetentionDay,
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
 		CronNextTrigger: ptr.Of(""),

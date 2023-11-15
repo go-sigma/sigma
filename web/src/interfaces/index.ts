@@ -318,7 +318,36 @@ export interface IVersion {
 export interface IGcRepositoryRule {
   cron_enabled: boolean;
   cron_rule?: string;
-  cron_next_trigger: string;
+  cron_next_trigger?: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRule {
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcTagRule {
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_rule_type: string;
+  retention_rule_amount: number;
+  retention_pattern?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcBlobRule {
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
   retention_day: number;
   created_at: string;
   updated_at: string;

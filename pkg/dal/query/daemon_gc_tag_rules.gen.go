@@ -38,7 +38,7 @@ func newDaemonGcTagRule(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRule {
 	_daemonGcTagRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
 	_daemonGcTagRule.RetentionRuleType = field.NewField(tableName, "retention_rule_type")
 	_daemonGcTagRule.RetentionRuleAmount = field.NewInt64(tableName, "retention_rule_amount")
-	_daemonGcTagRule.RetentionPattern = field.NewBytes(tableName, "retention_pattern")
+	_daemonGcTagRule.RetentionPattern = field.NewString(tableName, "retention_pattern")
 	_daemonGcTagRule.Namespace = daemonGcTagRuleBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -65,7 +65,7 @@ type daemonGcTagRule struct {
 	CronNextTrigger     field.Time
 	RetentionRuleType   field.Field
 	RetentionRuleAmount field.Int64
-	RetentionPattern    field.Bytes
+	RetentionPattern    field.String
 	Namespace           daemonGcTagRuleBelongsToNamespace
 
 	fieldMap map[string]field.Expr
@@ -94,7 +94,7 @@ func (d *daemonGcTagRule) updateTableName(table string) *daemonGcTagRule {
 	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
 	d.RetentionRuleType = field.NewField(table, "retention_rule_type")
 	d.RetentionRuleAmount = field.NewInt64(table, "retention_rule_amount")
-	d.RetentionPattern = field.NewBytes(table, "retention_pattern")
+	d.RetentionPattern = field.NewString(table, "retention_pattern")
 
 	d.fillFieldMap()
 

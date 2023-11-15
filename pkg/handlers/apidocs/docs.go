@@ -5927,6 +5927,22 @@ const docTemplate = `{
                     "type": "string",
                     "example": "0 0 * * *"
                 },
+                "retention_pattern": {
+                    "type": "string",
+                    "example": "v*,1.*"
+                },
+                "retention_rule_amount": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "retention_rule_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.RetentionRuleType"
+                        }
+                    ],
+                    "example": "Day"
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -7025,7 +7041,6 @@ const docTemplate = `{
         "types.UpdateGcTagRuleRequest": {
             "type": "object",
             "required": [
-                "cron_enabled",
                 "namespace_id"
             ],
             "properties": {
@@ -7047,6 +7062,8 @@ const docTemplate = `{
                 },
                 "retention_rule_amount": {
                     "type": "integer",
+                    "maximum": 180,
+                    "minimum": 1,
                     "example": 1
                 },
                 "retention_rule_type": {
