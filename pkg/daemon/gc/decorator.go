@@ -48,23 +48,23 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 		ctx = log.Logger.WithContext(ctx)
 		id := gjson.GetBytes(payload, "runner_id").Int()
 
-		var gc = initGc(ctx, daemon)
+		var runnerChan = make(chan decoratorStatus, 3)
+		var gc = initGc(ctx, daemon, runnerChan)
 		if gc == nil {
 			return fmt.Errorf("daemon %s not support", daemon.String())
 		}
 
 		daemonService := dao.NewDaemonServiceFactory().New()
 
-		var statusChan = make(chan decoratorStatus, 1)
 		var waitAllEvents = &sync.WaitGroup{}
 		waitAllEvents.Add(1)
 		go func() {
 			defer waitAllEvents.Done()
 
+			var err error
 			var startedAt time.Time
 
-			var err error
-			for status := range statusChan {
+			for status := range runnerChan {
 				var updates = map[string]any{
 					"status":  status.Status,
 					"message": status.Message,
@@ -101,7 +101,7 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 			}
 		}()
 
-		err := gc.Run(ctx, id, statusChan)
+		err := gc.Run(id)
 		if err != nil {
 			return fmt.Errorf("gc runner(%s) failed: %v", daemon.String(), err)
 		}
@@ -115,20 +115,22 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 // Runner ...
 type Runner interface {
 	// Run ...
-	Run(ctx context.Context, runnerID int64, statusChan chan decoratorStatus) error
+	Run(runnerID int64) error
 }
 
-func initGc(ctx context.Context, daemon enums.Daemon) Runner {
+func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus) Runner {
 	switch daemon {
 	case enums.DaemonGcArtifact:
 		return &gcArtifact{
+			ctx:    log.Logger.WithContext(ctx),
+			config: ptr.To(configs.GetConfiguration()),
+
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
 			blobServiceFactory:       dao.NewBlobServiceFactory(),
 			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
 			storageDriverFactory:     storage.NewStorageDriverFactory(),
-			config:                   ptr.To(configs.GetConfiguration()),
 
 			deleteArtifactWithNamespaceChan:     make(chan artifactWithNamespaceTask, pagination),
 			deleteArtifactWithNamespaceChanOnce: &sync.Once{},
@@ -136,6 +138,8 @@ func initGc(ctx context.Context, daemon enums.Daemon) Runner {
 			deleteArtifactCheckChanOnce:         &sync.Once{},
 			deleteArtifactChan:                  make(chan artifactTask, pagination),
 			deleteArtifactChanOnce:              &sync.Once{},
+
+			runnerChan: runnerChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}

@@ -34,7 +34,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// deleteTagWithNamespace -> deleteTagWithRepository -> deleteTagCheckPattern -> deleteTag
+// deleteTagWithNamespace -> deleteTagWithRepository -> deleteTagCheckPattern -> deleteTag -> collectRecord
 
 func init() {
 	workq.TopicHandlers[enums.DaemonGcTag.String()] = definition.Consumer{
@@ -99,13 +99,12 @@ type gcTag struct {
 }
 
 // Run ...
-func (g gcTag) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
-	defer close(runnerChan)
-	g.runnerChan = runnerChan
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcTagRunner(ctx, runnerID)
+func (g gcTag) Run(runnerID int64) error {
+	defer close(g.runnerChan)
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
+	runnerObj, err := g.daemonServiceFactory.New().GetGcTagRunner(g.ctx, runnerID)
 	if err != nil {
-		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc tag runner failed: %v", err)
 	}
 
@@ -128,9 +127,10 @@ func (g gcTag) Run(ctx context.Context, runnerID int64, runnerChan chan decorato
 	} else {
 		var namespaceCurIndex int64
 		for {
-			namespaceObjs, err := namespaceService.FindWithCursor(ctx, pagination, namespaceCurIndex)
+			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				return err
+				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
 				g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: nsObj.ID}
@@ -144,7 +144,7 @@ func (g gcTag) Run(ctx context.Context, runnerID int64, runnerChan chan decorato
 	close(g.deleteTagWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }

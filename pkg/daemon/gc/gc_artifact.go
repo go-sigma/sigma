@@ -87,13 +87,12 @@ type gcArtifact struct {
 	waitAllDone *sync.WaitGroup
 }
 
-func (g gcArtifact) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
-	defer close(runnerChan)
-	g.runnerChan = runnerChan
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(ctx, runnerID)
+func (g gcArtifact) Run(runnerID int64) error {
+	defer close(g.runnerChan)
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
+	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(g.ctx, runnerID)
 	if err != nil {
-		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc artifact runner failed: %v", err)
 	}
 
@@ -110,9 +109,10 @@ func (g gcArtifact) Run(ctx context.Context, runnerID int64, runnerChan chan dec
 	} else {
 		var namespaceCurIndex int64
 		for {
-			namespaceObjs, err := namespaceService.FindWithCursor(ctx, pagination, namespaceCurIndex)
+			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				return err
+				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, ns := range namespaceObjs {
 				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ns.ID}
@@ -124,9 +124,10 @@ func (g gcArtifact) Run(ctx context.Context, runnerID int64, runnerChan chan dec
 		}
 	}
 
+	close(g.deleteArtifactWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }
@@ -136,6 +137,7 @@ func (g gcArtifact) deleteArtifactWithNamespace() {
 	artifactService := g.artifactServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.deleteArtifactCheckChan)
 		for task := range g.deleteArtifactWithNamespaceChan {
 			var repositoryCurIndex int64
 			timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
@@ -176,7 +178,8 @@ func (g gcArtifact) deleteArtifactCheck() {
 	tagService := g.tagServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
-		for task := range g.deleteArtifactChan {
+		defer close(g.deleteArtifactChan)
+		for task := range g.deleteArtifactCheckChan {
 			// 1. check manifest referrer associate with another artifact
 			if task.Artifact.ReferrerID != nil {
 				continue
@@ -214,6 +217,7 @@ func (g gcArtifact) deleteArtifactCheck() {
 func (g gcArtifact) deleteArtifact() {
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.collectRecordChan)
 		for task := range g.deleteArtifactChan {
 			err := query.Q.Transaction(func(tx *query.Query) error {
 				err := g.artifactServiceFactory.New(tx).DeleteByID(g.ctx, task.Artifact.ID)

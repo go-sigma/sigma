@@ -85,13 +85,12 @@ type gcRepository struct {
 }
 
 // Run ...
-func (g gcRepository) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
-	defer close(runnerChan)
-	g.runnerChan = runnerChan
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(ctx, runnerID)
+func (g gcRepository) Run(runnerID int64) error {
+	defer close(g.runnerChan)
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(g.ctx, runnerID)
 	if err != nil {
-		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
+		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
 		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
 
@@ -108,9 +107,10 @@ func (g gcRepository) Run(ctx context.Context, runnerID int64, runnerChan chan d
 	} else {
 		var namespaceCurIndex int64
 		for {
-			namespaceObjs, err := namespaceService.FindWithCursor(ctx, pagination, namespaceCurIndex)
+			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				return err
+				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
 				g.deleteRepositoryWithNamespaceChan <- repositoryWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: nsObj.ID}
@@ -124,7 +124,7 @@ func (g gcRepository) Run(ctx context.Context, runnerID int64, runnerChan chan d
 	close(g.deleteRepositoryWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }

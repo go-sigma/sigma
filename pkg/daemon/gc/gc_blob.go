@@ -79,14 +79,13 @@ type gcBlob struct {
 }
 
 // Run ...
-func (g gcBlob) Run(ctx context.Context, runnerID int64, runnerChan chan decoratorStatus) error {
-	defer close(runnerChan)
-	g.runnerChan = runnerChan
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+func (g gcBlob) Run(runnerID int64) error {
+	defer close(g.runnerChan)
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
 
-	runnerObj, err := g.daemonServiceFactory.New().GetGcBlobRunner(ctx, runnerID)
+	runnerObj, err := g.daemonServiceFactory.New().GetGcBlobRunner(g.ctx, runnerID)
 	if err != nil {
-		runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc blob runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc blob runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc blob runner failed: %v", err)
 	}
 
@@ -103,17 +102,19 @@ func (g gcBlob) Run(ctx context.Context, runnerID int64, runnerChan chan decorat
 
 	var curIndex int64
 	for {
-		blobs, err := blobService.FindWithLastPull(ctx, timeTarget, curIndex, pagination)
+		blobs, err := blobService.FindWithLastPull(g.ctx, timeTarget, curIndex, pagination)
 		if err != nil {
-			return err
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get blob with last pull failed: %v", err), Ended: true}
+			return fmt.Errorf("get blob with last pull failed: %v", err)
 		}
 		var ids []int64
 		for _, blob := range blobs {
 			ids = append(ids, blob.ID)
 		}
-		associateBlobIDs, err := blobService.FindAssociateWithArtifact(ctx, ids)
+		associateBlobIDs, err := blobService.FindAssociateWithArtifact(g.ctx, ids)
 		if err != nil {
-			return err
+			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Check blob associate with artifact failed: %v", err), Ended: true}
+			return fmt.Errorf("check blob associate with artifact failed: %v", err)
 		}
 		notAssociateBlobIDs := mapset.NewSet(ids...)
 		notAssociateBlobIDs.RemoveAll(associateBlobIDs...)
@@ -141,27 +142,27 @@ func (g gcBlob) Run(ctx context.Context, runnerID int64, runnerChan chan decorat
 	close(g.deleteBlobChan)
 	g.waitAllDone.Wait()
 
-	runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }
 
 func (g gcBlob) deleteBlob() {
-	ctx := log.Logger.WithContext(context.Background())
+	defer close(g.collectRecordChan)
 	for task := range g.deleteBlobChan {
 		err := query.Q.Transaction(func(tx *query.Query) error {
-			err := g.blobServiceFactory.New(tx).DeleteByID(ctx, task.Blob.ID)
+			err := g.blobServiceFactory.New(tx).DeleteByID(g.ctx, task.Blob.ID)
 			if err != nil {
 				return err
 			}
-			err = g.daemonServiceFactory.New(tx).CreateGcBlobRecords(ctx, []*models.DaemonGcBlobRecord{{
+			err = g.daemonServiceFactory.New(tx).CreateGcBlobRecords(g.ctx, []*models.DaemonGcBlobRecord{{
 				RunnerID: task.Runner.ID,
 				Digest:   task.Blob.Digest,
 			}})
 			if err != nil {
 				return err
 			}
-			err = g.storageDriverFactory.New().Delete(ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
+			err = g.storageDriverFactory.New().Delete(g.ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
 			if err != nil {
 				return err
 			}
@@ -178,6 +179,7 @@ func (g gcBlob) deleteBlob() {
 			}
 			continue
 		}
+		g.collectRecordChan <- blobTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Blob: task.Blob, Runner: task.Runner}
 	}
 }
 
