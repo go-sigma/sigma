@@ -53,7 +53,7 @@ func NewWorkQueueServiceFactory() WorkQueueServiceFactory {
 	return &workQueueServiceFactory{}
 }
 
-func (f *workQueueServiceFactory) New(txs ...*query.Query) WorkQueueService {
+func (s *workQueueServiceFactory) New(txs ...*query.Query) WorkQueueService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -76,7 +76,7 @@ func (s workQueueService) Get(ctx context.Context, topic string) (*models.WorkQu
 	).Order(s.tx.WorkQueue.UpdatedAt).First()
 }
 
-// Update update a work queue record
+// UpdateStatus update a work queue record
 func (s workQueueService) UpdateStatus(ctx context.Context, id int64, version, newVersion string, times int, status enums.TaskCommonStatus) error {
 	value := map[string]any{
 		query.WorkQueue.Status.ColumnName().String():  status,

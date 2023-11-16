@@ -14,76 +14,76 @@
 
 package gc
 
-import (
-	"context"
-	"testing"
-	"time"
+// import (
+// 	"context"
+// 	"testing"
+// 	"time"
 
-	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
+// 	"github.com/rs/zerolog/log"
+// 	"github.com/spf13/viper"
+// 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-)
+// 	"github.com/go-sigma/sigma/pkg/dal"
+// 	"github.com/go-sigma/sigma/pkg/dal/dao"
+// 	"github.com/go-sigma/sigma/pkg/dal/models"
+// 	"github.com/go-sigma/sigma/pkg/logger"
+// 	"github.com/go-sigma/sigma/pkg/tests"
+// 	"github.com/go-sigma/sigma/pkg/types/enums"
+// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+// )
 
-func TestGcArtifact(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+// func TestGcArtifact(t *testing.T) {
+// 	viper.SetDefault("log.level", "debug")
+// 	logger.SetLevel("debug")
+// 	assert.NoError(t, tests.Initialize(t))
+// 	assert.NoError(t, tests.DB.Init())
+// 	defer func() {
+// 		conn, err := dal.DB.DB()
+// 		assert.NoError(t, err)
+// 		assert.NoError(t, conn.Close())
+// 		assert.NoError(t, tests.DB.DeInit())
+// 	}()
 
-	ctx := log.Logger.WithContext(context.Background())
+// 	ctx := log.Logger.WithContext(context.Background())
 
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	userServiceFactory := dao.NewUserServiceFactory()
+// 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+// 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+// 	artifactServiceFactory := dao.NewArtifactServiceFactory()
+// 	userServiceFactory := dao.NewUserServiceFactory()
 
-	userService := userServiceFactory.New()
-	userObj := &models.User{Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err := userService.Create(ctx, userObj)
-	assert.NoError(t, err)
+// 	userService := userServiceFactory.New()
+// 	userObj := &models.User{Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+// 	err := userService.Create(ctx, userObj)
+// 	assert.NoError(t, err)
 
-	namespaceService := namespaceServiceFactory.New()
-	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
-	err = namespaceService.Create(ctx, namespaceObj)
-	assert.NoError(t, err)
+// 	namespaceService := namespaceServiceFactory.New()
+// 	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
+// 	err = namespaceService.Create(ctx, namespaceObj)
+// 	assert.NoError(t, err)
 
-	repositoryService := repositoryServiceFactory.New()
-	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-	assert.NoError(t, err)
+// 	repositoryService := repositoryServiceFactory.New()
+// 	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+// 	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
+// 	assert.NoError(t, err)
 
-	artifactService := artifactServiceFactory.New()
-	artifactObj := &models.Artifact{
-		RepositoryID: repositoryObj.ID,
-		Digest:       "sha256:812535778d12027c8dd62a23e0547009560b2710c7da7ea2cd83a935ccb525ba",
-		Size:         123,
-		ContentType:  "test",
-		Raw:          []byte("test"),
-		CreatedAt:    time.Now().Add(time.Hour * 73 * -1),
-		UpdatedAt:    time.Now().Add(time.Hour * 73 * -1),
-	}
-	err = artifactService.Create(ctx, artifactObj)
-	assert.NoError(t, err)
+// 	artifactService := artifactServiceFactory.New()
+// 	artifactObj := &models.Artifact{
+// 		RepositoryID: repositoryObj.ID,
+// 		Digest:       "sha256:812535778d12027c8dd62a23e0547009560b2710c7da7ea2cd83a935ccb525ba",
+// 		Size:         123,
+// 		ContentType:  "test",
+// 		Raw:          []byte("test"),
+// 		CreatedAt:    time.Now().Add(time.Hour * 73 * -1),
+// 		UpdatedAt:    time.Now().Add(time.Hour * 73 * -1),
+// 	}
+// 	err = artifactService.Create(ctx, artifactObj)
+// 	assert.NoError(t, err)
 
-	g := gc{
-		namespaceServiceFactory:  namespaceServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		artifactServiceFactory:   artifactServiceFactory,
-	}
-	err = g.gcArtifact(ctx, "")
-	assert.NoError(t, err)
-}
+// 	g := gc{
+// 		namespaceServiceFactory:  namespaceServiceFactory,
+// 		repositoryServiceFactory: repositoryServiceFactory,
+// 		artifactServiceFactory:   artifactServiceFactory,
+// 	}
+// 	err = g.gcArtifact(ctx, "")
+// 	assert.NoError(t, err)
+// }

@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.21.3-alpine3.18
+ARG GOLANG_VERSION=1.21.4-alpine3.18
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 
@@ -10,11 +10,11 @@ COPY ./web /web
 
 WORKDIR /web
 
-RUN set -eux && yarn install --frozen-lockfile && yarn build
+RUN --mount=type=cache,target=/web/node_modules set -eux && yarn install --frozen-lockfile && yarn build
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.93.0
+ARG SYFT_VERSION=0.96.0
 ARG TARGETARCH
 
 RUN set -eux && \
@@ -26,7 +26,7 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
-ARG TRIVY_VERSION=0.46.0
+ARG TRIVY_VERSION=0.47.0
 ARG ORAS_VERSION=1.0.0
 ARG TARGETARCH
 
@@ -54,14 +54,14 @@ RUN set -eux && \
 FROM golang:${GOLANG_VERSION} as builder
 
 RUN set -eux && \
-  apk add --no-cache make bash ncurses build-base git git-lfs
+  apk add --no-cache make bash ncurses build-base git openssl
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN --mount=type=cache,target=/root/.cache/go-build make build
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build make build
 
 FROM alpine:${ALPINE_VERSION}
 

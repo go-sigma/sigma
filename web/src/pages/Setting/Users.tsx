@@ -57,7 +57,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [passwordTextValid, setPasswordTextValid] = useState(true);
   useEffect(() => {
     if (passwordText.length > 0) {
-      axios.get(localServer + `/api/v1/validators/password?password=${passwordText}`).then(response => {
+      axios.post(localServer + `/api/v1/validators/password`, {
+        password: passwordText,
+      }).then(response => {
         if (response?.status === 204) {
           setPasswordTextValid(true);
         } else {
@@ -350,7 +352,7 @@ export default function ({ localServer }: { localServer: string }) {
                     {
                       passwordTextValid ? null : (
                         <span>
-                          Not a valid description, max 50 characters.
+                          Password is invalid, please try 'Admin@123'.
                         </span>
                       )
                     }
@@ -387,7 +389,7 @@ export default function ({ localServer }: { localServer: string }) {
                     {
                       emailInputValid ? null : (
                         <span>
-                          Not a valid description, max 50 characters.
+                          Password is invalid, please try 'Admin@123'.
                         </span>
                       )
                     }
@@ -524,7 +526,9 @@ function TableItem({ localServer, user, setRefresh }: { localServer: string, use
   const [passwordTextValid, setPasswordTextValid] = useState(true);
   useEffect(() => {
     if (passwordText.length > 0) {
-      axios.get(localServer + `/api/v1/validators/password?password=${passwordText}`).then(response => {
+      axios.post(localServer + `/api/v1/validators/password`, {
+        password: passwordText,
+      }).then(response => {
         if (response?.status === 204) {
           setPasswordTextValid(true);
         } else {

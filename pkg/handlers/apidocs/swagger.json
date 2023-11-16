@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "sigma API",
+        "title": "sigma",
         "contact": {
             "name": "sigma",
             "url": "https://github.com/go-sigma/sigma"
@@ -563,8 +563,13 @@
                 }
             }
         },
-        "/daemons/{daemon}/": {
+        "/daemons/gc-artifact/{namespace_id}/": {
             "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -574,25 +579,28 @@
                 "tags": [
                     "Daemon"
                 ],
-                "summary": "Get specific daemon task status",
+                "summary": "Get gc artifact rule",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
-                        "in": "query"
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetGcArtifactRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
                     },
                     "404": {
                         "description": "Not Found",
@@ -608,7 +616,12 @@
                     }
                 }
             },
-            "post": {
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -618,25 +631,34 @@
                 "tags": [
                     "Daemon"
                 ],
-                "summary": "Run the specific daemon task",
+                "summary": "Update gc artifact rule",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
-                        "in": "query"
+                        "description": "Gc artifact rule object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateGcArtifactRuleRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted"
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
                     },
                     "404": {
                         "description": "Not Found",
@@ -653,8 +675,13 @@
                 }
             }
         },
-        "/daemons/{daemon}/logs": {
+        "/daemons/gc-artifact/{namespace_id}/runners/": {
             "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -664,12 +691,12 @@
                 "tags": [
                     "Daemon"
                 ],
-                "summary": "Get logs",
+                "summary": "List gc artifact runners",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Daemon name",
-                        "name": "daemon",
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
@@ -705,11 +732,287 @@
                         "description": "sort method",
                         "name": "method",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcArtifactRunnerItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Create gc artifact runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc artifact runner object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateGcArtifactRunnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-artifact/{namespace_id}/runners/latest": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc artifact latest runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcArtifactRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-artifact/{namespace_id}/runners/{runner_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc artifact runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcArtifactRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc artifact records",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Namespace ID",
-                        "name": "namespace_id",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
                         "in": "query"
                     }
                 ],
@@ -727,12 +1030,1778 @@
                                         "items": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/types.DaemonLogItem"
+                                                "$ref": "#/definitions/types.GcArtifactRecordItem"
                                             }
                                         }
                                     }
                                 }
                             ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/{record_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc artifact record",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Record id",
+                        "name": "record_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcArtifactRecordItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc blob rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetGcBlobRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Update gc blob rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc blob rule object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateGcBlobRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/runners/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc blob runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcBlobRunnerItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Create gc blob runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc blob runner object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateGcBlobRunnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/runners/latest": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc blob latest runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcBlobRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/runners/{runner_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc blob runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcBlobRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc blob records",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcBlobRecordItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/{record_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc blob record",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Record id",
+                        "name": "record_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcBlobRecordItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc repository rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetGcRepositoryRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Update gc repository rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc repository rule object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateGcRepositoryRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/runners/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc repository runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcRepositoryRunnerItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Create gc repository runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc repository runner object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateGcRepositoryRunnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/runners/latest": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc repository latest runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcRepositoryRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/runners/{runner_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc repository runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcRepositoryRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc repository records",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcRepositoryRecordItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/{record_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc repository record",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Record id",
+                        "name": "record_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcRepositoryRecordItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc tag rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetGcTagRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Update gc tag rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc tag rule object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateGcTagRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/runners/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc tag runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcTagRunnerItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Create gc tag runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gc tag runner object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateGcTagRunnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/runners/latest": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc tag latest runner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcTagRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/runners/{runner_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc tag runners",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcTagRunnerItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "List gc tag records",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "sort method",
+                        "name": "method",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.GcTagRecordItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/{record_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Daemon"
+                ],
+                "summary": "Get gc tag record",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Runner id",
+                        "name": "runner_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Record id",
+                        "name": "record_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GcTagRecordItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
                         }
                     },
                     "404": {
@@ -2364,6 +4433,47 @@
                 }
             }
         },
+        "/validators/cron": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validator"
+                ],
+                "summary": "Validate cron",
+                "parameters": [
+                    {
+                        "description": "Validate cron object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ValidateCronRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/validators/password": {
             "get": {
                 "security": [
@@ -2383,11 +4493,13 @@
                 "summary": "Validate password",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "query",
-                        "required": true
+                        "description": "Validate password object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ValidatePasswordRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2427,6 +4539,47 @@
                         "name": "reference",
                         "in": "query",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/validators/regexp": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validator"
+                ],
+                "summary": "Validate regexp",
+                "parameters": [
+                    {
+                        "description": "Validate regexp object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ValidateCronRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2969,23 +5122,6 @@
         }
     },
     "definitions": {
-        "enums.AuditAction": {
-            "type": "string",
-            "enum": [
-                "create",
-                "update",
-                "delete",
-                "pull",
-                "push"
-            ],
-            "x-enum-varnames": [
-                "AuditActionCreate",
-                "AuditActionUpdate",
-                "AuditActionDelete",
-                "AuditActionPull",
-                "AuditActionPush"
-            ]
-        },
         "enums.BuilderSource": {
             "type": "string",
             "enum": [
@@ -2997,6 +5133,17 @@
                 "BuilderSourceDockerfile",
                 "BuilderSourceCodeRepository",
                 "BuilderSourceSelfCodeRepository"
+            ]
+        },
+        "enums.GcRecordStatus": {
+            "type": "string",
+            "enum": [
+                "Success",
+                "Failed"
+            ],
+            "x-enum-varnames": [
+                "GcRecordStatusSuccess",
+                "GcRecordStatusFailed"
             ]
         },
         "enums.OciPlatform": {
@@ -3043,6 +5190,17 @@
                 "ProviderGithub",
                 "ProviderGitlab",
                 "ProviderGitea"
+            ]
+        },
+        "enums.RetentionRuleType": {
+            "type": "string",
+            "enum": [
+                "Day",
+                "Quantity"
+            ],
+            "x-enum-varnames": [
+                "RetentionRuleTypeDay",
+                "RetentionRuleTypeQuantity"
             ]
         },
         "enums.ScmCredentialType": {
@@ -3093,12 +5251,10 @@
         "enums.UserRole": {
             "type": "string",
             "enum": [
-                "Root",
                 "Admin",
                 "User"
             ],
             "x-enum-varnames": [
-                "UserRoleRoot",
                 "UserRoleAdmin",
                 "UserRoleUser"
             ]
@@ -3402,17 +5558,213 @@
                 }
             }
         },
-        "types.DaemonLogItem": {
+        "types.CreateGcArtifactRunnerRequest": {
             "type": "object",
             "properties": {
-                "action": {
+                "namespace_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.CreateGcBlobRunnerRequest": {
+            "type": "object",
+            "properties": {
+                "namespace_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.CreateGcRepositoryRunnerRequest": {
+            "type": "object",
+            "properties": {
+                "namespace_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.CreateGcTagRunnerRequest": {
+            "type": "object",
+            "properties": {
+                "namespace_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.GcArtifactRecordItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "digest": {
+                    "type": "string",
+                    "example": "sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/enums.AuditAction"
+                            "$ref": "#/definitions/enums.GcRecordStatus"
                         }
                     ],
-                    "example": "delete"
+                    "example": "Success"
                 },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcArtifactRunnerItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.TaskCommonStatus"
+                        }
+                    ],
+                    "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcBlobRecordItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "digest": {
+                    "type": "string",
+                    "example": "sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcBlobRunnerItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.TaskCommonStatus"
+                        }
+                    ],
+                    "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcRepositoryRecordItem": {
+            "type": "object",
+            "properties": {
                 "created_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -3423,14 +5775,158 @@
                 },
                 "message": {
                     "type": "string",
-                    "example": "something error occurred"
+                    "example": "log"
                 },
-                "resource": {
+                "repository": {
                     "type": "string",
-                    "example": "test"
+                    "example": "library/busybox"
                 },
                 "status": {
-                    "$ref": "#/definitions/enums.TaskCommonStatus"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcRepositoryRunnerItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.TaskCommonStatus"
+                        }
+                    ],
+                    "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcTagRecordItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "digest": {
+                    "type": "string",
+                    "example": "sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GcTagRunnerItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.TaskCommonStatus"
+                        }
+                    ],
+                    "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -3461,6 +5957,138 @@
                 "id": {
                     "type": "integer",
                     "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetGcArtifactRuleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_next_trigger": {
+                    "type": "string",
+                    "example": "2021-01-01 00:00:00"
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "is_running": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetGcBlobRuleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_next_trigger": {
+                    "type": "string",
+                    "example": "2021-01-01 00:00:00"
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetGcRepositoryRuleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_next_trigger": {
+                    "type": "string",
+                    "example": "2021-01-01 00:00:00"
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetGcTagRuleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_next_trigger": {
+                    "type": "string",
+                    "example": "2021-01-01 00:00:00"
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "retention_pattern": {
+                    "type": "string",
+                    "example": "v*,1.*"
+                },
+                "retention_rule_amount": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "retention_rule_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.RetentionRuleType"
+                        }
+                    ],
+                    "example": "Day"
                 },
                 "updated_at": {
                     "type": "string",
@@ -4488,6 +7116,110 @@
                 }
             }
         },
+        "types.UpdateGcArtifactRuleRequest": {
+            "type": "object",
+            "properties": {
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
+                    "example": 10
+                }
+            }
+        },
+        "types.UpdateGcBlobRuleRequest": {
+            "type": "object",
+            "properties": {
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
+                    "example": 10
+                }
+            }
+        },
+        "types.UpdateGcRepositoryRuleRequest": {
+            "type": "object",
+            "properties": {
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "retention_day": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 0,
+                    "example": 10
+                }
+            }
+        },
+        "types.UpdateGcTagRuleRequest": {
+            "type": "object",
+            "properties": {
+                "cron_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "cron_rule": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "retention_pattern": {
+                    "type": "string",
+                    "example": "v*,1.*"
+                },
+                "retention_rule_amount": {
+                    "type": "integer",
+                    "maximum": 180,
+                    "minimum": 1,
+                    "example": 1
+                },
+                "retention_rule_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.RetentionRuleType"
+                        }
+                    ],
+                    "example": "Day"
+                }
+            }
+        },
         "types.UserItem": {
             "type": "object",
             "properties": {
@@ -4522,6 +7254,30 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "types.ValidateCronRequest": {
+            "type": "object",
+            "required": [
+                "cron"
+            ],
+            "properties": {
+                "cron": {
+                    "type": "string",
+                    "example": "0 0 * * 6"
+                }
+            }
+        },
+        "types.ValidatePasswordRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "Admin@123"
                 }
             }
         },

@@ -931,6 +931,22 @@ func (a artifactDo) ArtifactSizeByRepository(repositoryID int64) (result models.
 	return
 }
 
+// SELECT COUNT(artifact_id) as count FROM artifact_artifacts WHERE artifact_id=@artifactID
+func (a artifactDo) ArtifactAssociated(artifactID int64) (result map[string]interface{}, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, artifactID)
+	generateSQL.WriteString("SELECT COUNT(artifact_id) as count FROM artifact_artifacts WHERE artifact_id=? ")
+
+	result = make(map[string]interface{})
+	var executeSQL *gorm.DB
+	executeSQL = a.UnderlyingDB().Raw(generateSQL.String(), params...).Take(result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
 func (a artifactDo) Debug() *artifactDo {
 	return a.withDO(a.DO.Debug())
 }

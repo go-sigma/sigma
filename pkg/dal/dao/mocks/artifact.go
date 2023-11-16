@@ -347,6 +347,20 @@ func (mr *MockArtifactServiceMockRecorder) Incr(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockArtifactService)(nil).Incr), arg0, arg1)
 }
 
+// IsArtifactAssociatedWithArtifact mocks base method.
+func (m *MockArtifactService) IsArtifactAssociatedWithArtifact(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsArtifactAssociatedWithArtifact", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IsArtifactAssociatedWithArtifact indicates an expected call of IsArtifactAssociatedWithArtifact.
+func (mr *MockArtifactServiceMockRecorder) IsArtifactAssociatedWithArtifact(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArtifactAssociatedWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).IsArtifactAssociatedWithArtifact), arg0, arg1)
+}
+
 // ListArtifact mocks base method.
 func (m *MockArtifactService) ListArtifact(arg0 context.Context, arg1 types.ListArtifactRequest) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()

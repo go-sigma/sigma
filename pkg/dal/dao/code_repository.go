@@ -78,7 +78,7 @@ func NewCodeRepositoryServiceFactory() CodeRepositoryServiceFactory {
 	return &codeRepositoryServiceFactory{}
 }
 
-func (f *codeRepositoryServiceFactory) New(txs ...*query.Query) CodeRepositoryService {
+func (s *codeRepositoryServiceFactory) New(txs ...*query.Query) CodeRepositoryService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

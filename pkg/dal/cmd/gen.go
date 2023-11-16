@@ -45,7 +45,6 @@ func main() {
 		models.Blob{},
 		models.BlobUpload{},
 		models.CasbinRule{},
-		models.DaemonLog{},
 		models.Webhook{},
 		models.WebhookLog{},
 		models.Builder{},
@@ -54,10 +53,24 @@ func main() {
 		models.Locker{},
 		models.Cache{},
 		models.Setting{},
+		models.DaemonGcTagRule{},
+		models.DaemonGcTagRunner{},
+		models.DaemonGcTagRecord{},
+		models.DaemonGcRepositoryRule{},
+		models.DaemonGcRepositoryRunner{},
+		models.DaemonGcRepositoryRecord{},
+		models.DaemonGcArtifactRule{},
+		models.DaemonGcArtifactRunner{},
+		models.DaemonGcArtifactRecord{},
+		models.DaemonGcBlobRule{},
+		models.DaemonGcBlobRunner{},
+		models.DaemonGcBlobRecord{},
 	)
 
 	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})
 	g.ApplyInterface(func(models.ArtifactSizeByNamespaceOrRepository) {}, models.Artifact{})
+	g.ApplyInterface(func(models.ArtifactAssociated) {}, models.Artifact{})
+	g.ApplyInterface(func(models.BlobAssociateWithArtifact) {}, models.Blob{})
 
 	g.Execute()
 }

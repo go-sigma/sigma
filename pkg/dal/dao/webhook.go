@@ -47,7 +47,7 @@ type WebhookService interface {
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 	// CreateLog create a new webhook log
 	CreateLog(ctx context.Context, webhookLog *models.WebhookLog) error
-	// List all webhook logs with pagination
+	// ListLogs all webhook logs with pagination
 	ListLogs(ctx context.Context, webhookID int64, pagination types.Pagination, sort types.Sortable) ([]*models.WebhookLog, int64, error)
 	// GetLog get webhook log with the specified webhook ID
 	GetLog(ctx context.Context, webhookLogID int64) (*models.WebhookLog, error)
@@ -70,7 +70,7 @@ func NewWebhookServiceFactory() WebhookServiceFactory {
 }
 
 // New ...
-func (f *webhookServiceFactory) New(txs ...*query.Query) WebhookService {
+func (s *webhookServiceFactory) New(txs ...*query.Query) WebhookService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -88,24 +88,24 @@ func (s *webhookService) Create(ctx context.Context, webhook *models.Webhook) er
 // List all webhook with pagination
 func (s *webhookService) List(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.Webhook, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.Webhook.WithContext(ctx)
+	q := s.tx.Webhook.WithContext(ctx)
 	if namespaceID != nil {
-		query = query.Where(s.tx.Webhook.NamespaceID.Eq(ptr.To(namespaceID)))
+		q = q.Where(s.tx.Webhook.NamespaceID.Eq(ptr.To(namespaceID)))
 	}
-	field, ok := s.tx.Webhook.GetFieldByName(ptr.To(sort.Sort))
+	f, ok := s.tx.Webhook.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(f.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(f)
 		default:
-			query = query.Order(s.tx.Webhook.UpdatedAt.Desc())
+			q = q.Order(s.tx.Webhook.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.Webhook.UpdatedAt.Desc())
+		q = q.Order(s.tx.Webhook.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // Get gets the webhook with the specified webhook ID.
@@ -118,24 +118,24 @@ func (s *webhookService) GetByFilter(ctx context.Context, filter map[string]any)
 	return s.tx.Webhook.WithContext(ctx).Where(field.Attrs(filter)).Find()
 }
 
-// List all webhook logs with pagination
+// ListLogs all webhook logs with pagination
 func (s *webhookService) ListLogs(ctx context.Context, webhookID int64, pagination types.Pagination, sort types.Sortable) ([]*models.WebhookLog, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.WebhookLog.WithContext(ctx).Where(s.tx.WebhookLog.WebhookID.Eq(webhookID))
-	field, ok := s.tx.WebhookLog.GetFieldByName(ptr.To(sort.Sort))
+	q := s.tx.WebhookLog.WithContext(ctx).Where(s.tx.WebhookLog.WebhookID.Eq(webhookID))
+	f, ok := s.tx.WebhookLog.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(f.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(f)
 		default:
-			query = query.Order(s.tx.WebhookLog.UpdatedAt.Desc())
+			q = q.Order(s.tx.WebhookLog.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.WebhookLog.UpdatedAt.Desc())
+		q = q.Order(s.tx.WebhookLog.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // DeleteByID deletes the webhook with the specified webhook ID.

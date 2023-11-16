@@ -41,6 +41,12 @@ type Deploy string
 // )
 type TaskCommonStatus string
 
+// GcRecordStatus x ENUM(
+// Success,
+// Failed,
+// )
+type GcRecordStatus string
+
 // BuildStatus x ENUM(
 // Success,
 // Failed,
@@ -90,6 +96,9 @@ type LockerType string
 // Sbom,
 // Gc,
 // GcRepository,
+// GcArtifact,
+// GcBlob,
+// GcTag,
 // Webhook,
 // Builder,
 // CodeRepository,
@@ -252,3 +261,9 @@ type UserStatus string
 // User,
 // )
 type UserRole string
+
+// RetentionRuleType x ENUM(
+// Day,
+// Quantity,
+// )
+type RetentionRuleType string

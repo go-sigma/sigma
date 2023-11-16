@@ -28,7 +28,7 @@ import (
 type BlobUploadService interface {
 	// Create creates a new blob upload.
 	Create(ctx context.Context, blobUpload *models.BlobUpload) error
-	// Get gets the blob upload with the specified blob upload ID.
+	// GetLastPart gets the blob upload with the specified blob upload ID.
 	GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error)
 	// FindAllByUploadID find all blob uploads with the specified upload ID.
 	FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error)
@@ -59,7 +59,7 @@ func NewBlobUploadServiceFactory() BlobUploadServiceFactory {
 }
 
 // New creates a new blob upload service.
-func (f *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
+func (s *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -70,27 +70,27 @@ func (f *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
 }
 
 // Create creates a new blob upload.
-func (b *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) error {
-	return b.tx.BlobUpload.WithContext(ctx).Create(blobUpload)
+func (s *blobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) error {
+	return s.tx.BlobUpload.WithContext(ctx).Create(blobUpload)
 }
 
 // GetLastPart gets the blob upload with the specified blob upload ID.
-func (b *blobUploadService) GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
-	return b.tx.BlobUpload.WithContext(ctx).
-		Where(b.tx.BlobUpload.UploadID.Eq(uploadID)).
-		Order(b.tx.BlobUpload.PartNumber.Desc()).First()
+func (s *blobUploadService) GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
+	return s.tx.BlobUpload.WithContext(ctx).
+		Where(s.tx.BlobUpload.UploadID.Eq(uploadID)).
+		Order(s.tx.BlobUpload.PartNumber.Desc()).First()
 }
 
 // FindAllByUploadID find all blob uploads with the specified upload ID.
-func (b *blobUploadService) FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error) {
-	return b.tx.BlobUpload.WithContext(ctx).
-		Where(b.tx.BlobUpload.UploadID.Eq(uploadID)).
-		Order(b.tx.BlobUpload.PartNumber).Find()
+func (s *blobUploadService) FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error) {
+	return s.tx.BlobUpload.WithContext(ctx).
+		Where(s.tx.BlobUpload.UploadID.Eq(uploadID)).
+		Order(s.tx.BlobUpload.PartNumber).Find()
 }
 
 // TotalSizeByUploadID gets the total size of the blob uploads with the specified upload ID.
-func (b *blobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID string) (int64, error) {
-	blobUploads, err := b.FindAllByUploadID(ctx, uploadID)
+func (s *blobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID string) (int64, error) {
+	blobUploads, err := s.FindAllByUploadID(ctx, uploadID)
 	if err != nil {
 		return 0, err
 	}
@@ -102,8 +102,8 @@ func (b *blobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID st
 }
 
 // TotalEtagsByUploadID gets the total etags of the blob uploads with the specified upload ID.
-func (b *blobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID string) ([]string, error) {
-	blobUploads, err := b.FindAllByUploadID(ctx, uploadID)
+func (s *blobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID string) ([]string, error) {
+	blobUploads, err := s.FindAllByUploadID(ctx, uploadID)
 	if err != nil {
 		return nil, err
 	}
@@ -118,9 +118,9 @@ func (b *blobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID s
 }
 
 // DeleteByUploadID deletes all blob uploads with the specified upload ID.
-func (b *blobUploadService) DeleteByUploadID(ctx context.Context, uploadID string) error {
-	_, err := b.tx.BlobUpload.WithContext(ctx).
-		Where(b.tx.BlobUpload.UploadID.Eq(uploadID)).
+func (s *blobUploadService) DeleteByUploadID(ctx context.Context, uploadID string) error {
+	_, err := s.tx.BlobUpload.WithContext(ctx).
+		Where(s.tx.BlobUpload.UploadID.Eq(uploadID)).
 		Delete()
 	return err
 }

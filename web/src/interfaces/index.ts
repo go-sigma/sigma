@@ -314,3 +314,182 @@ export interface IVersion {
   git_hash: string;
   build_date: string;
 }
+
+export interface IGcRepositoryRule {
+  is_running: boolean;
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRule {
+  is_running: boolean;
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcTagRule {
+  is_running: boolean;
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_rule_type: string;
+  retention_rule_amount: number;
+  retention_pattern?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcBlobRule {
+  is_running: boolean;
+  cron_enabled: boolean;
+  cron_rule?: string;
+  cron_next_trigger?: string;
+  retention_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcRepositoryRunnerItem {
+  id: number;
+  status: string;
+  message: string;
+  success_count?: number;
+  failed_count?: number;
+  started_at?: string;
+  ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcTagRunnerItem {
+  id: number;
+  status: string;
+  message: string;
+  success_count?: number;
+  failed_count?: number;
+  started_at?: string;
+  ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRunnerItem {
+  id: number;
+  status: string;
+  message: string;
+  success_count?: number;
+  failed_count?: number;
+  started_at?: string;
+  ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcBlobRunnerItem {
+  id: number;
+  status: string;
+  message: string;
+  success_count?: number;
+  failed_count?: number;
+  started_at?: string;
+  ended_at?: string;
+  raw_duration?: number;
+  duration?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcRepositoryRunnerList {
+  items: IGcRepositoryRunnerItem[];
+  total: number;
+}
+
+export interface IGcTagRunnerList {
+  items: IGcTagRunnerItem[];
+  total: number;
+}
+
+export interface IGcArtifactRunnerList {
+  items: IGcArtifactRunnerItem[];
+  total: number;
+}
+
+export interface IGcArtifactRunnerList {
+  items: IGcArtifactRunnerItem[];
+  total: number;
+}
+
+export interface IGcBlobRunnerList {
+  items: IGcBlobRunnerItem[];
+  total: number;
+}
+
+export interface IGcRepositoryRecordItem {
+  id: number;
+  repository: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcTagRecordItem {
+  id: number;
+  tag: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcArtifactRecordItem {
+  id: number;
+  digest: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcBlobRecordItem {
+  id: number;
+  digest: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IGcRepositoryRecordList {
+  items: IGcRepositoryRecordItem[];
+  total: number;
+}
+
+export interface IGcTagRecordList {
+  items: IGcTagRecordItem[];
+  total: number;
+}
+
+export interface IGcArtifactRecordList {
+  items: IGcArtifactRecordItem[];
+  total: number;
+}
+
+export interface IGcBlobRecordList {
+  items: IGcBlobRecordItem[];
+  total: number;
+}

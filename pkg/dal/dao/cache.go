@@ -52,7 +52,7 @@ func NewCacheServiceFactory() CacheServiceFactory {
 	return &cacheServiceFactory{}
 }
 
-func (f *cacheServiceFactory) New(txs ...*query.Query) CacheService {
+func (s *cacheServiceFactory) New(txs ...*query.Query) CacheService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

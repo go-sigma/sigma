@@ -31,7 +31,18 @@ var (
 	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
-	DaemonLog                     *daemonLog
+	DaemonGcArtifactRecord        *daemonGcArtifactRecord
+	DaemonGcArtifactRule          *daemonGcArtifactRule
+	DaemonGcArtifactRunner        *daemonGcArtifactRunner
+	DaemonGcBlobRecord            *daemonGcBlobRecord
+	DaemonGcBlobRule              *daemonGcBlobRule
+	DaemonGcBlobRunner            *daemonGcBlobRunner
+	DaemonGcRepositoryRecord      *daemonGcRepositoryRecord
+	DaemonGcRepositoryRule        *daemonGcRepositoryRule
+	DaemonGcRepositoryRunner      *daemonGcRepositoryRunner
+	DaemonGcTagRecord             *daemonGcTagRecord
+	DaemonGcTagRule               *daemonGcTagRule
+	DaemonGcTagRunner             *daemonGcTagRunner
 	Locker                        *locker
 	Namespace                     *namespace
 	Repository                    *repository
@@ -61,7 +72,18 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
-	DaemonLog = &Q.DaemonLog
+	DaemonGcArtifactRecord = &Q.DaemonGcArtifactRecord
+	DaemonGcArtifactRule = &Q.DaemonGcArtifactRule
+	DaemonGcArtifactRunner = &Q.DaemonGcArtifactRunner
+	DaemonGcBlobRecord = &Q.DaemonGcBlobRecord
+	DaemonGcBlobRule = &Q.DaemonGcBlobRule
+	DaemonGcBlobRunner = &Q.DaemonGcBlobRunner
+	DaemonGcRepositoryRecord = &Q.DaemonGcRepositoryRecord
+	DaemonGcRepositoryRule = &Q.DaemonGcRepositoryRule
+	DaemonGcRepositoryRunner = &Q.DaemonGcRepositoryRunner
+	DaemonGcTagRecord = &Q.DaemonGcTagRecord
+	DaemonGcTagRule = &Q.DaemonGcTagRule
+	DaemonGcTagRunner = &Q.DaemonGcTagRunner
 	Locker = &Q.Locker
 	Namespace = &Q.Namespace
 	Repository = &Q.Repository
@@ -92,7 +114,18 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
-		DaemonLog:                     newDaemonLog(db, opts...),
+		DaemonGcArtifactRecord:        newDaemonGcArtifactRecord(db, opts...),
+		DaemonGcArtifactRule:          newDaemonGcArtifactRule(db, opts...),
+		DaemonGcArtifactRunner:        newDaemonGcArtifactRunner(db, opts...),
+		DaemonGcBlobRecord:            newDaemonGcBlobRecord(db, opts...),
+		DaemonGcBlobRule:              newDaemonGcBlobRule(db, opts...),
+		DaemonGcBlobRunner:            newDaemonGcBlobRunner(db, opts...),
+		DaemonGcRepositoryRecord:      newDaemonGcRepositoryRecord(db, opts...),
+		DaemonGcRepositoryRule:        newDaemonGcRepositoryRule(db, opts...),
+		DaemonGcRepositoryRunner:      newDaemonGcRepositoryRunner(db, opts...),
+		DaemonGcTagRecord:             newDaemonGcTagRecord(db, opts...),
+		DaemonGcTagRule:               newDaemonGcTagRule(db, opts...),
+		DaemonGcTagRunner:             newDaemonGcTagRunner(db, opts...),
 		Locker:                        newLocker(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
 		Repository:                    newRepository(db, opts...),
@@ -124,7 +157,18 @@ type Query struct {
 	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
-	DaemonLog                     daemonLog
+	DaemonGcArtifactRecord        daemonGcArtifactRecord
+	DaemonGcArtifactRule          daemonGcArtifactRule
+	DaemonGcArtifactRunner        daemonGcArtifactRunner
+	DaemonGcBlobRecord            daemonGcBlobRecord
+	DaemonGcBlobRule              daemonGcBlobRule
+	DaemonGcBlobRunner            daemonGcBlobRunner
+	DaemonGcRepositoryRecord      daemonGcRepositoryRecord
+	DaemonGcRepositoryRule        daemonGcRepositoryRule
+	DaemonGcRepositoryRunner      daemonGcRepositoryRunner
+	DaemonGcTagRecord             daemonGcTagRecord
+	DaemonGcTagRule               daemonGcTagRule
+	DaemonGcTagRunner             daemonGcTagRunner
 	Locker                        locker
 	Namespace                     namespace
 	Repository                    repository
@@ -157,7 +201,18 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
-		DaemonLog:                     q.DaemonLog.clone(db),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.clone(db),
+		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.clone(db),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.clone(db),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.clone(db),
+		DaemonGcBlobRule:              q.DaemonGcBlobRule.clone(db),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.clone(db),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.clone(db),
+		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.clone(db),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.clone(db),
+		DaemonGcTagRecord:             q.DaemonGcTagRecord.clone(db),
+		DaemonGcTagRule:               q.DaemonGcTagRule.clone(db),
+		DaemonGcTagRunner:             q.DaemonGcTagRunner.clone(db),
 		Locker:                        q.Locker.clone(db),
 		Namespace:                     q.Namespace.clone(db),
 		Repository:                    q.Repository.clone(db),
@@ -197,7 +252,18 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
-		DaemonLog:                     q.DaemonLog.replaceDB(db),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.replaceDB(db),
+		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.replaceDB(db),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.replaceDB(db),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.replaceDB(db),
+		DaemonGcBlobRule:              q.DaemonGcBlobRule.replaceDB(db),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.replaceDB(db),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.replaceDB(db),
+		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.replaceDB(db),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.replaceDB(db),
+		DaemonGcTagRecord:             q.DaemonGcTagRecord.replaceDB(db),
+		DaemonGcTagRule:               q.DaemonGcTagRule.replaceDB(db),
+		DaemonGcTagRunner:             q.DaemonGcTagRunner.replaceDB(db),
 		Locker:                        q.Locker.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
 		Repository:                    q.Repository.replaceDB(db),
@@ -227,7 +293,18 @@ type queryCtx struct {
 	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
-	DaemonLog                     *daemonLogDo
+	DaemonGcArtifactRecord        *daemonGcArtifactRecordDo
+	DaemonGcArtifactRule          *daemonGcArtifactRuleDo
+	DaemonGcArtifactRunner        *daemonGcArtifactRunnerDo
+	DaemonGcBlobRecord            *daemonGcBlobRecordDo
+	DaemonGcBlobRule              *daemonGcBlobRuleDo
+	DaemonGcBlobRunner            *daemonGcBlobRunnerDo
+	DaemonGcRepositoryRecord      *daemonGcRepositoryRecordDo
+	DaemonGcRepositoryRule        *daemonGcRepositoryRuleDo
+	DaemonGcRepositoryRunner      *daemonGcRepositoryRunnerDo
+	DaemonGcTagRecord             *daemonGcTagRecordDo
+	DaemonGcTagRule               *daemonGcTagRuleDo
+	DaemonGcTagRunner             *daemonGcTagRunnerDo
 	Locker                        *lockerDo
 	Namespace                     *namespaceDo
 	Repository                    *repositoryDo
@@ -257,7 +334,18 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
-		DaemonLog:                     q.DaemonLog.WithContext(ctx),
+		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.WithContext(ctx),
+		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.WithContext(ctx),
+		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.WithContext(ctx),
+		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.WithContext(ctx),
+		DaemonGcBlobRule:              q.DaemonGcBlobRule.WithContext(ctx),
+		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.WithContext(ctx),
+		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.WithContext(ctx),
+		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.WithContext(ctx),
+		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.WithContext(ctx),
+		DaemonGcTagRecord:             q.DaemonGcTagRecord.WithContext(ctx),
+		DaemonGcTagRule:               q.DaemonGcTagRule.WithContext(ctx),
+		DaemonGcTagRunner:             q.DaemonGcTagRunner.WithContext(ctx),
 		Locker:                        q.Locker.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),
 		Repository:                    q.Repository.WithContext(ctx),

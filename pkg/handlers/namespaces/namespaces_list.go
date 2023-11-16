@@ -53,14 +53,14 @@ func (h *handlers) ListNamespace(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaces, total, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
+	namespaceObjs, total, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp = make([]any, 0, len(namespaces))
-	for _, ns := range namespaces {
+	var resp = make([]any, 0, len(namespaceObjs))
+	for _, ns := range namespaceObjs {
 		resp = append(resp, types.NamespaceItem{
 			ID:              ns.ID,
 			Name:            ns.Name,

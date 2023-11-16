@@ -59,7 +59,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 		var statusChan = make(chan DecoratorArtifactStatus, 1)
 		go func() {
 			defer waitAllEvents.Done()
-			ctx := log.Logger.WithContext(ctx)
+			var err error
 			for status := range statusChan {
 				switch status.Daemon {
 				case enums.DaemonVulnerability:

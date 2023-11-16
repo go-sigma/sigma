@@ -39,10 +39,16 @@ import (
 type TagService interface {
 	// Create save a new tag if conflict do nothing.
 	Create(ctx context.Context, tag *models.Tag, options ...Option) error
-	// Get gets the tag with the specified tag ID.
+	// FindWithQuantityCursor ...
+	FindWithQuantityCursor(ctx context.Context, repositoryID int64, quantity, limit int, last int64) ([]*models.Tag, error)
+	// FindWithDayCursor ...
+	FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error)
+	// GetByID gets the tag with the specified tag ID.
 	GetByID(ctx context.Context, tagID int64) (*models.Tag, error)
 	// GetByName gets the tag with the specified tag name.
 	GetByName(ctx context.Context, repositoryID int64, tag string) (*models.Tag, error)
+	// GetByArtifactID ...
+	GetByArtifactID(ctx context.Context, repositoryID, artifactID int64) (*models.Tag, error)
 	// DeleteByName deletes the tag with the specified tag name.
 	DeleteByName(ctx context.Context, repositoryID int64, tag string) error
 	// DeleteByArtifactID deletes the tag with the specified artifact ID.
@@ -53,12 +59,14 @@ type TagService interface {
 	ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...int64) ([]*models.Tag, error)
 	// ListTag lists the tags by the specified request.
 	ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
-	// CountArtifact counts the artifacts by the specified request.
+	// CountTag counts the artifacts by the specified request.
 	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
+	// CountByRepositories counts the tags by the specified repositories.
+	CountByRepositories(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error)
 	// CountByRepository counts the tags by the specified repository.
-	CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error)
+	CountByRepository(ctx context.Context, repositoryID int64) (int64, error)
 	// DeleteByID deletes the tag with the specified tag ID.
 	DeleteByID(ctx context.Context, id int64) error
 	// CountByArtifact counts the tags by the specified artifact.
@@ -81,7 +89,7 @@ func NewTagServiceFactory() TagServiceFactory {
 	return &tagServiceFactory{}
 }
 
-func (f *tagServiceFactory) New(txs ...*query.Query) TagService {
+func (s *tagServiceFactory) New(txs ...*query.Query) TagService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -138,15 +146,37 @@ func (s *tagService) Create(ctx context.Context, tag *models.Tag, options ...Opt
 	return copier.Copy(findTagObj, tag)
 }
 
-// Get gets the tag with the specified tag ID.
+// FindWithQuantityCursor ...
+func (s *tagService) FindWithQuantityCursor(ctx context.Context, repositoryID int64, quantity, limit int, last int64) ([]*models.Tag, error) {
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Order(s.tx.Tag.UpdatedAt.Desc())
+	if last == 0 {
+		q = q.Offset(quantity)
+	} else {
+		q = q.Where(s.tx.Tag.ID.Gt(last))
+	}
+	return q.Limit(limit).Find()
+}
+
+// FindWithDayCursor ...
+func (s *tagService) FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error) {
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Order(s.tx.Tag.UpdatedAt.Desc())
+	if last == 0 {
+		q = q.Where(s.tx.Tag.UpdatedAt.Gt(time.Now().Add(time.Hour * 24 * time.Duration(day))))
+	} else {
+		q = q.Where(s.tx.Tag.ID.Gt(last))
+	}
+	return q.Limit(limit).Find()
+}
+
+// GetByID gets the tag with the specified tag ID.
 func (s *tagService) GetByID(ctx context.Context, tagID int64) (*models.Tag, error) {
-	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
-	query.Preload(s.tx.Tag.Artifact.Vulnerability)
-	query.Preload(s.tx.Tag.Artifact.Sbom)
-	return query.First()
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	q.Preload(s.tx.Tag.Artifact.Vulnerability)
+	q.Preload(s.tx.Tag.Artifact.Sbom)
+	return q.First()
 }
 
 // GetByName gets the tag with the specified tag name.
@@ -155,6 +185,11 @@ func (s *tagService) GetByName(ctx context.Context, repositoryID int64, tag stri
 		Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.Name.Eq(tag)).
 		Preload(s.tx.Tag.Artifact).
 		First()
+}
+
+// GetByArtifactID ...
+func (s *tagService) GetByArtifactID(ctx context.Context, repositoryID, artifactID int64) (*models.Tag, error) {
+	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID), s.tx.Tag.ArtifactID.Eq(artifactID)).First()
 }
 
 // DeleteByName deletes the tag with the specified tag name.
@@ -212,41 +247,41 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 		}
 	}
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
+	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID))
 	if len(types) > 0 {
-		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID), s.tx.Artifact.Type.In(mTypes...))
+		q = q.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID), s.tx.Artifact.Type.In(mTypes...))
 	} else {
-		query = query.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID))
+		q = q.RightJoin(s.tx.Artifact, s.tx.Tag.ArtifactID.EqCol(s.tx.Artifact.ID))
 	}
 	if name != nil {
-		query = query.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Tag.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.Tag.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.Tag.UpdatedAt.Desc())
+			q = q.Order(s.tx.Tag.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.Tag.UpdatedAt.Desc())
+		q = q.Order(s.tx.Tag.UpdatedAt.Desc())
 	}
 	if len(types) > 0 {
-		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
 	} else {
-		query = query.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
 	}
-	query = query.Preload(s.tx.Tag.Artifact.Vulnerability)
-	query = query.Preload(s.tx.Tag.Artifact.Sbom)
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	query.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	q = q.Preload(s.tx.Tag.Artifact.Vulnerability)
+	q = q.Preload(s.tx.Tag.Artifact.Sbom)
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
-// CountArtifact counts the artifacts by the specified request.
+// CountTag counts the artifacts by the specified request.
 func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (int64, error) {
 	return s.tx.Tag.WithContext(ctx).
 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
@@ -311,8 +346,8 @@ func (s *tagService) CountByNamespace(ctx context.Context, namespaceIDs []int64)
 	return tagCount, nil
 }
 
-// CountByRepository counts the tags by the specified repository.
-func (s *tagService) CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
+// CountByRepositories counts the tags by the specified repositories.
+func (s *tagService) CountByRepositories(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
 	tagCount := make(map[int64]int64)
 	var count []struct {
 		RepositoryID int64 `gorm:"column:repository_id"`
@@ -330,4 +365,9 @@ func (s *tagService) CountByRepository(ctx context.Context, repositoryIDs []int6
 		tagCount[c.RepositoryID] = c.Count
 	}
 	return tagCount, nil
+}
+
+// CountByRepository counts the tags by the specified repository.
+func (s *tagService) CountByRepository(ctx context.Context, repositoryID int64) (int64, error) {
+	return s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Count()
 }

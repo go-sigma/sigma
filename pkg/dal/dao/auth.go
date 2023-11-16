@@ -25,7 +25,7 @@ import (
 //go:generate mockgen -destination=mocks/auth.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuthService
 //go:generate mockgen -destination=mocks/auth_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuthServiceFactory
 
-// AuthRole defines the role of the user.
+// AuthService defines the role of the user.
 type AuthService interface {
 	// AddRoleForUser adds a role for a user.
 	AddRoleForUser(ctx context.Context, user string, role string, domain string) error
@@ -52,7 +52,7 @@ func NewAuthServiceFactory() AuthServiceFactory {
 }
 
 // New creates a new blob service.
-func (f *authServiceFactory) New(txs ...*query.Query) AuthService {
+func (s *authServiceFactory) New(txs ...*query.Query) AuthService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

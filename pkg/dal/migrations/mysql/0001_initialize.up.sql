@@ -269,17 +269,175 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES `blobs` (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `daemon_logs` (
+CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `namespace_id` bigint,
-  `type` ENUM ('Gc', 'Vulnerability', 'Sbom') NOT NULL,
-  `action` ENUM ('create', 'update', 'delete', 'pull', 'push') NOT NULL,
-  `resource` varchar(256) NOT NULL,
-  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL,
-  `message` BLOB,
+  `is_running` tinyint NOT NULL DEFAULT 0,
+  `cron_enabled` tinyint NOT NULL DEFAULT 0,
+  `cron_rule` varchar(30),
+  `cron_next_trigger` timestamp,
+  `retention_rule_type` ENUM ('Day', 'Quantity') NOT NULL DEFAULT 'Quantity',
+  `retention_rule_amount` bigint NOT NULL DEFAULT 1,
+  `retention_pattern` varchar(64),
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `rule_id` bigint NOT NULL,
+  `message` LONGBLOB,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `success_count` bigint,
+  `failed_count` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `runner_id` bigint NOT NULL,
+  `tag` varchar(128) NOT NULL,
+  `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
+  `message` LONGBLOB,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_tag_runners` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `namespace_id` bigint,
+  `is_running` tinyint NOT NULL DEFAULT 0,
+  `retention_day` int NOT NULL DEFAULT 0,
+  `cron_enabled` tinyint NOT NULL DEFAULT 0,
+  `cron_rule` varchar(30),
+  `cron_next_trigger` timestamp,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `rule_id` bigint NOT NULL,
+  `message` LONGBLOB,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `success_count` bigint,
+  `failed_count` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `runner_id` bigint NOT NULL,
+  `repository` varchar(64) NOT NULL,
+  `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
+  `message` LONGBLOB,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `namespace_id` bigint,
+  `is_running` tinyint NOT NULL DEFAULT 0,
+  `retention_day` int NOT NULL DEFAULT 0,
+  `cron_enabled` tinyint NOT NULL DEFAULT 0,
+  `cron_rule` varchar(30),
+  `cron_next_trigger` timestamp,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `rule_id` bigint NOT NULL,
+  `message` LONGBLOB,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `success_count` bigint,
+  `failed_count` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `runner_id` bigint NOT NULL,
+  `digest` varchar(256) NOT NULL,
+  `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
+  `message` LONGBLOB,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `is_running` tinyint NOT NULL DEFAULT 0,
+  `retention_day` int NOT NULL DEFAULT 0,
+  `cron_enabled` tinyint NOT NULL DEFAULT 0,
+  `cron_rule` varchar(30),
+  `cron_next_trigger` timestamp,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `rule_id` bigint NOT NULL,
+  `message` LONGBLOB,
+  `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
+  `started_at` timestamp,
+  `ended_at` timestamp,
+  `duration` bigint,
+  `success_count` bigint,
+  `failed_count` bigint,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `runner_id` bigint NOT NULL,
+  `digest` varchar(256) NOT NULL,
+  `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
+  `message` LONGBLOB,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
 );
 
 CREATE TABLE `casbin_rules` (

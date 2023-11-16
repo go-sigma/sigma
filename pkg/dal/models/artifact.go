@@ -68,6 +68,12 @@ type ArtifactSizeByNamespaceOrRepository interface {
 	ArtifactSizeByRepository(repositoryID int64) (gen.T, error)
 }
 
+// ArtifactAssociated ...
+type ArtifactAssociated interface {
+	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts WHERE artifact_id=@artifactID
+	ArtifactAssociated(artifactID int64) (gen.M, error)
+}
+
 // AfterCreate ...
 func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
 	if a == nil {

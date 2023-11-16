@@ -86,7 +86,7 @@ func NewUserServiceFactory() UserServiceFactory {
 }
 
 // New creates a new user service.
-func (f *userServiceFactory) New(txs ...*query.Query) UserService {
+func (s *userServiceFactory) New(txs ...*query.Query) UserService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -136,47 +136,47 @@ func (s *userService) UpdateUser3rdParty(ctx context.Context, id int64, updates 
 // ListWithoutUsername all users with pagination, and without specific username
 func (s *userService) ListWithoutUsername(ctx context.Context, expect string, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Neq(expect))
+	q := s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Neq(expect))
 	if name != nil {
-		query = query.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.User.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.User.UpdatedAt.Desc())
+			q = q.Order(s.tx.User.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.User.UpdatedAt.Desc())
+		q = q.Order(s.tx.User.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // List all users with pagination
 func (s *userService) List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.User.WithContext(ctx)
+	q := s.tx.User.WithContext(ctx)
 	if name != nil {
-		query = query.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.User.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.User.UpdatedAt.Desc())
+			q = q.Order(s.tx.User.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.User.UpdatedAt.Desc())
+		q = q.Order(s.tx.User.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // Count gets the total number of users.

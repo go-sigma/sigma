@@ -36,20 +36,20 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/validators/password [get]
-//	@Param		password	query	string	true	"Password"
+//	@Param		message	body	types.ValidatePasswordRequest	true	"Validate password object"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode
 func (h *handlers) GetPassword(c echo.Context) error {
-	var req types.GetValidatorPasswordRequest
+	var req types.ValidatePasswordRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
 	if err != nil {
-		log.Error().Err(err).Msg("Validate password failed")
+		log.Error().Err(err).Msg("Password strength is not enough")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Password strength is not enough: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)

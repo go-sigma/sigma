@@ -33,7 +33,7 @@ import (
 type LockerService interface {
 	// Create creates a new work queue record in the database
 	Create(ctx context.Context, name string) error
-	// Get get a locker record
+	// Delete get a locker record
 	Delete(ctx context.Context, name string) error
 }
 
@@ -53,7 +53,7 @@ func NewLockerServiceFactory() LockerServiceFactory {
 	return &lockerServiceFactory{}
 }
 
-func (f *lockerServiceFactory) New(txs ...*query.Query) LockerService {
+func (s *lockerServiceFactory) New(txs ...*query.Query) LockerService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -75,10 +75,10 @@ func (s lockerService) Create(ctx context.Context, name string) error {
 		}
 		<-time.After(time.Second)
 	}
-	return fmt.Errorf("Cannot acquire locker for %s", name)
+	return fmt.Errorf("cannot acquire locker for %s", name)
 }
 
-// Get get a locker record
+// Delete get a locker record
 func (s lockerService) Delete(ctx context.Context, name string) error {
 	matched, err := s.tx.Locker.WithContext(ctx).Unscoped().Where(s.tx.Locker.Name.Eq(name)).Delete()
 	if err != nil {

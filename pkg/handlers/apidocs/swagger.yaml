@@ -1,19 +1,5 @@
 basePath: /api/v1
 definitions:
-  enums.AuditAction:
-    enum:
-    - create
-    - update
-    - delete
-    - pull
-    - push
-    type: string
-    x-enum-varnames:
-    - AuditActionCreate
-    - AuditActionUpdate
-    - AuditActionDelete
-    - AuditActionPull
-    - AuditActionPush
   enums.BuilderSource:
     enum:
     - Dockerfile
@@ -24,6 +10,14 @@ definitions:
     - BuilderSourceDockerfile
     - BuilderSourceCodeRepository
     - BuilderSourceSelfCodeRepository
+  enums.GcRecordStatus:
+    enum:
+    - Success
+    - Failed
+    type: string
+    x-enum-varnames:
+    - GcRecordStatusSuccess
+    - GcRecordStatusFailed
   enums.OciPlatform:
     enum:
     - linux/amd64
@@ -64,6 +58,14 @@ definitions:
     - ProviderGithub
     - ProviderGitlab
     - ProviderGitea
+  enums.RetentionRuleType:
+    enum:
+    - Day
+    - Quantity
+    type: string
+    x-enum-varnames:
+    - RetentionRuleTypeDay
+    - RetentionRuleTypeQuantity
   enums.ScmCredentialType:
     enum:
     - ssh
@@ -102,12 +104,10 @@ definitions:
     - TaskCommonStatusFailed
   enums.UserRole:
     enum:
-    - Root
     - Admin
     - User
     type: string
     x-enum-varnames:
-    - UserRoleRoot
     - UserRoleAdmin
     - UserRoleUser
   enums.UserStatus:
@@ -329,12 +329,146 @@ definitions:
         example: 1
         type: integer
     type: object
-  types.DaemonLogItem:
+  types.CreateGcArtifactRunnerRequest:
     properties:
-      action:
+      namespace_id:
+        type: integer
+    type: object
+  types.CreateGcBlobRunnerRequest:
+    properties:
+      namespace_id:
+        type: integer
+    type: object
+  types.CreateGcRepositoryRunnerRequest:
+    properties:
+      namespace_id:
+        type: integer
+    type: object
+  types.CreateGcTagRunnerRequest:
+    properties:
+      namespace_id:
+        type: integer
+    type: object
+  types.GcArtifactRecordItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      digest:
+        example: sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744
+        type: string
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      status:
         allOf:
-        - $ref: '#/definitions/enums.AuditAction'
-        example: delete
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcArtifactRunnerItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.TaskCommonStatus'
+        example: Pending
+      success_count:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcBlobRecordItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      digest:
+        example: sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744
+        type: string
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcBlobRunnerItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.TaskCommonStatus'
+        example: Pending
+      success_count:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcRepositoryRecordItem:
+    properties:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -342,13 +476,111 @@ definitions:
         example: 1
         type: integer
       message:
-        example: something error occurred
+        example: log
         type: string
-      resource:
-        example: test
+      repository:
+        example: library/busybox
         type: string
       status:
-        $ref: '#/definitions/enums.TaskCommonStatus'
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcRepositoryRunnerItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.TaskCommonStatus'
+        example: Pending
+      success_count:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcTagRecordItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      digest:
+        example: sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744
+        type: string
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GcTagRunnerItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      message:
+        example: log
+        type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.TaskCommonStatus'
+        example: Pending
+      success_count:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -370,6 +602,100 @@ definitions:
       id:
         example: 1
         type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetGcArtifactRuleResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_next_trigger:
+        example: "2021-01-01 00:00:00"
+        type: string
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      is_running:
+        example: true
+        type: boolean
+      retention_day:
+        example: 10
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetGcBlobRuleResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_next_trigger:
+        example: "2021-01-01 00:00:00"
+        type: string
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      retention_day:
+        example: 10
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetGcRepositoryRuleResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_next_trigger:
+        example: "2021-01-01 00:00:00"
+        type: string
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      retention_day:
+        example: 10
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  types.GetGcTagRuleResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_next_trigger:
+        example: "2021-01-01 00:00:00"
+        type: string
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      retention_pattern:
+        example: v*,1.*
+        type: string
+      retention_rule_amount:
+        example: 1
+        type: integer
+      retention_rule_type:
+        allOf:
+        - $ref: '#/definitions/enums.RetentionRuleType'
+        example: Day
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -1118,6 +1444,81 @@ definitions:
         example: '{"critical":0,"high":0,"medium":0,"low":0}'
         type: string
     type: object
+  types.UpdateGcArtifactRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
+    type: object
+  types.UpdateGcBlobRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
+    type: object
+  types.UpdateGcRepositoryRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_day:
+        example: 10
+        maximum: 180
+        minimum: 0
+        type: integer
+    type: object
+  types.UpdateGcTagRuleRequest:
+    properties:
+      cron_enabled:
+        example: true
+        type: boolean
+      cron_rule:
+        example: 0 0 * * 6
+        type: string
+      namespace_id:
+        example: 10
+        type: integer
+      retention_pattern:
+        example: v*,1.*
+        type: string
+      retention_rule_amount:
+        example: 1
+        maximum: 180
+        minimum: 1
+        type: integer
+      retention_rule_type:
+        allOf:
+        - $ref: '#/definitions/enums.RetentionRuleType'
+        example: Day
+    type: object
   types.UserItem:
     properties:
       created_at:
@@ -1142,6 +1543,22 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  types.ValidateCronRequest:
+    properties:
+      cron:
+        example: 0 0 * * 6
+        type: string
+    required:
+    - cron
+    type: object
+  types.ValidatePasswordRequest:
+    properties:
+      password:
+        example: Admin@123
+        type: string
+    required:
+    - password
     type: object
   types.WebhookItem:
     properties:
@@ -1228,7 +1645,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  title: sigma API
+  title: sigma
   version: "1.0"
 paths:
   /caches/:
@@ -1568,25 +1985,27 @@ paths:
       summary: List code repository providers
       tags:
       - CodeRepository
-  /daemons/{daemon}/:
+  /daemons/gc-artifact/{namespace_id}/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Daemon name
+      - description: Namespace id
         in: path
-        name: daemon
-        required: true
-        type: string
-      - description: Namespace ID
-        in: query
         name: namespace_id
-        type: string
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
-        "202":
-          description: Accepted
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetGcArtifactRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
         "404":
           description: Not Found
           schema:
@@ -1595,27 +2014,35 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/xerrors.ErrCode'
-      summary: Get specific daemon task status
+      security:
+      - BasicAuth: []
+      summary: Get gc artifact rule
       tags:
       - Daemon
-    post:
+    put:
       consumes:
       - application/json
       parameters:
-      - description: Daemon name
+      - description: Namespace id
         in: path
-        name: daemon
-        required: true
-        type: string
-      - description: Namespace ID
-        in: query
         name: namespace_id
-        type: string
+        required: true
+        type: integer
+      - description: Gc artifact rule object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateGcArtifactRuleRequest'
       produces:
       - application/json
       responses:
-        "202":
-          description: Accepted
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
         "404":
           description: Not Found
           schema:
@@ -1624,19 +2051,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/xerrors.ErrCode'
-      summary: Run the specific daemon task
+      security:
+      - BasicAuth: []
+      summary: Update gc artifact rule
       tags:
       - Daemon
-  /daemons/{daemon}/logs:
+  /daemons/gc-artifact/{namespace_id}/runners/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Daemon name
+      - description: Namespace id
         in: path
-        name: daemon
+        name: namespace_id
         required: true
-        type: string
+        type: integer
       - default: 10
         description: limit
         in: query
@@ -1661,9 +2090,151 @@ paths:
         in: query
         name: method
         type: string
-      - description: Namespace ID
-        in: query
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcArtifactRunnerItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc artifact runners
+      tags:
+      - Daemon
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
         name: namespace_id
+        required: true
+        type: integer
+      - description: Gc artifact runner object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateGcArtifactRunnerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create gc artifact runner
+      tags:
+      - Daemon
+  /daemons/gc-artifact/{namespace_id}/runners/{runner_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcArtifactRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc artifact runners
+      tags:
+      - Daemon
+  /daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
         type: string
       produces:
       - application/json
@@ -1676,9 +2247,13 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.DaemonLogItem'
+                    $ref: '#/definitions/types.GcArtifactRecordItem'
                   type: array
               type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
         "404":
           description: Not Found
           schema:
@@ -1687,7 +2262,1167 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/xerrors.ErrCode'
-      summary: Get logs
+      security:
+      - BasicAuth: []
+      summary: List gc artifact records
+      tags:
+      - Daemon
+  /daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/{record_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - description: Record id
+        in: path
+        name: record_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcArtifactRecordItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc artifact record
+      tags:
+      - Daemon
+  /daemons/gc-artifact/{namespace_id}/runners/latest:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcArtifactRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc artifact latest runner
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetGcBlobRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc blob rule
+      tags:
+      - Daemon
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc blob rule object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateGcBlobRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update gc blob rule
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/runners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcBlobRunnerItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc blob runners
+      tags:
+      - Daemon
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc blob runner object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateGcBlobRunnerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create gc blob runner
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/runners/{runner_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcBlobRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc blob runners
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcBlobRecordItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc blob records
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/{record_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - description: Record id
+        in: path
+        name: record_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcBlobRecordItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc blob record
+      tags:
+      - Daemon
+  /daemons/gc-blob/{namespace_id}/runners/latest:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcBlobRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc blob latest runner
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetGcRepositoryRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc repository rule
+      tags:
+      - Daemon
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc repository rule object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateGcRepositoryRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update gc repository rule
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/runners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcRepositoryRunnerItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc repository runners
+      tags:
+      - Daemon
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc repository runner object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateGcRepositoryRunnerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create gc repository runner
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/runners/{runner_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcRepositoryRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc repository runners
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcRepositoryRecordItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc repository records
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/runners/{runner_id}/records/{record_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - description: Record id
+        in: path
+        name: record_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcRepositoryRecordItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc repository record
+      tags:
+      - Daemon
+  /daemons/gc-repository/{namespace_id}/runners/latest:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcRepositoryRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc repository latest runner
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetGcTagRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc tag rule
+      tags:
+      - Daemon
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc tag rule object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateGcTagRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update gc tag rule
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/runners/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcTagRunnerItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc tag runners
+      tags:
+      - Daemon
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Gc tag runner object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateGcTagRunnerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create gc tag runner
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/runners/{runner_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcTagRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc tag runners
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.GcTagRecordItem'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List gc tag records
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/runners/{runner_id}/records/{record_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      - description: Runner id
+        in: path
+        name: runner_id
+        required: true
+        type: integer
+      - description: Record id
+        in: path
+        name: record_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcTagRecordItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc tag record
+      tags:
+      - Daemon
+  /daemons/gc-tag/{namespace_id}/runners/latest:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GcTagRunnerItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get gc tag latest runner
       tags:
       - Daemon
   /namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id}:
@@ -2716,16 +4451,42 @@ paths:
       summary: Logout user
       tags:
       - User
+  /validators/cron:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Validate cron object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.ValidateCronRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate cron
+      tags:
+      - Validator
   /validators/password:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Password
-        in: query
-        name: password
+      - description: Validate password object
+        in: body
+        name: message
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/types.ValidatePasswordRequest'
       produces:
       - application/json
       responses:
@@ -2762,6 +4523,31 @@ paths:
       security:
       - BasicAuth: []
       summary: Validate reference
+      tags:
+      - Validator
+  /validators/regexp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Validate regexp object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.ValidateCronRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate regexp
       tags:
       - Validator
   /validators/tag:

@@ -18,6 +18,7 @@ import (
 	"database/sql"
 	"time"
 
+	"gorm.io/gen"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -37,4 +38,10 @@ type Blob struct {
 	PullTimes uint      `gorm:"default:0"`
 
 	Artifacts []*Artifact `gorm:"many2many:artifact_blobs;"`
+}
+
+// BlobAssociateWithArtifact ...
+type BlobAssociateWithArtifact interface {
+	// SELECT blob_id FROM artifact_blobs WHERE blob_id in (@ids)
+	BlobAssociateWithArtifact(ids []int64) (gen.M, error)
 }

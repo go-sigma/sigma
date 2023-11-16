@@ -37,6 +37,8 @@ type NamespaceService interface {
 	Create(ctx context.Context, namespace *models.Namespace) error
 	// FindAll ...
 	FindAll(ctx context.Context) ([]*models.Namespace, error)
+	// FindWithCursor ...
+	FindWithCursor(ctx context.Context, limit int64, last int64) ([]*models.Namespace, error)
 	// UpdateQuota updates the namespace quota.
 	UpdateQuota(ctx context.Context, namespaceID, limit int64) error
 	// Get gets the namespace with the specified namespace ID.
@@ -70,7 +72,7 @@ func NewNamespaceServiceFactory() NamespaceServiceFactory {
 }
 
 // New creates a new namespace service.
-func (f *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
+func (s *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
@@ -88,6 +90,11 @@ func (s *namespaceService) Create(ctx context.Context, namespaceObj *models.Name
 // FindAll ...
 func (s *namespaceService) FindAll(ctx context.Context) ([]*models.Namespace, error) {
 	return s.tx.Namespace.WithContext(ctx).Find()
+}
+
+// FindWithCursor ...
+func (s *namespaceService) FindWithCursor(ctx context.Context, limit int64, last int64) ([]*models.Namespace, error) {
+	return s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Gt(last)).Limit(int(limit)).Order(s.tx.Namespace.ID).Find()
 }
 
 // UpdateQuota updates the namespace quota.
@@ -112,33 +119,33 @@ func (s *namespaceService) GetByName(ctx context.Context, name string) (*models.
 // ListNamespace lists all namespaces.
 func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	query := s.tx.Namespace.WithContext(ctx)
+	q := s.tx.Namespace.WithContext(ctx)
 	if name != nil {
-		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.Namespace.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
-			query = query.Order(field.Desc())
+			q = q.Order(field.Desc())
 		case enums.SortMethodAsc:
-			query = query.Order(field)
+			q = q.Order(field)
 		default:
-			query = query.Order(s.tx.Namespace.UpdatedAt.Desc())
+			q = q.Order(s.tx.Namespace.UpdatedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.Namespace.UpdatedAt.Desc())
+		q = q.Order(s.tx.Namespace.UpdatedAt.Desc())
 	}
-	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // CountNamespace counts all namespaces.
 func (s *namespaceService) CountNamespace(ctx context.Context, name *string) (int64, error) {
-	query := s.tx.Namespace.WithContext(ctx)
+	q := s.tx.Namespace.WithContext(ctx)
 	if name != nil {
-		query = query.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
 	}
-	return query.Count()
+	return q.Count()
 }
 
 // DeleteByID deletes the namespace with the specified namespace ID.

@@ -34,6 +34,10 @@ type Handlers interface {
 	GetTag(c echo.Context) error
 	// GetPassword handles the validate password request
 	GetPassword(c echo.Context) error
+	// ValidateCron handles the validate cron request
+	ValidateCron(c echo.Context) error
+	// ValidateRegexp handles the validate regex request
+	ValidateRegexp(c echo.Context) error
 }
 
 var _ Handlers = &handlers{}
@@ -55,7 +59,9 @@ func (f factory) Initialize(e *echo.Echo) error {
 	repositoryHandler := handlerNew()
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)
-	validatorGroup.GET("/password", repositoryHandler.GetPassword)
+	validatorGroup.POST("/password", repositoryHandler.GetPassword)
+	validatorGroup.POST("/cron", repositoryHandler.ValidateCron)
+	validatorGroup.POST("/regexp", repositoryHandler.ValidateRegexp)
 	return nil
 }
 

@@ -26,8 +26,6 @@ DROP TABLE IF EXISTS `proxy_tag_tasks`;
 
 DROP TABLE IF EXISTS `audits`;
 
-DROP TABLE IF EXISTS `daemon_logs`;
-
 DROP TABLE IF EXISTS `webhooks`;
 
 DROP TABLE IF EXISTS `webhook_logs`;
@@ -51,4 +49,28 @@ DROP TABLE IF EXISTS `work_queues`;
 DROP TABLE IF EXISTS `caches`;
 
 DROP TABLE IF EXISTS `settings`;
+
+DROP TABLE IF EXISTS `daemon_gc_tag_rules`;
+
+DROP TABLE IF EXISTS `daemon_gc_tag_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_tag_records`;
+
+DROP TABLE IF EXISTS `daemon_gc_repository_rules`;
+
+DROP TABLE IF EXISTS `daemon_gc_repository_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_repository_records`;
+
+DROP TABLE IF EXISTS `daemon_gc_artifact_rules`;
+
+DROP TABLE IF EXISTS `daemon_gc_artifact_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_artifact_records`;
+
+DROP TABLE IF EXISTS `daemon_gc_blob_rules`;
+
+DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
+
+DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
 

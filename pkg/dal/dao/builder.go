@@ -41,7 +41,7 @@ type BuilderService interface {
 	Get(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// GetByRepositoryIDs get builders by repository ids
 	GetByRepositoryIDs(ctx context.Context, repositoryIDs []int64) (map[int64]*models.Builder, error)
-	// Get get builder by repository id
+	// GetByRepositoryID get builder by repository id
 	GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error)
 	// CreateRunner creates a new builder runner record in the database
 	CreateRunner(ctx context.Context, runner *models.BuilderRunner) error
@@ -73,7 +73,7 @@ func NewBuilderServiceFactory() BuilderServiceFactory {
 	return &builderServiceFactory{}
 }
 
-func (f *builderServiceFactory) New(txs ...*query.Query) BuilderService {
+func (s *builderServiceFactory) New(txs ...*query.Query) BuilderService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]

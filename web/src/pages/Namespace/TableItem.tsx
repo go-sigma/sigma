@@ -119,7 +119,7 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          navigate(`/namespaces/${namespace.name}/repositories`);
+          navigate(`/namespaces/${namespace.name}/repositories?namespace_id=${namespace.id}`);
         }}
       >
         <div className="items-center space-x-3 lg:pl-2">

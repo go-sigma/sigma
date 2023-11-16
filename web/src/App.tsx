@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from 'react-toastify';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
@@ -22,11 +23,14 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
-import LoginCallback from './pages/Login/Callback';
 import Summary from './pages/Repository/Summary';
+import LoginCallback from './pages/Login/Callback';
 import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
-import NamespaceDaemonTasks from "./pages/Namespace/DaemonTask";
+
+import DaemonTasks from "./pages/DaemonTask/Tasks";
+import DaemonTaskRunners from "./pages/DaemonTask/Runners";
+import DaemonTaskRecords from "./pages/DaemonTask/Records";
 
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
@@ -49,6 +53,15 @@ export default function App() {
 
   return (
     <>
+      <Toaster
+        toastOptions={{
+          style: {
+            maxWidth: "500px",
+            fontSize: "0.875rem",
+            lineHeight: "1.25rem",
+          }
+        }}
+      />
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -73,7 +86,11 @@ export default function App() {
         <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/namespace-daemon-tasks" element={<NamespaceDaemonTasks localServer={localServer} />} />
+
+        <Route path="/namespaces/:namespace/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/daemon-tasks/:resource/:runner_id/records" element={<DaemonTaskRecords localServer={localServer} />} />
+
         <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={localServer} />} />
         <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={localServer} />} />
@@ -89,6 +106,9 @@ export default function App() {
 
         <Route path="/settings" element={<Setting localServer={localServer} />} />
         <Route path="/settings/users" element={<SettingUsers localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks/:resource/:runner_id/records" element={<DaemonTaskRecords localServer={localServer} />} />
 
       </Routes>
     </>
