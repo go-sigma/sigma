@@ -17,6 +17,7 @@
 import axios from "axios";
 import dayjs from 'dayjs';
 import { Tooltip } from 'flowbite';
+import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
@@ -93,6 +94,31 @@ export default function ({ localServer }: { localServer: string }) {
 
   useEffect(() => { fetchNamespace() }, [refreshState, page, sortOrder, sortName]);
 
+  const createGcRunner = () => {
+    axios.post(localServer + `/api/v1/daemons/${resource}/${namespaceId}/runners/`, {}).then(response => {
+      if (response?.status === 201) {
+        let msg = "";
+        if (resource === "gc-repository") {
+          msg = "Garbage collect empty repository task will run in seconds";
+        } else if (resource === "gc-tag") {
+          msg = "Garbage collect tag task will run in seconds";
+        } else if (resource === "gc-artifact") {
+          msg = "Garbage collect artifact task will run in seconds";
+        } else if (resource === "gc-blob") {
+          msg = "Garbage collect blob task will run in seconds";
+        }
+        Toast.success(msg);
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
   return (
     <Fragment>
       <HelmetProvider>
@@ -135,6 +161,15 @@ export default function ({ localServer }: { localServer: string }) {
                   </div>
                 )
               } />
+            <div className="pt-2 pb-2 flex justify-between">
+              <div className="pr-2 pl-2">
+              </div>
+              <div className="pr-2 pl-2 flex flex-col">
+                <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                  onClick={e => createGcRunner()}
+                >Run</button>
+              </div>
+            </div>
           </main>
           <div className="flex flex-1 overflow-y-auto">
             <div className="align-middle inline-block min-w-full border-gray-200">
