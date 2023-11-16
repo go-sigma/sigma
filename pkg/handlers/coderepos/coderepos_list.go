@@ -44,7 +44,7 @@ import (
 //	@Param		provider	path		string	true	"search code repository with provider"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryItem}
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) List(c echo.Context) error {
+func (h *handler) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

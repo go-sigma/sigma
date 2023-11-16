@@ -38,7 +38,7 @@ import (
 //	@Param		reference	query	string	true	"Reference"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode
-func (h *handlers) GetReference(c echo.Context) error {
+func (h *handler) GetReference(c echo.Context) error {
 	var req types.GetValidatorReferenceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

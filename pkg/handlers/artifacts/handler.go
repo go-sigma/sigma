@@ -22,13 +22,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the artifact handlers
-type Handlers interface {
+// Handler is the interface for the artifact handlers
+type Handler interface {
 	// ListArtifact handles the list artifact request
 	ListArtifact(c echo.Context) error
 	// GetArtifact handles the get artifact request
@@ -37,9 +37,9 @@ type Handlers interface {
 	DeleteArtifact(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -54,7 +54,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
@@ -74,7 +74,7 @@ func handlerNew(injects ...inject) Handlers {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		namespaceServiceFactory:  namespaceServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
@@ -95,5 +95,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

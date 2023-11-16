@@ -41,7 +41,7 @@ import (
 //	@Param		tag	query	string	true	"Reference"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode
-func (h *handlers) GetTag(c echo.Context) error {
+func (h *handler) GetTag(c echo.Context) error {
 	var req types.GetValidatorTagRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

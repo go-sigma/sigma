@@ -43,7 +43,7 @@ import (
 //	@Router		/namespaces/{id} [delete]
 //	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) DeleteNamespace(c echo.Context) error {
+func (h *handler) DeleteNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

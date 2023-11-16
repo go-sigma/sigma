@@ -41,7 +41,7 @@ import (
 //	@Param		id			path		string	true	"code repository id"
 //	@Success	200			{object}	types.CodeRepositoryItem
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) Get(c echo.Context) error {
+func (h *handler) Get(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetCodeRepositoryRequest

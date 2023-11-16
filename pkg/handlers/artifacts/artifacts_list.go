@@ -27,7 +27,7 @@ import (
 )
 
 // ListArtifact handles the list artifact request
-func (h *handlers) ListArtifact(c echo.Context) error {
+func (h *handler) ListArtifact(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListArtifactRequest

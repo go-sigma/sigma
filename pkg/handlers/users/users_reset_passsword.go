@@ -29,7 +29,7 @@ import (
 )
 
 // ResetPassword handles the reset request
-func (h *handlers) ResetPassword(c echo.Context) error {
+func (h *handler) ResetPassword(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostUserResetPasswordPasswordRequest

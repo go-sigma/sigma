@@ -25,8 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the distribution handlers
-type Handlers interface {
+// Handler is the interface for the distribution handlers
+type Handler interface {
 	// GetHealthy handles the get healthy request
 	GetHealthy(ctx echo.Context) error
 	// ListTags handles the list tags request
@@ -35,9 +35,9 @@ type Handlers interface {
 	ListRepositories(ctx echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	tagServiceFactory        dao.TagServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 }
@@ -48,7 +48,7 @@ type inject struct {
 }
 
 // New creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	tagServiceFactory := dao.NewTagServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	if len(injects) > 0 {
@@ -60,7 +60,7 @@ func handlerNew(injects ...inject) Handlers {
 			tagServiceFactory = ij.tagServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 	}

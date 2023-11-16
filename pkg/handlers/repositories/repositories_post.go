@@ -48,7 +48,7 @@ import (
 //	@Failure	400			{object}	xerrors.ErrCode
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) PostRepository(c echo.Context) error {
+func (h *handler) PostRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

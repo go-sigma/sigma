@@ -40,7 +40,7 @@ import (
 //	@Param		id	path	string	true	"User id"
 //	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) Put(c echo.Context) error {
+func (h *handler) Put(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PutUserRequest

@@ -52,7 +52,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) UpdateGcTagRule(c echo.Context) error {
+func (h *handler) UpdateGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.UpdateGcTagRuleRequest
@@ -140,7 +140,7 @@ func (h *handlers) UpdateGcTagRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcTagRule(c echo.Context) error {
+func (h *handler) GetGcTagRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcTagRuleRequest
@@ -188,7 +188,7 @@ func (h *handlers) GetGcTagRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
+func (h *handler) GetGcTagLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcTagLatestRunnerRequest
@@ -260,7 +260,7 @@ func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) CreateGcTagRunner(c echo.Context) error {
+func (h *handler) CreateGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.CreateGcTagRunnerRequest
@@ -330,7 +330,7 @@ func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcTagRunners(c echo.Context) error {
+func (h *handler) ListGcTagRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcTagRunnersRequest
@@ -402,7 +402,7 @@ func (h *handlers) ListGcTagRunners(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcTagRunner(c echo.Context) error {
+func (h *handler) GetGcTagRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcTagRunnerRequest
@@ -469,7 +469,7 @@ func (h *handlers) GetGcTagRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcTagRecords(c echo.Context) error {
+func (h *handler) ListGcTagRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcTagRecordsRequest
@@ -513,7 +513,7 @@ func (h *handlers) ListGcTagRecords(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcTagRecord(c echo.Context) error {
+func (h *handler) GetGcTagRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcTagRecordRequest

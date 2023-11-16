@@ -25,7 +25,7 @@ import (
 )
 
 // DeleteArtifact handles the delete artifact request
-func (h *handlers) DeleteArtifact(c echo.Context) error {
+func (h *handler) DeleteArtifact(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.DeleteArtifactRequest

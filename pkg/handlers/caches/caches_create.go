@@ -40,7 +40,7 @@ import (
 //	@Success	201
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) CreateCache(c echo.Context) error {
+func (h *handler) CreateCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	urlValues := c.Request().URL.Query()

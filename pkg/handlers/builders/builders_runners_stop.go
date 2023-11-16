@@ -33,7 +33,7 @@ import (
 )
 
 // GetRunnerStop ...
-func (h *handlers) GetRunnerStop(c echo.Context) error {
+func (h *handler) GetRunnerStop(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRunnerStop

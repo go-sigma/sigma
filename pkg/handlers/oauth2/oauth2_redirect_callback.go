@@ -37,7 +37,7 @@ import (
 //	@Param		provider	path	string	true	"oauth2 provider"
 //	@Success	301
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) RedirectCallback(c echo.Context) error {
+func (h *handler) RedirectCallback(c echo.Context) error {
 	var req types.Oauth2CallbackRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

@@ -30,7 +30,7 @@ import (
 )
 
 // SelfPut handles the self put request
-func (h *handlers) SelfPut(c echo.Context) error {
+func (h *handler) SelfPut(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PutUserSelfRequest

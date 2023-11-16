@@ -30,7 +30,7 @@ import (
 )
 
 // ListRepositories handles the list repositories request
-func (h *handlers) ListRepositories(c echo.Context) error {
+func (h *handler) ListRepositories(c echo.Context) error {
 	var n = 1000
 	var err error
 	var nStr = c.QueryParam("n")

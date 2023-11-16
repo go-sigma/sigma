@@ -23,26 +23,26 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
-// Handlers is the interface for the tag handlers
-type Handlers interface {
+// Handler is the interface for the tag handlers
+type Handler interface {
 	// Token handles the token request
 	Token(c echo.Context) error
 }
 
-type handlers struct {
+type handler struct {
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
 type inject struct {
 	tokenService       token.TokenService
@@ -51,7 +51,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handlers, error) {
+func handlerNew(injects ...inject) (Handler, error) {
 	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func handlerNew(injects ...inject) (Handlers, error) {
 			userServiceFactory = ij.userServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		tokenService:       tokenService,
 		passwordService:    passwordService,
 		userServiceFactory: userServiceFactory,
@@ -90,5 +90,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

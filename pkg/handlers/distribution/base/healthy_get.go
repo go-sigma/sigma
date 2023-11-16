@@ -21,6 +21,6 @@ import (
 )
 
 // GetHealthy handles the get healthy request
-func (h *handlers) GetHealthy(c echo.Context) error {
+func (h *handler) GetHealthy(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }

@@ -44,7 +44,7 @@ import (
 //	@Param		id		path	string						true	"Namespace id"
 //	@Param		message	body	types.PutNamespaceRequest	true	"Namespace object"
 //	@Success	204
-func (h *handlers) PutNamespace(c echo.Context) error {
+func (h *handler) PutNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

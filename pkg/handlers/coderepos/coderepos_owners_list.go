@@ -39,7 +39,7 @@ import (
 //	@Param		name		query		string	false	"search code repository with name"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryOwnerItem}
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) ListOwners(c echo.Context) error {
+func (h *handler) ListOwners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

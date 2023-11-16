@@ -17,6 +17,6 @@ package webhooks
 import "github.com/labstack/echo/v4"
 
 // PingWebhook ...
-func (h *handlers) PingWebhook(c echo.Context) error {
+func (h *handler) PingWebhook(c echo.Context) error {
 	return nil
 }

@@ -38,7 +38,7 @@ import (
 //	@Param		message	body	types.ValidateCronRequest	true	"Validate regexp object"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode
-func (h *handlers) ValidateRegexp(c echo.Context) error {
+func (h *handler) ValidateRegexp(c echo.Context) error {
 	var req types.ValidateRegexpRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

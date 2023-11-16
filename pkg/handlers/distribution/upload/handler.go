@@ -25,8 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the distribution blob handlers
-type Handlers interface {
+// Handler is the interface for the distribution blob handlers
+type Handler interface {
 	// DeleteUpload ...
 	DeleteUpload(ctx echo.Context) error
 	// GetUpload ...
@@ -39,7 +39,7 @@ type Handlers interface {
 	PutUpload(ctx echo.Context) error
 }
 
-var _ Handlers = &handler{}
+var _ Handler = &handler{}
 
 type handler struct {
 	blobUploadServiceFactory dao.BlobUploadServiceFactory
@@ -52,7 +52,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution upload blob handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
 	if len(injects) > 0 {

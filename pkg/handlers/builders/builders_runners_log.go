@@ -35,7 +35,7 @@ import (
 )
 
 // GetRunnerLog ...
-func (h *handlers) GetRunnerLog(c echo.Context) error {
+func (h *handler) GetRunnerLog(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRunnerLog
@@ -110,7 +110,7 @@ func (h *handlers) GetRunnerLog(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *handlers) sendLogWithGzip(ws *websocket.Conn, reader io.Reader) error {
+func (h *handler) sendLogWithGzip(ws *websocket.Conn, reader io.Reader) error {
 	gzipReader, err := gzip.NewReader(reader)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
@@ -121,11 +121,11 @@ func (h *handlers) sendLogWithGzip(ws *websocket.Conn, reader io.Reader) error {
 	return h.sendLog(ws, gzipReader)
 }
 
-func (h *handlers) sendLogWithoutGzip(ws *websocket.Conn, reader io.Reader) error {
+func (h *handler) sendLogWithoutGzip(ws *websocket.Conn, reader io.Reader) error {
 	return h.sendLog(ws, reader)
 }
 
-func (h *handlers) sendLog(ws *websocket.Conn, reader io.Reader) error {
+func (h *handler) sendLog(ws *websocket.Conn, reader io.Reader) error {
 	for {
 		var data = make([]byte, 512)
 		_, err := reader.Read(data)

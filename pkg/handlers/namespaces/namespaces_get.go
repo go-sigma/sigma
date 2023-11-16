@@ -40,7 +40,7 @@ import (
 //	@Success	200	{object}	types.NamespaceItem
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) GetNamespace(c echo.Context) error {
+func (h *handler) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetNamespaceRequest

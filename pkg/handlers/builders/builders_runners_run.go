@@ -34,7 +34,7 @@ import (
 )
 
 // PostRunnerRun ...
-func (h *handlers) PostRunnerRun(c echo.Context) error {
+func (h *handler) PostRunnerRun(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostRunnerRun

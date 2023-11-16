@@ -44,7 +44,7 @@ import (
 //	@Success	200			{string}	file	"Cache content"
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) GetCache(c echo.Context) error {
+func (h *handler) GetCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetCacheRequest
@@ -68,6 +68,6 @@ func (h *handlers) GetCache(c echo.Context) error {
 	return c.Stream(http.StatusOK, "application/gzip", reader)
 }
 
-func (h *handlers) genPath(id int64) string {
+func (h *handler) genPath(id int64) string {
 	return fmt.Sprintf("%s/%s", consts.DirCache, utils.DirWithSlash(hash.MustString(strconv.FormatInt(id, 10))))
 }

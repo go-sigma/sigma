@@ -22,13 +22,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the gc handlers
-type Handlers interface {
+// Handler is the interface for the gc handlers
+type Handler interface {
 	// UpdateGcTagRule ...
 	UpdateGcTagRule(c echo.Context) error
 	// GetGcTagRule ...
@@ -98,9 +98,9 @@ type Handlers interface {
 	GetGcBlobRecord(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	daemonServiceFactory dao.DaemonServiceFactory
 }
 
@@ -109,7 +109,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	daemonServiceFactory := dao.NewDaemonServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
@@ -117,7 +117,7 @@ func handlerNew(injects ...inject) Handlers {
 			daemonServiceFactory = ij.daemonServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		daemonServiceFactory: daemonServiceFactory,
 	}
 }
@@ -170,5 +170,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

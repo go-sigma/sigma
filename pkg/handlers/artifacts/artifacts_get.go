@@ -28,7 +28,7 @@ import (
 )
 
 // GetArtifact handles the get artifact request
-func (h *handlers) GetArtifact(c echo.Context) error {
+func (h *handler) GetArtifact(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetArtifactRequest

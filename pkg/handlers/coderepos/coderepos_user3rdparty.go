@@ -41,7 +41,7 @@ import (
 //	@Param		provider	path		string	true	"get user 3rdParty with provider"
 //	@Success	200			{object}	types.GetCodeRepositoryUser3rdPartyResponse
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) User3rdParty(c echo.Context) error {
+func (h *handler) User3rdParty(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

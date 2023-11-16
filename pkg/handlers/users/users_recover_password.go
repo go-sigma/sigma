@@ -33,7 +33,7 @@ import (
 )
 
 // RecoverPassword handles the recover user's password
-func (h *handlers) RecoverPassword(c echo.Context) error {
+func (h *handler) RecoverPassword(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostUserRecoverPasswordRequest

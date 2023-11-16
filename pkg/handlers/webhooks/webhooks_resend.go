@@ -17,6 +17,6 @@ package webhooks
 import "github.com/labstack/echo/v4"
 
 // Resend ...
-func (h *handlers) Resend(c echo.Context) error {
+func (h *handler) Resend(c echo.Context) error {
 	return nil
 }

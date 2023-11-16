@@ -52,7 +52,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
+func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.UpdateGcArtifactRuleRequest
@@ -132,7 +132,7 @@ func (h *handlers) UpdateGcArtifactRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcArtifactRule(c echo.Context) error {
+func (h *handler) GetGcArtifactRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcArtifactRuleRequest
@@ -178,7 +178,7 @@ func (h *handlers) GetGcArtifactRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
+func (h *handler) GetGcArtifactLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcArtifactLatestRunnerRequest
@@ -250,7 +250,7 @@ func (h *handlers) GetGcArtifactLatestRunner(c echo.Context) error {
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
+func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.CreateGcArtifactRunnerRequest
@@ -319,7 +319,7 @@ func (h *handlers) CreateGcArtifactRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
+func (h *handler) ListGcArtifactRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcArtifactRunnersRequest
@@ -391,7 +391,7 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
+func (h *handler) GetGcArtifactRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcArtifactRunnerRequest
@@ -458,7 +458,7 @@ func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
+func (h *handler) ListGcArtifactRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcArtifactRecordsRequest
@@ -502,7 +502,7 @@ func (h *handlers) ListGcArtifactRecords(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcArtifactRecord(c echo.Context) error {
+func (h *handler) GetGcArtifactRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcArtifactRecordRequest
