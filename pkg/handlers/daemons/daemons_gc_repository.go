@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hako/durafmt"
 	"github.com/labstack/echo/v4"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -158,7 +159,7 @@ func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 		RetentionDay:    ruleObj.RetentionDay,
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
-		CronNextTrigger: ptr.Of(""), // response utc time, fe format with tz
+		CronNextTrigger: ptr.Of(ptr.To(ruleObj.CronNextTrigger).Format(consts.DefaultTimePattern)),
 		CreatedAt:       ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:       ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
@@ -209,12 +210,29 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc repository rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
+	var startedAt, endedAt string
+	if runnerObj.StartedAt != nil {
+		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+	}
+	if runnerObj.EndedAt != nil {
+		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+	}
+	var duration *string
+	if runnerObj.Duration != nil {
+		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+	}
 	return c.JSON(http.StatusOK, types.GcRepositoryRunnerItem{
-		ID:        runnerObj.ID,
-		Status:    runnerObj.Status,
-		Message:   string(runnerObj.Message),
-		CreatedAt: ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:           runnerObj.ID,
+		Status:       runnerObj.Status,
+		Message:      string(runnerObj.Message),
+		FailedCount:  runnerObj.FailedCount,
+		SuccessCount: runnerObj.SuccessCount,
+		RawDuration:  runnerObj.Duration,
+		Duration:     duration,
+		StartedAt:    ptr.Of(startedAt),
+		EndedAt:      ptr.Of(endedAt),
+		CreatedAt:    ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:    ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 

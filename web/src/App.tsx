@@ -28,7 +28,7 @@ import LoginCallback from './pages/Login/Callback';
 import NamespaceUsers from "./pages/Namespace/Users";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 
-import DaemonTasks from "./pages/DaemonTask/DaemonTask";
+import DaemonTasks from "./pages/DaemonTask/Tasks";
 import DaemonTaskRunners from "./pages/DaemonTask/Runners";
 import DaemonTaskRecords from "./pages/DaemonTask/Records";
 
@@ -107,6 +107,8 @@ export default function App() {
         <Route path="/settings" element={<Setting localServer={localServer} />} />
         <Route path="/settings/users" element={<SettingUsers localServer={localServer} />} />
         <Route path="/settings/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
+        <Route path="/settings/daemon-tasks/:resource/:runner_id/records" element={<DaemonTaskRecords localServer={localServer} />} />
 
       </Routes>
     </>

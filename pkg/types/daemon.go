@@ -100,6 +100,7 @@ type GetGcArtifactRuleRequest struct {
 
 // GetGcArtifactRuleResponse ...
 type GetGcArtifactRuleResponse struct {
+	IsRunning       bool    `json:"is_running" example:"true"`
 	RetentionDay    int     `json:"retention_day" example:"10"`
 	CronEnabled     bool    `json:"cron_enabled" example:"true"`
 	CronRule        *string `json:"cron_rule,omitempty" example:"0 0 * * 6"`
@@ -204,11 +205,17 @@ type GetGcBlobLatestRunnerRequest struct {
 
 // GcBlobRunnerItem ...
 type GcBlobRunnerItem struct {
-	ID        int64                  `json:"id" example:"1"`
-	Status    enums.TaskCommonStatus `json:"status" example:"Pending"`
-	Message   string                 `json:"message" example:"log"`
-	CreatedAt string                 `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64                  `json:"id" example:"1"`
+	Status       enums.TaskCommonStatus `json:"status" example:"Pending"`
+	Message      string                 `json:"message" example:"log"`
+	SuccessCount *int64                 `json:"success_count" example:"1"`
+	FailedCount  *int64                 `json:"failed_count" example:"1"`
+	StartedAt    *string                `json:"started_at" example:"2006-01-02 15:04:05"`
+	EndedAt      *string                `json:"ended_at" example:"2006-01-02 15:04:05"`
+	RawDuration  *int64                 `json:"raw_duration" example:"10"`
+	Duration     *string                `json:"duration" example:"1h"`
+	CreatedAt    string                 `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CreateGcBlobRunnerRequest ...
@@ -241,10 +248,12 @@ type ListGcBlobRecordsRequest struct {
 
 // GcBlobRecordItem ...
 type GcBlobRecordItem struct {
-	ID        int64  `json:"id" example:"1"`
-	Digest    string `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
-	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID        int64                `json:"id" example:"1"`
+	Digest    string               `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
+	Status    enums.GcRecordStatus `json:"status" example:"Success"`
+	Message   string               `json:"message" example:"log"`
+	CreatedAt string               `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string               `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetGcBlobRecordRequest ...
@@ -285,11 +294,17 @@ type GetGcRepositoryLatestRunnerRequest struct {
 
 // GcRepositoryRunnerItem ...
 type GcRepositoryRunnerItem struct {
-	ID        int64                  `json:"id" example:"1"`
-	Status    enums.TaskCommonStatus `json:"status" example:"Pending"`
-	Message   string                 `json:"message" example:"log"`
-	CreatedAt string                 `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64                  `json:"id" example:"1"`
+	Status       enums.TaskCommonStatus `json:"status" example:"Pending"`
+	Message      string                 `json:"message" example:"log"`
+	SuccessCount *int64                 `json:"success_count" example:"1"`
+	FailedCount  *int64                 `json:"failed_count" example:"1"`
+	StartedAt    *string                `json:"started_at" example:"2006-01-02 15:04:05"`
+	EndedAt      *string                `json:"ended_at" example:"2006-01-02 15:04:05"`
+	RawDuration  *int64                 `json:"raw_duration" example:"10"`
+	Duration     *string                `json:"duration" example:"1h"`
+	CreatedAt    string                 `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CreateGcRepositoryRunnerRequest ...
@@ -322,10 +337,12 @@ type ListGcRepositoryRecordsRequest struct {
 
 // GcRepositoryRecordItem ...
 type GcRepositoryRecordItem struct {
-	ID         int64  `json:"id" example:"1"`
-	Repository string `json:"repository" example:"library/busybox"`
-	CreatedAt  string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt  string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID         int64                `json:"id" example:"1"`
+	Repository string               `json:"repository" example:"library/busybox"`
+	Status     enums.GcRecordStatus `json:"status" example:"Success"`
+	Message    string               `json:"message" example:"log"`
+	CreatedAt  string               `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt  string               `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetGcRepositoryRecordRequest ...
@@ -370,11 +387,17 @@ type GetGcTagLatestRunnerRequest struct {
 
 // GcTagRunnerItem ...
 type GcTagRunnerItem struct {
-	ID        int64                  `json:"id" example:"1"`
-	Status    enums.TaskCommonStatus `json:"status" example:"Pending"`
-	Message   string                 `json:"message" example:"log"`
-	CreatedAt string                 `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64                  `json:"id" example:"1"`
+	Status       enums.TaskCommonStatus `json:"status" example:"Pending"`
+	Message      string                 `json:"message" example:"log"`
+	SuccessCount *int64                 `json:"success_count" example:"1"`
+	FailedCount  *int64                 `json:"failed_count" example:"1"`
+	StartedAt    *string                `json:"started_at" example:"2006-01-02 15:04:05"`
+	EndedAt      *string                `json:"ended_at" example:"2006-01-02 15:04:05"`
+	RawDuration  *int64                 `json:"raw_duration" example:"10"`
+	Duration     *string                `json:"duration" example:"1h"`
+	CreatedAt    string                 `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string                 `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CreateGcTagRunnerRequest ...
@@ -407,10 +430,12 @@ type ListGcTagRecordsRequest struct {
 
 // GcTagRecordItem ...
 type GcTagRecordItem struct {
-	ID        int64  `json:"id" example:"1"`
-	Tag       string `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
-	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID        int64                `json:"id" example:"1"`
+	Tag       string               `json:"digest" example:"sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744"`
+	Status    enums.GcRecordStatus `json:"status" example:"Success"`
+	Message   string               `json:"message" example:"log"`
+	CreatedAt string               `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string               `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetGcTagRecordRequest ...

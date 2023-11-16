@@ -10,6 +10,14 @@ definitions:
     - BuilderSourceDockerfile
     - BuilderSourceCodeRepository
     - BuilderSourceSelfCodeRepository
+  enums.GcRecordStatus:
+    enum:
+    - Success
+    - Failed
+    type: string
+    x-enum-varnames:
+    - GcRecordStatusSuccess
+    - GcRecordStatusFailed
   enums.OciPlatform:
     enum:
     - linux/amd64
@@ -352,6 +360,13 @@ definitions:
       id:
         example: 1
         type: integer
+      message:
+        example: log
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -404,6 +419,13 @@ definitions:
       id:
         example: 1
         type: integer
+      message:
+        example: log
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -413,16 +435,34 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
       id:
         example: 1
         type: integer
       message:
         example: log
         type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
       status:
         allOf:
         - $ref: '#/definitions/enums.TaskCommonStatus'
         example: Pending
+      success_count:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -435,9 +475,16 @@ definitions:
       id:
         example: 1
         type: integer
+      message:
+        example: log
+        type: string
       repository:
         example: library/busybox
         type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -447,16 +494,34 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
       id:
         example: 1
         type: integer
       message:
         example: log
         type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
       status:
         allOf:
         - $ref: '#/definitions/enums.TaskCommonStatus'
         example: Pending
+      success_count:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -472,6 +537,13 @@ definitions:
       id:
         example: 1
         type: integer
+      message:
+        example: log
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enums.GcRecordStatus'
+        example: Success
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -481,16 +553,34 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
+      duration:
+        example: 1h
+        type: string
+      ended_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      failed_count:
+        example: 1
+        type: integer
       id:
         example: 1
         type: integer
       message:
         example: log
         type: string
+      raw_duration:
+        example: 10
+        type: integer
+      started_at:
+        example: "2006-01-02 15:04:05"
+        type: string
       status:
         allOf:
         - $ref: '#/definitions/enums.TaskCommonStatus'
         example: Pending
+      success_count:
+        example: 1
+        type: integer
       updated_at:
         example: "2006-01-02 15:04:05"
         type: string
@@ -530,6 +620,9 @@ definitions:
       cron_rule:
         example: 0 0 * * 6
         type: string
+      is_running:
+        example: true
+        type: boolean
       retention_day:
         example: 10
         type: integer

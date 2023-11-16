@@ -22,14 +22,14 @@ import Toast from 'react-hot-toast';
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
+import Pagination from "../../components/Pagination";
 import Notification from "../../components/Notification";
-import { IGcArtifactRunnerList, IHTTPError, IOrder } from "../../interfaces";
+import { IGcArtifactRunnerList, IGcBlobRunnerList, IGcRepositoryRunnerList, IGcTagRunnerList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const location = useLocation();
@@ -45,7 +45,10 @@ export default function ({ localServer }: { localServer: string }) {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const [runnerList, setRunnerList] = useState<IGcArtifactRunnerList>({} as IGcArtifactRunnerList);
+  const [repositoryRunnerList, setRepositoryRunnerList] = useState<IGcRepositoryRunnerList>({} as IGcRepositoryRunnerList);
+  const [tagRunnerList, setTagRunnerList] = useState<IGcTagRunnerList>({} as IGcTagRunnerList);
+  const [artifactRunnerList, setArtifactRunnerList] = useState<IGcArtifactRunnerList>({} as IGcArtifactRunnerList);
+  const [blobRunnerList, setBlobRunnerList] = useState<IGcBlobRunnerList>({} as IGcBlobRunnerList);
 
   const fetchNamespace = () => {
     let url = localServer + `/api/v1/daemons/${resource}/${namespaceId}/runners/?limit=${Settings.PageSize}&page=${page}`;
@@ -54,9 +57,23 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const namespaceList = response.data as IGcArtifactRunnerList;
-        setRunnerList(namespaceList);
-        setTotal(namespaceList.total);
+        if (resource === "gc-repository") {
+          const repositoryRunnerList = response.data as IGcRepositoryRunnerList;
+          setRepositoryRunnerList(repositoryRunnerList);
+          setTotal(repositoryRunnerList.total);
+        } else if (resource === "gc-tag") {
+          const tagRunnerList = response.data as IGcTagRunnerList;
+          setTagRunnerList(tagRunnerList);
+          setTotal(tagRunnerList.total);
+        } else if (resource === "gc-artifact") {
+          const artifactRunnerList = response.data as IGcArtifactRunnerList;
+          setArtifactRunnerList(artifactRunnerList);
+          setTotal(artifactRunnerList.total);
+        } else if (resource === "gc-blob") {
+          const blobRunnerList = response.data as IGcBlobRunnerList;
+          setBlobRunnerList(blobRunnerList);
+          setTotal(blobRunnerList.total);
+        }
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -73,16 +90,16 @@ export default function ({ localServer }: { localServer: string }) {
     <Fragment>
       <HelmetProvider>
         <Helmet>
-          <title>sigma - Namespace Daemon Task</title>
+          <title>sigma - {location.pathname.startsWith("/settings") ? "Daemon Task Runner" : "Namespace Daemon Task"}</title>
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item={location.pathname == "/settings/daemon-tasks" ? "daemon-tasks" : "repositories"} namespace={namespace} />
+        <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-visible">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title={location.pathname == "/settings/daemon-tasks" ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
+            <Header title={location.pathname.startsWith("/settings") ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
               props={
-                location.pathname == "/settings/daemon-tasks" ? null : (
+                location.pathname.startsWith("/settings") ? null : (
                   <div className="sm:flex sm:space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repositories`}
@@ -111,93 +128,280 @@ export default function ({ localServer }: { localServer: string }) {
                   </div>
                 )
               } />
-            <div className="flex flex-1 overflow-visible">
-              <div className="align-middle inline-block min-w-full border-gray-200">
-                <table className="min-w-full flex-1 overflow-visible">
-                  <thead>
-                    <tr className="border-gray-200">
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Status</span>
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Success</span>
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Failed</span>
-                      </th>
-                      <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Elapsed</span>
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Started At</span>
-                      </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Ended At</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {
-                      runnerList.items?.map(runner => {
-                        return (
-                          <tr className="border-b" key={runner.id}>
-                            <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                              onClick={e => {
-                                navigate(`/namespaces/${namespace}/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
-                              }}
-                            >
-                              <div className="flex items-center space-x-3 lg:pl-2">
-                                <div className="flex">
-                                  <div>
-                                    {runner.status}
-                                  </div>
-                                  {
-                                    runner.status == "Failed" ? (
-                                      <>
-                                        <div id={`tooltip-message-${runner.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
-                                          {runner.message}
-                                          <div className="tooltip-arrow" data-popper-arrow></div>
-                                        </div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5 mx-auto text-red-600" id={`target-tooltip-${runner.id}`}
-                                          onClick={e => {
-                                            let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runner.id}`),
-                                              document.getElementById(`target-tooltip-${runner.id}`), { triggerType: "click" });
-                                            tooltip.show();
-                                            e.stopPropagation();
-                                          }}
-                                        >
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                      </>
-                                    ) : null
-                                  }
-                                </div>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                              {runner.success_count || 0}
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                              {runner.failed_count || 0}
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                              {runner.duration || "-"}
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                              {runner.started_at || "-"}
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                              {runner.ended_at || "-"}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </main>
+          <div className="flex flex-1 overflow-y-auto">
+            <div className="align-middle inline-block min-w-full border-gray-200">
+              <table className="min-w-full flex-1">
+                <thead>
+                  <tr className="border-gray-200">
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Status</span>
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Success</span>
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Failed</span>
+                    </th>
+                    <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Elapsed</span>
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Started At</span>
+                    </th>
+                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                      <span className="lg:pl-2">Ended At</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    resource === "gc-repository" && repositoryRunnerList.items?.map(runner => {
+                      return (
+                        <tr className="border-b" key={runner.id}>
+                          <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
+                            onClick={e => {
+                              if (location.pathname.startsWith("/settings")) {
+                                navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              } else {
+                                navigate(`/namespaces/${namespace}/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center space-x-3 lg:pl-2">
+                              <div className="flex">
+                                <div>
+                                  {runner.status}
+                                </div>
+                                {
+                                  runner.status == "Failed" ? (
+                                    <>
+                                      <div id={`tooltip-message-${runner.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                        {runner.message}
+                                        <div className="tooltip-arrow" data-popper-arrow></div>
+                                      </div>
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5 mx-auto text-red-600" id={`target-tooltip-${runner.id}`}
+                                        onClick={e => {
+                                          let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runner.id}`),
+                                            document.getElementById(`target-tooltip-${runner.id}`), { triggerType: "click" });
+                                          tooltip.show();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </>
+                                  ) : null
+                                }
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.success_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.failed_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.duration || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.started_at || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.ended_at || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
+                  {
+                    resource === "gc-tag" && tagRunnerList.items?.map(runner => {
+                      return (
+                        <tr className="border-b" key={runner.id}>
+                          <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
+                            onClick={e => {
+                              if (location.pathname.startsWith("/settings")) {
+                                navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              } else {
+                                navigate(`/namespaces/${namespace}/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center space-x-3 lg:pl-2">
+                              <div className="flex">
+                                <div>
+                                  {runner.status}
+                                </div>
+                                {
+                                  runner.status == "Failed" ? (
+                                    <>
+                                      <div id={`tooltip-message-${runner.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                        {runner.message}
+                                        <div className="tooltip-arrow" data-popper-arrow></div>
+                                      </div>
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5 mx-auto text-red-600" id={`target-tooltip-${runner.id}`}
+                                        onClick={e => {
+                                          let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runner.id}`),
+                                            document.getElementById(`target-tooltip-${runner.id}`), { triggerType: "click" });
+                                          tooltip.show();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </>
+                                  ) : null
+                                }
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.success_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.failed_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.duration || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.started_at || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.ended_at || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
+                  {
+                    resource === "gc-artifact" && artifactRunnerList.items?.map(runner => {
+                      return (
+                        <tr className="border-b" key={runner.id}>
+                          <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
+                            onClick={e => {
+                              if (location.pathname.startsWith("/settings")) {
+                                navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              } else {
+                                navigate(`/namespaces/${namespace}/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center space-x-3 lg:pl-2">
+                              <div className="flex">
+                                <div>
+                                  {runner.status}
+                                </div>
+                                {
+                                  runner.status == "Failed" ? (
+                                    <>
+                                      <div id={`tooltip-message-${runner.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                        {runner.message}
+                                        <div className="tooltip-arrow" data-popper-arrow></div>
+                                      </div>
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5 mx-auto text-red-600" id={`target-tooltip-${runner.id}`}
+                                        onClick={e => {
+                                          let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runner.id}`),
+                                            document.getElementById(`target-tooltip-${runner.id}`), { triggerType: "click" });
+                                          tooltip.show();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </>
+                                  ) : null
+                                }
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.success_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.failed_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.duration || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.started_at || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.ended_at || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
+                  {
+                    resource === "gc-blob" && blobRunnerList.items?.map(runner => {
+                      return (
+                        <tr className="border-b" key={runner.id}>
+                          <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
+                            onClick={e => {
+                              if (location.pathname.startsWith("/settings")) {
+                                navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              } else {
+                                navigate(`/namespaces/${namespace}/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center space-x-3 lg:pl-2">
+                              <div className="flex">
+                                <div>
+                                  {runner.status}
+                                </div>
+                                {
+                                  runner.status == "Failed" ? (
+                                    <>
+                                      <div id={`tooltip-message-${runner.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                        {runner.message}
+                                        <div className="tooltip-arrow" data-popper-arrow></div>
+                                      </div>
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5 mx-auto text-red-600" id={`target-tooltip-${runner.id}`}
+                                        onClick={e => {
+                                          let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runner.id}`),
+                                            document.getElementById(`target-tooltip-${runner.id}`), { triggerType: "click" });
+                                          tooltip.show();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </>
+                                  ) : null
+                                }
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.success_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.failed_count || 0}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.duration || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.started_at || "-"}
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                            {runner.ended_at || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style={{ marginTop: "auto" }}>
+            <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
+          </div>
         </div>
       </div>
     </Fragment>

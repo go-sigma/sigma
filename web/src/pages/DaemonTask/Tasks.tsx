@@ -29,8 +29,18 @@ import { useParams, useSearchParams, Link, useLocation, useNavigate } from 'reac
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
-import { IGcArtifactRule, IGcBlobRule, IGcRepositoryRule, IGcTagRule, IHTTPError } from "../../interfaces";
 import Notification from "../../components/Notification";
+import {
+  IGcArtifactRule,
+  IGcArtifactRunnerItem,
+  IGcBlobRule,
+  IGcBlobRunnerItem,
+  IGcRepositoryRule,
+  IGcRepositoryRunnerItem,
+  IGcTagRule,
+  IGcTagRunnerItem,
+  IHTTPError
+} from "../../interfaces";
 
 const retentionAmountType = [
   { id: 1, name: 'Day' },
@@ -46,28 +56,18 @@ export default function ({ localServer }: { localServer: string }) {
   const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
 
   const [gcRepositoryRuleExist, setGcRepositoryRuleExist] = useState(false);
-  const [gcTagRuleExist, setGcTagRuleExist] = useState(false);
-  const [gcArtifactRuleExist, setGcArtifactRuleExist] = useState(false);
-  const [gcBlobRuleExist, setGcBlobRuleExist] = useState(false);
-
   const [gcRepositoryRuleConfigModal, setGcRepositoryRuleConfigModal] = useState(false);
-  const [gcRepositoryRetentionDays, setGcRepositoryRetentionDays] = useState<string | number>(0);
-  const [gcRepositoryRetentionDaysValid, setGcRepositoryRetentionDaysValid] = useState(true);
-  useEffect(() => { setGcRepositoryRetentionDaysValid(Number.isInteger(gcRepositoryRetentionDays) && parseInt(gcRepositoryRetentionDays.toString()) >= 0 && parseInt(gcRepositoryRetentionDays.toString()) <= 180) }, [gcRepositoryRetentionDays]);
-  const [gcRepositoryCronEnabled, setGcRepositoryCronEnabled] = useState(false);
-  const [gcRepositoryCronRule, setGcRepositoryCronRule] = useState("");
-  const [gcRepositoryCronRuleValid, setGcRepositoryCronRuleValid] = useState(true);
-  const [gcRepositoryCronRuleNextRunAt, setGcRepositoryCronRuleNextRunAt] = useState("");
+  const [gcRepositoryRuleRetentionDays, setGcRepositoryRuleRetentionDays] = useState<string | number>(0);
+  const [gcRepositoryRuleRetentionDaysValid, setGcRepositoryRuleRetentionDaysValid] = useState(true);
+  useEffect(() => { setGcRepositoryRuleRetentionDaysValid(Number.isInteger(gcRepositoryRuleRetentionDays) && parseInt(gcRepositoryRuleRetentionDays.toString()) >= 0 && parseInt(gcRepositoryRuleRetentionDays.toString()) <= 180) }, [gcRepositoryRuleRetentionDays]);
+  const [gcRepositoryRuleCronEnabled, setGcRepositoryRuleCronEnabled] = useState(false);
+  const [gcRepositoryRuleCronRule, setGcRepositoryRuleCronRule] = useState("");
+  const [gcRepositoryRuleCronRuleValid, setGcRepositoryRuleCronRuleValid] = useState(true);
+  const [gcRepositoryRuleCronRuleNextRunAt, setGcRepositoryRuleCronRuleNextRunAt] = useState("");
+  const [gcRepositoryLatestRunner, setGcRepositoryLatestRunner] = useState<IGcRepositoryRunnerItem>({} as IGcRepositoryRunnerItem);
+  const [gcRepositoryRule, setGcRepositoryRule] = useState<IGcRepositoryRule>({} as IGcRepositoryRule);
 
-  const [gcBlobRuleConfigModal, setGcBlobRuleConfigModal] = useState(false);
-  const [gcBlobRetentionDays, setGcBlobRetentionDays] = useState<string | number>(0);
-  const [gcBlobRetentionDaysValid, setGcBlobRetentionDaysValid] = useState(true);
-  useEffect(() => { setGcBlobRetentionDaysValid(Number.isInteger(gcBlobRetentionDays) && parseInt(gcBlobRetentionDays.toString()) >= 0 && parseInt(gcBlobRetentionDays.toString()) <= 180) }, [gcBlobRetentionDays]);
-  const [gcBlobCronEnabled, setGcBlobCronEnabled] = useState(false);
-  const [gcBlobCronRule, setGcBlobCronRule] = useState("");
-  const [gcBlobCronRuleValid, setGcBlobCronRuleValid] = useState(true);
-  const [gcBlobCronRuleNextRunAt, setGcBlobCronRuleNextRunAt] = useState("");
-
+  const [gcTagRuleExist, setGcTagRuleExist] = useState(false);
   const [gcTagRuleConfigModal, setGcTagRuleConfigModal] = useState(false);
   const [gcTagRuleRetentionPattern, setGcTagRuleRetentionPattern] = useState("");
   const [gcTagRuleRetentionPatternValid, setGcTagRuleRetentionPatternValid] = useState(true);
@@ -75,36 +75,51 @@ export default function ({ localServer }: { localServer: string }) {
   const [gcTagRuleRetentionAmount, setGcTagRuleRetentionAmount] = useState<string | number>(1);
   const [gcTagRuleRetentionAmountValid, setGcTagRuleRetentionAmountValid] = useState(true);
   useEffect(() => { setGcTagRuleRetentionAmountValid(Number.isInteger(gcTagRuleRetentionAmount) && parseInt(gcTagRuleRetentionAmount.toString()) >= 1 && parseInt(gcTagRuleRetentionAmount.toString()) <= 180) }, [gcTagRuleRetentionAmount]);
-  const [gcTagCronEnabled, setGcTagCronEnabled] = useState(false);
-  const [gcTagCronRule, setGcTagCronRule] = useState("");
-  const [gcTagCronRuleValid, setGcTagCronRuleValid] = useState(true);
-  const [gcTagCronRuleNextRunAt, setGcTagCronRuleNextRunAt] = useState("");
+  const [gcTagRuleCronEnabled, setGcTagRuleCronEnabled] = useState(false);
+  const [gcTagRuleCronRule, setGcTagRuleCronRule] = useState("");
+  const [gcTagRuleCronRuleValid, setGcTagRuleCronRuleValid] = useState(true);
+  const [gcTagRuleCronRuleNextRunAt, setGcTagRuleCronRuleNextRunAt] = useState("");
+  const [gcTagLatestRunner, setGcTagLatestRunner] = useState<IGcTagRunnerItem>({} as IGcTagRunnerItem);
+  const [gcTagRule, setGcTagRule] = useState<IGcTagRule>({} as IGcTagRule);
 
+  const [gcArtifactRuleExist, setGcArtifactRuleExist] = useState(false);
   const [gcArtifactRuleConfigModal, setGcArtifactRuleConfigModal] = useState(false);
-  const [gcArtifactRetentionDays, setGcArtifactRetentionDays] = useState<string | number>(0);
-  const [gcArtifactRetentionDaysValid, setGcArtifactRetentionDaysValid] = useState(true);
-  useEffect(() => { setGcArtifactRetentionDaysValid(Number.isInteger(gcArtifactRetentionDays) && parseInt(gcArtifactRetentionDays.toString()) >= 0 && parseInt(gcArtifactRetentionDays.toString()) <= 180) }, [gcArtifactRetentionDays]);
+  const [gcArtifactRuleRetentionDays, setGcArtifactRuleRetentionDays] = useState<string | number>(0);
+  const [gcArtifactRuleRetentionDaysValid, setGcArtifactRuleRetentionDaysValid] = useState(true);
+  useEffect(() => { setGcArtifactRuleRetentionDaysValid(Number.isInteger(gcArtifactRuleRetentionDays) && parseInt(gcArtifactRuleRetentionDays.toString()) >= 0 && parseInt(gcArtifactRuleRetentionDays.toString()) <= 180) }, [gcArtifactRuleRetentionDays]);
   const [gcArtifactCronEnabled, setGcArtifactCronEnabled] = useState(false);
-  const [gcArtifactCronRule, setGcArtifactCronRule] = useState("");
-  const [gcArtifactCronRuleValid, setGcArtifactCronRuleValid] = useState(true);
-  const [gcArtifactCronRuleNextRunAt, setGcArtifactCronRuleNextRunAt] = useState("");
+  const [gcArtifactRuleCronRule, setGcArtifactRuleCronRule] = useState("");
+  const [gcArtifactRuleCronRuleValid, setGcArtifactRuleCronRuleValid] = useState(true);
+  const [gcArtifactRuleCronRuleNextRunAt, setGcArtifactRuleCronRuleNextRunAt] = useState("");
+  const [gcArtifactLatestRunner, setGcArtifactLatestRunner] = useState<IGcArtifactRunnerItem>({} as IGcArtifactRunnerItem);
+  const [gcArtifactRule, setGcArtifactRule] = useState<IGcArtifactRule>({} as IGcArtifactRule);
+
+  const [gcBlobRuleExist, setGcBlobRuleExist] = useState(false);
+  const [gcBlobRuleConfigModal, setGcBlobRuleConfigModal] = useState(false);
+  const [gcBlobRuleRetentionDays, setGcBlobRuleRetentionDays] = useState<string | number>(0);
+  const [gcBlobRuleRetentionDaysValid, setGcBlobRuleRetentionDaysValid] = useState(true);
+  useEffect(() => { setGcBlobRuleRetentionDaysValid(Number.isInteger(gcBlobRuleRetentionDays) && parseInt(gcBlobRuleRetentionDays.toString()) >= 0 && parseInt(gcBlobRuleRetentionDays.toString()) <= 180) }, [gcBlobRuleRetentionDays]);
+  const [gcBlobRuleCronEnabled, setGcBlobRuleCronEnabled] = useState(false);
+  const [gcBlobRuleCronRule, setGcBlobRuleCronRule] = useState("");
+  const [gcBlobRuleCronRuleValid, setGcBlobRuleCronRuleValid] = useState(true);
+  const [gcBlobRuleCronRuleNextRunAt, setGcBlobRuleCronRuleNextRunAt] = useState("");
+  const [gcBlobLatestRunner, setGcBlobLatestRunner] = useState<IGcBlobRunnerItem>({} as IGcBlobRunnerItem);
+  const [gcBlobRule, setGcBlobRule] = useState<IGcBlobRule>({} as IGcBlobRule);
 
   useEffect(() => {
-    if (location.pathname !== "/settings/daemon-tasks") {
-      return;
-    }
-    let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/`;
+    let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcBlobRule = response.data as IGcBlobRule;
-        setGcBlobRuleExist(true);
-        setGcBlobCronEnabled(gcBlobRule.cron_enabled);
-        setGcBlobRetentionDays(gcBlobRule.retention_day);
-        if (gcBlobRule.cron_enabled) {
-          setGcBlobCronRule(gcBlobRule.cron_rule == undefined ? "" : gcBlobRule.cron_rule)
+        const gcRepositoryRule = response.data as IGcRepositoryRule;
+        setGcRepositoryRuleExist(true);
+        setGcRepositoryRule(gcRepositoryRule);
+        setGcRepositoryRuleRetentionDays(gcRepositoryRule.retention_day);
+        setGcRepositoryRuleCronEnabled(gcRepositoryRule.cron_enabled);
+        if (gcRepositoryRule.cron_enabled) {
+          setGcRepositoryRuleCronRule(gcRepositoryRule.cron_rule == undefined ? "" : gcRepositoryRule.cron_rule);
         }
       } else if (response?.status === 404) {
-        setGcBlobRuleExist(false);
+        setGcRepositoryRuleExist(false);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -121,11 +136,12 @@ export default function ({ localServer }: { localServer: string }) {
       if (response?.status === 200) {
         const gcTagRule = response.data as IGcTagRule;
         setGcTagRuleExist(true);
-        setGcTagCronEnabled(gcTagRule.cron_enabled);
+        setGcTagRule(gcTagRule);
+        setGcTagRuleCronEnabled(gcTagRule.cron_enabled);
         setGcTagRuleRetentionType(gcTagRule.retention_rule_type);
         setGcTagRuleRetentionAmount(gcTagRule.retention_rule_amount);
         if (gcTagRule.cron_enabled) {
-          setGcTagCronRule(gcTagRule.cron_rule == undefined ? "" : gcTagRule.cron_rule)
+          setGcTagRuleCronRule(gcTagRule.cron_rule == undefined ? "" : gcTagRule.cron_rule)
         }
         if (gcTagRule.retention_pattern != undefined) {
           setGcTagRuleRetentionPattern(gcTagRule.retention_pattern == undefined ? "" : gcTagRule.retention_pattern);
@@ -148,11 +164,27 @@ export default function ({ localServer }: { localServer: string }) {
       if (response?.status === 200) {
         const gcArtifactRule = response.data as IGcArtifactRule;
         setGcArtifactRuleExist(true);
+        setGcArtifactRule(gcArtifactRule);
         setGcArtifactCronEnabled(gcArtifactRule.cron_enabled);
         if (gcArtifactRule.cron_enabled) {
-          setGcArtifactCronRule(gcArtifactRule.cron_rule == undefined ? "" : gcArtifactRule.cron_rule);
+          setGcArtifactRuleCronRule(gcArtifactRule.cron_rule == undefined ? "" : gcArtifactRule.cron_rule);
         }
-        setGcArtifactRetentionDays(gcArtifactRule.retention_day);
+        setGcArtifactRuleRetentionDays(gcArtifactRule.retention_day);
+        let url = `${localServer}/api/v1/daemons/gc-artifact/${namespaceId}/runners/latest`;
+        axios.get(url).then(response => {
+          if (response?.status === 200) {
+            const runner = response.data as IGcArtifactRunnerItem;
+            setGcArtifactLatestRunner(runner);
+          } else if (response?.status === 404) {
+            // do nothing
+          } else {
+            const errorcode = response.data as IHTTPError;
+            Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+          }
+        }).catch(error => {
+          const errorcode = error.response.data as IHTTPError;
+          Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        })
       } else if (response?.status === 404) {
         setGcArtifactRuleExist(false);
       } else {
@@ -166,18 +198,22 @@ export default function ({ localServer }: { localServer: string }) {
   }, []);
 
   useEffect(() => {
-    let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
+    if (!location.pathname.startsWith("/settings")) {
+      return;
+    }
+    let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcRepositoryRule = response.data as IGcRepositoryRule;
-        setGcRepositoryRuleExist(true);
-        setGcRepositoryRetentionDays(gcRepositoryRule.retention_day);
-        setGcRepositoryCronEnabled(gcRepositoryRule.cron_enabled);
-        if (gcRepositoryRule.cron_enabled) {
-          setGcRepositoryCronRule(gcRepositoryRule.cron_rule == undefined ? "" : gcRepositoryRule.cron_rule);
+        const gcBlobRule = response.data as IGcBlobRule;
+        setGcBlobRuleExist(true);
+        setGcBlobRule(gcBlobRule);
+        setGcBlobRuleCronEnabled(gcBlobRule.cron_enabled);
+        setGcBlobRuleRetentionDays(gcBlobRule.retention_day);
+        if (gcBlobRule.cron_enabled) {
+          setGcBlobRuleCronRule(gcBlobRule.cron_rule == undefined ? "" : gcBlobRule.cron_rule)
         }
       } else if (response?.status === 404) {
-        setGcRepositoryRuleExist(false);
+        setGcBlobRuleExist(false);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -189,23 +225,23 @@ export default function ({ localServer }: { localServer: string }) {
   }, []);
 
   useEffect(() => {
-    if (gcArtifactCronEnabled && gcArtifactCronRule.length > 0) {
+    if (gcArtifactCronEnabled && gcArtifactRuleCronRule.length > 0) {
       axios.post(localServer + `/api/v1/validators/cron`, {
-        cron: gcArtifactCronRule,
+        cron: gcArtifactRuleCronRule,
       }).then(response => {
         if (response?.status === 204) {
-          setGcArtifactCronRuleValid(true);
-          let next = parser.parseExpression(gcArtifactCronRule).next()
-          setGcArtifactCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
+          setGcArtifactRuleCronRuleValid(true);
+          let next = parser.parseExpression(gcArtifactRuleCronRule).next()
+          setGcArtifactRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
-          setGcArtifactCronRuleValid(false);
+          setGcArtifactRuleCronRuleValid(false);
         }
       }).catch(error => {
         console.log(error);
-        setGcArtifactCronRuleValid(false);
+        setGcArtifactRuleCronRuleValid(false);
       });
     }
-  }, [gcArtifactCronRule, gcArtifactCronEnabled]);
+  }, [gcArtifactRuleCronRule, gcArtifactCronEnabled]);
 
   useEffect(() => {
     if (gcTagRuleRetentionPattern.length > 0) {
@@ -225,78 +261,78 @@ export default function ({ localServer }: { localServer: string }) {
   }, [gcTagRuleRetentionPattern]);
 
   useEffect(() => {
-    if (gcRepositoryCronEnabled && gcRepositoryCronRule.length > 0) {
+    if (gcRepositoryRuleCronEnabled && gcRepositoryRuleCronRule.length > 0) {
       axios.post(localServer + `/api/v1/validators/cron`, {
-        cron: gcRepositoryCronRule,
+        cron: gcRepositoryRuleCronRule,
       }).then(response => {
         if (response?.status === 204) {
-          setGcRepositoryCronRuleValid(true);
-          let next = parser.parseExpression(gcRepositoryCronRule).next()
-          setGcRepositoryCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
+          setGcRepositoryRuleCronRuleValid(true);
+          let next = parser.parseExpression(gcRepositoryRuleCronRule).next()
+          setGcRepositoryRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
-          setGcRepositoryCronRuleValid(false);
+          setGcRepositoryRuleCronRuleValid(false);
         }
       }).catch(error => {
         console.log(error);
-        setGcRepositoryCronRuleValid(false);
+        setGcRepositoryRuleCronRuleValid(false);
       });
     }
-  }, [gcRepositoryCronRule, gcRepositoryCronEnabled]);
+  }, [gcRepositoryRuleCronRule, gcRepositoryRuleCronEnabled]);
 
   useEffect(() => {
-    if (gcBlobCronEnabled && gcBlobCronRule.length > 0) {
+    if (gcBlobRuleCronEnabled && gcBlobRuleCronRule.length > 0) {
       axios.post(localServer + `/api/v1/validators/cron`, {
-        cron: gcBlobCronRule,
+        cron: gcBlobRuleCronRule,
       }).then(response => {
         if (response?.status === 204) {
-          setGcBlobCronRuleValid(true);
-          let next = parser.parseExpression(gcBlobCronRule).next()
-          setGcBlobCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
+          setGcBlobRuleCronRuleValid(true);
+          let next = parser.parseExpression(gcBlobRuleCronRule).next()
+          setGcBlobRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
-          setGcBlobCronRuleValid(false);
+          setGcBlobRuleCronRuleValid(false);
         }
       }).catch(error => {
         console.log(error);
-        setGcBlobCronRuleValid(false);
+        setGcBlobRuleCronRuleValid(false);
       });
     }
-  }, [gcBlobCronRule, gcBlobCronEnabled]);
+  }, [gcBlobRuleCronRule, gcBlobRuleCronEnabled]);
 
   useEffect(() => {
-    if (gcTagCronEnabled && gcTagCronRule.length > 0) {
+    if (gcTagRuleCronEnabled && gcTagRuleCronRule.length > 0) {
       axios.post(localServer + `/api/v1/validators/cron`, {
-        cron: gcTagCronRule,
+        cron: gcTagRuleCronRule,
       }).then(response => {
         if (response?.status === 204) {
-          setGcTagCronRuleValid(true);
-          let next = parser.parseExpression(gcTagCronRule).next()
-          setGcTagCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
+          setGcTagRuleCronRuleValid(true);
+          let next = parser.parseExpression(gcTagRuleCronRule).next()
+          setGcTagRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
-          setGcTagCronRuleValid(false);
+          setGcTagRuleCronRuleValid(false);
         }
       }).catch(error => {
         console.log(error);
-        setGcTagCronRuleValid(false);
+        setGcTagRuleCronRuleValid(false);
       });
     }
-  }, [gcTagCronRule, gcTagCronEnabled]);
+  }, [gcTagRuleCronRule, gcTagRuleCronEnabled]);
 
   const createOrUpdateGcRepository = () => {
-    if (!(gcRepositoryRetentionDaysValid && ((gcRepositoryCronEnabled && gcRepositoryCronRuleValid) || !gcRepositoryCronEnabled))) {
+    if (!(gcRepositoryRuleRetentionDaysValid && ((gcRepositoryRuleCronEnabled && gcRepositoryRuleCronRuleValid) || !gcRepositoryRuleCronEnabled))) {
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    if (gcRepositoryCronEnabled && gcRepositoryCronRule == "") {
-      setGcRepositoryCronRuleValid(false);
+    if (gcRepositoryRuleCronEnabled && gcRepositoryRuleCronRule == "") {
+      setGcRepositoryRuleCronRuleValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     const data: { [key: string]: any } = {
-      retention_day: gcRepositoryRetentionDays,
-      cron_enabled: gcRepositoryCronEnabled,
+      retention_day: gcRepositoryRuleRetentionDays,
+      cron_enabled: gcRepositoryRuleCronEnabled,
     };
-    if (gcRepositoryCronEnabled) {
-      data["cron_rule"] = gcRepositoryCronRule;
+    if (gcRepositoryRuleCronEnabled) {
+      data["cron_rule"] = gcRepositoryRuleCronRule;
     }
     axios.put(localServer + `/api/v1/daemons/gc-repository/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
@@ -317,21 +353,21 @@ export default function ({ localServer }: { localServer: string }) {
   }
 
   const createOrUpdateGcArtifact = () => {
-    if (!(gcArtifactRetentionDaysValid && ((gcArtifactCronEnabled && gcArtifactCronRuleValid) || !gcArtifactCronEnabled))) {
+    if (!(gcArtifactRuleRetentionDaysValid && ((gcArtifactCronEnabled && gcArtifactRuleCronRuleValid) || !gcArtifactCronEnabled))) {
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    if (gcArtifactCronEnabled && gcArtifactCronRule == "") {
-      setGcArtifactCronRuleValid(false);
+    if (gcArtifactCronEnabled && gcArtifactRuleCronRule == "") {
+      setGcArtifactRuleCronRuleValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     const data: { [key: string]: any } = {
-      retention_day: gcArtifactRetentionDays,
+      retention_day: gcArtifactRuleRetentionDays,
       cron_enabled: gcArtifactCronEnabled,
     };
     if (gcArtifactCronEnabled) {
-      data["cron_rule"] = gcArtifactCronRule;
+      data["cron_rule"] = gcArtifactRuleCronRule;
     }
     axios.put(localServer + `/api/v1/daemons/gc-artifact/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
@@ -352,21 +388,21 @@ export default function ({ localServer }: { localServer: string }) {
   }
 
   const createOrUpdateGcBlob = () => {
-    if (!(gcBlobRetentionDaysValid && ((gcBlobCronEnabled && gcBlobCronRuleValid) || !gcBlobCronEnabled))) {
+    if (!(gcBlobRuleRetentionDaysValid && ((gcBlobRuleCronEnabled && gcBlobRuleCronRuleValid) || !gcBlobRuleCronEnabled))) {
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    if (gcBlobCronEnabled && gcBlobCronRule == "") {
-      setGcBlobCronRuleValid(false);
+    if (gcBlobRuleCronEnabled && gcBlobRuleCronRule == "") {
+      setGcBlobRuleCronRuleValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     const data: { [key: string]: any } = {
-      retention_day: gcBlobRetentionDays,
-      cron_enabled: gcBlobCronEnabled,
+      retention_day: gcBlobRuleRetentionDays,
+      cron_enabled: gcBlobRuleCronEnabled,
     };
-    if (gcBlobCronEnabled) {
-      data["cron_rule"] = gcBlobCronRule;
+    if (gcBlobRuleCronEnabled) {
+      data["cron_rule"] = gcBlobRuleCronRule;
     }
     axios.put(localServer + `/api/v1/daemons/gc-blob/${namespaceId}/`, data).then(response => {
       if (response?.status === 204) {
@@ -387,12 +423,12 @@ export default function ({ localServer }: { localServer: string }) {
   }
 
   const createOrUpdateGcTag = () => {
-    if (!(gcTagRuleRetentionAmountValid && ((gcTagCronEnabled && gcTagCronRuleValid) || !gcTagCronEnabled))) {
+    if (!(gcTagRuleRetentionAmountValid && ((gcTagRuleCronEnabled && gcTagRuleCronRuleValid) || !gcTagRuleCronEnabled))) {
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    if (gcTagCronEnabled && gcTagCronRule == "") {
-      setGcTagCronRuleValid(false);
+    if (gcTagRuleCronEnabled && gcTagRuleCronRule == "") {
+      setGcTagRuleCronRuleValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
@@ -404,10 +440,10 @@ export default function ({ localServer }: { localServer: string }) {
     const data: { [key: string]: any } = {
       retention_rule_type: gcTagRuleRetentionType,
       retention_rule_amount: gcTagRuleRetentionAmount,
-      cron_enabled: gcTagCronEnabled,
+      cron_enabled: gcTagRuleCronEnabled,
     };
-    if (gcTagCronEnabled) {
-      data["cron_rule"] = gcTagCronRule;
+    if (gcTagRuleCronEnabled) {
+      data["cron_rule"] = gcTagRuleCronRule;
     }
     if (gcTagRuleRetentionPattern != "") {
       data["retention_pattern"] = gcTagRuleRetentionPattern;
@@ -452,12 +488,12 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item={location.pathname == "/settings/daemon-tasks" ? "daemon-tasks" : "repositories"} namespace={namespace} />
+        <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-visible">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title={location.pathname == "/settings/daemon-tasks" ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
+            <Header title={location.pathname.startsWith("/settings") ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
               props={
-                location.pathname == "/settings/daemon-tasks" ? null : (
+                location.pathname.startsWith("/settings") ? null : (
                   <div className="sm:flex sm:space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repositories`}
@@ -498,7 +534,7 @@ export default function ({ localServer }: { localServer: string }) {
                         <span className="lg:pl-2">Task</span>
                       </th>
                       <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                        <span className="lg:pl-2">Status</span>
+                        <span className="lg:pl-2">Running</span>
                       </th>
                       <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                         <span className="lg:pl-2">Last trigger</span>
@@ -506,7 +542,6 @@ export default function ({ localServer }: { localServer: string }) {
                       <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                         <span className="lg:pl-2">Next trigger</span>
                       </th>
-
                       <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                         <span className="lg:pl-2">Action</span>
                       </th>
@@ -516,7 +551,11 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
-                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-repository?namespace_id=${namespaceId}`);
+                          if (location.pathname.startsWith("/settings")) {
+                            navigate(`/settings/daemon-tasks/gc-repository?namespace_id=${namespaceId}`);
+                          } else {
+                            navigate(`/namespaces/${namespace}/daemon-tasks/gc-repository?namespace_id=${namespaceId}`);
+                          }
                         }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
@@ -524,13 +563,13 @@ export default function ({ localServer }: { localServer: string }) {
                         </div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        Running
+                        {gcRepositoryRuleExist && gcRepositoryRule.is_running ? "true" : "false"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcRepositoryRuleExist && gcRepositoryLatestRunner.started_at != undefined ? gcRepositoryLatestRunner.started_at : "-"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcRepositoryRuleExist && gcRepositoryRule.cron_enabled && gcRepositoryRule.cron_next_trigger != undefined ? gcRepositoryRule.cron_next_trigger : "-"}
                       </td>
                       <td className="pr-3 whitespace-nowrap">
                         <Menu as="div" className="relative flex-none" onClick={e => {
@@ -591,7 +630,11 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
-                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-tag?namespace_id=${namespaceId}`);
+                          if (location.pathname.startsWith("/settings")) {
+                            navigate(`/settings/daemon-tasks/gc-tag?namespace_id=${namespaceId}`);
+                          } else {
+                            navigate(`/namespaces/${namespace}/daemon-tasks/gc-tag?namespace_id=${namespaceId}`);
+                          }
                         }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
@@ -599,15 +642,14 @@ export default function ({ localServer }: { localServer: string }) {
                         </div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        Running
+                        {gcTagRuleExist && gcTagRule.is_running ? "true" : "false"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcTagRuleExist && gcTagLatestRunner.started_at != undefined ? gcTagLatestRunner.started_at : "-"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcTagRuleExist && gcTagRule.cron_enabled && gcTagRule.cron_next_trigger != undefined ? gcTagRule.cron_next_trigger : "-"}
                       </td>
-
                       <td className="pr-3 whitespace-nowrap">
                         <Menu as="div" className="relative flex-none" onClick={e => {
                           e.stopPropagation();
@@ -665,7 +707,11 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
-                          navigate(`/namespaces/${namespace}/daemon-tasks/gc-artifact?namespace_id=${namespaceId}`);
+                          if (location.pathname.startsWith("/settings")) {
+                            navigate(`/settings/daemon-tasks/gc-artifact?namespace_id=${namespaceId}`);
+                          } else {
+                            navigate(`/namespaces/${namespace}/daemon-tasks/gc-artifact?namespace_id=${namespaceId}`);
+                          }
                         }}
                       >
                         <div className="flex items-center space-x-3 lg:pl-2">
@@ -673,13 +719,13 @@ export default function ({ localServer }: { localServer: string }) {
                         </div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        Running
+                        {gcArtifactRuleExist && gcArtifactRule.is_running ? "true" : "false"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcArtifactRuleExist && gcArtifactLatestRunner.started_at != undefined ? gcArtifactLatestRunner.started_at : "-"}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        2023-11-08 13:32:12
+                        {gcArtifactRuleExist && gcArtifactRule.cron_enabled && gcArtifactRule.cron_next_trigger != undefined ? gcArtifactRule.cron_next_trigger : "-"}
                       </td>
                       <td className="pr-3 whitespace-nowrap">
                         <Menu as="div" className="relative flex-none" onClick={e => {
@@ -740,7 +786,11 @@ export default function ({ localServer }: { localServer: string }) {
                         <tr className="border-b">
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                             onClick={() => {
-                              navigate(`/namespaces/${namespace}/daemon-tasks/gc-blob?namespace_id=${namespaceId}`);
+                              if (location.pathname.startsWith("/settings")) {
+                                navigate(`/settings/daemon-tasks/gc-blob?namespace_id=${namespaceId}`);
+                              } else {
+                                navigate(`/namespaces/${namespace}/daemon-tasks/gc-blob?namespace_id=${namespaceId}`);
+                              }
                             }}
                           >
                             <div className="flex items-center space-x-3 lg:pl-2">
@@ -748,13 +798,13 @@ export default function ({ localServer }: { localServer: string }) {
                             </div>
                           </td>
                           <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                            Running
+                            {gcBlobRuleExist && gcBlobRule.is_running ? "true" : "false"}
                           </td>
                           <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                            2023-11-08 13:32:12
+                            {gcBlobRuleExist && gcBlobLatestRunner.started_at != undefined ? gcBlobLatestRunner.started_at : "-"}
                           </td>
                           <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                            2023-11-08 13:32:12
+                            {gcBlobRuleExist && gcBlobRule.cron_enabled && gcBlobRule.cron_next_trigger != undefined ? gcBlobRule.cron_next_trigger : "-"}
                           </td>
                           <td className="pr-3 whitespace-nowrap">
                             <Menu as="div" className="relative flex-none" onClick={e => {
@@ -948,12 +998,12 @@ export default function ({ localServer }: { localServer: string }) {
                             id="namespace_count_limit"
                             name="namespace_count_limit"
                             placeholder="0 means no limit"
-                            className={(gcBlobRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcBlobRetentionDays}
-                            onChange={e => setGcBlobRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                            className={(gcBlobRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcBlobRuleRetentionDays}
+                            onChange={e => setGcBlobRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                           />
                           {
-                            gcBlobRetentionDaysValid ? null : (
+                            gcBlobRuleRetentionDaysValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -968,7 +1018,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-2"></div>
                       <div className="col-span-4">
                         {
-                          gcBlobRetentionDaysValid ? null : (
+                          gcBlobRuleRetentionDaysValid ? null : (
                             <p className="mt-1 text-xs text-red-600">
                               <span>
                                 Not a valid retention days limit, available 0-180.
@@ -991,8 +1041,8 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-4">
                         <div className="mt-0.5 flex flex-row items-center h-[36px]">
                           <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcBlobCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcBlobCronEnabled(e.target.checked);
+                            <input type="checkbox" checked={gcBlobRuleCronEnabled} className="sr-only peer" onChange={e => {
+                              setGcBlobRuleCronEnabled(e.target.checked);
                             }} />
                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                           </label>
@@ -1000,7 +1050,7 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     {
-                      !gcBlobCronEnabled ? null : (
+                      !gcBlobRuleCronEnabled ? null : (
                         <>
                           <div className="grid grid-cols-6 gap-4 mt-4">
                             <div className="col-span-2 flex flex-row">
@@ -1032,12 +1082,12 @@ export default function ({ localServer }: { localServer: string }) {
                                   id="gc_repository_cron_rule"
                                   name="gc_repository_cron_rule"
                                   placeholder="cron rule"
-                                  className={(gcBlobCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcBlobCronRule}
-                                  onChange={e => setGcBlobCronRule(e.target.value)}
+                                  className={(gcBlobRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                                  value={gcBlobRuleCronRule}
+                                  onChange={e => setGcBlobRuleCronRule(e.target.value)}
                                 />
                                 {
-                                  gcBlobCronRuleValid ? null : (
+                                  gcBlobRuleCronRuleValid ? null : (
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1053,16 +1103,16 @@ export default function ({ localServer }: { localServer: string }) {
                             </div>
                             <div className="col-span-4">
                               {
-                                !gcBlobCronRuleValid ? (
+                                !gcBlobRuleCronRuleValid ? (
                                   <p className="mt-1 text-xs text-red-600">
                                     <span>
                                       Not a valid cron rule, you can try '0 0 * * 6'.
                                     </span>
                                   </p>
-                                ) : gcBlobCronRule == "" ? null : (
+                                ) : gcBlobRuleCronRule == "" ? null : (
                                   <p className="mt-1 text-xs text-gray-600">
                                     <span>
-                                      Next run at '{gcBlobCronRuleNextRunAt}'.
+                                      Next run at '{gcBlobRuleCronRuleNextRunAt}'.
                                     </span>
                                   </p>
                                 )
@@ -1159,12 +1209,12 @@ export default function ({ localServer }: { localServer: string }) {
                             id="namespace_count_limit"
                             name="namespace_count_limit"
                             placeholder="0 means no limit"
-                            className={(gcRepositoryRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcRepositoryRetentionDays}
-                            onChange={e => setGcRepositoryRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                            className={(gcRepositoryRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcRepositoryRuleRetentionDays}
+                            onChange={e => setGcRepositoryRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                           />
                           {
-                            gcRepositoryRetentionDaysValid ? null : (
+                            gcRepositoryRuleRetentionDaysValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1179,7 +1229,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-2"></div>
                       <div className="col-span-4">
                         {
-                          gcRepositoryRetentionDaysValid ? null : (
+                          gcRepositoryRuleRetentionDaysValid ? null : (
                             <p className="mt-1 text-xs text-red-600">
                               <span>
                                 Not a valid retention days limit, available 0-180.
@@ -1202,8 +1252,8 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-4">
                         <div className="mt-0.5 flex flex-row items-center h-[36px]">
                           <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcRepositoryCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcRepositoryCronEnabled(e.target.checked);
+                            <input type="checkbox" checked={gcRepositoryRuleCronEnabled} className="sr-only peer" onChange={e => {
+                              setGcRepositoryRuleCronEnabled(e.target.checked);
                             }} />
                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                           </label>
@@ -1211,7 +1261,7 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     {
-                      !gcRepositoryCronEnabled ? null : (
+                      !gcRepositoryRuleCronEnabled ? null : (
                         <>
                           <div className="grid grid-cols-6 gap-4 mt-4">
                             <div className="col-span-2 flex flex-row">
@@ -1243,12 +1293,12 @@ export default function ({ localServer }: { localServer: string }) {
                                   id="gc_repository_cron_rule"
                                   name="gc_repository_cron_rule"
                                   placeholder="cron rule"
-                                  className={(gcRepositoryCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcRepositoryCronRule}
-                                  onChange={e => setGcRepositoryCronRule(e.target.value)}
+                                  className={(gcRepositoryRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                                  value={gcRepositoryRuleCronRule}
+                                  onChange={e => setGcRepositoryRuleCronRule(e.target.value)}
                                 />
                                 {
-                                  gcRepositoryCronRuleValid ? null : (
+                                  gcRepositoryRuleCronRuleValid ? null : (
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1265,16 +1315,16 @@ export default function ({ localServer }: { localServer: string }) {
                             </div>
                             <div className="col-span-4">
                               {
-                                !gcRepositoryCronRuleValid ? (
+                                !gcRepositoryRuleCronRuleValid ? (
                                   <p className="mt-1 text-xs text-red-600">
                                     <span>
                                       Not a valid cron rule, you can try '0 0 * * 6'.
                                     </span>
                                   </p>
-                                ) : gcRepositoryCronRule == "" ? null : (
+                                ) : gcRepositoryRuleCronRule == "" ? null : (
                                   <p className="mt-1 text-xs text-gray-600">
                                     <span>
-                                      Next run at '{gcRepositoryCronRuleNextRunAt}'.
+                                      Next run at '{gcRepositoryRuleCronRuleNextRunAt}'.
                                     </span>
                                   </p>
                                 )
@@ -1370,12 +1420,12 @@ export default function ({ localServer }: { localServer: string }) {
                             id="namespace_count_limit"
                             name="namespace_count_limit"
                             placeholder="0 means no limit"
-                            className={(gcArtifactRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcArtifactRetentionDays}
-                            onChange={e => setGcArtifactRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                            className={(gcArtifactRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcArtifactRuleRetentionDays}
+                            onChange={e => setGcArtifactRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                           />
                           {
-                            gcArtifactRetentionDaysValid ? null : (
+                            gcArtifactRuleRetentionDaysValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1390,7 +1440,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-2"></div>
                       <div className="col-span-4">
                         {
-                          gcArtifactRetentionDaysValid ? null : (
+                          gcArtifactRuleRetentionDaysValid ? null : (
                             <p className="mt-1 text-xs text-red-600">
                               <span>
                                 Not a valid retention days limit, available 0-180.
@@ -1453,12 +1503,12 @@ export default function ({ localServer }: { localServer: string }) {
                                   id="gc_repository_cron_rule"
                                   name="gc_repository_cron_rule"
                                   placeholder="cron rule"
-                                  className={(gcArtifactCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcArtifactCronRule}
-                                  onChange={e => setGcArtifactCronRule(e.target.value)}
+                                  className={(gcArtifactRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                                  value={gcArtifactRuleCronRule}
+                                  onChange={e => setGcArtifactRuleCronRule(e.target.value)}
                                 />
                                 {
-                                  gcArtifactCronRuleValid ? null : (
+                                  gcArtifactRuleCronRuleValid ? null : (
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1474,16 +1524,16 @@ export default function ({ localServer }: { localServer: string }) {
                             </div>
                             <div className="col-span-4">
                               {
-                                !gcArtifactCronRuleValid ? (
+                                !gcArtifactRuleCronRuleValid ? (
                                   <p className="mt-1 text-xs text-red-600">
                                     <span>
                                       Not a valid cron rule, you can try '0 0 * * 6'.
                                     </span>
                                   </p>
-                                ) : gcArtifactCronRule == "" ? null : (
+                                ) : gcArtifactRuleCronRule == "" ? null : (
                                   <p className="mt-1 text-xs text-gray-600">
                                     <span>
-                                      Next run at '{gcArtifactCronRuleNextRunAt}'.
+                                      Next run at '{gcArtifactRuleCronRuleNextRunAt}'.
                                     </span>
                                   </p>
                                 )
@@ -1745,8 +1795,8 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="col-span-6">
                         <div className="mt-0.5 flex flex-row items-center h-[36px]">
                           <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcTagCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcTagCronEnabled(e.target.checked);
+                            <input type="checkbox" checked={gcTagRuleCronEnabled} className="sr-only peer" onChange={e => {
+                              setGcTagRuleCronEnabled(e.target.checked);
                             }} />
                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                           </label>
@@ -1754,7 +1804,7 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     {
-                      !gcTagCronEnabled ? null : (
+                      !gcTagRuleCronEnabled ? null : (
                         <>
                           <div className="grid grid-cols-8 gap-4 mt-4">
                             <div className="col-span-2 flex flex-row">
@@ -1785,12 +1835,12 @@ export default function ({ localServer }: { localServer: string }) {
                                   id="gc_repository_cron_rule"
                                   name="gc_repository_cron_rule"
                                   placeholder="cron rule"
-                                  className={(gcTagCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcTagCronRule}
-                                  onChange={e => setGcTagCronRule(e.target.value)}
+                                  className={(gcTagRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                                  value={gcTagRuleCronRule}
+                                  onChange={e => setGcTagRuleCronRule(e.target.value)}
                                 />
                                 {
-                                  gcTagCronRuleValid ? null : (
+                                  gcTagRuleCronRuleValid ? null : (
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1806,16 +1856,16 @@ export default function ({ localServer }: { localServer: string }) {
                             </div>
                             <div className="col-span-6">
                               {
-                                !gcTagCronRuleValid ? (
+                                !gcTagRuleCronRuleValid ? (
                                   <p className="mt-1 text-xs text-red-600">
                                     <span>
                                       Not a valid cron rule, you can try '0 0 * * 6'.
                                     </span>
                                   </p>
-                                ) : gcTagCronRule == "" ? null : (
+                                ) : gcTagRuleCronRule == "" ? null : (
                                   <p className="mt-1 text-xs text-gray-600">
                                     <span>
-                                      Next run at '{gcTagCronRuleNextRunAt}'.
+                                      Next run at '{gcTagRuleCronRuleNextRunAt}'.
                                     </span>
                                   </p>
                                 )

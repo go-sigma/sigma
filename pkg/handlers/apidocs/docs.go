@@ -5143,6 +5143,17 @@ const docTemplate = `{
                 "BuilderSourceSelfCodeRepository"
             ]
         },
+        "enums.GcRecordStatus": {
+            "type": "string",
+            "enum": [
+                "Success",
+                "Failed"
+            ],
+            "x-enum-varnames": [
+                "GcRecordStatusSuccess",
+                "GcRecordStatusFailed"
+            ]
+        },
         "enums.OciPlatform": {
             "type": "string",
             "enum": [
@@ -5602,6 +5613,18 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -5676,6 +5699,18 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -5689,6 +5724,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -5697,6 +5744,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "log"
                 },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
                 "status": {
                     "allOf": [
                         {
@@ -5704,6 +5759,10 @@ const docTemplate = `{
                         }
                     ],
                     "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -5722,9 +5781,21 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
                 "repository": {
                     "type": "string",
                     "example": "library/busybox"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
                 },
                 "updated_at": {
                     "type": "string",
@@ -5739,6 +5810,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -5747,6 +5830,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "log"
                 },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
                 "status": {
                     "allOf": [
                         {
@@ -5754,6 +5845,10 @@ const docTemplate = `{
                         }
                     ],
                     "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -5776,6 +5871,18 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "message": {
+                    "type": "string",
+                    "example": "log"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.GcRecordStatus"
+                        }
+                    ],
+                    "example": "Success"
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
@@ -5789,6 +5896,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
+                "duration": {
+                    "type": "string",
+                    "example": "1h"
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "failed_count": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -5797,6 +5916,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "log"
                 },
+                "raw_duration": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
                 "status": {
                     "allOf": [
                         {
@@ -5804,6 +5931,10 @@ const docTemplate = `{
                         }
                     ],
                     "example": "Pending"
+                },
+                "success_count": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "updated_at": {
                     "type": "string",
@@ -5859,6 +5990,10 @@ const docTemplate = `{
                 "cron_rule": {
                     "type": "string",
                     "example": "0 0 * * 6"
+                },
+                "is_running": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "retention_day": {
                     "type": "integer",
