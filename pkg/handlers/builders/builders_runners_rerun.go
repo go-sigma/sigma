@@ -34,7 +34,7 @@ import (
 )
 
 // GetRunnerRerun ...
-func (h *handlers) GetRunnerRerun(c echo.Context) error {
+func (h *handler) GetRunnerRerun(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRunnerStop

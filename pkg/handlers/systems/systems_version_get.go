@@ -31,7 +31,7 @@ import (
 //	@Produce	json
 //	@Router		/systems/version [get]
 //	@Success	200	{object}	types.GetSystemVersionResponse
-func (h *handlers) GetVersion(c echo.Context) error {
+func (h *handler) GetVersion(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetSystemVersionResponse{
 		Version:   version.Version,
 		GitHash:   version.GitHash,

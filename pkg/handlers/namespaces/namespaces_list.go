@@ -41,7 +41,7 @@ import (
 //	@Param		name	query		string	false	"search namespace with name"
 //	@Success	200		{object}	types.CommonList{items=[]types.NamespaceItem}
 //	@Failure	500		{object}	xerrors.ErrCode
-func (h *handlers) ListNamespace(c echo.Context) error {
+func (h *handler) ListNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListNamespaceRequest

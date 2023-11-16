@@ -42,7 +42,7 @@ import (
 //	@Failure	500	{object}	xerrors.ErrCode
 //	@Failure	401	{object}	xerrors.ErrCode
 //	@Success	200	{object}	types.PostUserLoginResponse
-func (h *handlers) Login(c echo.Context) error {
+func (h *handler) Login(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

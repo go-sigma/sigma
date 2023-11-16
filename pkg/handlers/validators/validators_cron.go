@@ -38,7 +38,7 @@ import (
 //	@Param		message	body	types.ValidateCronRequest	true	"Validate cron object"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode
-func (h *handlers) ValidateCron(c echo.Context) error {
+func (h *handler) ValidateCron(c echo.Context) error {
 	var req types.ValidateCronRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

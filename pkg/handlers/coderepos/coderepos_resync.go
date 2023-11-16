@@ -46,7 +46,7 @@ import (
 //	@Param		provider	path	string	true	"search code repository with provider"
 //	@Success	202
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) Resync(c echo.Context) error {
+func (h *handler) Resync(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)

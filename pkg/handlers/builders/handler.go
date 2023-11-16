@@ -22,13 +22,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the builder handlers
-type Handlers interface {
+type Handler interface {
 	// PostBuilder handles the post builder request
 	PostBuilder(c echo.Context) error
 	// PutBuilder handles the put builder request
@@ -47,9 +47,9 @@ type Handlers interface {
 	GetRunner(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	webhookServiceFactory    dao.WebhookServiceFactory
@@ -66,7 +66,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the builder handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
@@ -90,7 +90,7 @@ func handlerNew(injects ...inject) Handlers {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
 		webhookServiceFactory:    webhookServiceFactory,
@@ -121,5 +121,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

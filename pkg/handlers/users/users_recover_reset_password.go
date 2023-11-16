@@ -32,7 +32,7 @@ import (
 )
 
 // RecoverPasswordReset handles the recover user's password reset
-func (h *handlers) RecoverPasswordReset(c echo.Context) error {
+func (h *handler) RecoverPasswordReset(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PostUserRecoverResetPasswordRequest

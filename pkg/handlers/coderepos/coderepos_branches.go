@@ -38,7 +38,7 @@ import (
 //	@Param		id	path		string	true	"code repository id"
 //	@Success	200	{object}	types.CommonList{items=[]types.CodeRepositoryBranchItem}
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) ListBranches(c echo.Context) error {
+func (h *handler) ListBranches(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListCodeRepositoryBranchesRequest

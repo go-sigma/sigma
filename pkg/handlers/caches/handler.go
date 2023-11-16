@@ -21,13 +21,13 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers ...
-type Handlers interface {
+// Handler ...
+type Handler interface {
 	// CreateCache ...
 	CreateCache(c echo.Context) error
 	// GetCache ...
@@ -36,16 +36,16 @@ type Handlers interface {
 	DeleteCache(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 }
 
 type inject struct{}
 
 // handlerNew creates a new instance of the builder handlers
-func handlerNew(_ ...inject) Handlers {
-	return &handlers{}
+func handlerNew(_ ...inject) Handler {
+	return &handler{}
 }
 
 type factory struct{}
@@ -64,5 +64,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

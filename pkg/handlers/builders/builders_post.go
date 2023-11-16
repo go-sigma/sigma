@@ -52,7 +52,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) PostBuilder(c echo.Context) error {
+func (h *handler) PostBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -169,7 +169,7 @@ func (h *handlers) PostBuilder(c echo.Context) error {
 }
 
 // PostBuilderValidator ...
-func (h *handlers) PostBuilderValidator(req types.PostBuilderRequest) error {
+func (h *handler) PostBuilderValidator(req types.PostBuilderRequest) error {
 	switch req.Source {
 	case enums.BuilderSourceSelfCodeRepository:
 		if req.ScmCredentialType == nil {
@@ -215,7 +215,7 @@ func (h *handlers) PostBuilderValidator(req types.PostBuilderRequest) error {
 }
 
 // CompressDockerfile ...
-func (h *handlers) CompressDockerfile(str *string) ([]byte, error) {
+func (h *handler) CompressDockerfile(str *string) ([]byte, error) {
 	if str == nil {
 		return nil, nil
 	}

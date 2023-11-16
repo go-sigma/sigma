@@ -22,13 +22,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the webhook handlers
-type Handlers interface {
+type Handler interface {
 	// PostWebhook handles the post webhook request
 	PostWebhook(c echo.Context) error
 	// ListWebhook handles the list webhook request
@@ -49,9 +49,9 @@ type Handlers interface {
 	Resend(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	namespaceServiceFactory dao.NamespaceServiceFactory
 	webhookServiceFactory   dao.WebhookServiceFactory
 	auditServiceFactory     dao.AuditServiceFactory
@@ -64,7 +64,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the webhook handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
@@ -80,7 +80,7 @@ func handlerNew(injects ...inject) Handlers {
 			auditServiceFactory = ij.auditServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		namespaceServiceFactory: namespaceServiceFactory,
 		webhookServiceFactory:   webhookServiceFactory,
 		auditServiceFactory:     auditServiceFactory,
@@ -107,5 +107,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

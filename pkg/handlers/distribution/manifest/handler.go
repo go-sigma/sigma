@@ -26,8 +26,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the distribution manifest handlers
-type Handlers interface {
+// Handler is the interface for the distribution manifest handlers
+type Handler interface {
 	// GetManifest ...
 	GetManifest(ctx echo.Context) error
 	// HeadManifest ...
@@ -40,7 +40,7 @@ type Handlers interface {
 	GetReferrer(ctx echo.Context) error
 }
 
-var _ Handlers = &handler{}
+var _ Handler = &handler{}
 
 type handler struct {
 	config configs.Configuration
@@ -61,7 +61,7 @@ type inject struct {
 }
 
 // New creates a new instance of the distribution manifest handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()

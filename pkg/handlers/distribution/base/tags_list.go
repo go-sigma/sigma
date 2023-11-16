@@ -36,7 +36,7 @@ import (
 var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference.NameRegexp.String()))
 
 // ListTags handles the list tags request
-func (h *handlers) ListTags(c echo.Context) error {
+func (h *handler) ListTags(c echo.Context) error {
 	var uri = c.Request().URL.Path
 	if !listTagsReg.MatchString(uri) {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)

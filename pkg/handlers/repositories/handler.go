@@ -22,13 +22,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Handlers is the interface for the repository handlers
-type Handlers interface {
+// Handler is the interface for the repository handlers
+type Handler interface {
 	// PostRepository handles the post repository request
 	PostRepository(c echo.Context) error
 	// PutRepository handles the put repository request
@@ -41,9 +41,9 @@ type Handlers interface {
 	DeleteRepository(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -60,7 +60,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handlers {
+func handlerNew(injects ...inject) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
@@ -84,7 +84,7 @@ func handlerNew(injects ...inject) Handlers {
 			builderServiceFactory = ij.builderServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
@@ -108,5 +108,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

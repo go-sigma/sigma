@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -35,7 +35,7 @@ import (
 )
 
 // Handler is the interface for the oauth2 handlers
-type Handlers interface {
+type Handler interface {
 	// Callback handles the callback request
 	Callback(c echo.Context) error
 	// ClientID handles the client id request
@@ -44,9 +44,9 @@ type Handlers interface {
 	RedirectCallback(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	config             configs.Configuration
 	tokenService       token.TokenService
 	userServiceFactory dao.UserServiceFactory
@@ -58,7 +58,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handlers, error) {
+func handlerNew(injects ...inject) (Handler, error) {
 	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func handlerNew(injects ...inject) (Handlers, error) {
 			userServiceFactory = ij.userServiceFactory
 		}
 	}
-	return &handlers{
+	return &handler{
 		config:             ptr.To(configs.GetConfiguration()),
 		tokenService:       tokenService,
 		userServiceFactory: userServiceFactory,
@@ -110,5 +110,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

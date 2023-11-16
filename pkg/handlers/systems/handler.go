@@ -22,30 +22,30 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	rhandlers "github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the system handlers
-type Handlers interface {
+type Handler interface {
 	// GetEndpoint handles the get endpoint request
 	GetEndpoint(c echo.Context) error
 	// GetVersion handles the get version request
 	GetVersion(c echo.Context) error
 }
 
-var _ Handlers = &handlers{}
+var _ Handler = &handler{}
 
-type handlers struct {
+type handler struct {
 	config configs.Configuration
 }
 
 type inject struct{}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(_ ...inject) Handlers {
-	return &handlers{
+func handlerNew(_ ...inject) Handler {
+	return &handler{
 		config: ptr.To(configs.GetConfiguration()),
 	}
 }
@@ -63,5 +63,5 @@ func (f factory) Initialize(e *echo.Echo) error {
 }
 
 func init() {
-	utils.PanicIf(rhandlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(handlers.RegisterRouterFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
 }

@@ -41,7 +41,7 @@ import (
 //	@Param		name	query		string	false	"Username"
 //	@Success	200		{object}	types.CommonList{items=[]types.UserItem}
 //	@Failure	500		{object}	xerrors.ErrCode
-func (h *handlers) List(c echo.Context) error {
+func (h *handler) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetUserListRequest

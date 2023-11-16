@@ -47,7 +47,7 @@ import (
 //	@Success	200				{object}	types.BuilderItem
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetRunner(c echo.Context) error {
+func (h *handler) GetRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetRunner

@@ -49,7 +49,7 @@ import (
 //	@Success	200			{object}	types.CommonList{items=[]types.RepositoryItem}
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) ListRepository(c echo.Context) error {
+func (h *handler) ListRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListRepositoryRequest

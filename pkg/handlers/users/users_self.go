@@ -28,7 +28,7 @@ import (
 )
 
 // Self handles the self request
-func (h *handlers) Self(c echo.Context) error {
+func (h *handler) Self(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")

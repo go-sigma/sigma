@@ -58,7 +58,7 @@ import (
 //	@Param		endpoint	query		string	false	"endpoint"
 //	@Success	200			{object}	types.Oauth2ClientIDResponse
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) Callback(c echo.Context) error {
+func (h *handler) Callback(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	userSignedObj, err := h.tryGetUser(c)
@@ -291,7 +291,7 @@ func (h *handlers) Callback(c echo.Context) error {
 	})
 }
 
-func (h *handlers) tryGetUser(c echo.Context) (*models.User, error) {
+func (h *handler) tryGetUser(c echo.Context) (*models.User, error) {
 	req := c.Request()
 	ctx := log.Logger.WithContext(req.Context())
 	authorization := req.Header.Get("Authorization")

@@ -52,7 +52,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
+func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.UpdateGcRepositoryRuleRequest
@@ -132,7 +132,7 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
+func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcRepositoryRuleRequest
@@ -178,7 +178,7 @@ func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
+func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcRepositoryLatestRunnerRequest
@@ -250,7 +250,7 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
+func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.CreateGcRepositoryRunnerRequest
@@ -320,7 +320,7 @@ func (h *handlers) CreateGcRepositoryRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
+func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcRepositoryRunnersRequest
@@ -392,7 +392,7 @@ func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcRepositoryRunner(c echo.Context) error {
+func (h *handler) GetGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcRepositoryRunnerRequest
@@ -459,7 +459,7 @@ func (h *handlers) GetGcRepositoryRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcRepositoryRecords(c echo.Context) error {
+func (h *handler) ListGcRepositoryRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcRepositoryRecordsRequest
@@ -503,7 +503,7 @@ func (h *handlers) ListGcRepositoryRecords(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcRepositoryRecord(c echo.Context) error {
+func (h *handler) GetGcRepositoryRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcRepositoryRecordRequest

@@ -38,7 +38,7 @@ import (
 //	@Param		provider	path		string	true	"oauth2 provider"
 //	@Success	200			{object}	types.Oauth2ClientIDResponse
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) ClientID(c echo.Context) error {
+func (h *handler) ClientID(c echo.Context) error {
 	var req types.Oauth2ClientIDRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {

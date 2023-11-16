@@ -52,7 +52,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
+func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.UpdateGcBlobRuleRequest
@@ -128,7 +128,7 @@ func (h *handlers) UpdateGcBlobRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcBlobRule(c echo.Context) error {
+func (h *handler) GetGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcBlobRuleRequest
@@ -171,7 +171,7 @@ func (h *handlers) GetGcBlobRule(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcBlobLatestRunner(c echo.Context) error {
+func (h *handler) GetGcBlobLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcBlobLatestRunnerRequest
@@ -240,7 +240,7 @@ func (h *handlers) GetGcBlobLatestRunner(c echo.Context) error {
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) CreateGcBlobRunner(c echo.Context) error {
+func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.CreateGcBlobRunnerRequest
@@ -307,7 +307,7 @@ func (h *handlers) CreateGcBlobRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcBlobRunners(c echo.Context) error {
+func (h *handler) ListGcBlobRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcBlobRunnersRequest
@@ -375,7 +375,7 @@ func (h *handlers) ListGcBlobRunners(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcBlobRunner(c echo.Context) error {
+func (h *handler) GetGcBlobRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcBlobRunnerRequest
@@ -438,7 +438,7 @@ func (h *handlers) GetGcBlobRunner(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) ListGcBlobRecords(c echo.Context) error {
+func (h *handler) ListGcBlobRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.ListGcBlobRecordsRequest
@@ -482,7 +482,7 @@ func (h *handlers) ListGcBlobRecords(c echo.Context) error {
 //	@Failure	400				{object}	xerrors.ErrCode
 //	@Failure	404				{object}	xerrors.ErrCode
 //	@Failure	500				{object}	xerrors.ErrCode
-func (h *handlers) GetGcBlobRecord(c echo.Context) error {
+func (h *handler) GetGcBlobRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetGcBlobRecordRequest

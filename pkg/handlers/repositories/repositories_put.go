@@ -44,7 +44,7 @@ import (
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) PutRepository(c echo.Context) error {
+func (h *handler) PutRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PutRepositoryRequest

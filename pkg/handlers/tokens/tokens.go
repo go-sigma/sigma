@@ -39,7 +39,7 @@ import (
 //	@Success	200	{object}	types.PostUserTokenResponse
 //	@Failure	401	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handlers) Token(c echo.Context) error {
+func (h *handler) Token(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")

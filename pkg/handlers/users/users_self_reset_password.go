@@ -30,7 +30,7 @@ import (
 )
 
 // SelfResetPassword handles the self reset request
-func (h *handlers) SelfResetPassword(c echo.Context) error {
+func (h *handler) SelfResetPassword(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.PutUserSelfResetPasswordRequest

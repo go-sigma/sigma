@@ -39,7 +39,7 @@ import (
 //	@Success	200			{object}	types.TagItem
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handlers) GetTag(c echo.Context) error {
+func (h *handler) GetTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var req types.GetTagRequest
