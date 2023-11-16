@@ -23,25 +23,22 @@ database:
     dbname: sigma
     sslmode: disable
 
-# deploy available: single, replica
-# replica should use external redis
-deploy: single
-
 redis:
   # redis type available: none, external
   # none: means never use redis
   # external: means use the specific redis instance
-  type: none
-  url: redis://:sigma@localhost:6379/0
+  type: external
+  url: redis://:sigma@redis:6379/0
 
 cache:
   # the cache type available is: redis, inmemory, database
-  type: database
-  ttl: 72h
+  type: redis
   # please attention in multi
+  ttl: 72h
   inmemory:
     size: 10240
   redis:
+    ttl: 72h
   database:
     size: 10240
     threshold: 0.2
@@ -71,7 +68,7 @@ http:
   # this endpoint will be used to generate the token service url in auth middleware,
   # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default,
   # because the front page need show this endpoint.
-  endpoint:
+  endpoint: https://sigma.test.io
   # in some cases, daemon may pull image and scan it, but we don't want to pull image from public registry domain,
   # so use this internal domain to pull image from registry.
   # you can leave it blank and it will use http://127.0.0.1:3000 as internal domain by default.
@@ -79,23 +76,23 @@ http:
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
   # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
-  internalEndpoint:
+  internalEndpoint: https://sigma.test.io
   # eg: http://sigma-distribution:3000
   internalDistributionEndpoint:
   tls:
     enabled: false
-    certificate: ./conf/sigma.test.io.crt
-    key: ./conf/sigma.test.io.key
+    certificate: /etc/sigma/sigma.test.io.crt
+    key: /etc/sigma/sigma.test.io.key
 
 storage:
   rootdirectory: ./storage
-  type: filesystem
+  type: s3
   filesystem:
-    path: /var/lib/sigma/
+    path: /var/lib/sigma/oci/
   s3:
     ak: sigma
     sk: sigma-sigma
-    endpoint: http://127.0.0.1:9000
+    endpoint: http://minio:9000
     region: cn-north-1
     bucket: sigma
     forcePathStyle: true

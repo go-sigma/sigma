@@ -23,18 +23,16 @@ database:
     dbname: sigma
     sslmode: disable
 
-# deploy available: single, replica
-# replica should use external redis
-deploy: single
-
 redis:
   # redis type available: none, external
-  type: none
+  # none: means never use redis
+  # external: means use the specific redis instance
+  type: external
   url: redis://:sigma@localhost:6379/0
 
 cache:
   # the cache type available is: redis, inmemory, database
-  type: database
+  type: redis
   ttl: 72h
   # please attention in multi
   inmemory:

@@ -193,3 +193,6 @@ conf/sigma-dev.yaml
 pkg/**/*.html
 
 .vscode/
+
+package/
+*.tar.gz
