@@ -27,7 +27,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
@@ -61,12 +60,9 @@ type gcBlob struct {
 	ctx    context.Context
 	config configs.Configuration
 
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
-	daemonServiceFactory     dao.DaemonServiceFactory
-	storageDriverFactory     storage.StorageDriverFactory
+	blobServiceFactory   dao.BlobServiceFactory
+	daemonServiceFactory dao.DaemonServiceFactory
+	storageDriverFactory storage.StorageDriverFactory
 
 	deleteBlobChan        chan blobTask
 	deleteBlobChanOnce    *sync.Once
@@ -81,7 +77,7 @@ type gcBlob struct {
 // Run ...
 func (g gcBlob) Run(runnerID int64) error {
 	defer close(g.runnerChan)
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusDoing, Started: true}
 
 	runnerObj, err := g.daemonServiceFactory.New().GetGcBlobRunner(g.ctx, runnerID)
 	if err != nil {
@@ -148,39 +144,31 @@ func (g gcBlob) Run(runnerID int64) error {
 }
 
 func (g gcBlob) deleteBlob() {
-	defer close(g.collectRecordChan)
-	for task := range g.deleteBlobChan {
-		err := query.Q.Transaction(func(tx *query.Query) error {
-			err := g.blobServiceFactory.New(tx).DeleteByID(g.ctx, task.Blob.ID)
+	blobService := g.blobServiceFactory.New()
+	go func() {
+		defer g.waitAllDone.Done()
+		defer close(g.collectRecordChan)
+		for task := range g.deleteBlobChan {
+			err := blobService.DeleteByID(g.ctx, task.Blob.ID)
 			if err != nil {
-				return err
-			}
-			err = g.daemonServiceFactory.New(tx).CreateGcBlobRecords(g.ctx, []*models.DaemonGcBlobRecord{{
-				RunnerID: task.Runner.ID,
-				Digest:   task.Blob.Digest,
-			}})
-			if err != nil {
-				return err
+				log.Error().Err(err).Interface("Task", task).Msgf("Delete blob failed: %v", err)
+				g.collectRecordChan <- blobTaskCollectRecord{
+					Status:  enums.GcRecordStatusFailed,
+					Blob:    task.Blob,
+					Runner:  task.Runner,
+					Message: ptr.Of(fmt.Sprintf("Delete blob failed: %v", err)),
+				}
+				continue
 			}
 			err = g.storageDriverFactory.New().Delete(g.ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
 			if err != nil {
-				return err
+				log.Error().Err(err).Interface("blob", task).Msgf("Delete blob in obs failed: %v", err)
 			}
-			log.Info().Str("digest", task.Blob.Digest).Msg("Delete blob success")
-			return nil
-		})
-		if err != nil {
-			log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
-			g.collectRecordChan <- blobTaskCollectRecord{
-				Status:  enums.GcRecordStatusFailed,
-				Blob:    task.Blob,
-				Runner:  task.Runner,
-				Message: ptr.Of(fmt.Sprintf("Delete repository by id failed: %v", err)),
-			}
-			continue
+			// TODO: if we delete the file in obs failed, just ignore the error.
+			// so we should check each file in obs associate with database record.
+			g.collectRecordChan <- blobTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Blob: task.Blob, Runner: task.Runner}
 		}
-		g.collectRecordChan <- blobTaskCollectRecord{Status: enums.GcRecordStatusSuccess, Blob: task.Blob, Runner: task.Runner}
-	}
+	}()
 }
 
 func (g gcBlob) collectRecord() {

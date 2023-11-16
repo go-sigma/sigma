@@ -221,14 +221,6 @@ func (g gcArtifact) deleteArtifact() {
 				if err != nil {
 					return err
 				}
-				// err = g.daemonServiceFactory.New(tx).CreateGcArtifactRecords(g.ctx, []*models.DaemonGcArtifactRecord{{
-				// 	RunnerID: task.Runner.ID,
-				// 	Digest:   task.Artifact.Digest,
-				// }})
-				// if err != nil {
-				// 	return err
-				// }
-				// log.Debug().Str("artifact", task.Artifact.Digest).Msg("Delete artifact success")
 				return nil
 			})
 			if err != nil {

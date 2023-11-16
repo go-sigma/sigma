@@ -50,8 +50,3 @@ jobs:
         with:
           dockerfile: ./build/Dockerfile
           ignore: DL3018,DL3003
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ./build/Dockerfile.local
-          ignore: DL3018,DL3003

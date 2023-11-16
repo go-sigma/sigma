@@ -84,14 +84,14 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 					}
 				}
 				switch status.Daemon {
-				case enums.DaemonGcArtifact:
-					err = daemonService.UpdateGcArtifactRunner(ctx, id, updates)
 				case enums.DaemonGcRepository:
-					err = daemonService.UpdateGcRepositoryRunner(ctx, id, updates)
-				case enums.DaemonGcBlob:
 					err = daemonService.UpdateGcRepositoryRunner(ctx, id, updates)
 				case enums.DaemonGcTag:
 					err = daemonService.UpdateGcTagRunner(ctx, id, updates)
+				case enums.DaemonGcArtifact:
+					err = daemonService.UpdateGcArtifactRunner(ctx, id, updates)
+				case enums.DaemonGcBlob:
+					err = daemonService.UpdateGcBlobRunner(ctx, id, updates)
 				default:
 					continue
 				}
@@ -120,6 +120,29 @@ type Runner interface {
 
 func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus) Runner {
 	switch daemon {
+	case enums.DaemonGcRepository:
+		return &gcRepository{
+			ctx:    log.Logger.WithContext(ctx),
+			config: ptr.To(configs.GetConfiguration()),
+
+			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
+			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+			tagServiceFactory:        dao.NewTagServiceFactory(),
+
+			deleteRepositoryWithNamespaceChan:       make(chan repositoryWithNamespaceTask, pagination),
+			deleteRepositoryWithNamespaceChanOnce:   &sync.Once{},
+			deleteRepositoryCheckRepositoryChan:     make(chan repositoryTask, pagination),
+			deleteRepositoryCheckRepositoryChanOnce: &sync.Once{},
+			deleteRepositoryChan:                    make(chan repositoryTask, pagination),
+			deleteRepositoryChanOnce:                &sync.Once{},
+			collectRecordChan:                       make(chan repositoryTaskCollectRecord, pagination),
+			collectRecordChanOnce:                   &sync.Once{},
+
+			runnerChan: runnerChan,
+
+			waitAllDone: &sync.WaitGroup{},
+		}
 	case enums.DaemonGcArtifact:
 		return &gcArtifact{
 			ctx:    log.Logger.WithContext(ctx),
@@ -144,8 +167,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 
 			waitAllDone: &sync.WaitGroup{},
 		}
-	case enums.DaemonGcRepository:
-		return &gcRepository{
+	case enums.DaemonGcTag:
+		return &gcTag{
 			ctx:    log.Logger.WithContext(ctx),
 			config: ptr.To(configs.GetConfiguration()),
 
@@ -153,26 +176,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 			tagServiceFactory:        dao.NewTagServiceFactory(),
-
-			deleteRepositoryWithNamespaceChan:       make(chan repositoryWithNamespaceTask, pagination),
-			deleteRepositoryWithNamespaceChanOnce:   &sync.Once{},
-			deleteRepositoryCheckRepositoryChan:     make(chan repositoryTask, pagination),
-			deleteRepositoryCheckRepositoryChanOnce: &sync.Once{},
-			deleteRepositoryChan:                    make(chan repositoryTask, pagination),
-			deleteRepositoryChanOnce:                &sync.Once{},
-			collectRecordChan:                       make(chan repositoryTaskCollectRecord, pagination),
-			collectRecordChanOnce:                   &sync.Once{},
-
-			waitAllDone: &sync.WaitGroup{},
-		}
-	case enums.DaemonGcTag:
-		return &gcTag{
-			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
-			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
 			blobServiceFactory:       dao.NewBlobServiceFactory(),
-			config:                   ptr.To(configs.GetConfiguration()),
 
 			deleteTagWithNamespaceChan:      make(chan tagWithNamespaceTask, pagination),
 			deleteTagWithNamespaceChanOnce:  &sync.Once{},
@@ -182,21 +187,30 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			deleteTagCheckPatternChanOnce:   &sync.Once{},
 			deleteTagChan:                   make(chan tagTask, pagination),
 			deleteTagChanOnce:               &sync.Once{},
+			collectRecordChan:               make(chan tagTaskCollectRecord, pagination),
+			collectRecordChanOnce:           &sync.Once{},
+
+			runnerChan: runnerChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcBlob:
 		return &gcBlob{
-			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
-			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
-			artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-			blobServiceFactory:       dao.NewBlobServiceFactory(),
-			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
-			storageDriverFactory:     storage.NewStorageDriverFactory(),
-			config:                   ptr.To(configs.GetConfiguration()),
+			ctx:    log.Logger.WithContext(ctx),
+			config: ptr.To(configs.GetConfiguration()),
 
-			deleteBlobChan:     make(chan blobTask, 100),
-			deleteBlobChanOnce: &sync.Once{},
+			blobServiceFactory:   dao.NewBlobServiceFactory(),
+			daemonServiceFactory: dao.NewDaemonServiceFactory(),
+			storageDriverFactory: storage.NewStorageDriverFactory(),
+
+			deleteBlobChan:        make(chan blobTask, pagination),
+			deleteBlobChanOnce:    &sync.Once{},
+			collectRecordChan:     make(chan blobTaskCollectRecord, pagination),
+			collectRecordChanOnce: &sync.Once{},
+
+			runnerChan: runnerChan,
+
+			waitAllDone: &sync.WaitGroup{},
 		}
 	default:
 		return nil

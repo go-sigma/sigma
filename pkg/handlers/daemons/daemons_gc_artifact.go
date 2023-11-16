@@ -363,13 +363,13 @@ func (h *handlers) ListGcArtifactRunners(c echo.Context) error {
 		resp = append(resp, types.GcArtifactRunnerItem{
 			ID:           runnerObj.ID,
 			Status:       runnerObj.Status,
+			Message:      string(runnerObj.Message),
 			SuccessCount: runnerObj.SuccessCount,
 			FailedCount:  runnerObj.FailedCount,
 			RawDuration:  runnerObj.Duration,
 			Duration:     duration,
 			StartedAt:    ptr.Of(startedAt),
 			EndedAt:      ptr.Of(endedAt),
-			Message:      string(runnerObj.Message),
 			CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
@@ -414,12 +414,29 @@ func (h *handlers) GetGcArtifactRunner(c echo.Context) error {
 		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
 	}
+	var startedAt, endedAt string
+	if runnerObj.StartedAt != nil {
+		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+	}
+	if runnerObj.EndedAt != nil {
+		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+	}
+	var duration *string
+	if runnerObj.Duration != nil {
+		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+	}
 	return c.JSON(http.StatusOK, types.GcArtifactRunnerItem{
-		ID:        runnerObj.ID,
-		Status:    runnerObj.Status,
-		Message:   string(runnerObj.Message),
-		CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:           runnerObj.ID,
+		Status:       runnerObj.Status,
+		Message:      string(runnerObj.Message),
+		SuccessCount: runnerObj.SuccessCount,
+		FailedCount:  runnerObj.FailedCount,
+		RawDuration:  runnerObj.Duration,
+		Duration:     duration,
+		StartedAt:    ptr.Of(startedAt),
+		EndedAt:      ptr.Of(endedAt),
+		CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -524,6 +541,8 @@ func (h *handlers) GetGcArtifactRecord(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GcArtifactRecordItem{
 		ID:        recordObj.ID,
 		Digest:    recordObj.Digest,
+		Status:    recordObj.Status,
+		Message:   string(recordObj.Message),
 		CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

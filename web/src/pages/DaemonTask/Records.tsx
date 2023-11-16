@@ -16,13 +16,9 @@
 
 import axios from "axios";
 import dayjs from 'dayjs';
-import parser from 'cron-parser';
 import { Tooltip } from 'flowbite';
-import Toast from 'react-hot-toast';
-import { Menu, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { useParams, useSearchParams, Link, useLocation } from 'react-router-dom';
 
 import Settings from "../../Settings";
@@ -41,9 +37,19 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
-  const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  const [refreshState, setRefreshState] = useState({});
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRefreshState({});
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
 
   const [recordList, setRunnerList] = useState<IGcArtifactRecordList>({} as IGcArtifactRecordList);
 
@@ -67,7 +73,7 @@ export default function ({ localServer }: { localServer: string }) {
     });
   }
 
-  useEffect(() => { fetchNamespace() }, [refresh, page, sortOrder, sortName]);
+  useEffect(() => { fetchNamespace() }, [refreshState, page, sortOrder, sortName]);
 
   return (
     <Fragment>

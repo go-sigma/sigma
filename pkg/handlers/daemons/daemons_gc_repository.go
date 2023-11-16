@@ -97,15 +97,15 @@ func (h *handlers) UpdateGcRepositoryRule(c echo.Context) error {
 				CronNextTrigger: nextTrigger,
 			})
 			if err != nil {
-				log.Error().Err(err).Msg("Create gc artifact rule failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact rule failed: %v", err))
+				log.Error().Err(err).Msg("Create gc repository rule failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository rule failed: %v", err))
 			}
 			return nil
 		}
 		err = daemonService.UpdateGcRepositoryRule(ctx, ruleObj.ID, updates)
 		if err != nil {
-			log.Error().Err(err).Msg("Update gc artifact rule failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
+			log.Error().Err(err).Msg("Update gc repository rule failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
 		return nil
 	})
@@ -149,7 +149,7 @@ func (h *handlers) GetGcRepositoryRule(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
@@ -195,7 +195,7 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
@@ -204,7 +204,7 @@ func (h *handlers) GetGcRepositoryLatestRunner(c echo.Context) error {
 	runnerObj, err := daemonService.GetGcRepositoryLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
@@ -334,28 +334,45 @@ func (h *handlers) ListGcRepositoryRunners(c echo.Context) error {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
 	daemonService := h.daemonServiceFactory.New()
-	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc repository rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonService.ListGcArtifactRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
+	runnerObjs, total, err := daemonService.ListGcRepositoryRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Msg("List gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("List gc repository rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository rule failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
+		var startedAt, endedAt string
+		if runnerObj.StartedAt != nil {
+			startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+		}
+		if runnerObj.EndedAt != nil {
+			endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+		}
+		var duration *string
+		if runnerObj.Duration != nil {
+			duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+		}
 		resp = append(resp, types.GcRepositoryRunnerItem{
-			ID:        runnerObj.ID,
-			Status:    runnerObj.Status,
-			Message:   string(runnerObj.Message),
-			CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:           runnerObj.ID,
+			Status:       runnerObj.Status,
+			Message:      string(runnerObj.Message),
+			SuccessCount: runnerObj.SuccessCount,
+			FailedCount:  runnerObj.FailedCount,
+			RawDuration:  runnerObj.Duration,
+			Duration:     duration,
+			StartedAt:    ptr.Of(startedAt),
+			EndedAt:      ptr.Of(endedAt),
+			CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -388,22 +405,39 @@ func (h *handlers) GetGcRepositoryRunner(c echo.Context) error {
 	runnerObj, err := daemonService.GetGcRepositoryRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
+			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository runner not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact runner failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact runner failed: %v", err))
+		log.Error().Err(err).Msg("Get gc repository runner failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository runner failed: %v", err))
 	}
 	if ptr.To(runnerObj.Rule.NamespaceID) != req.NamespaceID {
-		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
+		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository runner not found")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
+	}
+	var startedAt, endedAt string
+	if runnerObj.StartedAt != nil {
+		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+	}
+	if runnerObj.EndedAt != nil {
+		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+	}
+	var duration *string
+	if runnerObj.Duration != nil {
+		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
 	}
 	return c.JSON(http.StatusOK, types.GcRepositoryRunnerItem{
-		ID:        runnerObj.ID,
-		Status:    runnerObj.Status,
-		Message:   string(runnerObj.Message),
-		CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:           runnerObj.ID,
+		Status:       runnerObj.Status,
+		Message:      string(runnerObj.Message),
+		SuccessCount: runnerObj.SuccessCount,
+		FailedCount:  runnerObj.FailedCount,
+		RawDuration:  runnerObj.Duration,
+		Duration:     duration,
+		StartedAt:    ptr.Of(startedAt),
+		EndedAt:      ptr.Of(endedAt),
+		CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -437,14 +471,16 @@ func (h *handlers) ListGcRepositoryRecords(c echo.Context) error {
 	daemonService := h.daemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcRepositoryRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc artifact records failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc artifact records failed: %v", err))
+		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc repository records failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository records failed: %v", err))
 	}
 	var resp = make([]any, 0, len(recordObjs))
 	for _, recordObj := range recordObjs {
 		resp = append(resp, types.GcRepositoryRecordItem{
 			ID:         recordObj.ID,
 			Repository: recordObj.Repository,
+			Status:     recordObj.Status,
+			Message:    string(recordObj.Message),
 			CreatedAt:  recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt:  recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
@@ -506,6 +542,8 @@ func (h *handlers) GetGcRepositoryRecord(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GcRepositoryRecordItem{
 		ID:         recordObj.ID,
 		Repository: recordObj.Repository,
+		Status:     recordObj.Status,
+		Message:    string(recordObj.Message),
 		CreatedAt:  recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt:  recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})

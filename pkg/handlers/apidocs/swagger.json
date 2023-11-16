@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "sigma API",
+        "title": "sigma",
         "contact": {
             "name": "sigma",
             "url": "https://github.com/go-sigma/sigma"

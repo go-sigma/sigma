@@ -224,6 +224,7 @@ func (g gcTag) deleteTag() {
 	tagService := g.tagServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
+		defer close(g.collectRecordChan)
 		for task := range g.deleteTagChan {
 			err := tagService.DeleteByID(g.ctx, task.Tag.ID)
 			if err != nil {

@@ -130,15 +130,6 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	daemonHandler := handlerNew()
 
-	daemonGroup.PUT("/gc-tag/:namespace_id/", daemonHandler.UpdateGcTagRule)
-	daemonGroup.GET("/gc-tag/:namespace_id/", daemonHandler.GetGcTagRule)
-	daemonGroup.GET("/gc-tag/:namespace_id/runners/latest", daemonHandler.GetGcTagLatestRunner)
-	daemonGroup.POST("/gc-tag/:namespace_id/runners/", daemonHandler.CreateGcTagRunner)
-	daemonGroup.GET("/gc-tag/:namespace_id/runners/", daemonHandler.ListGcTagRunners)
-	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id", daemonHandler.GetGcTagRunner)
-	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcTagRecords)
-	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcTagRecord)
-
 	daemonGroup.PUT("/gc-repository/:namespace_id/", daemonHandler.UpdateGcRepositoryRule)
 	daemonGroup.GET("/gc-repository/:namespace_id/", daemonHandler.GetGcRepositoryRule)
 	daemonGroup.GET("/gc-repository/:namespace_id/runners/latest", daemonHandler.GetGcRepositoryLatestRunner)
@@ -147,6 +138,15 @@ func (f factory) Initialize(e *echo.Echo) error {
 	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id", daemonHandler.GetGcRepositoryRunner)
 	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcRepositoryRecords)
 	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcRepositoryRecord)
+
+	daemonGroup.PUT("/gc-tag/:namespace_id/", daemonHandler.UpdateGcTagRule)
+	daemonGroup.GET("/gc-tag/:namespace_id/", daemonHandler.GetGcTagRule)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/latest", daemonHandler.GetGcTagLatestRunner)
+	daemonGroup.POST("/gc-tag/:namespace_id/runners/", daemonHandler.CreateGcTagRunner)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/", daemonHandler.ListGcTagRunners)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id", daemonHandler.GetGcTagRunner)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/", daemonHandler.ListGcTagRecords)
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/:record_id", daemonHandler.GetGcTagRecord)
 
 	daemonGroup.PUT("/gc-artifact/:namespace_id/", daemonHandler.UpdateGcArtifactRule)
 	daemonGroup.GET("/gc-artifact/:namespace_id/", daemonHandler.GetGcArtifactRule)

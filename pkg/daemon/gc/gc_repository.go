@@ -31,7 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// deleteRepositoryWithNamespace -> deleteRepositoryCheckEmpty -> deleteRepository
+// deleteRepositoryWithNamespace -> deleteRepositoryCheckEmpty -> deleteRepository -> collectRecord
 
 func init() {
 	workq.TopicHandlers[enums.DaemonGcRepository.String()] = definition.Consumer{
@@ -87,10 +87,10 @@ type gcRepository struct {
 // Run ...
 func (g gcRepository) Run(runnerID int64) error {
 	defer close(g.runnerChan)
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing, Started: true}
 	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err)}
+		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
 
@@ -124,7 +124,7 @@ func (g gcRepository) Run(runnerID int64) error {
 	close(g.deleteRepositoryWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusSuccess, Ended: true}
 
 	return nil
 }

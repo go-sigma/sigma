@@ -112,9 +112,9 @@ func (s *blobService) FindByDigests(ctx context.Context, digests []string) ([]*m
 func (s *blobService) Exists(ctx context.Context, digest string) (bool, error) {
 	blob, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.Digest.Eq(digest)).First()
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, err
+		return false, nil
 	}
-	return blob != nil, nil
+	return blob != nil, err
 }
 
 // Incr increases the pull times of the artifact.

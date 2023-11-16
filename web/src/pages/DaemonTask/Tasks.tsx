@@ -106,6 +106,17 @@ export default function ({ localServer }: { localServer: string }) {
   const [gcBlobLatestRunner, setGcBlobLatestRunner] = useState<IGcBlobRunnerItem>({} as IGcBlobRunnerItem);
   const [gcBlobRule, setGcBlobRule] = useState<IGcBlobRule>({} as IGcBlobRule);
 
+  const [refreshState, setRefreshState] = useState({});
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRefreshState({});
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
     axios.get(url).then(response => {
@@ -118,6 +129,21 @@ export default function ({ localServer }: { localServer: string }) {
         if (gcRepositoryRule.cron_enabled) {
           setGcRepositoryRuleCronRule(gcRepositoryRule.cron_rule == undefined ? "" : gcRepositoryRule.cron_rule);
         }
+        let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/runners/latest`;
+        axios.get(url).then(response => {
+          if (response?.status === 200) {
+            const runner = response.data as IGcRepositoryRunnerItem;
+            setGcRepositoryLatestRunner(runner);
+          } else if (response?.status === 404) {
+            // do nothing
+          } else {
+            const errorcode = response.data as IHTTPError;
+            Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+          }
+        }).catch(error => {
+          const errorcode = error.response.data as IHTTPError;
+          Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        })
       } else if (response?.status === 404) {
         setGcRepositoryRuleExist(false);
       } else {
@@ -128,7 +154,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [refreshState]);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/`;
@@ -146,6 +172,21 @@ export default function ({ localServer }: { localServer: string }) {
         if (gcTagRule.retention_pattern != undefined) {
           setGcTagRuleRetentionPattern(gcTagRule.retention_pattern == undefined ? "" : gcTagRule.retention_pattern);
         }
+        let url = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/runners/latest`;
+        axios.get(url).then(response => {
+          if (response?.status === 200) {
+            const runner = response.data as IGcTagRunnerItem;
+            setGcTagLatestRunner(runner);
+          } else if (response?.status === 404) {
+            // do nothing
+          } else {
+            const errorcode = response.data as IHTTPError;
+            Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+          }
+        }).catch(error => {
+          const errorcode = error.response.data as IHTTPError;
+          Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        })
       } else if (response?.status === 404) {
         setGcTagRuleExist(false);
       } else {
@@ -156,7 +197,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [refreshState]);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-artifact/${namespaceId}/`;
@@ -195,7 +236,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [refreshState]);
 
   useEffect(() => {
     if (!location.pathname.startsWith("/settings")) {
@@ -212,6 +253,21 @@ export default function ({ localServer }: { localServer: string }) {
         if (gcBlobRule.cron_enabled) {
           setGcBlobRuleCronRule(gcBlobRule.cron_rule == undefined ? "" : gcBlobRule.cron_rule)
         }
+        let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/runners/latest`;
+        axios.get(url).then(response => {
+          if (response?.status === 200) {
+            const runner = response.data as IGcBlobRunnerItem;
+            setGcBlobLatestRunner(runner);
+          } else if (response?.status === 404) {
+            // do nothing
+          } else {
+            const errorcode = response.data as IHTTPError;
+            Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+          }
+        }).catch(error => {
+          const errorcode = error.response.data as IHTTPError;
+          Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        })
       } else if (response?.status === 404) {
         setGcBlobRuleExist(false);
       } else {
@@ -222,7 +278,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [refreshState]);
 
   useEffect(() => {
     if (gcArtifactCronEnabled && gcArtifactRuleCronRule.length > 0) {
@@ -342,6 +398,7 @@ export default function ({ localServer }: { localServer: string }) {
         }
         Toast.success(message);
         setGcRepositoryRuleConfigModal(false);
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -377,6 +434,7 @@ export default function ({ localServer }: { localServer: string }) {
         }
         Toast.success(message);
         setGcArtifactRuleConfigModal(false);
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -412,6 +470,7 @@ export default function ({ localServer }: { localServer: string }) {
         }
         Toast.success(message);
         setGcBlobRuleConfigModal(false);
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -456,6 +515,37 @@ export default function ({ localServer }: { localServer: string }) {
         }
         Toast.success(message);
         setGcTagRuleConfigModal(false);
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  const createGcRepositoryRunner = () => {
+    axios.post(localServer + `/api/v1/daemons/gc-repository/${namespaceId}/runners/`, {}).then(response => {
+      if (response?.status === 201) {
+        Toast.success("Garbage collect repository task will run in seconds");
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  const createGcTagRunner = () => {
+    axios.post(localServer + `/api/v1/daemons/gc-tag/${namespaceId}/runners/`, {}).then(response => {
+      if (response?.status === 201) {
+        Toast.success("Garbage collect tag task will run in seconds");
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -469,7 +559,23 @@ export default function ({ localServer }: { localServer: string }) {
   const createGcArtifactRunner = () => {
     axios.post(localServer + `/api/v1/daemons/gc-artifact/${namespaceId}/runners/`, {}).then(response => {
       if (response?.status === 201) {
-        Toast.success("Garbage collect artifact will run in seconds");
+        Toast.success("Garbage collect artifact task will run in seconds");
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  const createGcBlobRunner = () => {
+    axios.post(localServer + `/api/v1/daemons/gc-blob/${namespaceId}/runners/`, {}).then(response => {
+      if (response?.status === 201) {
+        Toast.success("Garbage collect blob task will run in seconds");
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -551,6 +657,9 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
+                          if (!gcRepositoryRuleExist) {
+                            return;
+                          }
                           if (location.pathname.startsWith("/settings")) {
                             navigate(`/settings/daemon-tasks/gc-repository?namespace_id=${namespaceId}`);
                           } else {
@@ -615,7 +724,7 @@ export default function ({ localServer }: { localServer: string }) {
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
                                     onClick={e => {
-                                      Toast.success('Task pushed into work queue');
+                                      createGcRepositoryRunner();
                                     }}
                                   >
                                     Run
@@ -630,6 +739,9 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
+                          if (!gcTagRuleExist) {
+                            return;
+                          }
                           if (location.pathname.startsWith("/settings")) {
                             navigate(`/settings/daemon-tasks/gc-tag?namespace_id=${namespaceId}`);
                           } else {
@@ -693,7 +805,7 @@ export default function ({ localServer }: { localServer: string }) {
                                       (gcTagRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
-                                  // onClick={e => { setUpdateRepositoryModal(true) }}
+                                    onClick={e => createGcTagRunner()}
                                   >
                                     Run
                                   </div>
@@ -707,6 +819,9 @@ export default function ({ localServer }: { localServer: string }) {
                     <tr className="border-b">
                       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                         onClick={() => {
+                          if (!gcArtifactRuleExist) {
+                            return;
+                          }
                           if (location.pathname.startsWith("/settings")) {
                             navigate(`/settings/daemon-tasks/gc-artifact?namespace_id=${namespaceId}`);
                           } else {
@@ -770,7 +885,7 @@ export default function ({ localServer }: { localServer: string }) {
                                       (gcArtifactRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                     }
-                                    onClick={e => { createGcArtifactRunner() }}
+                                    onClick={e => createGcArtifactRunner()}
                                   >
                                     Run
                                   </div>
@@ -786,6 +901,9 @@ export default function ({ localServer }: { localServer: string }) {
                         <tr className="border-b">
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                             onClick={() => {
+                              if (!gcBlobRuleExist) {
+                                return;
+                              }
                               if (location.pathname.startsWith("/settings")) {
                                 navigate(`/settings/daemon-tasks/gc-blob?namespace_id=${namespaceId}`);
                               } else {
@@ -849,7 +967,7 @@ export default function ({ localServer }: { localServer: string }) {
                                           (gcBlobRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                                           ' block px-3 py-1 text-sm leading-6 text-gray-900'
                                         }
-                                      // onClick={e => { setUpdateRepositoryModal(true) }}
+                                        onClick={e => createGcBlobRunner()}
                                       >
                                         Run
                                       </div>

@@ -229,14 +229,8 @@ func (s *daemonService) UpdateGcTagRunner(ctx context.Context, runnerID int64, u
 	if len(updates) == 0 {
 		return nil
 	}
-	matched, err := s.tx.DaemonGcTagRunner.WithContext(ctx).Where(s.tx.DaemonGcTagRunner.RuleID.Eq(runnerID)).Updates(updates)
-	if err != nil {
-		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	_, err := s.tx.DaemonGcTagRunner.WithContext(ctx).Where(s.tx.DaemonGcTagRunner.RuleID.Eq(runnerID)).Updates(updates)
+	return err
 }
 
 // CreateGcTagRecords ...
@@ -348,14 +342,8 @@ func (s *daemonService) UpdateGcRepositoryRunner(ctx context.Context, runnerID i
 	if len(updates) == 0 {
 		return nil
 	}
-	matched, err := s.tx.DaemonGcRepositoryRunner.WithContext(ctx).Where(s.tx.DaemonGcRepositoryRunner.ID.Eq(runnerID)).Updates(updates)
-	if err != nil {
-		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	_, err := s.tx.DaemonGcRepositoryRunner.WithContext(ctx).Where(s.tx.DaemonGcRepositoryRunner.ID.Eq(runnerID)).Updates(updates)
+	return err
 }
 
 // CreateGcRepositoryRecords ...
@@ -467,14 +455,8 @@ func (s *daemonService) UpdateGcArtifactRunner(ctx context.Context, runnerID int
 	if len(updates) == 0 {
 		return nil
 	}
-	matched, err := s.tx.DaemonGcArtifactRunner.WithContext(ctx).Where(s.tx.DaemonGcArtifactRunner.ID.Eq(runnerID)).Updates(updates)
-	if err != nil {
-		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	_, err := s.tx.DaemonGcArtifactRunner.WithContext(ctx).Where(s.tx.DaemonGcArtifactRunner.ID.Eq(runnerID)).Updates(updates)
+	return err
 }
 
 // CreateGcArtifactRecords ...
@@ -580,14 +562,8 @@ func (s *daemonService) UpdateGcBlobRunner(ctx context.Context, runnerID int64, 
 	if len(updates) == 0 {
 		return nil
 	}
-	matched, err := s.tx.DaemonGcRepositoryRunner.WithContext(ctx).Where(s.tx.DaemonGcBlobRunner.ID.Eq(runnerID)).Updates(updates)
-	if err != nil {
-		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	_, err := s.tx.DaemonGcBlobRunner.WithContext(ctx).Where(s.tx.DaemonGcBlobRunner.ID.Eq(runnerID)).Updates(updates)
+	return err
 }
 
 // CreateGcBlobRecords ...

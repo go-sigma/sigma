@@ -157,7 +157,7 @@ func (h *handlers) GetGcTagRule(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -205,7 +205,7 @@ func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -214,7 +214,7 @@ func (h *handlers) GetGcTagLatestRunner(c echo.Context) error {
 	runnerObj, err := daemonService.GetGcTagLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -277,7 +277,7 @@ func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -291,7 +291,7 @@ func (h *handlers) CreateGcTagRunner(c echo.Context) error {
 		runnerObj := &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
 		err = daemonService.CreateGcTagRunner(ctx, runnerObj)
 		if err != nil {
-			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)
+			log.Error().Int64("RuleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc tag runner failed: %v", err))
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcTag.String(),
@@ -347,25 +347,42 @@ func (h *handlers) ListGcTagRunners(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("Get gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
 	runnerObjs, total, err := daemonService.ListGcTagRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Msg("List gc artifact rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc artifact rule failed: %v", err))
+		log.Error().Err(err).Msg("List gc tag rule failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc tag rule failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
+		var startedAt, endedAt string
+		if runnerObj.StartedAt != nil {
+			startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+		}
+		if runnerObj.EndedAt != nil {
+			endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+		}
+		var duration *string
+		if runnerObj.Duration != nil {
+			duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+		}
 		resp = append(resp, types.GcTagRunnerItem{
-			ID:        runnerObj.ID,
-			Status:    runnerObj.Status,
-			Message:   string(runnerObj.Message),
-			CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:           runnerObj.ID,
+			Status:       runnerObj.Status,
+			Message:      string(runnerObj.Message),
+			SuccessCount: runnerObj.SuccessCount,
+			FailedCount:  runnerObj.FailedCount,
+			RawDuration:  runnerObj.Duration,
+			Duration:     duration,
+			StartedAt:    ptr.Of(startedAt),
+			EndedAt:      ptr.Of(endedAt),
+			CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+			UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -398,22 +415,39 @@ func (h *handlers) GetGcTagRunner(c echo.Context) error {
 	runnerObj, err := daemonService.GetGcTagRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag runner not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag runner failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag runner failed: %v", err))
 	}
 	if ptr.To(runnerObj.Rule.NamespaceID) != req.NamespaceID {
-		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag runner not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag runner not found: %v", err))
 	}
+	var startedAt, endedAt string
+	if runnerObj.StartedAt != nil {
+		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+	}
+	if runnerObj.EndedAt != nil {
+		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+	}
+	var duration *string
+	if runnerObj.Duration != nil {
+		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
+	}
 	return c.JSON(http.StatusOK, types.GcTagRunnerItem{
-		ID:        runnerObj.ID,
-		Status:    runnerObj.Status,
-		Message:   string(runnerObj.Message),
-		CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:           runnerObj.ID,
+		Status:       runnerObj.Status,
+		Message:      string(runnerObj.Message),
+		SuccessCount: runnerObj.SuccessCount,
+		FailedCount:  runnerObj.FailedCount,
+		RawDuration:  runnerObj.Duration,
+		Duration:     duration,
+		StartedAt:    ptr.Of(startedAt),
+		EndedAt:      ptr.Of(endedAt),
+		CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -447,7 +481,7 @@ func (h *handlers) ListGcTagRecords(c echo.Context) error {
 	daemonService := h.daemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcTagRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
-		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc tag records failed")
+		log.Error().Err(err).Int64("RuleID", req.RunnerID).Msgf("List gc tag records failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc tag records failed: %v", err))
 	}
 	var resp = make([]any, 0, len(recordObjs))
@@ -455,6 +489,8 @@ func (h *handlers) ListGcTagRecords(c echo.Context) error {
 		resp = append(resp, types.GcTagRecordItem{
 			ID:        recordObj.ID,
 			Tag:       recordObj.Tag,
+			Status:    recordObj.Status,
+			Message:   string(recordObj.Message),
 			CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 			UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 		})
@@ -494,7 +530,7 @@ func (h *handlers) GetGcTagRecord(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc tag rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -503,19 +539,21 @@ func (h *handlers) GetGcTagRecord(c echo.Context) error {
 	recordObj, err := daemonService.GetGcTagRecord(ctx, req.RecordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag record not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc tag record failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag record failed: %v", err))
 	}
 	if recordObj.Runner.ID != req.RunnerID || recordObj.Runner.Rule.ID != ruleObj.ID {
-		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc tag record not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc tag record not found: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GcTagRecordItem{
 		ID:        recordObj.ID,
 		Tag:       recordObj.Tag,
+		Status:    recordObj.Status,
+		Message:   string(recordObj.Message),
 		CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
 		UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
