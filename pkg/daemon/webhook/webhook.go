@@ -51,7 +51,7 @@ func webhookRunner(ctx context.Context, task *asynq.Task) error {
 	var payload types.DaemonWebhookPayload
 	err := json.Unmarshal(task.Payload(), &payload)
 	if err != nil {
-		return fmt.Errorf("Unmarshal payload failed: %v", err)
+		return fmt.Errorf("unmarshal payload failed: %v", err)
 	}
 	w := webhook{
 		namespaceServiceFactory: dao.NewNamespaceServiceFactory(),
