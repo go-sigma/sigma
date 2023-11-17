@@ -2,18 +2,20 @@ version: "2"
 services:
   sigma:
     container_name: sigma
-    image: ghcr.io/go-sigma/sigma:nightly-alpine
+    image: ghcr.io/go-sigma/sigma:latest
     ports:
       - "3000:3000"
     command: ["sigma", "server"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${PWD}/conf:/etc/sigma
+      - ${PWD:-/app}/conf/config-compose.yaml:/etc/sigma/config.yaml
     restart: always
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -29,8 +31,6 @@ services:
       MYSQL_DATABASE: sigma
       MYSQL_USER: sigma
       MYSQL_PASSWORD: sigma
-    volumes:
-      - ${PWD}/storage/mysql:/var/lib/mysql
     healthcheck:
       test:
         [
@@ -54,8 +54,6 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --requirepass sigma
-    volumes:
-      - ${PWD}/storage/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "sigma", "ping"]
       interval: 10s
@@ -75,10 +73,60 @@ services:
       MINIO_REGION_NAME: cn-north-1
     entrypoint: ""
     command: /bin/sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'
-    volumes:
-      - ${PWD}/storage/minio:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: sigma
+      POSTGRES_USER: sigma
+      POSTGRES_DB: sigma
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sigma"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+  pma:
+    container_name: pma
+    image: linuxserver/phpmyadmin:5.2.1
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: sigma
+    depends_on:
+      - mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:7.8
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: sigma@tosone.cn
+      PGADMIN_DEFAULT_PASSWORD: sigma
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "80"]
       interval: 10s
       timeout: 5s
       retries: 10

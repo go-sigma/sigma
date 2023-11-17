@@ -29,10 +29,10 @@ push_image library alpine:3.17
 push_image library alpine:3.16
 push_image library alpine:3.15
 
-docker buildx build --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/alpine:3.18.0-multiarch --file dockerfiles/alpine.Dockerfile --push .
-docker buildx build --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/centos:8-multiarch --file dockerfiles/centos.Dockerfile --push .
-docker buildx build --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/debian:buster-slim-multiarch --file dockerfiles/debian.Dockerfile --push .
-docker buildx build --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/ubuntu:22.04-multiarch --file dockerfiles/ubuntu.Dockerfile --push .
+docker buildx build --progress plain --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/alpine:3.18.0-multiarch --file dockerfiles/alpine.Dockerfile --push .
+docker buildx build --progress plain --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/centos:8-multiarch --file dockerfiles/centos.Dockerfile --push .
+docker buildx build --progress plain --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/debian:buster-slim-multiarch --file dockerfiles/debian.Dockerfile --push .
+docker buildx build --progress plain --sbom=true --platform linux/amd64,linux/arm64 --tag sigma.tosone.cn/library/ubuntu:22.04-multiarch --file dockerfiles/ubuntu.Dockerfile --push .
 
 if [ ! -f "./k6" ]; then
   curl https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-arm64.tar.gz -L | tar xvz --strip-components 1
