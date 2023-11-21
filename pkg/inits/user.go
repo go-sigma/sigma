@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -44,21 +45,12 @@ func initUser() error {
 	if userCount > 0 {
 		return nil
 	}
-	internalUserPassword := viper.GetString("auth.internalUser.password")
-	if internalUserPassword == "" {
-		return fmt.Errorf("the internal user password is not set")
-	}
 	internalUserUsername := viper.GetString("auth.internalUser.username")
 	if internalUserUsername == "" {
 		return fmt.Errorf("the internal user username is not set")
 	}
-	internalUserPasswordHashed, err := passwordService.Hash(internalUserPassword)
-	if err != nil {
-		return err
-	}
 	internalUser := &models.User{
 		Username: internalUserUsername,
-		Password: ptr.Of(internalUserPasswordHashed),
 		Email:    ptr.Of("internal-fake@gmail.com"),
 	}
 	err = userService.Create(ctx, internalUser)
@@ -86,6 +78,7 @@ func initUser() error {
 		Username: adminUserUsername,
 		Password: ptr.Of(adminUserPasswordHashed),
 		Email:    ptr.Of(adminUserEmail),
+		Role:     enums.UserRoleRoot,
 	}
 	err = userService.Create(ctx, adminUser)
 	if err != nil {

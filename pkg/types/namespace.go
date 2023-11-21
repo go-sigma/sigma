@@ -39,7 +39,7 @@ type ListNamespaceRequest struct {
 	Sortable
 
 	// Name query the namespace by name.
-	Name *string `json:"name" query:"name"`
+	Name *string `json:"name" query:"name" example:"test"`
 }
 
 // PostNamespaceRequest represents the request to create a namespace.
@@ -76,4 +76,54 @@ type PutNamespaceRequest struct {
 	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+}
+
+// AddMemberRequest ...
+type AddMemberRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+
+	UserID int64               `json:"user_id" example:"10"`
+	Role   enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
+}
+
+// UpdateMemberRequest ...
+type UpdateMemberRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+
+	UserID int64               `json:"user_id" example:"10"`
+	Role   enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
+}
+
+// DeleteMemberRequest ...
+type DeleteMemberRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+
+	UserID int64 `json:"user_id" query:"user_id" example:"10"`
+}
+
+// ListNamespaceMemberRequest represents the request to list namespace members.
+type ListNamespaceMemberRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+
+	// Name query the namespace member by name.
+	Name *string `json:"name" query:"name" example:"test" swaggerignore:"true"`
+
+	Pagination
+	Sortable
+}
+
+// NamespaceRoleItem ...
+type NamespaceRoleItem struct {
+	ID       int64               `json:"id" example:"1"`
+	Username string              `json:"username" example:"admin"`
+	UserID   int64               `json:"user_id" example:"1"`
+	Role     enums.NamespaceRole `json:"role" example:"NamespaceAdmin"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// GetNamespaceMemberSelfRequest ...
+type GetNamespaceMemberSelfRequest struct {
+	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
 }

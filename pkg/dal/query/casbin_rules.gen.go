@@ -27,6 +27,9 @@ func newCasbinRule(db *gorm.DB, opts ...gen.DOOption) casbinRule {
 
 	tableName := _casbinRule.casbinRuleDo.TableName()
 	_casbinRule.ALL = field.NewAsterisk(tableName)
+	_casbinRule.CreatedAt = field.NewTime(tableName, "created_at")
+	_casbinRule.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_casbinRule.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_casbinRule.ID = field.NewInt64(tableName, "id")
 	_casbinRule.PType = field.NewString(tableName, "ptype")
 	_casbinRule.V0 = field.NewString(tableName, "v0")
@@ -44,15 +47,18 @@ func newCasbinRule(db *gorm.DB, opts ...gen.DOOption) casbinRule {
 type casbinRule struct {
 	casbinRuleDo casbinRuleDo
 
-	ALL   field.Asterisk
-	ID    field.Int64
-	PType field.String
-	V0    field.String
-	V1    field.String
-	V2    field.String
-	V3    field.String
-	V4    field.String
-	V5    field.String
+	ALL       field.Asterisk
+	CreatedAt field.Time
+	UpdatedAt field.Time
+	DeletedAt field.Uint
+	ID        field.Int64
+	PType     field.String
+	V0        field.String
+	V1        field.String
+	V2        field.String
+	V3        field.String
+	V4        field.String
+	V5        field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -69,6 +75,9 @@ func (c casbinRule) As(alias string) *casbinRule {
 
 func (c *casbinRule) updateTableName(table string) *casbinRule {
 	c.ALL = field.NewAsterisk(table)
+	c.CreatedAt = field.NewTime(table, "created_at")
+	c.UpdatedAt = field.NewTime(table, "updated_at")
+	c.DeletedAt = field.NewUint(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.PType = field.NewString(table, "ptype")
 	c.V0 = field.NewString(table, "v0")
@@ -103,7 +112,10 @@ func (c *casbinRule) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *casbinRule) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 8)
+	c.fieldMap = make(map[string]field.Expr, 11)
+	c.fieldMap["created_at"] = c.CreatedAt
+	c.fieldMap["updated_at"] = c.UpdatedAt
+	c.fieldMap["deleted_at"] = c.DeletedAt
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["ptype"] = c.PType
 	c.fieldMap["v0"] = c.V0

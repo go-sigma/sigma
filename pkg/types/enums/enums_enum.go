@@ -1366,6 +1366,92 @@ func (x LogLevel) Value() (driver.Value, error) {
 }
 
 const (
+	// NamespaceRoleAdmin is a NamespaceRole of type Admin.
+	NamespaceRoleAdmin NamespaceRole = "NamespaceAdmin"
+	// NamespaceRoleManager is a NamespaceRole of type Manager.
+	NamespaceRoleManager NamespaceRole = "NamespaceManager"
+	// NamespaceRoleReader is a NamespaceRole of type Reader.
+	NamespaceRoleReader NamespaceRole = "NamespaceReader"
+)
+
+var ErrInvalidNamespaceRole = errors.New("not a valid NamespaceRole")
+
+// String implements the Stringer interface.
+func (x NamespaceRole) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x NamespaceRole) IsValid() bool {
+	_, err := ParseNamespaceRole(string(x))
+	return err == nil
+}
+
+var _NamespaceRoleValue = map[string]NamespaceRole{
+	"NamespaceAdmin":   NamespaceRoleAdmin,
+	"NamespaceManager": NamespaceRoleManager,
+	"NamespaceReader":  NamespaceRoleReader,
+}
+
+// ParseNamespaceRole attempts to convert a string to a NamespaceRole.
+func ParseNamespaceRole(name string) (NamespaceRole, error) {
+	if x, ok := _NamespaceRoleValue[name]; ok {
+		return x, nil
+	}
+	return NamespaceRole(""), fmt.Errorf("%s is %w", name, ErrInvalidNamespaceRole)
+}
+
+// MustParseNamespaceRole converts a string to a NamespaceRole, and panics if is not valid.
+func MustParseNamespaceRole(name string) NamespaceRole {
+	val, err := ParseNamespaceRole(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errNamespaceRoleNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *NamespaceRole) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = NamespaceRole("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseNamespaceRole(v)
+	case []byte:
+		*x, err = ParseNamespaceRole(string(v))
+	case NamespaceRole:
+		*x = v
+	case *NamespaceRole:
+		if v == nil {
+			return errNamespaceRoleNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errNamespaceRoleNilPtr
+		}
+		*x, err = ParseNamespaceRole(*v)
+	default:
+		return errors.New("invalid type for NamespaceRole")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x NamespaceRole) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// OciPlatformLinuxAmd64 is a OciPlatform of type linux/amd64.
 	OciPlatformLinuxAmd64 OciPlatform = "linux/amd64"
 	// OciPlatformLinuxAmd64V2 is a OciPlatform of type linux/amd64/v2.
@@ -2250,6 +2336,8 @@ func (x TaskCommonStatus) Value() (driver.Value, error) {
 }
 
 const (
+	// UserRoleRoot is a UserRole of type Root.
+	UserRoleRoot UserRole = "Root"
 	// UserRoleAdmin is a UserRole of type Admin.
 	UserRoleAdmin UserRole = "Admin"
 	// UserRoleUser is a UserRole of type User.
@@ -2271,6 +2359,7 @@ func (x UserRole) IsValid() bool {
 }
 
 var _UserRoleValue = map[string]UserRole{
+	"Root":  UserRoleRoot,
 	"Admin": UserRoleAdmin,
 	"User":  UserRoleUser,
 }

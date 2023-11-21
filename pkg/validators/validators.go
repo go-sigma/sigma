@@ -61,6 +61,7 @@ func Initialize(e *echo.Echo) {
 
 // register registers the validators
 func register(v *validator.Validate) {
+	v.RegisterValidation("is_valid_namespace_role", ValidateRetentionPattern)       // nolint:errcheck
 	v.RegisterValidation("is_valid_retention_pattern", ValidateRetentionPattern)    // nolint:errcheck
 	v.RegisterValidation("is_valid_retention_rule_type", ValidateRetentionRuleType) // nolint:errcheck
 	v.RegisterValidation("is_valid_cron_rule", ValidateCronRule)                    // nolint:errcheck
@@ -77,6 +78,13 @@ func register(v *validator.Validate) {
 	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
 	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
 	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
+}
+
+// ValidateNamespaceRole ...
+func ValidateNamespaceRole(field validator.FieldLevel) bool {
+	v := field.Field().String()
+	_, err := enums.ParseNamespaceRole(v)
+	return err == nil
 }
 
 // ValidateRetentionPattern ...

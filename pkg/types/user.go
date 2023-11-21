@@ -24,7 +24,8 @@ type GetUserListRequest struct {
 	Sortable
 
 	// Name query the user by username.
-	Name *string `json:"name" query:"name"`
+	Name         *string `json:"name" query:"name"`
+	WithoutAdmin bool    `json:"without_admin" query:"without_admin"`
 }
 
 // PostUserRequest ...

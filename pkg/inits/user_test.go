@@ -119,5 +119,4 @@ func TestInitAdminUser2(t *testing.T) {
 	user, err = userService.GetByUsername(ctx, "internal-sigma")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.True(t, passwordService.Verify("internal-sigma", ptr.To(user.Password)))
 }

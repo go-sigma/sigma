@@ -29,7 +29,7 @@ import (
 )
 
 // AuthEnforcer is the global casbin enforcer
-var AuthEnforcer *casbin.Enforcer
+var AuthEnforcer *casbin.SyncedEnforcer
 
 func setAuthModel(db *gorm.DB) error {
 	authModel, err := model.NewModelFromString(consts.AuthModel)
@@ -41,11 +41,11 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	AuthEnforcer, err = casbin.NewEnforcer(authModel, adapter)
+	AuthEnforcer, err = casbin.NewSyncedEnforcer(authModel, adapter)
 	if err != nil {
 		return err
 	}
-	AuthEnforcer.AddFunction("urlMatch", urlMatchFunc)
+	AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
 	return nil
 }
 
@@ -53,13 +53,13 @@ const (
 	delimiter = "$"
 )
 
-// urlMatchFunc ...
+// UrlMatchFunc ...
 // DS${repository}$tags
 // DS$catalog
 // DS${repository}$(blobs)|(manifest)|(blob_uploads)${reference}
 // DS${repository}$blob_uploads
 // API${repository}${url}
-func urlMatchFunc(args ...any) (any, error) {
+func UrlMatchFunc(args ...any) (any, error) {
 	request := args[0].(string)
 	policy := args[1].(string)
 

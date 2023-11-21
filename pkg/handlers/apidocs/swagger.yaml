@@ -104,10 +104,12 @@ definitions:
     - TaskCommonStatusFailed
   enums.UserRole:
     enum:
+    - Root
     - Admin
     - User
     type: string
     x-enum-varnames:
+    - UserRoleRoot
     - UserRoleAdmin
     - UserRoleUser
   enums.UserStatus:
@@ -4333,6 +4335,10 @@ paths:
         in: query
         name: name
         type: string
+      - description: Response with admin
+        in: query
+        name: without_admin
+        type: boolean
       produces:
       - application/json
       responses:

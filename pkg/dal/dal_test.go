@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dal
+package dal_test
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
@@ -41,10 +42,10 @@ func TestInitialize(t *testing.T) {
 	viper.SetDefault("database.type", "sqlite3")
 	viper.SetDefault("database.sqlite3.path", dbPath)
 
-	err := Initialize()
+	err := dal.Initialize()
 	assert.NoError(t, err)
 
-	db, err := DB.DB()
+	db, err := dal.DB.DB()
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
 
@@ -67,7 +68,7 @@ func TestInitialize(t *testing.T) {
 	viper.SetDefault("database.mysql.database", "sigma")
 	viper.SetDefault("database.mysql.dbname", dbname)
 
-	err = Initialize()
+	err = dal.Initialize()
 	assert.NoError(t, err)
 
 	db, err = sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
@@ -92,7 +93,7 @@ func TestInitialize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
 
-	err = Initialize()
+	err = dal.Initialize()
 	assert.NoError(t, err)
 }
 
@@ -107,10 +108,10 @@ func TestInitialize1(t *testing.T) {
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	err := Initialize()
+	err := dal.Initialize()
 	assert.NoError(t, err)
 
-	db, err := DB.DB()
+	db, err := dal.DB.DB()
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
 
@@ -128,6 +129,6 @@ func TestInitialize2(t *testing.T) {
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
 	viper.SetDefault("database.type", "unknown")
-	err := Initialize()
+	err := dal.Initialize()
 	assert.Error(t, err)
 }

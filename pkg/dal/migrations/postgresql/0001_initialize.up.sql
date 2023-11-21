@@ -25,7 +25,7 @@ CREATE TYPE user_role AS ENUM (
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "username" varchar(64) NOT NULL,
-  "password" varchar(256) NOT NULL,
+  "password" varchar(256),
   "email" varchar(256),
   "last_login" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "namespace_limit" bigint NOT NULL DEFAULT 0,
@@ -527,6 +527,24 @@ CREATE TABLE "casbin_rules" (
   CONSTRAINT "idx_casbin_rules" UNIQUE ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
 );
 
+CREATE TYPE namespace_member_role AS ENUM (
+  'NamespaceReader',
+  'NamespaceManager',
+  'NamespaceAdmin'
+);
+
+CREATE TABLE IF NOT EXISTS "namespace_roles" (
+    "id" bigserial PRIMARY KEY,
+  "user_id" bigint NOT NULL,
+  "namespace_id" bigint NOT NULL,
+  "role" namespace_member_role NOT NULL DEFAULT 'NamespaceReader',
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+  CONSTRAINT "namespace_roles_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
+);
+
 -- ptype type
 -- v0 sub
 -- v1 dom
@@ -546,8 +564,8 @@ INSERT INTO "casbin_rules" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/artifacts/', 'public|private', 'GET', 'allow'), -- list artifacts
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/', 'public|private', 'GET', 'allow'), -- list repositories
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
-  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
+  ('p', 'namespace_manager', '/*', '*', 'public', 'GET|HEAD', 'allow'),
+  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow');
 
 INSERT INTO "namespaces" ("name", "visibility")
   VALUES ('library', 'public');

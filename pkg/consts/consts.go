@@ -62,6 +62,8 @@ const (
 	WebhookSecretHeader = "X-Sigma-Signature-256" // nolint: gosec
 	// InsertBatchSize ...
 	InsertBatchSize = 10
+	// MaxNamespaceMember ...
+	MaxNamespaceMember = 10
 )
 
 // UserAgent represents the user agent
@@ -133,7 +135,7 @@ const (
 )
 
 var (
-	// KeepNamespaces ...
+	// KeepNamespaces namespace keep name, any name expect these names
 	KeepNamespaces = []string{"api", "v2"}
 )
 
