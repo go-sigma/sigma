@@ -608,10 +608,10 @@ export default function ({ localServer }: { localServer: string }) {
                       Repository list
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-users`}
+                      to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
-                      Users
+                      Members
                     </Link>
                     <Link
                       to={`/namespaces/${namespace}/namespace-webhooks`}

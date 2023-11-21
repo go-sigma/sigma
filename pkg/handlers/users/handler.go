@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -100,6 +101,7 @@ func handlerNew(injects ...inject) (Handler, error) {
 		}
 	}
 	return &handler{
+		config:             ptr.To(configs.GetConfiguration()),
 		tokenService:       tokenService,
 		passwordService:    passwordService,
 		userServiceFactory: userServiceFactory,

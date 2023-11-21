@@ -60,3 +60,9 @@ cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
 - [ ] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image sign.
 - [ ] Support helm chart search and index.json.
+
+## Release Schedule
+
+- There will be a major release in the middle and end of each year.
+- A minor release is released at the beginning of each month.
+- There will probably be a bugfix release in the middle of each week.

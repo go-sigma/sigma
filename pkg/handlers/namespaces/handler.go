@@ -41,6 +41,17 @@ type Handler interface {
 	PutNamespace(c echo.Context) error
 	// HotNamespace handles the hot namespace request
 	HotNamespace(c echo.Context) error
+
+	// AddNamespaceMember handles the add namespace member request
+	AddNamespaceMember(c echo.Context) error
+	// UpdateNamespaceMember handles the update namespace member request
+	UpdateNamespaceMember(c echo.Context) error
+	// DeleteNamespaceMember handles the delete namespace member request
+	DeleteNamespaceMember(c echo.Context) error
+	// ListNamespaceMembers handles the list namespace members request
+	ListNamespaceMembers(c echo.Context) error
+	// GetNamespaceMemberSelf handles the get self namespace member request
+	GetNamespaceMemberSelf(c echo.Context) error
 }
 
 var _ Handler = &handler{}
@@ -52,6 +63,7 @@ type handler struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
+	roleServiceFactory       dao.RoleServiceFactory
 }
 
 type inject struct {
@@ -61,6 +73,7 @@ type inject struct {
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
+	roleServiceFactory       dao.RoleServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
@@ -71,6 +84,7 @@ func handlerNew(injects ...inject) Handler {
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
+	roleServiceFactory := dao.NewRoleServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.authServiceFactory != nil {
@@ -91,6 +105,9 @@ func handlerNew(injects ...inject) Handler {
 		if ij.auditServiceFactory != nil {
 			auditServiceFactory = ij.auditServiceFactory
 		}
+		if ij.roleServiceFactory != nil {
+			roleServiceFactory = ij.roleServiceFactory
+		}
 	}
 	return &handler{
 		authServiceFactory:       authServiceFactory,
@@ -99,6 +116,7 @@ func handlerNew(injects ...inject) Handler {
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,
 		auditServiceFactory:      auditServiceFactory,
+		roleServiceFactory:       roleServiceFactory,
 	}
 }
 
@@ -108,12 +126,20 @@ type factory struct{}
 func (f factory) Initialize(e *echo.Echo) error {
 	namespaceGroup := e.Group(consts.APIV1+"/namespaces", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	namespaceHandler := handlerNew()
+
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
 	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
 	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
+
+	namespaceGroup.GET("/:id/members/", namespaceHandler.ListNamespaceMembers)
+	namespaceGroup.POST("/:id/members/", namespaceHandler.AddNamespaceMember)
+	namespaceGroup.PUT("/:id/members/", namespaceHandler.UpdateNamespaceMember)
+	namespaceGroup.DELETE("/:id/members/", namespaceHandler.DeleteNamespaceMember)
+	namespaceGroup.GET("/:id/members/self", namespaceHandler.GetNamespaceMemberSelf)
+
 	return nil
 }
 

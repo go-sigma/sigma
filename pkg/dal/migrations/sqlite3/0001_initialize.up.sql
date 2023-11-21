@@ -456,6 +456,19 @@ CREATE TABLE `casbin_rules` (
   CONSTRAINT `idx_casbin_rules` UNIQUE (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
 );
 
+CREATE TABLE IF NOT EXISTS `namespace_roles` (
+   `id` integer PRIMARY KEY AUTOINCREMENT,
+  `user_id` integer NOT NULL,
+  `namespace_id` integer NOT NULL,
+  `role` text CHECK (`role` IN ('NamespaceReader', 'NamespaceManager', 'NamespaceAdmin')) NOT NULL DEFAULT 'NamespaceReader',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  CONSTRAINT `namespace_roles_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
+);
+
 -- ptype type
 -- v0 sub
 -- v1 dom
@@ -475,8 +488,8 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/artifacts/', 'public|private', 'GET', 'allow'), -- list artifacts
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/', 'public|private', 'GET', 'allow'), -- list repositories
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
-  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
+  ('p', 'namespace_manager', '/*', '*', 'public', 'GET|HEAD', 'allow'),
+  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow');
 
 INSERT INTO `namespaces` (`name`, `visibility`)
   VALUES ('library', 'public');

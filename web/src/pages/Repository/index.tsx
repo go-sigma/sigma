@@ -24,9 +24,9 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Settings from "../../Settings";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
-import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
+import Notification from "../../components/Notification";
 
 import "./index.css";
 import TableItem from "./TableItem";
@@ -80,7 +80,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   const createRepository = () => {
     if (!(repositoryTextValid && descriptionTextValid && sizeLimitValid && tagCountLimitValid)) {
-      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     setCreateRepositoryModal(false);
@@ -100,11 +100,11 @@ export default function ({ localServer }: { localServer: string }) {
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -154,11 +154,11 @@ export default function ({ localServer }: { localServer: string }) {
         setTotal(repositoryList.total);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 
@@ -214,7 +214,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Repository list
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-members`}
+                      to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Members
@@ -233,7 +233,8 @@ export default function ({ localServer }: { localServer: string }) {
                     </Link>
                   </div>
                 )
-              } />
+              }
+            />
             <div className="pt-2 pb-2 flex justify-between">
               <div className="pr-2 pl-2">
                 <div className="flex gap-4">

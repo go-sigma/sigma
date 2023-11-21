@@ -4254,6 +4254,12 @@ const docTemplate = `{
                         "description": "Username",
                         "name": "name",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Response with admin",
+                        "name": "without_admin",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5259,10 +5265,12 @@ const docTemplate = `{
         "enums.UserRole": {
             "type": "string",
             "enum": [
+                "Root",
                 "Admin",
                 "User"
             ],
             "x-enum-varnames": [
+                "UserRoleRoot",
                 "UserRoleAdmin",
                 "UserRoleUser"
             ]

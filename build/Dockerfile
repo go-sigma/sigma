@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && yarn install --froze
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.96.0
+ARG SYFT_VERSION=0.97.1
 ARG TARGETARCH
 
 RUN set -eux && \

@@ -65,6 +65,7 @@ func main() {
 		models.DaemonGcBlobRule{},
 		models.DaemonGcBlobRunner{},
 		models.DaemonGcBlobRecord{},
+		models.NamespaceRole{},
 	)
 
 	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})

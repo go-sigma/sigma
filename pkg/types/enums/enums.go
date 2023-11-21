@@ -257,6 +257,7 @@ type UserStatus string
 // Root is available for user role, but it just create by initialized data
 
 // UserRole x ENUM(
+// Root,
 // Admin,
 // User,
 // )
@@ -267,3 +268,10 @@ type UserRole string
 // Quantity,
 // )
 type RetentionRuleType string
+
+// NamespaceRole x ENUM(
+// Admin="NamespaceAdmin",
+// Manager="NamespaceManager",
+// Reader="NamespaceReader",
+// )
+type NamespaceRole string

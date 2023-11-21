@@ -160,7 +160,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
       <div className="min-h-screen flex overflow-hidden bg-white">
         <Menu localServer={localServer} item="namespaces" />
         <div className="flex flex-col flex-1 max-h-screen">
-          <main className="relative z-0 focus:outline-none" tabIndex={0}>
+          <main className="relative z-0 focus:outline-none">
             <Header title="Namespace" />
             <div className="pt-2 pb-2 flex justify-between">
               <div className="pr-2 pl-2">

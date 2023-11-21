@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dal
+package dal_test
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -23,10 +24,15 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	gonanoid "github.com/matoous/go-nanoid"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestAuth(t *testing.T) {
@@ -38,21 +44,30 @@ func TestAuth(t *testing.T) {
 	miniRedis := miniredis.RunT(t)
 	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	err := Initialize()
+	err := dal.Initialize()
 	assert.NoError(t, err)
 
-	added, _ := AuthEnforcer.AddPolicy("library_reader", "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
-	assert.True(t, added)
-	added, _ = AuthEnforcer.AddRoleForUser("alice", "library_reader", "library")
+	ctx := log.Logger.WithContext(context.Background())
+	roleService := dao.NewRoleServiceFactory().New()
+
+	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 
-	passed, err := AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
+	err = roleService.AddNamespaceRole(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	assert.NoError(t, err)
+	// added, _ = dal.AuthEnforcer.AddRoleForUser("1", enums.NamespaceRoleManager.String(), "library")
+	// assert.True(t, added)
+	err = dal.AuthEnforcer.LoadPolicy()
+	assert.NoError(t, err)
+
+	passed, err := dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
 	assert.NoError(t, err)
 	assert.True(t, passed)
-	passed, err = AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
+	passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
 	assert.NoError(t, err)
 	assert.True(t, passed)
-	passed, err = AuthEnforcer.Enforce("alice", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "POST")
+
+	passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "POST")
 	assert.NoError(t, err)
 	assert.False(t, passed)
 
@@ -153,7 +168,7 @@ func TestUrlMatchFunc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := urlMatchFunc(tt.args.args...)
+			got, err := dal.UrlMatchFunc(tt.args.args...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("urlMatchFunc() error = %v, wantErr %v", err, tt.wantErr)
 				return

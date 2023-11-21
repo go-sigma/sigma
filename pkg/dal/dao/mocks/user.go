@@ -249,9 +249,9 @@ func (mr *MockUserServiceMockRecorder) ListUser3rdParty(arg0, arg1 any) *gomock.
 }
 
 // ListWithoutUsername mocks base method.
-func (m *MockUserService) ListWithoutUsername(arg0 context.Context, arg1 string, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.User, int64, error) {
+func (m *MockUserService) ListWithoutUsername(arg0 context.Context, arg1 []string, arg2 bool, arg3 *string, arg4 types.Pagination, arg5 types.Sortable) ([]*models.User, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListWithoutUsername", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "ListWithoutUsername", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].([]*models.User)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -259,9 +259,9 @@ func (m *MockUserService) ListWithoutUsername(arg0 context.Context, arg1 string,
 }
 
 // ListWithoutUsername indicates an expected call of ListWithoutUsername.
-func (mr *MockUserServiceMockRecorder) ListWithoutUsername(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) ListWithoutUsername(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithoutUsername", reflect.TypeOf((*MockUserService)(nil).ListWithoutUsername), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithoutUsername", reflect.TypeOf((*MockUserService)(nil).ListWithoutUsername), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // UpdateByID mocks base method.

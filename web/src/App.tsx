@@ -25,7 +25,7 @@ import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
 import Summary from './pages/Repository/Summary';
 import LoginCallback from './pages/Login/Callback';
-import NamespaceUsers from "./pages/Namespace/Users";
+import NamespaceMember from "./pages/Namespace/Member";
 import NamespaceWebhooks from "./pages/Namespace/Webhook";
 
 import DaemonTasks from "./pages/DaemonTask/Tasks";
@@ -84,7 +84,7 @@ export default function App() {
         <Route path="/login/callback/:provider" element={<LoginCallback localServer={localServer} />} />
 
         <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/namespace-users" element={<NamespaceUsers localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/members" element={<NamespaceMember localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
 
         <Route path="/namespaces/:namespace/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />

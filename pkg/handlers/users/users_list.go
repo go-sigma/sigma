@@ -34,13 +34,14 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/users/ [get]
-//	@Param		limit	query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page	query		int64	false	"page"	minimum(1)	default(1)
-//	@Param		sort	query		string	false	"sort field"
-//	@Param		method	query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		name	query		string	false	"Username"
-//	@Success	200		{object}	types.CommonList{items=[]types.UserItem}
-//	@Failure	500		{object}	xerrors.ErrCode
+//	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"sort field"
+//	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
+//	@Param		name			query		string	false	"Username"
+//	@Param		without_admin	query		boolean	false	"Response with admin"
+//	@Success	200				{object}	types.CommonList{items=[]types.UserItem}
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -53,7 +54,12 @@ func (h *handler) List(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	userService := h.userServiceFactory.New()
-	userObjs, total, err := userService.ListWithoutUsername(ctx, h.config.Auth.InternalUser.Username, req.Name, req.Pagination, req.Sortable)
+
+	var exceptUsername = []string{}
+	if len(h.config.Auth.InternalUser.Username) > 0 {
+		exceptUsername = []string{h.config.Auth.InternalUser.Username}
+	}
+	userObjs, total, err := userService.ListWithoutUsername(ctx, exceptUsername, req.WithoutAdmin, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List user failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

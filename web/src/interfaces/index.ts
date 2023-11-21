@@ -493,3 +493,17 @@ export interface IGcBlobRecordList {
   items: IGcBlobRecordItem[];
   total: number;
 }
+
+export interface INamespaceRoleList {
+  items: INamespaceRoleItem[];
+  total: number;
+}
+
+export interface INamespaceRoleItem {
+  id: number;
+  username: string;
+  user_id: number;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}

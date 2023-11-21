@@ -64,7 +64,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
@@ -123,7 +123,11 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
 	}
 
 	return c.JSON(http.StatusCreated, types.PostNamespaceResponse{ID: namespaceObj.ID})

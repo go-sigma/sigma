@@ -46,7 +46,7 @@ type UserService interface {
 	// List all users with pagination
 	List(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// ListWithoutUsername all users with pagination, and without specific username
-	ListWithoutUsername(ctx context.Context, expect string, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
+	ListWithoutUsername(ctx context.Context, except []string, withoutAdmin bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// UpdateByID updates the namespace with the specified namespace ID.
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
 	// Count gets the total number of users.
@@ -134,11 +134,17 @@ func (s *userService) UpdateUser3rdParty(ctx context.Context, id int64, updates 
 }
 
 // ListWithoutUsername all users with pagination, and without specific username
-func (s *userService) ListWithoutUsername(ctx context.Context, expect string, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
+func (s *userService) ListWithoutUsername(ctx context.Context, except []string, withoutAdmin bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	q := s.tx.User.WithContext(ctx).Where(s.tx.User.Username.Neq(expect))
+	q := s.tx.User.WithContext(ctx)
+	if len(except) > 0 {
+		q = q.Where(s.tx.User.Username.NotIn(except...))
+	}
+	if withoutAdmin {
+		q = q.Where(s.tx.User.Role.Neq(enums.UserRoleAdmin), s.tx.User.Role.Neq(enums.UserRoleRoot))
+	}
 	if name != nil {
-		q = q.Where(s.tx.User.Username.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.User.Username.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.User.GetFieldByName(ptr.To(sort.Sort))
 	if ok {

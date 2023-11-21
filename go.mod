@@ -9,9 +9,9 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
-	github.com/anchore/syft v0.96.0
+	github.com/anchore/syft v0.97.1
 	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.47.9
+	github.com/aws/aws-sdk-go v1.48.1
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.77.2
@@ -46,7 +46,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/buildkit v0.12.3
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231107204001-1af3bd8c47ab
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231117024018-3ec8a56d897b
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/redis/go-redis/v9 v9.3.0
@@ -62,7 +62,7 @@ require (
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.45
 	github.com/tidwall/gjson v1.17.0
 	github.com/wagslane/go-password-validator v0.3.0
-	github.com/xanzy/go-gitlab v0.93.2
+	github.com/xanzy/go-gitlab v0.94.0
 	go.uber.org/mock v0.3.0
 	golang.org/x/crypto v0.15.0
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
@@ -76,9 +76,9 @@ require (
 	gorm.io/gorm v1.25.5
 	gorm.io/plugin/dbresolver v1.4.7
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/api v0.28.3
-	k8s.io/apimachinery v0.28.3
-	k8s.io/client-go v0.28.3
+	k8s.io/api v0.28.4
+	k8s.io/apimachinery v0.28.4
+	k8s.io/client-go v0.28.4
 )
 
 require (
@@ -101,7 +101,7 @@ require (
 	github.com/anchore/go-logger v0.0.0-20230725134548-c21dafa1ec5a // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20230104203445-02e0a6721501 // indirect
-	github.com/anchore/stereoscope v0.0.0-20231027135531-5909e353ee88 // indirect
+	github.com/anchore/stereoscope v0.0.0-20231117203853-3610f4ef3e83 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aquasecurity/trivy-db v0.0.0-20231005141211-4fc651f7ac8d // indirect
 	github.com/becheran/wildmatch-go v1.0.0 // indirect

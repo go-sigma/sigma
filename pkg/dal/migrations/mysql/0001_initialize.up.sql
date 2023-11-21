@@ -440,7 +440,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
 );
 
-CREATE TABLE `casbin_rules` (
+CREATE TABLE IF NOT EXISTS `casbin_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `ptype` varchar(100),
   `v0` varchar(100),
@@ -452,6 +452,18 @@ CREATE TABLE `casbin_rules` (
   CONSTRAINT `idx_casbin_rules` UNIQUE (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
 );
 
+CREATE TABLE IF NOT EXISTS `namespace_roles` (
+  `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `user_id` bigint NOT NULL,
+  `namespace_id` bigint NOT NULL,
+  `role` ENUM ('NamespaceReader', 'NamespaceManager', 'NamespaceAdmin') NOT NULL DEFAULT 'NamespaceReader',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `namespace_roles_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
+);
+
 -- ptype type
 -- v0 sub
 -- v1 dom
@@ -460,19 +472,20 @@ CREATE TABLE `casbin_rules` (
 -- v4 method
 -- v5 allow or deny
 INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
-  VALUES ('p', 'admin', '*', '*', '*', '*', 'allow'),
-  ('p', 'anonymous', '/*', '/v2/', 'public|private', 'GET', 'allow'),
-  ('p', 'anonymous', '/*', 'DS$*/**$blobs$*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'anonymous', '/*', 'DS$*/**$manifests$*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'namespace_reader', '/*', 'DS$*/**$blobs$*', 'public|private', 'GET|HEAD', 'allow'), -- get blob
-  ('p', 'namespace_reader', '/*', 'DS$*/**$manifests$*', 'public|private', 'GET|HEAD', 'allow'), -- get manifest
-  ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*', 'public|private', 'GET', 'allow'), -- get namespace
-  ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/artifacts/*', 'public|private', 'GET', 'allow'), -- get artifact
-  ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/artifacts/', 'public|private', 'GET', 'allow'), -- list artifacts
-  ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/', 'public|private', 'GET', 'allow'), -- list repositories
-  ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
-  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'namespace_owner', '/*', '*', 'public', 'GET|HEAD', 'allow');
+  VALUES ('p', 'Root', '*', '*', '*', '*', 'allow'),
+  ('p', 'Admin', '*', '*', '*', '*', 'allow'),
+  ('p', 'Anonymous', '/*', '/v2/', 'public|private', 'GET', 'allow'),
+  ('p', 'Anonymous', '/*', 'DS$*/**$blobs$*', 'public', 'GET|HEAD', 'allow'),
+  ('p', 'Anonymous', '/*', 'DS$*/**$manifests$*', 'public', 'GET|HEAD', 'allow'),
+  ('p', 'NamespaceReader', '/*', 'DS$*/**$blobs$*', 'public|private', 'GET|HEAD', 'allow'), -- get blob
+  ('p', 'NamespaceReader', '/*', 'DS$*/**$manifests$*', 'public|private', 'GET|HEAD', 'allow'), -- get manifest
+  ('p', 'NamespaceReader', '/*', 'API$*/**$namespaces/*', 'public|private', 'GET', 'allow'), -- get namespace
+  ('p', 'NamespaceReader', '/*', 'API$*/**$namespaces/*/artifacts/*', 'public|private', 'GET', 'allow'), -- get artifact
+  ('p', 'NamespaceReader', '/*', 'API$*/**$namespaces/*/artifacts/', 'public|private', 'GET', 'allow'), -- list artifacts
+  ('p', 'NamespaceReader', '/*', 'API$*/**$namespaces/*/repositories/', 'public|private', 'GET', 'allow'), -- list repositories
+  ('p', 'NamespaceReader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
+  ('p', 'NamespaceManager', '/*', '*', 'public', 'GET|HEAD', 'allow'),
+  ('p', 'NamespaceAdmin', '/*', '*', 'public', 'GET|HEAD', 'allow');
 
 INSERT INTO `namespaces` (`name`, `visibility`)
   VALUES ('library', 'public');
