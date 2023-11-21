@@ -47,6 +47,8 @@ type NamespaceService interface {
 	GetByName(ctx context.Context, name string) (*models.Namespace, error)
 	// ListNamespace lists all namespaces.
 	ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
+	// ListNamespaceWithAuth lists all namespaces with auth.
+	ListNamespaceWithAuth(ctx context.Context, userID int64, anonymous bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
 	// CountNamespace counts all namespaces.
 	CountNamespace(ctx context.Context, name *string) (int64, error)
 	// DeleteByID deletes the namespace with the specified namespace ID.
@@ -122,6 +124,41 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 	q := s.tx.Namespace.WithContext(ctx)
 	if name != nil {
 		q = q.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	field, ok := s.tx.Namespace.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			q = q.Order(field.Desc())
+		case enums.SortMethodAsc:
+			q = q.Order(field)
+		default:
+			q = q.Order(s.tx.Namespace.UpdatedAt.Desc())
+		}
+	} else {
+		q = q.Order(s.tx.Namespace.UpdatedAt.Desc())
+	}
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
+}
+
+// ListNamespaceWithAuth lists all namespaces with auth.
+func (s *namespaceService) ListNamespaceWithAuth(ctx context.Context, userID int64, anonymous bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	q := s.tx.Namespace.WithContext(ctx)
+	if name != nil {
+		q = q.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
+	}
+	if anonymous { // find the public namespace
+		q = q.Where(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
+	} else { // find user id authenticated namespace
+		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
+		if err != nil {
+			return nil, 0, err
+		}
+		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+			q = q.LeftJoin(s.tx.NamespaceRole, s.tx.Namespace.ID.EqCol(s.tx.NamespaceRole.NamespaceID), s.tx.NamespaceRole.UserID.Eq(userID)).
+				Where(s.tx.NamespaceRole.ID.IsNotNull()).Or(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
+		}
 	}
 	field, ok := s.tx.Namespace.GetFieldByName(ptr.To(sort.Sort))
 	if ok {

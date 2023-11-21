@@ -21,6 +21,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -44,6 +45,17 @@ import (
 func (h *handler) ListNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.ListNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
@@ -53,7 +65,7 @@ func (h *handler) ListNamespace(c echo.Context) error {
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObjs, total, err := namespaceService.ListNamespace(ctx, req.Name, req.Pagination, req.Sortable)
+	namespaceObjs, total, err := namespaceService.ListNamespaceWithAuth(ctx, user.ID, false, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
