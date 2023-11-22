@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -102,11 +101,11 @@ func (h *handler) PostNamespace(c echo.Context) error {
 			log.Error().Err(err).Msg("Create namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
 		}
-		authService := h.authServiceFactory.New(tx)
-		err = authService.AddRoleForUser(ctx, strconv.FormatInt(user.ID, 10), "namespace_admin", namespaceObj.Name)
+		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		err = namespaceMemberService.AddNamespaceMember(ctx, user.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
 		if err != nil {
-			log.Error().Err(err).Msg("Add role for user failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add role for user failed: %v", err))
+			log.Error().Err(err).Msg("Add namespace member failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))
 		}
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{

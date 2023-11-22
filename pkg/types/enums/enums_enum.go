@@ -298,6 +298,92 @@ func (x AuditResourceType) Value() (driver.Value, error) {
 }
 
 const (
+	// AuthRead is a Auth of type Read.
+	AuthRead Auth = "Read"
+	// AuthManage is a Auth of type Manage.
+	AuthManage Auth = "Manage"
+	// AuthAdmin is a Auth of type Admin.
+	AuthAdmin Auth = "Admin"
+)
+
+var ErrInvalidAuth = errors.New("not a valid Auth")
+
+// String implements the Stringer interface.
+func (x Auth) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x Auth) IsValid() bool {
+	_, err := ParseAuth(string(x))
+	return err == nil
+}
+
+var _AuthValue = map[string]Auth{
+	"Read":   AuthRead,
+	"Manage": AuthManage,
+	"Admin":  AuthAdmin,
+}
+
+// ParseAuth attempts to convert a string to a Auth.
+func ParseAuth(name string) (Auth, error) {
+	if x, ok := _AuthValue[name]; ok {
+		return x, nil
+	}
+	return Auth(""), fmt.Errorf("%s is %w", name, ErrInvalidAuth)
+}
+
+// MustParseAuth converts a string to a Auth, and panics if is not valid.
+func MustParseAuth(name string) Auth {
+	val, err := ParseAuth(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *Auth) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = Auth("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuth(v)
+	case []byte:
+		*x, err = ParseAuth(string(v))
+	case Auth:
+		*x = v
+	case *Auth:
+		if v == nil {
+			return errAuthNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthNilPtr
+		}
+		*x, err = ParseAuth(*v)
+	default:
+		return errors.New("invalid type for Auth")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x Auth) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// BuildStatusSuccess is a BuildStatus of type Success.
 	BuildStatusSuccess BuildStatus = "Success"
 	// BuildStatusFailed is a BuildStatus of type Failed.

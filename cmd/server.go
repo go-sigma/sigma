@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/cmds/server"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -53,11 +54,7 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		// err = daemon.InitializeClient()
-		// if err != nil {
-		// 	log.Error().Err(err).Msg("Initialize daemon client with error")
-		// 	return
-		// }
+		auth.Initialize()
 
 		err = server.Serve(server.ServerConfig{
 			WithoutDistribution: withoutDistribution,

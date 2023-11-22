@@ -38,8 +38,8 @@ func (h *handler) ListNamespaceMembers(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	roleService := h.roleServiceFactory.New()
-	namespaceRoleObjs, total, err := roleService.ListNamespaceRole(ctx, req.ID, req.Name, req.Pagination, req.Sortable)
+	namespaceMemberService := h.namespaceMemberServiceFactory.New()
+	namespaceRoleObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace role failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List namespace role failed: %v", err))

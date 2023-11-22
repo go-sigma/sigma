@@ -79,8 +79,8 @@ func (h *handler) UpdateNamespaceMember(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		roleService := h.roleServiceFactory.New(tx)
-		err = roleService.UpdateNamespaceRole(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
+		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		err = namespaceMemberService.UpdateNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace role for user failed: %v", err))
 		}

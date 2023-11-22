@@ -48,12 +48,12 @@ func TestAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx := log.Logger.WithContext(context.Background())
-	roleService := dao.NewRoleServiceFactory().New()
+	roleService := dao.NewNamespaceMemberServiceFactory().New()
 
 	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 
-	err = roleService.AddNamespaceRole(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	err = roleService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	assert.NoError(t, err)
 	// added, _ = dal.AuthEnforcer.AddRoleForUser("1", enums.NamespaceRoleManager.String(), "library")
 	// assert.True(t, added)

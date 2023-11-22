@@ -19,10 +19,11 @@ mkdir -p package/sigma/conf
 
 cp -r scripts/samples ./package/sigma
 mv ./package/sigma/samples/start.sh ./package/sigma/
+mv ./package/sigma/samples/restart.sh ./package/sigma/
 cp docker-compose.yml ./package/sigma
 cp conf/config-compose.yaml ./package/sigma/conf/config.yaml
-cp conf/sigma.test.io.crt ./package/sigma/config/
-cp conf/sigma.test.io.key ./package/sigma/config/
+cp conf/sigma.test.io.crt ./package/sigma/conf/
+cp conf/sigma.test.io.key ./package/sigma/conf/
 mv ./sigma.tar.gz ./package/sigma
 
 tar zcvf sigma-offline.tar.gz -C ./package sigma

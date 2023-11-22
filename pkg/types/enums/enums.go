@@ -275,3 +275,10 @@ type RetentionRuleType string
 // Reader="NamespaceReader",
 // )
 type NamespaceRole string
+
+// Auth x ENUM(
+// Read,
+// Manage,
+// Admin,
+// )
+type Auth string

@@ -26,56 +26,56 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/role.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RoleService
-//go:generate mockgen -destination=mocks/role_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RoleServiceFactory
+//go:generate mockgen -destination=mocks/namespace_member.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberService
+//go:generate mockgen -destination=mocks/namespace_member_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberServiceFactory
 
-// RoleService is the interface that provides methods to operate on role model
-type RoleService interface {
-	// AddNamespaceRole ...
-	AddNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
-	// UpdateNamespaceRole ...
-	UpdateNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
-	// DeleteNamespaceRole ...
-	DeleteNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace) error
-	// ListNamespaceRole ...
-	ListNamespaceRole(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error)
-	// GetNamespaceRole ...
-	GetNamespaceRole(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error)
-	// CountNamespaceRole ...
-	CountNamespaceRole(ctx context.Context, userID int64, namespaceID int64) (int64, error)
+// NamespaceMemberService is the interface that provides methods to operate on role model
+type NamespaceMemberService interface {
+	// AddNamespaceMember ...
+	AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
+	// UpdateNamespaceMember ...
+	UpdateNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
+	// DeleteNamespaceMember ...
+	DeleteNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace) error
+	// ListNamespaceMembers ...
+	ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error)
+	// GetNamespaceMember ...
+	GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error)
+	// CountNamespaceMember ...
+	CountNamespaceMember(ctx context.Context, userID int64, namespaceID int64) (int64, error)
 }
 
-var _ RoleService = &roleService{}
+var _ NamespaceMemberService = &namespaceMemberService{}
 
-type roleService struct {
+type namespaceMemberService struct {
 	tx *query.Query
 }
 
-// RoleServiceFactory is the interface that provides the role service factory methods.
-type RoleServiceFactory interface {
-	New(txs ...*query.Query) RoleService
+// NamespaceMemberServiceFactory is the interface that provides the namespace member service factory methods.
+type NamespaceMemberServiceFactory interface {
+	New(txs ...*query.Query) NamespaceMemberService
 }
 
-type roleServiceFactory struct{}
+type namespaceMemberServiceFactory struct{}
 
-// NewRoleServiceFactory creates a new role service factory.
-func NewRoleServiceFactory() RoleServiceFactory {
-	return &roleServiceFactory{}
+// NewNamespaceMemberServiceFactory creates a new namespace member service factory.
+func NewNamespaceMemberServiceFactory() NamespaceMemberServiceFactory {
+	return &namespaceMemberServiceFactory{}
 }
 
-// New creates a new role service.
-func (s *roleServiceFactory) New(txs ...*query.Query) RoleService {
+// New creates a new namespace member service.
+func (s *namespaceMemberServiceFactory) New(txs ...*query.Query) NamespaceMemberService {
 	tx := query.Q
 	if len(txs) > 0 {
 		tx = txs[0]
 	}
-	return &roleService{
+	return &namespaceMemberService{
 		tx: tx,
 	}
 }
 
-// AddNamespaceRole ...
-func (s roleService) AddNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
+// AddNamespaceMember ...
+func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
 	err := s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
 		PType: ptr.Of("g"),
 		V0:    ptr.Of(fmt.Sprintf("%d", userID)),
@@ -91,8 +91,8 @@ func (s roleService) AddNamespaceRole(ctx context.Context, userID int64, namespa
 	return s.tx.NamespaceRole.WithContext(ctx).Create(&models.NamespaceRole{UserID: userID, NamespaceID: namespaceObj.ID, Role: role})
 }
 
-// UpdateNamespaceRole ...
-func (s roleService) UpdateNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
+// UpdateNamespaceMember ...
+func (s namespaceMemberService) UpdateNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
 	_, err := s.tx.CasbinRule.WithContext(ctx).Where(
 		s.tx.CasbinRule.V0.Eq(fmt.Sprintf("%d", userID)),
 		s.tx.CasbinRule.V2.Eq(namespaceObj.Name),
@@ -111,8 +111,8 @@ func (s roleService) UpdateNamespaceRole(ctx context.Context, userID int64, name
 	return err
 }
 
-// DeleteNamespaceRole ...
-func (s roleService) DeleteNamespaceRole(ctx context.Context, userID int64, namespaceObj models.Namespace) error {
+// DeleteNamespaceMember ...
+func (s namespaceMemberService) DeleteNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace) error {
 	_, err := s.tx.CasbinRule.WithContext(ctx).Where(
 		s.tx.CasbinRule.V0.Eq(fmt.Sprintf("%d", userID)),
 		s.tx.CasbinRule.V2.Eq(namespaceObj.Name),
@@ -127,8 +127,8 @@ func (s roleService) DeleteNamespaceRole(ctx context.Context, userID int64, name
 	return err
 }
 
-// ListNamespaceRole ...
-func (s roleService) ListNamespaceRole(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error) {
+// ListNamespaceMembers ...
+func (s namespaceMemberService) ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
 	q := s.tx.NamespaceRole.WithContext(ctx).Where(s.tx.NamespaceRole.NamespaceID.Eq(namespaceID))
 	if name != nil {
@@ -151,16 +151,16 @@ func (s roleService) ListNamespaceRole(ctx context.Context, namespaceID int64, n
 	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
-// GetNamespaceRole ...
-func (s roleService) GetNamespaceRole(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error) {
+// GetNamespaceMember ...
+func (s namespaceMemberService) GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error) {
 	return s.tx.NamespaceRole.WithContext(ctx).Where(
 		s.tx.NamespaceRole.UserID.Eq(userID),
 		s.tx.NamespaceRole.NamespaceID.Eq(namespaceID),
 	).First()
 }
 
-// CountNamespaceRole ...
-func (s roleService) CountNamespaceRole(ctx context.Context, userID int64, namespaceID int64) (int64, error) {
+// CountNamespaceMember ...
+func (s namespaceMemberService) CountNamespaceMember(ctx context.Context, userID int64, namespaceID int64) (int64, error) {
 	return s.tx.NamespaceRole.WithContext(ctx).Where(
 		s.tx.NamespaceRole.UserID.Eq(userID),
 		s.tx.NamespaceRole.NamespaceID.Eq(namespaceID),

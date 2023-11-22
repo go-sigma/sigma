@@ -52,8 +52,8 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	roleService := h.roleServiceFactory.New()
-	namespaceRoleObj, err := roleService.GetNamespaceRole(ctx, req.ID, user.ID)
+	namespaceMemberService := h.namespaceMemberServiceFactory.New()
+	namespaceMemberObj, err := namespaceMemberService.GetNamespaceMember(ctx, req.ID, user.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace role from db not found")
@@ -64,11 +64,11 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.NamespaceRoleItem{
-		ID:        namespaceRoleObj.ID,
+		ID:        namespaceMemberObj.ID,
 		Username:  user.Username,
 		UserID:    user.ID,
-		Role:      namespaceRoleObj.Role,
-		CreatedAt: namespaceRoleObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: namespaceRoleObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		Role:      namespaceMemberObj.Role,
+		CreatedAt: namespaceMemberObj.CreatedAt.Format(consts.DefaultTimePattern),
+		UpdatedAt: namespaceMemberObj.UpdatedAt.Format(consts.DefaultTimePattern),
 	})
 }

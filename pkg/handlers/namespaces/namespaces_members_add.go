@@ -72,8 +72,8 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "User already have role in namespace")
 	}
 
-	roleService := h.roleServiceFactory.New()
-	roleCount, err := roleService.CountNamespaceRole(ctx, req.UserID, req.ID)
+	namespaceMemberService := h.namespaceMemberServiceFactory.New()
+	roleCount, err := namespaceMemberService.CountNamespaceMember(ctx, req.UserID, req.ID)
 	if err != nil {
 		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.ID).Msg("Count namespace role failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Count namespace role failed: %v", err))
@@ -84,8 +84,8 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		roleService := h.roleServiceFactory.New(tx)
-		err = roleService.AddNamespaceRole(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
+		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace role for user failed: %v", err))
 		}

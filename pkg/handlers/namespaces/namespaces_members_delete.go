@@ -73,8 +73,8 @@ func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 	// role := roles[0]
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		roleService := h.roleServiceFactory.New(tx)
-		err = roleService.DeleteNamespaceRole(ctx, req.UserID, ptr.To(namespaceObj))
+		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		err = namespaceMemberService.DeleteNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj))
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete namespace role for user failed: %v", err))
 		}
