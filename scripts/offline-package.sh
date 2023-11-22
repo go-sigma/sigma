@@ -2,14 +2,14 @@
 
 DOCKER=${DOCKER:-docker}
 
-"$DOCKER" pull quay.io/minio/minio:RELEASE.2023-08-04T17-40-21Z
+"$DOCKER" pull quay.io/minio/minio:RELEASE.2023-11-20T22-40-07Z
 "$DOCKER" pull ghcr.io/go-sigma/sigma-builder:nightly
 "$DOCKER" pull ghcr.io/go-sigma/sigma:nightly-alpine
 "$DOCKER" pull redis:7.0-alpine
 "$DOCKER" pull mysql:8.0
 "$DOCKER" pull postgres:15-alpine
 
-"$DOCKER" save quay.io/minio/minio:RELEASE.2023-08-04T17-40-21Z ghcr.io/go-sigma/sigma:nightly-alpine ghcr.io/go-sigma/sigma-builder:nightly redis:7.0-alpine mysql:8.0 postgres:15-alpine | gzip > sigma.tar.gz
+"$DOCKER" save quay.io/minio/minio:RELEASE.2023-11-20T22-40-07Z ghcr.io/go-sigma/sigma:nightly-alpine ghcr.io/go-sigma/sigma-builder:nightly redis:7.0-alpine mysql:8.0 postgres:15-alpine | gzip > sigma.tar.gz
 
 if [ -d package ]; then
   rm -rf package
