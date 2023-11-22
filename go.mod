@@ -11,12 +11,12 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
 	github.com/anchore/syft v0.97.1
 	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.48.1
+	github.com/aws/aws-sdk-go v1.48.2
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.77.2
 	github.com/casbin/gorm-adapter/v3 v3.20.0
-	github.com/deckarep/golang-set/v2 v2.3.1
+	github.com/deckarep/golang-set/v2 v2.4.0
 	github.com/distribution/distribution/v3 v3.0.0-20231016181039-1d410148efe6
 	github.com/distribution/reference v0.5.0
 	github.com/docker/cli v24.0.7+incompatible
@@ -74,7 +74,7 @@ require (
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gen v0.3.23
 	gorm.io/gorm v1.25.5
-	gorm.io/plugin/dbresolver v1.4.7
+	gorm.io/plugin/dbresolver v1.5.0
 	gorm.io/plugin/soft_delete v1.2.1
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4

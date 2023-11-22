@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # First of all you must install docker, there are two ways:
 #  1. apt-get install docker.io

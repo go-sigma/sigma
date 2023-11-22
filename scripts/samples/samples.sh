@@ -40,6 +40,8 @@ fi
 
 ./k6 run samples.js
 
+rm -f ./k6
+
 push_image test-all alpine:3.18
 push_image test-all alpine:3.17
 push_image test-all redis:6-alpine
@@ -64,3 +66,5 @@ fi
 ./helm package demo
 ./helm registry login -u sigma -p Admin@123 sigma.tosone.cn
 ./helm push demo-0.1.0.tgz oci://sigma.tosone.cn/library/demo
+
+rm -f ./helm ./demo-0.1.0.tgz

@@ -57,39 +57,33 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	authServiceFactory       dao.AuthServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	roleServiceFactory       dao.RoleServiceFactory
+	namespaceServiceFactory       dao.NamespaceServiceFactory
+	repositoryServiceFactory      dao.RepositoryServiceFactory
+	tagServiceFactory             dao.TagServiceFactory
+	artifactServiceFactory        dao.ArtifactServiceFactory
+	auditServiceFactory           dao.AuditServiceFactory
+	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
 }
 
 type inject struct {
-	authServiceFactory       dao.AuthServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
-	roleServiceFactory       dao.RoleServiceFactory
+	roleServiceFactory       dao.NamespaceMemberServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
-	authServiceFactory := dao.NewAuthServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
-	roleServiceFactory := dao.NewRoleServiceFactory()
+	roleServiceFactory := dao.NewNamespaceMemberServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
 		if ij.namespaceServiceFactory != nil {
 			namespaceServiceFactory = ij.namespaceServiceFactory
 		}
@@ -110,13 +104,12 @@ func handlerNew(injects ...inject) Handler {
 		}
 	}
 	return &handler{
-		authServiceFactory:       authServiceFactory,
-		namespaceServiceFactory:  namespaceServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		tagServiceFactory:        tagServiceFactory,
-		artifactServiceFactory:   artifactServiceFactory,
-		auditServiceFactory:      auditServiceFactory,
-		roleServiceFactory:       roleServiceFactory,
+		namespaceServiceFactory:       namespaceServiceFactory,
+		repositoryServiceFactory:      repositoryServiceFactory,
+		tagServiceFactory:             tagServiceFactory,
+		artifactServiceFactory:        artifactServiceFactory,
+		auditServiceFactory:           auditServiceFactory,
+		namespaceMemberServiceFactory: roleServiceFactory,
 	}
 }
 
