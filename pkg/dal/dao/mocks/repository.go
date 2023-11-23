@@ -195,6 +195,22 @@ func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1, arg2, ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), arg0, arg1, arg2, arg3, arg4)
 }
 
+// ListRepositoryWithAuth mocks base method.
+func (m *MockRepositoryService) ListRepositoryWithAuth(arg0 context.Context, arg1, arg2 int64, arg3 *string, arg4 types.Pagination, arg5 types.Sortable) ([]*models.Repository, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRepositoryWithAuth", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].([]*models.Repository)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListRepositoryWithAuth indicates an expected call of ListRepositoryWithAuth.
+func (mr *MockRepositoryServiceMockRecorder) ListRepositoryWithAuth(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepositoryWithAuth", reflect.TypeOf((*MockRepositoryService)(nil).ListRepositoryWithAuth), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 // UpdateRepository mocks base method.
 func (m *MockRepositoryService) UpdateRepository(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
 	m.ctrl.T.Helper()

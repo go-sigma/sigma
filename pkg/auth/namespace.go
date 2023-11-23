@@ -40,8 +40,14 @@ func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) b
 		log.Error().Msg("Convert user from header failed")
 		return false
 	}
+
+	// 1. check user is admin or not
+	if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
+		return true
+	}
+
+	// 2. check namespace visibility
 	namespaceService := s.namespaceServiceFactory.New()
-	// 1. check namespace visibility
 	namespaceObj, err := namespaceService.Get(ctx, namespaceID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get namespace by id failed")
@@ -50,10 +56,7 @@ func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) b
 	if namespaceObj.Visibility == enums.VisibilityPublic && auth == enums.AuthRead {
 		return true
 	}
-	// 2. check user is admin or not
-	if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
-		return true
-	}
+
 	// 3. check user is member of the namespace
 	roleService := s.roleServiceFactory.New()
 	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)

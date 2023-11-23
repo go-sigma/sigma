@@ -160,9 +160,9 @@ func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1, arg2, arg3
 }
 
 // ListNamespaceWithAuth mocks base method.
-func (m *MockNamespaceService) ListNamespaceWithAuth(arg0 context.Context, arg1 int64, arg2 bool, arg3 *string, arg4 types.Pagination, arg5 types.Sortable) ([]*models.Namespace, int64, error) {
+func (m *MockNamespaceService) ListNamespaceWithAuth(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Namespace, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListNamespaceWithAuth", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ListNamespaceWithAuth", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -170,9 +170,9 @@ func (m *MockNamespaceService) ListNamespaceWithAuth(arg0 context.Context, arg1 
 }
 
 // ListNamespaceWithAuth indicates an expected call of ListNamespaceWithAuth.
-func (mr *MockNamespaceServiceMockRecorder) ListNamespaceWithAuth(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) ListNamespaceWithAuth(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceWithAuth", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespaceWithAuth), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceWithAuth", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespaceWithAuth), arg0, arg1, arg2, arg3, arg4)
 }
 
 // UpdateByID mocks base method.

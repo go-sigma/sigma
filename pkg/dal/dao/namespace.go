@@ -48,7 +48,7 @@ type NamespaceService interface {
 	// ListNamespace lists all namespaces.
 	ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
 	// ListNamespaceWithAuth lists all namespaces with auth.
-	ListNamespaceWithAuth(ctx context.Context, userID int64, anonymous bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
+	ListNamespaceWithAuth(ctx context.Context, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error)
 	// CountNamespace counts all namespaces.
 	CountNamespace(ctx context.Context, name *string) (int64, error)
 	// DeleteByID deletes the namespace with the specified namespace ID.
@@ -142,13 +142,14 @@ func (s *namespaceService) ListNamespace(ctx context.Context, name *string, pagi
 }
 
 // ListNamespaceWithAuth lists all namespaces with auth.
-func (s *namespaceService) ListNamespaceWithAuth(ctx context.Context, userID int64, anonymous bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
+// if userID is 0 means anonymous
+func (s *namespaceService) ListNamespaceWithAuth(ctx context.Context, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
 	q := s.tx.Namespace.WithContext(ctx)
 	if name != nil {
 		q = q.Where(s.tx.Namespace.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
-	if anonymous { // find the public namespace
+	if userID == 0 { // find the public namespace
 		q = q.Where(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
 	} else { // find user id authenticated namespace
 		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()

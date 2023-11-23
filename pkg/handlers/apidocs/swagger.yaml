@@ -3823,7 +3823,7 @@ paths:
             $ref: '#/definitions/xerrors.ErrCode'
       security:
       - BasicAuth: []
-      summary: List repository
+      summary: List repositories
       tags:
       - Repository
     post:
