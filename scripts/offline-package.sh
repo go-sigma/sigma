@@ -27,3 +27,5 @@ cp conf/sigma.test.io.key ./package/sigma/conf/
 mv ./sigma.tar.gz ./package/sigma
 
 tar zcvf sigma-offline.tar.gz -C ./package sigma
+
+rm -rf ./package

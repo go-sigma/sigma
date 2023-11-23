@@ -24,7 +24,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -38,12 +40,12 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace}/tags/ [get]
-//	@Param		limit		query		int64		false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page		query		int64		false	"page"	minimum(1)	default(1)
-//	@Param		sort		query		string		false	"sort field"
-//	@Param		method		query		string		false	"sort method"	Enums(asc, desc)
-//	@Param		namespace	path		string		true	"namespace"
-//	@Param		repository	query		string		false	"repository"
+//	@Param		namespace	path		string		true	"Namespace name"
+//	@Param		limit		query		int64		false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64		false	"Page number"	minimum(1)	default(1)
+//	@Param		sort		query		string		false	"Sort field"
+//	@Param		method		query		string		false	"Sort method"	Enums(asc, desc)
+//	@Param		repository	query		string		false	"Repository name"
 //	@Param		name		query		string		false	"search tag with name"
 //	@Param		type		query		[]string	false	"search tag with type"	Enums(image, imageIndex, chart, cnab, cosign, wasm, provenance, unknown)	collectionFormat(multi)
 //	@Success	200			{object}	types.CommonList{items=[]types.TagItem}
@@ -51,6 +53,17 @@ import (
 //	@Failure	500			{object}	xerrors.ErrCode
 func (h *handler) ListTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	var req types.ListTagRequest
 	err := utils.BindValidate(c, &req)
@@ -83,6 +96,11 @@ func (h *handler) ListTag(c echo.Context) error {
 	if repositoryObj.NamespaceID != namespaceObj.ID {
 		log.Error().Interface("repositoryObj", repositoryObj).Interface("namespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
+	}
+
+	if !h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", repositoryObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	tagService := h.tagServiceFactory.New()

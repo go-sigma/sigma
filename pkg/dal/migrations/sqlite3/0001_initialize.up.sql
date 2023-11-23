@@ -457,7 +457,7 @@ CREATE TABLE `casbin_rules` (
 );
 
 CREATE TABLE IF NOT EXISTS `namespace_roles` (
-   `id` integer PRIMARY KEY AUTOINCREMENT,
+  `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` integer NOT NULL,
   `namespace_id` integer NOT NULL,
   `role` text CHECK (`role` IN ('NamespaceReader', 'NamespaceManager', 'NamespaceAdmin')) NOT NULL DEFAULT 'NamespaceReader',

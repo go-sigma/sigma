@@ -20,7 +20,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -33,20 +36,36 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace}/tags/{id} [delete]
-//	@Param		namespace	path	string	true	"Namespace"
-//	@Param		id			path	string	true	"Tag ID"
-//	@Param		repository	query	string	false	"repository"
+//	@Param		namespace	path	string	true	"Namespace name"
+//	@Param		repository	query	string	false	"Repository name"
+//	@Param		id			path	number	true	"Tag id"
 //	@Success	204
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) DeleteTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.DeleteTagRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	}
+
+	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	tagService := h.tagServiceFactory.New()

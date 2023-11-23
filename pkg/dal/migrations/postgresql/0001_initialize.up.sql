@@ -534,7 +534,7 @@ CREATE TYPE namespace_member_role AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS "namespace_roles" (
-    "id" bigserial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "user_id" bigint NOT NULL,
   "namespace_id" bigint NOT NULL,
   "role" namespace_member_role NOT NULL DEFAULT 'NamespaceReader',

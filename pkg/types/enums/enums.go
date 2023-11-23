@@ -134,32 +134,33 @@ type Provider string
 type SortMethod string
 
 // ArtifactType x ENUM(
-// image,
-// imageIndex,
-// chart
-// cnab,
-// wasm,
-// provenance,
-// cosign,
-// unknown,
+// Image,
+// ImageIndex,
+// Chart
+// Cnab,
+// Wasm,
+// Provenance,
+// Cosign,
+// Unknown,
 // )
 type ArtifactType string
 
 // AuditAction x ENUM(
-// create,
-// update,
-// delete,
-// pull,
-// push,
+// Create,
+// Update,
+// Delete,
+// Pull,
+// Push,
 // )
 type AuditAction string
 
 // AuditResourceType x ENUM(
-// namespace,
-// repository,
-// tag,
-// webhook,
-// builder,
+// Namespace,
+// NamespaceMember,
+// Repository,
+// Tag,
+// Webhook,
+// Builder,
 // )
 type AuditResourceType string
 

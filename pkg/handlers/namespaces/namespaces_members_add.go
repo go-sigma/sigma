@@ -25,34 +25,51 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // AddNamespaceMember handles the add namespace member request
+//
+//	@Summary	Add namespace member
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/members/ [post]
+//	@Param		message	body	types.AddMemberRequest	true	"Member object"
+//	@security	BasicAuth
+//	@Success	201	{object}	types.PostNamespaceResponse
+//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) AddNamespaceMember(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	// TODO: add audit
-	// iuser := c.Get(consts.ContextUser)
-	// if iuser == nil {
-	// 	log.Error().Msg("Get user from header failed")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	// }
-	// user, ok := iuser.(*models.User)
-	// if !ok {
-	// 	log.Error().Msg("Convert user from header failed")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	// }
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	var req types.AddMemberRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	}
+
+	if !h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthAdmin) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
@@ -83,11 +100,25 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Max namespace role quota exceeds")
 	}
 
+	var namespaceMemberObj *models.NamespaceRole
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
-		err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
+		namespaceMemberObj, err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace role for user failed: %v", err))
+		}
+		auditService := h.auditServiceFactory.New(tx)
+		err = auditService.Create(ctx, &models.Audit{
+			UserID:       user.ID,
+			NamespaceID:  ptr.Of(namespaceObj.ID),
+			Action:       enums.AuditActionCreate,
+			ResourceType: enums.AuditResourceTypeNamespaceMember,
+			Resource:     namespaceObj.Name,
+			ReqRaw:       utils.MustMarshal(req),
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Create audit failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		return nil
 	})
@@ -102,5 +133,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Msg("Reload policy failed")
 	}
-	return c.NoContent(http.StatusCreated)
+	return c.JSON(http.StatusCreated, types.AddMemberResponse{
+		ID: namespaceMemberObj.ID,
+	})
 }

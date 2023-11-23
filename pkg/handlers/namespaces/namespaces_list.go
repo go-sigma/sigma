@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// ListNamespace handles the list namespace request
+// ListNamespaces handles the list namespace request
 //
 //	@Summary	List namespace
 //	@security	BasicAuth
@@ -35,14 +35,14 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/ [get]
-//	@Param		limit	query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page	query		int64	false	"page"	minimum(1)	default(1)
-//	@Param		sort	query		string	false	"sort field"
-//	@Param		method	query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		name	query		string	false	"search namespace with name"
+//	@Param		limit	query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page	query		int64	false	"Page number"	minimum(1)	default(1)
+//	@Param		sort	query		string	false	"Sort field"
+//	@Param		method	query		string	false	"Sort method"	Enums(asc, desc)
+//	@Param		name	query		string	false	"Search namespace with name"
 //	@Success	200		{object}	types.CommonList{items=[]types.NamespaceItem}
 //	@Failure	500		{object}	xerrors.ErrCode
-func (h *handler) ListNamespace(c echo.Context) error {
+func (h *handler) ListNamespaces(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	var user *models.User

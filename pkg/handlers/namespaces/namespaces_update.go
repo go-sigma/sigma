@@ -40,9 +40,9 @@ import (
 //	@Tags		Namespace
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{id} [put]
-//	@Param		id		path	string						true	"Namespace id"
-//	@Param		message	body	types.PutNamespaceRequest	true	"Namespace object"
+//	@Router		/namespaces/{namespace_id} [put]
+//	@Param		namespace_id	path	number						true	"Namespace id"
+//	@Param		message			body	types.PutNamespaceRequest	true	"Namespace object"
 //	@Success	204
 func (h *handler) PutNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())

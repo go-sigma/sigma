@@ -36,9 +36,9 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/{id} [put]
+//	@Router		/namespaces/{namespace}/repositories/{repository_id} [put]
 //	@Param		namespace	path	string						true	"Namespace name"
-//	@Param		id			path	string						true	"Repository id"
+//	@Param		repository_id			path	number						true	"Repository id"
 //	@Param		message		body	types.PutRepositoryRequest	true	"Repository object"
 //	@Success	204
 //	@Failure	400	{object}	xerrors.ErrCode

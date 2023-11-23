@@ -102,7 +102,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
 		}
 		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
-		err = namespaceMemberService.AddNamespaceMember(ctx, user.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
+		_, err = namespaceMemberService.AddNamespaceMember(ctx, user.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
 		if err != nil {
 			log.Error().Err(err).Msg("Add namespace member failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))

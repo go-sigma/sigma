@@ -86,6 +86,11 @@ type AddMemberRequest struct {
 	Role   enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
 }
 
+// AddMemberResponse ...
+type AddMemberResponse struct {
+	ID int64 `json:"id" example:"10"`
+}
+
 // UpdateMemberRequest ...
 type UpdateMemberRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`

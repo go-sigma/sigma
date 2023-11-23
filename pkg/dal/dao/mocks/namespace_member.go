@@ -42,11 +42,12 @@ func (m *MockNamespaceMemberService) EXPECT() *MockNamespaceMemberServiceMockRec
 }
 
 // AddNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) AddNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) error {
+func (m *MockNamespaceMemberService) AddNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) (*models.NamespaceRole, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddNamespaceMember", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*models.NamespaceRole)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddNamespaceMember indicates an expected call of AddNamespaceMember.

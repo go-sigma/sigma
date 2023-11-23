@@ -29,6 +29,7 @@ import (
 	"github.com/tidwall/gjson"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
@@ -45,17 +46,13 @@ func TestGetTag(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -65,43 +62,39 @@ func TestGetTag(t *testing.T) {
 		repositoryName = "busybox"
 	)
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userServiceFactory := dao.NewUserServiceFactory()
-		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-		err = userService.Create(ctx, userObj)
-		assert.NoError(t, err)
-		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-		err := namespaceService.Create(ctx, namespaceObj)
-		assert.NoError(t, err)
-		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
-		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-		assert.NoError(t, err)
-		artifactServiceFactory := dao.NewArtifactServiceFactory()
-		artifactService := artifactServiceFactory.New(tx)
-		artifactObj := &models.Artifact{
-			RepositoryID: repositoryObj.ID,
-			Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
-			Size:         1234,
-			ContentType:  "application/octet-stream",
-			Raw:          []byte("test"),
-			PushedAt:     time.Now(),
-			Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
-		}
-		err = artifactService.Create(ctx, artifactObj)
-		assert.NoError(t, err)
-		tagServiceFactory := dao.NewTagServiceFactory()
-		tagService := tagServiceFactory.New(tx)
-		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
-		err = tagService.Create(ctx, tagObj)
-		assert.NoError(t, err)
-		return nil
-	})
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+	userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com"), Role: enums.UserRoleAdmin}
+	err := userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceService := namespaceServiceFactory.New()
+	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
+	err = namespaceService.Create(ctx, namespaceObj)
+	assert.NoError(t, err)
+	log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	repositoryService := repositoryServiceFactory.New()
+	repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
+	assert.NoError(t, err)
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	artifactService := artifactServiceFactory.New()
+	artifactObj := &models.Artifact{
+		RepositoryID: repositoryObj.ID,
+		Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
+		Size:         1234,
+		ContentType:  "application/octet-stream",
+		Raw:          []byte("test"),
+		PushedAt:     time.Now(),
+		Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
+	}
+	err = artifactService.Create(ctx, artifactObj)
+	assert.NoError(t, err)
+	tagServiceFactory := dao.NewTagServiceFactory()
+	tagService := tagServiceFactory.New()
+	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
+	err = tagService.Create(ctx, tagObj)
 	assert.NoError(t, err)
 
 	tagHandler := handlerNew()
@@ -112,6 +105,7 @@ func TestGetTag(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("namespace", "id")
 	c.SetParamValues(namespaceName, "1")
 	err = tagHandler.GetTag(c)
@@ -125,6 +119,7 @@ func TestGetTag(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("namespace", "id")
 	c.SetParamValues(namespaceName, "2")
 	err = tagHandler.GetTag(c)
@@ -137,6 +132,7 @@ func TestGetTag(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("id")
 	c.SetParamValues("2")
 	err = tagHandler.GetTag(c)
@@ -163,6 +159,7 @@ func TestGetTag(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	c.SetParamNames("namespace", "id")
 	c.SetParamValues(namespaceName, "2")
 	err = tagHandler.GetTag(c)

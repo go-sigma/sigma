@@ -32,8 +32,8 @@ import (
 type Handler interface {
 	// PostNamespace handles the post namespace request
 	PostNamespace(c echo.Context) error
-	// ListNamespace handles the list namespace request
-	ListNamespace(c echo.Context) error
+	// ListNamespaces handles the list namespace request
+	ListNamespaces(c echo.Context) error
 	// GetNamespace handles the get namespace request
 	GetNamespace(c echo.Context) error
 	// DeleteNamespace handles the delete namespace request
@@ -130,12 +130,12 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	namespaceHandler := handlerNew()
 
+	namespaceGroupWithoutAuth.GET("/", namespaceHandler.ListNamespaces)
+	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
 	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
-	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
-	namespaceGroupWithoutAuth.GET("/", namespaceHandler.ListNamespace)
 
 	namespaceGroup.GET("/:id/members/", namespaceHandler.ListNamespaceMembers)
 	namespaceGroup.POST("/:id/members/", namespaceHandler.AddNamespaceMember)

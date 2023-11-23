@@ -32,7 +32,7 @@ import (
 // NamespaceMemberService is the interface that provides methods to operate on role model
 type NamespaceMemberService interface {
 	// AddNamespaceMember ...
-	AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
+	AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceRole, error)
 	// UpdateNamespaceMember ...
 	UpdateNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
 	// DeleteNamespaceMember ...
@@ -75,7 +75,7 @@ func (s *namespaceMemberServiceFactory) New(txs ...*query.Query) NamespaceMember
 }
 
 // AddNamespaceMember ...
-func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
+func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceRole, error) {
 	err := s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
 		PType: ptr.Of("g"),
 		V0:    ptr.Of(fmt.Sprintf("%d", userID)),
@@ -86,9 +86,14 @@ func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID i
 		V5:    ptr.Of(""),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.tx.NamespaceRole.WithContext(ctx).Create(&models.NamespaceRole{UserID: userID, NamespaceID: namespaceObj.ID, Role: role})
+	namespaceMember := &models.NamespaceRole{UserID: userID, NamespaceID: namespaceObj.ID, Role: role}
+	err = s.tx.NamespaceRole.WithContext(ctx).Create(namespaceMember)
+	if err != nil {
+		return nil, err
+	}
+	return namespaceMember, nil
 }
 
 // UpdateNamespaceMember ...

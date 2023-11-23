@@ -53,7 +53,7 @@ func TestAuth(t *testing.T) {
 	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 
-	err = roleService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	_, err = roleService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	assert.NoError(t, err)
 	// added, _ = dal.AuthEnforcer.AddRoleForUser("1", enums.NamespaceRoleManager.String(), "library")
 	// assert.True(t, added)
