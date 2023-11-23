@@ -23,7 +23,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -43,6 +45,17 @@ import (
 func (h *handler) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.GetNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
@@ -59,6 +72,11 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		}
 		log.Error().Err(err).Msg("Get namespace from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+	}
+
+	if !h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()

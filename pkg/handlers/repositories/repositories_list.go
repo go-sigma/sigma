@@ -25,6 +25,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -32,9 +33,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// ListRepository handles the list repository request
+// ListRepositories handles the list repositories request
 //
-//	@Summary	List repository
+//	@Summary	List repositories
 //	@Tags		Repository
 //	@security	BasicAuth
 //	@Accept		json
@@ -49,8 +50,21 @@ import (
 //	@Success	200			{object}	types.CommonList{items=[]types.RepositoryItem}
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handler) ListRepository(c echo.Context) error {
+func (h *handler) ListRepositories(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	var user *models.User
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		user = &models.User{ID: 0}
+	} else {
+		var ok bool
+		user, ok = iuser.(*models.User)
+		if !ok {
+			log.Error().Msg("Convert user from header failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		}
+	}
 
 	var req types.ListRepositoryRequest
 	err := utils.BindValidate(c, &req)
@@ -72,7 +86,7 @@ func (h *handler) ListRepository(c echo.Context) error {
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositories, total, err := repositoryService.ListRepository(ctx, namespaceObj.ID, req.Name, req.Pagination, req.Sortable)
+	repositories, total, err := repositoryService.ListRepositoryWithAuth(ctx, namespaceObj.ID, user.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List repository failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

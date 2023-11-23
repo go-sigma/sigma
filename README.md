@@ -11,7 +11,7 @@ Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great prod
 
 ## Demo Server
 
-It runs on AWS ec2 (2C2G, Disk 20G), Linux distribution is Debian 12.1, Docker version 24.0.6.
+It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 24.0.6.
 
 ``` sh
 # Install Docker from get.docker.com
@@ -32,10 +32,6 @@ Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
 I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
 
-## Architecture
-
-I was hoping you could wait for me to finish drawing the architecture.
-
 ## Quick Start
 
 Now sigma is under very early development, so it's not easy to use. But you can try it.
@@ -44,6 +40,14 @@ Now sigma is under very early development, so it's not easy to use. But you can 
 cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
 ./bin/sigma server -c ./conf/config.yaml
 ```
+
+## Architecture
+
+I was hoping you could wait for me to finish drawing the architecture.
+
+## Compatibility
+
+The sigma registry implements the OCI Distribution Spec version 1.1.0.
 
 ## Features
 
@@ -66,3 +70,9 @@ cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
 - There will be a major release in the middle and end of each year.
 - A minor release is released at the beginning of each month.
 - There will probably be a bugfix release in the middle of each week.
+
+## Alternatives
+
+- [Distribution](https://distribution.github.io/distribution/)
+- [Harbor](https://goharbor.io/)
+- [zot](https://zotregistry.io/)

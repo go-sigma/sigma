@@ -19,7 +19,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/cmds/server"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -53,8 +52,6 @@ var serverCmd = &cobra.Command{
 			log.Error().Err(err).Msg("Initialize inits with error")
 			return
 		}
-
-		auth.Initialize()
 
 		err = server.Serve(server.ServerConfig{
 			WithoutDistribution: withoutDistribution,

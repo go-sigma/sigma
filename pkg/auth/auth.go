@@ -21,35 +21,57 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
+//go:generate mockgen -destination=mocks/service.go -package=mocks github.com/go-sigma/sigma/pkg/auth Service
+//go:generate mockgen -destination=mocks/service_factory.go -package=mocks github.com/go-sigma/sigma/pkg/auth ServiceFactory
+
 // Service is the interface for the auth service
 type Service interface {
 	// Namespace ...
 	Namespace(c echo.Context, namespaceID int64, auth enums.Auth) bool
 	// Repository ...
 	Repository(c echo.Context, repositoryID int64, auth enums.Auth) bool
+	// Tag ...
+	Tag(c echo.Context, tagID int64, auth enums.Auth) bool
+	// Artifact ...
+	Artifact(c echo.Context, artifactID int64, auth enums.Auth) bool
 }
 
-var _ Service = &service{}
+// ServiceFactory is the interface that provides the artifact service factory methods.
+type ServiceFactory interface {
+	New() Service
+}
 
 type service struct {
 	roleServiceFactory       dao.NamespaceMemberServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 type inject struct {
 	roleServiceFactory       dao.NamespaceMemberServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
-var s Service
+type serviceFactory struct {
+	roleServiceFactory       dao.NamespaceMemberServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	artifactServiceFactory   dao.ArtifactServiceFactory
+}
 
-// Initialize ...
-func Initialize(injects ...inject) {
+// NewServiceFactory creates a new artifact service factory.
+func NewServiceFactory(injects ...inject) ServiceFactory {
 	roleServiceFactory := dao.NewNamespaceMemberServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	tagServiceFactory := dao.NewTagServiceFactory()
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.roleServiceFactory != nil {
@@ -61,15 +83,32 @@ func Initialize(injects ...inject) {
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
+		if ij.tagServiceFactory != nil {
+			tagServiceFactory = ij.tagServiceFactory
+		}
+		if ij.artifactServiceFactory != nil {
+			artifactServiceFactory = ij.artifactServiceFactory
+		}
 	}
-	s = &service{
+	return &serviceFactory{
 		roleServiceFactory:       roleServiceFactory,
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
+		tagServiceFactory:        tagServiceFactory,
+		artifactServiceFactory:   artifactServiceFactory,
 	}
 }
 
-// GetInstance ...
-func GetInstance() Service {
+// New ...
+func (f *serviceFactory) New() Service {
+	s := &service{
+		roleServiceFactory:       f.roleServiceFactory,
+		namespaceServiceFactory:  f.namespaceServiceFactory,
+		repositoryServiceFactory: f.repositoryServiceFactory,
+		tagServiceFactory:        f.tagServiceFactory,
+		artifactServiceFactory:   f.artifactServiceFactory,
+	}
 	return s
 }
+
+var _ Service = &service{}

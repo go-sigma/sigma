@@ -35,8 +35,8 @@ type Handler interface {
 	PutRepository(c echo.Context) error
 	// GetRepository handles the get repository request
 	GetRepository(c echo.Context) error
-	// ListNamespace handles the list repository request
-	ListRepository(c echo.Context) error
+	// ListRepositories handles the list repository request
+	ListRepositories(c echo.Context) error
 	// DeleteRepository handles the delete repository request
 	DeleteRepository(c echo.Context) error
 }
@@ -97,13 +97,17 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	repositoryHandler := handlerNew()
+	repositoryGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces/:namespace/repositories")
 	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	repositoryGroup.GET("/", repositoryHandler.ListRepository)
+
+	repositoryHandler := handlerNew()
+
+	repositoryGroupWithoutAuth.GET("/", repositoryHandler.ListRepositories)
 	repositoryGroup.POST("/", repositoryHandler.PostRepository)
 	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
 	repositoryGroup.PUT("/:id", repositoryHandler.PutRepository)
 	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
+
 	return nil
 }
 

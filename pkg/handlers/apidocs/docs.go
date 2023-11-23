@@ -3422,7 +3422,7 @@ const docTemplate = `{
                 "tags": [
                     "Repository"
                 ],
-                "summary": "List repository",
+                "summary": "List repositories",
                 "parameters": [
                     {
                         "maximum": 100,

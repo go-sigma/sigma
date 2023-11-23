@@ -48,6 +48,8 @@ type RepositoryService interface {
 	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
 	ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
+	// ListRepository lists all repositories with auth.
+	ListRepositoryWithAuth(ctx context.Context, namespaceID int64, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error)
 	// UpdateRepository update specific repository
@@ -185,6 +187,41 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 		do = do.Where(s.tx.Repository.ID.Gt(lastID[0]))
 	}
 	return do.Order(s.tx.Repository.ID).Limit(limit).Find()
+}
+
+// ListRepository lists all repositories with auth.
+func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespaceID int64, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
+	pagination = utils.NormalizePagination(pagination)
+	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	if name != nil {
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+	}
+	if userID == 0 { // find the public namespace
+		q = q.Where(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
+	} else { // find user id authenticated namespace
+		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
+		if err != nil {
+			return nil, 0, err
+		}
+		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+			q = q.LeftJoin(s.tx.NamespaceRole, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceRole.NamespaceID), s.tx.NamespaceRole.UserID.Eq(userID)).
+				Where(s.tx.NamespaceRole.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
+		}
+	}
+	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
+	if ok {
+		switch ptr.To(sort.Method) {
+		case enums.SortMethodDesc:
+			q = q.Order(field.Desc())
+		case enums.SortMethodAsc:
+			q = q.Order(field)
+		default:
+			q = q.Order(s.tx.Repository.UpdatedAt.Desc())
+		}
+	} else {
+		q = q.Order(s.tx.Repository.UpdatedAt.Desc())
+	}
+	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // ListRepository lists all repositories.

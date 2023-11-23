@@ -52,7 +52,7 @@ func (h *handler) HotNamespace(c echo.Context) error {
 	}
 
 	auditService := h.auditServiceFactory.New()
-	namespaces, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace)
+	namespaces, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace) // TODO: remove the namespace that user not have permission
 	if err != nil {
 		log.Error().Err(err).Msg("Get hot namespaces failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

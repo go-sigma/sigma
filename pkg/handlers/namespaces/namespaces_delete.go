@@ -64,6 +64,11 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
+	if !h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
 	namespaceService := h.namespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {

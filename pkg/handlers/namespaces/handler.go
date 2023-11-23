@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -57,6 +58,7 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
+	authServiceFactory            auth.ServiceFactory
 	namespaceServiceFactory       dao.NamespaceServiceFactory
 	repositoryServiceFactory      dao.RepositoryServiceFactory
 	tagServiceFactory             dao.TagServiceFactory
@@ -66,6 +68,7 @@ type handler struct {
 }
 
 type inject struct {
+	authServiceFactory       auth.ServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -82,6 +85,7 @@ func handlerNew(injects ...inject) Handler {
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	roleServiceFactory := dao.NewNamespaceMemberServiceFactory()
+	authServiceFactory := auth.NewServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.namespaceServiceFactory != nil {
@@ -102,8 +106,12 @@ func handlerNew(injects ...inject) Handler {
 		if ij.roleServiceFactory != nil {
 			roleServiceFactory = ij.roleServiceFactory
 		}
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
 	}
 	return &handler{
+		authServiceFactory:            authServiceFactory,
 		namespaceServiceFactory:       namespaceServiceFactory,
 		repositoryServiceFactory:      repositoryServiceFactory,
 		tagServiceFactory:             tagServiceFactory,
@@ -117,7 +125,9 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
+	namespaceGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces")
 	namespaceGroup := e.Group(consts.APIV1+"/namespaces", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+
 	namespaceHandler := handlerNew()
 
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
@@ -125,7 +135,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
 	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
-	namespaceGroup.GET("/", namespaceHandler.ListNamespace)
+	namespaceGroupWithoutAuth.GET("/", namespaceHandler.ListNamespace)
 
 	namespaceGroup.GET("/:id/members/", namespaceHandler.ListNamespaceMembers)
 	namespaceGroup.POST("/:id/members/", namespaceHandler.AddNamespaceMember)
