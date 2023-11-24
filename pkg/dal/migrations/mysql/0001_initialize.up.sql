@@ -12,10 +12,12 @@ CREATE TABLE IF NOT EXISTS `users` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   UNIQUE KEY `users_unique_with_username` (`username`, `deleted_at`),
-  KEY `users_idx_created_at` (`created_at`),
   KEY `users_idx_status` (`status`),
   KEY `users_idx_role` (`role`),
-  KEY `users_idx_last_login` (`last_login`)
+  KEY `users_idx_last_login` (`last_login`),
+  KEY `users_idx_created_at` (`created_at`),
+  KEY `users_idx_updated_at` (`updated_at`),
+  KEY `users_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
@@ -113,8 +115,8 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `repository_count` bigint NOT NULL DEFAULT 0,
   `tag_limit` bigint NOT NULL DEFAULT 0,
   `tag_count` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );

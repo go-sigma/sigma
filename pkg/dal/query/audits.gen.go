@@ -29,7 +29,7 @@ func newAudit(db *gorm.DB, opts ...gen.DOOption) audit {
 	_audit.ALL = field.NewAsterisk(tableName)
 	_audit.CreatedAt = field.NewTime(tableName, "created_at")
 	_audit.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_audit.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_audit.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_audit.ID = field.NewInt64(tableName, "id")
 	_audit.UserID = field.NewInt64(tableName, "user_id")
 	_audit.NamespaceID = field.NewInt64(tableName, "namespace_id")
@@ -61,7 +61,7 @@ type audit struct {
 	ALL          field.Asterisk
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
-	DeletedAt    field.Uint
+	DeletedAt    field.Uint64
 	ID           field.Int64
 	UserID       field.Int64
 	NamespaceID  field.Int64
@@ -91,7 +91,7 @@ func (a *audit) updateTableName(table string) *audit {
 	a.ALL = field.NewAsterisk(table)
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
-	a.DeletedAt = field.NewUint(table, "deleted_at")
+	a.DeletedAt = field.NewUint64(table, "deleted_at")
 	a.ID = field.NewInt64(table, "id")
 	a.UserID = field.NewInt64(table, "user_id")
 	a.NamespaceID = field.NewInt64(table, "namespace_id")

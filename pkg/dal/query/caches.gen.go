@@ -30,7 +30,7 @@ func newCache(db *gorm.DB, opts ...gen.DOOption) cache {
 	_cache.ALL = field.NewAsterisk(tableName)
 	_cache.CreatedAt = field.NewTime(tableName, "created_at")
 	_cache.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_cache.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_cache.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_cache.ID = field.NewInt64(tableName, "id")
 	_cache.Key = field.NewString(tableName, "key")
 	_cache.Val = field.NewBytes(tableName, "val")
@@ -46,7 +46,7 @@ type cache struct {
 	ALL       field.Asterisk
 	CreatedAt field.Time
 	UpdatedAt field.Time
-	DeletedAt field.Uint
+	DeletedAt field.Uint64
 	ID        field.Int64
 	Key       field.String
 	Val       field.Bytes
@@ -68,7 +68,7 @@ func (c *cache) updateTableName(table string) *cache {
 	c.ALL = field.NewAsterisk(table)
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
-	c.DeletedAt = field.NewUint(table, "deleted_at")
+	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.Key = field.NewString(table, "key")
 	c.Val = field.NewBytes(table, "val")

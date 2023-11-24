@@ -16,6 +16,8 @@
 
 import axios from "axios";
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, Fragment } from "react";
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -30,6 +32,8 @@ import { INamespaceItem, IHTTPError } from "../../interfaces";
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(relativeTime);
 
 export default function TableItem({ localServer, index, namespace, setRefresh }: { localServer: string, index: number, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
@@ -144,10 +148,10 @@ export default function TableItem({ localServer, index, namespace, setRefresh }:
         <span className='capitalize'>{namespace.visibility}</span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(namespace.created_at))}
+        {dayjs.utc(namespace.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(namespace.updated_at))}
+        {dayjs.utc(namespace.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
         e.stopPropagation();

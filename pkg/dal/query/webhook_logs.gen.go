@@ -29,7 +29,7 @@ func newWebhookLog(db *gorm.DB, opts ...gen.DOOption) webhookLog {
 	_webhookLog.ALL = field.NewAsterisk(tableName)
 	_webhookLog.CreatedAt = field.NewTime(tableName, "created_at")
 	_webhookLog.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_webhookLog.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_webhookLog.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_webhookLog.ID = field.NewInt64(tableName, "id")
 	_webhookLog.WebhookID = field.NewInt64(tableName, "webhook_id")
 	_webhookLog.Event = field.NewField(tableName, "event")
@@ -56,7 +56,7 @@ type webhookLog struct {
 	ALL        field.Asterisk
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
-	DeletedAt  field.Uint
+	DeletedAt  field.Uint64
 	ID         field.Int64
 	WebhookID  field.Int64
 	Event      field.Field
@@ -85,7 +85,7 @@ func (w *webhookLog) updateTableName(table string) *webhookLog {
 	w.ALL = field.NewAsterisk(table)
 	w.CreatedAt = field.NewTime(table, "created_at")
 	w.UpdatedAt = field.NewTime(table, "updated_at")
-	w.DeletedAt = field.NewUint(table, "deleted_at")
+	w.DeletedAt = field.NewUint64(table, "deleted_at")
 	w.ID = field.NewInt64(table, "id")
 	w.WebhookID = field.NewInt64(table, "webhook_id")
 	w.Event = field.NewField(table, "event")

@@ -17,6 +17,7 @@ package namespaces
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -104,7 +105,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		RepositoryLimit: namespace.RepositoryLimit,
 		TagCount:        tagMapCount[namespace.ID],
 		TagLimit:        namespace.TagLimit,
-		CreatedAt:       namespace.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:       namespace.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:       time.Unix(namespace.CreatedAt, 0).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:       time.Unix(namespace.UpdatedAt, 0).UTC().Format(consts.DefaultTimePattern),
 	})
 }

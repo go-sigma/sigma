@@ -29,7 +29,7 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.ALL = field.NewAsterisk(tableName)
 	_builderRunner.CreatedAt = field.NewTime(tableName, "created_at")
 	_builderRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_builderRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_builderRunner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_builderRunner.ID = field.NewInt64(tableName, "id")
 	_builderRunner.BuilderID = field.NewInt64(tableName, "builder_id")
 	_builderRunner.Log = field.NewBytes(tableName, "log")
@@ -79,7 +79,7 @@ type builderRunner struct {
 	ALL         field.Asterisk
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
-	DeletedAt   field.Uint
+	DeletedAt   field.Uint64
 	ID          field.Int64
 	BuilderID   field.Int64
 	Log         field.Bytes
@@ -110,7 +110,7 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.ALL = field.NewAsterisk(table)
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
-	b.DeletedAt = field.NewUint(table, "deleted_at")
+	b.DeletedAt = field.NewUint64(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.BuilderID = field.NewInt64(table, "builder_id")
 	b.Log = field.NewBytes(table, "log")

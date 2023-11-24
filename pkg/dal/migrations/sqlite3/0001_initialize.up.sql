@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 CREATE INDEX `users_idx_created_at` ON `users` (`created_at`);
 
+CREATE INDEX `users_idx_updated_at` ON `users` (`updated_at`);
+
+CREATE INDEX `users_idx_deleted_at` ON `users` (`deleted_at`);
+
 CREATE INDEX `users_idx_status` ON `users` (`status`);
 
 CREATE INDEX `users_idx_role` ON `users` (`role`);
@@ -117,9 +121,9 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `repository_count` integer NOT NULL DEFAULT 0,
   `tag_limit` integer NOT NULL DEFAULT 0,
   `tag_count` integer NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
+  `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
+  `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
+  `deleted_at` integer NOT NULL DEFAULT 0,
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 

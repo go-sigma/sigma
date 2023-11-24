@@ -29,7 +29,7 @@ func newDaemonGcRepositoryRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcRepo
 	_daemonGcRepositoryRecord.ALL = field.NewAsterisk(tableName)
 	_daemonGcRepositoryRecord.CreatedAt = field.NewTime(tableName, "created_at")
 	_daemonGcRepositoryRecord.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcRepositoryRecord.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcRepositoryRecord.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcRepositoryRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcRepositoryRecord.RunnerID = field.NewInt64(tableName, "runner_id")
 	_daemonGcRepositoryRecord.Repository = field.NewString(tableName, "repository")
@@ -65,7 +65,7 @@ type daemonGcRepositoryRecord struct {
 	ALL        field.Asterisk
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
-	DeletedAt  field.Uint
+	DeletedAt  field.Uint64
 	ID         field.Int64
 	RunnerID   field.Int64
 	Repository field.String
@@ -90,7 +90,7 @@ func (d *daemonGcRepositoryRecord) updateTableName(table string) *daemonGcReposi
 	d.ALL = field.NewAsterisk(table)
 	d.CreatedAt = field.NewTime(table, "created_at")
 	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")
 	d.Repository = field.NewString(table, "repository")

@@ -29,7 +29,7 @@ func newUserRecoverCode(db *gorm.DB, opts ...gen.DOOption) userRecoverCode {
 	_userRecoverCode.ALL = field.NewAsterisk(tableName)
 	_userRecoverCode.CreatedAt = field.NewTime(tableName, "created_at")
 	_userRecoverCode.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_userRecoverCode.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_userRecoverCode.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_userRecoverCode.ID = field.NewInt64(tableName, "id")
 	_userRecoverCode.UserID = field.NewInt64(tableName, "user_id")
 	_userRecoverCode.Code = field.NewString(tableName, "code")
@@ -50,7 +50,7 @@ type userRecoverCode struct {
 	ALL       field.Asterisk
 	CreatedAt field.Time
 	UpdatedAt field.Time
-	DeletedAt field.Uint
+	DeletedAt field.Uint64
 	ID        field.Int64
 	UserID    field.Int64
 	Code      field.String
@@ -73,7 +73,7 @@ func (u *userRecoverCode) updateTableName(table string) *userRecoverCode {
 	u.ALL = field.NewAsterisk(table)
 	u.CreatedAt = field.NewTime(table, "created_at")
 	u.UpdatedAt = field.NewTime(table, "updated_at")
-	u.DeletedAt = field.NewUint(table, "deleted_at")
+	u.DeletedAt = field.NewUint64(table, "deleted_at")
 	u.ID = field.NewInt64(table, "id")
 	u.UserID = field.NewInt64(table, "user_id")
 	u.Code = field.NewString(table, "code")

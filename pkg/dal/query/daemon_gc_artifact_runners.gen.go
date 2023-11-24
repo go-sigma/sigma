@@ -29,7 +29,7 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 	_daemonGcArtifactRunner.ALL = field.NewAsterisk(tableName)
 	_daemonGcArtifactRunner.CreatedAt = field.NewTime(tableName, "created_at")
 	_daemonGcArtifactRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcArtifactRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcArtifactRunner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcArtifactRunner.ID = field.NewInt64(tableName, "id")
 	_daemonGcArtifactRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcArtifactRunner.Status = field.NewField(tableName, "status")
@@ -61,7 +61,7 @@ type daemonGcArtifactRunner struct {
 	ALL          field.Asterisk
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
-	DeletedAt    field.Uint
+	DeletedAt    field.Uint64
 	ID           field.Int64
 	RuleID       field.Int64
 	Status       field.Field
@@ -90,7 +90,7 @@ func (d *daemonGcArtifactRunner) updateTableName(table string) *daemonGcArtifact
 	d.ALL = field.NewAsterisk(table)
 	d.CreatedAt = field.NewTime(table, "created_at")
 	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")

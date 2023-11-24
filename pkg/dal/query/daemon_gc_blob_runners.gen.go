@@ -29,7 +29,7 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 	_daemonGcBlobRunner.ALL = field.NewAsterisk(tableName)
 	_daemonGcBlobRunner.CreatedAt = field.NewTime(tableName, "created_at")
 	_daemonGcBlobRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcBlobRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcBlobRunner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcBlobRunner.ID = field.NewInt64(tableName, "id")
 	_daemonGcBlobRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcBlobRunner.Status = field.NewField(tableName, "status")
@@ -56,7 +56,7 @@ type daemonGcBlobRunner struct {
 	ALL          field.Asterisk
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
-	DeletedAt    field.Uint
+	DeletedAt    field.Uint64
 	ID           field.Int64
 	RuleID       field.Int64
 	Status       field.Field
@@ -85,7 +85,7 @@ func (d *daemonGcBlobRunner) updateTableName(table string) *daemonGcBlobRunner {
 	d.ALL = field.NewAsterisk(table)
 	d.CreatedAt = field.NewTime(table, "created_at")
 	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")

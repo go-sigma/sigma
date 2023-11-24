@@ -16,6 +16,7 @@ package namespaces
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -52,29 +53,29 @@ func (h *handler) HotNamespace(c echo.Context) error {
 	}
 
 	auditService := h.auditServiceFactory.New()
-	namespaces, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace) // TODO: remove the namespace that user not have permission
+	namespaceObjs, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace) // TODO: remove the namespace that user not have permission
 	if err != nil {
 		log.Error().Err(err).Msg("Get hot namespaces failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp = make([]any, 0, len(namespaces))
-	for _, ns := range namespaces {
+	var resp = make([]any, 0, len(namespaceObjs))
+	for _, namespaceObj := range namespaceObjs {
 		resp = append(resp, types.NamespaceItem{
-			ID:              ns.ID,
-			Name:            ns.Name,
-			Description:     ns.Description,
-			Visibility:      ns.Visibility,
-			Size:            ns.Size,
-			SizeLimit:       ns.SizeLimit,
-			RepositoryLimit: ns.RepositoryLimit,
-			RepositoryCount: ns.RepositoryCount,
-			TagLimit:        ns.TagLimit,
-			TagCount:        ns.TagCount,
-			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:              namespaceObj.ID,
+			Name:            namespaceObj.Name,
+			Description:     namespaceObj.Description,
+			Visibility:      namespaceObj.Visibility,
+			Size:            namespaceObj.Size,
+			SizeLimit:       namespaceObj.SizeLimit,
+			RepositoryLimit: namespaceObj.RepositoryLimit,
+			RepositoryCount: namespaceObj.RepositoryCount,
+			TagLimit:        namespaceObj.TagLimit,
+			TagCount:        namespaceObj.TagCount,
+			CreatedAt:       time.Unix(namespaceObj.CreatedAt, 0).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:       time.Unix(namespaceObj.UpdatedAt, 0).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 
-	return c.JSON(http.StatusOK, types.CommonList{Total: int64(len(namespaces)), Items: resp})
+	return c.JSON(http.StatusOK, types.CommonList{Total: int64(len(namespaceObjs)), Items: resp})
 }

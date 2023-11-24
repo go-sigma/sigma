@@ -30,7 +30,7 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 	_blob.ALL = field.NewAsterisk(tableName)
 	_blob.CreatedAt = field.NewTime(tableName, "created_at")
 	_blob.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_blob.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_blob.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_blob.ID = field.NewInt64(tableName, "id")
 	_blob.Digest = field.NewString(tableName, "digest")
 	_blob.Size = field.NewInt64(tableName, "size")
@@ -157,7 +157,7 @@ type blob struct {
 	ALL         field.Asterisk
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
-	DeletedAt   field.Uint
+	DeletedAt   field.Uint64
 	ID          field.Int64
 	Digest      field.String
 	Size        field.Int64
@@ -184,7 +184,7 @@ func (b *blob) updateTableName(table string) *blob {
 	b.ALL = field.NewAsterisk(table)
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
-	b.DeletedAt = field.NewUint(table, "deleted_at")
+	b.DeletedAt = field.NewUint64(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.Digest = field.NewString(table, "digest")
 	b.Size = field.NewInt64(table, "size")

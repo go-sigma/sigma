@@ -111,15 +111,6 @@ func Initialize() error {
 	return nil
 }
 
-// func connectRedis() error {
-// 	redisOpt, err := redis.ParseURL(viper.GetString("redis.url"))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	RedisCli = redis.NewClient(redisOpt)
-// 	return nil
-// }
-
 func connectMysql() (string, error) {
 	host := viper.GetString("database.mysql.host")
 	port := viper.GetString("database.mysql.port")
@@ -127,10 +118,13 @@ func connectMysql() (string, error) {
 	password := viper.GetString("database.mysql.password")
 	dbname := viper.GetString("database.mysql.dbname")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=UTC", user, password, host, port, dbname)
 	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
@@ -152,6 +146,9 @@ func connectPostgres() (string, error) {
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
@@ -169,6 +166,9 @@ func connectSqlite3() (string, error) {
 	dbname := viper.GetString("database.sqlite3.path")
 
 	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {

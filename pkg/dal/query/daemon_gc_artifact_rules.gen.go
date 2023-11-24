@@ -29,7 +29,7 @@ func newDaemonGcArtifactRule(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifact
 	_daemonGcArtifactRule.ALL = field.NewAsterisk(tableName)
 	_daemonGcArtifactRule.CreatedAt = field.NewTime(tableName, "created_at")
 	_daemonGcArtifactRule.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcArtifactRule.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcArtifactRule.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcArtifactRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcArtifactRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_daemonGcArtifactRule.IsRunning = field.NewBool(tableName, "is_running")
@@ -54,7 +54,7 @@ type daemonGcArtifactRule struct {
 	ALL             field.Asterisk
 	CreatedAt       field.Time
 	UpdatedAt       field.Time
-	DeletedAt       field.Uint
+	DeletedAt       field.Uint64
 	ID              field.Int64
 	NamespaceID     field.Int64
 	IsRunning       field.Bool
@@ -81,7 +81,7 @@ func (d *daemonGcArtifactRule) updateTableName(table string) *daemonGcArtifactRu
 	d.ALL = field.NewAsterisk(table)
 	d.CreatedAt = field.NewTime(table, "created_at")
 	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")
 	d.IsRunning = field.NewBool(table, "is_running")

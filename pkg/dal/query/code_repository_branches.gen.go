@@ -29,7 +29,7 @@ func newCodeRepositoryBranch(db *gorm.DB, opts ...gen.DOOption) codeRepositoryBr
 	_codeRepositoryBranch.ALL = field.NewAsterisk(tableName)
 	_codeRepositoryBranch.CreatedAt = field.NewTime(tableName, "created_at")
 	_codeRepositoryBranch.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_codeRepositoryBranch.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_codeRepositoryBranch.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepositoryBranch.ID = field.NewInt64(tableName, "id")
 	_codeRepositoryBranch.CodeRepositoryID = field.NewInt64(tableName, "code_repository_id")
 	_codeRepositoryBranch.Name = field.NewString(tableName, "name")
@@ -45,7 +45,7 @@ type codeRepositoryBranch struct {
 	ALL              field.Asterisk
 	CreatedAt        field.Time
 	UpdatedAt        field.Time
-	DeletedAt        field.Uint
+	DeletedAt        field.Uint64
 	ID               field.Int64
 	CodeRepositoryID field.Int64
 	Name             field.String
@@ -67,7 +67,7 @@ func (c *codeRepositoryBranch) updateTableName(table string) *codeRepositoryBran
 	c.ALL = field.NewAsterisk(table)
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
-	c.DeletedAt = field.NewUint(table, "deleted_at")
+	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.CodeRepositoryID = field.NewInt64(table, "code_repository_id")
 	c.Name = field.NewString(table, "name")

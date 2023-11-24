@@ -29,7 +29,7 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.ALL = field.NewAsterisk(tableName)
 	_repository.CreatedAt = field.NewTime(tableName, "created_at")
 	_repository.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_repository.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_repository.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_repository.ID = field.NewInt64(tableName, "id")
 	_repository.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_repository.Name = field.NewString(tableName, "name")
@@ -84,7 +84,7 @@ type repository struct {
 	ALL         field.Asterisk
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
-	DeletedAt   field.Uint
+	DeletedAt   field.Uint64
 	ID          field.Int64
 	NamespaceID field.Int64
 	Name        field.String
@@ -116,7 +116,7 @@ func (r *repository) updateTableName(table string) *repository {
 	r.ALL = field.NewAsterisk(table)
 	r.CreatedAt = field.NewTime(table, "created_at")
 	r.UpdatedAt = field.NewTime(table, "updated_at")
-	r.DeletedAt = field.NewUint(table, "deleted_at")
+	r.DeletedAt = field.NewUint64(table, "deleted_at")
 	r.ID = field.NewInt64(table, "id")
 	r.NamespaceID = field.NewInt64(table, "namespace_id")
 	r.Name = field.NewString(table, "name")

@@ -29,7 +29,7 @@ func newDaemonGcBlobRule(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRule {
 	_daemonGcBlobRule.ALL = field.NewAsterisk(tableName)
 	_daemonGcBlobRule.CreatedAt = field.NewTime(tableName, "created_at")
 	_daemonGcBlobRule.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcBlobRule.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcBlobRule.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcBlobRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcBlobRule.IsRunning = field.NewBool(tableName, "is_running")
 	_daemonGcBlobRule.RetentionDay = field.NewInt(tableName, "retention_day")
@@ -48,7 +48,7 @@ type daemonGcBlobRule struct {
 	ALL             field.Asterisk
 	CreatedAt       field.Time
 	UpdatedAt       field.Time
-	DeletedAt       field.Uint
+	DeletedAt       field.Uint64
 	ID              field.Int64
 	IsRunning       field.Bool
 	RetentionDay    field.Int
@@ -73,7 +73,7 @@ func (d *daemonGcBlobRule) updateTableName(table string) *daemonGcBlobRule {
 	d.ALL = field.NewAsterisk(table)
 	d.CreatedAt = field.NewTime(table, "created_at")
 	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.IsRunning = field.NewBool(table, "is_running")
 	d.RetentionDay = field.NewInt(table, "retention_day")

@@ -29,7 +29,7 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.ALL = field.NewAsterisk(tableName)
 	_codeRepository.CreatedAt = field.NewTime(tableName, "created_at")
 	_codeRepository.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_codeRepository.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_codeRepository.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepository.ID = field.NewInt64(tableName, "id")
 	_codeRepository.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
 	_codeRepository.RepositoryID = field.NewString(tableName, "repository_id")
@@ -68,7 +68,7 @@ type codeRepository struct {
 	ALL            field.Asterisk
 	CreatedAt      field.Time
 	UpdatedAt      field.Time
-	DeletedAt      field.Uint
+	DeletedAt      field.Uint64
 	ID             field.Int64
 	User3rdPartyID field.Int64
 	RepositoryID   field.String
@@ -100,7 +100,7 @@ func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.ALL = field.NewAsterisk(table)
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
-	c.DeletedAt = field.NewUint(table, "deleted_at")
+	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
 	c.RepositoryID = field.NewString(table, "repository_id")
