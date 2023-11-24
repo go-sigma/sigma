@@ -33,16 +33,12 @@ function Hero() {
                   />
                 </h2>
                 <Link
-                  className={clsx(
-                    'button button--outline button--secondary button--lg hero-started',
-                  )}
+                  className='button button--outline button--secondary button--lg hero-started'
                   to={useBaseUrl('docs/sigma')}>
                   Get started
                 </Link>
                 <Link
-                  className={clsx(
-                    'button button--outline button--secondary button--lg hero-try-demo',
-                  )}
+                  className='button button--outline button--secondary button--lg hero-try-demo'
                   to={"https://sigma.tosone.cn"}>
                   Try demo
                 </Link>

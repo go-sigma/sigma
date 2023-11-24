@@ -37,14 +37,14 @@ import (
 //
 //	@Summary	Create namespace
 //	@Tags		Namespace
+//	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/ [post]
-//	@Param		message	body	types.PostNamespaceRequest	true	"Namespace object"
-//	@security	BasicAuth
-//	@Success	201	{object}	types.PostNamespaceResponse
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Param		message	body		types.PostNamespaceRequest	true	"Namespace object"
+//	@Success	201		{object}	types.PostNamespaceResponse
+//	@Failure	400		{object}	xerrors.ErrCode
+//	@Failure	500		{object}	xerrors.ErrCode
 func (h *handler) PostNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

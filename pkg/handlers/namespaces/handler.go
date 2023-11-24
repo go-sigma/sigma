@@ -137,11 +137,11 @@ func (f factory) Initialize(e *echo.Echo) error {
 	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
 	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
 
-	namespaceGroup.GET("/:id/members/", namespaceHandler.ListNamespaceMembers)
-	namespaceGroup.POST("/:id/members/", namespaceHandler.AddNamespaceMember)
-	namespaceGroup.PUT("/:id/members/", namespaceHandler.UpdateNamespaceMember)
-	namespaceGroup.DELETE("/:id/members/", namespaceHandler.DeleteNamespaceMember)
-	namespaceGroup.GET("/:id/members/self", namespaceHandler.GetNamespaceMemberSelf)
+	namespaceGroup.GET("/:namespace_id/members/", namespaceHandler.ListNamespaceMembers)
+	namespaceGroup.GET("/:namespace_id/members/self", namespaceHandler.GetNamespaceMemberSelf)
+	namespaceGroup.POST("/:namespace_id/members/", namespaceHandler.AddNamespaceMember)
+	namespaceGroup.PUT("/:namespace_id/members/:user_id", namespaceHandler.UpdateNamespaceMember)
+	namespaceGroup.DELETE("/:namespace_id/members/:user_id", namespaceHandler.DeleteNamespaceMember)
 
 	return nil
 }

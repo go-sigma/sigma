@@ -172,13 +172,19 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
-  types.AddMemberRequest:
+  types.AddNamespaceMemberRequest:
     properties:
       role:
         allOf:
         - $ref: '#/definitions/enums.NamespaceRole'
         example: NamespaceReader
       user_id:
+        example: 10
+        type: integer
+    type: object
+  types.AddNamespaceMemberResponse:
+    properties:
+      id:
         example: 10
         type: integer
     type: object
@@ -870,6 +876,28 @@ definitions:
         - $ref: '#/definitions/enums.Visibility'
         example: private
     type: object
+  types.NamespaceMemberItem:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      id:
+        example: 1
+        type: integer
+      role:
+        allOf:
+        - $ref: '#/definitions/enums.NamespaceRole'
+        example: NamespaceAdmin
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      user_id:
+        example: 1
+        type: integer
+      username:
+        example: admin
+        type: string
+    type: object
   types.Oauth2ClientIDResponse:
     properties:
       client_id:
@@ -1540,6 +1568,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.RetentionRuleType'
         example: Day
+    type: object
+  types.UpdateNamespaceMemberRequest:
+    properties:
+      role:
+        allOf:
+        - $ref: '#/definitions/enums.NamespaceRole'
+        example: NamespaceReader
     type: object
   types.UserItem:
     properties:
@@ -3659,6 +3694,151 @@ paths:
       summary: Update namespace
       tags:
       - Namespace
+  /namespaces/{namespace_id}/members/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 10
+        description: Limit size
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: Search namespace namespace with name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.NamespaceMemberItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List namespace members
+      tags:
+      - Namespace
+  /namespaces/{namespace_id}/members/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete namespace member
+      tags:
+      - Namespace
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: number
+      - description: Namespace member object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateNamespaceMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BasicAuth: []
+      summary: Update namespace member
+      tags:
+      - Namespace
+  /namespaces/{namespace_id}/members/self:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.NamespaceMemberItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get self namespace member info
+      tags:
+      - Namespace
   /namespaces/{namespace_id}/repositories/{repository_id}/builders:
     post:
       consumes:
@@ -4201,14 +4381,14 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.AddMemberRequest'
+          $ref: '#/definitions/types.AddNamespaceMemberRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/types.PostNamespaceResponse'
+            $ref: '#/definitions/types.AddNamespaceMemberResponse'
         "400":
           description: Bad Request
           schema:

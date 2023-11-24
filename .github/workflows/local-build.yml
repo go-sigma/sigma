@@ -37,7 +37,7 @@ jobs:
       - name: Build server
         run: |
           cd web
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build
           cd ..
           make build

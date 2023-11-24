@@ -29,6 +29,20 @@ import (
 )
 
 // ListNamespaceMembers handles the list namespace members request
+//
+//	@Summary	List namespace members
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/members/ [get]
+//	@Param		limit	query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page	query		int64	false	"Page number"	minimum(1)	default(1)
+//	@Param		sort	query		string	false	"Sort field"
+//	@Param		method	query		string	false	"Sort method"	Enums(asc, desc)
+//	@Param		name	query		string	false	"Search namespace namespace with name"
+//	@Success	200		{object}	types.CommonList{items=[]types.NamespaceMemberItem}
+//	@Failure	500		{object}	xerrors.ErrCode
 func (h *handler) ListNamespaceMembers(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -40,7 +54,7 @@ func (h *handler) ListNamespaceMembers(c echo.Context) error {
 	}
 
 	namespaceMemberService := h.namespaceMemberServiceFactory.New()
-	namespaceMemberObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.ID, req.Name, req.Pagination, req.Sortable)
+	namespaceMemberObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.NamespaceID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace role failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List namespace role failed: %v", err))
@@ -48,7 +62,7 @@ func (h *handler) ListNamespaceMembers(c echo.Context) error {
 
 	var resp = make([]any, 0, len(namespaceMemberObjs))
 	for _, namespaceMemberObj := range namespaceMemberObjs {
-		resp = append(resp, types.NamespaceRoleItem{
+		resp = append(resp, types.NamespaceMemberItem{
 			ID:        namespaceMemberObj.ID,
 			Username:  namespaceMemberObj.User.Username,
 			UserID:    namespaceMemberObj.User.ID,

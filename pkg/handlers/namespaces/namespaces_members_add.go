@@ -41,9 +41,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/members/ [post]
-//	@Param		message	body	types.AddMemberRequest	true	"Member object"
+//	@Param		message	body	types.AddNamespaceMemberRequest	true	"Member object"
 //	@security	BasicAuth
-//	@Success	201	{object}	types.PostNamespaceResponse
+//	@Success	201	{object}	types.AddNamespaceMemberResponse
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) AddNamespaceMember(c echo.Context) error {
@@ -60,20 +60,20 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.AddMemberRequest
+	var req types.AddNamespaceMemberRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if !h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthAdmin) {
-		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
+	if !h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthAdmin) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.Get(ctx, req.ID)
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Namespace not found")
@@ -85,18 +85,18 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 
 	roles := dal.AuthEnforcer.GetRolesForUserInDomain(fmt.Sprintf("%d", req.UserID), namespaceObj.Name)
 	if len(roles) > 0 {
-		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.ID).Msg("User already have role in namespace")
+		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("User already have role in namespace")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "User already have role in namespace")
 	}
 
 	namespaceMemberService := h.namespaceMemberServiceFactory.New()
-	roleCount, err := namespaceMemberService.CountNamespaceMember(ctx, req.UserID, req.ID)
+	roleCount, err := namespaceMemberService.CountNamespaceMember(ctx, req.UserID, req.NamespaceID)
 	if err != nil {
-		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.ID).Msg("Count namespace role failed")
+		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("Count namespace role failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Count namespace role failed: %v", err))
 	}
 	if roleCount >= consts.MaxNamespaceMember {
-		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.ID).Msg("Max namespace role quota exceeds")
+		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("Max namespace role quota exceeds")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Max namespace role quota exceeds")
 	}
 
@@ -133,7 +133,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Msg("Reload policy failed")
 	}
-	return c.JSON(http.StatusCreated, types.AddMemberResponse{
+	return c.JSON(http.StatusCreated, types.AddNamespaceMemberResponse{
 		ID: namespaceMemberObj.ID,
 	})
 }

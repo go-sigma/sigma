@@ -31,7 +31,18 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// GetNamespaceMemberSelf handles the get self namespace member request
+// GetNamespaceMemberSelf handles the get self namespace member info request
+//
+//	@Summary	Get self namespace member info
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/members/self [get]
+//	@Param		namespace_id	path		number	true	"Namespace id"
+//	@Success	200				{object}	types.NamespaceMemberItem
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -54,7 +65,7 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 	}
 
 	namespaceMemberService := h.namespaceMemberServiceFactory.New()
-	namespaceMemberObj, err := namespaceMemberService.GetNamespaceMember(ctx, req.ID, user.ID)
+	namespaceMemberObj, err := namespaceMemberService.GetNamespaceMember(ctx, req.NamespaceID, user.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace role from db not found")
@@ -64,7 +75,7 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace role from db failed: %v", err))
 	}
 
-	return c.JSON(http.StatusOK, types.NamespaceRoleItem{
+	return c.JSON(http.StatusOK, types.NamespaceMemberItem{
 		ID:        namespaceMemberObj.ID,
 		Username:  user.Username,
 		UserID:    user.ID,

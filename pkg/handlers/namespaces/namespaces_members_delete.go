@@ -23,31 +23,44 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // DeleteNamespaceMember handles the delete namespace member request
+//
+//	@Summary	Delete namespace member
+//	@security	BasicAuth
+//	@Tags		Namespace
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/members/{user_id} [delete]
+//	@Param		namespace_id	path	number	true	"Namespace id"
+//	@Param		user_id			path	number	true	"User id"
+//	@Success	204
+//	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	// TODO: add audit
-	// iuser := c.Get(consts.ContextUser)
-	// if iuser == nil {
-	// 	log.Error().Msg("Get user from header failed")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	// }
-	// user, ok := iuser.(*models.User)
-	// if !ok {
-	// 	log.Error().Msg("Convert user from header failed")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	// }
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
-	var req types.DeleteMemberRequest
+	var req types.DeleteNamespaceMemberRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -55,7 +68,7 @@ func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.Get(ctx, req.ID)
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Namespace not found")
@@ -65,27 +78,25 @@ func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Find namespace failed: %v", err))
 	}
 
-	// roles := dal.AuthEnforcer.GetRolesForUserInDomain(fmt.Sprintf("%d", req.UserID), namespaceObj.Name)
-	// if len(roles) != 1 {
-	// 	log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.ID).Msg("User not have role in namespace")
-	// 	return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "User not have role in namespace")
-	// }
-	// role := roles[0]
-
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
 		err = namespaceMemberService.DeleteNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj))
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete namespace role for user failed: %v", err))
 		}
-		// deleted, err := dal.AuthEnforcer.DeleteRoleForUserInDomain(fmt.Sprintf("%d", req.UserID), role, namespaceObj.Name)
-		// if err != nil {
-		// 	log.Error().Err(err).Msg("Delete namespace role for user failed")
-		// 	return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete namespace role for user failed: %v", err))
-		// }
-		// if !deleted {
-		// 	log.Info().Str("Role", role).Int64("UserID", req.UserID).Msg("User deleted to namespace already")
-		// }
+		auditService := h.auditServiceFactory.New(tx)
+		err = auditService.Create(ctx, &models.Audit{
+			UserID:       user.ID,
+			NamespaceID:  ptr.Of(namespaceObj.ID),
+			Action:       enums.AuditActionDelete,
+			ResourceType: enums.AuditResourceTypeNamespaceMember,
+			Resource:     namespaceObj.Name,
+			ReqRaw:       utils.MustMarshal(req),
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("Create audit failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
+		}
 		return nil
 	})
 	if err != nil {
