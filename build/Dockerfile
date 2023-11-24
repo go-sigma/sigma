@@ -10,7 +10,7 @@ COPY ./web /web
 
 WORKDIR /web
 
-RUN --mount=type=cache,target=/web/node_modules set -eux && yarn install --frozen-lockfile && yarn build
+RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && yarn install --frozen-lockfile && yarn build
 
 FROM alpine:${ALPINE_VERSION} as syft
 

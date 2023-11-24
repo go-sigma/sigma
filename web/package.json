@@ -52,5 +52,6 @@
     "tailwindcss": "^3.3.5",
     "typescript": "^5.3.2",
     "vite": "^5.0.2"
-  }
+  },
+  "packageManager": "yarn@4.0.2"
 }
