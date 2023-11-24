@@ -27,8 +27,8 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 
 	tableName := _codeRepository.codeRepositoryDo.TableName()
 	_codeRepository.ALL = field.NewAsterisk(tableName)
-	_codeRepository.CreatedAt = field.NewTime(tableName, "created_at")
-	_codeRepository.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_codeRepository.CreatedAt = field.NewInt64(tableName, "created_at")
+	_codeRepository.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_codeRepository.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepository.ID = field.NewInt64(tableName, "id")
 	_codeRepository.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
@@ -66,8 +66,8 @@ type codeRepository struct {
 	codeRepositoryDo codeRepositoryDo
 
 	ALL            field.Asterisk
-	CreatedAt      field.Time
-	UpdatedAt      field.Time
+	CreatedAt      field.Int64
+	UpdatedAt      field.Int64
 	DeletedAt      field.Uint64
 	ID             field.Int64
 	User3rdPartyID field.Int64
@@ -98,8 +98,8 @@ func (c codeRepository) As(alias string) *codeRepository {
 
 func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.ALL = field.NewAsterisk(table)
-	c.CreatedAt = field.NewTime(table, "created_at")
-	c.UpdatedAt = field.NewTime(table, "updated_at")
+	c.CreatedAt = field.NewInt64(table, "created_at")
+	c.UpdatedAt = field.NewInt64(table, "updated_at")
 	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")

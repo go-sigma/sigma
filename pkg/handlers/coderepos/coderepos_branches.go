@@ -17,6 +17,7 @@ package coderepos
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -59,8 +60,8 @@ func (h *handler) ListBranches(c echo.Context) error {
 		resp = append(resp, types.CodeRepositoryBranchItem{
 			ID:        branchObj.ID,
 			Name:      branchObj.Name,
-			CreatedAt: branchObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: branchObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

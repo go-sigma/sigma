@@ -17,6 +17,7 @@ package namespaces
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -39,21 +40,21 @@ func (h *handler) ListNamespaceMembers(c echo.Context) error {
 	}
 
 	namespaceMemberService := h.namespaceMemberServiceFactory.New()
-	namespaceRoleObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.ID, req.Name, req.Pagination, req.Sortable)
+	namespaceMemberObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace role failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List namespace role failed: %v", err))
 	}
 
-	var resp = make([]any, 0, len(namespaceRoleObjs))
-	for _, namespaceRoleObj := range namespaceRoleObjs {
+	var resp = make([]any, 0, len(namespaceMemberObjs))
+	for _, namespaceMemberObj := range namespaceMemberObjs {
 		resp = append(resp, types.NamespaceRoleItem{
-			ID:        namespaceRoleObj.ID,
-			Username:  namespaceRoleObj.User.Username,
-			UserID:    namespaceRoleObj.User.ID,
-			Role:      namespaceRoleObj.Role,
-			CreatedAt: namespaceRoleObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: namespaceRoleObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:        namespaceMemberObj.ID,
+			Username:  namespaceMemberObj.User.Username,
+			UserID:    namespaceMemberObj.User.ID,
+			Role:      namespaceMemberObj.Role,
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*namespaceMemberObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*namespaceMemberObj.UpdatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

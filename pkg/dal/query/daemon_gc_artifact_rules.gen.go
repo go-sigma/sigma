@@ -27,8 +27,8 @@ func newDaemonGcArtifactRule(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifact
 
 	tableName := _daemonGcArtifactRule.daemonGcArtifactRuleDo.TableName()
 	_daemonGcArtifactRule.ALL = field.NewAsterisk(tableName)
-	_daemonGcArtifactRule.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcArtifactRule.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_daemonGcArtifactRule.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcArtifactRule.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_daemonGcArtifactRule.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcArtifactRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcArtifactRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
@@ -52,8 +52,8 @@ type daemonGcArtifactRule struct {
 	daemonGcArtifactRuleDo daemonGcArtifactRuleDo
 
 	ALL             field.Asterisk
-	CreatedAt       field.Time
-	UpdatedAt       field.Time
+	CreatedAt       field.Int64
+	UpdatedAt       field.Int64
 	DeletedAt       field.Uint64
 	ID              field.Int64
 	NamespaceID     field.Int64
@@ -79,8 +79,8 @@ func (d daemonGcArtifactRule) As(alias string) *daemonGcArtifactRule {
 
 func (d *daemonGcArtifactRule) updateTableName(table string) *daemonGcArtifactRule {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
 	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")

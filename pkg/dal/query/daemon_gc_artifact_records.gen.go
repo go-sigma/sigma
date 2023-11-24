@@ -27,8 +27,8 @@ func newDaemonGcArtifactRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 
 	tableName := _daemonGcArtifactRecord.daemonGcArtifactRecordDo.TableName()
 	_daemonGcArtifactRecord.ALL = field.NewAsterisk(tableName)
-	_daemonGcArtifactRecord.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcArtifactRecord.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_daemonGcArtifactRecord.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcArtifactRecord.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_daemonGcArtifactRecord.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcArtifactRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcArtifactRecord.RunnerID = field.NewInt64(tableName, "runner_id")
@@ -63,8 +63,8 @@ type daemonGcArtifactRecord struct {
 	daemonGcArtifactRecordDo daemonGcArtifactRecordDo
 
 	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
+	CreatedAt field.Int64
+	UpdatedAt field.Int64
 	DeletedAt field.Uint64
 	ID        field.Int64
 	RunnerID  field.Int64
@@ -88,8 +88,8 @@ func (d daemonGcArtifactRecord) As(alias string) *daemonGcArtifactRecord {
 
 func (d *daemonGcArtifactRecord) updateTableName(table string) *daemonGcArtifactRecord {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
 	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")

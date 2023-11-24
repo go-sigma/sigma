@@ -17,6 +17,7 @@ package repositories
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -137,7 +138,7 @@ func (h *handler) GetRepository(c echo.Context) error {
 		Size:        ptr.Of(repositoryObj.Size),
 		TagCount:    repositoryObj.TagCount,
 		Builder:     builderItemObj,
-		CreatedAt:   repositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:   repositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:   time.Unix(0, int64(time.Millisecond)*repositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:   time.Unix(0, int64(time.Millisecond)*repositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

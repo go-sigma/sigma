@@ -27,8 +27,8 @@ func newCodeRepositoryCloneCredential(db *gorm.DB, opts ...gen.DOOption) codeRep
 
 	tableName := _codeRepositoryCloneCredential.codeRepositoryCloneCredentialDo.TableName()
 	_codeRepositoryCloneCredential.ALL = field.NewAsterisk(tableName)
-	_codeRepositoryCloneCredential.CreatedAt = field.NewTime(tableName, "created_at")
-	_codeRepositoryCloneCredential.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_codeRepositoryCloneCredential.CreatedAt = field.NewInt64(tableName, "created_at")
+	_codeRepositoryCloneCredential.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_codeRepositoryCloneCredential.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepositoryCloneCredential.ID = field.NewInt64(tableName, "id")
 	_codeRepositoryCloneCredential.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
@@ -57,8 +57,8 @@ type codeRepositoryCloneCredential struct {
 	codeRepositoryCloneCredentialDo codeRepositoryCloneCredentialDo
 
 	ALL            field.Asterisk
-	CreatedAt      field.Time
-	UpdatedAt      field.Time
+	CreatedAt      field.Int64
+	UpdatedAt      field.Int64
 	DeletedAt      field.Uint64
 	ID             field.Int64
 	User3rdPartyID field.Int64
@@ -84,8 +84,8 @@ func (c codeRepositoryCloneCredential) As(alias string) *codeRepositoryCloneCred
 
 func (c *codeRepositoryCloneCredential) updateTableName(table string) *codeRepositoryCloneCredential {
 	c.ALL = field.NewAsterisk(table)
-	c.CreatedAt = field.NewTime(table, "created_at")
-	c.UpdatedAt = field.NewTime(table, "updated_at")
+	c.CreatedAt = field.NewInt64(table, "created_at")
+	c.UpdatedAt = field.NewInt64(table, "updated_at")
 	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")

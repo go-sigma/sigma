@@ -27,8 +27,8 @@ func newDaemonGcRepositoryRule(db *gorm.DB, opts ...gen.DOOption) daemonGcReposi
 
 	tableName := _daemonGcRepositoryRule.daemonGcRepositoryRuleDo.TableName()
 	_daemonGcRepositoryRule.ALL = field.NewAsterisk(tableName)
-	_daemonGcRepositoryRule.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcRepositoryRule.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_daemonGcRepositoryRule.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcRepositoryRule.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_daemonGcRepositoryRule.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcRepositoryRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcRepositoryRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
@@ -52,8 +52,8 @@ type daemonGcRepositoryRule struct {
 	daemonGcRepositoryRuleDo daemonGcRepositoryRuleDo
 
 	ALL             field.Asterisk
-	CreatedAt       field.Time
-	UpdatedAt       field.Time
+	CreatedAt       field.Int64
+	UpdatedAt       field.Int64
 	DeletedAt       field.Uint64
 	ID              field.Int64
 	NamespaceID     field.Int64
@@ -79,8 +79,8 @@ func (d daemonGcRepositoryRule) As(alias string) *daemonGcRepositoryRule {
 
 func (d *daemonGcRepositoryRule) updateTableName(table string) *daemonGcRepositoryRule {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
 	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")

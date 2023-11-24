@@ -16,6 +16,7 @@ package coderepos
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -84,8 +85,8 @@ func (h *handler) List(c echo.Context) error {
 			CloneUrl:     codeRepositoryObj.CloneUrl,
 			SshUrl:       codeRepositoryObj.SshUrl,
 			OciRepoCount: codeRepositoryObj.OciRepoCount,
-			CreatedAt:    codeRepositoryObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:    codeRepositoryObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt:    time.Unix(0, int64(time.Millisecond)*codeRepositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:    time.Unix(0, int64(time.Millisecond)*codeRepositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

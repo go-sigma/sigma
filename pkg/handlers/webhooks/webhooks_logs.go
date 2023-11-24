@@ -16,6 +16,7 @@ package webhooks
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -69,8 +70,8 @@ func (h *handler) LogsWebhook(c echo.Context) error {
 			ReqBody:    string(webhookLogObj.ReqBody),
 			RespHeader: string(webhookLogObj.RespHeader),
 			RespBody:   string(webhookLogObj.RespBody),
-			CreatedAt:  webhookLogObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:  webhookLogObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt:  time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:  time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})

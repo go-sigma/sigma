@@ -15,8 +15,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
@@ -26,8 +24,8 @@ import (
 
 // Repository represents a repository
 type Repository struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

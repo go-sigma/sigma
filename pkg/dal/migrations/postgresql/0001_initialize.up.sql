@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS "users" (
   "namespace_count" bigint NOT NULL DEFAULT 0,
   "status" user_status NOT NULL DEFAULT 'Active',
   "role" user_role NOT NULL DEFAULT 'User',
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   "cr_last_update_timestamp" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "cr_last_update_status" daemon_status NOT NULL DEFAULT 'Doing',
   "cr_last_update_message" varchar(256),
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   CONSTRAINT "user_3rdparty_unique_with_account_id" UNIQUE ("provider", "account_id", "deleted_at")
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS "code_repository_clone_credentials" (
   "username" varchar(256),
   "password" varchar(256),
   "token" varchar(256),
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id")
 );
@@ -106,8 +106,8 @@ CREATE TABLE IF NOT EXISTS "code_repository_owners" (
   "is_org" smallint NOT NULL DEFAULT 0,
   "owner_id" varchar(256) NOT NULL,
   "owner" varchar(256) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
   CONSTRAINT "code_repository_owners_unique_with_name" UNIQUE ("user_3rdparty_id", "owner_id", "deleted_at")
@@ -130,8 +130,8 @@ CREATE TABLE IF NOT EXISTS "code_repositories" (
   "ssh_url" varchar(256) NOT NULL,
   "clone_url" varchar(256) NOT NULL,
   "oci_repo_count" bigint NOT NULL DEFAULT 0,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_3rdparty_id") REFERENCES "user_3rdparty" ("id"),
   CONSTRAINT "code_repositories_unique_with_name" UNIQUE ("user_3rdparty_id", "owner_id", "repository_id", "deleted_at")
@@ -147,8 +147,8 @@ CREATE TABLE IF NOT EXISTS "code_repository_branches" (
   "id" bigserial PRIMARY KEY,
   "code_repository_id" integer NOT NULL,
   "name" varchar(256) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
   FOREIGN KEY ("code_repository_id") REFERENCES "code_repositories" ("id"),
   CONSTRAINT "code_repository_branches_unique_with_name" UNIQUE ("code_repository_id", "name", "deleted_at")
@@ -164,8 +164,8 @@ CREATE TABLE IF NOT EXISTS "user_recover_codes" (
   "id" bigserial PRIMARY KEY,
   "user_id" bigint NOT NULL,
   "code" varchar(256) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   CONSTRAINT "user_recover_codes_unique_with_user_id" UNIQUE ("user_id", "deleted_at")
@@ -229,8 +229,8 @@ CREATE TABLE IF NOT EXISTS "audits" (
   "resource" varchar(256) NOT NULL,
   "before_raw" bytea,
   "req_raw" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
@@ -253,8 +253,8 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   "tag_limit" bigint NOT NULL DEFAULT 0,
   "tag_count" bigint NOT NULL DEFAULT 0,
   "namespace_id" bigserial NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   CONSTRAINT "repositories_unique_with_namespace" UNIQUE ("namespace_id", "name", "deleted_at")
@@ -292,8 +292,8 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,
   "referrer_id" bigint,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
   FOREIGN KEY ("referrer_id") REFERENCES "artifacts" ("id"),
@@ -315,8 +315,8 @@ CREATE TABLE IF NOT EXISTS "artifact_sboms" (
   "stdout" bytea,
   "stderr" bytea,
   "message" varchar(256),
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "artifact_sbom_unique_with_artifact" UNIQUE ("artifact_id", "deleted_at")
@@ -338,8 +338,8 @@ CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   "stdout" bytea,
   "stderr" bytea,
   "message" varchar(256),
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "artifact_vulnerability_unique_with_artifact" UNIQUE ("artifact_id", "deleted_at")
@@ -359,8 +359,8 @@ CREATE TABLE IF NOT EXISTS "tags" (
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
   FOREIGN KEY ("artifact_id") REFERENCES "artifacts" ("id"),
@@ -381,8 +381,8 @@ CREATE TABLE IF NOT EXISTS "blobs" (
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "blobs_unique_with_digest" UNIQUE ("digest", "deleted_at")
 );
@@ -401,8 +401,8 @@ CREATE TABLE IF NOT EXISTS "blob_uploads" (
   "repository" varchar(256) NOT NULL,
   "file_id" varchar(256) NOT NULL,
   "size" bigint NOT NULL DEFAULT 0,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "blob_uploads_unique_with_upload_id_etag" UNIQUE ("upload_id", "etag", "deleted_at")
 );
@@ -444,8 +444,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_rules" (
   "retention_rule_type" retention_rule_type NOT NULL DEFAULT 'Quantity',
   "retention_rule_amount" bigint NOT NULL DEFAULT 1,
   "retention_pattern" varchar(64),
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   CONSTRAINT "daemon_gc_tag_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
@@ -467,8 +467,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_runners" (
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_tag_rules" ("id")
 );
@@ -490,8 +490,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_records" (
   "tag" varchar(128) NOT NULL,
   "status" gc_record_status NOT NULL DEFAULT 'Success',
   "message" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_tag_runners" ("id")
 );
@@ -510,8 +510,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   CONSTRAINT "daemon_gc_repository_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
@@ -533,8 +533,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_runners" (
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
   FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_repository_rules" ("id")
 );
@@ -551,8 +551,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_records" (
   "repository" varchar(64) NOT NULL,
   "status" gc_record_status NOT NULL DEFAULT 'Success',
   "message" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_repository_runners" ("id")
 );
@@ -571,8 +571,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_rules" (
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   CONSTRAINT "daemon_gc_artifact_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
@@ -594,8 +594,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
   FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_artifact_rules" ("id")
 );
@@ -612,8 +612,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
   "digest" varchar(256) NOT NULL,
   "status" gc_record_status NOT NULL DEFAULT 'Success',
   "message" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_artifact_runners" ("id")
 );
@@ -630,8 +630,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
   "cron_next_trigger" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
@@ -651,8 +651,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_runners" (
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
   FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_blob_rules" ("id")
 );
@@ -669,8 +669,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_records" (
   "digest" varchar(256) NOT NULL,
   "status" gc_record_status NOT NULL DEFAULT 'Success',
   "message" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_blob_runners" ("id")
 );
@@ -704,8 +704,8 @@ CREATE TABLE IF NOT EXISTS "namespace_members" (
   "user_id" bigint NOT NULL,
   "namespace_id" bigint NOT NULL,
   "role" namespace_member_role NOT NULL DEFAULT 'NamespaceReader',
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   CONSTRAINT "namespace_members_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
@@ -755,8 +755,8 @@ CREATE TABLE IF NOT EXISTS "webhooks" (
   "event_tag" smallint NOT NULL DEFAULT 1,
   "event_pull_push" smallint NOT NULL DEFAULT 1,
   "event_member" smallint NOT NULL DEFAULT 1,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
@@ -775,8 +775,8 @@ CREATE TABLE IF NOT EXISTS "webhook_logs" (
   "req_body" bytea NOT NULL,
   "resp_header" bytea NOT NULL,
   "resp_body" bytea,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("webhook_id") REFERENCES "webhooks" ("id")
 );
@@ -828,8 +828,8 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "buildkit_platforms" varchar(256) NOT NULL DEFAULT 'linux/amd64',
   "buildkit_build_args" varchar(256),
   -- other fields
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
   FOREIGN KEY ("code_repository_id") REFERENCES "code_repositories" ("id"),
@@ -866,8 +866,8 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   "ended_at" timestamp,
   "duration" bigint,
   -- other fields
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp NOT NULL,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("builder_id") REFERENCES "builders" ("id")
 );
@@ -885,8 +885,8 @@ CREATE TABLE IF NOT EXISTS "work_queues" (
   "times" smallint NOT NULL DEFAULT 0,
   "version" varchar(36) NOT NULL,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
@@ -900,8 +900,8 @@ CREATE TABLE IF NOT EXISTS "caches" (
   "id" bigserial PRIMARY KEY,
   "key" varchar(256) NOT NULL UNIQUE,
   "val" bytea NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0
 );
 
@@ -917,8 +917,8 @@ CREATE TABLE IF NOT EXISTS "settings" (
   "id" bigserial PRIMARY KEY,
   "key" varchar(256) NOT NULL UNIQUE,
   "val" bytea,
-  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 

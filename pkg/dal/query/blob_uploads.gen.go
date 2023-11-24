@@ -27,8 +27,8 @@ func newBlobUpload(db *gorm.DB, opts ...gen.DOOption) blobUpload {
 
 	tableName := _blobUpload.blobUploadDo.TableName()
 	_blobUpload.ALL = field.NewAsterisk(tableName)
-	_blobUpload.CreatedAt = field.NewTime(tableName, "created_at")
-	_blobUpload.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_blobUpload.CreatedAt = field.NewInt64(tableName, "created_at")
+	_blobUpload.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_blobUpload.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_blobUpload.ID = field.NewInt64(tableName, "id")
 	_blobUpload.PartNumber = field.NewInt(tableName, "part_number")
@@ -47,8 +47,8 @@ type blobUpload struct {
 	blobUploadDo blobUploadDo
 
 	ALL        field.Asterisk
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
+	CreatedAt  field.Int64
+	UpdatedAt  field.Int64
 	DeletedAt  field.Uint64
 	ID         field.Int64
 	PartNumber field.Int
@@ -73,8 +73,8 @@ func (b blobUpload) As(alias string) *blobUpload {
 
 func (b *blobUpload) updateTableName(table string) *blobUpload {
 	b.ALL = field.NewAsterisk(table)
-	b.CreatedAt = field.NewTime(table, "created_at")
-	b.UpdatedAt = field.NewTime(table, "updated_at")
+	b.CreatedAt = field.NewInt64(table, "created_at")
+	b.UpdatedAt = field.NewInt64(table, "updated_at")
 	b.DeletedAt = field.NewUint64(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.PartNumber = field.NewInt(table, "part_number")

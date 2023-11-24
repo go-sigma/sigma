@@ -27,8 +27,8 @@ func newLocker(db *gorm.DB, opts ...gen.DOOption) locker {
 
 	tableName := _locker.lockerDo.TableName()
 	_locker.ALL = field.NewAsterisk(tableName)
-	_locker.CreatedAt = field.NewTime(tableName, "created_at")
-	_locker.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_locker.CreatedAt = field.NewInt64(tableName, "created_at")
+	_locker.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_locker.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_locker.ID = field.NewInt64(tableName, "id")
 	_locker.Name = field.NewString(tableName, "name")
@@ -42,8 +42,8 @@ type locker struct {
 	lockerDo lockerDo
 
 	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
+	CreatedAt field.Int64
+	UpdatedAt field.Int64
 	DeletedAt field.Uint64
 	ID        field.Int64
 	Name      field.String
@@ -63,8 +63,8 @@ func (l locker) As(alias string) *locker {
 
 func (l *locker) updateTableName(table string) *locker {
 	l.ALL = field.NewAsterisk(table)
-	l.CreatedAt = field.NewTime(table, "created_at")
-	l.UpdatedAt = field.NewTime(table, "updated_at")
+	l.CreatedAt = field.NewInt64(table, "created_at")
+	l.UpdatedAt = field.NewInt64(table, "updated_at")
 	l.DeletedAt = field.NewUint64(table, "deleted_at")
 	l.ID = field.NewInt64(table, "id")
 	l.Name = field.NewString(table, "name")

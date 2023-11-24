@@ -16,6 +16,7 @@ package coderepos
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -73,8 +74,8 @@ func (h *handler) ListOwners(c echo.Context) error {
 			OwnerID:   codeRepositoryOwnerObj.OwnerID,
 			Owner:     codeRepositoryOwnerObj.Owner,
 			IsOrg:     codeRepositoryOwnerObj.IsOrg,
-			CreatedAt: codeRepositoryOwnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: codeRepositoryOwnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*codeRepositoryOwnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*codeRepositoryOwnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

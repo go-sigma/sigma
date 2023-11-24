@@ -27,8 +27,8 @@ func newDaemonGcTagRule(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRule {
 
 	tableName := _daemonGcTagRule.daemonGcTagRuleDo.TableName()
 	_daemonGcTagRule.ALL = field.NewAsterisk(tableName)
-	_daemonGcTagRule.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcTagRule.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_daemonGcTagRule.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcTagRule.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_daemonGcTagRule.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcTagRule.ID = field.NewInt64(tableName, "id")
 	_daemonGcTagRule.NamespaceID = field.NewInt64(tableName, "namespace_id")
@@ -54,8 +54,8 @@ type daemonGcTagRule struct {
 	daemonGcTagRuleDo daemonGcTagRuleDo
 
 	ALL                 field.Asterisk
-	CreatedAt           field.Time
-	UpdatedAt           field.Time
+	CreatedAt           field.Int64
+	UpdatedAt           field.Int64
 	DeletedAt           field.Uint64
 	ID                  field.Int64
 	NamespaceID         field.Int64
@@ -83,8 +83,8 @@ func (d daemonGcTagRule) As(alias string) *daemonGcTagRule {
 
 func (d *daemonGcTagRule) updateTableName(table string) *daemonGcTagRule {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
 	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.NamespaceID = field.NewInt64(table, "namespace_id")

@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -76,7 +77,7 @@ func (h *handler) GetWebhook(c echo.Context) error {
 		EventTag:        webhookObj.EventTag,
 		EventArtifact:   webhookObj.EventArtifact,
 		EventMember:     webhookObj.EventMember,
-		CreatedAt:       webhookObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:       webhookObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:       time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:       time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

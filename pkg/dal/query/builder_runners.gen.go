@@ -27,8 +27,8 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 
 	tableName := _builderRunner.builderRunnerDo.TableName()
 	_builderRunner.ALL = field.NewAsterisk(tableName)
-	_builderRunner.CreatedAt = field.NewTime(tableName, "created_at")
-	_builderRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_builderRunner.CreatedAt = field.NewInt64(tableName, "created_at")
+	_builderRunner.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_builderRunner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_builderRunner.ID = field.NewInt64(tableName, "id")
 	_builderRunner.BuilderID = field.NewInt64(tableName, "builder_id")
@@ -77,8 +77,8 @@ type builderRunner struct {
 	builderRunnerDo builderRunnerDo
 
 	ALL         field.Asterisk
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
+	CreatedAt   field.Int64
+	UpdatedAt   field.Int64
 	DeletedAt   field.Uint64
 	ID          field.Int64
 	BuilderID   field.Int64
@@ -108,8 +108,8 @@ func (b builderRunner) As(alias string) *builderRunner {
 
 func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.ALL = field.NewAsterisk(table)
-	b.CreatedAt = field.NewTime(table, "created_at")
-	b.UpdatedAt = field.NewTime(table, "updated_at")
+	b.CreatedAt = field.NewInt64(table, "created_at")
+	b.UpdatedAt = field.NewInt64(table, "updated_at")
 	b.DeletedAt = field.NewUint64(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.BuilderID = field.NewInt64(table, "builder_id")

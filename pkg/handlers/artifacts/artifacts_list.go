@@ -16,6 +16,7 @@ package artifact
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -38,20 +39,20 @@ func (h *handler) ListArtifact(c echo.Context) error {
 	}
 
 	artifactService := h.artifactServiceFactory.New()
-	artifacts, err := artifactService.ListArtifact(ctx, req)
+	artifactObjs, err := artifactService.ListArtifact(ctx, req)
 	if err != nil {
 		log.Error().Err(err).Msg("List artifact from db failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var resp = make([]any, 0, len(artifacts))
-	for _, artifact := range artifacts {
+	var resp = make([]any, 0, len(artifactObjs))
+	for _, artifactObj := range artifactObjs {
 		resp = append(resp, types.ArtifactItem{
-			ID:        artifact.ID,
-			Digest:    artifact.Digest,
-			Size:      artifact.Size,
-			CreatedAt: artifact.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: artifact.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:        artifactObj.ID,
+			Digest:    artifactObj.Digest,
+			Size:      artifactObj.Size,
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 	total, err := artifactService.CountArtifact(ctx, req)
