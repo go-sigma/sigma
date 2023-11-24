@@ -78,37 +78,36 @@ type PutNamespaceRequest struct {
 	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 }
 
-// AddMemberRequest ...
-type AddMemberRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+// AddNamespaceMemberRequest ...
+type AddNamespaceMemberRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
 
 	UserID int64               `json:"user_id" example:"10"`
 	Role   enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
 }
 
-// AddMemberResponse ...
-type AddMemberResponse struct {
+// AddNamespaceMemberResponse ...
+type AddNamespaceMemberResponse struct {
 	ID int64 `json:"id" example:"10"`
 }
 
-// UpdateMemberRequest ...
-type UpdateMemberRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+// UpdateNamespaceMemberRequest ...
+type UpdateNamespaceMemberRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
+	UserID      int64 `json:"user_id" param:"user_id" swaggerignore:"true"`
 
-	UserID int64               `json:"user_id" example:"10"`
-	Role   enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
+	Role enums.NamespaceRole `json:"role" validate:"is_valid_namespace_role" example:"NamespaceReader"`
 }
 
-// DeleteMemberRequest ...
-type DeleteMemberRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
-
-	UserID int64 `json:"user_id" query:"user_id" example:"10"`
+// DeleteNamespaceMemberRequest ...
+type DeleteNamespaceMemberRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
+	UserID      int64 `json:"user_id" param:"user_id" example:"10" swaggerignore:"true"`
 }
 
 // ListNamespaceMemberRequest represents the request to list namespace members.
 type ListNamespaceMemberRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
 
 	// Name query the namespace member by name.
 	Name *string `json:"name" query:"name" example:"test" swaggerignore:"true"`
@@ -117,8 +116,8 @@ type ListNamespaceMemberRequest struct {
 	Sortable
 }
 
-// NamespaceRoleItem ...
-type NamespaceRoleItem struct {
+// NamespaceMemberItem ...
+type NamespaceMemberItem struct {
 	ID       int64               `json:"id" example:"1"`
 	Username string              `json:"username" example:"admin"`
 	UserID   int64               `json:"user_id" example:"1"`
@@ -130,5 +129,5 @@ type NamespaceRoleItem struct {
 
 // GetNamespaceMemberSelfRequest ...
 type GetNamespaceMemberSelfRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
 }

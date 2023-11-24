@@ -196,3 +196,4 @@ pkg/**/*.html
 
 *.tar.gz
 web/.yarn/
+docs/.yarn/
