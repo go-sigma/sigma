@@ -100,7 +100,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Max namespace role quota exceeds")
 	}
 
-	var namespaceMemberObj *models.NamespaceRole
+	var namespaceMemberObj *models.NamespaceMember
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
 		namespaceMemberObj, err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)

@@ -127,8 +127,8 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` bigint NOT NULL,
   `namespace_id` bigint,
-  `action` text CHECK (`action` IN ('create', 'update', 'delete', 'pull', 'push')) NOT NULL,
-  `resource_type` text CHECK (`resource_type` IN ('namespace', 'repository', 'tag', 'builder')) NOT NULL,
+  `action` text CHECK (`action` IN ('Create', 'Update', 'Delete', 'Pull', 'Push')) NOT NULL,
+  `resource_type` text CHECK (`resource_type` IN ('Namespace', 'Repository', 'Tag', 'Builder')) NOT NULL,
   `resource` varchar(256) NOT NULL,
   `before_raw` BLOB,
   `req_raw` BLOB,
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `raw` BLOB NOT NULL,
   `config_raw` BLOB,
   `config_media_type` varchar(256),
-  `type` text CHECK (`type` IN ('image', 'imageIndex', 'chart', 'cnab', 'wasm', 'provenance', 'cosign', 'unknown')) NOT NULL DEFAULT 'unknown',
+  `type` text CHECK (`type` IN ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Unknown')) NOT NULL DEFAULT 'Unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `referrer_id` integer,
@@ -456,7 +456,7 @@ CREATE TABLE `casbin_rules` (
   CONSTRAINT `idx_casbin_rules` UNIQUE (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
 );
 
-CREATE TABLE IF NOT EXISTS `namespace_roles` (
+CREATE TABLE IF NOT EXISTS `namespace_members` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` integer NOT NULL,
   `namespace_id` integer NOT NULL,
@@ -466,7 +466,7 @@ CREATE TABLE IF NOT EXISTS `namespace_roles` (
   `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `namespace_roles_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
+  CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
 );
 
 -- ptype type

@@ -41,7 +41,7 @@ type Artifact struct {
 	Raw             []byte
 	ConfigRaw       []byte
 	ConfigMediaType *string
-	Type            enums.ArtifactType `gorm:"default:unknown"`
+	Type            enums.ArtifactType `gorm:"default:Unknown"`
 
 	LastPull  sql.NullTime
 	PushedAt  time.Time `gorm:"autoCreateTime"`

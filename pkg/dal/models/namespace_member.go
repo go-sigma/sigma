@@ -22,8 +22,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// NamespaceRole represents namespace role
-type NamespaceRole struct {
+// NamespaceMember represents namespace role
+type NamespaceMember struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`

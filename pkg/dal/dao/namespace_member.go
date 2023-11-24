@@ -32,15 +32,15 @@ import (
 // NamespaceMemberService is the interface that provides methods to operate on role model
 type NamespaceMemberService interface {
 	// AddNamespaceMember ...
-	AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceRole, error)
+	AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceMember, error)
 	// UpdateNamespaceMember ...
 	UpdateNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error
 	// DeleteNamespaceMember ...
 	DeleteNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace) error
 	// ListNamespaceMembers ...
-	ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error)
+	ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceMember, int64, error)
 	// GetNamespaceMember ...
-	GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error)
+	GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceMember, error)
 	// CountNamespaceMember ...
 	CountNamespaceMember(ctx context.Context, userID int64, namespaceID int64) (int64, error)
 }
@@ -75,7 +75,7 @@ func (s *namespaceMemberServiceFactory) New(txs ...*query.Query) NamespaceMember
 }
 
 // AddNamespaceMember ...
-func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceRole, error) {
+func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceMember, error) {
 	err := s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
 		PType: ptr.Of("g"),
 		V0:    ptr.Of(fmt.Sprintf("%d", userID)),
@@ -88,8 +88,8 @@ func (s namespaceMemberService) AddNamespaceMember(ctx context.Context, userID i
 	if err != nil {
 		return nil, err
 	}
-	namespaceMember := &models.NamespaceRole{UserID: userID, NamespaceID: namespaceObj.ID, Role: role}
-	err = s.tx.NamespaceRole.WithContext(ctx).Create(namespaceMember)
+	namespaceMember := &models.NamespaceMember{UserID: userID, NamespaceID: namespaceObj.ID, Role: role}
+	err = s.tx.NamespaceMember.WithContext(ctx).Create(namespaceMember)
 	if err != nil {
 		return nil, err
 	}
@@ -107,11 +107,11 @@ func (s namespaceMemberService) UpdateNamespaceMember(ctx context.Context, userI
 	if err != nil {
 		return err
 	}
-	_, err = s.tx.NamespaceRole.WithContext(ctx).Where(
-		s.tx.NamespaceRole.UserID.Eq(userID),
-		s.tx.NamespaceRole.NamespaceID.Eq(namespaceObj.ID),
+	_, err = s.tx.NamespaceMember.WithContext(ctx).Where(
+		s.tx.NamespaceMember.UserID.Eq(userID),
+		s.tx.NamespaceMember.NamespaceID.Eq(namespaceObj.ID),
 	).Updates(map[string]any{
-		query.NamespaceRole.Role.ColumnName().String(): role,
+		query.NamespaceMember.Role.ColumnName().String(): role,
 	})
 	return err
 }
@@ -125,22 +125,22 @@ func (s namespaceMemberService) DeleteNamespaceMember(ctx context.Context, userI
 	if err != nil {
 		return err
 	}
-	_, err = s.tx.NamespaceRole.WithContext(ctx).Where(
-		s.tx.NamespaceRole.UserID.Eq(userID),
-		s.tx.NamespaceRole.NamespaceID.Eq(namespaceObj.ID),
+	_, err = s.tx.NamespaceMember.WithContext(ctx).Where(
+		s.tx.NamespaceMember.UserID.Eq(userID),
+		s.tx.NamespaceMember.NamespaceID.Eq(namespaceObj.ID),
 	).Delete()
 	return err
 }
 
 // ListNamespaceMembers ...
-func (s namespaceMemberService) ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceRole, int64, error) {
+func (s namespaceMemberService) ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceMember, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	q := s.tx.NamespaceRole.WithContext(ctx).Where(s.tx.NamespaceRole.NamespaceID.Eq(namespaceID))
+	q := s.tx.NamespaceMember.WithContext(ctx).Where(s.tx.NamespaceMember.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		q = q.RightJoin(s.tx.User, s.tx.NamespaceRole.UserID.EqCol(s.tx.User.ID), s.tx.User.Username.Like(fmt.Sprintf("%s%%", ptr.To(name))))
+		q = q.RightJoin(s.tx.User, s.tx.NamespaceMember.UserID.EqCol(s.tx.User.ID), s.tx.User.Username.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
-	q = q.Preload(s.tx.NamespaceRole.User)
-	field, ok := s.tx.NamespaceRole.GetFieldByName(ptr.To(sort.Sort))
+	q = q.Preload(s.tx.NamespaceMember.User)
+	field, ok := s.tx.NamespaceMember.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
 		switch ptr.To(sort.Method) {
 		case enums.SortMethodDesc:
@@ -148,26 +148,26 @@ func (s namespaceMemberService) ListNamespaceMembers(ctx context.Context, namesp
 		case enums.SortMethodAsc:
 			q = q.Order(field)
 		default:
-			q = q.Order(s.tx.NamespaceRole.UpdatedAt.Desc())
+			q = q.Order(s.tx.NamespaceMember.UpdatedAt.Desc())
 		}
 	} else {
-		q = q.Order(s.tx.NamespaceRole.UpdatedAt.Desc())
+		q = q.Order(s.tx.NamespaceMember.UpdatedAt.Desc())
 	}
 	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 
 // GetNamespaceMember ...
-func (s namespaceMemberService) GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceRole, error) {
-	return s.tx.NamespaceRole.WithContext(ctx).Where(
-		s.tx.NamespaceRole.UserID.Eq(userID),
-		s.tx.NamespaceRole.NamespaceID.Eq(namespaceID),
+func (s namespaceMemberService) GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceMember, error) {
+	return s.tx.NamespaceMember.WithContext(ctx).Where(
+		s.tx.NamespaceMember.UserID.Eq(userID),
+		s.tx.NamespaceMember.NamespaceID.Eq(namespaceID),
 	).First()
 }
 
 // CountNamespaceMember ...
 func (s namespaceMemberService) CountNamespaceMember(ctx context.Context, userID int64, namespaceID int64) (int64, error) {
-	return s.tx.NamespaceRole.WithContext(ctx).Where(
-		s.tx.NamespaceRole.UserID.Eq(userID),
-		s.tx.NamespaceRole.NamespaceID.Eq(namespaceID),
+	return s.tx.NamespaceMember.WithContext(ctx).Where(
+		s.tx.NamespaceMember.UserID.Eq(userID),
+		s.tx.NamespaceMember.NamespaceID.Eq(namespaceID),
 	).Count()
 }

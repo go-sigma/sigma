@@ -42,10 +42,10 @@ func (m *MockNamespaceMemberService) EXPECT() *MockNamespaceMemberServiceMockRec
 }
 
 // AddNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) AddNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) (*models.NamespaceRole, error) {
+func (m *MockNamespaceMemberService) AddNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) (*models.NamespaceMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddNamespaceMember", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*models.NamespaceRole)
+	ret0, _ := ret[0].(*models.NamespaceMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -86,10 +86,10 @@ func (mr *MockNamespaceMemberServiceMockRecorder) DeleteNamespaceMember(arg0, ar
 }
 
 // GetNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) GetNamespaceMember(arg0 context.Context, arg1, arg2 int64) (*models.NamespaceRole, error) {
+func (m *MockNamespaceMemberService) GetNamespaceMember(arg0 context.Context, arg1, arg2 int64) (*models.NamespaceMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNamespaceMember", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*models.NamespaceRole)
+	ret0, _ := ret[0].(*models.NamespaceMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -101,10 +101,10 @@ func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespaceMember(arg0, arg1,
 }
 
 // ListNamespaceMembers mocks base method.
-func (m *MockNamespaceMemberService) ListNamespaceMembers(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.NamespaceRole, int64, error) {
+func (m *MockNamespaceMemberService) ListNamespaceMembers(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.NamespaceMember, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListNamespaceMembers", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]*models.NamespaceRole)
+	ret0, _ := ret[0].([]*models.NamespaceMember)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2

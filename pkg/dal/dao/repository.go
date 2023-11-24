@@ -194,7 +194,7 @@ func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespac
 	pagination = utils.NormalizePagination(pagination)
 	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
 	if userID == 0 { // find the public namespace
 		q = q.Where(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
@@ -204,8 +204,8 @@ func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespac
 			return nil, 0, err
 		}
 		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
-			q = q.LeftJoin(s.tx.NamespaceRole, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceRole.NamespaceID), s.tx.NamespaceRole.UserID.Eq(userID)).
-				Where(s.tx.NamespaceRole.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
+			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
+				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
 		}
 	}
 	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
@@ -229,7 +229,7 @@ func (s *repositoryService) ListRepository(ctx context.Context, namespaceID int6
 	pagination = utils.NormalizePagination(pagination)
 	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
 	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
 	if ok {
@@ -266,7 +266,7 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, upda
 func (s *repositoryService) CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error) {
 	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	if name != nil {
-		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%%%s%%", ptr.To(name))))
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
 	return q.Count()
 }

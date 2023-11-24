@@ -157,8 +157,8 @@ func (s *namespaceService) ListNamespaceWithAuth(ctx context.Context, userID int
 			return nil, 0, err
 		}
 		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
-			q = q.LeftJoin(s.tx.NamespaceRole, s.tx.Namespace.ID.EqCol(s.tx.NamespaceRole.NamespaceID), s.tx.NamespaceRole.UserID.Eq(userID)).
-				Where(s.tx.NamespaceRole.ID.IsNotNull()).Or(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
+			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Namespace.ID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
+				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
 		}
 	}
 	field, ok := s.tx.Namespace.GetFieldByName(ptr.To(sort.Sort))
