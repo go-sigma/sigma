@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
@@ -46,27 +47,38 @@ func TestSignup(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	viper.Reset()
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
-	_, err = handlerNew()
+	_, err := handlerNew()
 	assert.Error(t, err)
 
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+		},
+	}
+	configs.SetConfiguration(config)
+
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 
@@ -123,21 +135,16 @@ func TestSignupMockToken1(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
@@ -164,21 +171,16 @@ func TestSignupMockToken2(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
@@ -211,17 +213,13 @@ func TestSignupMockToken3(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	miniRedis := miniredis.RunT(t)
@@ -252,17 +250,13 @@ func TestSignupMockPassword(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	miniRedis := miniredis.RunT(t)
@@ -288,29 +282,32 @@ func TestSignupMockDAO(t *testing.T) {
 	e.HideBanner = true
 	e.HidePort = true
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
-	viper.SetDefault("auth.admin.username", "sigma")
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	err = inits.Initialize()
+	err := inits.Initialize(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+		},
+	})
 	assert.NoError(t, err)
 
 	ctrl := gomock.NewController(t)

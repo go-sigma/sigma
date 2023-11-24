@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -31,7 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -66,7 +64,7 @@ type Handler interface {
 }
 
 type handler struct {
-	config             configs.Configuration
+	config             *configs.Configuration
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
@@ -75,6 +73,7 @@ type handler struct {
 var _ Handler = &handler{}
 
 type inject struct {
+	config             *configs.Configuration
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
@@ -82,12 +81,10 @@ type inject struct {
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) (Handler, error) {
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
-	if err != nil {
-		return nil, err
-	}
+	var tokenService token.TokenService
 	passwordService := password.New()
 	userServiceFactory := dao.NewUserServiceFactory()
+	config := configs.GetConfiguration()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.tokenService != nil {
@@ -99,9 +96,18 @@ func handlerNew(injects ...inject) (Handler, error) {
 		if ij.userServiceFactory != nil {
 			userServiceFactory = ij.userServiceFactory
 		}
+		if ij.config != nil {
+			config = ij.config
+		}
+	} else {
+		var err error
+		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &handler{
-		config:             ptr.To(configs.GetConfiguration()),
+		config:             config,
 		tokenService:       tokenService,
 		passwordService:    passwordService,
 		userServiceFactory: userServiceFactory,
@@ -110,7 +116,6 @@ func handlerNew(injects ...inject) (Handler, error) {
 
 type factory struct{}
 
-// "post:/api/v1/users/login",
 var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
 func (f factory) Initialize(e *echo.Echo) error {

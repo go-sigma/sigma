@@ -21,7 +21,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -65,13 +64,13 @@ func (h *handler) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
-	refreshToken, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

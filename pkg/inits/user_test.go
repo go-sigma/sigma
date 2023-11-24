@@ -18,9 +18,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -31,76 +31,69 @@ import (
 
 func TestInitInternalUser(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	err = initUser()
-	assert.Error(t, err)
+	assert.Error(t, initUser(configs.Configuration{}))
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	err = initUser()
-	assert.Error(t, err)
-
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	err = initUser()
-	assert.Error(t, err)
+	assert.Error(t, initUser(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			InternalUser: configs.ConfigurationAuthInternalUser{Username: "internal-sigma"},
+		},
+	}))
 }
 
 func TestInitAdminUser1(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-
-	viper.SetDefault("auth.admin.password", "sigma")
-	err = initUser()
-	assert.Error(t, err)
+	assert.Error(t, initUser(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Email: "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+		},
+	}))
 }
 
 func TestInitAdminUser2(t *testing.T) {
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
-	viper.SetDefault("auth.admin.username", "sigma")
-	viper.SetDefault("auth.admin.email", "sigma@gmail.com")
-	err = initUser()
-	assert.NoError(t, err)
+	assert.NoError(t, initUser(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+		},
+	}))
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()

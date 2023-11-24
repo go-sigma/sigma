@@ -14,12 +14,14 @@
 
 package inits
 
-var inits = make(map[string]func() error)
+import "github.com/go-sigma/sigma/pkg/configs"
+
+var inits = make(map[string]func(configs.Configuration) error)
 
 // Initialize runs all registered inits.
-func Initialize() error {
+func Initialize(config configs.Configuration) error {
 	for _, init := range inits {
-		err := init()
+		err := init(config)
 		if err != nil {
 			return err
 		}

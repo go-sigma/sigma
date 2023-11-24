@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -78,27 +79,27 @@ func TestAuthWithConfig(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
-	viper.SetDefault("auth.admin.username", "sigma")
-	viper.SetDefault("auth.admin.email", "sigma@gmail.com")
-
-	err = inits.Initialize()
-	assert.NoError(t, err)
+	assert.NoError(t, inits.Initialize(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+		},
+	}))
 
 	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 
@@ -114,7 +115,7 @@ func TestAuthWithConfig(t *testing.T) {
 	req.SetBasicAuth("sigma", "sigma1")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	err = hDS(c)
+	err := hDS(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
