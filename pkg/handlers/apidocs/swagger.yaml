@@ -18,6 +18,16 @@ definitions:
     x-enum-varnames:
     - GcRecordStatusSuccess
     - GcRecordStatusFailed
+  enums.NamespaceRole:
+    enum:
+    - NamespaceAdmin
+    - NamespaceManager
+    - NamespaceReader
+    type: string
+    x-enum-varnames:
+    - NamespaceRoleAdmin
+    - NamespaceRoleManager
+    - NamespaceRoleReader
   enums.OciPlatform:
     enum:
     - linux/amd64
@@ -162,6 +172,16 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
+  types.AddMemberRequest:
+    properties:
+      role:
+        allOf:
+        - $ref: '#/definitions/enums.NamespaceRole'
+        example: NamespaceReader
+      user_id:
+        example: 10
+        type: integer
+    type: object
   types.BuilderItem:
     properties:
       buildkit_build_args:
@@ -3481,30 +3501,30 @@ paths:
       - application/json
       parameters:
       - default: 10
-        description: limit
+        description: Limit size
         in: query
         maximum: 100
         minimum: 10
         name: limit
         type: integer
       - default: 1
-        description: page
+        description: Page number
         in: query
         minimum: 1
         name: page
         type: integer
-      - description: sort field
+      - description: Sort field
         in: query
         name: sort
         type: string
-      - description: sort method
+      - description: Sort method
         enum:
         - asc
         - desc
         in: query
         name: method
         type: string
-      - description: search namespace with name
+      - description: Search namespace with name
         in: query
         name: name
         type: string
@@ -3561,10 +3581,16 @@ paths:
       summary: Create namespace
       tags:
       - Namespace
-  /namespaces/{id}:
+  /namespaces/{namespace_id}:
     delete:
       consumes:
       - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
       produces:
       - application/json
       responses:
@@ -3583,11 +3609,11 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace ID
+      - description: Namespace id
         in: path
-        name: id
+        name: namespace_id
         required: true
-        type: string
+        type: number
       produces:
       - application/json
       responses:
@@ -3614,9 +3640,9 @@ paths:
       parameters:
       - description: Namespace id
         in: path
-        name: id
+        name: namespace_id
         required: true
-        type: string
+        type: number
       - description: Namespace object
         in: body
         name: message
@@ -3865,21 +3891,21 @@ paths:
       summary: Create repository
       tags:
       - Repository
-  /namespaces/{namespace}/repositories/{id}:
+  /namespaces/{namespace}/repositories/{repository_id}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Namespace
+      - description: Namespace name
         in: path
         name: namespace
         required: true
         type: string
-      - description: Repository ID
+      - description: Repository id
         in: path
-        name: id
+        name: repository_id
         required: true
-        type: string
+        type: number
       produces:
       - application/json
       responses:
@@ -3902,16 +3928,16 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace
+      - description: Namespace name
         in: path
         name: namespace
         required: true
         type: string
-      - description: Repository ID
+      - description: Repository id
         in: path
-        name: id
+        name: repository_id
         required: true
-        type: string
+        type: number
       produces:
       - application/json
       responses:
@@ -3943,9 +3969,9 @@ paths:
         type: string
       - description: Repository id
         in: path
-        name: id
+        name: repository_id
         required: true
-        type: string
+        type: number
       - description: Repository object
         in: body
         name: message
@@ -3979,36 +4005,36 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
       - default: 10
-        description: limit
+        description: Limit size
         in: query
         maximum: 100
         minimum: 10
         name: limit
         type: integer
       - default: 1
-        description: page
+        description: Page number
         in: query
         minimum: 1
         name: page
         type: integer
-      - description: sort field
+      - description: Sort field
         in: query
         name: sort
         type: string
-      - description: sort method
+      - description: Sort method
         enum:
         - asc
         - desc
         in: query
         name: method
         type: string
-      - description: namespace
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: repository
+      - description: Repository name
         in: query
         name: repository
         type: string
@@ -4064,20 +4090,20 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace
+      - description: Namespace name
         in: path
         name: namespace
         required: true
         type: string
-      - description: Tag ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: repository
+      - description: Repository name
         in: query
         name: repository
         type: string
+      - description: Tag id
+        in: path
+        name: id
+        required: true
+        type: number
       produces:
       - application/json
       responses:
@@ -4100,20 +4126,20 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace
+      - description: Namespace name
         in: path
         name: namespace
         required: true
         type: string
-      - description: Tag ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: repository
+      - description: repository name
         in: query
         name: repository
         type: string
+      - description: Tag id
+        in: path
+        name: id
+        required: true
+        type: number
       produces:
       - application/json
       responses:
@@ -4163,6 +4189,37 @@ paths:
       security:
       - BasicAuth: []
       summary: Hot namespace
+      tags:
+      - Namespace
+  /namespaces/members/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Member object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.AddMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.PostNamespaceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Add namespace member
       tags:
       - Namespace
   /oauth2/{provider}/callback:

@@ -45,7 +45,7 @@ var (
 	DaemonGcTagRunner             *daemonGcTagRunner
 	Locker                        *locker
 	Namespace                     *namespace
-	NamespaceRole                 *namespaceRole
+	NamespaceMember               *namespaceMember
 	Repository                    *repository
 	Setting                       *setting
 	Tag                           *tag
@@ -87,7 +87,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	DaemonGcTagRunner = &Q.DaemonGcTagRunner
 	Locker = &Q.Locker
 	Namespace = &Q.Namespace
-	NamespaceRole = &Q.NamespaceRole
+	NamespaceMember = &Q.NamespaceMember
 	Repository = &Q.Repository
 	Setting = &Q.Setting
 	Tag = &Q.Tag
@@ -130,7 +130,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		DaemonGcTagRunner:             newDaemonGcTagRunner(db, opts...),
 		Locker:                        newLocker(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
-		NamespaceRole:                 newNamespaceRole(db, opts...),
+		NamespaceMember:               newNamespaceMember(db, opts...),
 		Repository:                    newRepository(db, opts...),
 		Setting:                       newSetting(db, opts...),
 		Tag:                           newTag(db, opts...),
@@ -174,7 +174,7 @@ type Query struct {
 	DaemonGcTagRunner             daemonGcTagRunner
 	Locker                        locker
 	Namespace                     namespace
-	NamespaceRole                 namespaceRole
+	NamespaceMember               namespaceMember
 	Repository                    repository
 	Setting                       setting
 	Tag                           tag
@@ -219,7 +219,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		DaemonGcTagRunner:             q.DaemonGcTagRunner.clone(db),
 		Locker:                        q.Locker.clone(db),
 		Namespace:                     q.Namespace.clone(db),
-		NamespaceRole:                 q.NamespaceRole.clone(db),
+		NamespaceMember:               q.NamespaceMember.clone(db),
 		Repository:                    q.Repository.clone(db),
 		Setting:                       q.Setting.clone(db),
 		Tag:                           q.Tag.clone(db),
@@ -271,7 +271,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		DaemonGcTagRunner:             q.DaemonGcTagRunner.replaceDB(db),
 		Locker:                        q.Locker.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
-		NamespaceRole:                 q.NamespaceRole.replaceDB(db),
+		NamespaceMember:               q.NamespaceMember.replaceDB(db),
 		Repository:                    q.Repository.replaceDB(db),
 		Setting:                       q.Setting.replaceDB(db),
 		Tag:                           q.Tag.replaceDB(db),
@@ -313,7 +313,7 @@ type queryCtx struct {
 	DaemonGcTagRunner             *daemonGcTagRunnerDo
 	Locker                        *lockerDo
 	Namespace                     *namespaceDo
-	NamespaceRole                 *namespaceRoleDo
+	NamespaceMember               *namespaceMemberDo
 	Repository                    *repositoryDo
 	Setting                       *settingDo
 	Tag                           *tagDo
@@ -355,7 +355,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		DaemonGcTagRunner:             q.DaemonGcTagRunner.WithContext(ctx),
 		Locker:                        q.Locker.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),
-		NamespaceRole:                 q.NamespaceRole.WithContext(ctx),
+		NamespaceMember:               q.NamespaceMember.WithContext(ctx),
 		Repository:                    q.Repository.WithContext(ctx),
 		Setting:                       q.Setting.WithContext(ctx),
 		Tag:                           q.Tag.WithContext(ctx),

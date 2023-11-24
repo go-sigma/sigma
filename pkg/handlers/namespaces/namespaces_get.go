@@ -37,11 +37,11 @@ import (
 //	@Tags		Namespace
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{id} [get]
-//	@Param		id	path		string	true	"Namespace ID"
-//	@Success	200	{object}	types.NamespaceItem
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Router		/namespaces/{namespace_id} [get]
+//	@Param		namespace_id	path		number	true	"Namespace id"
+//	@Success	200				{object}	types.NamespaceItem
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

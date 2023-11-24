@@ -20,7 +20,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -33,14 +35,25 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace}/tags/{id} [get]
-//	@Param		namespace	path		string	true	"Namespace"
-//	@Param		id			path		string	true	"Tag ID"
-//	@Param		repository	query		string	false	"repository"
+//	@Param		namespace	path		string	true	"Namespace name"
+//	@Param		repository	query		string	false	"repository name"
+//	@Param		id			path		number	true	"Tag id"
 //	@Success	200			{object}	types.TagItem
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
 func (h *handler) GetTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	var req types.GetTagRequest
 	err := utils.BindValidate(c, &req)
@@ -48,7 +61,11 @@ func (h *handler) GetTag(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	// TODO: check the tag namespace and repository auth
+
+	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
 
 	tagService := h.tagServiceFactory.New()
 	tag, err := tagService.GetByID(ctx, req.ID)

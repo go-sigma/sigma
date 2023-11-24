@@ -40,7 +40,8 @@ import (
 //	@Tags		Namespace
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{id} [delete]
+//	@Router		/namespaces/{namespace_id} [delete]
+//	@Param		namespace_id	path	number	true	"Namespace id"
 //	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) DeleteNamespace(c echo.Context) error {

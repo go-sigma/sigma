@@ -160,18 +160,18 @@ CREATE TABLE IF NOT EXISTS "namespaces" (
 );
 
 CREATE TYPE audit_action AS ENUM (
-  'create',
-  'update',
-  'delete',
-  'pull',
-  'push'
+  'Create',
+  'Update',
+  'Delete',
+  'Pull',
+  'Push'
 );
 
 CREATE TYPE audit_resource_type AS ENUM (
-  'namespace',
-  'repository',
-  'tag',
-  'builder'
+  'Namespace',
+  'Repository',
+  'Tag',
+  'Builder'
 );
 
 CREATE TABLE IF NOT EXISTS "audits" (
@@ -209,14 +209,14 @@ CREATE TABLE IF NOT EXISTS "repositories" (
 );
 
 CREATE TYPE artifact_type AS ENUM (
-  'image',
-  'imageIndex',
-  'chart',
-  'cnab',
-  'wasm',
-  'provenance',
-  'cosign',
-  'unknown'
+  'Image',
+  'ImageIndex',
+  'Chart',
+  'Cnab',
+  'Wasm',
+  'Provenance',
+  'Cosign',
+  'Unknown'
 );
 
 CREATE TABLE IF NOT EXISTS "artifacts" (
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "raw" bytea NOT NULL,
   "config_raw" bytea,
   "config_media_type" varchar(256),
-  "type" artifact_type NOT NULL DEFAULT 'unknown',
+  "type" artifact_type NOT NULL DEFAULT 'Unknown',
   "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_pull" timestamp,
   "pull_times" bigint NOT NULL DEFAULT 0,
@@ -533,8 +533,8 @@ CREATE TYPE namespace_member_role AS ENUM (
   'NamespaceAdmin'
 );
 
-CREATE TABLE IF NOT EXISTS "namespace_roles" (
-    "id" bigserial PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS "namespace_members" (
+  "id" bigserial PRIMARY KEY,
   "user_id" bigint NOT NULL,
   "namespace_id" bigint NOT NULL,
   "role" namespace_member_role NOT NULL DEFAULT 'NamespaceReader',
@@ -542,7 +542,7 @@ CREATE TABLE IF NOT EXISTS "namespace_roles" (
   "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
-  CONSTRAINT "namespace_roles_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
+  CONSTRAINT "namespace_members_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
 );
 
 -- ptype type

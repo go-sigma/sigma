@@ -123,8 +123,8 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
   `namespace_id` bigint,
-  `action` ENUM ('create', 'update', 'delete', 'pull', 'push') NOT NULL,
-  `resource_type` ENUM ('namespace', 'repository', 'tag', 'builder') NOT NULL,
+  `action` ENUM ('Create', 'Update', 'Delete', 'Pull', 'Push') NOT NULL,
+  `resource_type` ENUM ('Namespace', 'Repository', 'Tag', 'Builder') NOT NULL,
   `resource` varchar(256) NOT NULL,
   `before_raw` BLOB,
   `req_raw` BLOB,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `raw` MEDIUMBLOB NOT NULL,
   `config_raw` MEDIUMBLOB,
   `config_media_type` varchar(256),
-  `type` ENUM ('image', 'imageIndex', 'chart', 'cnab', 'wasm', 'provenance', 'cosign', 'unknown') NOT NULL DEFAULT 'unknown',
+  `type` ENUM ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Unknown') NOT NULL DEFAULT 'Unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
@@ -452,7 +452,7 @@ CREATE TABLE IF NOT EXISTS `casbin_rules` (
   CONSTRAINT `idx_casbin_rules` UNIQUE (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
 );
 
-CREATE TABLE IF NOT EXISTS `namespace_roles` (
+CREATE TABLE IF NOT EXISTS `namespace_members` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
   `namespace_id` bigint NOT NULL,
@@ -461,7 +461,7 @@ CREATE TABLE IF NOT EXISTS `namespace_roles` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `namespace_roles_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
+  CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
 );
 
 -- ptype type

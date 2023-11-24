@@ -23,6 +23,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -37,20 +38,36 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/{id} [get]
-//	@Param		namespace	path		string	true	"Namespace"
-//	@Param		id			path		string	true	"Repository ID"
-//	@Success	200			{object}	types.RepositoryItem
-//	@Failure	404			{object}	xerrors.ErrCode
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Router		/namespaces/{namespace}/repositories/{repository_id} [get]
+//	@Param		namespace		path		string	true	"Namespace name"
+//	@Param		repository_id	path		number	true	"Repository id"
+//	@Success	200				{object}	types.RepositoryItem
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) GetRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 
 	var req types.GetRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	}
+
+	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()

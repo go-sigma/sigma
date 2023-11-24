@@ -73,11 +73,16 @@ func (h *handler) PostRepository(c echo.Context) error {
 	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace not found")
+			log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
 		}
-		log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace find failed")
+		log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace find failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+	}
+
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	repositoryObj := &models.Repository{

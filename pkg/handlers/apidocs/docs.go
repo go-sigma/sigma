@@ -2924,7 +2924,7 @@ const docTemplate = `{
                         "minimum": 10,
                         "type": "integer",
                         "default": 10,
-                        "description": "limit",
+                        "description": "Limit size",
                         "name": "limit",
                         "in": "query"
                     },
@@ -2932,13 +2932,13 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 1,
-                        "description": "page",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "sort field",
+                        "description": "Sort field",
                         "name": "sort",
                         "in": "query"
                     },
@@ -2948,13 +2948,13 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "sort method",
+                        "description": "Sort method",
                         "name": "method",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "search namespace with name",
+                        "description": "Search namespace with name",
                         "name": "name",
                         "in": "query"
                     }
@@ -3092,7 +3092,57 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespaces/{id}": {
+        "/namespaces/members/": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Namespace"
+                ],
+                "summary": "Add namespace member",
+                "parameters": [
+                    {
+                        "description": "Member object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.AddMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/types.PostNamespaceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/namespaces/{namespace_id}": {
             "get": {
                 "security": [
                     {
@@ -3111,9 +3161,9 @@ const docTemplate = `{
                 "summary": "Get namespace",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Namespace ID",
-                        "name": "id",
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     }
@@ -3157,9 +3207,9 @@ const docTemplate = `{
                 "summary": "Update namespace",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "number",
                         "description": "Namespace id",
-                        "name": "id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
@@ -3195,6 +3245,15 @@ const docTemplate = `{
                     "Namespace"
                 ],
                 "summary": "Delete namespace",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -3569,7 +3628,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespaces/{namespace}/repositories/{id}": {
+        "/namespaces/{namespace}/repositories/{repository_id}": {
             "get": {
                 "security": [
                     {
@@ -3589,15 +3648,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Namespace",
+                        "description": "Namespace name",
                         "name": "namespace",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Repository ID",
-                        "name": "id",
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
                         "in": "path",
                         "required": true
                     }
@@ -3648,9 +3707,9 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "number",
                         "description": "Repository id",
-                        "name": "id",
+                        "name": "repository_id",
                         "in": "path",
                         "required": true
                     },
@@ -3707,15 +3766,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Namespace",
+                        "description": "Namespace name",
                         "name": "namespace",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Repository ID",
-                        "name": "id",
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
                         "in": "path",
                         "required": true
                     }
@@ -3758,11 +3817,18 @@ const docTemplate = `{
                 "summary": "List tag",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "maximum": 100,
                         "minimum": 10,
                         "type": "integer",
                         "default": 10,
-                        "description": "limit",
+                        "description": "Limit size",
                         "name": "limit",
                         "in": "query"
                     },
@@ -3770,13 +3836,13 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 1,
-                        "description": "page",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "sort field",
+                        "description": "Sort field",
                         "name": "sort",
                         "in": "query"
                     },
@@ -3786,20 +3852,13 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "sort method",
+                        "description": "Sort method",
                         "name": "method",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "namespace",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "repository",
+                        "description": "Repository name",
                         "name": "repository",
                         "in": "query"
                     },
@@ -3887,23 +3946,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Namespace",
+                        "description": "Namespace name",
                         "name": "namespace",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Tag ID",
+                        "description": "repository name",
+                        "name": "repository",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Tag id",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "repository",
-                        "name": "repository",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3946,23 +4005,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Namespace",
+                        "description": "Namespace name",
                         "name": "namespace",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Tag ID",
+                        "description": "Repository name",
+                        "name": "repository",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Tag id",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "repository",
-                        "name": "repository",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5160,6 +5219,19 @@ const docTemplate = `{
                 "GcRecordStatusFailed"
             ]
         },
+        "enums.NamespaceRole": {
+            "type": "string",
+            "enum": [
+                "NamespaceAdmin",
+                "NamespaceManager",
+                "NamespaceReader"
+            ],
+            "x-enum-varnames": [
+                "NamespaceRoleAdmin",
+                "NamespaceRoleManager",
+                "NamespaceRoleReader"
+            ]
+        },
         "enums.OciPlatform": {
             "type": "string",
             "enum": [
@@ -5336,6 +5408,23 @@ const docTemplate = `{
                 "WebhookResourceTypeArtifact",
                 "WebhookResourceTypeMember"
             ]
+        },
+        "types.AddMemberRequest": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.NamespaceRole"
+                        }
+                    ],
+                    "example": "NamespaceReader"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
         },
         "types.BuilderItem": {
             "type": "object",
