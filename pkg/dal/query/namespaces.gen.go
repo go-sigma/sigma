@@ -27,9 +27,9 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 
 	tableName := _namespace.namespaceDo.TableName()
 	_namespace.ALL = field.NewAsterisk(tableName)
-	_namespace.CreatedAt = field.NewTime(tableName, "created_at")
-	_namespace.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_namespace.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_namespace.CreatedAt = field.NewInt64(tableName, "created_at")
+	_namespace.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_namespace.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_namespace.ID = field.NewInt64(tableName, "id")
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
@@ -50,9 +50,9 @@ type namespace struct {
 	namespaceDo namespaceDo
 
 	ALL             field.Asterisk
-	CreatedAt       field.Time
-	UpdatedAt       field.Time
-	DeletedAt       field.Uint
+	CreatedAt       field.Int64
+	UpdatedAt       field.Int64
+	DeletedAt       field.Uint64
 	ID              field.Int64
 	Name            field.String
 	Description     field.String
@@ -79,9 +79,9 @@ func (n namespace) As(alias string) *namespace {
 
 func (n *namespace) updateTableName(table string) *namespace {
 	n.ALL = field.NewAsterisk(table)
-	n.CreatedAt = field.NewTime(table, "created_at")
-	n.UpdatedAt = field.NewTime(table, "updated_at")
-	n.DeletedAt = field.NewUint(table, "deleted_at")
+	n.CreatedAt = field.NewInt64(table, "created_at")
+	n.UpdatedAt = field.NewInt64(table, "updated_at")
+	n.DeletedAt = field.NewUint64(table, "deleted_at")
 	n.ID = field.NewInt64(table, "id")
 	n.Name = field.NewString(table, "name")
 	n.Description = field.NewString(table, "description")

@@ -24,8 +24,8 @@ import (
 
 // User is the model for the user table.
 type User struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -41,8 +41,8 @@ type User struct {
 
 // User3rdParty ...
 type User3rdParty struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -65,8 +65,8 @@ func (User3rdParty) TableName() string {
 }
 
 type UserRecoverCode struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

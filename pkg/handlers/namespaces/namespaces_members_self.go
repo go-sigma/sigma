@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -68,7 +69,7 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 		Username:  user.Username,
 		UserID:    user.ID,
 		Role:      namespaceMemberObj.Role,
-		CreatedAt: namespaceMemberObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: namespaceMemberObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*namespaceMemberObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*namespaceMemberObj.UpdatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

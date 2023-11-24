@@ -17,6 +17,7 @@ package coderepos
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -80,7 +81,7 @@ func (h *handler) User3rdParty(c echo.Context) error {
 		CrLastUpdateStatus:    user3rdPartyObj.CrLastUpdateStatus,
 		CrLastUpdateMessage:   user3rdPartyObj.CrLastUpdateMessage,
 
-		CreatedAt: user3rdPartyObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: user3rdPartyObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*user3rdPartyObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*user3rdPartyObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

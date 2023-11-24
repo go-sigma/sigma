@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -86,14 +87,14 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositories, total, err := repositoryService.ListRepositoryWithAuth(ctx, namespaceObj.ID, user.ID, req.Name, req.Pagination, req.Sortable)
+	repositoryObjs, total, err := repositoryService.ListRepositoryWithAuth(ctx, namespaceObj.ID, user.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List repository failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var repositoryIDs = make([]int64, 0, len(repositories))
-	for _, repository := range repositories {
+	var repositoryIDs = make([]int64, 0, len(repositoryObjs))
+	for _, repository := range repositoryObjs {
 		repositoryIDs = append(repositoryIDs, repository.ID)
 	}
 	builderService := h.builderServiceFactory.New()
@@ -103,8 +104,8 @@ func (h *handler) ListRepositories(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Find builders with repository failed: %v", err))
 	}
 
-	var resp = make([]any, 0, len(repositories))
-	for _, repository := range repositories {
+	var resp = make([]any, 0, len(repositoryObjs))
+	for _, repository := range repositoryObjs {
 		repositoryObj := types.RepositoryItem{
 			ID:          repository.ID,
 			Name:        repository.Name,
@@ -115,8 +116,8 @@ func (h *handler) ListRepositories(c echo.Context) error {
 			Size:        ptr.Of(repository.Size),
 			TagCount:    repository.TagCount,
 			TagLimit:    ptr.Of(repository.TagLimit),
-			CreatedAt:   repository.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:   repository.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt:   time.Unix(0, int64(time.Millisecond)*repository.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:   time.Unix(0, int64(time.Millisecond)*repository.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		}
 		if builderMap != nil && builderMap[repository.ID] != nil {
 			builderObj := builderMap[repository.ID]

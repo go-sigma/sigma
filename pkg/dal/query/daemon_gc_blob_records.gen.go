@@ -27,9 +27,9 @@ func newDaemonGcBlobRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRecord
 
 	tableName := _daemonGcBlobRecord.daemonGcBlobRecordDo.TableName()
 	_daemonGcBlobRecord.ALL = field.NewAsterisk(tableName)
-	_daemonGcBlobRecord.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcBlobRecord.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcBlobRecord.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcBlobRecord.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcBlobRecord.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_daemonGcBlobRecord.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcBlobRecord.ID = field.NewInt64(tableName, "id")
 	_daemonGcBlobRecord.RunnerID = field.NewInt64(tableName, "runner_id")
 	_daemonGcBlobRecord.Digest = field.NewString(tableName, "digest")
@@ -55,9 +55,9 @@ type daemonGcBlobRecord struct {
 	daemonGcBlobRecordDo daemonGcBlobRecordDo
 
 	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
+	CreatedAt field.Int64
+	UpdatedAt field.Int64
+	DeletedAt field.Uint64
 	ID        field.Int64
 	RunnerID  field.Int64
 	Digest    field.String
@@ -80,9 +80,9 @@ func (d daemonGcBlobRecord) As(alias string) *daemonGcBlobRecord {
 
 func (d *daemonGcBlobRecord) updateTableName(table string) *daemonGcBlobRecord {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RunnerID = field.NewInt64(table, "runner_id")
 	d.Digest = field.NewString(table, "digest")

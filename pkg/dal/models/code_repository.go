@@ -15,8 +15,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -24,8 +22,8 @@ import (
 
 // CodeRepository ...
 type CodeRepository struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -47,8 +45,8 @@ type CodeRepository struct {
 
 // CodeRepositoryBranch ...
 type CodeRepositoryBranch struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -58,8 +56,8 @@ type CodeRepositoryBranch struct {
 
 // CodeRepositoryOwner ...
 type CodeRepositoryOwner struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -73,8 +71,8 @@ type CodeRepositoryOwner struct {
 
 // CodeRepositoryCloneCredential ...
 type CodeRepositoryCloneCredential struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

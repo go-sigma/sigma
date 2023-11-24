@@ -27,9 +27,9 @@ func newNamespaceMember(db *gorm.DB, opts ...gen.DOOption) namespaceMember {
 
 	tableName := _namespaceMember.namespaceMemberDo.TableName()
 	_namespaceMember.ALL = field.NewAsterisk(tableName)
-	_namespaceMember.CreatedAt = field.NewTime(tableName, "created_at")
-	_namespaceMember.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_namespaceMember.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_namespaceMember.CreatedAt = field.NewInt64(tableName, "created_at")
+	_namespaceMember.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_namespaceMember.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_namespaceMember.ID = field.NewInt64(tableName, "id")
 	_namespaceMember.UserID = field.NewInt64(tableName, "user_id")
 	_namespaceMember.NamespaceID = field.NewInt64(tableName, "namespace_id")
@@ -55,9 +55,9 @@ type namespaceMember struct {
 	namespaceMemberDo namespaceMemberDo
 
 	ALL         field.Asterisk
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
-	DeletedAt   field.Uint
+	CreatedAt   field.Int64
+	UpdatedAt   field.Int64
+	DeletedAt   field.Uint64
 	ID          field.Int64
 	UserID      field.Int64
 	NamespaceID field.Int64
@@ -81,9 +81,9 @@ func (n namespaceMember) As(alias string) *namespaceMember {
 
 func (n *namespaceMember) updateTableName(table string) *namespaceMember {
 	n.ALL = field.NewAsterisk(table)
-	n.CreatedAt = field.NewTime(table, "created_at")
-	n.UpdatedAt = field.NewTime(table, "updated_at")
-	n.DeletedAt = field.NewUint(table, "deleted_at")
+	n.CreatedAt = field.NewInt64(table, "created_at")
+	n.UpdatedAt = field.NewInt64(table, "updated_at")
+	n.DeletedAt = field.NewUint64(table, "deleted_at")
 	n.ID = field.NewInt64(table, "id")
 	n.UserID = field.NewInt64(table, "user_id")
 	n.NamespaceID = field.NewInt64(table, "namespace_id")

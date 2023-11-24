@@ -27,9 +27,9 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 
 	tableName := _user3rdParty.user3rdPartyDo.TableName()
 	_user3rdParty.ALL = field.NewAsterisk(tableName)
-	_user3rdParty.CreatedAt = field.NewTime(tableName, "created_at")
-	_user3rdParty.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_user3rdParty.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_user3rdParty.CreatedAt = field.NewInt64(tableName, "created_at")
+	_user3rdParty.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_user3rdParty.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_user3rdParty.ID = field.NewInt64(tableName, "id")
 	_user3rdParty.UserID = field.NewInt64(tableName, "user_id")
 	_user3rdParty.Provider = field.NewField(tableName, "provider")
@@ -54,9 +54,9 @@ type user3rdParty struct {
 	user3rdPartyDo user3rdPartyDo
 
 	ALL                   field.Asterisk
-	CreatedAt             field.Time
-	UpdatedAt             field.Time
-	DeletedAt             field.Uint
+	CreatedAt             field.Int64
+	UpdatedAt             field.Int64
+	DeletedAt             field.Uint64
 	ID                    field.Int64
 	UserID                field.Int64
 	Provider              field.Field
@@ -83,9 +83,9 @@ func (u user3rdParty) As(alias string) *user3rdParty {
 
 func (u *user3rdParty) updateTableName(table string) *user3rdParty {
 	u.ALL = field.NewAsterisk(table)
-	u.CreatedAt = field.NewTime(table, "created_at")
-	u.UpdatedAt = field.NewTime(table, "updated_at")
-	u.DeletedAt = field.NewUint(table, "deleted_at")
+	u.CreatedAt = field.NewInt64(table, "created_at")
+	u.UpdatedAt = field.NewInt64(table, "updated_at")
+	u.DeletedAt = field.NewUint64(table, "deleted_at")
 	u.ID = field.NewInt64(table, "id")
 	u.UserID = field.NewInt64(table, "user_id")
 	u.Provider = field.NewField(table, "provider")

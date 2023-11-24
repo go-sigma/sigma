@@ -28,9 +28,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 
 	tableName := _artifact.artifactDo.TableName()
 	_artifact.ALL = field.NewAsterisk(tableName)
-	_artifact.CreatedAt = field.NewTime(tableName, "created_at")
-	_artifact.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_artifact.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_artifact.CreatedAt = field.NewInt64(tableName, "created_at")
+	_artifact.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_artifact.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_artifact.ID = field.NewInt64(tableName, "id")
 	_artifact.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
@@ -237,9 +237,9 @@ type artifact struct {
 	artifactDo artifactDo
 
 	ALL             field.Asterisk
-	CreatedAt       field.Time
-	UpdatedAt       field.Time
-	DeletedAt       field.Uint
+	CreatedAt       field.Int64
+	UpdatedAt       field.Int64
+	DeletedAt       field.Uint64
 	ID              field.Int64
 	RepositoryID    field.Int64
 	Digest          field.String
@@ -283,9 +283,9 @@ func (a artifact) As(alias string) *artifact {
 
 func (a *artifact) updateTableName(table string) *artifact {
 	a.ALL = field.NewAsterisk(table)
-	a.CreatedAt = field.NewTime(table, "created_at")
-	a.UpdatedAt = field.NewTime(table, "updated_at")
-	a.DeletedAt = field.NewUint(table, "deleted_at")
+	a.CreatedAt = field.NewInt64(table, "created_at")
+	a.UpdatedAt = field.NewInt64(table, "updated_at")
+	a.DeletedAt = field.NewUint64(table, "deleted_at")
 	a.ID = field.NewInt64(table, "id")
 	a.RepositoryID = field.NewInt64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")

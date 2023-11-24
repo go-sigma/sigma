@@ -27,9 +27,9 @@ func newCodeRepositoryOwner(db *gorm.DB, opts ...gen.DOOption) codeRepositoryOwn
 
 	tableName := _codeRepositoryOwner.codeRepositoryOwnerDo.TableName()
 	_codeRepositoryOwner.ALL = field.NewAsterisk(tableName)
-	_codeRepositoryOwner.CreatedAt = field.NewTime(tableName, "created_at")
-	_codeRepositoryOwner.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_codeRepositoryOwner.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_codeRepositoryOwner.CreatedAt = field.NewInt64(tableName, "created_at")
+	_codeRepositoryOwner.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_codeRepositoryOwner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepositoryOwner.ID = field.NewInt64(tableName, "id")
 	_codeRepositoryOwner.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
 	_codeRepositoryOwner.OwnerID = field.NewString(tableName, "owner_id")
@@ -55,9 +55,9 @@ type codeRepositoryOwner struct {
 	codeRepositoryOwnerDo codeRepositoryOwnerDo
 
 	ALL            field.Asterisk
-	CreatedAt      field.Time
-	UpdatedAt      field.Time
-	DeletedAt      field.Uint
+	CreatedAt      field.Int64
+	UpdatedAt      field.Int64
+	DeletedAt      field.Uint64
 	ID             field.Int64
 	User3rdPartyID field.Int64
 	OwnerID        field.String
@@ -80,9 +80,9 @@ func (c codeRepositoryOwner) As(alias string) *codeRepositoryOwner {
 
 func (c *codeRepositoryOwner) updateTableName(table string) *codeRepositoryOwner {
 	c.ALL = field.NewAsterisk(table)
-	c.CreatedAt = field.NewTime(table, "created_at")
-	c.UpdatedAt = field.NewTime(table, "updated_at")
-	c.DeletedAt = field.NewUint(table, "deleted_at")
+	c.CreatedAt = field.NewInt64(table, "created_at")
+	c.UpdatedAt = field.NewInt64(table, "updated_at")
+	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
 	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
 	c.OwnerID = field.NewString(table, "owner_id")

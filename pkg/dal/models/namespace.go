@@ -16,7 +16,6 @@ package models
 
 import (
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
@@ -26,8 +25,8 @@ import (
 
 // Namespace represents a namespace
 type Namespace struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

@@ -17,6 +17,7 @@ package namespaces
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -64,7 +65,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespace, err := namespaceService.Get(ctx, req.ID)
+	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace from db failed")
@@ -80,31 +81,31 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, []int64{namespace.ID})
+	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count repository failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
 	tagService := h.tagServiceFactory.New()
-	tagMapCount, err := tagService.CountByNamespace(ctx, []int64{namespace.ID})
+	tagMapCount, err := tagService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count tag failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.NamespaceItem{
-		ID:              namespace.ID,
-		Name:            namespace.Name,
-		Description:     namespace.Description,
-		Visibility:      namespace.Visibility,
-		Size:            namespace.Size,
-		SizeLimit:       namespace.SizeLimit,
-		RepositoryCount: repositoryMapCount[namespace.ID],
-		RepositoryLimit: namespace.RepositoryLimit,
-		TagCount:        tagMapCount[namespace.ID],
-		TagLimit:        namespace.TagLimit,
-		CreatedAt:       namespace.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:       namespace.UpdatedAt.Format(consts.DefaultTimePattern),
+		ID:              namespaceObj.ID,
+		Name:            namespaceObj.Name,
+		Description:     namespaceObj.Description,
+		Visibility:      namespaceObj.Visibility,
+		Size:            namespaceObj.Size,
+		SizeLimit:       namespaceObj.SizeLimit,
+		RepositoryCount: repositoryMapCount[namespaceObj.ID],
+		RepositoryLimit: namespaceObj.RepositoryLimit,
+		TagCount:        tagMapCount[namespaceObj.ID],
+		TagLimit:        namespaceObj.TagLimit,
+		CreatedAt:       time.Unix(0, int64(time.Millisecond)*namespaceObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:       time.Unix(0, int64(time.Millisecond)*namespaceObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

@@ -22,25 +22,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// DaemonLog represents an artifact
-// type DaemonLog struct {
-// 	CreatedAt time.Time
-// 	UpdatedAt time.Time
-// 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-// 	ID        int64                 `gorm:"primaryKey"`
-
-// 	NamespaceID *int64
-// 	Type        enums.Daemon
-// 	Action      enums.AuditAction
-// 	Resource    string
-// 	Status      enums.TaskCommonStatus
-// 	Message     []byte
-// }
-
 // DaemonGcTagRule ...
 type DaemonGcTagRule struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -58,8 +43,8 @@ type DaemonGcTagRule struct {
 
 // DaemonGcTagRunner ...
 type DaemonGcTagRunner struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -78,8 +63,8 @@ type DaemonGcTagRunner struct {
 
 // DaemonGcTagRecords ...
 type DaemonGcTagRecord struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -93,8 +78,8 @@ type DaemonGcTagRecord struct {
 
 // DaemonGcRepositoryRule ...
 type DaemonGcRepositoryRule struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -110,8 +95,8 @@ type DaemonGcRepositoryRule struct {
 
 // DaemonGcRepositoryRunner ...
 type DaemonGcRepositoryRunner struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -130,8 +115,8 @@ type DaemonGcRepositoryRunner struct {
 
 // DaemonGcRepositoryRecord ...
 type DaemonGcRepositoryRecord struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -145,8 +130,8 @@ type DaemonGcRepositoryRecord struct {
 
 // DaemonGcArtifactRule ...
 type DaemonGcArtifactRule struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -161,8 +146,8 @@ type DaemonGcArtifactRule struct {
 }
 
 type DaemonGcArtifactRunner struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -181,8 +166,8 @@ type DaemonGcArtifactRunner struct {
 
 // DaemonGcArtifactRecord ...
 type DaemonGcArtifactRecord struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -196,8 +181,8 @@ type DaemonGcArtifactRecord struct {
 
 // DaemonGcBlobRule ...
 type DaemonGcBlobRule struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -210,8 +195,8 @@ type DaemonGcBlobRule struct {
 
 // DaemonGcBlobRunner ...
 type DaemonGcBlobRunner struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
@@ -229,8 +214,8 @@ type DaemonGcBlobRunner struct {
 }
 
 type DaemonGcBlobRecord struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

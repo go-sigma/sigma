@@ -175,9 +175,10 @@ func (g gcRepository) deleteRepositoryCheck() {
 					log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Get repository by id failed")
 					continue
 				}
-				if !repositoryObj.UpdatedAt.Before(time.Now().Add(-1 * 24 * time.Duration(task.Runner.Rule.RetentionDay) * time.Hour)) {
-					continue
-				}
+				log.Info().Interface("repo", repositoryObj).Send()
+				// if !repositoryObj.UpdatedAt.Before(time.Now().Add(-1 * 24 * time.Duration(task.Runner.Rule.RetentionDay) * time.Hour)) {
+				// 	continue
+				// }
 			}
 			g.deleteRepositoryChan <- task
 		}

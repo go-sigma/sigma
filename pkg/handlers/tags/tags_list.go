@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -132,8 +133,8 @@ func (h *handler) ListTag(c echo.Context) error {
 				PushedAt:        item.PushedAt.Format(consts.DefaultTimePattern),
 				Vulnerability:   string(item.Vulnerability.Result),
 				Sbom:            string(item.Sbom.Result),
-				CreatedAt:       item.CreatedAt.Format(consts.DefaultTimePattern),
-				UpdatedAt:       item.UpdatedAt.Format(consts.DefaultTimePattern),
+				CreatedAt:       time.Unix(0, int64(time.Millisecond)*item.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+				UpdatedAt:       time.Unix(0, int64(time.Millisecond)*item.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			})
 		}
 		resp = append(resp, types.TagItem{
@@ -153,14 +154,14 @@ func (h *handler) ListTag(c echo.Context) error {
 				PushedAt:        tag.Artifact.PushedAt.Format(consts.DefaultTimePattern),
 				Vulnerability:   string(tag.Artifact.Vulnerability.Result),
 				Sbom:            string(tag.Artifact.Sbom.Result),
-				CreatedAt:       tag.Artifact.CreatedAt.Format(consts.DefaultTimePattern),
-				UpdatedAt:       tag.Artifact.UpdatedAt.Format(consts.DefaultTimePattern),
+				CreatedAt:       time.Unix(0, int64(time.Millisecond)*tag.Artifact.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+				UpdatedAt:       time.Unix(0, int64(time.Millisecond)*tag.Artifact.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			},
 			Artifacts: artifacts,
 			PullTimes: tag.PullTimes,
 			PushedAt:  tag.PushedAt.Format(consts.DefaultTimePattern),
-			CreatedAt: tag.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: tag.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*tag.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*tag.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

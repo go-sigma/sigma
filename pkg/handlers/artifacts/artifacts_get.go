@@ -16,6 +16,7 @@ package artifact
 
 import (
 	"errors"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -69,7 +70,7 @@ func (h *handler) GetArtifact(c echo.Context) error {
 		PullTimes: artifactObj.PullTimes,
 		LastPull:  artifactObj.LastPull.Time.Format(consts.DefaultTimePattern),
 		PushedAt:  artifactObj.PushedAt.Format(consts.DefaultTimePattern),
-		CreatedAt: artifactObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: artifactObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

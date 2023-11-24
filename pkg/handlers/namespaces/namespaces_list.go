@@ -16,6 +16,7 @@ package namespaces
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -74,20 +75,20 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 	}
 
 	var resp = make([]any, 0, len(namespaceObjs))
-	for _, ns := range namespaceObjs {
+	for _, namespaceObj := range namespaceObjs {
 		resp = append(resp, types.NamespaceItem{
-			ID:              ns.ID,
-			Name:            ns.Name,
-			Description:     ns.Description,
-			Visibility:      ns.Visibility,
-			Size:            ns.Size,
-			SizeLimit:       ns.SizeLimit,
-			RepositoryLimit: ns.RepositoryLimit,
-			RepositoryCount: ns.RepositoryCount,
-			TagLimit:        ns.TagLimit,
-			TagCount:        ns.TagCount,
-			CreatedAt:       ns.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:       ns.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:              namespaceObj.ID,
+			Name:            namespaceObj.Name,
+			Description:     namespaceObj.Description,
+			Visibility:      namespaceObj.Visibility,
+			Size:            namespaceObj.Size,
+			SizeLimit:       namespaceObj.SizeLimit,
+			RepositoryLimit: namespaceObj.RepositoryLimit,
+			RepositoryCount: namespaceObj.RepositoryCount,
+			TagLimit:        namespaceObj.TagLimit,
+			TagCount:        namespaceObj.TagCount,
+			CreatedAt:       time.Unix(0, int64(time.Millisecond)*namespaceObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:       time.Unix(0, int64(time.Millisecond)*namespaceObj.UpdatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

@@ -8,14 +8,16 @@ CREATE TABLE IF NOT EXISTS `users` (
   `namespace_count` bigint NOT NULL DEFAULT 0,
   `status` ENUM ('Active', 'Inactive') NOT NULL DEFAULT 'Active',
   `role` ENUM ('Root', 'Admin', 'User') NOT NULL DEFAULT 'User',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   UNIQUE KEY `users_unique_with_username` (`username`, `deleted_at`),
-  KEY `users_idx_created_at` (`created_at`),
   KEY `users_idx_status` (`status`),
   KEY `users_idx_role` (`role`),
-  KEY `users_idx_last_login` (`last_login`)
+  KEY `users_idx_last_login` (`last_login`),
+  KEY `users_idx_created_at` (`created_at`),
+  KEY `users_idx_updated_at` (`updated_at`),
+  KEY `users_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
@@ -28,11 +30,14 @@ CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   `cr_last_update_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `cr_last_update_status` ENUM ('Success', 'Failed', 'Doing') NOT NULL DEFAULT 'Doing',
   `cr_last_update_message` varchar(256),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `user_3rdparty_unique_with_account_id` UNIQUE (`provider`, `account_id`, `deleted_at`)
+  CONSTRAINT `user_3rdparty_unique_with_account_id` UNIQUE (`provider`, `account_id`, `deleted_at`),
+  KEY `user_3rdparty_idx_created_at` (`created_at`),
+  KEY `user_3rdparty_idx_updated_at` (`updated_at`),
+  KEY `user_3rdparty_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
@@ -43,10 +48,13 @@ CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
   `username` varchar(256),
   `password` varchar(256),
   `token` varchar(256),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`)
+  FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
+  KEY `code_repository_clone_credentials_idx_created_at` (`created_at`),
+  KEY `code_repository_clone_credentials_idx_updated_at` (`updated_at`),
+  KEY `code_repository_clone_credentials_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `code_repository_owners` (
@@ -55,11 +63,14 @@ CREATE TABLE IF NOT EXISTS `code_repository_owners` (
   `is_org` tinyint NOT NULL DEFAULT 0,
   `owner_id` varchar(256) NOT NULL,
   `owner` varchar(256) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
-  CONSTRAINT `code_repository_owners_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `deleted_at`)
+  CONSTRAINT `code_repository_owners_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `deleted_at`),
+  KEY `code_repository_owners_idx_created_at` (`created_at`),
+  KEY `code_repository_owners_idx_updated_at` (`updated_at`),
+  KEY `code_repository_owners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `code_repositories` (
@@ -73,33 +84,42 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `ssh_url` varchar(256) NOT NULL,
   `clone_url` varchar(256) NOT NULL,
   `oci_repo_count` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
-  CONSTRAINT `code_repositories_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `repository_id`, `deleted_at`)
+  CONSTRAINT `code_repositories_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `repository_id`, `deleted_at`),
+  KEY `code_repositories_idx_created_at` (`created_at`),
+  KEY `code_repositories_idx_updated_at` (`updated_at`),
+  KEY `code_repositories_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `code_repository_branches` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `code_repository_id` bigint NOT NULL,
   `name` varchar(256) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`code_repository_id`) REFERENCES `code_repositories` (`id`),
-  CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`)
+  CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`),
+  KEY `code_repository_branches_idx_created_at` (`created_at`),
+  KEY `code_repository_branches_idx_updated_at` (`updated_at`),
+  KEY `code_repository_branches_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `user_id` bigint NOT NULL,
   `code` varchar(256) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `user_recover_codes_unique_with_use_id` UNIQUE (`user_id`, `deleted_at`)
+  CONSTRAINT `user_recover_codes_unique_with_use_id` UNIQUE (`user_id`, `deleted_at`),
+  KEY `user_recover_codes_idx_created_at` (`created_at`),
+  KEY `user_recover_codes_idx_updated_at` (`updated_at`),
+  KEY `user_recover_codes_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `namespaces` (
@@ -113,10 +133,13 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `repository_count` bigint NOT NULL DEFAULT 0,
   `tag_limit` bigint NOT NULL DEFAULT 0,
   `tag_count` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
+  CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`),
+  KEY `namespaces_idx_created_at` (`created_at`),
+  KEY `namespaces_idx_updated_at` (`updated_at`),
+  KEY `namespaces_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `audits` (
@@ -128,11 +151,14 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `resource` varchar(256) NOT NULL,
   `before_raw` BLOB,
   `req_raw` BLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
+  KEY `audits_idx_created_at` (`created_at`),
+  KEY `audits_idx_updated_at` (`updated_at`),
+  KEY `audits_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `repositories` (
@@ -146,11 +172,14 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   `tag_limit` bigint NOT NULL DEFAULT 0,
   `tag_count` bigint NOT NULL DEFAULT 0,
   `namespace_id` bigint NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
+  CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`),
+  KEY `repositories_idx_created_at` (`created_at`),
+  KEY `repositories_idx_updated_at` (`updated_at`),
+  KEY `repositories_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
@@ -168,12 +197,15 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
   `referrer_id` bigint,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`referrer_id`) REFERENCES `artifacts` (`id`),
-  CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
+  CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`),
+  KEY `artifacts_idx_created_at` (`created_at`),
+  KEY `artifacts_idx_updated_at` (`updated_at`),
+  KEY `artifacts_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_sboms` (
@@ -185,11 +217,14 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `stdout` MEDIUMBLOB,
   `stderr` MEDIUMBLOB,
   `message` varchar(256),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
-  CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
+  CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`),
+  KEY `artifact_sboms_idx_created_at` (`created_at`),
+  KEY `artifact_sboms_idx_updated_at` (`updated_at`),
+  KEY `artifact_sboms_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
@@ -202,11 +237,14 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `stdout` MEDIUMBLOB,
   `stderr` MEDIUMBLOB,
   `message` varchar(256),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
-  CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
+  CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`),
+  KEY `artifact_vulnerabilities_sboms_idx_created_at` (`created_at`),
+  KEY `artifact_vulnerabilities_sboms_idx_updated_at` (`updated_at`),
+  KEY `artifact_vulnerabilities_sboms_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `tags` (
@@ -217,12 +255,15 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
-  CONSTRAINT `tags_unique_with_repo` UNIQUE (`repository_id`, `name`, `deleted_at`)
+  CONSTRAINT `tags_unique_with_repo` UNIQUE (`repository_id`, `name`, `deleted_at`),
+  KEY `tags_idx_created_at` (`created_at`),
+  KEY `tags_idx_updated_at` (`updated_at`),
+  KEY `tags_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `blobs` (
@@ -233,10 +274,13 @@ CREATE TABLE IF NOT EXISTS `blobs` (
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `blobs_unique_with_digest` UNIQUE (`digest`, `deleted_at`)
+  CONSTRAINT `blobs_unique_with_digest` UNIQUE (`digest`, `deleted_at`),
+  KEY `blobs_idx_created_at` (`created_at`),
+  KEY `blobs_idx_updated_at` (`updated_at`),
+  KEY `blobs_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `blob_uploads` (
@@ -247,10 +291,13 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `repository` varchar(256) NOT NULL,
   `file_id` varchar(256) NOT NULL,
   `size` bigint NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `blob_uploads_unique_with_upload_id_etag` UNIQUE (`upload_id`, `etag`, `deleted_at`)
+  CONSTRAINT `blob_uploads_unique_with_upload_id_etag` UNIQUE (`upload_id`, `etag`, `deleted_at`),
+  KEY `blob_uploads_idx_created_at` (`created_at`),
+  KEY `blob_uploads_idx_updated_at` (`updated_at`),
+  KEY `blob_uploads_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `artifact_artifacts` (
@@ -279,11 +326,14 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `retention_rule_type` ENUM ('Day', 'Quantity') NOT NULL DEFAULT 'Quantity',
   `retention_rule_amount` bigint NOT NULL DEFAULT 1,
   `retention_pattern` varchar(64),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+  CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`),
+  KEY `daemon_gc_tag_rules_idx_created_at` (`created_at`),
+  KEY `daemon_gc_tag_rules_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_tag_rules_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
@@ -296,10 +346,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
   `duration` bigint,
   `success_count` bigint,
   `failed_count` bigint,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`),
+  KEY `daemon_gc_tag_runners_idx_created_at` (`created_at`),
+  KEY `daemon_gc_tag_runners_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_tag_runners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
@@ -308,10 +361,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
   `tag` varchar(128) NOT NULL,
   `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
   `message` LONGBLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_tag_runners` (`id`)
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_tag_runners` (`id`),
+  KEY `daemon_gc_tag_records_idx_created_at` (`created_at`),
+  KEY `daemon_gc_tag_records_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_tag_records_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
@@ -322,11 +378,14 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `cron_enabled` tinyint NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+  CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`),
+  KEY `daemon_gc_repository_rules_idx_created_at` (`created_at`),
+  KEY `daemon_gc_repository_rules_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_repository_rules_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
@@ -339,10 +398,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `duration` bigint,
   `success_count` bigint,
   `failed_count` bigint,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`),
+  KEY `daemon_gc_repository_runners_idx_created_at` (`created_at`),
+  KEY `daemon_gc_repository_runners_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_repository_runners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
@@ -351,10 +413,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
   `repository` varchar(64) NOT NULL,
   `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
   `message` LONGBLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`),
+  KEY `daemon_gc_repository_records_idx_created_at` (`created_at`),
+  KEY `daemon_gc_repository_records_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_repository_records_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
@@ -365,11 +430,14 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   `cron_enabled` tinyint NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
-  CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+  CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`),
+  KEY `daemon_gc_artifact_rules_idx_created_at` (`created_at`),
+  KEY `daemon_gc_artifact_rules_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_artifact_rules_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
@@ -382,10 +450,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `duration` bigint,
   `success_count` bigint,
   `failed_count` bigint,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`),
+  KEY `daemon_gc_artifact_runners_idx_created_at` (`created_at`),
+  KEY `daemon_gc_artifact_runners_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_artifact_runners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
@@ -394,10 +465,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
   `digest` varchar(256) NOT NULL,
   `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
   `message` LONGBLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`)
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`),
+  KEY `daemon_gc_artifact_records_idx_created_at` (`created_at`),
+  KEY `daemon_gc_artifact_records_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_artifact_records_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
@@ -407,9 +481,12 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `cron_enabled` tinyint NOT NULL DEFAULT 0,
   `cron_rule` varchar(30),
   `cron_next_trigger` timestamp,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  KEY `daemon_gc_blob_rules_idx_created_at` (`created_at`),
+  KEY `daemon_gc_blob_rules_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_blob_rules_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
@@ -422,10 +499,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `duration` bigint,
   `success_count` bigint,
   `failed_count` bigint,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`),
+  KEY `daemon_gc_blob_runners_idx_created_at` (`created_at`),
+  KEY `daemon_gc_blob_runners_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_blob_runners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
@@ -434,10 +514,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `digest` varchar(256) NOT NULL,
   `status` ENUM ('Success', 'Failed') NOT NULL DEFAULT 'Success',
   `message` LONGBLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`),
+  KEY `daemon_gc_blob_records_idx_created_at` (`created_at`),
+  KEY `daemon_gc_blob_records_idx_updated_at` (`updated_at`),
+  KEY `daemon_gc_blob_records_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `casbin_rules` (
@@ -457,11 +540,14 @@ CREATE TABLE IF NOT EXISTS `namespace_members` (
   `user_id` bigint NOT NULL,
   `namespace_id` bigint NOT NULL,
   `role` ENUM ('NamespaceReader', 'NamespaceManager', 'NamespaceAdmin') NOT NULL DEFAULT 'NamespaceReader',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
+  CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`),
+  KEY `namespace_members_idx_created_at` (`created_at`),
+  KEY `namespace_members_idx_updated_at` (`updated_at`),
+  KEY `namespace_members_idx_deleted_at` (`deleted_at`)
 );
 
 -- ptype type
@@ -503,9 +589,12 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_tag` tinyint NOT NULL DEFAULT 1,
   `event_pull_push` tinyint NOT NULL DEFAULT 1,
   `event_member` tinyint NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  KEY `webhooks_idx_created_at` (`created_at`),
+  KEY `webhooks_idx_updated_at` (`updated_at`),
+  KEY `webhooks_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
@@ -517,10 +606,13 @@ CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `req_body` BLOB NOT NULL,
   `resp_header` BLOB NOT NULL,
   `resp_body` BLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`)
+  FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`),
+  KEY `webhook_logs_idx_created_at` (`created_at`),
+  KEY `webhook_logs_idx_updated_at` (`updated_at`),
+  KEY `webhook_logs_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `builders` (
@@ -558,12 +650,15 @@ CREATE TABLE IF NOT EXISTS `builders` (
   `buildkit_platforms` varchar(256) NOT NULL DEFAULT 'linux/amd64',
   `buildkit_build_args` varchar(256),
   -- other fields
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`code_repository_id`) REFERENCES `code_repositories` (`id`),
-  CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
+  CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`),
+  KEY `builders_idx_created_at` (`created_at`),
+  KEY `builders_idx_updated_at` (`updated_at`),
+  KEY `builders_idx_deleted_at` (`deleted_at`)
 );
 
 -- TODO: buildx flags
@@ -581,10 +676,13 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `ended_at` timestamp,
   `duration` bigint,
   -- other fields
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
+  FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`),
+  KEY `builder_runners_idx_created_at` (`created_at`),
+  KEY `builder_runners_idx_updated_at` (`updated_at`),
+  KEY `builder_runners_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `work_queues` (
@@ -594,18 +692,24 @@ CREATE TABLE IF NOT EXISTS `work_queues` (
   `times` MEDIUMINT NOT NULL DEFAULT 0,
   `version` varchar(36) NOT NULL,
   `status` ENUM ('Success', 'Failed', 'Pending', 'Doing') NOT NULL DEFAULT 'Pending',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  KEY `work_queues_idx_created_at` (`created_at`),
+  KEY `work_queues_idx_updated_at` (`updated_at`),
+  KEY `work_queues_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `caches` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `key` varchar(256) NOT NULL UNIQUE,
   `val` BLOB NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  KEY `caches_idx_created_at` (`created_at`),
+  KEY `caches_idx_updated_at` (`updated_at`),
+  KEY `caches_idx_deleted_at` (`deleted_at`)
 );
 
 CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
@@ -614,8 +718,11 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `key` varchar(256) NOT NULL UNIQUE,
   `val` BLOB,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` bigint NOT NULL DEFAULT 0
+  `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
+  `deleted_at` bigint NOT NULL DEFAULT 0,
+  KEY `settings_idx_created_at` (`created_at`),
+  KEY `settings_idx_updated_at` (`updated_at`),
+  KEY `settings_idx_deleted_at` (`deleted_at`)
 );
 

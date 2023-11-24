@@ -27,9 +27,9 @@ func newSetting(db *gorm.DB, opts ...gen.DOOption) setting {
 
 	tableName := _setting.settingDo.TableName()
 	_setting.ALL = field.NewAsterisk(tableName)
-	_setting.CreatedAt = field.NewTime(tableName, "created_at")
-	_setting.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_setting.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_setting.CreatedAt = field.NewInt64(tableName, "created_at")
+	_setting.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_setting.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_setting.ID = field.NewInt64(tableName, "id")
 	_setting.Key = field.NewString(tableName, "key")
 	_setting.Val = field.NewBytes(tableName, "val")
@@ -43,9 +43,9 @@ type setting struct {
 	settingDo settingDo
 
 	ALL       field.Asterisk
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Uint
+	CreatedAt field.Int64
+	UpdatedAt field.Int64
+	DeletedAt field.Uint64
 	ID        field.Int64
 	Key       field.String
 	Val       field.Bytes
@@ -65,9 +65,9 @@ func (s setting) As(alias string) *setting {
 
 func (s *setting) updateTableName(table string) *setting {
 	s.ALL = field.NewAsterisk(table)
-	s.CreatedAt = field.NewTime(table, "created_at")
-	s.UpdatedAt = field.NewTime(table, "updated_at")
-	s.DeletedAt = field.NewUint(table, "deleted_at")
+	s.CreatedAt = field.NewInt64(table, "created_at")
+	s.UpdatedAt = field.NewInt64(table, "updated_at")
+	s.DeletedAt = field.NewUint64(table, "deleted_at")
 	s.ID = field.NewInt64(table, "id")
 	s.Key = field.NewString(table, "key")
 	s.Val = field.NewBytes(table, "val")

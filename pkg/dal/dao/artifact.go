@@ -123,7 +123,7 @@ func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact)
 func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
-		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before)).
+		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before.UTC().UnixMilli())).
 		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Limit(int(limit)).Find()
 }

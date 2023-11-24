@@ -27,9 +27,9 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 
 	tableName := _daemonGcTagRunner.daemonGcTagRunnerDo.TableName()
 	_daemonGcTagRunner.ALL = field.NewAsterisk(tableName)
-	_daemonGcTagRunner.CreatedAt = field.NewTime(tableName, "created_at")
-	_daemonGcTagRunner.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_daemonGcTagRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_daemonGcTagRunner.CreatedAt = field.NewInt64(tableName, "created_at")
+	_daemonGcTagRunner.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_daemonGcTagRunner.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_daemonGcTagRunner.ID = field.NewInt64(tableName, "id")
 	_daemonGcTagRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcTagRunner.Message = field.NewBytes(tableName, "message")
@@ -59,9 +59,9 @@ type daemonGcTagRunner struct {
 	daemonGcTagRunnerDo daemonGcTagRunnerDo
 
 	ALL          field.Asterisk
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
-	DeletedAt    field.Uint
+	CreatedAt    field.Int64
+	UpdatedAt    field.Int64
+	DeletedAt    field.Uint64
 	ID           field.Int64
 	RuleID       field.Int64
 	Message      field.Bytes
@@ -88,9 +88,9 @@ func (d daemonGcTagRunner) As(alias string) *daemonGcTagRunner {
 
 func (d *daemonGcTagRunner) updateTableName(table string) *daemonGcTagRunner {
 	d.ALL = field.NewAsterisk(table)
-	d.CreatedAt = field.NewTime(table, "created_at")
-	d.UpdatedAt = field.NewTime(table, "updated_at")
-	d.DeletedAt = field.NewUint(table, "deleted_at")
+	d.CreatedAt = field.NewInt64(table, "created_at")
+	d.UpdatedAt = field.NewInt64(table, "updated_at")
+	d.DeletedAt = field.NewUint64(table, "deleted_at")
 	d.ID = field.NewInt64(table, "id")
 	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Message = field.NewBytes(table, "message")

@@ -16,6 +16,7 @@ package users
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -65,18 +66,17 @@ func (h *handler) List(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 	var resp = make([]any, 0, len(userObjs))
-	for _, o := range userObjs {
+	for _, userObj := range userObjs {
 		resp = append(resp, types.UserItem{
-			ID:             o.ID,
-			Username:       o.Username,
-			Email:          ptr.To(o.Email),
-			Status:         o.Status,
-			LastLogin:      o.LastLogin.Format(consts.DefaultTimePattern),
-			NamespaceLimit: o.NamespaceLimit,
-			NamespaceCount: o.NamespaceCount,
-
-			CreatedAt: o.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: o.UpdatedAt.Format(consts.DefaultTimePattern),
+			ID:             userObj.ID,
+			Username:       userObj.Username,
+			Email:          ptr.To(userObj.Email),
+			Status:         userObj.Status,
+			LastLogin:      userObj.LastLogin.Format(consts.DefaultTimePattern),
+			NamespaceLimit: userObj.NamespaceLimit,
+			NamespaceCount: userObj.NamespaceCount,
+			CreatedAt:      time.Unix(0, int64(time.Millisecond)*userObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:      time.Unix(0, int64(time.Millisecond)*userObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 

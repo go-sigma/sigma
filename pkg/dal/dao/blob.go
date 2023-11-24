@@ -87,7 +87,7 @@ func (s *blobService) Create(ctx context.Context, blob *models.Blob) error {
 func (s *blobService) FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error) {
 	return s.tx.Blob.WithContext(ctx).
 		Where(s.tx.Blob.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
-		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before)).
+		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before.UTC().UnixMilli())).
 		Where(s.tx.Blob.ID.Gt(last)).Find()
 }
 

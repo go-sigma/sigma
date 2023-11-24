@@ -160,8 +160,8 @@ func (h *handler) GetGcArtifactRule(c echo.Context) error {
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
 		CronNextTrigger: ptr.Of(ptr.To(ruleObj.CronNextTrigger).Format(consts.DefaultTimePattern)),
-		CreatedAt:       ruleObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:       ruleObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:       time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:       time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -231,8 +231,8 @@ func (h *handler) GetGcArtifactLatestRunner(c echo.Context) error {
 		Duration:     duration,
 		StartedAt:    ptr.Of(startedAt),
 		EndedAt:      ptr.Of(endedAt),
-		CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -370,8 +370,8 @@ func (h *handler) ListGcArtifactRunners(c echo.Context) error {
 			Duration:     duration,
 			StartedAt:    ptr.Of(startedAt),
 			EndedAt:      ptr.Of(endedAt),
-			CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -435,8 +435,8 @@ func (h *handler) GetGcArtifactRunner(c echo.Context) error {
 		Duration:     duration,
 		StartedAt:    ptr.Of(startedAt),
 		EndedAt:      ptr.Of(endedAt),
-		CreatedAt:    runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt:    runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }
 
@@ -480,8 +480,8 @@ func (h *handler) ListGcArtifactRecords(c echo.Context) error {
 			Digest:    recordObj.Digest,
 			Status:    recordObj.Status,
 			Message:   string(recordObj.Message),
-			CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
-			UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -543,7 +543,7 @@ func (h *handler) GetGcArtifactRecord(c echo.Context) error {
 		Digest:    recordObj.Digest,
 		Status:    recordObj.Status,
 		Message:   string(recordObj.Message),
-		CreatedAt: recordObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: recordObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

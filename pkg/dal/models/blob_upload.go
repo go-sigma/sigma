@@ -15,14 +15,12 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/plugin/soft_delete"
 )
 
 type BlobUpload struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 

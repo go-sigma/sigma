@@ -161,7 +161,7 @@ func (s *tagService) FindWithQuantityCursor(ctx context.Context, repositoryID in
 func (s *tagService) FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error) {
 	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.RepositoryID.Eq(repositoryID)).Order(s.tx.Tag.UpdatedAt.Desc())
 	if last == 0 {
-		q = q.Where(s.tx.Tag.UpdatedAt.Gt(time.Now().Add(time.Hour * 24 * time.Duration(day))))
+		q = q.Where(s.tx.Tag.UpdatedAt.Gt(time.Now().Add(time.Hour * 24 * time.Duration(day)).UTC().UnixMilli()))
 	} else {
 		q = q.Where(s.tx.Tag.ID.Gt(last))
 	}

@@ -27,9 +27,9 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 
 	tableName := _builder.builderDo.TableName()
 	_builder.ALL = field.NewAsterisk(tableName)
-	_builder.CreatedAt = field.NewTime(tableName, "created_at")
-	_builder.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_builder.DeletedAt = field.NewUint(tableName, "deleted_at")
+	_builder.CreatedAt = field.NewInt64(tableName, "created_at")
+	_builder.UpdatedAt = field.NewInt64(tableName, "updated_at")
+	_builder.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_builder.ID = field.NewInt64(tableName, "id")
 	_builder.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_builder.Source = field.NewField(tableName, "source")
@@ -89,9 +89,9 @@ type builder struct {
 	builderDo builderDo
 
 	ALL                        field.Asterisk
-	CreatedAt                  field.Time
-	UpdatedAt                  field.Time
-	DeletedAt                  field.Uint
+	CreatedAt                  field.Int64
+	UpdatedAt                  field.Int64
+	DeletedAt                  field.Uint64
 	ID                         field.Int64
 	RepositoryID               field.Int64
 	Source                     field.Field
@@ -135,9 +135,9 @@ func (b builder) As(alias string) *builder {
 
 func (b *builder) updateTableName(table string) *builder {
 	b.ALL = field.NewAsterisk(table)
-	b.CreatedAt = field.NewTime(table, "created_at")
-	b.UpdatedAt = field.NewTime(table, "updated_at")
-	b.DeletedAt = field.NewUint(table, "deleted_at")
+	b.CreatedAt = field.NewInt64(table, "created_at")
+	b.UpdatedAt = field.NewInt64(table, "updated_at")
+	b.DeletedAt = field.NewUint64(table, "deleted_at")
 	b.ID = field.NewInt64(table, "id")
 	b.RepositoryID = field.NewInt64(table, "repository_id")
 	b.Source = field.NewField(table, "source")

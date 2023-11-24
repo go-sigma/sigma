@@ -102,7 +102,7 @@ func (h *handler) GetRunner(c echo.Context) error {
 		RawDuration: runnerObj.Duration,
 		Duration:    duration,
 
-		CreatedAt: runnerObj.CreatedAt.Format(consts.DefaultTimePattern),
-		UpdatedAt: runnerObj.UpdatedAt.Format(consts.DefaultTimePattern),
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }
