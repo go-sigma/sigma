@@ -27,6 +27,11 @@ func GetConfiguration() *Configuration {
 	return configuration
 }
 
+// SetConfiguration ...
+func SetConfiguration(c *Configuration) {
+	configuration = c
+}
+
 // Configuration ...
 type Configuration struct {
 	Log       ConfigurationLog       `yaml:"log"`
@@ -260,13 +265,13 @@ type ConfigurationDaemon struct {
 // ConfigurationAuthInternalUser ...
 type ConfigurationAuthInternalUser struct {
 	Username string `yaml:"username"`
-	Password string `yaml:"password"`
 }
 
 // ConfigurationAuthAdmin ...
 type ConfigurationAuthAdmin struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+	Email    string `yaml:"email"`
 }
 
 // ConfigurationAuthToken ...

@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -40,33 +41,34 @@ func TestInitializeSkipAuth(t *testing.T) {
 	e.HideBanner = true
 	e.HidePort = true
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
-	viper.SetDefault("auth.admin.username", "sigma")
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	assert.NoError(t, inits.Initialize(configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+		},
+	}))
 
-	err = inits.Initialize()
-	assert.NoError(t, err)
-
-	err = Initialize(e)
-	assert.NoError(t, err)
+	assert.NoError(t, Initialize(e))
 }
 
 type factoryOk struct{}

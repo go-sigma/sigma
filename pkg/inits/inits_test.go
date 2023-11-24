@@ -17,6 +17,8 @@ package inits
 import (
 	"fmt"
 	"testing"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 func TestInitialize(t *testing.T) {
@@ -28,7 +30,7 @@ func TestInitialize(t *testing.T) {
 		{
 			name: "test-1",
 			before: func() {
-				inits["test-1"] = func() error {
+				inits["test-1"] = func(configs.Configuration) error {
 					return nil
 				}
 			},
@@ -37,7 +39,7 @@ func TestInitialize(t *testing.T) {
 		{
 			name: "test-2",
 			before: func() {
-				inits["test-2"] = func() error {
+				inits["test-2"] = func(configs.Configuration) error {
 					return fmt.Errorf("test-2-error")
 				}
 			},
@@ -46,11 +48,11 @@ func TestInitialize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			inits = make(map[string]func() error)
+			inits = make(map[string]func(configs.Configuration) error)
 			if tt.before != nil {
 				tt.before()
 			}
-			if err := Initialize(); (err != nil) != tt.wantErr {
+			if err := Initialize(configs.Configuration{}); (err != nil) != tt.wantErr {
 				t.Errorf("Initialize() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

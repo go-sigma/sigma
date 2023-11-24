@@ -25,6 +25,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -34,7 +35,7 @@ func init() {
 	inits["signing"] = signing
 }
 
-func signing() error {
+func signing(_ configs.Configuration) error {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		log.Error().Err(err).Msg("Generating RSA private key failed")

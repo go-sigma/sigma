@@ -24,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // serverCmd represents the server command
@@ -47,7 +48,9 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		err = inits.Initialize()
+		config := ptr.To(configs.GetConfiguration())
+
+		err = inits.Initialize(config)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize inits with error")
 			return

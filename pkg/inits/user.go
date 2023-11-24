@@ -19,8 +19,8 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -32,7 +32,7 @@ func init() {
 	inits["user"] = initUser
 }
 
-func initUser() error {
+func initUser(config configs.Configuration) error {
 	ctx := log.Logger.WithContext(context.Background())
 
 	passwordService := password.New()
@@ -45,24 +45,23 @@ func initUser() error {
 	if userCount > 0 {
 		return nil
 	}
-	internalUserUsername := viper.GetString("auth.internalUser.username")
+	internalUserUsername := config.Auth.InternalUser.Username
 	if internalUserUsername == "" {
 		return fmt.Errorf("the internal user username is not set")
 	}
 	internalUser := &models.User{
 		Username: internalUserUsername,
-		Email:    ptr.Of("internal-fake@gmail.com"),
 	}
 	err = userService.Create(ctx, internalUser)
 	if err != nil {
 		return err
 	}
 
-	adminUserPassword := viper.GetString("auth.admin.password")
+	adminUserPassword := config.Auth.Admin.Password
 	if adminUserPassword == "" {
 		return fmt.Errorf("the admin user password is not set")
 	}
-	adminUserUsername := viper.GetString("auth.admin.username")
+	adminUserUsername := config.Auth.Admin.Username
 	if adminUserUsername == "" {
 		return fmt.Errorf("the admin user username is not set")
 	}
@@ -70,10 +69,7 @@ func initUser() error {
 	if err != nil {
 		return err
 	}
-	adminUserEmail := viper.GetString("auth.admin.email")
-	if adminUserEmail == "" {
-		adminUserEmail = "fake@gmail.com"
-	}
+	adminUserEmail := config.Auth.Admin.Email
 	adminUser := &models.User{
 		Username: adminUserUsername,
 		Password: ptr.Of(adminUserPasswordHashed),

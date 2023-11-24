@@ -25,10 +25,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -42,33 +44,38 @@ func TestFactory(t *testing.T) {
 	e.HideBanner = true
 	e.HidePort = true
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	viper.SetDefault("auth.admin.password", "sigma")
-	viper.SetDefault("auth.admin.username", "sigma")
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+		},
+	}
+	configs.SetConfiguration(config)
 
-	err = inits.Initialize()
-	assert.NoError(t, err)
+	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
 
 	var f = factory{}
-	err = f.Initialize(e)
+	err := f.Initialize(e)
 	assert.NoError(t, err)
 
 	go func() {
@@ -90,13 +97,25 @@ func TestFactory(t *testing.T) {
 	err = resp.Body.Close()
 	assert.NoError(t, err)
 
-	err = e.Shutdown(context.Background())
-	assert.NoError(t, err)
+	assert.NoError(t, e.Shutdown(context.Background()))
 }
 
 func TestFactoryFailed(t *testing.T) {
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString+"1")
-	var f = factory{}
-	err := f.Initialize(echo.New())
-	assert.Error(t, err)
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			InternalUser: configs.ConfigurationAuthInternalUser{
+				Username: "internal-sigma",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString + "1",
+			},
+		},
+	}
+	configs.SetConfiguration(config)
+	assert.Error(t, factory{}.Initialize(echo.New()))
 }

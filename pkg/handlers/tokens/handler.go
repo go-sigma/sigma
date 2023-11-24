@@ -19,8 +19,8 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -37,6 +37,7 @@ type Handler interface {
 }
 
 type handler struct {
+	config             *configs.Configuration
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
@@ -45,6 +46,7 @@ type handler struct {
 var _ Handler = &handler{}
 
 type inject struct {
+	config             *configs.Configuration
 	tokenService       token.TokenService
 	passwordService    password.Password
 	userServiceFactory dao.UserServiceFactory
@@ -52,12 +54,10 @@ type inject struct {
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) (Handler, error) {
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
-	if err != nil {
-		return nil, err
-	}
+	var tokenService token.TokenService
 	passwordService := password.New()
 	userServiceFactory := dao.NewUserServiceFactory()
+	config := configs.GetConfiguration()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.tokenService != nil {
@@ -69,8 +69,18 @@ func handlerNew(injects ...inject) (Handler, error) {
 		if ij.userServiceFactory != nil {
 			userServiceFactory = ij.userServiceFactory
 		}
+		if ij.config != nil {
+			config = ij.config
+		}
+	} else {
+		var err error
+		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &handler{
+		config:             config,
 		tokenService:       tokenService,
 		passwordService:    passwordService,
 		userServiceFactory: userServiceFactory,
