@@ -7,6 +7,7 @@ on:
     branches:
       - main
       - gh-readonly-queue/main/*
+      - release-*
     tags:
       - "v*.*.*"
   pull_request:
@@ -44,12 +45,11 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}
           tags: |
-            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Asia/Shanghai'}}
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
             type=semver,pattern={{version}}-alpine
@@ -67,8 +67,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          # cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-alpine
-          # cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-alpine,mode=max
   image-build-debian:
     name: image-build-debian
     runs-on: ubuntu-22.04
@@ -99,12 +97,11 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}
           tags: |
-            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Asia/Shanghai'}}
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
             type=semver,pattern={{version}}-debian
@@ -122,8 +119,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          # cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-debian
-          # cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-debian,mode=max
   image-build-builder:
     name: image-build-builder
     runs-on: ubuntu-22.04
@@ -154,12 +149,11 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}-builder
           tags: |
-            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Asia/Shanghai'}}
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
             type=semver,pattern={{version}}
