@@ -8,7 +8,7 @@ require (
 	github.com/IBM/sarama v1.42.1
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
 	github.com/anchore/syft v0.97.1
 	github.com/aquasecurity/trivy v0.47.0
 	github.com/aws/aws-sdk-go v1.48.3
