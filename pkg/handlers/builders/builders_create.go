@@ -37,7 +37,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostBuilder handles the post builder request
+// CreateBuilder handles the create builder request
 //
 //	@Summary	Create a builder for repository
 //	@Tags		Builder
@@ -47,12 +47,12 @@ import (
 //	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders [post]
 //	@Param		namespace_id	path	string						true	"Namespace ID"
 //	@Param		repository_id	path	string						true	"Repository ID"
-//	@Param		message			body	types.PostBuilderRequest	true	"Builder object"
+//	@Param		message			body	types.CreateBuilderRequest	true	"Builder object"
 //	@Success	201
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handler) PostBuilder(c echo.Context) error {
+func (h *handler) CreateBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -66,14 +66,14 @@ func (h *handler) PostBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PostBuilderRequest
+	var req types.CreateBuilderRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	err = h.PostBuilderValidator(req)
+	err = h.CreateBuilderValidator(req)
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
@@ -168,8 +168,8 @@ func (h *handler) PostBuilder(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-// PostBuilderValidator ...
-func (h *handler) PostBuilderValidator(req types.PostBuilderRequest) error {
+// CreateBuilderValidator ...
+func (h *handler) CreateBuilderValidator(req types.CreateBuilderRequest) error {
 	switch req.Source {
 	case enums.BuilderSourceSelfCodeRepository:
 		if req.ScmCredentialType == nil {

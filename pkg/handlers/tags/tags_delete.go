@@ -15,10 +15,13 @@
 package tag
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -35,10 +38,10 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/tags/{id} [delete]
-//	@Param		namespace	path	string	true	"Namespace name"
-//	@Param		repository	query	string	false	"Repository name"
-//	@Param		id			path	number	true	"Tag id"
+//	@Router		/namespaces/{namespace_id}/tags/{id} [delete]
+//	@Param		namespace_id	path	number	true	"Namespace id"
+//	@Param		repository_id	path	number	true	"Repository id"
+//	@Param		id				path	number	true	"Tag id"
 //	@Success	204
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
@@ -66,6 +69,32 @@ func (h *handler) DeleteTag(c echo.Context) error {
 	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead) {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
+	namespaceService := h.namespaceServiceFactory.New()
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+		}
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+	}
+
+	repositoryService := h.repositoryServiceFactory.New()
+	repositoryObj, err := repositoryService.Get(ctx, req.RepositoryID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Repository(%d) not found: %v", req.RepositoryID, err))
+		}
+		log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Repository(%d) find failed: %v", req.RepositoryID, err))
+	}
+	if repositoryObj.NamespaceID != namespaceObj.ID {
+		log.Error().Interface("RepositoryObj", repositoryObj).Interface("NamespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
 	}
 
 	tagService := h.tagServiceFactory.New()

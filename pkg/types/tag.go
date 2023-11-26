@@ -50,11 +50,11 @@ type TagItem struct {
 
 // ListTagRequest represents the request to list tags.
 type ListTagRequest struct {
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required" example:"10"`
+
 	Pagination
 	Sortable
-
-	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"library"`
-	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository" example:"library/busybox"`
 
 	Name *string              `json:"name" query:"name"`
 	Type []enums.ArtifactType `json:"type" query:"type"`
@@ -62,14 +62,15 @@ type ListTagRequest struct {
 
 // DeleteTagRequest represents the request to delete a tag.
 type DeleteTagRequest struct {
-	ID         int64  `param:"id" validate:"required,number"`
-	Namespace  string `param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
-	Repository string `query:"repository" validate:"required,is_valid_repository"`
+	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+	RepositoryID int64 `json:"repository_id" param:"repository_id" validate:"required" example:"10"`
+	ID           int64 `param:"id" validate:"required,number"`
 }
 
 // GetTagRequest represents the request to get a tag.
 type GetTagRequest struct {
-	ID         int64  `json:"id" param:"id" validate:"required,number"`
-	Namespace  string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace"`
-	Repository string `json:"repository" query:"repository" validate:"required,is_valid_repository"`
+	NamespaceID  int64  `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+	RepositoryID string `json:"repository_id" param:"repository_id" validate:"required" example:"10"`
+
+	ID int64 `json:"id" param:"id" validate:"required,number"`
 }

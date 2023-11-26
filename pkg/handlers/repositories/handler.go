@@ -30,10 +30,10 @@ import (
 
 // Handler is the interface for the repository handlers
 type Handler interface {
-	// PostRepository handles the post repository request
-	PostRepository(c echo.Context) error
-	// PutRepository handles the put repository request
-	PutRepository(c echo.Context) error
+	// CreateRepository handles the post repository request
+	CreateRepository(c echo.Context) error
+	// UpdateRepository handles the put repository request
+	UpdateRepository(c echo.Context) error
 	// GetRepository handles the get repository request
 	GetRepository(c echo.Context) error
 	// ListRepositories handles the list repository request
@@ -105,15 +105,15 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	repositoryGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces/:namespace/repositories")
-	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	// repositoryGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories")
+	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	repositoryHandler := handlerNew()
 
-	repositoryGroupWithoutAuth.GET("/", repositoryHandler.ListRepositories)
-	repositoryGroup.POST("/", repositoryHandler.PostRepository)
+	repositoryGroup.GET("/", repositoryHandler.ListRepositories)
+	repositoryGroup.POST("/", repositoryHandler.CreateRepository)
 	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
-	repositoryGroup.PUT("/:id", repositoryHandler.PutRepository)
+	repositoryGroup.PUT("/:id", repositoryHandler.UpdateRepository)
 	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
 
 	return nil

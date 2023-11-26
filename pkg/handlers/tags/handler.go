@@ -93,7 +93,7 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 func (f factory) Initialize(e *echo.Echo) error {
-	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	tagHandler := handlerNew()
 

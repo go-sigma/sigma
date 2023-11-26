@@ -15,6 +15,7 @@
 package repositories
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -39,8 +40,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/{repository_id} [get]
-//	@Param		namespace		path		string	true	"Namespace name"
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id} [get]
+//	@Param		namespace_id	path		number	true	"Namespace id"
 //	@Param		repository_id	path		number	true	"Repository id"
 //	@Success	200				{object}	types.RepositoryItem
 //	@Failure	404				{object}	xerrors.ErrCode
@@ -63,7 +64,7 @@ func (h *handler) GetRepository(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead) {
@@ -75,11 +76,15 @@ func (h *handler) GetRepository(c echo.Context) error {
 	repositoryObj, err := repositoryService.Get(ctx, req.ID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			log.Error().Err(err).Msg("Get repository from db failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			log.Error().Err(err).Msg("Get repository by id not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get repository by id not found: %v", err))
 		}
-		log.Error().Err(err).Msg("Get repository from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		log.Error().Err(err).Msg("Get repository by id failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get repository by id failed: %v", err))
+	}
+	if repositoryObj.NamespaceID != req.NamespaceID {
+		log.Error().Interface("RepositoryObj", repositoryObj).Int64("NamespaceID", req.NamespaceID).Msg("Repository's namespace ref id not equal namespace id")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
 	}
 
 	var builderItemObj *types.BuilderItem

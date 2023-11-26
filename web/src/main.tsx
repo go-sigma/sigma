@@ -18,9 +18,18 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter as Router } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
 import App from './App';
 
 import './index.css';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(relativeTime);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Router>

@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PutBuilder handles the put builder request
+// UpdateBuilder handles the update builder request
 //
 //	@Summary	Update a builder by id
 //	@Tags		Builder
@@ -38,18 +38,18 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
-//	@Param		namespace_id	path	string					true	"Namespace ID"
-//	@Param		repository_id	path	string					true	"Repository ID"
-//	@Param		builder_id		path	string					true	"Builder ID"
-//	@Param		message			body	types.PutBuilderRequest	true	"Builder object"
+//	@Param		namespace_id	path	string						true	"Namespace id"
+//	@Param		repository_id	path	string						true	"Repository id"
+//	@Param		builder_id		path	string						true	"Builder id"
+//	@Param		message			body	types.UpdateBuilderRequest	true	"Builder object"
 //	@Success	201
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handler) PutBuilder(c echo.Context) error {
+func (h *handler) UpdateBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.PutBuilderRequest
+	var req types.UpdateBuilderRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")

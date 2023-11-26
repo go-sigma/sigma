@@ -2847,21 +2847,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Namespace ID",
+                        "description": "Namespace id",
                         "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Repository ID",
+                        "description": "Repository id",
                         "name": "repository_id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Builder ID",
+                        "description": "Builder id",
                         "name": "builder_id",
                         "in": "path",
                         "required": true
@@ -2872,7 +2872,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutBuilderRequest"
+                            "$ref": "#/definitions/types.UpdateBuilderRequest"
                         }
                     }
                 ],
@@ -3497,6 +3497,339 @@ const docTemplate = `{
                 }
             }
         },
+        "/namespaces/{namespace_id}/repositories/": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repository"
+                ],
+                "summary": "List repositories",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 10,
+                        "type": "number",
+                        "default": 10,
+                        "description": "Limit size",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "number",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "Sort method",
+                        "name": "method",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search repository with name",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.RepositoryItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repository"
+                ],
+                "summary": "Create repository",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Repository object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateRepositoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateRepositoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/namespaces/{namespace_id}/repositories/{repository_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repository"
+                ],
+                "summary": "Get repository",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.RepositoryItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repository"
+                ],
+                "summary": "Update repository",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Repository object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateRepositoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repository"
+                ],
+                "summary": "Delete repository",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
         "/namespaces/{namespace_id}/repositories/{repository_id}/builders": {
             "post": {
                 "security": [
@@ -3535,7 +3868,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PostBuilderRequest"
+                            "$ref": "#/definitions/types.CreateBuilderRequest"
                         }
                     }
                 ],
@@ -3695,340 +4028,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespaces/{namespace}/repositories/": {
-            "get": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Repository"
-                ],
-                "summary": "List repositories",
-                "parameters": [
-                    {
-                        "maximum": 100,
-                        "minimum": 10,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 1,
-                        "description": "page",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sort field",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "asc",
-                            "desc"
-                        ],
-                        "type": "string",
-                        "description": "sort method",
-                        "name": "method",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "namespace",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "search repository with name",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/types.CommonList"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "items": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/types.RepositoryItem"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Repository"
-                ],
-                "summary": "Create repository",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Repository object",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.PostRepositoryRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/types.PostRepositoryResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/namespaces/{namespace}/repositories/{repository_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Repository"
-                ],
-                "summary": "Get repository",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Repository id",
-                        "name": "repository_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.RepositoryItem"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Repository"
-                ],
-                "summary": "Update repository",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Repository id",
-                        "name": "repository_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Repository object",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.PutRepositoryRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Repository"
-                ],
-                "summary": "Delete repository",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Repository id",
-                        "name": "repository_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/namespaces/{namespace}/tags/": {
+        "/namespaces/{namespace_id}/tags/": {
             "get": {
                 "security": [
                     {
@@ -4047,11 +4047,17 @@ const docTemplate = `{
                 "summary": "List tag",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path"
                     },
                     {
                         "maximum": 100,
@@ -4088,12 +4094,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Repository name",
-                        "name": "repository",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "search tag with name",
                         "name": "name",
                         "in": "query"
@@ -4102,14 +4102,14 @@ const docTemplate = `{
                         "type": "array",
                         "items": {
                             "enum": [
-                                "image",
-                                "imageIndex",
-                                "chart",
-                                "cnab",
-                                "cosign",
-                                "wasm",
-                                "provenance",
-                                "unknown"
+                                "Image",
+                                "ImageIndex",
+                                "Chart",
+                                "Cnab",
+                                "Cosign",
+                                "Wasm",
+                                "Provenance",
+                                "Unknown"
                             ],
                             "type": "string"
                         },
@@ -4156,7 +4156,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespaces/{namespace}/tags/{id}": {
+        "/namespaces/{namespace_id}/tags/{id}": {
             "get": {
                 "security": [
                     {
@@ -4175,17 +4175,17 @@ const docTemplate = `{
                 "summary": "Get tag",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "repository name",
-                        "name": "repository",
-                        "in": "query"
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path"
                     },
                     {
                         "type": "number",
@@ -4234,17 +4234,18 @@ const docTemplate = `{
                 "summary": "Delete tag",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Namespace name",
-                        "name": "namespace",
+                        "type": "number",
+                        "description": "Namespace id",
+                        "name": "namespace_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Repository name",
-                        "name": "repository",
-                        "in": "query"
+                        "type": "number",
+                        "description": "Repository id",
+                        "name": "repository_id",
+                        "in": "path",
+                        "required": true
                     },
                     {
                         "type": "number",
@@ -5902,6 +5903,141 @@ const docTemplate = `{
                 }
             }
         },
+        "types.CreateBuilderRequest": {
+            "type": "object",
+            "required": [
+                "buildkit_platforms"
+            ],
+            "properties": {
+                "buildkit_build_args": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "a=b,c=d"
+                },
+                "buildkit_context": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "buildkit_dockerfile": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "buildkit_insecure_registries": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "test.com",
+                        "xxx.com@http"
+                    ]
+                },
+                "buildkit_platforms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/enums.OciPlatform"
+                    },
+                    "example": [
+                        "linux/amd64"
+                    ]
+                },
+                "code_repository_id": {
+                    "description": "source CodeRepository",
+                    "type": "integer",
+                    "example": 10
+                },
+                "cron_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "cron_rule": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "* * * * *"
+                },
+                "cron_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "dockerfile": {
+                    "description": "source Dockerfile",
+                    "type": "string",
+                    "example": "xxx"
+                },
+                "scm_branch": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1,
+                    "example": "main"
+                },
+                "scm_credential_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmCredentialType"
+                        }
+                    ],
+                    "example": "ssh"
+                },
+                "scm_depth": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "scm_password": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "scm_provider": {
+                    "$ref": "#/definitions/enums.ScmProvider"
+                },
+                "scm_repository": {
+                    "description": "source SelfCodeRepository",
+                    "type": "string",
+                    "example": "https://github.com/go-sigma/sigma.git"
+                },
+                "scm_ssh_key": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_submodule": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "scm_token": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_username": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "source": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.BuilderSource"
+                        }
+                    ],
+                    "example": "Dockerfile"
+                },
+                "webhook_branch_name": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "webhook_branch_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "webhook_tag_tag_template": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "{.Ref}"
+                }
+            }
+        },
         "types.CreateGcArtifactRunnerRequest": {
             "type": "object",
             "properties": {
@@ -5931,6 +6067,53 @@ const docTemplate = `{
             "properties": {
                 "namespace_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "types.CreateRepositoryRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "example": "i am just description"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "test"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 3000,
+                    "example": "i am just overview"
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
+                }
+            }
+        },
+        "types.CreateRepositoryResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 21911
                 }
             }
         },
@@ -6696,141 +6879,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PostBuilderRequest": {
-            "type": "object",
-            "required": [
-                "buildkit_platforms"
-            ],
-            "properties": {
-                "buildkit_build_args": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "a=b,c=d"
-                },
-                "buildkit_context": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
-                },
-                "buildkit_dockerfile": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
-                },
-                "buildkit_insecure_registries": {
-                    "type": "array",
-                    "maxItems": 3,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "test.com",
-                        "xxx.com@http"
-                    ]
-                },
-                "buildkit_platforms": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/enums.OciPlatform"
-                    },
-                    "example": [
-                        "linux/amd64"
-                    ]
-                },
-                "code_repository_id": {
-                    "description": "source CodeRepository",
-                    "type": "integer",
-                    "example": 10
-                },
-                "cron_branch": {
-                    "type": "string",
-                    "example": "main"
-                },
-                "cron_rule": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "* * * * *"
-                },
-                "cron_tag_template": {
-                    "type": "string",
-                    "example": "{.Ref}"
-                },
-                "dockerfile": {
-                    "description": "source Dockerfile",
-                    "type": "string",
-                    "example": "xxx"
-                },
-                "scm_branch": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 1,
-                    "example": "main"
-                },
-                "scm_credential_type": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.ScmCredentialType"
-                        }
-                    ],
-                    "example": "ssh"
-                },
-                "scm_depth": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "example": 0
-                },
-                "scm_password": {
-                    "type": "string",
-                    "example": "sigma"
-                },
-                "scm_provider": {
-                    "$ref": "#/definitions/enums.ScmProvider"
-                },
-                "scm_repository": {
-                    "description": "source SelfCodeRepository",
-                    "type": "string",
-                    "example": "https://github.com/go-sigma/sigma.git"
-                },
-                "scm_ssh_key": {
-                    "type": "string",
-                    "example": "xxxx"
-                },
-                "scm_submodule": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "scm_token": {
-                    "type": "string",
-                    "example": "xxxx"
-                },
-                "scm_username": {
-                    "type": "string",
-                    "example": "sigma"
-                },
-                "source": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.BuilderSource"
-                        }
-                    ],
-                    "example": "Dockerfile"
-                },
-                "webhook_branch_name": {
-                    "type": "string",
-                    "example": "main"
-                },
-                "webhook_branch_tag_template": {
-                    "type": "string",
-                    "example": "{.Ref}"
-                },
-                "webhook_tag_tag_template": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "{.Ref}"
-                }
-            }
-        },
         "types.PostNamespaceRequest": {
             "type": "object",
             "required": [
@@ -6871,53 +6919,6 @@ const docTemplate = `{
             }
         },
         "types.PostNamespaceResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "example": 21911
-                }
-            }
-        },
-        "types.PostRepositoryRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "example": "i am just description"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "test"
-                },
-                "overview": {
-                    "type": "string",
-                    "maxLength": 3000,
-                    "example": "i am just overview"
-                },
-                "size_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "tag_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
-                }
-            }
-        },
-        "types.PostRepositoryResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -7079,141 +7080,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutBuilderRequest": {
-            "type": "object",
-            "required": [
-                "buildkit_platforms"
-            ],
-            "properties": {
-                "buildkit_build_args": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "a=b,c=d"
-                },
-                "buildkit_context": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
-                },
-                "buildkit_dockerfile": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
-                },
-                "buildkit_insecure_registries": {
-                    "type": "array",
-                    "maxItems": 3,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "test.com",
-                        "xxx.com@http"
-                    ]
-                },
-                "buildkit_platforms": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/enums.OciPlatform"
-                    },
-                    "example": [
-                        "linux/amd64"
-                    ]
-                },
-                "code_repository_id": {
-                    "description": "source CodeRepository",
-                    "type": "integer",
-                    "example": 10
-                },
-                "cron_branch": {
-                    "type": "string",
-                    "example": "main"
-                },
-                "cron_rule": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "* * * * *"
-                },
-                "cron_tag_template": {
-                    "type": "string",
-                    "example": "{.Ref}"
-                },
-                "dockerfile": {
-                    "description": "source Dockerfile",
-                    "type": "string",
-                    "example": "xxx"
-                },
-                "scm_branch": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 1,
-                    "example": "main"
-                },
-                "scm_credential_type": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.ScmCredentialType"
-                        }
-                    ],
-                    "example": "ssh"
-                },
-                "scm_depth": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "example": 0
-                },
-                "scm_password": {
-                    "type": "string",
-                    "example": "sigma"
-                },
-                "scm_provider": {
-                    "$ref": "#/definitions/enums.ScmProvider"
-                },
-                "scm_repository": {
-                    "description": "source SelfCodeRepository",
-                    "type": "string",
-                    "example": "https://github.com/go-sigma/sigma.git"
-                },
-                "scm_ssh_key": {
-                    "type": "string",
-                    "example": "xxxx"
-                },
-                "scm_submodule": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "scm_token": {
-                    "type": "string",
-                    "example": "xxxx"
-                },
-                "scm_username": {
-                    "type": "string",
-                    "example": "sigma"
-                },
-                "source": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.BuilderSource"
-                        }
-                    ],
-                    "example": "Dockerfile"
-                },
-                "webhook_branch_name": {
-                    "type": "string",
-                    "example": "main"
-                },
-                "webhook_branch_tag_template": {
-                    "type": "string",
-                    "example": "{.Ref}"
-                },
-                "webhook_tag_tag_template": {
-                    "description": "TODO: validate",
-                    "type": "string",
-                    "example": "{.Ref}"
-                }
-            }
-        },
         "types.PutNamespaceRequest": {
             "type": "object",
             "properties": {
@@ -7225,37 +7091,6 @@ const docTemplate = `{
                 "repository_limit": {
                     "type": "integer",
                     "example": 10000
-                },
-                "size_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "tag_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
-                }
-            }
-        },
-        "types.PutRepositoryRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 300,
-                    "example": "i am just description"
-                },
-                "overview": {
-                    "type": "string",
-                    "maxLength": 100000,
-                    "example": "i am just overview"
                 },
                 "size_limit": {
                     "type": "integer",
@@ -7493,6 +7328,141 @@ const docTemplate = `{
                 }
             }
         },
+        "types.UpdateBuilderRequest": {
+            "type": "object",
+            "required": [
+                "buildkit_platforms"
+            ],
+            "properties": {
+                "buildkit_build_args": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "a=b,c=d"
+                },
+                "buildkit_context": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "buildkit_dockerfile": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "buildkit_insecure_registries": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "test.com",
+                        "xxx.com@http"
+                    ]
+                },
+                "buildkit_platforms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/enums.OciPlatform"
+                    },
+                    "example": [
+                        "linux/amd64"
+                    ]
+                },
+                "code_repository_id": {
+                    "description": "source CodeRepository",
+                    "type": "integer",
+                    "example": 10
+                },
+                "cron_branch": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "cron_rule": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "* * * * *"
+                },
+                "cron_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "dockerfile": {
+                    "description": "source Dockerfile",
+                    "type": "string",
+                    "example": "xxx"
+                },
+                "scm_branch": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1,
+                    "example": "main"
+                },
+                "scm_credential_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmCredentialType"
+                        }
+                    ],
+                    "example": "ssh"
+                },
+                "scm_depth": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "scm_password": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "scm_provider": {
+                    "$ref": "#/definitions/enums.ScmProvider"
+                },
+                "scm_repository": {
+                    "description": "source SelfCodeRepository",
+                    "type": "string",
+                    "example": "https://github.com/go-sigma/sigma.git"
+                },
+                "scm_ssh_key": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_submodule": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "scm_token": {
+                    "type": "string",
+                    "example": "xxxx"
+                },
+                "scm_username": {
+                    "type": "string",
+                    "example": "sigma"
+                },
+                "source": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.BuilderSource"
+                        }
+                    ],
+                    "example": "Dockerfile"
+                },
+                "webhook_branch_name": {
+                    "type": "string",
+                    "example": "main"
+                },
+                "webhook_branch_tag_template": {
+                    "type": "string",
+                    "example": "{.Ref}"
+                },
+                "webhook_tag_tag_template": {
+                    "description": "TODO: validate",
+                    "type": "string",
+                    "example": "{.Ref}"
+                }
+            }
+        },
         "types.UpdateGcArtifactRuleRequest": {
             "type": "object",
             "properties": {
@@ -7607,6 +7577,37 @@ const docTemplate = `{
                         }
                     ],
                     "example": "NamespaceReader"
+                }
+            }
+        },
+        "types.UpdateRepositoryRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "example": "i am just description"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "example": "i am just overview"
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
                 }
             }
         },

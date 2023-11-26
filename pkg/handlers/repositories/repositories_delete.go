@@ -25,6 +25,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -38,8 +39,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/{repository_id} [delete]
-//	@Param		namespace		path	string	true	"Namespace name"
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id} [delete]
+//	@Param		namespace_id	path	number	true	"Namespace id"
 //	@Param		repository_id	path	number	true	"Repository id"
 //	@Success	204
 //	@Failure	404	{object}	xerrors.ErrCode
@@ -71,14 +72,14 @@ func (h *handler) DeleteRepository(c echo.Context) error {
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
-		log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
@@ -92,18 +93,28 @@ func (h *handler) DeleteRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 	if repositoryObj.NamespaceID != namespaceObj.ID {
-		log.Error().Interface("repositoryObj", repositoryObj).Interface("namespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
+		log.Error().Interface("RepositoryObj", repositoryObj).Interface("NamespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
 	}
 
-	err = repositoryService.DeleteByID(ctx, req.ID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Delete repository from db failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		err = repositoryService.DeleteByID(ctx, req.ID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Msg("Delete repository by id not found")
+				return xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Delete repository by id not found: %v", err))
+			}
+			log.Error().Err(err).Msg("Delete repository by id failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete repository by id failed: %v", err))
 		}
-		log.Error().Err(err).Msg("Delete repository from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return nil
+	})
+	if err != nil {
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
 	}
 
 	return c.NoContent(http.StatusNoContent)

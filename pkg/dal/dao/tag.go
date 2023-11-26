@@ -60,7 +60,7 @@ type TagService interface {
 	// ListTag lists the tags by the specified request.
 	ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error)
 	// CountTag counts the artifacts by the specified request.
-	CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
+	// CountTag(ctx context.Context, req types.ListTagRequest) (int64, error)
 	// CountByNamespace counts the tags by the specified namespace.
 	CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error)
 	// CountByRepositories counts the tags by the specified repositories.
@@ -282,12 +282,12 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 }
 
 // CountTag counts the artifacts by the specified request.
-func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (int64, error) {
-	return s.tx.Tag.WithContext(ctx).
-		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
-		Where(s.tx.Repository.Name.Eq(req.Repository)).
-		Count()
-}
+// func (s *tagService) CountTag(ctx context.Context, req types.ListTagRequest) (int64, error) {
+// 	return s.tx.Tag.WithContext(ctx).
+// 		LeftJoin(s.tx.Repository, s.tx.Tag.RepositoryID.EqCol(s.tx.Repository.ID)).
+// 		Where(s.tx.Repository.Name.Eq(req.Repository)).
+// 		Count()
+// }
 
 // DeleteByID deletes the tag with the specified tag ID.
 func (s *tagService) DeleteByID(ctx context.Context, id int64) error {

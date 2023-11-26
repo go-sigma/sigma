@@ -41,16 +41,16 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/ [get]
-//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
-//	@Param		sort		query		string	false	"sort field"
-//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		namespace	path		string	true	"namespace"
-//	@Param		name		query		string	false	"search repository with name"
-//	@Success	200			{object}	types.CommonList{items=[]types.RepositoryItem}
-//	@Failure	404			{object}	xerrors.ErrCode
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Router		/namespaces/{namespace_id}/repositories/ [get]
+//	@Param		namespace_id	path		number	true	"Namespace id"
+//	@Param		limit			query		number	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		number	false	"Page number"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"Sort field"
+//	@Param		method			query		string	false	"Sort method"	Enums(asc, desc)
+//	@Param		name			query		string	false	"Search repository with name"
+//	@Success	200				{object}	types.CommonList{items=[]types.RepositoryItem}
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) ListRepositories(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -71,19 +71,19 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
-		log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
@@ -108,6 +108,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	for _, repository := range repositoryObjs {
 		repositoryObj := types.RepositoryItem{
 			ID:          repository.ID,
+			NamespaceID: repository.NamespaceID,
 			Name:        repository.Name,
 			Description: repository.Description,
 			Overview:    ptr.Of(string(repository.Overview)),

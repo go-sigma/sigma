@@ -24,10 +24,7 @@ import Header from "../../components/Header";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 
-import TableItem from "../Repository/TableItem";
 import "./index.css";
-
-import { IRepositoryItem, IRepositoryList, IHTTPError } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
