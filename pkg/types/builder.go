@@ -140,16 +140,16 @@ type PostOrPutBuilderRequest struct {
 	BuildkitBuildArgs          *string             `json:"buildkit_build_args" example:"a=b,c=d"` // TODO: validate
 }
 
-// PostBuilderRequest ...
-type PostBuilderRequest struct {
+// CreateBuilderRequest ...
+type CreateBuilderRequest struct {
 	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10" swaggerignore:"true"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10" swaggerignore:"true"`
 
 	PostOrPutBuilderRequest
 }
 
-// PutBuilderRequest represents the request to get a builder.
-type PutBuilderRequest struct {
+// UpdateBuilderRequest represents the request to get a builder.
+type UpdateBuilderRequest struct {
 	NamespaceID  int64 `json:"namespace_id" param:"namespace_id" validate:"required,number" example:"10" swaggerignore:"true"`
 	RepositoryID int64 `json:"repository_id" param:"repository_id" example:"10" swaggerignore:"true"`
 	BuilderID    int64 `json:"builder_id" param:"builder_id" validate:"required,number" example:"10" swaggerignore:"true"`

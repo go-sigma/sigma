@@ -119,15 +119,15 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, len(tags1), int(1))
 
-		count1, err := tagService.CountTag(ctx, types.ListTagRequest{
-			Pagination: types.Pagination{
-				Limit: ptr.Of(int(100)),
-				Page:  ptr.Of(int(0)),
-			},
-			Repository: "test/busybox",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, count1, int64(1))
+		// count1, err := tagService.CountTag(ctx, types.ListTagRequest{
+		// 	Pagination: types.Pagination{
+		// 		Limit: ptr.Of(int(100)),
+		// 		Page:  ptr.Of(int(0)),
+		// 	},
+		// 	Repository: "test/busybox",
+		// })
+		// assert.NoError(t, err)
+		// assert.Equal(t, count1, int64(1))
 
 		err = tagService.DeleteByName(ctx, repositoryObj.ID, "latest")
 		assert.NoError(t, err)

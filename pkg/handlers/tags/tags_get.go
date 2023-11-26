@@ -36,13 +36,13 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/tags/{id} [get]
-//	@Param		namespace	path		string	true	"Namespace name"
-//	@Param		repository	query		string	false	"repository name"
-//	@Param		id			path		number	true	"Tag id"
-//	@Success	200			{object}	types.TagItem
-//	@Failure	404			{object}	xerrors.ErrCode
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Router		/namespaces/{namespace_id}/tags/{id} [get]
+//	@Param		namespace_id	path		number	true	"Namespace id"
+//	@Param		repository_id	path		number	false	"Repository id"
+//	@Param		id				path		number	true	"Tag id"
+//	@Success	200				{object}	types.TagItem
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) GetTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

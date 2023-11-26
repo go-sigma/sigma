@@ -34,21 +34,21 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostRepository handles the post repository request
+// CreateRepository handles the create repository request
 //
 //	@Summary	Create repository
 //	@Tags		Repository
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/repositories/ [post]
-//	@Param		namespace	path		string						true	"Namespace name"
-//	@Param		message		body		types.PostRepositoryRequest	true	"Repository object"
-//	@Success	201			{object}	types.PostRepositoryResponse
-//	@Failure	400			{object}	xerrors.ErrCode
-//	@Failure	404			{object}	xerrors.ErrCode
-//	@Failure	500			{object}	xerrors.ErrCode
-func (h *handler) PostRepository(c echo.Context) error {
+//	@Router		/namespaces/{namespace_id}/repositories/ [post]
+//	@Param		namespace_id	path		number							true	"Namespace id"
+//	@Param		message			body		types.CreateRepositoryRequest	true	"Repository object"
+//	@Success	201				{object}	types.CreateRepositoryResponse
+//	@Failure	400				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
+func (h *handler) CreateRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -62,27 +62,27 @@ func (h *handler) PostRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PostRepositoryRequest
+	var req types.CreateRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
-		}
-		log.Error().Err(err).Str("Namespace", req.Namespace).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+	if !h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
-	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
-		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	namespaceService := h.namespaceServiceFactory.New()
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+		}
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryObj := &models.Repository{
@@ -109,5 +109,5 @@ func (h *handler) PostRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create repository failed: %v", err)))
 	}
 
-	return c.JSON(http.StatusCreated, types.PostRepositoryResponse{ID: repositoryObj.ID})
+	return c.JSON(http.StatusCreated, types.CreateRepositoryResponse{ID: repositoryObj.ID})
 }

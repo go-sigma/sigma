@@ -357,6 +357,104 @@ definitions:
         example: 1
         type: integer
     type: object
+  types.CreateBuilderRequest:
+    properties:
+      buildkit_build_args:
+        description: 'TODO: validate'
+        example: a=b,c=d
+        type: string
+      buildkit_context:
+        maxLength: 255
+        minLength: 1
+        type: string
+      buildkit_dockerfile:
+        maxLength: 255
+        minLength: 1
+        type: string
+      buildkit_insecure_registries:
+        example:
+        - test.com
+        - xxx.com@http
+        items:
+          type: string
+        maxItems: 3
+        type: array
+      buildkit_platforms:
+        example:
+        - linux/amd64
+        items:
+          $ref: '#/definitions/enums.OciPlatform'
+        minItems: 1
+        type: array
+      code_repository_id:
+        description: source CodeRepository
+        example: 10
+        type: integer
+      cron_branch:
+        example: main
+        type: string
+      cron_rule:
+        description: 'TODO: validate'
+        example: '* * * * *'
+        type: string
+      cron_tag_template:
+        example: '{.Ref}'
+        type: string
+      dockerfile:
+        description: source Dockerfile
+        example: xxx
+        type: string
+      scm_branch:
+        example: main
+        maxLength: 50
+        minLength: 1
+        type: string
+      scm_credential_type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: ssh
+      scm_depth:
+        example: 0
+        minimum: 0
+        type: integer
+      scm_password:
+        example: sigma
+        type: string
+      scm_provider:
+        $ref: '#/definitions/enums.ScmProvider'
+      scm_repository:
+        description: source SelfCodeRepository
+        example: https://github.com/go-sigma/sigma.git
+        type: string
+      scm_ssh_key:
+        example: xxxx
+        type: string
+      scm_submodule:
+        example: false
+        type: boolean
+      scm_token:
+        example: xxxx
+        type: string
+      scm_username:
+        example: sigma
+        type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/enums.BuilderSource'
+        example: Dockerfile
+      webhook_branch_name:
+        example: main
+        type: string
+      webhook_branch_tag_template:
+        example: '{.Ref}'
+        type: string
+      webhook_tag_tag_template:
+        description: 'TODO: validate'
+        example: '{.Ref}'
+        type: string
+    required:
+    - buildkit_platforms
+    type: object
   types.CreateGcArtifactRunnerRequest:
     properties:
       namespace_id:
@@ -375,6 +473,38 @@ definitions:
   types.CreateGcTagRunnerRequest:
     properties:
       namespace_id:
+        type: integer
+    type: object
+  types.CreateRepositoryRequest:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
+      name:
+        example: test
+        type: string
+      overview:
+        example: i am just overview
+        maxLength: 3000
+        type: string
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
+    required:
+    - name
+    type: object
+  types.CreateRepositoryResponse:
+    properties:
+      id:
+        example: 21911
         type: integer
     type: object
   types.GcArtifactRecordItem:
@@ -904,104 +1034,6 @@ definitions:
         example: "1234567890"
         type: string
     type: object
-  types.PostBuilderRequest:
-    properties:
-      buildkit_build_args:
-        description: 'TODO: validate'
-        example: a=b,c=d
-        type: string
-      buildkit_context:
-        maxLength: 255
-        minLength: 1
-        type: string
-      buildkit_dockerfile:
-        maxLength: 255
-        minLength: 1
-        type: string
-      buildkit_insecure_registries:
-        example:
-        - test.com
-        - xxx.com@http
-        items:
-          type: string
-        maxItems: 3
-        type: array
-      buildkit_platforms:
-        example:
-        - linux/amd64
-        items:
-          $ref: '#/definitions/enums.OciPlatform'
-        minItems: 1
-        type: array
-      code_repository_id:
-        description: source CodeRepository
-        example: 10
-        type: integer
-      cron_branch:
-        example: main
-        type: string
-      cron_rule:
-        description: 'TODO: validate'
-        example: '* * * * *'
-        type: string
-      cron_tag_template:
-        example: '{.Ref}'
-        type: string
-      dockerfile:
-        description: source Dockerfile
-        example: xxx
-        type: string
-      scm_branch:
-        example: main
-        maxLength: 50
-        minLength: 1
-        type: string
-      scm_credential_type:
-        allOf:
-        - $ref: '#/definitions/enums.ScmCredentialType'
-        example: ssh
-      scm_depth:
-        example: 0
-        minimum: 0
-        type: integer
-      scm_password:
-        example: sigma
-        type: string
-      scm_provider:
-        $ref: '#/definitions/enums.ScmProvider'
-      scm_repository:
-        description: source SelfCodeRepository
-        example: https://github.com/go-sigma/sigma.git
-        type: string
-      scm_ssh_key:
-        example: xxxx
-        type: string
-      scm_submodule:
-        example: false
-        type: boolean
-      scm_token:
-        example: xxxx
-        type: string
-      scm_username:
-        example: sigma
-        type: string
-      source:
-        allOf:
-        - $ref: '#/definitions/enums.BuilderSource'
-        example: Dockerfile
-      webhook_branch_name:
-        example: main
-        type: string
-      webhook_branch_tag_template:
-        example: '{.Ref}'
-        type: string
-      webhook_tag_tag_template:
-        description: 'TODO: validate'
-        example: '{.Ref}'
-        type: string
-    required:
-    - buildkit_platforms
-    type: object
   types.PostNamespaceRequest:
     properties:
       description:
@@ -1030,38 +1062,6 @@ definitions:
     - name
     type: object
   types.PostNamespaceResponse:
-    properties:
-      id:
-        example: 21911
-        type: integer
-    type: object
-  types.PostRepositoryRequest:
-    properties:
-      description:
-        example: i am just description
-        maxLength: 30
-        type: string
-      name:
-        example: test
-        type: string
-      overview:
-        example: i am just overview
-        maxLength: 3000
-        type: string
-      size_limit:
-        example: 10000
-        type: integer
-      tag_limit:
-        example: 10000
-        type: integer
-      visibility:
-        allOf:
-        - $ref: '#/definitions/enums.Visibility'
-        example: public
-    required:
-    - name
-    type: object
-  types.PostRepositoryResponse:
     properties:
       id:
         example: 21911
@@ -1177,104 +1177,6 @@ definitions:
     - ssl_verify
     - url
     type: object
-  types.PutBuilderRequest:
-    properties:
-      buildkit_build_args:
-        description: 'TODO: validate'
-        example: a=b,c=d
-        type: string
-      buildkit_context:
-        maxLength: 255
-        minLength: 1
-        type: string
-      buildkit_dockerfile:
-        maxLength: 255
-        minLength: 1
-        type: string
-      buildkit_insecure_registries:
-        example:
-        - test.com
-        - xxx.com@http
-        items:
-          type: string
-        maxItems: 3
-        type: array
-      buildkit_platforms:
-        example:
-        - linux/amd64
-        items:
-          $ref: '#/definitions/enums.OciPlatform'
-        minItems: 1
-        type: array
-      code_repository_id:
-        description: source CodeRepository
-        example: 10
-        type: integer
-      cron_branch:
-        example: main
-        type: string
-      cron_rule:
-        description: 'TODO: validate'
-        example: '* * * * *'
-        type: string
-      cron_tag_template:
-        example: '{.Ref}'
-        type: string
-      dockerfile:
-        description: source Dockerfile
-        example: xxx
-        type: string
-      scm_branch:
-        example: main
-        maxLength: 50
-        minLength: 1
-        type: string
-      scm_credential_type:
-        allOf:
-        - $ref: '#/definitions/enums.ScmCredentialType'
-        example: ssh
-      scm_depth:
-        example: 0
-        minimum: 0
-        type: integer
-      scm_password:
-        example: sigma
-        type: string
-      scm_provider:
-        $ref: '#/definitions/enums.ScmProvider'
-      scm_repository:
-        description: source SelfCodeRepository
-        example: https://github.com/go-sigma/sigma.git
-        type: string
-      scm_ssh_key:
-        example: xxxx
-        type: string
-      scm_submodule:
-        example: false
-        type: boolean
-      scm_token:
-        example: xxxx
-        type: string
-      scm_username:
-        example: sigma
-        type: string
-      source:
-        allOf:
-        - $ref: '#/definitions/enums.BuilderSource'
-        example: Dockerfile
-      webhook_branch_name:
-        example: main
-        type: string
-      webhook_branch_tag_template:
-        example: '{.Ref}'
-        type: string
-      webhook_tag_tag_template:
-        description: 'TODO: validate'
-        example: '{.Ref}'
-        type: string
-    required:
-    - buildkit_platforms
-    type: object
   types.PutNamespaceRequest:
     properties:
       description:
@@ -1284,27 +1186,6 @@ definitions:
       repository_limit:
         example: 10000
         type: integer
-      size_limit:
-        example: 10000
-        type: integer
-      tag_limit:
-        example: 10000
-        type: integer
-      visibility:
-        allOf:
-        - $ref: '#/definitions/enums.Visibility'
-        example: public
-    type: object
-  types.PutRepositoryRequest:
-    properties:
-      description:
-        example: i am just description
-        maxLength: 300
-        type: string
-      overview:
-        example: i am just overview
-        maxLength: 100000
-        type: string
       size_limit:
         example: 10000
         type: integer
@@ -1494,6 +1375,104 @@ definitions:
         example: '{"critical":0,"high":0,"medium":0,"low":0}'
         type: string
     type: object
+  types.UpdateBuilderRequest:
+    properties:
+      buildkit_build_args:
+        description: 'TODO: validate'
+        example: a=b,c=d
+        type: string
+      buildkit_context:
+        maxLength: 255
+        minLength: 1
+        type: string
+      buildkit_dockerfile:
+        maxLength: 255
+        minLength: 1
+        type: string
+      buildkit_insecure_registries:
+        example:
+        - test.com
+        - xxx.com@http
+        items:
+          type: string
+        maxItems: 3
+        type: array
+      buildkit_platforms:
+        example:
+        - linux/amd64
+        items:
+          $ref: '#/definitions/enums.OciPlatform'
+        minItems: 1
+        type: array
+      code_repository_id:
+        description: source CodeRepository
+        example: 10
+        type: integer
+      cron_branch:
+        example: main
+        type: string
+      cron_rule:
+        description: 'TODO: validate'
+        example: '* * * * *'
+        type: string
+      cron_tag_template:
+        example: '{.Ref}'
+        type: string
+      dockerfile:
+        description: source Dockerfile
+        example: xxx
+        type: string
+      scm_branch:
+        example: main
+        maxLength: 50
+        minLength: 1
+        type: string
+      scm_credential_type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: ssh
+      scm_depth:
+        example: 0
+        minimum: 0
+        type: integer
+      scm_password:
+        example: sigma
+        type: string
+      scm_provider:
+        $ref: '#/definitions/enums.ScmProvider'
+      scm_repository:
+        description: source SelfCodeRepository
+        example: https://github.com/go-sigma/sigma.git
+        type: string
+      scm_ssh_key:
+        example: xxxx
+        type: string
+      scm_submodule:
+        example: false
+        type: boolean
+      scm_token:
+        example: xxxx
+        type: string
+      scm_username:
+        example: sigma
+        type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/enums.BuilderSource'
+        example: Dockerfile
+      webhook_branch_name:
+        example: main
+        type: string
+      webhook_branch_tag_template:
+        example: '{.Ref}'
+        type: string
+      webhook_tag_tag_template:
+        description: 'TODO: validate'
+        example: '{.Ref}'
+        type: string
+    required:
+    - buildkit_platforms
+    type: object
   types.UpdateGcArtifactRuleRequest:
     properties:
       cron_enabled:
@@ -1575,6 +1554,27 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.NamespaceRole'
         example: NamespaceReader
+    type: object
+  types.UpdateRepositoryRequest:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 300
+        type: string
+      overview:
+        example: i am just overview
+        maxLength: 100000
+        type: string
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
     type: object
   types.UserItem:
     properties:
@@ -3487,17 +3487,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace ID
+      - description: Namespace id
         in: path
         name: namespace_id
         required: true
         type: string
-      - description: Repository ID
+      - description: Repository id
         in: path
         name: repository_id
         required: true
         type: string
-      - description: Builder ID
+      - description: Builder id
         in: path
         name: builder_id
         required: true
@@ -3507,7 +3507,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PutBuilderRequest'
+          $ref: '#/definitions/types.UpdateBuilderRequest'
       produces:
       - application/json
       responses:
@@ -3839,6 +3839,219 @@ paths:
       summary: Get self namespace member info
       tags:
       - Namespace
+  /namespaces/{namespace_id}/repositories/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - default: 10
+        description: Limit size
+        in: query
+        maximum: 100
+        minimum: 10
+        name: limit
+        type: number
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: number
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort method
+        enum:
+        - asc
+        - desc
+        in: query
+        name: method
+        type: string
+      - description: Search repository with name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.RepositoryItem'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List repositories
+      tags:
+      - Repository
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: Repository object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.CreateRepositoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create repository
+      tags:
+      - Repository
+  /namespaces/{namespace_id}/repositories/{repository_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: Repository id
+        in: path
+        name: repository_id
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete repository
+      tags:
+      - Repository
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: Repository id
+        in: path
+        name: repository_id
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.RepositoryItem'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get repository
+      tags:
+      - Repository
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace id
+        in: path
+        name: namespace_id
+        required: true
+        type: number
+      - description: Repository id
+        in: path
+        name: repository_id
+        required: true
+        type: number
+      - description: Repository object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update repository
+      tags:
+      - Repository
   /namespaces/{namespace_id}/repositories/{repository_id}/builders:
     post:
       consumes:
@@ -3859,7 +4072,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PostBuilderRequest'
+          $ref: '#/definitions/types.CreateBuilderRequest'
       produces:
       - application/json
       responses:
@@ -3967,229 +4180,20 @@ paths:
       summary: Get builder runner by runner id
       tags:
       - Builder
-  /namespaces/{namespace}/repositories/:
+  /namespaces/{namespace_id}/tags/:
     get:
       consumes:
       - application/json
       parameters:
-      - default: 10
-        description: limit
-        in: query
-        maximum: 100
-        minimum: 10
-        name: limit
-        type: integer
-      - default: 1
-        description: page
-        in: query
-        minimum: 1
-        name: page
-        type: integer
-      - description: sort field
-        in: query
-        name: sort
-        type: string
-      - description: sort method
-        enum:
-        - asc
-        - desc
-        in: query
-        name: method
-        type: string
-      - description: namespace
+      - description: Namespace id
         in: path
-        name: namespace
+        name: namespace_id
         required: true
-        type: string
-      - description: search repository with name
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/types.CommonList'
-            - properties:
-                items:
-                  items:
-                    $ref: '#/definitions/types.RepositoryItem'
-                  type: array
-              type: object
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: List repositories
-      tags:
-      - Repository
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: Repository object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostRepositoryRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/types.PostRepositoryResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Create repository
-      tags:
-      - Repository
-  /namespaces/{namespace}/repositories/{repository_id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
+        type: number
       - description: Repository id
         in: path
         name: repository_id
-        required: true
         type: number
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Delete repository
-      tags:
-      - Repository
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: Repository id
-        in: path
-        name: repository_id
-        required: true
-        type: number
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.RepositoryItem'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Get repository
-      tags:
-      - Repository
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: Repository id
-        in: path
-        name: repository_id
-        required: true
-        type: number
-      - description: Repository object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PutRepositoryRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Update repository
-      tags:
-      - Repository
-  /namespaces/{namespace}/tags/:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
       - default: 10
         description: Limit size
         in: query
@@ -4214,10 +4218,6 @@ paths:
         in: query
         name: method
         type: string
-      - description: Repository name
-        in: query
-        name: repository
-        type: string
       - description: search tag with name
         in: query
         name: name
@@ -4227,14 +4227,14 @@ paths:
         in: query
         items:
           enum:
-          - image
-          - imageIndex
-          - chart
-          - cnab
-          - cosign
-          - wasm
-          - provenance
-          - unknown
+          - Image
+          - ImageIndex
+          - Chart
+          - Cnab
+          - Cosign
+          - Wasm
+          - Provenance
+          - Unknown
           type: string
         name: type
         type: array
@@ -4265,20 +4265,21 @@ paths:
       summary: List tag
       tags:
       - Tag
-  /namespaces/{namespace}/tags/{id}:
+  /namespaces/{namespace_id}/tags/{id}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Namespace name
+      - description: Namespace id
         in: path
-        name: namespace
+        name: namespace_id
         required: true
-        type: string
-      - description: Repository name
-        in: query
-        name: repository
-        type: string
+        type: number
+      - description: Repository id
+        in: path
+        name: repository_id
+        required: true
+        type: number
       - description: Tag id
         in: path
         name: id
@@ -4306,15 +4307,15 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Namespace name
+      - description: Namespace id
         in: path
-        name: namespace
+        name: namespace_id
         required: true
-        type: string
-      - description: repository name
-        in: query
-        name: repository
-        type: string
+        type: number
+      - description: Repository id
+        in: path
+        name: repository_id
+        type: number
       - description: Tag id
         in: path
         name: id

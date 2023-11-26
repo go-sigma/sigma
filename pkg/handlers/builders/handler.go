@@ -29,10 +29,10 @@ import (
 
 // Handler is the interface for the builder handlers
 type Handler interface {
-	// PostBuilder handles the post builder request
-	PostBuilder(c echo.Context) error
-	// PutBuilder handles the put builder request
-	PutBuilder(c echo.Context) error
+	// CreateBuilder handles the create builder request
+	CreateBuilder(c echo.Context) error
+	// UpdateBuilder handles the update builder request
+	UpdateBuilder(c echo.Context) error
 	// ListRunners handles the list builder runners request
 	ListRunners(c echo.Context) error
 	// PostRunnerRun ...
@@ -107,8 +107,8 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
 		middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	builderGroup.POST("/", handler.PostBuilder)
-	builderGroup.PUT("/:builder_id", handler.PutBuilder)
+	builderGroup.POST("/", handler.CreateBuilder)
+	builderGroup.PUT("/:builder_id", handler.UpdateBuilder)
 	builderGroup.GET("/:builder_id/runners/", handler.ListRunners)
 	builderGroup.POST("/:builder_id/runners/run", handler.PostRunnerRun)
 	builderGroup.GET("/:builder_id/runners/:runner_id", handler.GetRunner)

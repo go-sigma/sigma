@@ -37,28 +37,30 @@ type RepositoryItem struct {
 
 // ListRepositoryRequest represents the request to list repositories.
 type ListRepositoryRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+
 	Pagination
 	Sortable
-
-	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
 
 	Name *string `json:"name" query:"name"`
 }
 
 // GetRepositoryRequest represents the request to get a repository.
 type GetRepositoryRequest struct {
-	ID int64 `json:"name" param:"id" validate:"required,number" example:"1"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+	ID          int64 `json:"name" param:"id" validate:"required,number" example:"1"`
 }
 
 // DeleteRepositoryRequest represents the request to delete a repository.
 type DeleteRepositoryRequest struct {
-	Namespace string `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test"`
-	ID        int64  `json:"id" param:"id" validate:"required,number" example:"1"`
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10"`
+	ID          int64 `json:"id" param:"id" validate:"required,number" example:"1"`
 }
 
-// PostRepositoryRequest represents the request to create a repository.
-type PostRepositoryRequest struct {
-	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test" swaggerignore:"true"`
+// CreateRepositoryRequest represents the request to create a repository.
+type CreateRepositoryRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10" swaggerignore:"true"`
+
 	Name        string            `json:"name" validate:"required,is_valid_repository" example:"test"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
 	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=3000" example:"i am just overview"`
@@ -67,14 +69,15 @@ type PostRepositoryRequest struct {
 	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 }
 
-// PostRepositoryResponse represents the response to create a repository.
-type PostRepositoryResponse struct {
+// CreateRepositoryResponse represents the response to create a repository.
+type CreateRepositoryResponse struct {
 	ID int64 `json:"id" example:"21911"`
 }
 
-// PutRepositoryRequest represents the request to update a repository.
-type PutRepositoryRequest struct {
-	Namespace   string            `json:"namespace" param:"namespace" validate:"required,min=2,max=20,is_valid_namespace" example:"test" swaggerignore:"true"`
+// UpdateRepositoryRequest represents the request to update a repository.
+type UpdateRepositoryRequest struct {
+	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10" swaggerignore:"true"`
+
 	ID          int64             `json:"id" param:"id" validate:"required,number" example:"1" swaggerignore:"true"`
 	Description *string           `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
 	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`

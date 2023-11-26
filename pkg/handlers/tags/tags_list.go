@@ -40,18 +40,18 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace}/tags/ [get]
-//	@Param		namespace	path		string		true	"Namespace name"
-//	@Param		limit		query		int64		false	"Limit size"	minimum(10)	maximum(100)	default(10)
-//	@Param		page		query		int64		false	"Page number"	minimum(1)	default(1)
-//	@Param		sort		query		string		false	"Sort field"
-//	@Param		method		query		string		false	"Sort method"	Enums(asc, desc)
-//	@Param		repository	query		string		false	"Repository name"
-//	@Param		name		query		string		false	"search tag with name"
-//	@Param		type		query		[]string	false	"search tag with type"	Enums(image, imageIndex, chart, cnab, cosign, wasm, provenance, unknown)	collectionFormat(multi)
-//	@Success	200			{object}	types.CommonList{items=[]types.TagItem}
-//	@Failure	404			{object}	xerrors.ErrCode
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Router		/namespaces/{namespace_id}/tags/ [get]
+//	@Param		namespace_id	path		number		true	"Namespace id"
+//	@Param		repository_id	path		number		false	"Repository id"
+//	@Param		limit			query		int64		false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64		false	"Page number"	minimum(1)	default(1)
+//	@Param		sort			query		string		false	"Sort field"
+//	@Param		method			query		string		false	"Sort method"	Enums(asc, desc)
+//	@Param		name			query		string		false	"search tag with name"
+//	@Param		type			query		[]string	false	"search tag with type"	Enums(Image, ImageIndex, Chart, Cnab, Cosign, Wasm, Provenance, Unknown)	collectionFormat(multi)
+//	@Success	200				{object}	types.CommonList{items=[]types.TagItem}
+//	@Failure	404				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	xerrors.ErrCode
 func (h *handler) ListTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -73,35 +73,35 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
+	if !h.authServiceFactory.New().Repository(c, req.RepositoryID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.RepositoryID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
 	namespaceService := h.namespaceServiceFactory.New()
-	namespaceObj, err := namespaceService.GetByName(ctx, req.Namespace)
+	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.Namespace, err))
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
-		log.Error().Err(err).Str("namespace", req.Namespace).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.Namespace, err))
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositoryObj, err := repositoryService.GetByName(ctx, req.Repository)
+	repositoryObj, err := repositoryService.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Str("repository", req.Repository).Msg("Repository not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Repository(%d) not found: %v", req.RepositoryID, err))
 		}
-		log.Error().Err(err).Msg("Repository find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Repository(%d) find failed: %v", req.RepositoryID, err))
 	}
 	if repositoryObj.NamespaceID != namespaceObj.ID {
 		log.Error().Interface("repositoryObj", repositoryObj).Interface("namespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
-	}
-
-	if !h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead) {
-		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", repositoryObj.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	tagService := h.tagServiceFactory.New()
