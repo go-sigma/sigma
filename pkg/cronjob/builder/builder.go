@@ -21,6 +21,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/cronjob"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -50,17 +51,19 @@ func builderJob() {
 	builderTw = timewheel.NewTimeWheel(context.Background(), cronjob.CronjobIterDuration)
 
 	runner := builderRunner{
+		config:                ptr.To(configs.GetConfiguration()),
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}
 	builderTw.AddRunner(runner.runner)
 }
 
 type builderRunner struct {
+	config                configs.Configuration
 	builderServiceFactory dao.BuilderServiceFactory
 }
 
 func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
-	locker, err := locker.New()
+	locker, err := locker.New(r.config)
 	if err != nil {
 		log.Error().Err(err).Msg("New locker failed")
 		return

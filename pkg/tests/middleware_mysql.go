@@ -19,9 +19,10 @@ import (
 	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
@@ -62,14 +63,18 @@ func (d *mysqlCIDatabase) Init() error {
 		return err
 	}
 
-	viper.SetDefault("database.type", "mysql")
-	viper.SetDefault("database.mysql.host", "127.0.0.1")
-	viper.SetDefault("database.mysql.port", "3306")
-	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "sigma")
-	viper.SetDefault("database.mysql.dbname", d.dbname)
-
-	err = dal.Initialize()
+	err = dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseMysql,
+			Mysql: configs.ConfigurationDatabaseMysql{
+				Host:     "127.0.0.1",
+				Port:     3306,
+				User:     "root",
+				Password: "sigma",
+				DBName:   d.dbname,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}

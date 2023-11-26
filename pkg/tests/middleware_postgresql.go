@@ -21,9 +21,10 @@ import (
 	"github.com/jackc/pgx/v4"
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
@@ -65,15 +66,19 @@ func (d *postgresqlCIDatabase) Init() error {
 		return err
 	}
 
-	viper.SetDefault("database.type", "postgresql")
-	viper.SetDefault("database.postgres.host", "127.0.0.1")
-	viper.SetDefault("database.postgres.port", "5432")
-	viper.SetDefault("database.postgres.user", "sigma")
-	viper.SetDefault("database.postgres.password", "sigma")
-	viper.SetDefault("database.postgres.dbname", d.dbname)
-	viper.SetDefault("database.postgres.sslmode", "disable")
-
-	err = dal.Initialize()
+	err = dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabasePostgresql,
+			Postgresql: configs.ConfigurationDatabasePostgresql{
+				Host:     "127.0.0.1",
+				Port:     5432,
+				User:     "sigma",
+				Password: "sigma",
+				DBName:   d.dbname,
+				SslMode:  "disable",
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}

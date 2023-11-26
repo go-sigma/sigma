@@ -26,6 +26,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -40,19 +41,19 @@ var (
 )
 
 // Initialize initializes the database connection
-func Initialize() error {
+func Initialize(config configs.Configuration) error {
 	var err error
 	var dsn string
-	dbType := enums.MustParseDatabase(viper.GetString("database.type"))
-	switch dbType {
+	// dbType := enums.MustParseDatabase(viper.GetString("database.type"))
+	switch config.Database.Type {
 	case enums.DatabaseMysql:
-		dsn, err = connectMysql()
+		dsn, err = connectMysql(config)
 	case enums.DatabasePostgresql:
-		dsn, err = connectPostgres()
+		dsn, err = connectPostgres(config)
 	case enums.DatabaseSqlite3:
-		dsn, err = connectSqlite3()
+		dsn, err = connectSqlite3(config)
 	default:
-		return fmt.Errorf("unknown database type: %s", dbType)
+		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
 	if err != nil {
 		return err
@@ -69,7 +70,7 @@ func Initialize() error {
 		return err
 	}
 
-	locker, err := locker.New()
+	locker, err := locker.New(config)
 	if err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func Initialize() error {
 		}
 	}()
 
-	switch dbType {
+	switch config.Database.Type {
 	case enums.DatabaseMysql:
 		err = migrateMysql(dsn)
 	case enums.DatabasePostgresql:
@@ -92,7 +93,7 @@ func Initialize() error {
 	case enums.DatabaseSqlite3:
 		err = migrateSqlite(dsn)
 	default:
-		return fmt.Errorf("unknown database type: %s", dbType)
+		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
 	if err != nil {
 		return err
@@ -111,14 +112,19 @@ func Initialize() error {
 	return nil
 }
 
-func connectMysql() (string, error) {
-	host := viper.GetString("database.mysql.host")
-	port := viper.GetString("database.mysql.port")
-	user := viper.GetString("database.mysql.user")
-	password := viper.GetString("database.mysql.password")
-	dbname := viper.GetString("database.mysql.dbname")
+func connectMysql(config configs.Configuration) (string, error) {
+	// host := viper.GetString("database.mysql.host")
+	// port := viper.GetString("database.mysql.port")
+	// user := viper.GetString("database.mysql.user")
+	// password := viper.GetString("database.mysql.password")
+	// dbname := viper.GetString("database.mysql.dbname")
+	host := config.Database.Mysql.Host
+	port := config.Database.Mysql.Port
+	user := config.Database.Mysql.User
+	password := config.Database.Mysql.Password
+	dbname := config.Database.Mysql.DBName
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=UTC", user, password, host, port, dbname)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC", user, password, host, port, dbname)
 	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -136,15 +142,22 @@ func connectMysql() (string, error) {
 	return dsn, nil
 }
 
-func connectPostgres() (string, error) {
-	host := viper.GetString("database.postgres.host")
-	port := viper.GetString("database.postgres.port")
-	user := viper.GetString("database.postgres.user")
-	password := viper.GetString("database.postgres.password")
-	dbname := viper.GetString("database.postgres.dbname")
-	sslmode := viper.GetString("database.postgres.sslmode")
+func connectPostgres(config configs.Configuration) (string, error) {
+	// host := viper.GetString("database.postgres.host")
+	// port := viper.GetString("database.postgres.port")
+	// user := viper.GetString("database.postgres.user")
+	// password := viper.GetString("database.postgres.password")
+	// dbname := viper.GetString("database.postgres.dbname")
+	// sslmode := viper.GetString("database.postgres.sslmode")
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
+	host := config.Database.Postgresql.Host
+	port := config.Database.Postgresql.Port
+	user := config.Database.Postgresql.User
+	password := config.Database.Postgresql.Password
+	dbname := config.Database.Postgresql.DBName
+	sslmode := config.Database.Postgresql.SslMode
+
+	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
@@ -157,13 +170,14 @@ func connectPostgres() (string, error) {
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	migrateDsn := fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
+	migrateDsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname)
 
 	return migrateDsn, nil
 }
 
-func connectSqlite3() (string, error) {
-	dbname := viper.GetString("database.sqlite3.path")
+func connectSqlite3(config configs.Configuration) (string, error) {
+	// dbname := viper.GetString("database.sqlite3.path")
+	dbname := config.Database.Sqlite3.Path
 
 	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{
 		NowFunc: func() time.Time {

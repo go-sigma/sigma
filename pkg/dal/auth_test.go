@@ -22,12 +22,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -39,13 +38,15 @@ func TestAuth(t *testing.T) {
 	logger.SetLevel("debug")
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	viper.SetDefault("database.type", "sqlite3")
-	viper.SetDefault("database.sqlite3.path", dbPath)
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
 
-	err := dal.Initialize()
-	assert.NoError(t, err)
+	assert.NoError(t, dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseSqlite3,
+			Sqlite3: configs.ConfigurationDatabaseSqlite3{
+				Path: dbPath,
+			},
+		},
+	}))
 
 	ctx := log.Logger.WithContext(context.Background())
 	roleService := dao.NewNamespaceMemberServiceFactory().New()
@@ -53,10 +54,8 @@ func TestAuth(t *testing.T) {
 	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 
-	_, err = roleService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	_, err := roleService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	assert.NoError(t, err)
-	// added, _ = dal.AuthEnforcer.AddRoleForUser("1", enums.NamespaceRoleManager.String(), "library")
-	// assert.True(t, added)
 	err = dal.AuthEnforcer.LoadPolicy()
 	assert.NoError(t, err)
 
