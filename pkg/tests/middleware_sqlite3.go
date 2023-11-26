@@ -19,9 +19,10 @@ import (
 	"os"
 
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
@@ -48,9 +49,14 @@ var _ CIDatabase = &sqlite3CIDatabase{}
 // Init sets the default values for the database configuration in ci tests
 func (d *sqlite3CIDatabase) Init() error {
 	d.path = fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	viper.SetDefault("database.type", "sqlite3")
-	viper.SetDefault("database.sqlite3.path", d.path)
-	err := dal.Initialize()
+	err := dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseSqlite3,
+			Sqlite3: configs.ConfigurationDatabaseSqlite3{
+				Path: d.path,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}

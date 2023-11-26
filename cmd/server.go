@@ -42,13 +42,13 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		err = dal.Initialize()
+		config := ptr.To(configs.GetConfiguration())
+
+		err = dal.Initialize(config)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
 			return
 		}
-
-		config := ptr.To(configs.GetConfiguration())
 
 		err = inits.Initialize(config)
 		if err != nil {

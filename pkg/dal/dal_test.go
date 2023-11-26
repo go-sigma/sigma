@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -35,14 +36,18 @@ import (
 func TestInitialize(t *testing.T) {
 	logger.SetLevel("debug")
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	viper.SetDefault("database.type", "sqlite3")
-	viper.SetDefault("database.sqlite3.path", dbPath)
 
-	err := dal.Initialize()
+	err := dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseSqlite3,
+			Sqlite3: configs.ConfigurationDatabaseSqlite3{
+				Path: dbPath,
+			},
+		},
+	})
 	assert.NoError(t, err)
 
 	db, err := dal.DB.DB()
@@ -60,15 +65,18 @@ func TestInitialize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
 
-	viper.SetDefault("database.type", enums.DatabaseMysql.String())
-	viper.SetDefault("database.mysql.host", "127.0.0.1")
-	viper.SetDefault("database.mysql.port", "3306")
-	viper.SetDefault("database.mysql.user", "root")
-	viper.SetDefault("database.mysql.password", "sigma")
-	viper.SetDefault("database.mysql.database", "sigma")
-	viper.SetDefault("database.mysql.dbname", dbname)
-
-	err = dal.Initialize()
+	err = dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseMysql,
+			Mysql: configs.ConfigurationDatabaseMysql{
+				Host:     "127.0.0.1",
+				Port:     3306,
+				User:     "root",
+				Password: "sigma",
+				DBName:   dbname,
+			},
+		},
+	})
 	assert.NoError(t, err)
 
 	db, err = sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
@@ -76,14 +84,6 @@ func TestInitialize(t *testing.T) {
 	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", dbname))
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
-
-	viper.SetDefault("database.type", enums.DatabasePostgresql.String())
-	viper.SetDefault("database.postgres.host", "localhost")
-	viper.SetDefault("database.postgres.port", 5432)
-	viper.SetDefault("database.postgres.user", "sigma")
-	viper.SetDefault("database.postgres.password", "sigma")
-	viper.SetDefault("database.postgres.dbname", "sigma")
-	viper.SetDefault("database.postgres.dbname", dbname)
 
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")
@@ -93,7 +93,19 @@ func TestInitialize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, db.Close())
 
-	err = dal.Initialize()
+	err = dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabasePostgresql,
+			Postgresql: configs.ConfigurationDatabasePostgresql{
+				Host:     "localhost",
+				Port:     5432,
+				User:     "sigma",
+				Password: "sigma",
+				DBName:   dbname,
+				SslMode:  "disable",
+			},
+		},
+	})
 	assert.NoError(t, err)
 }
 
@@ -102,13 +114,17 @@ func TestInitialize1(t *testing.T) {
 	logger.SetLevel("debug")
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	viper.SetDefault("database.type", "sqlite3")
-	viper.SetDefault("database.sqlite3.path", dbPath)
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
-	err := dal.Initialize()
+	err := dal.Initialize(configs.Configuration{
+		Database: configs.ConfigurationDatabase{
+			Type: enums.DatabaseSqlite3,
+			Sqlite3: configs.ConfigurationDatabaseSqlite3{
+				Path: dbPath,
+			},
+		},
+	})
 	assert.NoError(t, err)
 
 	db, err := dal.DB.DB()
@@ -119,16 +135,6 @@ func TestInitialize1(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestInitialize2(t *testing.T) {
-	defer func() {
-		err := recover()
-		assert.NotNil(t, err)
-	}()
-
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	viper.SetDefault("database.type", "unknown")
-	err := dal.Initialize()
-	assert.Error(t, err)
+func TestInitializeDatabaseUnknown(t *testing.T) {
+	assert.Error(t, dal.Initialize(configs.Configuration{}))
 }

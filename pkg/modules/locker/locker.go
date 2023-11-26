@@ -20,14 +20,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/modules/locker/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // New ...
-func New() (definition.Locker, error) {
+func New(config configs.Configuration) (definition.Locker, error) {
 	var err error
 	var lock definition.Locker
-	config := ptr.To(configs.GetConfiguration())
 	switch config.Locker.Type {
 	case enums.LockerTypeDatabase:
 		lock, err = database.New(config)
@@ -35,7 +33,6 @@ func New() (definition.Locker, error) {
 		lock, err = redis.New(config)
 	default:
 		lock, err = database.New(config)
-		// return nil, fmt.Errorf("Locker %s not support", config.Cache.Type)
 	}
 	return lock, err
 }
