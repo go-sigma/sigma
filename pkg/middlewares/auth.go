@@ -65,7 +65,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			authorization := req.Header.Get("Authorization")
 
 			var uid int64
-			var jti string
+			var jti = uuid.New().String()
 
 			userServiceFactory := dao.NewUserServiceFactory()
 			userService := userServiceFactory.New()
@@ -107,7 +107,6 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					}
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 				}
-				jti = uuid.New().String()
 			case strings.HasPrefix(authorization, "Bearer"):
 				jti, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 				if err != nil {
@@ -119,11 +118,16 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
 			default:
-				if config.DS {
+				userObj, err := userService.GetByUsername(ctx, consts.UserAnonymous)
+				if err != nil {
+					log.Error().Err(err).Msg("Get anonymous user failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+				uid = userObj.ID
 			}
 
 			userObj, err := userService.Get(ctx, uid)

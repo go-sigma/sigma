@@ -69,9 +69,6 @@ func TestSignup(t *testing.T) {
 				Password: "sigma",
 				Email:    "sigma@gmail.com",
 			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
-			},
 			Jwt: configs.ConfigurationAuthJwt{
 				PrivateKey: privateKeyString,
 			},
@@ -299,9 +296,6 @@ func TestSignupMockDAO(t *testing.T) {
 				Username: "sigma",
 				Password: "sigma",
 				Email:    "sigma@gmail.com",
-			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
 			},
 			Jwt: configs.ConfigurationAuthJwt{
 				PrivateKey: privateKeyString,

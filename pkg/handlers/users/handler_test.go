@@ -62,9 +62,6 @@ func TestFactory(t *testing.T) {
 				Password: "sigma",
 				Email:    "sigma@gmail.com",
 			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
-			},
 			Jwt: configs.ConfigurationAuthJwt{
 				PrivateKey: privateKeyString,
 			},
@@ -107,9 +104,6 @@ func TestFactoryFailed(t *testing.T) {
 				Username: "sigma",
 				Password: "sigma",
 				Email:    "sigma@gmail.com",
-			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
 			},
 			Jwt: configs.ConfigurationAuthJwt{
 				PrivateKey: privateKeyString + "1",

@@ -314,9 +314,8 @@ type ConfigurationAuthOauth2 struct {
 
 // ConfigurationAuth ...
 type ConfigurationAuth struct {
-	InternalUser ConfigurationAuthInternalUser `yaml:"internalUser"`
-	Admin        ConfigurationAuthAdmin        `yaml:"admin"`
-	Token        ConfigurationAuthToken        `yaml:"token"`
-	Oauth2       ConfigurationAuthOauth2       `yaml:"oauth2"`
-	Jwt          ConfigurationAuthJwt          `yaml:"jwt"`
+	Admin  ConfigurationAuthAdmin  `yaml:"admin"`
+	Token  ConfigurationAuthToken  `yaml:"token"`
+	Oauth2 ConfigurationAuthOauth2 `yaml:"oauth2"`
+	Jwt    ConfigurationAuthJwt    `yaml:"jwt"`
 }

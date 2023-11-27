@@ -66,6 +66,13 @@ const (
 	MaxNamespaceMember = 10
 )
 
+const (
+	// UserInternal used for build and push image to sigma
+	UserInternal = "sigma-internal"
+	// UserAnonymous used for anonymous login, just have read permission
+	UserAnonymous = "sigma-anonymous"
+)
+
 // UserAgent represents the user agent
 var UserAgent = fmt.Sprintf("sigma/%s (https://github.com/go-sigma/sigma)", version.Version)
 

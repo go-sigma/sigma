@@ -56,10 +56,7 @@ func (h *handler) List(c echo.Context) error {
 
 	userService := h.userServiceFactory.New()
 
-	var exceptUsername = []string{}
-	if len(h.config.Auth.InternalUser.Username) > 0 {
-		exceptUsername = []string{h.config.Auth.InternalUser.Username}
-	}
+	var exceptUsername = []string{consts.UserInternal}
 	userObjs, total, err := userService.ListWithoutUsername(ctx, exceptUsername, req.WithoutAdmin, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List user failed")
