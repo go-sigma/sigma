@@ -98,6 +98,7 @@ func (h *handler) DeleteRepository(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		repositoryService := h.repositoryServiceFactory.New(tx)
 		err = repositoryService.DeleteByID(ctx, req.ID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {

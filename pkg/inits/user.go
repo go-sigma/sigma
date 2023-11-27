@@ -21,6 +21,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -45,14 +46,15 @@ func initUser(config configs.Configuration) error {
 	if userCount > 0 {
 		return nil
 	}
-	internalUserUsername := config.Auth.InternalUser.Username
-	if internalUserUsername == "" {
-		return fmt.Errorf("the internal user username is not set")
+	err = userService.Create(ctx, &models.User{
+		Username: consts.UserInternal,
+	})
+	if err != nil {
+		return err
 	}
-	internalUser := &models.User{
-		Username: internalUserUsername,
-	}
-	err = userService.Create(ctx, internalUser)
+	err = userService.Create(ctx, &models.User{
+		Username: consts.UserAnonymous,
+	})
 	if err != nil {
 		return err
 	}

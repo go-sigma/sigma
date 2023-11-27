@@ -86,7 +86,7 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 	ctx := log.Logger.WithContext(context.Background())
 
 	userService := dao.NewUserServiceFactory().New()
-	userObj, err := userService.GetByUsername(ctx, config.Auth.InternalUser.Username)
+	userObj, err := userService.GetByUsername(ctx, consts.UserInternal)
 	if err != nil {
 		return nil, err
 	}

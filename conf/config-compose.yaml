@@ -127,9 +127,6 @@ daemon:
       namespace:
 
 auth:
-  internalUser:
-    username: internal-sigma
-    password: internal-sigma
   admin:
     username: sigma
     password: Admin@123

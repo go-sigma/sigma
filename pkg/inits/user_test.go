@@ -21,36 +21,15 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func TestInitInternalUser(t *testing.T) {
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
-
-	assert.Error(t, initUser(configs.Configuration{}))
-
-	assert.Error(t, initUser(configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			InternalUser: configs.ConfigurationAuthInternalUser{Username: "internal-sigma"},
-		},
-	}))
-}
-
 func TestInitAdminUser1(t *testing.T) {
-	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
@@ -64,15 +43,11 @@ func TestInitAdminUser1(t *testing.T) {
 			Admin: configs.ConfigurationAuthAdmin{
 				Email: "sigma@gmail.com",
 			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
-			},
 		},
 	}))
 }
 
 func TestInitAdminUser2(t *testing.T) {
-	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
@@ -89,9 +64,6 @@ func TestInitAdminUser2(t *testing.T) {
 				Password: "sigma",
 				Email:    "sigma@gmail.com",
 			},
-			InternalUser: configs.ConfigurationAuthInternalUser{
-				Username: "internal-sigma",
-			},
 		},
 	}))
 
@@ -101,7 +73,7 @@ func TestInitAdminUser2(t *testing.T) {
 
 	count, err := userService.Count(context.Background())
 	assert.NoError(t, err)
-	assert.Equal(t, count, int64(2))
+	assert.Equal(t, count, int64(3))
 
 	ctx := context.Background()
 	user, err := userService.GetByUsername(ctx, "sigma")
@@ -109,7 +81,7 @@ func TestInitAdminUser2(t *testing.T) {
 	assert.NotNil(t, user)
 	assert.True(t, passwordService.Verify("sigma", ptr.To(user.Password)))
 
-	user, err = userService.GetByUsername(ctx, "internal-sigma")
+	user, err = userService.GetByUsername(ctx, consts.UserInternal)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 }
