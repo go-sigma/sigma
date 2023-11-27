@@ -23,7 +23,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -37,7 +36,6 @@ import (
 
 func TestDeleteManifest(t *testing.T) {
 	logger.SetLevel("debug")
-	viper.SetDefault("log.level", "debug")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()

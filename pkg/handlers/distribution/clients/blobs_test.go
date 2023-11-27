@@ -33,7 +33,7 @@ import (
 
 func TestGetBlob(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -42,7 +42,7 @@ func TestGetBlob(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -72,7 +72,7 @@ func TestGetBlob(t *testing.T) {
 
 func TestGetBlob1(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -81,7 +81,7 @@ func TestGetBlob1(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Header().Add(echo.HeaderContentLength, "aaa")
@@ -106,7 +106,7 @@ func TestGetBlob1(t *testing.T) {
 
 func TestGetBlob2(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -115,7 +115,7 @@ func TestGetBlob2(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, "m"+dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -139,7 +139,7 @@ func TestGetBlob2(t *testing.T) {
 
 func TestGetBlob3(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -148,7 +148,7 @@ func TestGetBlob3(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, "m"+dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -174,7 +174,7 @@ func TestGetBlob3(t *testing.T) {
 
 func TestGetBlob4(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -183,7 +183,7 @@ func TestGetBlob4(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 	s := httptest.NewServer(mux)
@@ -205,7 +205,7 @@ func TestGetBlob4(t *testing.T) {
 
 func TestHeadBlob(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -214,7 +214,7 @@ func TestHeadBlob(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -241,7 +241,7 @@ func TestHeadBlob(t *testing.T) {
 
 func TestHeadBlob2(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -250,7 +250,7 @@ func TestHeadBlob2(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, "m"+dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -274,7 +274,7 @@ func TestHeadBlob2(t *testing.T) {
 
 func TestHeadBlob3(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -283,7 +283,7 @@ func TestHeadBlob3(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(consts.ContentDigest, "m"+dgest.String())
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.layer.v1.tar+gzip")
 		w.Write([]byte(body)) // nolint: errcheck
@@ -309,7 +309,7 @@ func TestHeadBlob3(t *testing.T) {
 
 func TestHeadBlob4(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -318,7 +318,7 @@ func TestHeadBlob4(t *testing.T) {
 	assert.NoError(t, err)
 	dgest, err := digest.Parse("sha256:" + hashStr)
 	assert.NoError(t, err)
-	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/blobs/"+dgest.String(), func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 	s := httptest.NewServer(mux)

@@ -28,7 +28,7 @@ import (
 func TestGetManifestFallbackProxyAuthError(t *testing.T) {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 

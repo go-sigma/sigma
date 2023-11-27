@@ -24,7 +24,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -79,12 +78,6 @@ func TestFallbackProxy(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	viper.SetDefault("log.level", "debug")
-	viper.SetDefault("proxy.endpoint", srv.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-	viper.SetDefault("proxy.username", cUsername)
-	viper.SetDefault("proxy.password", cPassword)
-
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	req := httptest.NewRequest(http.MethodGet, "/v2/_catalog", nil)
@@ -93,7 +86,7 @@ func TestFallbackProxy(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	h := handler{
-		config: configs.Configuration{
+		config: &configs.Configuration{
 			Log: configs.ConfigurationLog{
 				ProxyLevel: enums.LogLevelDebug,
 			},
