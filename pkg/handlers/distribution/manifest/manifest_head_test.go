@@ -23,7 +23,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -41,14 +40,14 @@ func TestHeadManifestFallbackProxy(t *testing.T) {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
 		w.WriteHeader(http.StatusOK)
 	})
-	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
 		w.WriteHeader(http.StatusInternalServerError)
 	})
@@ -56,13 +55,8 @@ func TestHeadManifestFallbackProxy(t *testing.T) {
 	s := httptest.NewServer(mux)
 	defer s.Close()
 
-	viper.Reset()
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("proxy.endpoint", s.URL)
-	viper.SetDefault("proxy.tlsVerify", true)
-
 	handler := &handler{
-		config: configs.Configuration{
+		config: &configs.Configuration{
 			Log: configs.ConfigurationLog{
 				ProxyLevel: enums.LogLevelDebug,
 			},
@@ -93,7 +87,7 @@ func TestHeadManifestFallbackProxy(t *testing.T) {
 func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 
@@ -113,7 +107,6 @@ func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
 }
 
 func TestHeadManifest(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)

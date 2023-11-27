@@ -245,17 +245,11 @@ func TestDoRequestPing2(t *testing.T) {
 	cPassword := "sigma"
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 	s := httptest.NewServer(mux)
 	defer s.Close()
-
-	// viper.SetDefault("log.level", "info")
-	// viper.SetDefault("proxy.endpoint", s.URL)
-	// viper.SetDefault("proxy.tlsVerify", true)
-	// viper.SetDefault("proxy.username", cUsername)
-	// viper.SetDefault("proxy.password", cPassword)
 
 	f := NewClientsFactory()
 	_, err := f.New(configs.Configuration{
@@ -276,7 +270,7 @@ func TestDoRequestPing3(t *testing.T) {
 	cPassword := "sigma"
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 	s := httptest.NewServer(mux)
@@ -304,7 +298,7 @@ func TestDoRequestPing4(t *testing.T) {
 	wwwAuthenticate2 := fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3001/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate1)
 		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate2)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -332,7 +326,7 @@ func TestDoRequestNoUsername(t *testing.T) {
 	wwwAuthenticate := fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, "http://127.0.0.1:3000/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate)
 		w.WriteHeader(http.StatusUnauthorized)
 	})
@@ -362,7 +356,7 @@ func TestDoRequestPingBasicAuth(t *testing.T) {
 	authTimes := 0
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
 		authTimes++
 		if authTimes == 1 {
 			w.Header().Add(echo.HeaderWWWAuthenticate, wwwAuthenticate)

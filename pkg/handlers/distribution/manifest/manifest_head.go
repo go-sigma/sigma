@@ -23,7 +23,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -60,7 +59,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 		tagService := h.tagServiceFactory.New()
 		tag, err := tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) && viper.GetBool("proxy.enabled") {
+			if errors.Is(err, gorm.ErrRecordNotFound) && h.config.Proxy.Enabled {
 				return h.headManifestFallbackProxy(c)
 			}
 			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
@@ -77,7 +76,7 @@ func (h *handler) HeadManifest(c echo.Context) error {
 	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			if viper.GetBool("proxy.enabled") {
+			if h.config.Proxy.Enabled {
 				return h.headManifestFallbackProxy(c)
 			} else {
 				log.Error().Err(err).Str("ref", ref).Msg("Artifact not found")

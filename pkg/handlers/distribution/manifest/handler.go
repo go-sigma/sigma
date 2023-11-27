@@ -43,8 +43,7 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config configs.Configuration
-
+	config                   *configs.Configuration
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
@@ -53,6 +52,7 @@ type handler struct {
 }
 
 type inject struct {
+	config                   *configs.Configuration
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
@@ -67,6 +67,7 @@ func handlerNew(injects ...inject) Handler {
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
+	config := configs.GetConfiguration()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.artifactServiceFactory != nil {
@@ -84,8 +85,12 @@ func handlerNew(injects ...inject) Handler {
 		if ij.auditServiceFactory != nil {
 			auditServiceFactory = ij.auditServiceFactory
 		}
+		if ij.config != nil {
+			config = ij.config
+		}
 	}
 	return &handler{
+		config:                   config,
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 		artifactServiceFactory:   artifactServiceFactory,

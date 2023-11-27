@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -43,7 +44,6 @@ import (
 
 func TestPutManifestAsyncTask(t *testing.T) {
 	logger.SetLevel("debug")
-	viper.SetDefault("log.level", "debug")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
@@ -83,8 +83,6 @@ func TestPutManifestAsyncTask(t *testing.T) {
 
 func TestPutManifest(t *testing.T) {
 	logger.SetLevel("debug")
-	viper.SetDefault("log.level", "debug")
-	viper.SetDefault("namespace.visibility", "public")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()
@@ -136,6 +134,12 @@ func TestPutManifest(t *testing.T) {
 	assert.NoError(t, err)
 
 	h := &handler{
+		config: &configs.Configuration{
+			Namespace: configs.ConfigurationNamespace{
+				AutoCreate: true,
+				Visibility: enums.VisibilityPublic,
+			},
+		},
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),
 		artifactServiceFactory:   dao.NewArtifactServiceFactory(),

@@ -222,7 +222,7 @@ type ConfigurationStorage struct {
 
 // ConfigurationProxy ...
 type ConfigurationProxy struct {
-	Enabled   string `yaml:"enabled"`
+	Enabled   bool   `yaml:"enabled"`
 	Endpoint  string `yaml:"endpoint"`
 	TlsVerify bool   `yaml:"tlsVerify"`
 	Username  string `yaml:"username"`
