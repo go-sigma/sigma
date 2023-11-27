@@ -20,6 +20,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -38,21 +40,33 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 type inject struct {
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 // New creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
+	config := configs.GetConfiguration()
+	authServiceFactory := auth.NewServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.config != nil {
+			config = ij.config
+		}
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
@@ -61,6 +75,8 @@ func handlerNew(injects ...inject) Handler {
 		}
 	}
 	return &handler{
+		config:                   config,
+		authServiceFactory:       authServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
 	}

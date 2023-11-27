@@ -29,15 +29,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestHeadManifestFallbackProxy(t *testing.T) {
-	logger.SetLevel("debug")
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
@@ -107,7 +104,6 @@ func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
 }
 
 func TestHeadManifest(t *testing.T) {
-	logger.SetLevel("debug")
 	err := tests.Initialize(t)
 	assert.NoError(t, err)
 	err = tests.DB.Init()

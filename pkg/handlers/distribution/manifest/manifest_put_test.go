@@ -36,26 +36,21 @@ import (
 	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestPutManifestAsyncTask(t *testing.T) {
-	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -82,11 +77,8 @@ func TestPutManifestAsyncTask(t *testing.T) {
 }
 
 func TestPutManifest(t *testing.T) {
-	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
@@ -94,8 +86,7 @@ func TestPutManifest(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
+	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	const (
 		namespaceName  = "test"
@@ -106,32 +97,20 @@ func TestPutManifest(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	userServiceFactory := dao.NewUserServiceFactory()
-	userService := userServiceFactory.New()
 	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err = userService.Create(ctx, userObj)
-	assert.NoError(t, err)
+	assert.NoError(t, dao.NewUserServiceFactory().New().Create(ctx, userObj))
 
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	namespaceService := namespaceServiceFactory.New()
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-	err = namespaceService.Create(ctx, namespaceObj)
-	assert.NoError(t, err)
+	assert.NoError(t, dao.NewNamespaceServiceFactory().New().Create(ctx, namespaceObj))
 
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	repositoryService := repositoryServiceFactory.New()
 	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{AutoCreate: false, Visibility: enums.VisibilityPrivate, UserID: userObj.ID})
-	assert.NoError(t, err)
+	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{AutoCreate: false, Visibility: enums.VisibilityPrivate, UserID: userObj.ID}))
 
-	blobServiceFactory := dao.NewBlobServiceFactory()
-	blobService := blobServiceFactory.New()
+	blobService := dao.NewBlobServiceFactory().New()
 	blobLayer1 := &models.Blob{Digest: "sha256:a61fd63bebd559934a60e30d1e7b832a136ac6bae3a11ca97ade20bfb3645796", Size: 123, ContentType: "application/vnd.cncf.helm.config.v1+json"}
-	err = blobService.Create(ctx, blobLayer1)
-	assert.NoError(t, err)
+	assert.NoError(t, blobService.Create(ctx, blobLayer1))
 	blobLayer2 := &models.Blob{Digest: "sha256:e45dd3e880e94bdb52cc88d6b4e0fbaec6876856f39a1a89f76e64d0739c2904", Size: 122, ContentType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"}
-	err = blobService.Create(ctx, blobLayer2)
-	assert.NoError(t, err)
+	assert.NoError(t, blobService.Create(ctx, blobLayer2))
 
 	h := &handler{
 		config: &configs.Configuration{
@@ -152,7 +131,6 @@ func TestPutManifest(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	c.Set(consts.ContextUser, userObj)
-	err = h.PutManifest(c)
-	assert.NoError(t, err)
+	assert.NoError(t, h.PutManifest(c))
 	assert.Equal(t, http.StatusCreated, rec.Code)
 }

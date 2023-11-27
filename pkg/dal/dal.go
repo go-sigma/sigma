@@ -44,7 +44,6 @@ var (
 func Initialize(config configs.Configuration) error {
 	var err error
 	var dsn string
-	// dbType := enums.MustParseDatabase(viper.GetString("database.type"))
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
 		dsn, err = connectMysql(config)
@@ -113,11 +112,6 @@ func Initialize(config configs.Configuration) error {
 }
 
 func connectMysql(config configs.Configuration) (string, error) {
-	// host := viper.GetString("database.mysql.host")
-	// port := viper.GetString("database.mysql.port")
-	// user := viper.GetString("database.mysql.user")
-	// password := viper.GetString("database.mysql.password")
-	// dbname := viper.GetString("database.mysql.dbname")
 	host := config.Database.Mysql.Host
 	port := config.Database.Mysql.Port
 	user := config.Database.Mysql.User
@@ -143,13 +137,6 @@ func connectMysql(config configs.Configuration) (string, error) {
 }
 
 func connectPostgres(config configs.Configuration) (string, error) {
-	// host := viper.GetString("database.postgres.host")
-	// port := viper.GetString("database.postgres.port")
-	// user := viper.GetString("database.postgres.user")
-	// password := viper.GetString("database.postgres.password")
-	// dbname := viper.GetString("database.postgres.dbname")
-	// sslmode := viper.GetString("database.postgres.sslmode")
-
 	host := config.Database.Postgresql.Host
 	port := config.Database.Postgresql.Port
 	user := config.Database.Postgresql.User
@@ -176,7 +163,6 @@ func connectPostgres(config configs.Configuration) (string, error) {
 }
 
 func connectSqlite3(config configs.Configuration) (string, error) {
-	// dbname := viper.GetString("database.sqlite3.path")
 	dbname := config.Database.Sqlite3.Path
 
 	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{

@@ -59,37 +59,46 @@ var _ Handler = &handler{}
 
 type handler struct {
 	authServiceFactory            auth.ServiceFactory
+	auditServiceFactory           dao.AuditServiceFactory
 	namespaceServiceFactory       dao.NamespaceServiceFactory
+	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
 	repositoryServiceFactory      dao.RepositoryServiceFactory
 	tagServiceFactory             dao.TagServiceFactory
 	artifactServiceFactory        dao.ArtifactServiceFactory
-	auditServiceFactory           dao.AuditServiceFactory
-	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
 }
 
 type inject struct {
-	authServiceFactory       auth.ServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	roleServiceFactory       dao.NamespaceMemberServiceFactory
+	authServiceFactory            auth.ServiceFactory
+	auditServiceFactory           dao.AuditServiceFactory
+	namespaceServiceFactory       dao.NamespaceServiceFactory
+	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
+	repositoryServiceFactory      dao.RepositoryServiceFactory
+	tagServiceFactory             dao.TagServiceFactory
+	artifactServiceFactory        dao.ArtifactServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
+	authServiceFactory := auth.NewServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceMemberServiceFactory := dao.NewNamespaceMemberServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	roleServiceFactory := dao.NewNamespaceMemberServiceFactory()
-	authServiceFactory := auth.NewServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
 		if ij.namespaceServiceFactory != nil {
 			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.namespaceMemberServiceFactory != nil {
+			namespaceMemberServiceFactory = ij.namespaceMemberServiceFactory
 		}
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
@@ -100,24 +109,15 @@ func handlerNew(injects ...inject) Handler {
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.roleServiceFactory != nil {
-			roleServiceFactory = ij.roleServiceFactory
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
 	}
 	return &handler{
 		authServiceFactory:            authServiceFactory,
+		auditServiceFactory:           auditServiceFactory,
 		namespaceServiceFactory:       namespaceServiceFactory,
+		namespaceMemberServiceFactory: namespaceMemberServiceFactory,
 		repositoryServiceFactory:      repositoryServiceFactory,
 		tagServiceFactory:             tagServiceFactory,
 		artifactServiceFactory:        artifactServiceFactory,
-		auditServiceFactory:           auditServiceFactory,
-		namespaceMemberServiceFactory: roleServiceFactory,
 	}
 }
 

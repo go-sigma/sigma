@@ -41,7 +41,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -53,6 +55,16 @@ func (h *handler) PutManifest(c echo.Context) error {
 	uri := c.Request().URL.Path
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
+
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
 
 	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
 		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")

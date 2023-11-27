@@ -29,7 +29,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -37,6 +39,17 @@ var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference
 
 // ListTags handles the list tags request
 func (h *handler) ListTags(c echo.Context) error {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var uri = c.Request().URL.Path
 	if !listTagsReg.MatchString(uri) {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)
@@ -64,6 +77,11 @@ func (h *handler) ListTags(c echo.Context) error {
 		}
 		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+
+	if !h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", repositoryObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	lastFound := false

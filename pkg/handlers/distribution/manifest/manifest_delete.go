@@ -26,6 +26,8 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -42,6 +44,15 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 	}
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
 
 	ctx := log.Logger.WithContext(c.Request().Context())
 

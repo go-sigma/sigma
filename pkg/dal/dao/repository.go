@@ -46,10 +46,12 @@ type RepositoryService interface {
 	GetByName(context.Context, string) (*models.Repository, error)
 	// ListByDtPagination lists the repositories by the pagination.
 	ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error)
+	// ListWithScrollable list the repository with scrollable last id
+	ListWithScrollable(ctx context.Context, namespaceID, userID int64, name *string, limit int, lastID int64) ([]*models.Repository, error)
 	// ListRepository lists all repositories.
 	ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
 	// ListRepository lists all repositories with auth.
-	ListRepositoryWithAuth(ctx context.Context, namespaceID int64, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
+	ListRepositoryWithAuth(ctx context.Context, namespaceID, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error)
 	// CountRepository counts all repositories.
 	CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error)
 	// UpdateRepository update specific repository
@@ -189,10 +191,40 @@ func (s *repositoryService) ListByDtPagination(ctx context.Context, limit int, l
 	return do.Order(s.tx.Repository.ID).Limit(limit).Find()
 }
 
+// ListWithScrollable list the repository with scrollable last id
+func (s *repositoryService) ListWithScrollable(ctx context.Context, namespaceID, userID int64, name *string, limit int, lastID int64) ([]*models.Repository, error) {
+	q := s.tx.Repository.WithContext(ctx)
+	if namespaceID != 0 {
+		q = q.Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	}
+	if userID == 0 { // find the public namespace
+		q = q.Where(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
+	} else { // find user id authenticated namespace
+		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
+		if err != nil {
+			return nil, err
+		}
+		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
+				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
+		}
+	}
+	if name != nil {
+		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
+	}
+	if lastID > 0 {
+		q = q.Where(s.tx.Repository.ID.Gt(lastID))
+	}
+	return q.Order(s.tx.Repository.ID).Limit(limit).Find()
+}
+
 // ListRepository lists all repositories with auth.
-func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespaceID int64, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
+func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespaceID, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	q := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	q := s.tx.Repository.WithContext(ctx)
+	if namespaceID != 0 {
+		q = q.Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
+	}
 	if name != nil {
 		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
