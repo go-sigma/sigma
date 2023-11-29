@@ -130,6 +130,17 @@ func TestParse(t *testing.T) {
 			want3:   "",
 			wantErr: true,
 		},
+		{
+			name: "test10",
+			args: args{
+				name: "library/busybox",
+			},
+			want:    "docker.io",
+			want1:   "library",
+			want2:   "library/busybox",
+			want3:   "latest",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

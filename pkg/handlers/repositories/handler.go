@@ -46,6 +46,7 @@ var _ Handler = &handler{}
 
 type handler struct {
 	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -55,6 +56,7 @@ type handler struct {
 
 type inject struct {
 	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -64,14 +66,21 @@ type inject struct {
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
+	authServiceFactory := auth.NewServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	builderServiceFactory := dao.NewBuilderServiceFactory()
-	authServiceFactory := auth.NewServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
 		if ij.namespaceServiceFactory != nil {
 			namespaceServiceFactory = ij.namespaceServiceFactory
 		}
@@ -87,12 +96,10 @@ func handlerNew(injects ...inject) Handler {
 		if ij.builderServiceFactory != nil {
 			builderServiceFactory = ij.builderServiceFactory
 		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
 	}
 	return &handler{
 		authServiceFactory:       authServiceFactory,
+		auditServiceFactory:      auditServiceFactory,
 		namespaceServiceFactory:  namespaceServiceFactory,
 		repositoryServiceFactory: repositoryServiceFactory,
 		tagServiceFactory:        tagServiceFactory,
@@ -105,7 +112,6 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	// repositoryGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories")
 	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	repositoryHandler := handlerNew()

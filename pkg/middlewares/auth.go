@@ -70,6 +70,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			userServiceFactory := dao.NewUserServiceFactory()
 			userService := userServiceFactory.New()
 
+			fmt.Println(73, authorization)
 			switch {
 			case strings.HasPrefix(authorization, "Basic"):
 				var username string
@@ -118,6 +119,14 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
 				}
 			default:
+				uri := c.Request().URL.Path
+				if uri == "/v2/" {
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					if config.DS {
+						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					}
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+				}
 				userObj, err := userService.GetByUsername(ctx, consts.UserAnonymous)
 				if err != nil {
 					log.Error().Err(err).Msg("Get anonymous user failed")

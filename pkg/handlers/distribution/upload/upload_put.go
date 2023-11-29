@@ -31,14 +31,28 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/hash"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PutUpload handles the put upload request
 func (h *handler) PutUpload(c echo.Context) error {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	dgest, err := digest.Parse(c.QueryParam("digest"))
 	if err != nil {
 		log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
@@ -51,6 +65,28 @@ func (h *handler) PutUpload(c echo.Context) error {
 	c.Response().Header().Set("Location", fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, uri))
 
 	ctx := log.Logger.WithContext(c.Request().Context())
+	repository := h.getRepository(c)
+
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
 
 	blobUploadService := h.blobUploadServiceFactory.New()
 	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
@@ -75,7 +111,6 @@ func (h *handler) PutUpload(c echo.Context) error {
 		return c.NoContent(http.StatusCreated)
 	}
 
-	repository := h.getRepository(c)
 	if !reference.NameRegexp.MatchString(repository) {
 		log.Error().Str("repository", repository).Msg("Invalid repository name")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)

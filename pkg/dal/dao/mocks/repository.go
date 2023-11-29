@@ -211,6 +211,21 @@ func (mr *MockRepositoryServiceMockRecorder) ListRepositoryWithAuth(arg0, arg1, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepositoryWithAuth", reflect.TypeOf((*MockRepositoryService)(nil).ListRepositoryWithAuth), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
+// ListWithScrollable mocks base method.
+func (m *MockRepositoryService) ListWithScrollable(arg0 context.Context, arg1, arg2 int64, arg3 *string, arg4 int, arg5 int64) ([]*models.Repository, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWithScrollable", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].([]*models.Repository)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWithScrollable indicates an expected call of ListWithScrollable.
+func (mr *MockRepositoryServiceMockRecorder) ListWithScrollable(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithScrollable", reflect.TypeOf((*MockRepositoryService)(nil).ListWithScrollable), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 // UpdateRepository mocks base method.
 func (m *MockRepositoryService) UpdateRepository(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
 	m.ctrl.T.Helper()

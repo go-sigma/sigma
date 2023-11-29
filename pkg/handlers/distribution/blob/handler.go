@@ -20,6 +20,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -37,27 +39,60 @@ type Handler interface {
 
 var _ Handler = &handler{}
 
-// var blobRouteReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/blobs/%s$`, reference.NameRegexp.String(), digest.DigestRegexp.String()))
-
 type handler struct {
-	blobServiceFactory dao.BlobServiceFactory
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 type inject struct {
-	blobServiceFactory dao.BlobServiceFactory
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	blobServiceFactory       dao.BlobServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution blob handlers
 func handlerNew(injects ...inject) Handler {
+	config := configs.GetConfiguration()
+	authServiceFactory := auth.NewServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.config != nil {
+			config = ij.config
+		}
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
+		if ij.namespaceServiceFactory != nil {
+			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
+		}
 		if ij.blobServiceFactory != nil {
 			blobServiceFactory = ij.blobServiceFactory
 		}
 	}
 	return &handler{
-		blobServiceFactory: blobServiceFactory,
+		config:                   config,
+		authServiceFactory:       authServiceFactory,
+		auditServiceFactory:      auditServiceFactory,
+		namespaceServiceFactory:  namespaceServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
+		blobServiceFactory:       blobServiceFactory,
 	}
 }
 

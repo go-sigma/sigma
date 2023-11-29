@@ -41,20 +41,15 @@ import (
 )
 
 func TestPostNamespace(t *testing.T) {
-	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	namespaceHandler := handlerNew()
@@ -64,7 +59,7 @@ func TestPostNamespace(t *testing.T) {
 
 	ctx := context.Background()
 	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err = userService.Create(ctx, userObj)
+	err := userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test","description":""}`))
@@ -168,17 +163,13 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	userServiceFactory := dao.NewUserServiceFactory()
@@ -186,7 +177,7 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 
 	ctx := context.Background()
 	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err = userService.Create(ctx, userObj)
+	err := userService.Create(ctx, userObj)
 	assert.NoError(t, err)
 
 	ctrl := gomock.NewController(t)

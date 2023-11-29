@@ -33,7 +33,9 @@ type Artifact struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	RepositoryID    int64
+	RepositoryID int64
+	Repository   Repository
+
 	Digest          string
 	Size            int64 `gorm:"default:0"`
 	BlobsSize       int64 `gorm:"default:0"`
@@ -47,7 +49,6 @@ type Artifact struct {
 	PushedAt  time.Time `gorm:"autoCreateTime"`
 	PullTimes int64     `gorm:"default:0"`
 
-	Repository    Repository
 	Vulnerability ArtifactVulnerability `gorm:"foreignKey:ArtifactID;"`
 	Sbom          ArtifactSbom          `gorm:"foreignKey:ArtifactID;"`
 

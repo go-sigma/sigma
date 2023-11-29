@@ -20,6 +20,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -42,31 +44,66 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	blobUploadServiceFactory dao.BlobUploadServiceFactory
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	blobUploadServiceFactory dao.BlobUploadServiceFactory
 }
 
 type inject struct {
-	blobUploadServiceFactory dao.BlobUploadServiceFactory
+	config                   *configs.Configuration
+	authServiceFactory       auth.ServiceFactory
+	auditServiceFactory      dao.AuditServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
 	blobServiceFactory       dao.BlobServiceFactory
+	blobUploadServiceFactory dao.BlobUploadServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution upload blob handlers
 func handlerNew(injects ...inject) Handler {
-	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
+	config := configs.GetConfiguration()
+	authServiceFactory := auth.NewServiceFactory()
+	auditServiceFactory := dao.NewAuditServiceFactory()
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	blobServiceFactory := dao.NewBlobServiceFactory()
+	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
-		if ij.blobUploadServiceFactory != nil {
-			blobUploadServiceFactory = ij.blobUploadServiceFactory
+		if ij.config != nil {
+			config = ij.config
+		}
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
+		if ij.auditServiceFactory != nil {
+			auditServiceFactory = ij.auditServiceFactory
+		}
+		if ij.namespaceServiceFactory != nil {
+			namespaceServiceFactory = ij.namespaceServiceFactory
+		}
+		if ij.repositoryServiceFactory != nil {
+			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
 		if ij.blobServiceFactory != nil {
 			blobServiceFactory = ij.blobServiceFactory
 		}
+		if ij.blobUploadServiceFactory != nil {
+			blobUploadServiceFactory = ij.blobUploadServiceFactory
+		}
 	}
 	return &handler{
-		blobUploadServiceFactory: blobUploadServiceFactory,
+		config:                   config,
+		authServiceFactory:       authServiceFactory,
+		auditServiceFactory:      auditServiceFactory,
+		namespaceServiceFactory:  namespaceServiceFactory,
+		repositoryServiceFactory: repositoryServiceFactory,
 		blobServiceFactory:       blobServiceFactory,
+		blobUploadServiceFactory: blobUploadServiceFactory,
 	}
 }
 

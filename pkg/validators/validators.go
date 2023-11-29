@@ -150,7 +150,11 @@ func ValidateUsername(field validator.FieldLevel) bool {
 
 // ValidateRepository validates the repository name
 func ValidateRepository(field validator.FieldLevel) bool {
-	repository := field.Field().String()
+	return ValidateRepositoryRaw(field.Field().String())
+}
+
+// ValidateRepositoryRaw ...
+func ValidateRepositoryRaw(repository string) bool {
 	if len(strings.Split(repository, "/")) < 2 {
 		return false
 	}
@@ -167,7 +171,11 @@ func ValidateDigest(field validator.FieldLevel) bool {
 
 // ValidateNamespace validates the namespace name
 func ValidateNamespace(field validator.FieldLevel) bool {
-	namespace := field.Field().String()
+	return ValidateNamespaceRaw(field.Field().String())
+}
+
+// ValidateNamespaceRaw ...
+func ValidateNamespaceRaw(namespace string) bool {
 	return namespaceRegex.MatchString(namespace) && len(namespace) <= maxNamespace
 }
 

@@ -24,12 +24,28 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // DeleteBlob handles the delete blob request
 // Note: if blob associate with artifact, it cannot be deleted
 func (h *handler) DeleteBlob(c echo.Context) error {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	uri := c.Request().URL.Path
 
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))
@@ -41,6 +57,27 @@ func (h *handler) DeleteBlob(c echo.Context) error {
 	log.Debug().Str("digest", dgest.String()).Str("repository", repository).Msg("Blob info")
 
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+
+	if !h.authServiceFactory.New().Repository(c, namespaceObj.ID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
 
 	blobService := h.blobServiceFactory.New()
 	blobObj, err := blobService.FindByDigest(ctx, dgest.String())

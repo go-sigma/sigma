@@ -25,12 +25,24 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListRepositories handles the list repositories request
 func (h *handler) ListRepositories(c echo.Context) error {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var n = 1000
 	var err error
 	var nStr = c.QueryParam("n")
@@ -59,9 +71,9 @@ func (h *handler) ListRepositories(c echo.Context) error {
 
 	var repositories []*models.Repository
 	if !lastFound {
-		repositories, err = repositoryService.ListByDtPagination(ctx, n)
+		repositories, err = repositoryService.ListWithScrollable(ctx, 0, user.ID, nil, n, 0)
 	} else {
-		repositories, err = repositoryService.ListByDtPagination(ctx, n, lastID)
+		repositories, err = repositoryService.ListWithScrollable(ctx, 0, user.ID, nil, n, lastID)
 	}
 	if err != nil {
 		log.Error().Err(err).Msg("List repository failed")

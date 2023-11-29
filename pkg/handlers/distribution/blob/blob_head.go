@@ -24,19 +24,32 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // HeadBlob returns the blob's size and digest.
 func (h *handler) HeadBlob(c echo.Context) error {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	uri := c.Request().URL.Path
 
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))
@@ -48,6 +61,27 @@ func (h *handler) HeadBlob(c echo.Context) error {
 	log.Debug().Str("digest", dgest.String()).Str("repository", repository).Msg("Blob info")
 
 	ctx := log.Logger.WithContext(c.Request().Context())
+
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
 
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
@@ -61,12 +95,12 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		blob, err := blobService.FindByDigest(ctx, dgest.String())
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if !viper.GetBool("proxy.enabled") {
+				if !h.config.Proxy.Enabled {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Blob not found")
 					return nil, xerrors.DSErrCodeBlobUnknown
 				}
 				f := clients.NewClientsFactory()
-				cli, err := f.New(*configs.GetConfiguration()) // TODO: config param
+				cli, err := f.New(ptr.To(h.config))
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
 					return nil, xerrors.DSErrCodeUnknown
