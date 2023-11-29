@@ -196,7 +196,6 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   `name` varchar(64) NOT NULL,
   `description` varchar(255),
   `overview` BLOB,
-  `visibility` text CHECK (`visibility` IN ('public', 'private')) NOT NULL DEFAULT 'private',
   `size_limit` integer NOT NULL DEFAULT 0,
   `size` integer NOT NULL DEFAULT 0,
   `tag_limit` integer NOT NULL DEFAULT 0,

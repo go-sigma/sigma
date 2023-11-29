@@ -90,7 +90,6 @@ func (h *handler) CreateRepository(c echo.Context) error {
 		Name:        req.Name,
 		Description: req.Description,
 		Overview:    []byte(ptr.To(req.Overview)),
-		Visibility:  ptr.To(req.Visibility),
 		TagLimit:    ptr.To(req.TagLimit),
 		SizeLimit:   ptr.To(req.SizeLimit),
 	}

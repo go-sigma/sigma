@@ -80,7 +80,6 @@ export default function ({ localServer }: { localServer: string }) {
         break;
     }
   }, [sizeLimit, sizeLimitUnit]);
-  const [repositoryVisibility, setRepositoryVisibility] = useState("private");
   const [createRepositoryModal, setCreateRepositoryModal] = useState(false);
 
   const createRepository = () => {
@@ -94,12 +93,10 @@ export default function ({ localServer }: { localServer: string }) {
       description: descriptionText,
       size_limit: realSizeLimit,
       tag_limit: tagCountLimit,
-      visibility: repositoryVisibility,
     } as IRepositoryItem, {}).then(response => {
       if (response.status === 201) {
         setRepositoryText("");
         setDescriptionText("");
-        setRepositoryVisibility("private")
         setTagCountLimit(0);
         setSizeLimit(0);
         setRefresh({});
@@ -281,9 +278,6 @@ export default function ({ localServer }: { localServer: string }) {
                       }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Visibility
-                    </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={e => {
                         resetOrder();
                         setCreatedAtOrder(e);
@@ -420,21 +414,6 @@ export default function ({ localServer }: { localServer: string }) {
                       )
                     }
                   </p>
-                  <label htmlFor="namespace_visibility" className="block text-sm font-medium text-gray-700">
-                    Visibility
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <select
-                      id="namespace_visibility"
-                      name="namespace_visibility"
-                      className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                      value={repositoryVisibility}
-                      onChange={e => { setRepositoryVisibility(e.target.value) }}
-                    >
-                      <option value="private">Private</option>
-                      <option value="public">Public</option>
-                    </select>
-                  </div>
                   <label htmlFor="size_limit" className="block text-sm font-medium text-gray-700 mt-2">
                     Size limit
                   </label>
@@ -575,7 +554,6 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
         break;
     }
   }, [sizeLimit, sizeLimitUnit]);
-  const [repositoryVisibility, setRepositoryVisibility] = useState("private");
   const [updateRepositoryModal, setUpdateRepositoryModal] = useState(false);
 
   const updateRepository = () => {
@@ -588,7 +566,6 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
       description: descriptionText,
       size_limit: realSizeLimit,
       tag_limit: tagCountLimit,
-      visibility: repositoryVisibility,
     } as IRepositoryItem, {}).then(response => {
       if (response.status === 204) {
         setRefresh({});
@@ -635,9 +612,6 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         <QuotaSimple current={repository.tag_count} limit={repository.tag_limit} />
-      </td>
-      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right capitalize">
-        {repository.visibility}
       </td>
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
         {dayjs.utc(repository.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
@@ -792,21 +766,6 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
                         )
                       }
                     </p>
-                    <label htmlFor="namespace_visibility" className="block text-sm font-medium text-gray-700">
-                      Visibility
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <select
-                        id="namespace_visibility"
-                        name="namespace_visibility"
-                        className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                        value={repositoryVisibility}
-                        onChange={e => { setRepositoryVisibility(e.target.value) }}
-                      >
-                        <option value="private">Private</option>
-                        <option value="public">Public</option>
-                      </select>
-                    </div>
                     <label htmlFor="size_limit" className="block text-sm font-medium text-gray-700 mt-2">
                       Size limit
                     </label>

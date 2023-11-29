@@ -18,7 +18,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -33,11 +32,10 @@ type Repository struct {
 	Name        string
 	Description *string
 	Overview    []byte
-	Visibility  enums.Visibility `gorm:"default:public"`
-	TagLimit    int64            `gorm:"default:0"`
-	TagCount    int64            `gorm:"default:0"`
-	SizeLimit   int64            `gorm:"default:0"`
-	Size        int64            `gorm:"default:0"`
+	TagLimit    int64 `gorm:"default:0"`
+	TagCount    int64 `gorm:"default:0"`
+	SizeLimit   int64 `gorm:"default:0"`
+	Size        int64 `gorm:"default:0"`
 
 	Namespace Namespace
 	Builder   *Builder

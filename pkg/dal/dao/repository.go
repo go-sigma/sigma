@@ -141,9 +141,6 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
-		if !repositoryObj.Visibility.IsValid() {
-			repositoryObj.Visibility = namespaceObj.Visibility
-		}
 		err = s.tx.Repository.WithContext(ctx).Create(repositoryObj)
 		if err != nil {
 			return err
@@ -197,17 +194,13 @@ func (s *repositoryService) ListWithScrollable(ctx context.Context, namespaceID,
 	if namespaceID != 0 {
 		q = q.Where(s.tx.Repository.NamespaceID.Eq(namespaceID))
 	}
-	if userID == 0 { // find the public namespace
-		q = q.Where(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
-	} else { // find user id authenticated namespace
-		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
-		if err != nil {
-			return nil, err
-		}
-		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
-			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
-				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
-		}
+	userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
+	if err != nil {
+		return nil, err
+	}
+	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+		q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
+			Where(s.tx.NamespaceMember.ID.IsNotNull())
 	}
 	if name != nil {
 		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
@@ -228,17 +221,13 @@ func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespac
 	if name != nil {
 		q = q.Where(s.tx.Repository.Name.Like(fmt.Sprintf("%s%%", ptr.To(name))))
 	}
-	if userID == 0 { // find the public namespace
-		q = q.Where(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
-	} else { // find user id authenticated namespace
-		userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
-		if err != nil {
-			return nil, 0, err
-		}
-		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
-			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
-				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Repository.Visibility.Eq(enums.VisibilityPublic))
-		}
+	userObj, err := s.tx.User.WithContext(ctx).Where(s.tx.User.ID.Eq(userID)).First()
+	if err != nil {
+		return nil, 0, err
+	}
+	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+		q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
+			Where(s.tx.NamespaceMember.ID.IsNotNull())
 	}
 	field, ok := s.tx.Repository.GetFieldByName(ptr.To(sort.Sort))
 	if ok {

@@ -138,7 +138,6 @@ func (h *handler) GetRepository(c echo.Context) error {
 		Name:        repositoryObj.Name,
 		Description: repositoryObj.Description,
 		Overview:    ptr.Of(string(repositoryObj.Overview)),
-		Visibility:  repositoryObj.Visibility,
 		SizeLimit:   ptr.Of(repositoryObj.SizeLimit),
 		Size:        ptr.Of(repositoryObj.Size),
 		TagCount:    repositoryObj.TagCount,

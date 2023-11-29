@@ -35,7 +35,6 @@ func newRepository(db *gorm.DB, opts ...gen.DOOption) repository {
 	_repository.Name = field.NewString(tableName, "name")
 	_repository.Description = field.NewString(tableName, "description")
 	_repository.Overview = field.NewBytes(tableName, "overview")
-	_repository.Visibility = field.NewField(tableName, "visibility")
 	_repository.TagLimit = field.NewInt64(tableName, "tag_limit")
 	_repository.TagCount = field.NewInt64(tableName, "tag_count")
 	_repository.SizeLimit = field.NewInt64(tableName, "size_limit")
@@ -90,7 +89,6 @@ type repository struct {
 	Name        field.String
 	Description field.String
 	Overview    field.Bytes
-	Visibility  field.Field
 	TagLimit    field.Int64
 	TagCount    field.Int64
 	SizeLimit   field.Int64
@@ -122,7 +120,6 @@ func (r *repository) updateTableName(table string) *repository {
 	r.Name = field.NewString(table, "name")
 	r.Description = field.NewString(table, "description")
 	r.Overview = field.NewBytes(table, "overview")
-	r.Visibility = field.NewField(table, "visibility")
 	r.TagLimit = field.NewInt64(table, "tag_limit")
 	r.TagCount = field.NewInt64(table, "tag_count")
 	r.SizeLimit = field.NewInt64(table, "size_limit")
@@ -153,7 +150,7 @@ func (r *repository) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *repository) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 15)
+	r.fieldMap = make(map[string]field.Expr, 14)
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt
@@ -162,7 +159,6 @@ func (r *repository) fillFieldMap() {
 	r.fieldMap["name"] = r.Name
 	r.fieldMap["description"] = r.Description
 	r.fieldMap["overview"] = r.Overview
-	r.fieldMap["visibility"] = r.Visibility
 	r.fieldMap["tag_limit"] = r.TagLimit
 	r.fieldMap["tag_count"] = r.TagCount
 	r.fieldMap["size_limit"] = r.SizeLimit

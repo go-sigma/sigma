@@ -247,7 +247,6 @@ CREATE TABLE IF NOT EXISTS "repositories" (
   "name" varchar(64) NOT NULL,
   "description" varchar(255),
   "overview" bytea,
-  "visibility" visibility NOT NULL DEFAULT 'private',
   "size_limit" bigint NOT NULL DEFAULT 0,
   "size" bigint NOT NULL DEFAULT 0,
   "tag_limit" bigint NOT NULL DEFAULT 0,
