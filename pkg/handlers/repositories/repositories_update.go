@@ -112,9 +112,6 @@ func (h *handler) UpdateRepository(c echo.Context) error {
 	if req.Overview != nil {
 		updates[query.Repository.Overview.ColumnName().String()] = []byte(ptr.To(req.Overview))
 	}
-	if req.Visibility != nil {
-		updates[query.Repository.Visibility.ColumnName().String()] = ptr.To(req.Visibility)
-	}
 
 	if len(updates) > 0 {
 		err = repositoryService.UpdateRepository(ctx, repositoryObj.ID, updates)

@@ -77,7 +77,7 @@ func TestTagService(t *testing.T) {
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 

@@ -78,7 +78,7 @@ func TestDeleteArtifact(t *testing.T) {
 		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
 		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 		artifactServiceFactory := dao.NewArtifactServiceFactory()

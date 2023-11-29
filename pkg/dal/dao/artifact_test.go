@@ -78,7 +78,7 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj = &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 		return nil
@@ -148,7 +148,7 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
@@ -275,7 +275,7 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj := &models.Repository{Name: "test1/busybox", NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 

@@ -113,10 +113,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	refs := h.parseRef(ref)
 
 	repositoryService := h.repositoryServiceFactory.New()
-	repositoryObj := &models.Repository{
-		Name:       repository,
-		Visibility: enums.VisibilityPrivate,
-	}
+	repositoryObj := &models.Repository{Name: repository}
 	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{
 		AutoCreate: h.config.Namespace.AutoCreate,
 		Visibility: h.config.Namespace.Visibility,

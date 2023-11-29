@@ -76,14 +76,14 @@ func TestRepositoryService(t *testing.T) {
 		assert.NoError(t, err)
 
 		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
+		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
 		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		namespaceObj1 := &models.Namespace{Name: "test1", Visibility: enums.VisibilityPrivate}
 		err = namespaceService.Create(ctx, namespaceObj1)
 		assert.NoError(t, err)
-		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox", Visibility: enums.VisibilityPrivate}, dao.AutoCreateNamespace{UserID: userObj.ID})
+		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox"}, dao.AutoCreateNamespace{UserID: userObj.ID})
 		assert.NoError(t, err)
 
 		count1, err := repositoryService.CountRepository(ctx, namespaceObj.ID, nil)

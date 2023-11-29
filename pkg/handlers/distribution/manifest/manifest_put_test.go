@@ -104,7 +104,7 @@ func TestPutManifest(t *testing.T) {
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
 	assert.NoError(t, dao.NewNamespaceServiceFactory().New().Create(ctx, namespaceObj))
 
-	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
+	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName}
 	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{AutoCreate: false, Visibility: enums.VisibilityPrivate, UserID: userObj.ID}))
 
 	blobService := dao.NewBlobServiceFactory().New()

@@ -78,10 +78,9 @@ type CreateRepositoryResponse struct {
 type UpdateRepositoryRequest struct {
 	NamespaceID int64 `json:"namespace_id" param:"namespace_id" validate:"required" example:"10" swaggerignore:"true"`
 
-	ID          int64             `json:"id" param:"id" validate:"required,number" example:"1" swaggerignore:"true"`
-	Description *string           `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
-	Overview    *string           `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`
-	SizeLimit   *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	TagLimit    *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
-	Visibility  *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
+	ID          int64   `json:"id" param:"id" validate:"required,number" example:"1" swaggerignore:"true"`
+	Description *string `json:"description,omitempty" validate:"omitempty,max=300" example:"i am just description"`
+	Overview    *string `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`
+	SizeLimit   *int64  `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
+	TagLimit    *int64  `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 }

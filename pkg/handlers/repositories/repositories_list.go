@@ -112,7 +112,6 @@ func (h *handler) ListRepositories(c echo.Context) error {
 			Name:        repository.Name,
 			Description: repository.Description,
 			Overview:    ptr.Of(string(repository.Overview)),
-			Visibility:  repository.Visibility,
 			SizeLimit:   ptr.Of(repository.SizeLimit),
 			Size:        ptr.Of(repository.Size),
 			TagCount:    repository.TagCount,
