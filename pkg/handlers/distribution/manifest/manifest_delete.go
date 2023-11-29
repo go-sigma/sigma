@@ -25,7 +25,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -35,13 +37,20 @@ import (
 // if reference is a tag, just delete the tag
 // if reference is a digest, delete the artifact and all of the tags that reference it
 func (h *handler) DeleteManifest(c echo.Context) error {
-	uri := c.Request().URL.Path
-	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	ctx := log.Logger.WithContext(c.Request().Context())
 
-	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
-		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
+	uri := c.Request().URL.Path
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
 	_, namespace, _, _, err := imagerefs.Parse(repository)
@@ -53,8 +62,21 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
 
-	ctx := log.Logger.WithContext(c.Request().Context())
+	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
+		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
+	}
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
@@ -82,7 +104,8 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		}
 		err = tagService.DeleteByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
-			return err
+			log.Error().Err(err).Str("Tag", ref).Msg("Delete tag failed")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 		}
 		return c.NoContent(http.StatusAccepted)
 	}
@@ -101,17 +124,22 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		tagService := h.tagServiceFactory.New(tx)
 		err = tagService.DeleteByArtifactID(ctx, artifactObj.ID)
 		if err != nil {
-			return err
+			log.Error().Err(err).Int64("ArtifactID", artifactObj.ID).Msg("Delete tag by artifact id failed")
+			return xerrors.DSErrCodeUnknown
 		}
 		artifactService := h.artifactServiceFactory.New(tx)
 		err = artifactService.DeleteByID(ctx, artifactObj.ID)
 		if err != nil {
-			return err
+			log.Error().Err(err).Int64("ArtifactID", artifactObj.ID).Msg("Delete artifact by id failed")
+			return xerrors.DSErrCodeUnknown
 		}
 		return nil
 	})
 	if err != nil {
-		log.Error().Err(err).Str("repository", repository).Str("artifact", refs.Digest.String()).Msg("Delete artifact failed")
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewDSError(c, e)
+		}
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 

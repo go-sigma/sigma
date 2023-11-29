@@ -25,6 +25,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -52,7 +54,7 @@ func TestDeleteManifest(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Role: enums.UserRoleRoot, Email: ptr.Of("test@gmail.com")}
 	assert.NoError(t, dao.NewUserServiceFactory().New().Create(ctx, userObj))
 
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
@@ -68,6 +70,8 @@ func TestDeleteManifest(t *testing.T) {
 	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))
 
 	h := &handler{
+		authServiceFactory:       auth.NewServiceFactory(),
+		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),
 		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
@@ -78,6 +82,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err := h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -87,6 +92,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -96,6 +102,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -105,6 +112,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, rec.Code)
@@ -114,6 +122,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, rec.Code)
@@ -123,6 +132,7 @@ func TestDeleteManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
+	c.Set(consts.ContextUser, userObj)
 	err = h.DeleteManifest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, rec.Code)

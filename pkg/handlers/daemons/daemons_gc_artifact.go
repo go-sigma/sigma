@@ -88,6 +88,7 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 		updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		daemonService := h.daemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
 				NamespaceID:     namespaceID,

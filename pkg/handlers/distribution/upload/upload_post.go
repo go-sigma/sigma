@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	gonanoid "github.com/matoous/go-nanoid"
@@ -37,6 +38,8 @@ import (
 
 // PostUpload creates a new upload.
 func (h *handler) PostUpload(c echo.Context) error {
+	ctx := log.Logger.WithContext(c.Request().Context())
+
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
@@ -52,9 +55,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	uri := c.Request().URL.Path
 	protocol := c.Scheme()
 
-	ctx := log.Logger.WithContext(c.Request().Context())
-	repository := h.getRepository(c)
-
+	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
@@ -64,13 +65,11 @@ func (h *handler) PostUpload(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-
 	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
-
 	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")

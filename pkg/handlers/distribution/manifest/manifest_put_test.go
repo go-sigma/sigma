@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -97,7 +98,7 @@ func TestPutManifest(t *testing.T) {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Role: enums.UserRoleRoot, Email: ptr.Of("test@gmail.com")}
 	assert.NoError(t, dao.NewUserServiceFactory().New().Create(ctx, userObj))
 
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
@@ -119,6 +120,8 @@ func TestPutManifest(t *testing.T) {
 				Visibility: enums.VisibilityPublic,
 			},
 		},
+		authServiceFactory:       auth.NewServiceFactory(),
+		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),
 		artifactServiceFactory:   dao.NewArtifactServiceFactory(),

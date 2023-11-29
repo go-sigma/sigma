@@ -88,6 +88,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 		updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		daemonService := h.daemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
 				NamespaceID:     namespaceID,
