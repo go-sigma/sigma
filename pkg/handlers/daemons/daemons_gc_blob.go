@@ -85,6 +85,7 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 		updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		daemonService := h.daemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcBlobRule(ctx, &models.DaemonGcBlobRule{
 				CronEnabled:     req.CronEnabled,

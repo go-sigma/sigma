@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -51,42 +50,22 @@ func TestListRepositories(t *testing.T) {
 		repositoryName = "test/busybox"
 	)
 
-	userServiceFactory := dao.NewUserServiceFactory()
-	userService := userServiceFactory.New()
-
 	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err := userService.Create(ctx, userObj)
-	assert.NoError(t, err)
-
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	namespaceService := namespaceServiceFactory.New()
+	assert.NoError(t, dao.NewUserServiceFactory().New().Create(ctx, userObj))
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-	err = namespaceService.Create(ctx, namespaceObj)
-	assert.NoError(t, err)
-	log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	repositoryService := repositoryServiceFactory.New()
+	assert.NoError(t, dao.NewNamespaceServiceFactory().New().Create(ctx, namespaceObj))
 	repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-	assert.NoError(t, err)
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	artifactService := artifactServiceFactory.New()
+	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
 	artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now()}
-	err = artifactService.Create(ctx, artifactObj)
-	assert.NoError(t, err)
-	tagServiceFactory := dao.NewTagServiceFactory()
-	tagService := tagServiceFactory.New()
+	assert.NoError(t, dao.NewArtifactServiceFactory().New().Create(ctx, artifactObj))
 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
-	err = tagService.Create(ctx, tagObj)
-	assert.NoError(t, err)
+	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))
 
 	req := httptest.NewRequest(http.MethodGet, "/v2/_catalog", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	c.Set(consts.ContextUser, userObj)
-	f := &factory{}
-	err = f.Initialize(c)
-	assert.NoError(t, err)
+	assert.NoError(t, (&factory{}).Initialize(c))
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 }

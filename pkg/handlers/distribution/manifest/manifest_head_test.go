@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -104,10 +105,8 @@ func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
 }
 
 func TestHeadManifest(t *testing.T) {
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
@@ -124,35 +123,16 @@ func TestHeadManifest(t *testing.T) {
 		tagName        = "latest"
 	)
 
-	userServiceFactory := dao.NewUserServiceFactory()
-	userService := userServiceFactory.New()
-	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err = userService.Create(ctx, userObj)
-	assert.NoError(t, err)
-
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	namespaceService := namespaceServiceFactory.New()
+	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Role: enums.UserRoleRoot, Email: ptr.Of("test@gmail.com")}
+	assert.NoError(t, dao.NewUserServiceFactory().New().Create(ctx, userObj))
 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-	err = namespaceService.Create(ctx, namespaceObj)
-	assert.NoError(t, err)
-
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	repositoryService := repositoryServiceFactory.New()
+	assert.NoError(t, dao.NewNamespaceServiceFactory().New().Create(ctx, namespaceObj))
 	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName, Visibility: enums.VisibilityPrivate}
-	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-	assert.NoError(t, err)
-
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	artifactService := artifactServiceFactory.New()
+	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
 	artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: digestName, Size: 123, ContentType: "application/vnd.oci.image.manifest.v1+json", Raw: []byte(`{"schemaVersion":2,"config":{"mediaType":"application/vnd.cncf.helm.config.v1+json","digest":"sha256:a61fd63bebd559934a60e30d1e7b832a136ac6bae3a11ca97ade20bfb3645796","size":800},"layers":[{"mediaType":"application/vnd.cncf.helm.chart.content.v1.tar+gzip","digest":"sha256:e45dd3e880e94bdb52cc88d6b4e0fbaec6876856f39a1a89f76e64d0739c2904","size":37869}],"annotations":{"category":"Infrastructure","licenses":"Apache-2.0","org.opencontainers.image.authors":"VMware, Inc.","org.opencontainers.image.description":"NGINX Open Source is a web server that can be also used as a reverse proxy, load balancer, and HTTP cache. Recommended for high-demanding sites due to its ability to provide faster content.","org.opencontainers.image.source":"https://github.com/bitnami/charts/tree/main/bitnami/nginx","org.opencontainers.image.title":"nginx","org.opencontainers.image.url":"https://bitnami.com","org.opencontainers.image.version":"15.0.2"}}`)}
-	err = artifactService.Create(ctx, artifactObj)
-	assert.NoError(t, err)
-
-	tagServiceFactory := dao.NewTagServiceFactory()
-	tagService := tagServiceFactory.New()
+	assert.NoError(t, dao.NewArtifactServiceFactory().New().Create(ctx, artifactObj))
 	tagObj := &models.Tag{RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, Name: tagName}
-	err = tagService.Create(ctx, tagObj)
-	assert.NoError(t, err)
+	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))
 
 	mux := http.NewServeMux()
 
@@ -166,16 +146,16 @@ func TestHeadManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
-	assert.NoError(t, err)
+	c.Set(consts.ContextUser, userObj)
+	assert.NoError(t, handler.HeadManifest(c))
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
-	assert.NoError(t, err)
+	c.Set(consts.ContextUser, userObj)
+	assert.NoError(t, handler.HeadManifest(c))
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	// test about get artifact by invalid reference
@@ -183,23 +163,23 @@ func TestHeadManifest(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
-	assert.NoError(t, err)
+	c.Set(consts.ContextUser, userObj)
+	assert.NoError(t, handler.HeadManifest(c))
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 
 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName+"-none-exist", tagName), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
-	assert.NoError(t, err)
+	c.Set(consts.ContextUser, userObj)
+	assert.NoError(t, handler.HeadManifest(c))
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 
 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName+"-none-exist"), nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = echo.New().NewContext(req, rec)
-	err = handler.HeadManifest(c)
-	assert.NoError(t, err)
+	c.Set(consts.ContextUser, userObj)
+	assert.NoError(t, handler.HeadManifest(c))
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 }

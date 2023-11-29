@@ -15,65 +15,20 @@
 package auth
 
 import (
-	"errors"
-
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Repository ...
 func (s service) Repository(c echo.Context, repositoryID int64, auth enums.Auth) bool {
 	ctx := log.Logger.WithContext(c.Request().Context())
-
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return false
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return false
-	}
-
-	// 1. check user is admin or not
-	if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
-		return true
-	}
-
-	// 2. check repository visibility
 	repositoryService := s.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, repositoryID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get repository by id failed")
 		return false
 	}
-	if repositoryObj.Visibility == enums.VisibilityPublic && auth == enums.AuthRead {
-		return true
-	}
-
-	// 3. check user is member of the namespace
-	roleService := s.roleServiceFactory.New()
-	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, repositoryObj.NamespaceID, user.ID)
-	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Get namespace member failed")
-		}
-		return false
-	}
-	if namespaceMemberObj.Role == enums.NamespaceRoleReader && auth == enums.AuthRead {
-		return true
-	}
-	if namespaceMemberObj.Role == enums.NamespaceRoleManager && (auth == enums.AuthManage || auth == enums.AuthRead) {
-		return true
-	}
-	if namespaceMemberObj.Role == enums.NamespaceRoleAdmin && (auth == enums.AuthAdmin || auth == enums.AuthManage || auth == enums.AuthRead) {
-		return true
-	}
-	return false
+	return s.Namespace(c, repositoryObj.NamespaceID, auth)
 }

@@ -94,6 +94,7 @@ func (h *handler) UpdateGcTagRule(c echo.Context) error {
 		updates[query.DaemonGcTagRule.RetentionPattern.ColumnName().String()] = ptr.To(req.RetentionPattern)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		daemonService := h.daemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
 				NamespaceID:         namespaceID,

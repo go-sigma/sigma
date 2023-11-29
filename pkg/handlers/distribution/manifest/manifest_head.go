@@ -26,21 +26,55 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // HeadManifest handles the head manifest request
 func (h *handler) HeadManifest(c echo.Context) error {
-	uri := c.Request().URL.Path
-	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
-	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
+	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
+	uri := c.Request().URL.Path
+
+	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
+	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
 		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
-
-	ctx := log.Logger.WithContext(c.Request().Context())
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)

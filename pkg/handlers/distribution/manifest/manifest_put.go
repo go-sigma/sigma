@@ -52,30 +52,6 @@ const maxManifestBodySize = 4 << 20
 
 // PutManifest handles the put manifest request
 func (h *handler) PutManifest(c echo.Context) error {
-	uri := c.Request().URL.Path
-	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
-	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
-
-	_, namespace, _, _, err := imagerefs.Parse(repository)
-	if err != nil {
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
-	}
-	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
-	}
-
-	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
-		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
-	}
-
-	if !strings.Contains(repository, "/") {
-		log.Error().Str("repository", repository).Msg("Invalid repository, repository name should have a namespace as prefix")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
-	}
-
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -87,6 +63,39 @@ func (h *handler) PutManifest(c echo.Context) error {
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
+	uri := c.Request().URL.Path
+
+	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/manifests"), "/v2/")
+	_, namespace, _, _, err := imagerefs.Parse(repository)
+	if err != nil {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+	}
+	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	if err != nil {
+		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+	}
+	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthRead) {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
+	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
+		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
+	}
+
+	if !strings.Contains(repository, "/") {
+		log.Error().Str("repository", repository).Msg("Invalid repository, repository name should have a namespace as prefix")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
 
 	countReader := counter.NewCounter(c.Request().Body)

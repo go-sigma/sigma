@@ -11,7 +11,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
 	github.com/anchore/syft v0.97.1
 	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.48.3
+	github.com/aws/aws-sdk-go v1.48.7
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.79.0
