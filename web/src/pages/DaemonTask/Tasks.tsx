@@ -602,7 +602,13 @@ export default function ({ localServer }: { localServer: string }) {
                 location.pathname.startsWith("/settings") ? null : (
                   <div className="sm:flex sm:space-x-8">
                     <Link
-                      to={`/namespaces/${namespace}/repositories`}
+                      to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Summary
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/repositories?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Repository list
@@ -613,12 +619,12 @@ export default function ({ localServer }: { localServer: string }) {
                     >
                       Members
                     </Link>
-                    <Link
+                    {/* <Link
                       to={`/namespaces/${namespace}/namespace-webhooks`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Webhook
-                    </Link>
+                    </Link> */}
                     <Link
                       to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"

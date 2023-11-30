@@ -3219,7 +3219,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutNamespaceRequest"
+                            "$ref": "#/definitions/types.UpdateNamespaceRequest"
                         }
                     }
                 ],
@@ -7080,36 +7080,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.PutNamespaceRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "example": "i am just description"
-                },
-                "repository_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "size_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "tag_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
-                }
-            }
-        },
         "types.PutWebhookRequest": {
             "type": "object",
             "properties": {
@@ -7580,6 +7550,41 @@ const docTemplate = `{
                 }
             }
         },
+        "types.UpdateNamespaceRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "example": "i am just description"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "example": "i am just overview"
+                },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
+                }
+            }
+        },
         "types.UpdateRepositoryRequest": {
             "type": "object",
             "properties": {
@@ -7600,14 +7605,6 @@ const docTemplate = `{
                 "tag_limit": {
                     "type": "integer",
                     "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
                 }
             }
         },

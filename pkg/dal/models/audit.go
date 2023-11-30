@@ -32,7 +32,6 @@ type Audit struct {
 	Action       enums.AuditAction
 	ResourceType enums.AuditResourceType
 	Resource     string
-	BeforeRaw    []byte
 	ReqRaw       []byte
 
 	Namespace Namespace

@@ -33,6 +33,7 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.ID = field.NewInt64(tableName, "id")
 	_namespace.Name = field.NewString(tableName, "name")
 	_namespace.Description = field.NewString(tableName, "description")
+	_namespace.Overview = field.NewBytes(tableName, "overview")
 	_namespace.Visibility = field.NewField(tableName, "visibility")
 	_namespace.TagLimit = field.NewInt64(tableName, "tag_limit")
 	_namespace.TagCount = field.NewInt64(tableName, "tag_count")
@@ -56,6 +57,7 @@ type namespace struct {
 	ID              field.Int64
 	Name            field.String
 	Description     field.String
+	Overview        field.Bytes
 	Visibility      field.Field
 	TagLimit        field.Int64
 	TagCount        field.Int64
@@ -85,6 +87,7 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.ID = field.NewInt64(table, "id")
 	n.Name = field.NewString(table, "name")
 	n.Description = field.NewString(table, "description")
+	n.Overview = field.NewBytes(table, "overview")
 	n.Visibility = field.NewField(table, "visibility")
 	n.TagLimit = field.NewInt64(table, "tag_limit")
 	n.TagCount = field.NewInt64(table, "tag_count")
@@ -118,13 +121,14 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 13)
+	n.fieldMap = make(map[string]field.Expr, 14)
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
 	n.fieldMap["deleted_at"] = n.DeletedAt
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["name"] = n.Name
 	n.fieldMap["description"] = n.Description
+	n.fieldMap["overview"] = n.Overview
 	n.fieldMap["visibility"] = n.Visibility
 	n.fieldMap["tag_limit"] = n.TagLimit
 	n.fieldMap["tag_count"] = n.TagCount

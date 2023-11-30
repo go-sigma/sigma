@@ -32,6 +32,7 @@ type Namespace struct {
 
 	Name            string `gorm:"uniqueIndex"`
 	Description     *string
+	Overview        []byte
 	Visibility      enums.Visibility `gorm:"default:public"`
 	TagLimit        int64            `gorm:"default:0"`
 	TagCount        int64            `gorm:"default:0"`

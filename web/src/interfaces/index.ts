@@ -67,6 +67,7 @@ export interface INamespaceItem {
   id: number;
   name: string;
   description: string;
+  overview: string;
   size: number;
   size_limit: number;
   repository_count: number;
