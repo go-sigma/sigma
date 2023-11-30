@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `namespace_limit` bigint NOT NULL DEFAULT 0,
   `namespace_count` bigint NOT NULL DEFAULT 0,
   `status` ENUM ('Active', 'Inactive') NOT NULL DEFAULT 'Active',
-  `role` ENUM ('Root', 'Admin', 'User') NOT NULL DEFAULT 'User',
+  `role` ENUM ('Root', 'Admin', 'User', 'Anonymous') NOT NULL DEFAULT 'User',
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,

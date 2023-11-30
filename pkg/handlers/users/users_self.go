@@ -43,5 +43,6 @@ func (h *handler) Self(c echo.Context) error {
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    ptr.To(user.Email),
+		Role:     user.Role,
 	})
 }

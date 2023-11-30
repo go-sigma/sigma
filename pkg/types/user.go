@@ -94,9 +94,10 @@ type PostUserSignupResponse struct {
 }
 
 type GetUserSelfResponse struct {
-	ID       int64  `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
+	ID       int64          `json:"id"`
+	Email    string         `json:"email"`
+	Username string         `json:"username"`
+	Role     enums.UserRole `json:"role"`
 }
 
 // PostUserLogoutRequest ...

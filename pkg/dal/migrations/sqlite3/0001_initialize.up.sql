@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `namespace_limit` bigint NOT NULL DEFAULT 0,
   `namespace_count` bigint NOT NULL DEFAULT 0,
   `status` text CHECK (`status` IN ('Active', 'Inactive')) NOT NULL DEFAULT 'Active',
-  `role` text CHECK (`role` IN ('Root', 'Admin', 'User')) NOT NULL DEFAULT 'User',
+  `role` text CHECK (`role` IN ('Root', 'Admin', 'User', 'Anonymous')) NOT NULL DEFAULT 'User',
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
