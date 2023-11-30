@@ -66,8 +66,10 @@ export default function Login({ localServer }: { localServer: string }) {
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      if (error.response != undefined) {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
     });
   }, [])
 
@@ -206,8 +208,10 @@ function GitHubButton({ localServer, endpoint }: { localServer: string, endpoint
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      if (error.response != undefined) {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
     });
   }, []);
 
@@ -244,8 +248,10 @@ function GitLabButton({ localServer, endpoint }: { localServer: string, endpoint
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      if (error.response != undefined) {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
     });
   }, []);
 

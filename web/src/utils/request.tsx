@@ -16,15 +16,6 @@
 
 import axios from 'axios';
 
-axios.interceptors.request.use((config: any) => {
-  const token = localStorage.getItem('token');
-  if ((config.headers.Authorization === undefined || config.headers.Authorization === null) &&
-    token !== undefined && token !== null) {
-    config.headers.Authorization = "Bearer " + token
-  }
-  return config;
-});
-
 export const setupResponseInterceptor = (navigate: any) => {
   axios.interceptors.response.use(response => {
     return response;
@@ -36,5 +27,19 @@ export const setupResponseInterceptor = (navigate: any) => {
     } else {
       return Promise.resolve(error?.response);
     }
-  })
+  });
+  axios.interceptors.request.use((config: any) => {
+    const token = localStorage.getItem('token');
+    if (config.headers.Authorization === undefined || config.headers.Authorization === null) {
+      if (token === null) {
+        if (!config.url.endsWith("/api/v1/users/login")) {
+          navigate('/login');
+          return Promise.reject(new Error('request has been banned by axios interceptor'));
+        }
+      } else {
+        config.headers.Authorization = "Bearer " + token;
+      }
+    }
+    return config;
+  });
 }
