@@ -19,7 +19,8 @@ CREATE TYPE user_status AS ENUM (
 CREATE TYPE user_role AS ENUM (
   'Root',
   'Admin',
-  'User'
+  'User',
+  'Anonymous'
 );
 
 CREATE TABLE IF NOT EXISTS "users" (

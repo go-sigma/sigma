@@ -49,6 +49,7 @@ export interface IUserSelf {
   id: number;
   username: string;
   email: string;
+  role: string;
 }
 
 export interface IOauth2ClientID {

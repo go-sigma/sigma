@@ -19,19 +19,23 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
-import Toast from "../../components/Notification";
+import Notification from "../../components/Notification";
 import { IHTTPError, IUserLoginResponse, IOauth2ClientID, IEndpoint } from "../../interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const login = (username: string, password: string) => {
+  const login = (username: string, password: string, anonymous?: boolean) => {
+    let headers: { [key: string]: any } = {
+      "Authorization": "Basic " + btoa(username + ":" + password),
+    };
+    if (anonymous) {
+      headers = {};
+    }
     let url = localServer + `/api/v1/users/login`;
     axios.post(url, {}, {
-      headers: {
-        "Authorization": "Basic " + btoa(username + ":" + password),
-      },
+      headers: headers,
     })
       .then(response => {
         if (response?.status === 200) {
@@ -41,11 +45,11 @@ export default function Login({ localServer }: { localServer: string }) {
           navigate("/namespaces");
         } else {
           const errorcode = response.data as IHTTPError;
-          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+          Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
         }
       }).catch(err => {
         const errorcode = err.response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       })
   }
 
@@ -59,11 +63,11 @@ export default function Login({ localServer }: { localServer: string }) {
         setEndpoint(e.endpoint);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, [])
 
@@ -132,7 +136,7 @@ export default function Login({ localServer }: { localServer: string }) {
                 </div> */}
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
                     id="remember-me"
@@ -150,7 +154,7 @@ export default function Login({ localServer }: { localServer: string }) {
                     Forgot password?
                   </a>
                 </div>
-              </div>
+              </div>*/}
 
               <div>
                 <button
@@ -174,7 +178,10 @@ export default function Login({ localServer }: { localServer: string }) {
                 </div>
               </div>
               <div className="mt-6 grid grid-cols-1 gap-4">
-                <button className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F] border-gray-800">Anonymous</button>
+                <button
+                  className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F] border-gray-800"
+                  onClick={e => login("", "", true)}
+                >Anonymous</button>
               </div>
               <GitHubButton localServer={localServer} endpoint={endpoint} />
               <GitLabButton localServer={localServer} endpoint={endpoint} />
@@ -196,11 +203,11 @@ function GitHubButton({ localServer, endpoint }: { localServer: string, endpoint
         setClientID(data.client_id);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 
@@ -234,11 +241,11 @@ function GitLabButton({ localServer, endpoint }: { localServer: string, endpoint
         setClientID(data.client_id);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 

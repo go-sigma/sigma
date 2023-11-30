@@ -48,12 +48,14 @@ func initUser(config configs.Configuration) error {
 	}
 	err = userService.Create(ctx, &models.User{
 		Username: consts.UserInternal,
+		Role:     enums.UserRoleRoot,
 	})
 	if err != nil {
 		return err
 	}
 	err = userService.Create(ctx, &models.User{
 		Username: consts.UserAnonymous,
+		Role:     enums.UserRoleAnonymous,
 	})
 	if err != nil {
 		return err

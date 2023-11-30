@@ -261,6 +261,7 @@ type UserStatus string
 // Root,
 // Admin,
 // User,
+// Anonymous,
 // )
 type UserRole string
 
