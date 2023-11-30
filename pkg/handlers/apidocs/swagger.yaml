@@ -1177,26 +1177,6 @@ definitions:
     - ssl_verify
     - url
     type: object
-  types.PutNamespaceRequest:
-    properties:
-      description:
-        example: i am just description
-        maxLength: 30
-        type: string
-      repository_limit:
-        example: 10000
-        type: integer
-      size_limit:
-        example: 10000
-        type: integer
-      tag_limit:
-        example: 10000
-        type: integer
-      visibility:
-        allOf:
-        - $ref: '#/definitions/enums.Visibility'
-        example: public
-    type: object
   types.PutWebhookRequest:
     properties:
       enable:
@@ -1555,6 +1535,30 @@ definitions:
         - $ref: '#/definitions/enums.NamespaceRole'
         example: NamespaceReader
     type: object
+  types.UpdateNamespaceRequest:
+    properties:
+      description:
+        example: i am just description
+        maxLength: 30
+        type: string
+      overview:
+        example: i am just overview
+        maxLength: 100000
+        type: string
+      repository_limit:
+        example: 10000
+        type: integer
+      size_limit:
+        example: 10000
+        type: integer
+      tag_limit:
+        example: 10000
+        type: integer
+      visibility:
+        allOf:
+        - $ref: '#/definitions/enums.Visibility'
+        example: public
+    type: object
   types.UpdateRepositoryRequest:
     properties:
       description:
@@ -1571,10 +1575,6 @@ definitions:
       tag_limit:
         example: 10000
         type: integer
-      visibility:
-        allOf:
-        - $ref: '#/definitions/enums.Visibility'
-        example: public
     type: object
   types.UserItem:
     properties:
@@ -3683,7 +3683,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/types.PutNamespaceRequest'
+          $ref: '#/definitions/types.UpdateNamespaceRequest'
       produces:
       - application/json
       responses:

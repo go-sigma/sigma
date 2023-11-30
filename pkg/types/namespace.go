@@ -21,6 +21,7 @@ type NamespaceItem struct {
 	ID              int64            `json:"id" example:"1"`
 	Name            string           `json:"name" example:"test"`
 	Description     *string          `json:"description,omitempty" example:"i am just description"`
+	Overview        *string          `json:"overview,omitempty" example:"i am just overview"`
 	Visibility      enums.Visibility `json:"visibility" example:"private"`
 	RepositoryLimit int64            `json:"repository_limit" example:"10"`
 	RepositoryCount int64            `json:"repository_count" example:"10"`
@@ -67,8 +68,8 @@ type DeleteNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number" example:"1"`
 }
 
-// PutNamespaceRequest represents the request to update a namespace.
-type PutNamespaceRequest struct {
+// UpdateNamespaceRequest represents the request to update a namespace.
+type UpdateNamespaceRequest struct {
 	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
 
 	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
@@ -76,6 +77,7 @@ type PutNamespaceRequest struct {
 	TagLimit        *int64            `json:"tag_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	Visibility      *enums.Visibility `json:"visibility,omitempty" validate:"omitempty,is_valid_visibility" example:"public"`
 	Description     *string           `json:"description,omitempty" validate:"omitempty,max=30" example:"i am just description"`
+	Overview        *string           `json:"overview,omitempty" validate:"omitempty,max=100000" example:"i am just overview"`
 }
 
 // AddNamespaceMemberRequest ...

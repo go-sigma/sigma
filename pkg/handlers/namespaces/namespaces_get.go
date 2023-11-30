@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -98,6 +99,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		ID:              namespaceObj.ID,
 		Name:            namespaceObj.Name,
 		Description:     namespaceObj.Description,
+		Overview:        ptr.Of(string(namespaceObj.Overview)),
 		Visibility:      namespaceObj.Visibility,
 		Size:            namespaceObj.Size,
 		SizeLimit:       namespaceObj.SizeLimit,

@@ -3211,7 +3211,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.PutNamespaceRequest"
+                            "$ref": "#/definitions/types.UpdateNamespaceRequest"
                         }
                     }
                 ],
@@ -7072,36 +7072,6 @@
                 }
             }
         },
-        "types.PutNamespaceRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "example": "i am just description"
-                },
-                "repository_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "size_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "tag_limit": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
-                }
-            }
-        },
         "types.PutWebhookRequest": {
             "type": "object",
             "properties": {
@@ -7572,6 +7542,41 @@
                 }
             }
         },
+        "types.UpdateNamespaceRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "example": "i am just description"
+                },
+                "overview": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "example": "i am just overview"
+                },
+                "repository_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "size_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "tag_limit": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "visibility": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Visibility"
+                        }
+                    ],
+                    "example": "public"
+                }
+            }
+        },
         "types.UpdateRepositoryRequest": {
             "type": "object",
             "properties": {
@@ -7592,14 +7597,6 @@
                 "tag_limit": {
                     "type": "integer",
                     "example": 10000
-                },
-                "visibility": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Visibility"
-                        }
-                    ],
-                    "example": "public"
                 }
             }
         },

@@ -2167,13 +2167,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-markdown-css@npm:^5.4.0":
-  version: 5.4.0
-  resolution: "github-markdown-css@npm:5.4.0"
-  checksum: 51ae8f4f78b4e067e4aec852168bae4e5f0f6f274c4e6512bfb324a59ec6f9b2c40a979fb666d23616a28b2722cfcf2ce1ec747cdb69b6e5dc8ca9081b052a5b
-  languageName: node
-  linkType: hard
-
 "glob-parent@npm:^5.1.2, glob-parent@npm:~5.1.2":
   version: 5.1.2
   resolution: "glob-parent@npm:5.1.2"
@@ -4943,7 +4936,6 @@ __metadata:
     csstype: "npm:^3.1.2"
     dayjs: "npm:^1.11.10"
     flowbite: "npm:^2.2.0"
-    github-markdown-css: "npm:^5.4.0"
     human-format: "npm:^1.2.0"
     json-server: "npm:^0.17.4"
     lodash: "npm:^4.17.21"

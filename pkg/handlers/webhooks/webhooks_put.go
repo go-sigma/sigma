@@ -129,7 +129,6 @@ func (h *handler) PutWebhook(c echo.Context) error {
 			Action:       enums.AuditActionUpdate,
 			ResourceType: enums.AuditResourceTypeWebhook,
 			Resource:     strconv.FormatInt(webhookOldObj.ID, 10),
-			BeforeRaw:    utils.MustMarshal(webhookOldObj),
 			ReqRaw:       utils.MustMarshal(req),
 		})
 		if err != nil {

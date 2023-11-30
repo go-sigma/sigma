@@ -41,8 +41,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id} [put]
-//	@Param		namespace_id	path	number						true	"Namespace id"
-//	@Param		message			body	types.PutNamespaceRequest	true	"Namespace object"
+//	@Param		namespace_id	path	number							true	"Namespace id"
+//	@Param		message			body	types.UpdateNamespaceRequest	true	"Namespace object"
 //	@Success	204
 func (h *handler) PutNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
@@ -58,7 +58,7 @@ func (h *handler) PutNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PutNamespaceRequest
+	var req types.UpdateNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
@@ -101,6 +101,9 @@ func (h *handler) PutNamespace(c echo.Context) error {
 	}
 	if req.Visibility != nil {
 		updates[query.Namespace.Visibility.ColumnName().String()] = ptr.To(req.Visibility)
+	}
+	if req.Overview != nil {
+		updates[query.Repository.Overview.ColumnName().String()] = []byte(ptr.To(req.Overview))
 	}
 
 	if len(updates) > 0 {
