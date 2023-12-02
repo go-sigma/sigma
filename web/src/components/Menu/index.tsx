@@ -24,6 +24,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
 import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion } from "../../interfaces";
+import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/refreshToken"
 
 export default function ({ localServer, item, namespace, repository, tag, selfClick }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -62,6 +63,19 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         const errorcode = error.response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
+      setupAutoRefreshToken(localServer, logout);
+      const visibilitychangeHandler = () => {
+        if (document.hidden) {
+          teardownAutoRefreshToken();
+        } else {
+          setupAutoRefreshToken(localServer, logout);
+        }
+      }
+      document.addEventListener("visibilitychange", visibilitychangeHandler);
+
+      return () => {
+        document.removeEventListener("visibilitychange", visibilitychangeHandler);
+      }
     }
   }, [refresh])
 
