@@ -1,5 +1,5 @@
 ARG GOLANG_VERSION=1.21.4-alpine3.18
-ARG BUILDKIT_VERSION=v0.12.3-rootless
+ARG BUILDKIT_VERSION=v0.12.4-rootless
 ARG ALPINE_VERSION=3.18
 
 FROM alpine:${ALPINE_VERSION} as cosign
@@ -8,12 +8,14 @@ ARG COSIGN_VERSION=v2.2.1
 ARG TARGETARCH
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
   wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-linux-"${TARGETARCH}"
 
 FROM golang:${GOLANG_VERSION} as builder
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache make bash ncurses build-base git openssl
 
 COPY . /go/src/github.com/go-sigma/sigma
@@ -25,6 +27,7 @@ FROM moby/buildkit:${BUILDKIT_VERSION}
 
 USER root
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache git-lfs && \
   mkdir -p /code/ && \
   chown -R 1000:1000 /opt/ && \
