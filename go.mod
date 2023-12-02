@@ -9,14 +9,14 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
-	github.com/anchore/syft v0.97.1
+	github.com/anchore/syft v0.98.0
 	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.48.7
+	github.com/aws/aws-sdk-go v1.48.11
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.79.0
 	github.com/casbin/gorm-adapter/v3 v3.20.0
-	github.com/deckarep/golang-set/v2 v2.4.0
+	github.com/deckarep/golang-set/v2 v2.5.0
 	github.com/distribution/distribution/v3 v3.0.0-20231016181039-1d410148efe6
 	github.com/distribution/reference v0.5.0
 	github.com/docker/cli v24.0.7+incompatible
@@ -29,7 +29,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.11.0
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/golang-jwt/jwt/v5 v5.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.4.0
@@ -45,8 +45,8 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/mholt/archiver/v3 v3.5.1
-	github.com/moby/buildkit v0.12.3
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231117024018-3ec8a56d897b
+	github.com/moby/buildkit v0.12.4
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231130182840-9317d9bca4f2
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/redis/go-redis/v9 v9.3.0
@@ -95,7 +95,7 @@ require (
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/anchore/clio v0.0.0-20231016125544-c98a83e1c7fc // indirect
-	github.com/anchore/fangs v0.0.0-20230818131516-2186b10924fe // indirect
+	github.com/anchore/fangs v0.0.0-20231103141714-84c94dc43a2e // indirect
 	github.com/anchore/go-logger v0.0.0-20230725134548-c21dafa1ec5a // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20230104203445-02e0a6721501 // indirect
@@ -195,7 +195,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -244,7 +244,7 @@ require (
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spdx/tools-golang v0.5.3 // indirect
-	github.com/spf13/afero v1.10.0 // indirect
+	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
@@ -274,13 +274,13 @@ require (
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.16.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
-	google.golang.org/grpc v1.58.3 // indirect
+	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
+	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
