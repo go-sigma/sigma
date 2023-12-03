@@ -75,7 +75,7 @@ http:
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
   # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
-  internalEndpoint: http://192.168.31.198:3000
+  internalEndpoint: http://10.3.211.160:3000
   # eg: http://sigma-distribution:3000
   internalDistributionEndpoint:
   tls:
@@ -111,7 +111,7 @@ daemon:
     # At 02:00 on Saturday
     cron: 0 2 * * 6
   builder:
-    image: sigma-builder:latest
+    image: ghcr.io/go-sigma/sigma-builder:latest
     type: docker
     docker:
       sock:

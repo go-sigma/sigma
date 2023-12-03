@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import axios from "axios";
-
-let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
-
-const REFRESH_TOKEN_INTERVAL_TIMEOUT = 1000; // 10 mins
 
 import { IUserLoginResponse } from "../interfaces";
 
+let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
+
+const REFRESH_TOKEN_INTERVAL_TIMEOUT = 60 * 10 * 1000; // 10 mins
 
 export function refreshToken(
   localServer: string,

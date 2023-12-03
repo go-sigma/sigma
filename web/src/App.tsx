@@ -43,14 +43,14 @@ import BuilderRunnerLog from './pages/Builder/RunnerLog';
 import Setting from './pages/Setting';
 import SettingUsers from './pages/Setting/Users';
 
-import { setupResponseInterceptor } from './utils/request'
+import { setupAxiosInterceptor } from './utils/request'
 
 const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
 // const localServer = process.env.NODE_ENV === "development" ? "https://sigma.tosone.cn" : "";
 
 export default function App() {
   const navigate = useNavigate();
-  setupResponseInterceptor(navigate);
+  setupAxiosInterceptor(navigate);
 
   return (
     <>

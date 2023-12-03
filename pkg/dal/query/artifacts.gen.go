@@ -61,6 +61,18 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					Repository struct {
 						field.RelationField
 					}
+					CodeRepository struct {
+						field.RelationField
+						User3rdParty struct {
+							field.RelationField
+							User struct {
+								field.RelationField
+							}
+						}
+						Branches struct {
+							field.RelationField
+						}
+					}
 				}
 			}
 			Referrer struct {
@@ -105,6 +117,18 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					Repository struct {
 						field.RelationField
 					}
+					CodeRepository struct {
+						field.RelationField
+						User3rdParty struct {
+							field.RelationField
+							User struct {
+								field.RelationField
+							}
+						}
+						Branches struct {
+							field.RelationField
+						}
+					}
 				}
 			}{
 				RelationField: field.NewRelation("Vulnerability.Artifact.Repository", "models.Repository"),
@@ -118,12 +142,56 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					Repository struct {
 						field.RelationField
 					}
+					CodeRepository struct {
+						field.RelationField
+						User3rdParty struct {
+							field.RelationField
+							User struct {
+								field.RelationField
+							}
+						}
+						Branches struct {
+							field.RelationField
+						}
+					}
 				}{
 					RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder", "models.Builder"),
 					Repository: struct {
 						field.RelationField
 					}{
 						RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.Repository", "models.Repository"),
+					},
+					CodeRepository: struct {
+						field.RelationField
+						User3rdParty struct {
+							field.RelationField
+							User struct {
+								field.RelationField
+							}
+						}
+						Branches struct {
+							field.RelationField
+						}
+					}{
+						RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.CodeRepository", "models.CodeRepository"),
+						User3rdParty: struct {
+							field.RelationField
+							User struct {
+								field.RelationField
+							}
+						}{
+							RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.CodeRepository.User3rdParty", "models.User3rdParty"),
+							User: struct {
+								field.RelationField
+							}{
+								RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
+							},
+						},
+						Branches: struct {
+							field.RelationField
+						}{
+							RelationField: field.NewRelation("Vulnerability.Artifact.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
+						},
 					},
 				},
 			},
@@ -371,6 +439,18 @@ type artifactHasOneVulnerability struct {
 				field.RelationField
 				Repository struct {
 					field.RelationField
+				}
+				CodeRepository struct {
+					field.RelationField
+					User3rdParty struct {
+						field.RelationField
+						User struct {
+							field.RelationField
+						}
+					}
+					Branches struct {
+						field.RelationField
+					}
 				}
 			}
 		}

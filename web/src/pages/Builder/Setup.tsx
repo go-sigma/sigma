@@ -118,7 +118,7 @@ export default function ({ localServer }: { localServer: string }) {
     if (namespaceSelected.name == undefined || namespaceSelected.name.length == 0) {
       return;
     }
-    let url = localServer + `/api/v1/namespaces/${namespaceSelected.name}/repositories/?limit=${Settings.AutoCompleteSize}`;
+    let url = localServer + `/api/v1/namespaces/${namespaceSelected.id}/repositories/?limit=${Settings.AutoCompleteSize}`;
     if (repositorySearch != null && repositorySearch !== "") {
       url += `&name=${repositorySearch}`;
     }
@@ -433,12 +433,12 @@ export default function ({ localServer }: { localServer: string }) {
       ps.push(selectedPlatforms[i].name);
     }
     data['buildkit_platforms'] = ps;
-    console.log(data);
+    console.log("create builder body:", data);
     if (id === undefined) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${repositorySelected.id}/builders/`;
       axios.post(url, data as IBuilderItem).then(response => {
         if (response?.status === 201) {
-          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}`, { replace: true });
+          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -451,7 +451,7 @@ export default function ({ localServer }: { localServer: string }) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}/builders/${id}`;
       axios.put(url, data as IBuilderItem).then(response => {
         if (response?.status === 204) {
-          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}`, { replace: true });
+          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -1713,7 +1713,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
             </div>
             {
-              builderSource === 'CodeRepository' ? (
+              builderSource === 'CodeRepository11' ? ( // TODO: show this section in code repository
                 <div className="py-6 px-8 border-gray-200 border-b w-full">
                   <h2 className="text-base font-semibold leading-7 text-gray-900">Webhook</h2>
                   <p className="mt-1 text-sm leading-6 text-gray-600">Webhook event trigger image build.</p>
@@ -1730,7 +1730,7 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     {
-                      mergeEvent ? (builderSource === 'CodeRepository' ? (
+                      mergeEvent ? (builderSource === 'CodeRepository11' ? (// TODO: show this section in code repository
                         <div className="sm:col-span-1">
                           <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                             Branch

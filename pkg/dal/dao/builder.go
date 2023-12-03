@@ -126,7 +126,9 @@ func (s builderService) GetByRepositoryIDs(ctx context.Context, repositoryIDs []
 
 // Get get builder by repository id
 func (s builderService) GetByRepositoryID(ctx context.Context, repositoryID int64) (*models.Builder, error) {
-	return s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.RepositoryID.Eq(repositoryID)).First()
+	query := s.tx.Builder.WithContext(ctx).Where(s.tx.Builder.RepositoryID.Eq(repositoryID)).Preload(s.tx.Builder.CodeRepository)
+	query.UnderlyingDB().Preload("CodeRepository.User3rdParty")
+	return query.First()
 }
 
 // CreateRunner creates a new builder runner record in the database

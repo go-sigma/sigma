@@ -47,6 +47,7 @@ export default function ({ localServer }: { localServer: string }) {
   const [runnerId, setRunnerId] = useState(0);
   const [searchParams] = useSearchParams();
   const repository_id = parseInt(searchParams.get("repository_id") || "");
+  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
   const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>();
   const [builderObj, setBuilderObj] = useState<IBuilderItem>();
   const [runnerObj, setRunnerObj] = useState<IBuilderRunnerItem>();
@@ -85,7 +86,7 @@ export default function ({ localServer }: { localServer: string }) {
   }, []);
 
   useEffect(() => {
-    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}`).then(response => {
+    axios.get(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`).then(response => {
       if (response?.status === 200) {
         const r = response.data as IRepositoryItem;
         setRepositoryObj(r);
@@ -176,7 +177,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj?.id}/runners/${runnerId}/rerun`).then(response => {
       if (response?.status === 200) {
         let data = response.data as IRunOrRerunRunnerResponse;
-        navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repository_id}`, { replace: true });
+        navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repository_id}&namespace_id=${repositoryObj?.namespace_id}`, { replace: true });
         window.location.reload();
       } else {
         const errorcode = response.data as IHTTPError;

@@ -85,16 +85,6 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 		return fmt.Errorf("Get runner failed: %v", err)
 	}
 
-	// runnerObj := &models.BuilderRunner{
-	// 	BuilderID: payload.BuilderID,
-	// 	Status:    enums.BuildStatusPending,
-	// }
-	// err = builderService.CreateRunner(ctx, runnerObj)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Create builder runner record failed")
-	// 	return fmt.Errorf("Create builder runner record failed: %v", err)
-	// }
-
 	platforms := []enums.OciPlatform{}
 	for _, p := range strings.Split(builderObj.BuildkitPlatforms, ",") {
 		platforms = append(platforms, enums.OciPlatform(p))
@@ -113,15 +103,15 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			Dockerfile: ptr.Of(base64.StdEncoding.EncodeToString(runnerObj.Builder.Dockerfile)),
 
 			// ScmCredentialType: builderObj.ScmCredentialType,
-			// ScmProvider:       enums.ScmProviderGithub,
+			// ScmProvider: enums.ScmProviderGithub,
 			// ScmSshKey:         builderObj.ScmSshKey,
 			// ScmToken:          builderObj.ScmToken,
 			// ScmUsername:       builderObj.ScmUsername,
 			// ScmPassword:       builderObj.ScmPassword,
 			// ScmRepository:     builderObj.ScmRepository,
-			ScmBranch: runnerObj.ScmBranch,
-			ScmDepth:  builderObj.ScmDepth,
-			// ScmSubmodule: builderObj.ScmSubmodule,
+			ScmBranch:    runnerObj.ScmBranch,
+			ScmDepth:     builderObj.ScmDepth,
+			ScmSubmodule: builderObj.ScmSubmodule,
 
 			// OciRegistryDomain:   []string{"192.168.31.198:3000"},
 			// OciRegistryUsername: []string{"sigma"},
@@ -131,6 +121,28 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			BuildkitPlatforms:          platforms,
 			BuildkitInsecureRegistries: strings.Split(builderObj.BuildkitInsecureRegistries, ","), //  []string{"192.168.31.198:3000@http"},
 		},
+	}
+	if builderObj.Source == enums.BuilderSourceCodeRepository {
+		buildConfig.Builder.ScmCredentialType = builderObj.ScmCredentialType
+		switch ptr.To(builderObj.ScmCredentialType) {
+		case enums.ScmCredentialTypeSsh:
+			buildConfig.Builder.ScmSshKey = builderObj.ScmSshKey
+			if builderObj.CodeRepository != nil {
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.SshUrl)
+			}
+		case enums.ScmCredentialTypeToken:
+			buildConfig.Builder.ScmToken = builderObj.ScmToken
+			if builderObj.CodeRepository != nil {
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl)
+			}
+		case enums.ScmCredentialTypeUsername:
+			buildConfig.Builder.ScmUsername = builderObj.ScmUsername
+			buildConfig.Builder.ScmPassword = builderObj.ScmPassword
+			if builderObj.CodeRepository != nil {
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl)
+			}
+		}
+		buildConfig.Builder.ScmProvider = (*enums.ScmProvider)(&builderObj.CodeRepository.User3rdParty.Provider) // TODO: change type
 	}
 	if payload.Action == enums.DaemonBuilderActionStart { // nolint: gocritic
 		err = builder.Driver.Start(ctx, buildConfig)

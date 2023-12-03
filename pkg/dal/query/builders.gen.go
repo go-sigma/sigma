@@ -70,6 +70,18 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 			Repository struct {
 				field.RelationField
 			}
+			CodeRepository struct {
+				field.RelationField
+				User3rdParty struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}
+				Branches struct {
+					field.RelationField
+				}
+			}
 		}{
 			RelationField: field.NewRelation("Repository.Builder", "models.Builder"),
 			Repository: struct {
@@ -77,7 +89,45 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 			}{
 				RelationField: field.NewRelation("Repository.Builder.Repository", "models.Repository"),
 			},
+			CodeRepository: struct {
+				field.RelationField
+				User3rdParty struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}
+				Branches struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Repository.Builder.CodeRepository", "models.CodeRepository"),
+				User3rdParty: struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}{
+					RelationField: field.NewRelation("Repository.Builder.CodeRepository.User3rdParty", "models.User3rdParty"),
+					User: struct {
+						field.RelationField
+					}{
+						RelationField: field.NewRelation("Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
+					},
+				},
+				Branches: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
+				},
+			},
 		},
+	}
+
+	_builder.CodeRepository = builderBelongsToCodeRepository{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("CodeRepository", "models.CodeRepository"),
 	}
 
 	_builder.fillFieldMap()
@@ -119,6 +169,8 @@ type builder struct {
 	BuildkitPlatforms          field.String
 	BuildkitBuildArgs          field.String
 	Repository                 builderBelongsToRepository
+
+	CodeRepository builderBelongsToCodeRepository
 
 	fieldMap map[string]field.Expr
 }
@@ -188,7 +240,7 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 30)
+	b.fieldMap = make(map[string]field.Expr, 31)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -243,6 +295,18 @@ type builderBelongsToRepository struct {
 		field.RelationField
 		Repository struct {
 			field.RelationField
+		}
+		CodeRepository struct {
+			field.RelationField
+			User3rdParty struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}
+			Branches struct {
+				field.RelationField
+			}
 		}
 	}
 }
@@ -309,6 +373,77 @@ func (a builderBelongsToRepositoryTx) Clear() error {
 }
 
 func (a builderBelongsToRepositoryTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type builderBelongsToCodeRepository struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a builderBelongsToCodeRepository) Where(conds ...field.Expr) *builderBelongsToCodeRepository {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a builderBelongsToCodeRepository) WithContext(ctx context.Context) *builderBelongsToCodeRepository {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a builderBelongsToCodeRepository) Session(session *gorm.Session) *builderBelongsToCodeRepository {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a builderBelongsToCodeRepository) Model(m *models.Builder) *builderBelongsToCodeRepositoryTx {
+	return &builderBelongsToCodeRepositoryTx{a.db.Model(m).Association(a.Name())}
+}
+
+type builderBelongsToCodeRepositoryTx struct{ tx *gorm.Association }
+
+func (a builderBelongsToCodeRepositoryTx) Find() (result *models.CodeRepository, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a builderBelongsToCodeRepositoryTx) Append(values ...*models.CodeRepository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a builderBelongsToCodeRepositoryTx) Replace(values ...*models.CodeRepository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a builderBelongsToCodeRepositoryTx) Delete(values ...*models.CodeRepository) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a builderBelongsToCodeRepositoryTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a builderBelongsToCodeRepositoryTx) Count() int64 {
 	return a.tx.Count()
 }
 

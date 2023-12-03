@@ -119,7 +119,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				}
 			default:
 				uri := c.Request().URL.Path
-				if uri == "/v2/" || uri == "/api/v1/users/self" {
+				if strings.HasPrefix(uri, "/v2") || uri == "/api/v1/users/self" {
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
@@ -133,7 +133,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 				}
 				uid = userObj.ID
 			}

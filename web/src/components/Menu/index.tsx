@@ -23,8 +23,8 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
-import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion } from "../../interfaces";
 import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/refreshToken"
+import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion } from "../../interfaces";
 
 export default function ({ localServer, item, namespace, repository, tag, selfClick }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -72,7 +72,6 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         }
       }
       document.addEventListener("visibilitychange", visibilitychangeHandler);
-
       return () => {
         document.removeEventListener("visibilitychange", visibilitychangeHandler);
       }

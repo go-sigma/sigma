@@ -56,7 +56,7 @@ func (b Builder) initToken() error {
 		if utils.IsFile(path.Join(homeSigma, knownHosts)) {
 			err = os.Remove(path.Join(homeSigma, knownHosts))
 			if err != nil {
-				return fmt.Errorf("Remove knownHosts file failed")
+				return fmt.Errorf("Remove known hosts file failed")
 			}
 		}
 		knownHostsFileObj, err := os.Create(path.Join(homeSigma, knownHosts))
@@ -89,7 +89,7 @@ func (b Builder) initToken() error {
 		if utils.IsFile(path.Join(homeSigma, dockerConfig)) {
 			err := os.Remove(path.Join(homeSigma, dockerConfig))
 			if err != nil {
-				return fmt.Errorf("Remove knownHosts file failed")
+				return fmt.Errorf("Remove docker config file failed")
 			}
 		}
 		dockerConfigObj, err := os.Create(path.Join(homeSigma, dockerConfig))
@@ -116,8 +116,7 @@ func (b Builder) initToken() error {
 				cf.AuthConfigs[domain] = authConfig
 			}
 		}
-
-		cf.AuthConfigs[strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(b.Endpoint, "https://"), "http://"), "/")] = dockertypes.AuthConfig{
+		cf.AuthConfigs[utils.TrimHTTP(b.Endpoint)] = dockertypes.AuthConfig{
 			RegistryToken: b.Authorization,
 		}
 		err = cf.SaveToWriter(dockerConfigObj)
@@ -129,6 +128,9 @@ func (b Builder) initToken() error {
 	if len(b.BuildkitInsecureRegistries) > 0 {
 		btConfig.Registries = make(map[string]resolverconfig.RegistryConfig, len(b.BuildkitInsecureRegistries))
 		for _, registry := range b.BuildkitInsecureRegistries {
+			if registry == "" {
+				continue
+			}
 			if strings.HasSuffix(registry, "@http") {
 				btConfig.Registries[strings.TrimSuffix(registry, "@http")] = resolverconfig.RegistryConfig{PlainHTTP: ptr.Of(true)}
 			} else {
