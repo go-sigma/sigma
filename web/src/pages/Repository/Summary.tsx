@@ -34,6 +34,7 @@ export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository_id = parseInt(searchParams.get("repository_id") || "");
+  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
 
   const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>({} as IRepositoryItem);
 
@@ -42,7 +43,7 @@ export default function ({ localServer }: { localServer: string }) {
   useEffect(() => { setOverviewValid(overview?.length < 100000) }, [overview]);
 
   useEffect(() => {
-    axios.get(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository_id}`).then(response => {
+    axios.get(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`).then(response => {
       if (response.status === 200) {
         const r = response.data as IRepositoryItem;
         setRepositoryObj(r);
@@ -64,7 +65,7 @@ export default function ({ localServer }: { localServer: string }) {
       Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    axios.put(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository_id}`, {
+    axios.put(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`, {
       overview: overview,
     } as IRepositoryItem, {}).then(response => {
       if (response.status === 204) {
@@ -92,37 +93,6 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"
-              breadcrumb={
-                (
-                  <nav className="flex" aria-label="Breadcrumb">
-                    <ol className="inline-flex items-center space-x-1 md:space-x-0">
-                      <li className="inline-flex items-center">
-                        <Link to={"/namespaces"} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                          <svg className="w-3 h-3 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
-                          </svg>
-                        </Link>
-                      </li>
-                      <li className="inline-flex items-center">
-                        <span className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                          <Link to={`/namespaces/${namespace}/repositories`} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                            {namespace}
-                          </Link>
-                        </span>
-                      </li>
-                      <li>
-                        <div className="flex items-center">
-                          <span className="text-gray-500 text-sm ml-1">/</span>
-                          <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-                            {repositoryObj?.name?.substring((namespace?.length || 0) + 1)}
-                          </span>
-                          <span className="text-gray-500 text-sm ml-1">/</span>
-                        </div>
-                      </li>
-                    </ol>
-                  </nav>
-                )
-              }
               props={
                 (
                   <div className="sm:flex sm:space-x-8">
@@ -132,7 +102,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Summary
                     </span>
                     <Link
-                      to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Runners

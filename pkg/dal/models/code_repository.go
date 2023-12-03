@@ -27,8 +27,10 @@ type CodeRepository struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	User3rdPartyID int64 `gorm:"column:user_3rdparty_id"`
-	RepositoryID   string
+	RepositoryID string
+
+	User3rdPartyID int64        `gorm:"column:user_3rdparty_id"`
+	User3rdParty   User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 
 	OwnerID  string
 	Owner    string // in github named owner.name
@@ -39,8 +41,7 @@ type CodeRepository struct {
 
 	OciRepoCount int64
 
-	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
-	Branches     []CodeRepositoryBranch
+	Branches []CodeRepositoryBranch
 }
 
 // CodeRepositoryBranch ...
@@ -78,10 +79,10 @@ type CodeRepositoryCloneCredential struct {
 
 	User3rdPartyID int64 `gorm:"column:user_3rdparty_id"`
 	Type           enums.ScmCredentialType
-	SshKey         string
-	Username       string
-	Password       string
-	Token          string
+	SshKey         *string
+	Username       *string
+	Password       *string
+	Token          *string
 
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }

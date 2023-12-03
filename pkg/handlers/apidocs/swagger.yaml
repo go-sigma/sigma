@@ -117,11 +117,13 @@ definitions:
     - Root
     - Admin
     - User
+    - Anonymous
     type: string
     x-enum-varnames:
     - UserRoleRoot
     - UserRoleAdmin
     - UserRoleUser
+    - UserRoleAnonymous
   enums.UserStatus:
     enum:
     - Active
@@ -979,6 +981,9 @@ definitions:
         type: integer
       name:
         example: test
+        type: string
+      overview:
+        example: i am just overview
         type: string
       repository_count:
         example: 10
@@ -4052,7 +4057,7 @@ paths:
       summary: Update repository
       tags:
       - Repository
-  /namespaces/{namespace_id}/repositories/{repository_id}/builders:
+  /namespaces/{namespace_id}/repositories/{repository_id}/builders/:
     post:
       consumes:
       - application/json

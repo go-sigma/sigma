@@ -26,7 +26,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -86,8 +88,35 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 		query.Builder.BuildkitDockerfile.ColumnName().String():         req.BuildkitDockerfile,
 		query.Builder.BuildkitPlatforms.ColumnName().String():          utils.StringsJoin(req.BuildkitPlatforms, ","),
 	}
-	builderService := h.builderServiceFactory.New()
+	if req.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
+		codeRepositoryService := h.codeRepositoryServiceFactory.New()
+		codeRepositoryObj, err := codeRepositoryService.Get(ctx, ptr.To(req.CodeRepositoryID))
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id not found")
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get code repository by id(%d) not found: %v", ptr.To(req.CodeRepositoryID), err)))
+			}
+			log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%d) failed: %v", ptr.To(req.CodeRepositoryID), err)))
+		}
+		cloneCredentialObj, err := codeRepositoryService.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Msg("Get code repository clone credential failed")
+			} else {
+				updates[query.Builder.ScmCredentialType.ColumnName().String()] = ptr.Of(enums.ScmCredentialTypeToken)
+				updates[query.Builder.ScmToken.ColumnName().String()] = codeRepositoryObj.User3rdParty.Token
+			}
+		} else {
+			updates[query.Builder.ScmCredentialType.ColumnName().String()] = ptr.Of(cloneCredentialObj.Type)
+			updates[query.Builder.ScmToken.ColumnName().String()] = cloneCredentialObj.Token
+			updates[query.Builder.ScmUsername.ColumnName().String()] = cloneCredentialObj.Username
+			updates[query.Builder.ScmPassword.ColumnName().String()] = cloneCredentialObj.Password
+			updates[query.Builder.ScmSshKey.ColumnName().String()] = cloneCredentialObj.SshKey
+		}
+	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
+		builderService := h.builderServiceFactory.New(tx)
 		err = builderService.Update(ctx, req.BuilderID, updates)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {

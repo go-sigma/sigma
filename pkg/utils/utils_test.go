@@ -191,6 +191,13 @@ func TestTrimHTTP(t *testing.T) {
 			},
 			want: "localhost:8080",
 		},
+		{
+			name: "common-3",
+			args: args{
+				in: "localhost:8080/",
+			},
+			want: "localhost:8080",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

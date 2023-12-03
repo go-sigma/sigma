@@ -3822,7 +3822,7 @@
                 }
             }
         },
-        "/namespaces/{namespace_id}/repositories/{repository_id}/builders": {
+        "/namespaces/{namespace_id}/repositories/{repository_id}/builders/": {
             "post": {
                 "security": [
                     {
@@ -5562,12 +5562,14 @@
             "enum": [
                 "Root",
                 "Admin",
-                "User"
+                "User",
+                "Anonymous"
             ],
             "x-enum-varnames": [
                 "UserRoleRoot",
                 "UserRoleAdmin",
-                "UserRoleUser"
+                "UserRoleUser",
+                "UserRoleAnonymous"
             ]
         },
         "enums.UserStatus": {
@@ -6790,6 +6792,10 @@
                 "name": {
                     "type": "string",
                     "example": "test"
+                },
+                "overview": {
+                    "type": "string",
+                    "example": "i am just overview"
                 },
                 "repository_count": {
                     "type": "integer",

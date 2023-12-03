@@ -31,8 +31,8 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_codeRepository.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_codeRepository.ID = field.NewInt64(tableName, "id")
-	_codeRepository.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
 	_codeRepository.RepositoryID = field.NewString(tableName, "repository_id")
+	_codeRepository.User3rdPartyID = field.NewInt64(tableName, "user_3rdparty_id")
 	_codeRepository.OwnerID = field.NewString(tableName, "owner_id")
 	_codeRepository.Owner = field.NewString(tableName, "owner")
 	_codeRepository.IsOrg = field.NewBool(tableName, "is_org")
@@ -70,8 +70,8 @@ type codeRepository struct {
 	UpdatedAt      field.Int64
 	DeletedAt      field.Uint64
 	ID             field.Int64
-	User3rdPartyID field.Int64
 	RepositoryID   field.String
+	User3rdPartyID field.Int64
 	OwnerID        field.String
 	Owner          field.String
 	IsOrg          field.Bool
@@ -102,8 +102,8 @@ func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.UpdatedAt = field.NewInt64(table, "updated_at")
 	c.DeletedAt = field.NewUint64(table, "deleted_at")
 	c.ID = field.NewInt64(table, "id")
-	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
 	c.RepositoryID = field.NewString(table, "repository_id")
+	c.User3rdPartyID = field.NewInt64(table, "user_3rdparty_id")
 	c.OwnerID = field.NewString(table, "owner_id")
 	c.Owner = field.NewString(table, "owner")
 	c.IsOrg = field.NewBool(table, "is_org")
@@ -144,8 +144,8 @@ func (c *codeRepository) fillFieldMap() {
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["deleted_at"] = c.DeletedAt
 	c.fieldMap["id"] = c.ID
-	c.fieldMap["user_3rdparty_id"] = c.User3rdPartyID
 	c.fieldMap["repository_id"] = c.RepositoryID
+	c.fieldMap["user_3rdparty_id"] = c.User3rdPartyID
 	c.fieldMap["owner_id"] = c.OwnerID
 	c.fieldMap["owner"] = c.Owner
 	c.fieldMap["is_org"] = c.IsOrg

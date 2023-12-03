@@ -3830,7 +3830,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/namespaces/{namespace_id}/repositories/{repository_id}/builders": {
+        "/namespaces/{namespace_id}/repositories/{repository_id}/builders/": {
             "post": {
                 "security": [
                     {
@@ -5570,12 +5570,14 @@ const docTemplate = `{
             "enum": [
                 "Root",
                 "Admin",
-                "User"
+                "User",
+                "Anonymous"
             ],
             "x-enum-varnames": [
                 "UserRoleRoot",
                 "UserRoleAdmin",
-                "UserRoleUser"
+                "UserRoleUser",
+                "UserRoleAnonymous"
             ]
         },
         "enums.UserStatus": {
@@ -6798,6 +6800,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "test"
+                },
+                "overview": {
+                    "type": "string",
+                    "example": "i am just overview"
                 },
                 "repository_count": {
                     "type": "integer",

@@ -50,19 +50,23 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	webhookServiceFactory    dao.WebhookServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	builderServiceFactory    dao.BuilderServiceFactory
+	namespaceServiceFactory      dao.NamespaceServiceFactory
+	repositoryServiceFactory     dao.RepositoryServiceFactory
+	webhookServiceFactory        dao.WebhookServiceFactory
+	auditServiceFactory          dao.AuditServiceFactory
+	builderServiceFactory        dao.BuilderServiceFactory
+	userServiceFactory           dao.UserServiceFactory
+	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 }
 
 type inject struct {
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	webhookServiceFactory    dao.WebhookServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	builderServiceFactory    dao.BuilderServiceFactory
+	namespaceServiceFactory      dao.NamespaceServiceFactory
+	repositoryServiceFactory     dao.RepositoryServiceFactory
+	webhookServiceFactory        dao.WebhookServiceFactory
+	auditServiceFactory          dao.AuditServiceFactory
+	builderServiceFactory        dao.BuilderServiceFactory
+	userServiceFactory           dao.UserServiceFactory
+	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 }
 
 // handlerNew creates a new instance of the builder handlers
@@ -72,6 +76,8 @@ func handlerNew(injects ...inject) Handler {
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	builderServiceFactory := dao.NewBuilderServiceFactory()
+	userServiceFactory := dao.NewUserServiceFactory()
+	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.namespaceServiceFactory != nil {
@@ -89,13 +95,21 @@ func handlerNew(injects ...inject) Handler {
 		if ij.repositoryServiceFactory != nil {
 			repositoryServiceFactory = ij.repositoryServiceFactory
 		}
+		if ij.userServiceFactory != nil {
+			userServiceFactory = ij.userServiceFactory
+		}
+		if ij.codeRepositoryServiceFactory != nil {
+			codeRepositoryServiceFactory = ij.codeRepositoryServiceFactory
+		}
 	}
 	return &handler{
-		namespaceServiceFactory:  namespaceServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		webhookServiceFactory:    webhookServiceFactory,
-		auditServiceFactory:      auditServiceFactory,
-		builderServiceFactory:    builderServiceFactory,
+		namespaceServiceFactory:      namespaceServiceFactory,
+		repositoryServiceFactory:     repositoryServiceFactory,
+		webhookServiceFactory:        webhookServiceFactory,
+		auditServiceFactory:          auditServiceFactory,
+		builderServiceFactory:        builderServiceFactory,
+		userServiceFactory:           userServiceFactory,
+		codeRepositoryServiceFactory: codeRepositoryServiceFactory,
 	}
 }
 

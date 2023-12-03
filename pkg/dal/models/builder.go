@@ -70,7 +70,8 @@ type Builder struct {
 	BuildkitPlatforms          string `gorm:"default:linux/amd64"`
 	BuildkitBuildArgs          *string
 
-	Repository *Repository
+	Repository     *Repository
+	CodeRepository *CodeRepository
 }
 
 // BuilderRunner represents a builder runner

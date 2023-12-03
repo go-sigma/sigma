@@ -9,7 +9,7 @@ DOCKER=${DOCKER:-docker}
   -e MINIO_REGION_NAME=cn-north-1 \
   --rm -d \
   --entrypoint "" \
-  --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1" \
+  --health-cmd "mc ready local || exit 1" \
   --health-interval 10s \
   --health-timeout 5s \
   --health-retries 10 \

@@ -160,7 +160,7 @@ func (b Builder) gitClone() error {
 		if err != nil {
 			return fmt.Errorf("SCM_REPOSITORY parse with url failed: %v", err)
 		}
-		repository = fmt.Sprintf("%s//%s@%s/%s", u.Scheme, ptr.To(b.ScmToken), u.Host, u.Path)
+		repository = fmt.Sprintf("%s://%s@%s/%s", u.Scheme, ptr.To(b.ScmToken), strings.TrimSuffix(u.Host, "/"), strings.TrimPrefix(u.Path, "/"))
 	}
 	if ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeUsername {
 		endpoint, err := transport.NewEndpoint(repository)
@@ -243,8 +243,7 @@ func (b Builder) genTag() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	domain := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(b.Endpoint, "https://"), "http://"), "/")
-	return fmt.Sprintf("%s/%s:%s", domain, string(repositoryBytes), tag), nil
+	return fmt.Sprintf("%s/%s:%s", utils.TrimHTTP(b.Endpoint), string(repositoryBytes), tag), nil
 }
 
 func (b Builder) build(imageName string) error {

@@ -44,7 +44,7 @@ export default function Tag({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository = searchParams.get('repository');
-  const repository_id = searchParams.get('repository_id');
+  const repositoryId = searchParams.get('repository_id');
   const namespaceId = searchParams.get('namespace_id');
 
   const [, copyToClipboard] = useCopyToClipboard();
@@ -68,7 +68,7 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, [namespace, repository])
 
   const fetchTags = () => {
-    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=image&type=imageIndex&type=chart`;
+    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=image&type=imageIndex&type=chart`;
     if (searchTag !== "") {
       url += `&name=${searchTag}`;
     }
@@ -143,13 +143,13 @@ export default function Tag({ localServer }: { localServer: string }) {
                 (
                   <div className="sm:flex sm:space-x-8">
                     <Link
-                      to={`/namespaces/${namespace}/repository/summary?repository=${repository}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/summary?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Summary
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Runners

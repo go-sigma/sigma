@@ -98,7 +98,7 @@ func TrimHTTP(in string) string {
 	} else if strings.HasPrefix(in, "https://") {
 		return strings.TrimPrefix(in, "https://")
 	}
-	return in
+	return strings.TrimSuffix(in, "/")
 }
 
 // IsDir returns true if given path is a directory,

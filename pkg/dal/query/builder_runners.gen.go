@@ -66,6 +66,38 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 				RelationField: field.NewRelation("Builder.Repository.Builder", "models.Builder"),
 			},
 		},
+		CodeRepository: struct {
+			field.RelationField
+			User3rdParty struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}
+			Branches struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Builder.CodeRepository", "models.CodeRepository"),
+			User3rdParty: struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Builder.CodeRepository.User3rdParty", "models.User3rdParty"),
+				User: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Builder.CodeRepository.User3rdParty.User", "models.User"),
+				},
+			},
+			Branches: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
+			},
+		},
 	}
 
 	_builderRunner.fillFieldMap()
@@ -189,6 +221,18 @@ type builderRunnerBelongsToBuilder struct {
 			field.RelationField
 		}
 		Builder struct {
+			field.RelationField
+		}
+	}
+	CodeRepository struct {
+		field.RelationField
+		User3rdParty struct {
+			field.RelationField
+			User struct {
+				field.RelationField
+			}
+		}
+		Branches struct {
 			field.RelationField
 		}
 	}

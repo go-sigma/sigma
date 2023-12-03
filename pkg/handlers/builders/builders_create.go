@@ -44,7 +44,7 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders [post]
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/ [post]
 //	@Param		namespace_id	path	string						true	"Namespace ID"
 //	@Param		repository_id	path	string						true	"Repository ID"
 //	@Param		message			body	types.CreateBuilderRequest	true	"Builder object"
@@ -106,41 +106,68 @@ func (h *handler) CreateBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Dockerfile base64 decode failed: %v", err))
 	}
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderObj := &models.Builder{
-			RepositoryID: req.RepositoryID,
+	builderObj := &models.Builder{
+		RepositoryID: req.RepositoryID,
 
-			Source: req.Source,
+		Source: req.Source,
 
-			CodeRepositoryID: req.CodeRepositoryID,
+		CodeRepositoryID: req.CodeRepositoryID,
 
-			Dockerfile: compressedDockerfile,
+		Dockerfile: compressedDockerfile,
 
-			ScmRepository:     req.ScmRepository,
-			ScmCredentialType: req.ScmCredentialType,
-			ScmToken:          req.ScmToken,
-			ScmSshKey:         req.ScmSshKey,
-			ScmUsername:       req.ScmUsername,
-			ScmPassword:       req.ScmPassword, // should encrypt the password
+		ScmRepository:     req.ScmRepository,
+		ScmCredentialType: req.ScmCredentialType,
+		ScmToken:          req.ScmToken,
+		ScmSshKey:         req.ScmSshKey,
+		ScmUsername:       req.ScmUsername,
+		ScmPassword:       req.ScmPassword, // should encrypt the password
 
-			ScmBranch: req.ScmBranch,
+		ScmBranch: req.ScmBranch,
 
-			ScmDepth:     req.ScmDepth,
-			ScmSubmodule: req.ScmSubmodule,
+		ScmDepth:     req.ScmDepth,
+		ScmSubmodule: req.ScmSubmodule,
 
-			CronRule:        req.CronRule,
-			CronBranch:      req.CronBranch,
-			CronTagTemplate: req.CronTagTemplate,
+		CronRule:        req.CronRule,
+		CronBranch:      req.CronBranch,
+		CronTagTemplate: req.CronTagTemplate,
 
-			WebhookBranchName:        req.WebhookBranchName,
-			WebhookBranchTagTemplate: req.WebhookBranchTagTemplate,
-			WebhookTagTagTemplate:    req.WebhookTagTagTemplate,
+		WebhookBranchName:        req.WebhookBranchName,
+		WebhookBranchTagTemplate: req.WebhookBranchTagTemplate,
+		WebhookTagTagTemplate:    req.WebhookTagTagTemplate,
 
-			BuildkitInsecureRegistries: strings.Join(req.BuildkitInsecureRegistries, ","),
-			BuildkitContext:            req.BuildkitContext,
-			BuildkitDockerfile:         req.BuildkitDockerfile,
-			BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
+		BuildkitInsecureRegistries: strings.Join(req.BuildkitInsecureRegistries, ","),
+		BuildkitContext:            req.BuildkitContext,
+		BuildkitDockerfile:         req.BuildkitDockerfile,
+		BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
+	}
+	if builderObj.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
+		codeRepositoryService := h.codeRepositoryServiceFactory.New()
+		codeRepositoryObj, err := codeRepositoryService.Get(ctx, ptr.To(req.CodeRepositoryID))
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id not found")
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get code repository by id(%d) not found: %v", ptr.To(req.CodeRepositoryID), err)))
+			}
+			log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%d) failed: %v", ptr.To(req.CodeRepositoryID), err)))
 		}
+		cloneCredentialObj, err := codeRepositoryService.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Msg("Get code repository clone credential failed")
+			} else {
+				builderObj.ScmCredentialType = ptr.Of(enums.ScmCredentialTypeToken)
+				builderObj.ScmToken = codeRepositoryObj.User3rdParty.Token
+			}
+		} else {
+			builderObj.ScmCredentialType = ptr.Of(cloneCredentialObj.Type)
+			builderObj.ScmUsername = cloneCredentialObj.Username
+			builderObj.ScmPassword = cloneCredentialObj.Password
+			builderObj.ScmSshKey = cloneCredentialObj.SshKey
+			builderObj.ScmToken = cloneCredentialObj.Token
+		}
+	}
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		builderService := h.builderServiceFactory.New(tx)
 		err = builderService.Create(ctx, builderObj)
 		if err != nil {

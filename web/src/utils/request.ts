@@ -16,7 +16,7 @@
 
 import axios from 'axios';
 
-export const setupResponseInterceptor = (navigate: any) => {
+export const setupAxiosInterceptor = (navigate: any) => {
   axios.interceptors.response.use(response => {
     return response;
   }, error => {

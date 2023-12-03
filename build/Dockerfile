@@ -14,10 +14,11 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.97.1
+ARG SYFT_VERSION=0.98.0
 ARG TARGETARCH
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
   wget -q -O syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz https://github.com/anchore/syft/releases/download/v"${SYFT_VERSION}"/syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
   tar -xzf syft_"${SYFT_VERSION}"_linux_"${TARGETARCH}".tar.gz && \
@@ -31,6 +32,7 @@ ARG ORAS_VERSION=1.0.0
 ARG TARGETARCH
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
   case "${TARGETARCH}" in \
 		amd64) export TRIVYARCH='64bit' ;; \
@@ -54,6 +56,7 @@ RUN set -eux && \
 FROM golang:${GOLANG_VERSION} as builder
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache make bash ncurses build-base git openssl
 
 COPY . /go/src/github.com/go-sigma/sigma
@@ -66,6 +69,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 FROM alpine:${ALPINE_VERSION}
 
 RUN set -eux && \
+  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache curl
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
