@@ -219,63 +219,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/coderepos/{id}/branches": {
-            "get": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CodeRepository"
-                ],
-                "summary": "List code repository branches",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "code repository id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/types.CommonList"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "items": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/types.CodeRepositoryBranchItem"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
         "/coderepos/{provider}": {
             "get": {
                 "security": [
@@ -5423,6 +5366,126 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/{provider}/repos/coderepos/{id}/branches": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "List code repository branches",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code repository provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code repository id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/types.CommonList"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/types.CodeRepositoryBranchItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/{provider}/repos/coderepos/{id}/branches/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeRepository"
+                ],
+                "summary": "Get specific name code repository branch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code repository provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Code repository id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Branch name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.CodeRepositoryBranchItem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -5750,6 +5813,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "sigma"
                 },
+                "scm_provider": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmProvider"
+                        }
+                    ],
+                    "example": "github"
+                },
                 "scm_repository": {
                     "description": "source SelfCodeRepository",
                     "type": "string",
@@ -5846,8 +5917,16 @@ const docTemplate = `{
                     "example": "go-sigma"
                 },
                 "owner_id": {
-                    "type": "string",
-                    "example": "1"
+                    "type": "integer",
+                    "example": 1
+                },
+                "provider": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.ScmProvider"
+                        }
+                    ],
+                    "example": "github"
                 },
                 "repository_id": {
                     "type": "string",

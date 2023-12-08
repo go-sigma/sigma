@@ -94,6 +94,10 @@ func (h *handler) GetRepository(c echo.Context) error {
 			platforms = append(platforms, enums.OciPlatform(p))
 		}
 
+		var scmProvider *enums.ScmProvider
+		if repositoryObj.Builder.CodeRepository != nil {
+			scmProvider = ptr.Of(enums.ScmProvider(repositoryObj.Builder.CodeRepository.User3rdParty.Provider.String()))
+		}
 		builderItemObj = &types.BuilderItem{
 			ID:           repositoryObj.Builder.ID,
 			RepositoryID: repositoryObj.Builder.RepositoryID,
@@ -110,6 +114,7 @@ func (h *handler) GetRepository(c echo.Context) error {
 			ScmToken:          repositoryObj.Builder.ScmToken,
 			ScmUsername:       repositoryObj.Builder.ScmUsername,
 			ScmPassword:       repositoryObj.Builder.ScmPassword,
+			ScmProvider:       scmProvider,
 
 			ScmBranch: repositoryObj.Builder.ScmBranch,
 

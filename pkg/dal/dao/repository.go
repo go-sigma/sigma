@@ -171,6 +171,8 @@ func (s *repositoryService) FindAll(ctx context.Context, namespaceID, limit, las
 func (s *repositoryService) Get(ctx context.Context, repositoryID int64) (*models.Repository, error) {
 	return s.tx.Repository.WithContext(ctx).
 		Where(s.tx.Repository.ID.Eq(repositoryID)).
+		Preload(s.tx.Repository.Builder.CodeRepository).
+		Preload(s.tx.Repository.Builder.CodeRepository.User3rdParty).
 		Preload(s.tx.Repository.Builder).First()
 }
 
@@ -242,6 +244,8 @@ func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespac
 	} else {
 		q = q.Order(s.tx.Repository.UpdatedAt.Desc())
 	}
+	q = q.Preload(s.tx.Repository.Builder.CodeRepository).
+		Preload(s.tx.Repository.Builder.CodeRepository.User3rdParty)
 	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 

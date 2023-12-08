@@ -245,7 +245,7 @@ export default function ({ localServer }: { localServer: string }) {
     if (codeRepositorySelected.id == undefined || codeRepositorySelected.id == 0) {
       return;
     }
-    let url = `${localServer}/api/v1/coderepos/${codeRepositorySelected.id}/branches`;
+    let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositorySelected.id}/branches`;
     axios.get(url).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryBranchList;
@@ -463,6 +463,42 @@ export default function ({ localServer }: { localServer: string }) {
     }
   }
 
+  const [codeRepositoryInit, setCodeRepositoryInit] = useState(0);
+  useEffect(() => {
+    if (codeRepositoryInit != 0) {
+      axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositoryInit}`).then(response => {
+        let codeRepositoryItem = response.data as ICodeRepositoryItem;
+        setCodeRepositoryOwnerSelected({
+          owner: codeRepositoryItem.owner,
+          id: codeRepositoryItem.owner_id,
+        } as ICodeRepositoryOwnerItem);
+        setCodeRepositorySelected({
+          name: codeRepositoryItem.name,
+          id: codeRepositoryItem.id,
+        } as ICodeRepositoryItem)
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    }
+  }, [codeRepositoryInit]);
+
+  const [codeRepositoryBranchInit, setCodeRepositoryBranchInit] = useState("");
+  useEffect(() => {
+    if (codeRepositoryInit != 0 && codeRepositoryBranchInit !== "") {
+      axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositoryInit}/branches/${codeRepositoryBranchInit}`).then(response => {
+        let codeRepositoryBranch = response.data as ICodeRepositoryBranchItem;
+        setCodeRepositoryBranchSelected({
+          name: codeRepositoryBranch.name,
+          id: codeRepositoryBranch.id,
+        } as ICodeRepositoryBranchItem);
+      }).catch(error => {
+        const errorcode = error.response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      });
+    }
+  }, [codeRepositoryInit, codeRepositoryBranchInit]);
+
   useEffect(() => {
     if (id === undefined) {
       return;
@@ -484,7 +520,11 @@ export default function ({ localServer }: { localServer: string }) {
           });
         }
         if (builderItem.code_repository_id !== undefined) {
-
+          setCodeRepositoryInit(builderItem.code_repository_id || 0);
+          setCodeRepositoryBranchInit(builderItem.scm_branch || "");
+          setCodeRepositoryProviderSelected({
+            provider: builderItem.scm_provider || "",
+          } as ICodeRepositoryProviderItem)
         }
         let ps = "";
         let platforms: {
@@ -883,7 +923,7 @@ export default function ({ localServer }: { localServer: string }) {
                                             }
                                             value={provider}
                                           >
-                                            <span className={`block truncate  font-normal`}>
+                                            <span className={`block truncate font-normal`}>
                                               {provider.provider}
                                             </span>
                                           </Combobox.Option>

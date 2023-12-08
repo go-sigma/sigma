@@ -196,7 +196,7 @@ export default function ({ localServer }: { localServer: string }) {
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
                     >
-                      Runners
+                      Builder
                     </span>
                     <Link
                       to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj?.name}&repository_id=${repository_id}`}

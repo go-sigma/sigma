@@ -125,6 +125,10 @@ func (h *handler) ListRepositories(c echo.Context) error {
 			for _, p := range strings.Split(builderObj.BuildkitPlatforms, ",") {
 				platforms = append(platforms, enums.OciPlatform(p))
 			}
+			var scmProvider *enums.ScmProvider
+			if repository.Builder.CodeRepository != nil {
+				scmProvider = ptr.Of(enums.ScmProvider(repository.Builder.CodeRepository.User3rdParty.Provider.String()))
+			}
 			repositoryObj.Builder = &types.BuilderItem{
 				ID:           builderObj.ID,
 				RepositoryID: builderObj.RepositoryID,
@@ -141,6 +145,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 				ScmToken:          builderObj.ScmToken,
 				ScmUsername:       builderObj.ScmUsername,
 				ScmPassword:       builderObj.ScmPassword,
+				ScmProvider:       scmProvider,
 
 				ScmBranch: builderObj.ScmBranch,
 

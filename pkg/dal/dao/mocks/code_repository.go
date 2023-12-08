@@ -140,6 +140,36 @@ func (mr *MockCodeRepositoryServiceMockRecorder) Get(arg0, arg1 any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeRepositoryService)(nil).Get), arg0, arg1)
 }
 
+// GetBranchByName mocks base method.
+func (m *MockCodeRepositoryService) GetBranchByName(arg0 context.Context, arg1 int64, arg2 string) (*models.CodeRepositoryBranch, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBranchByName", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*models.CodeRepositoryBranch)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBranchByName indicates an expected call of GetBranchByName.
+func (mr *MockCodeRepositoryServiceMockRecorder) GetBranchByName(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranchByName", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetBranchByName), arg0, arg1, arg2)
+}
+
+// GetCloneCredential mocks base method.
+func (m *MockCodeRepositoryService) GetCloneCredential(arg0 context.Context, arg1 int64) (*models.CodeRepositoryCloneCredential, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCloneCredential", arg0, arg1)
+	ret0, _ := ret[0].(*models.CodeRepositoryCloneCredential)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCloneCredential indicates an expected call of GetCloneCredential.
+func (mr *MockCodeRepositoryServiceMockRecorder) GetCloneCredential(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCloneCredential", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetCloneCredential), arg0, arg1)
+}
+
 // ListAll mocks base method.
 func (m *MockCodeRepositoryService) ListAll(arg0 context.Context, arg1 int64) ([]*models.CodeRepository, error) {
 	m.ctrl.T.Helper()

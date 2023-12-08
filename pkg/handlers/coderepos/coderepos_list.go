@@ -15,6 +15,7 @@
 package coderepos
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -67,7 +69,20 @@ func (h *handler) List(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
+	userService := h.userServiceFactory.New()
+	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
+	if err != nil {
+		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
+	}
+
 	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	ownerObjs, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("List all owners failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
+	}
+
 	codeRepositoryObjs, total, err := codeRepositoryService.ListWithPagination(ctx, user.ID, req.Provider, req.Owner, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List code repositories failed")
@@ -78,8 +93,9 @@ func (h *handler) List(c echo.Context) error {
 		resp = append(resp, types.CodeRepositoryItem{
 			ID:           codeRepositoryObj.ID,
 			RepositoryID: codeRepositoryObj.RepositoryID,
+			Provider:     enums.ScmProvider(user3rdPartyObj.Provider),
 			Name:         codeRepositoryObj.Name,
-			OwnerID:      codeRepositoryObj.OwnerID,
+			OwnerID:      h.getOwnerID(ownerObjs, codeRepositoryObj.Owner),
 			Owner:        codeRepositoryObj.Owner,
 			IsOrg:        codeRepositoryObj.IsOrg,
 			CloneUrl:     codeRepositoryObj.CloneUrl,
@@ -91,4 +107,13 @@ func (h *handler) List(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
+}
+
+func (h *handler) getOwnerID(ownerObjs []*models.CodeRepositoryOwner, owner string) int64 {
+	for _, ownerObj := range ownerObjs {
+		if ownerObj.Owner == owner {
+			return ownerObj.ID
+		}
+	}
+	return 0
 }

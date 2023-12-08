@@ -60,6 +60,8 @@ type CodeRepositoryService interface {
 	ListOwnerWithoutPagination(ctx context.Context, userID int64, provider enums.Provider, owner *string) ([]*models.CodeRepositoryOwner, int64, error)
 	// ListBranchesWithoutPagination ...
 	ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID int64) ([]*models.CodeRepositoryBranch, int64, error)
+	// GetBranchByName ...
+	GetBranchByName(ctx context.Context, codeRepositoryID int64, branch string) (*models.CodeRepositoryBranch, error)
 	// GetCloneCredential ...
 	GetCloneCredential(ctx context.Context, user3rdPartyID int64) (*models.CodeRepositoryCloneCredential, error)
 }
@@ -239,6 +241,11 @@ func (s *codeRepositoryService) ListOwnerWithoutPagination(ctx context.Context, 
 // ListBranchesWithoutPagination ...
 func (s *codeRepositoryService) ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID int64) ([]*models.CodeRepositoryBranch, int64, error) {
 	return s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.CodeRepositoryID.Eq(codeRepositoryID)).FindByPage(-1, -1)
+}
+
+// GetBranchByName ...
+func (s *codeRepositoryService) GetBranchByName(ctx context.Context, codeRepositoryID int64, branch string) (*models.CodeRepositoryBranch, error) {
+	return s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.CodeRepositoryID.Eq(codeRepositoryID), s.tx.CodeRepositoryBranch.Name.Eq(branch)).First()
 }
 
 // GetCloneCredential ...
