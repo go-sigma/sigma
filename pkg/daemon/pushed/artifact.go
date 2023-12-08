@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package afpushed
+package pushed
 
 import (
 	"context"
@@ -32,36 +32,34 @@ import (
 
 func init() {
 	workq.TopicHandlers[enums.DaemonArtifactPushed.String()] = definition.Consumer{
-		Handler:     builderRunner,
+		Handler: func(ctx context.Context, data []byte) error {
+			var payload types.DaemonArtifactPushedPayload
+			err := json.Unmarshal(data, &payload)
+			if err != nil {
+				return fmt.Errorf("Unmarshal payload failed: %v", err)
+			}
+			r := runnerArtifact{
+				namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+				repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+				tagServiceFactory:        dao.NewTagServiceFactory(),
+				artifactServiceFactory:   dao.NewArtifactServiceFactory(),
+			}
+			return r.run(ctx, payload)
+		},
 		MaxRetry:    6,
 		Concurrency: 10,
 		Timeout:     time.Minute * 10,
 	}
 }
 
-func builderRunner(ctx context.Context, data []byte) error {
-	var payload types.DaemonArtifactPushedPayload
-	err := json.Unmarshal(data, &payload)
-	if err != nil {
-		return fmt.Errorf("Unmarshal payload failed: %v", err)
-	}
-	r := runner{
-		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
-		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
-		tagServiceFactory:        dao.NewTagServiceFactory(),
-		artifactServiceFactory:   dao.NewArtifactServiceFactory(),
-	}
-	return r.run(ctx, payload)
-}
-
-type runner struct {
+type runnerArtifact struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 }
 
-func (r runner) run(ctx context.Context, payload types.DaemonArtifactPushedPayload) error {
+func (r runnerArtifact) run(ctx context.Context, payload types.DaemonArtifactPushedPayload) error {
 	ctx = log.Logger.WithContext(ctx)
 
 	repositoryService := r.repositoryServiceFactory.New()

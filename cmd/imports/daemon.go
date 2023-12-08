@@ -15,11 +15,9 @@
 package imports
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/daemon/afpushed"
 	_ "github.com/go-sigma/sigma/pkg/daemon/builder"
 	_ "github.com/go-sigma/sigma/pkg/daemon/coderepo"
 	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
-	_ "github.com/go-sigma/sigma/pkg/daemon/sbom"
-	_ "github.com/go-sigma/sigma/pkg/daemon/tagpushed"
-	_ "github.com/go-sigma/sigma/pkg/daemon/vulnerability"
+	_ "github.com/go-sigma/sigma/pkg/daemon/pushed"
+	_ "github.com/go-sigma/sigma/pkg/daemon/scan"
 )

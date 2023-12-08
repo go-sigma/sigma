@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tagpushed
+package pushed
 
 import (
 	"context"
@@ -34,34 +34,32 @@ import (
 
 func init() {
 	workq.TopicHandlers[enums.DaemonTagPushed.String()] = definition.Consumer{
-		Handler:     builderRunner,
+		Handler: func(ctx context.Context, data []byte) error {
+			var payload types.DaemonTagPushedPayload
+			err := json.Unmarshal(data, &payload)
+			if err != nil {
+				return fmt.Errorf("Unmarshal payload failed: %v", err)
+			}
+			r := runnerTag{
+				builderServiceFactory:  dao.NewBuilderServiceFactory(),
+				tagServiceFactory:      dao.NewTagServiceFactory(),
+				artifactServiceFactory: dao.NewArtifactServiceFactory(),
+			}
+			return r.run(ctx, payload)
+		},
 		MaxRetry:    6,
 		Concurrency: 10,
 		Timeout:     time.Minute * 10,
 	}
 }
 
-func builderRunner(ctx context.Context, data []byte) error {
-	var payload types.DaemonTagPushedPayload
-	err := json.Unmarshal(data, &payload)
-	if err != nil {
-		return fmt.Errorf("Unmarshal payload failed: %v", err)
-	}
-	r := runner{
-		builderServiceFactory:  dao.NewBuilderServiceFactory(),
-		tagServiceFactory:      dao.NewTagServiceFactory(),
-		artifactServiceFactory: dao.NewArtifactServiceFactory(),
-	}
-	return r.run(ctx, payload)
-}
-
-type runner struct {
+type runnerTag struct {
 	builderServiceFactory  dao.BuilderServiceFactory
 	tagServiceFactory      dao.TagServiceFactory
 	artifactServiceFactory dao.ArtifactServiceFactory
 }
 
-func (r runner) run(ctx context.Context, payload types.DaemonTagPushedPayload) error {
+func (r runnerTag) run(ctx context.Context, payload types.DaemonTagPushedPayload) error {
 	tagService := r.tagServiceFactory.New()
 	tagObj, err := tagService.GetByName(ctx, payload.RepositoryID, payload.Tag)
 	if err != nil {

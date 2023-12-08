@@ -15,9 +15,13 @@
 package cronjob
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"html/template"
 	"time"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 
@@ -25,12 +29,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/cronjob"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/modules/timewheel"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/service/builder"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -102,11 +106,11 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 			if err != nil {
 				return err
 			}
-			tag, err := builder.BuildTag(ptr.To(builderObj.CronTagTemplate), builder.BuildTagOption{ScmBranch: ptr.To(builderObj.CronBranch)})
+			tag, err := buildTag(ptr.To(builderObj.CronTagTemplate), buildTagOption{ScmBranch: ptr.To(builderObj.CronBranch)})
 			if err != nil {
 				return err
 			}
-			runner, err := builder.BuildRunner(builderObj, builder.BuildRunnerOption{
+			runner, err := buildRunner(builderObj, buildRunnerOption{
 				Tag:       tag,
 				ScmBranch: builderObj.CronBranch,
 			})
@@ -135,4 +139,44 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 	if len(builderObjs) >= cronjob.MaxJob {
 		tw.TickNext(cronjob.TickNextDuration)
 	}
+}
+
+// buildRunnerOption ...
+type buildRunnerOption struct {
+	Tag       string
+	ScmBranch *string
+}
+
+// buildRunner ...
+// nolint: unparam
+func buildRunner(builder *models.Builder, option buildRunnerOption) (*models.BuilderRunner, error) {
+	runner := &models.BuilderRunner{
+		BuilderID: builder.ID,
+		Status:    enums.BuildStatusPending,
+
+		// Tag:       option.Tag,
+		ScmBranch: option.ScmBranch,
+	}
+	return runner, nil
+}
+
+// buildTagOption ...
+type buildTagOption struct {
+	ScmBranch string
+	ScmTag    string
+	ScmRef    string
+}
+
+// buildTag ...
+func buildTag(tmpl string, option buildTagOption) (string, error) {
+	t, err := template.New("tag").Funcs(sprig.FuncMap()).Parse(tmpl)
+	if err != nil {
+		return "", fmt.Errorf("Template parse failed: %v", err)
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, option)
+	if err != nil {
+		return "", fmt.Errorf("Execute template failed: %v", err)
+	}
+	return buffer.String(), nil
 }
