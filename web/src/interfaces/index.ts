@@ -202,7 +202,7 @@ export interface ICodeRepositoryItem {
   id: number;
   repository_id: string;
   name: string;
-  owner_id: string;
+  owner_id: number;
   owner: string;
   is_org: boolean;
   clone_url: string;
@@ -263,6 +263,7 @@ export interface IBuilderItem {
   scm_token?: string;
   scm_username?: string;
   scm_password?: string;
+  scm_provider?: string;
 
   scm_branch?: string;
 

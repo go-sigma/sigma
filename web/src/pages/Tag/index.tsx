@@ -152,7 +152,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                       to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
-                      Runners
+                      Builder
                     </Link>
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"

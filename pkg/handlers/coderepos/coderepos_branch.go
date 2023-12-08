@@ -28,43 +28,39 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// ListBranches list all of the branches
+// GetBranch get branch by name
 //
-//	@Summary	List code repository branches
+//	@Summary	Get specific name code repository branch
 //	@security	BasicAuth
 //	@Tags		CodeRepository
 //	@Accept		json
 //	@Produce	json
-//	@Router		/{provider}/repos/coderepos/{id}/branches [get]
+//	@Router		/{provider}/repos/coderepos/{id}/branches/{name} [get]
 //	@Param		provider	path		string	true	"code repository provider"
-//	@Param		id			path		string	true	"code repository id"
-//	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryBranchItem}
+//	@Param		id			path		number	true	"Code repository id"
+//	@Param		name		path		string	true	"Branch name"
+//	@Success	200			{object}	types.CodeRepositoryBranchItem
 //	@Failure	500			{object}	xerrors.ErrCode
-func (h *handler) ListBranches(c echo.Context) error {
+func (h *handler) GetBranch(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.ListCodeRepositoryBranchesRequest
+	var req types.GetCodeRepositoryBranchRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	codeRepositoryService := h.codeRepositoryServiceFactory.New()
-	branchObjs, total, err := codeRepositoryService.ListBranchesWithoutPagination(ctx, req.ID)
+	branchObj, err := codeRepositoryService.GetBranchByName(ctx, req.ID, req.Name)
 	if err != nil {
-		log.Error().Err(err).Msg("List branches failed")
+		log.Error().Err(err).Msg("Get branch by id failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
 	}
-	resp := make([]any, 0, len(branchObjs))
-	for _, branchObj := range branchObjs {
-		resp = append(resp, types.CodeRepositoryBranchItem{
-			ID:        branchObj.ID,
-			Name:      branchObj.Name,
-			CreatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-			UpdatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		})
-	}
-
-	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
+	return c.JSON(http.StatusOK, types.CodeRepositoryBranchItem{
+		ID:        branchObj.ID,
+		Name:      branchObj.Name,
+		CreatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+	})
 }

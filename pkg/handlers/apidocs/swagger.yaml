@@ -248,6 +248,10 @@ definitions:
       scm_password:
         example: sigma
         type: string
+      scm_provider:
+        allOf:
+        - $ref: '#/definitions/enums.ScmProvider'
+        example: github
       scm_repository:
         description: source SelfCodeRepository
         example: https://github.com/go-sigma/sigma.git
@@ -317,8 +321,12 @@ definitions:
         example: go-sigma
         type: string
       owner_id:
-        example: "1"
-        type: string
+        example: 1
+        type: integer
+      provider:
+        allOf:
+        - $ref: '#/definitions/enums.ScmProvider'
+        example: github
       repository_id:
         example: "1"
         type: string
@@ -1710,6 +1718,80 @@ info:
   title: sigma
   version: "1.0"
 paths:
+  /{provider}/repos/coderepos/{id}/branches:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: code repository provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: code repository id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.CommonList'
+            - properties:
+                items:
+                  items:
+                    $ref: '#/definitions/types.CodeRepositoryBranchItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List code repository branches
+      tags:
+      - CodeRepository
+  /{provider}/repos/coderepos/{id}/branches/{name}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: code repository provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Code repository id
+        in: path
+        name: id
+        required: true
+        type: number
+      - description: Branch name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.CodeRepositoryBranchItem'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get specific name code repository branch
+      tags:
+      - CodeRepository
   /caches/:
     delete:
       consumes:
@@ -1800,39 +1882,6 @@ paths:
       summary: Create cache
       tags:
       - Cache
-  /coderepos/{id}/branches:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: code repository id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/types.CommonList'
-            - properties:
-                items:
-                  items:
-                    $ref: '#/definitions/types.CodeRepositoryBranchItem'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: List code repository branches
-      tags:
-      - CodeRepository
   /coderepos/{provider}:
     get:
       consumes:

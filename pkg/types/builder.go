@@ -82,6 +82,7 @@ type BuilderItem struct {
 	ScmToken          *string                  `json:"scm_token" example:"xxxx"`
 	ScmUsername       *string                  `json:"scm_username" example:"sigma"`
 	ScmPassword       *string                  `json:"scm_password" example:"sigma"`
+	ScmProvider       *enums.ScmProvider       `json:"scm_provider" example:"github"`
 
 	ScmBranch *string `json:"scm_branch" example:"main"`
 

@@ -25,7 +25,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -45,13 +47,38 @@ import (
 func (h *handler) Get(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.GetCodeRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
+
 	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	userService := h.userServiceFactory.New()
+	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
+	if err != nil {
+		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
+	}
+
+	ownerObjs, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("List all owners failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
+	}
+
 	codeRepositoryObj, err := codeRepositoryService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -69,8 +96,9 @@ func (h *handler) Get(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.CodeRepositoryItem{
 		ID:           codeRepositoryObj.ID,
 		RepositoryID: codeRepositoryObj.RepositoryID,
+		Provider:     enums.ScmProvider(user3rdPartyObj.Provider),
 		Name:         codeRepositoryObj.Name,
-		OwnerID:      codeRepositoryObj.OwnerID,
+		OwnerID:      h.getOwnerID(ownerObjs, codeRepositoryObj.Owner),
 		Owner:        codeRepositoryObj.Owner,
 		IsOrg:        codeRepositoryObj.IsOrg,
 		CloneUrl:     codeRepositoryObj.CloneUrl,

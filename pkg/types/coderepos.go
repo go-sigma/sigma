@@ -18,17 +18,18 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // CodeRepositoryItem ...
 type CodeRepositoryItem struct {
-	ID           int64  `json:"id" example:"1"`
-	RepositoryID string `json:"repository_id" example:"1"`
-	Name         string `json:"name" example:"sigma"`
-	OwnerID      string `json:"owner_id" example:"1"`
-	Owner        string `json:"owner" example:"go-sigma"`
-	IsOrg        bool   `json:"is_org" example:"true"`
-	CloneUrl     string `json:"clone_url" example:"https://github.com/go-sigma/sigma.git"`
-	SshUrl       string `json:"ssh_url" example:"git@github.com:go-sigma/sigma.git"`
-	OciRepoCount int64  `json:"oci_repo_count" example:"1"`
-	CreatedAt    string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt    string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64             `json:"id" example:"1"`
+	RepositoryID string            `json:"repository_id" example:"1"`
+	Provider     enums.ScmProvider `json:"provider" example:"github"`
+	Name         string            `json:"name" example:"sigma"`
+	OwnerID      int64             `json:"owner_id" example:"1"`
+	Owner        string            `json:"owner" example:"go-sigma"`
+	IsOrg        bool              `json:"is_org" example:"true"`
+	CloneUrl     string            `json:"clone_url" example:"https://github.com/go-sigma/sigma.git"`
+	SshUrl       string            `json:"ssh_url" example:"git@github.com:go-sigma/sigma.git"`
+	OciRepoCount int64             `json:"oci_repo_count" example:"1"`
+	CreatedAt    string            `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string            `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CodeRepositoryOwnerItem ...
@@ -74,6 +75,12 @@ type CodeRepositoryBranchItem struct {
 	Name      string `json:"name" example:"main"`
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// GetCodeRepositoryBranchRequest ...
+type GetCodeRepositoryBranchRequest struct {
+	ID   int64  `json:"id" param:"id" validate:"required,number"`
+	Name string `json:"name" param:"name" validate:"required"`
 }
 
 // PostCodeRepositorySetupBuilder ...
