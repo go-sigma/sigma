@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package scan
 
 import (
 	"context"
@@ -27,8 +27,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// DecoratorArtifactStatus is a status for decorator
-type DecoratorArtifactStatus struct {
+// decoratorArtifactStatus is a status for decorator
+type decoratorArtifactStatus struct {
 	Daemon  enums.Daemon
 	Status  enums.TaskCommonStatus
 	Raw     []byte
@@ -38,8 +38,8 @@ type DecoratorArtifactStatus struct {
 	Message string
 }
 
-// DecoratorArtifact is a decorator for daemon task runners
-func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan DecoratorArtifactStatus) error) func(context.Context, []byte) error {
+// decorator is a decorator for scan task runners
+func decorator(runner func(context.Context, *models.Artifact, chan decoratorArtifactStatus) error) func(context.Context, []byte) error {
 	return func(ctx context.Context, payload []byte) error {
 		log.Info().Msg("got a task")
 		ctx = log.Logger.WithContext(ctx)
@@ -56,7 +56,7 @@ func DecoratorArtifact(runner func(context.Context, *models.Artifact, chan Decor
 		var waitAllEvents = &sync.WaitGroup{}
 		waitAllEvents.Add(1)
 
-		var statusChan = make(chan DecoratorArtifactStatus, 1)
+		var statusChan = make(chan decoratorArtifactStatus, 1)
 		go func() {
 			defer waitAllEvents.Done()
 			var err error

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sbom
+package scan
 
 import (
 	"bytes"
@@ -31,7 +31,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/daemon"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
@@ -45,29 +44,29 @@ import (
 
 func init() {
 	workq.TopicHandlers[enums.DaemonSbom.String()] = definition.Consumer{
-		Handler:     daemon.DecoratorArtifact(runner),
+		Handler:     decorator(runnerSbom),
 		MaxRetry:    6,
 		Concurrency: 10,
 		Timeout:     time.Minute * 10,
 	}
 }
 
-// ReportDistro ...
-type ReportDistro struct {
+// reportDistro ...
+type reportDistro struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
-// Report ...
-type Report struct {
-	Distro       ReportDistro `json:"distro"`
+// reportSbom ...
+type reportSbom struct {
+	Distro       reportDistro `json:"distro"`
 	Os           string       `json:"os"`
 	Architecture string       `json:"architecture"`
 }
 
-func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daemon.DecoratorArtifactStatus) error {
+func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan decoratorArtifactStatus) error {
 	defer close(statusChan)
-	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
+	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
 
 	config := ptr.To(configs.GetConfiguration())
 	userService := dao.NewUserServiceFactory().New()
@@ -114,7 +113,7 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 	err = cmd.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Run syft failed")
-		statusChan <- daemon.DecoratorArtifactStatus{
+		statusChan <- decoratorArtifactStatus{
 			Daemon:  enums.DaemonSbom,
 			Status:  enums.TaskCommonStatusFailed,
 			Stdout:  stdout.Bytes(),
@@ -128,7 +127,7 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 	fileContent, err := os.Open(filename)
 	if err != nil {
 		log.Error().Err(err).Str("filename", filename).Msg("Open sbom file failed")
-		statusChan <- daemon.DecoratorArtifactStatus{
+		statusChan <- decoratorArtifactStatus{
 			Daemon:  enums.DaemonSbom,
 			Status:  enums.TaskCommonStatusFailed,
 			Stdout:  []byte(""),
@@ -140,7 +139,7 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 	err = json.NewDecoder(fileContent).Decode(&syftObj)
 	if err != nil {
 		log.Error().Err(err).Str("filename", filename).Msg("Decode sbom file failed")
-		statusChan <- daemon.DecoratorArtifactStatus{
+		statusChan <- decoratorArtifactStatus{
 			Daemon:  enums.DaemonSbom,
 			Status:  enums.TaskCommonStatusFailed,
 			Stdout:  []byte(""),
@@ -149,8 +148,8 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 		}
 		return err
 	}
-	var report = Report{
-		Distro: ReportDistro{
+	var report = reportSbom{
+		Distro: reportDistro{
 			Name:    syftObj.Distro.ID,
 			Version: syftObj.Distro.VersionID,
 		},
@@ -163,20 +162,20 @@ func runner(ctx context.Context, artifact *models.Artifact, statusChan chan daem
 	reportBytes, err := json.Marshal(report)
 	if err != nil {
 		log.Error().Err(err).Msg("Marshal report failed")
-		statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonVulnerability, Status: enums.TaskCommonStatusFailed, Message: err.Error()}
+		statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonVulnerability, Status: enums.TaskCommonStatusFailed, Message: err.Error()}
 		return err
 	}
 
 	compressed, err := compress.Compress(filename)
 	if err != nil {
 		log.Error().Err(err).Msg("Compress file failed")
-		statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusFailed, Message: err.Error()}
+		statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusFailed, Message: err.Error()}
 		return err
 	}
 
 	log.Info().Str("artifactDigest", artifact.Digest).Msg("Success sbom artifact")
 
-	statusChan <- daemon.DecoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusSuccess, Message: "", Raw: compressed, Result: reportBytes}
+	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusSuccess, Message: "", Raw: compressed, Result: reportBytes}
 
 	return nil
 }
