@@ -23,42 +23,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/labstack/echo/v4"
 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
-
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
-
-// ErrCode provides relevant information about a given error code.
-type ErrCode struct {
-	// Code provides a unique, string key, often capitalized with
-	// underscores, to identify the error code. This value is used as the
-	// keyed value when serializing api errors.
-	Code string `json:"code" example:"UNAUTHORIZED"`
-
-	// Title is a short, human readable description of the error condition
-	// included in API responses.
-	Title string `json:"title" example:"authentication required"`
-
-	// Description provides a complete account of the errors purpose, suitable
-	// for use in documentation.
-	Description string `json:"description" example:"The access controller was unable to authenticate the client. Often this will be accompanied by a Www-Authenticate HTTP response header indicating how to authenticate."`
-
-	// HTTPStatusCode provides the http status code that is associated with
-	// this error condition.
-	HTTPStatusCode int `json:"httpStatusCode" example:"401"`
-}
-
-// Error ...
-func (e ErrCode) Error() string {
-	return fmt.Sprintf("%s: %s", e.Code, e.Title)
-}
-
-// Detail ...
-func (e *ErrCode) Detail(desc string) ErrCode {
-	e.Description = desc
-	return ptr.To(e)
-}
-
-var _ error = ErrCode{}
 
 // NewDSError generates a distribution-spec error response
 func NewDSError(c echo.Context, code ErrCode) error {
@@ -70,14 +35,6 @@ func NewDSError(c echo.Context, code ErrCode) error {
 				Detail:  code.Description,
 			},
 		}})
-}
-
-// NewHTTPError creates a new HTTPError instance.
-func NewHTTPError(c echo.Context, errCode ErrCode, message ...string) error {
-	if len(message) > 0 {
-		errCode.Description = message[0]
-	}
-	return c.JSON(errCode.HTTPStatusCode, errCode)
 }
 
 var (

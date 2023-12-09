@@ -17,13 +17,13 @@ package caches
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -34,8 +34,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		application/octet-stream
 //	@Produce	json
-//	@Router		/caches/ [post]
-//	@Param		builder_id	query	string	true	"Builder ID"
+//	@Router		/caches/{builder_id} [post]
+//	@Param		builder_id	path	string	true	"Builder ID"
 //	@Param		file		body	string	true	"Cache file"
 //	@Success	201
 //	@Failure	404	{object}	xerrors.ErrCode
@@ -43,15 +43,11 @@ import (
 func (h *handler) CreateCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	urlValues := c.Request().URL.Query()
-
-	builderID, err := strconv.ParseInt(urlValues.Get("builder_id"), 10, 64)
+	var req types.CreateCacheRequest
+	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
-	}
-	var req = types.CreateCacheRequest{
-		BuilderID: builderID,
 	}
 
 	err = storage.Driver.Upload(ctx, h.genPath(req.BuilderID), c.Request().Body)

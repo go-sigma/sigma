@@ -16,15 +16,15 @@ package types
 
 // CreateCacheRequest ...
 type CreateCacheRequest struct {
-	BuilderID int64 `json:"builder_id" query:"builder_id" validate:"required,number" example:"10"`
+	BuilderID int64 `json:"builder_id" path:"builder_id" validate:"required,number" example:"10"`
 }
 
 // DeleteCacheRequest ...
 type DeleteCacheRequest struct {
-	BuilderID int64 `json:"builder_id" query:"builder_id" validate:"required,number" example:"10"`
+	BuilderID int64 `json:"builder_id" path:"builder_id" validate:"required,number" example:"10"`
 }
 
 // GetCacheRequest ...
 type GetCacheRequest struct {
-	BuilderID int64 `json:"builder_id" query:"builder_id" validate:"required,number" example:"10"`
+	BuilderID int64 `json:"builder_id" path:"builder_id" validate:"required,number" example:"10"`
 }

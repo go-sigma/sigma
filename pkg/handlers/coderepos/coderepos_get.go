@@ -40,8 +40,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/coderepos/{provider}/repos/{id} [get]
-//	@Param		provider	path		string	true	"search code repository with provider"
-//	@Param		id			path		string	true	"code repository id"
+//	@Param		provider	path		string	true	"Search code repository with provider"
+//	@Param		id			path		string	true	"Code repository id"
 //	@Success	200			{object}	types.CodeRepositoryItem
 //	@Failure	500			{object}	xerrors.ErrCode
 func (h *handler) Get(c echo.Context) error {

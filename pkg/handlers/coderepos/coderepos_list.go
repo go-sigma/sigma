@@ -38,12 +38,12 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/coderepos/{provider} [get]
-//	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
-//	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
-//	@Param		sort		query		string	false	"sort field"
-//	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		name		query		string	false	"search code repository with name"
-//	@Param		owner		query		string	false	"search code repository with owner"
+//	@Param		limit		query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page		query		int64	false	"Page number"	minimum(1)	default(1)
+//	@Param		sort		query		string	false	"Sort field"
+//	@Param		method		query		string	false	"Sort method"	Enums(asc, desc)
+//	@Param		name		query		string	false	"Search code repository with name"
+//	@Param		owner		query		string	false	"Search code repository with owner"
 //	@Param		provider	path		string	true	"search code repository with provider"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryItem}
 //	@Failure	500			{object}	xerrors.ErrCode

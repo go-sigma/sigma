@@ -22,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/caches/": {
+        "/caches/{builder_id}": {
             "get": {
                 "security": [
                     {
@@ -44,7 +44,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Builder ID",
                         "name": "builder_id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -90,7 +90,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Builder ID",
                         "name": "builder_id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -142,7 +142,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Builder ID",
                         "name": "builder_id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -242,7 +242,7 @@ const docTemplate = `{
                         "minimum": 10,
                         "type": "integer",
                         "default": 10,
-                        "description": "limit",
+                        "description": "Limit size",
                         "name": "limit",
                         "in": "query"
                     },
@@ -250,13 +250,13 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 1,
-                        "description": "page",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "sort field",
+                        "description": "Sort field",
                         "name": "sort",
                         "in": "query"
                     },
@@ -266,19 +266,19 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "sort method",
+                        "description": "Sort method",
                         "name": "method",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "search code repository with name",
+                        "description": "Search code repository with name",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "search code repository with owner",
+                        "description": "Search code repository with owner",
                         "name": "owner",
                         "in": "query"
                     },
@@ -404,14 +404,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "search code repository with provider",
+                        "description": "Search code repository with provider",
                         "name": "provider",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "code repository id",
+                        "description": "Code repository id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -453,7 +453,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "search code repository with provider",
+                        "description": "Search code repository with scm provider",
                         "name": "provider",
                         "in": "path",
                         "required": true
@@ -492,7 +492,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "get user 3rdParty with provider",
+                        "description": "Get user 3rdParty with scm provider",
                         "name": "provider",
                         "in": "path",
                         "required": true
@@ -7832,7 +7832,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "The access controller was unable to authenticate the client. Often this will be accompanied by a Www-Authenticate HTTP response header indicating how to authenticate."
                 },
-                "httpStatusCode": {
+                "http_status_code": {
                     "description": "HTTPStatusCode provides the http status code that is associated with\nthis error condition.",
                     "type": "integer",
                     "example": 401
@@ -7840,7 +7840,7 @@ const docTemplate = `{
                 "title": {
                     "description": "Title is a short, human readable description of the error condition\nincluded in API responses.",
                     "type": "string",
-                    "example": "authentication required"
+                    "example": "Authentication required"
                 }
             }
         }

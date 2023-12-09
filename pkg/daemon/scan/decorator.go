@@ -41,7 +41,6 @@ type decoratorArtifactStatus struct {
 // decorator is a decorator for scan task runners
 func decorator(runner func(context.Context, *models.Artifact, chan decoratorArtifactStatus) error) func(context.Context, []byte) error {
 	return func(ctx context.Context, payload []byte) error {
-		log.Info().Msg("got a task")
 		ctx = log.Logger.WithContext(ctx)
 
 		artifactServiceFactory := dao.NewArtifactServiceFactory()

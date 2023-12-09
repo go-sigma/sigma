@@ -19,16 +19,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/hash"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -39,8 +36,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	application/octet-stream
-//	@Router		/caches/ [get]
-//	@Param		builder_id	query		string	true	"Builder ID"
+//	@Router		/caches/{builder_id} [get]
+//	@Param		builder_id	path		string	true	"Builder ID"
 //	@Success	200			{string}	file	"Cache content"
 //	@Failure	404			{object}	xerrors.ErrCode
 //	@Failure	500			{object}	xerrors.ErrCode
@@ -66,8 +63,4 @@ func (h *handler) GetCache(c echo.Context) error {
 	}
 
 	return c.Stream(http.StatusOK, "application/gzip", reader)
-}
-
-func (h *handler) genPath(id int64) string {
-	return fmt.Sprintf("%s/%s", consts.DirCache, utils.DirWithSlash(hash.MustString(strconv.FormatInt(id, 10))))
 }

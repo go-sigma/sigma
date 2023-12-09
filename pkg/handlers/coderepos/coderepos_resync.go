@@ -43,7 +43,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/coderepos/{provider}/resync [get]
-//	@Param		provider	path	string	true	"search code repository with provider"
+//	@Param		provider	path	string	true	"Search code repository with scm provider"
 //	@Success	202
 //	@Failure	500	{object}	xerrors.ErrCode
 func (h *handler) Resync(c echo.Context) error {

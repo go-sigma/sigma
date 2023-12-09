@@ -1695,7 +1695,7 @@ definitions:
           this will be accompanied by a Www-Authenticate HTTP response header indicating
           how to authenticate.
         type: string
-      httpStatusCode:
+      http_status_code:
         description: |-
           HTTPStatusCode provides the http status code that is associated with
           this error condition.
@@ -1705,7 +1705,7 @@ definitions:
         description: |-
           Title is a short, human readable description of the error condition
           included in API responses.
-        example: authentication required
+        example: Authentication required
         type: string
     type: object
 info:
@@ -1792,13 +1792,13 @@ paths:
       summary: Get specific name code repository branch
       tags:
       - CodeRepository
-  /caches/:
+  /caches/{builder_id}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: Builder ID
-        in: query
+        in: path
         name: builder_id
         required: true
         type: string
@@ -1825,7 +1825,7 @@ paths:
       - application/json
       parameters:
       - description: Builder ID
-        in: query
+        in: path
         name: builder_id
         required: true
         type: string
@@ -1854,7 +1854,7 @@ paths:
       - application/octet-stream
       parameters:
       - description: Builder ID
-        in: query
+        in: path
         name: builder_id
         required: true
         type: string
@@ -1888,34 +1888,34 @@ paths:
       - application/json
       parameters:
       - default: 10
-        description: limit
+        description: Limit size
         in: query
         maximum: 100
         minimum: 10
         name: limit
         type: integer
       - default: 1
-        description: page
+        description: Page number
         in: query
         minimum: 1
         name: page
         type: integer
-      - description: sort field
+      - description: Sort field
         in: query
         name: sort
         type: string
-      - description: sort method
+      - description: Sort method
         enum:
         - asc
         - desc
         in: query
         name: method
         type: string
-      - description: search code repository with name
+      - description: Search code repository with name
         in: query
         name: name
         type: string
-      - description: search code repository with owner
+      - description: Search code repository with owner
         in: query
         name: owner
         type: string
@@ -1989,12 +1989,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: search code repository with provider
+      - description: Search code repository with provider
         in: path
         name: provider
         required: true
         type: string
-      - description: code repository id
+      - description: Code repository id
         in: path
         name: id
         required: true
@@ -2020,7 +2020,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: search code repository with provider
+      - description: Search code repository with scm provider
         in: path
         name: provider
         required: true
@@ -2044,7 +2044,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: get user 3rdParty with provider
+      - description: Get user 3rdParty with scm provider
         in: path
         name: provider
         required: true
