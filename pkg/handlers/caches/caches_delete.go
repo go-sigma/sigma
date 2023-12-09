@@ -36,8 +36,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/caches/ [delete]
-//	@Param		builder_id	query	string	true	"Builder ID"
+//	@Router		/caches/{builder_id} [delete]
+//	@Param		builder_id	path	string	true	"Builder ID"
 //	@Success	204
 //	@Failure	404	{object}	xerrors.ErrCode
 //	@Failure	500	{object}	xerrors.ErrCode

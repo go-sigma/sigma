@@ -39,7 +39,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/coderepos/{provider}/user3rdparty [get]
-//	@Param		provider	path		string	true	"get user 3rdParty with provider"
+//	@Param		provider	path		string	true	"Get user 3rdParty with scm provider"
 //	@Success	200			{object}	types.GetCodeRepositoryUser3rdPartyResponse
 //	@Failure	500			{object}	xerrors.ErrCode
 func (h *handler) User3rdParty(c echo.Context) error {

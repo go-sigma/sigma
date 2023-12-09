@@ -58,12 +58,12 @@ func NewAPI(authorization, endpoint string) api {
 }
 
 // CreateCache ...
-func (a api) CreateCache(ctx context.Context, builderID, runnerID int64, p string) error {
+func (a api) CreateCache(ctx context.Context, builderID int64, p string) error {
 	file, err := os.Open(p)
 	if err != nil {
 		return err
 	}
-	code, _, err := a.DoRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/caches/?builder_id=%d&runner_id=%d", builderID, runnerID), nil, file)
+	code, _, err := a.DoRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/caches/%d", builderID), nil, file)
 	if err != nil {
 		return err
 	}
@@ -74,8 +74,8 @@ func (a api) CreateCache(ctx context.Context, builderID, runnerID int64, p strin
 }
 
 // GetCache ...
-func (a api) GetCache(ctx context.Context, builderID, runnerID int64) (io.ReadCloser, error) {
-	code, reader, err := a.DoRequest(ctx, http.MethodGet, fmt.Sprintf("/api/v1/caches/?builder_id=%d&runner_id=%d", builderID, runnerID), nil)
+func (a api) GetCache(ctx context.Context, builderID int64) (io.ReadCloser, error) {
+	code, reader, err := a.DoRequest(ctx, http.MethodGet, fmt.Sprintf("/api/v1/caches/%d", builderID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (a api) DoRequest(ctx context.Context, method, path string, headers http.He
 }
 
 func (b Builder) initCache() error {
-	reader, err := b.api.GetCache(context.Background(), b.BuilderID, b.RunnerID)
+	reader, err := b.api.GetCache(context.Background(), b.BuilderID)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -173,7 +173,7 @@ func (b Builder) exportCache() error {
 	if err != nil {
 		return fmt.Errorf("Read compressed file failed: %v", err)
 	}
-	err = b.api.CreateCache(context.Background(), b.BuilderID, b.RunnerID, path.Join(cache, compressedCache))
+	err = b.api.CreateCache(context.Background(), b.BuilderID, path.Join(cache, compressedCache))
 	if err != nil {
 		return fmt.Errorf("Export cache to server failed: %v", err)
 	}

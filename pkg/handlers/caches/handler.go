@@ -56,9 +56,9 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	cacheGroup.DELETE("/", handler.DeleteCache)
-	cacheGroup.POST("/", handler.CreateCache)
-	cacheGroup.GET("/", handler.GetCache)
+	cacheGroup.POST("/:builder_id", handler.CreateCache)
+	cacheGroup.GET("/:builder_id", handler.GetCache)
+	cacheGroup.DELETE("/:builder_id", handler.DeleteCache)
 
 	return nil
 }

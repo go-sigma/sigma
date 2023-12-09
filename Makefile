@@ -125,7 +125,7 @@ addlicense: ## Add license to all go files
 	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "sigma"
 
 ## Kube:
-kube_deploy: ## Deploy sigma on k8s using helm
+kube_install: ## Install sigma on k8s using helm
 	@if [ -z $(KUBECONFIG) ]; then \
         KUBECONFIG=$$HOME/.kube/config; \
     fi;
@@ -138,7 +138,7 @@ kube_deploy: ## Deploy sigma on k8s using helm
 	--set minio.secretKey=$(RANDOM_PASSWORD) \
 	--kubeconfig $(KUBECONFIG)
 
-kube_undeploy: ## Uninstall sigma on k8s using helm
+kube_uninstall: ## Uninstall sigma on k8s using helm
 	@KUBECONFIG=$(KUBECONFIG)
 	@helm uninstall $(APPNAME) -n$(NAMESPACE)
 

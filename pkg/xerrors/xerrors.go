@@ -16,31 +16,41 @@ package xerrors
 
 import (
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
+
+// NewHTTPError creates a new HTTPError instance.
+func NewHTTPError(c echo.Context, errCode ErrCode, message ...string) error {
+	if len(message) > 0 {
+		errCode.Description = message[0]
+	}
+	return c.JSON(errCode.HTTPStatusCode, errCode)
+}
 
 var (
 	// HTTPErrCodeOK is an OK error.
-	HTTPErrCodeOK = ErrCode{HTTPStatusCode: http.StatusOK, Code: "OK", Title: "OK"}
+	HTTPErrCodeOK = ErrCode{HTTPStatusCode: http.StatusOK, Code: "OK", Title: "Ok"}
 	// HTTPErrCodeCreated is a created error.
 	HTTPErrCodeCreated = ErrCode{HTTPStatusCode: http.StatusCreated, Code: "CREATED", Title: "Created"}
 	// HTTPErrCodeBadRequest is a bad request error.
-	HTTPErrCodeBadRequest = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "BAD_REQUEST", Title: "Bad Request"}
+	HTTPErrCodeBadRequest = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "BAD_REQUEST", Title: "Bad request"}
 	// HTTPErrCodeUnauthorized is an unauthorized error.
 	HTTPErrCodeUnauthorized = ErrCode{HTTPStatusCode: http.StatusUnauthorized, Code: "UNAUTHORIZED", Title: "Unauthorized"}
 	// HTTPErrCodeForbidden is a forbidden error.
 	HTTPErrCodeForbidden = ErrCode{HTTPStatusCode: http.StatusForbidden, Code: "FORBIDDEN", Title: "Forbidden"}
 	// HTTPErrCodeNotFound is a not found error.
-	HTTPErrCodeNotFound = ErrCode{HTTPStatusCode: http.StatusNotFound, Code: "NOT_FOUND", Title: "Not Found"}
+	HTTPErrCodeNotFound = ErrCode{HTTPStatusCode: http.StatusNotFound, Code: "NOT_FOUND", Title: "Not found"}
 	// HTTPErrCodeMethodNotAllowed is a method not allowed error.
-	HTTPErrCodeMethodNotAllowed = ErrCode{HTTPStatusCode: http.StatusMethodNotAllowed, Code: "METHOD_NOT_ALLOWED", Title: "Method Not Allowed"}
+	HTTPErrCodeMethodNotAllowed = ErrCode{HTTPStatusCode: http.StatusMethodNotAllowed, Code: "METHOD_NOT_ALLOWED", Title: "Method not allowed"}
 	// HTTPErrCodeNotAcceptable is a not acceptable error.
-	HTTPErrCodeNotAcceptable = ErrCode{HTTPStatusCode: http.StatusNotAcceptable, Code: "NOT_ACCEPTABLE", Title: "Not Acceptable"}
+	HTTPErrCodeNotAcceptable = ErrCode{HTTPStatusCode: http.StatusNotAcceptable, Code: "NOT_ACCEPTABLE", Title: "Not acceptable"}
 	// HTTPErrCodeConflict is a conflict error.
 	HTTPErrCodeConflict = ErrCode{HTTPStatusCode: http.StatusConflict, Code: "CONFLICT", Title: "Conflict"}
 	// HTTPErrCodePaginationInvalid is a pagination invalid error.
-	HTTPErrCodePaginationInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "PAGINATION_INVALID", Title: "Pagination Invalid"}
+	HTTPErrCodePaginationInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "PAGINATION_INVALID", Title: "Pagination invalid"}
 	// HTTPErrCodeInternalError is an internal error.
-	HTTPErrCodeInternalError = ErrCode{HTTPStatusCode: http.StatusInternalServerError, Code: "INTERNAL_ERROR", Title: "Internal Error"}
+	HTTPErrCodeInternalError = ErrCode{HTTPStatusCode: http.StatusInternalServerError, Code: "INTERNAL_ERROR", Title: "Internal server error"}
 	// HTTPErrCodeVerificationCodeInvalid is a verification code error.
-	HTTPErrCodeVerificationCodeInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "VERIFICATION_CODE_INVALID", Title: "Verification Code Invalid"}
+	HTTPErrCodeVerificationCodeInvalid = ErrCode{HTTPStatusCode: http.StatusBadRequest, Code: "VERIFICATION_CODE_INVALID", Title: "Verification code invalid"}
 )

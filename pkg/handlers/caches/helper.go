@@ -12,21 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package caches
 
-const (
-	// TopicSbom is the topic for the sbom
-	// TopicSbom = "sbom"
-	// // TopicVulnerability is the topic for the vuln
-	// TopicVulnerability = "vuln"
-	// TopicGc is the topic for the gc
-	TopicGc = "gc"
-	// TopicGcRepository is the topic for the gc repository
-	TopicGcRepository = "gc_repository"
-	// TopicWebhook is the topic for the webhook
-	TopicWebhook = "webhook"
-	// TopicBuilder is the topic for the builder
-	TopicBuilder = "builder"
-	// TopicCodeRepository is the topic for the code repository
-	TopicCodeRepository = "code_repository"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/hash"
 )
+
+func (h *handler) genPath(id int64) string {
+	return fmt.Sprintf("%s/%s", consts.DirCache, utils.DirWithSlash(hash.MustString(strconv.FormatInt(id, 10))))
+}
