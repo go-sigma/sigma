@@ -45,6 +45,10 @@ export default function ({ localServer }: { localServer: string }) {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  const [branchText, setBranchText] = useState("");
+  const [branchTextValid, setBranchTextValid] = useState(true);
+  useEffect(() => { branchText != "" && setBranchTextValid(/^[a-zA-Z0-9_-]{1,64}$/.test(branchText)) }, [branchText]);
+
   useEffect(() => {
     axios.get(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`).then(response => {
       if (response?.status === 200) {
@@ -53,6 +57,7 @@ export default function ({ localServer }: { localServer: string }) {
         if (r.builder !== undefined && r.builder !== null) {
           setBuilderObj(r.builder);
         }
+        setBranchText(r.builder?.scm_branch || "");
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -83,12 +88,19 @@ export default function ({ localServer }: { localServer: string }) {
       setTagTemplateTextValid(false);
     });
   }, [tagTemplateText]);
-  const [branchText, setBranchText] = useState("");
-  const [branchTextValid, setBranchTextValid] = useState(true);
-  useEffect(() => { branchText != "" && setBranchTextValid(/^[a-zA-Z0-9_-]{1,64}$/.test(branchText)) }, [branchText]);
+
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
   useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,50}$/.test(descriptionText)) }, [descriptionText]);
+
+  useEffect(() => {
+    if (repositoryObj != undefined) {
+      let tag = localStorage.getItem(`${repositoryObj?.name}-tag`);
+      if (tag != null) {
+        setTagTemplateText(tag);
+      }
+    }
+  }, [repositoryObj]);
 
   const createRunner = () => {
     if (builderObj == undefined) {
@@ -110,6 +122,9 @@ export default function ({ localServer }: { localServer: string }) {
     }
     if (descriptionText !== "") {
       data["description"] = descriptionText;
+    }
+    if (repositoryObj != undefined && repositoryObj?.name != "") {
+      localStorage.setItem(`${repositoryObj?.name}-tag`, `${tagTemplateText}`);
     }
     axios.post(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/run`, data).then(response => {
       if (response?.status === 201) {
@@ -219,7 +234,7 @@ export default function ({ localServer }: { localServer: string }) {
                 {
                   builderObj === undefined ? null : (
                     <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                      onClick={() => { navigate(`/builders/setup/${repositoryObj?.builder?.id}?namespace=${namespace}&namespace_id=${repositoryObj?.namespace_id}&repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}&namespace_stick=true&repository_stick=true&back_to=/namespaces/${namespace}/repository/runners?repository=${repositoryObj?.name}%26repository_id=${repositoryObj?.id}`); }}
+                      onClick={() => { navigate(`/builders/setup/${repositoryObj?.builder?.id}?namespace=${namespace}&namespace_id=${repositoryObj?.namespace_id}&repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}&namespace_stick=true&repository_stick=true&back_to=/namespaces/${namespace}/repository/runners?repository=${repositoryObj?.name}%26repository_id=${repositoryObj?.id}%26namespace_id=${namespaceId}`); }}
                     >Update</button>
                   )
                 }

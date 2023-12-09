@@ -109,7 +109,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	builderService := i.builderServiceFactory.New()
 	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{
 		query.BuilderRunner.Status.ColumnName().String():    enums.BuildStatusBuilding,
-		query.BuilderRunner.StartedAt.ColumnName().String(): time.Now(),
+		query.BuilderRunner.StartedAt.ColumnName().String(): time.Now().UnixMilli(),
 	})
 	if err != nil {
 		return fmt.Errorf("Update runner status failed: %v", err)
@@ -134,8 +134,8 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 		}
 		builderService := i.builderServiceFactory.New()
 		err := builderService.UpdateRunner(ctx, builderID, runnerID, map[string]any{
-			query.BuilderRunner.Status.ColumnName().String():    status,
-			query.BuilderRunner.StartedAt.ColumnName().String(): time.Now(),
+			query.BuilderRunner.Status.ColumnName().String():  status,
+			query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Update runner status failed")

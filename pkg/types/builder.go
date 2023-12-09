@@ -180,8 +180,8 @@ type BuilderRunnerItem struct {
 	Description *string `json:"description" example:"description"`
 	ScmBranch   *string `json:"scm_branch" example:"main"`
 
-	StartedAt   *string `json:"started_at" example:"2006-01-02 15:04:05"`
-	EndedAt     *string `json:"ended_at" example:"2006-01-02 15:04:05"`
+	StartedAt   *int64  `json:"started_at" example:"1702128050507"`
+	EndedAt     *int64  `json:"ended_at" example:"1702128050507"`
 	RawDuration *int64  `json:"raw_duration" example:"10"`
 	Duration    *string `json:"duration" example:"1h"`
 

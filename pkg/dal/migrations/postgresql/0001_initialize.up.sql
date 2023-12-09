@@ -862,8 +862,8 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   "raw_tag" varchar(255) NOT NULL,
   "description" varchar(255),
   "scm_branch" varchar(255),
-  "started_at" timestamp,
-  "ended_at" timestamp,
+  "started_at" bigint,
+  "ended_at" bigint,
   "duration" bigint,
   -- other fields
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),

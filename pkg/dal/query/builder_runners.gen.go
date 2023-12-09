@@ -38,8 +38,8 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.RawTag = field.NewString(tableName, "raw_tag")
 	_builderRunner.Description = field.NewString(tableName, "description")
 	_builderRunner.ScmBranch = field.NewString(tableName, "scm_branch")
-	_builderRunner.StartedAt = field.NewTime(tableName, "started_at")
-	_builderRunner.EndedAt = field.NewTime(tableName, "ended_at")
+	_builderRunner.StartedAt = field.NewInt64(tableName, "started_at")
+	_builderRunner.EndedAt = field.NewInt64(tableName, "ended_at")
 	_builderRunner.Duration = field.NewInt64(tableName, "duration")
 	_builderRunner.Builder = builderRunnerBelongsToBuilder{
 		db: db.Session(&gorm.Session{}),
@@ -120,8 +120,8 @@ type builderRunner struct {
 	RawTag      field.String
 	Description field.String
 	ScmBranch   field.String
-	StartedAt   field.Time
-	EndedAt     field.Time
+	StartedAt   field.Int64
+	EndedAt     field.Int64
 	Duration    field.Int64
 	Builder     builderRunnerBelongsToBuilder
 
@@ -151,8 +151,8 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.RawTag = field.NewString(table, "raw_tag")
 	b.Description = field.NewString(table, "description")
 	b.ScmBranch = field.NewString(table, "scm_branch")
-	b.StartedAt = field.NewTime(table, "started_at")
-	b.EndedAt = field.NewTime(table, "ended_at")
+	b.StartedAt = field.NewInt64(table, "started_at")
+	b.EndedAt = field.NewInt64(table, "ended_at")
 	b.Duration = field.NewInt64(table, "duration")
 
 	b.fillFieldMap()

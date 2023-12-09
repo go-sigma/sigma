@@ -768,8 +768,8 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `raw_tag` varchar(255) NOT NULL, -- image tag
   `description` varchar(255),
   `scm_branch` varchar(255),
-  `started_at` timestamp,
-  `ended_at` timestamp,
+  `started_at` integer,
+  `ended_at` integer,
   `duration` integer,
   -- other fields
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
