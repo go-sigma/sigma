@@ -3,15 +3,15 @@ module github.com/go-sigma/sigma
 go 1.21.4
 
 require (
-	code.gitea.io/sdk/gitea v0.16.0
+	code.gitea.io/sdk/gitea v0.17.0
 	github.com/BurntSushi/toml v1.3.2
 	github.com/IBM/sarama v1.42.1
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
 	github.com/anchore/syft v0.98.0
-	github.com/aquasecurity/trivy v0.47.0
-	github.com/aws/aws-sdk-go v1.48.11
+	github.com/aquasecurity/trivy v0.48.0
+	github.com/aws/aws-sdk-go v1.48.16
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.79.0
@@ -55,7 +55,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.17.0
+	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.2
@@ -65,14 +65,14 @@ require (
 	github.com/xanzy/go-gitlab v0.94.0
 	go.uber.org/mock v0.3.0
 	golang.org/x/crypto v0.16.0
-	golang.org/x/exp v0.0.0-20231127185646-65229373498e
+	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
 	golang.org/x/net v0.19.0
 	golang.org/x/oauth2 v0.15.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/driver/sqlite v1.5.4
-	gorm.io/gen v0.3.23
+	gorm.io/gen v0.3.24
 	gorm.io/gorm v1.25.5
 	gorm.io/plugin/dbresolver v1.5.0
 	gorm.io/plugin/soft_delete v1.2.1
@@ -133,7 +133,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/facebookincubator/nvdtools v0.1.5 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/github/go-spdx/v2 v2.2.0 // indirect
@@ -141,7 +141,7 @@ require (
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
-	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
@@ -158,7 +158,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/go-containerregistry v0.16.1 // indirect
+	github.com/google/go-containerregistry v0.17.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20221118152302-e6195bd50e26 // indirect
@@ -233,7 +233,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/sagikazarmark/locafero v0.3.0 // indirect
+	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/scylladb/go-set v1.0.3-0.20200225121959-cc7b2070d91e // indirect
@@ -243,7 +243,7 @@ require (
 	github.com/skeema/knownhosts v1.2.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
-	github.com/spdx/tools-golang v0.5.3 // indirect
+	github.com/spdx/tools-golang v0.5.4-0.20231108154018-0c0f394b5e1a // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -290,7 +290,7 @@ require (
 	gorm.io/datatypes v1.2.0 // indirect
 	gorm.io/driver/sqlserver v1.5.1 // indirect
 	gorm.io/hints v1.1.2 // indirect
-	k8s.io/klog/v2 v2.100.1 // indirect
+	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230816210353-14e408962443 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	modernc.org/libc v1.34.9 // indirect
@@ -299,7 +299,7 @@ require (
 	modernc.org/sqlite v1.27.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace gorm.io/plugin/soft_delete => github.com/go-sigma/soft_delete v0.0.0-20231124084503-fb6a66078e2b
