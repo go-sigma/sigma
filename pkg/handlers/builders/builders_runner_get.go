@@ -72,14 +72,6 @@ func (h *handler) GetRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
-	var startedAt, endedAt string
-	if runnerObj.StartedAt != nil {
-		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
-	}
-	if runnerObj.EndedAt != nil {
-		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
-	}
-
 	var duration *string
 	if runnerObj.Duration != nil {
 		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
@@ -97,8 +89,8 @@ func (h *handler) GetRunner(c echo.Context) error {
 		Description: runnerObj.Description,
 		ScmBranch:   runnerObj.ScmBranch,
 
-		StartedAt:   ptr.Of(startedAt),
-		EndedAt:     ptr.Of(endedAt),
+		StartedAt:   runnerObj.StartedAt,
+		EndedAt:     runnerObj.EndedAt,
 		RawDuration: runnerObj.Duration,
 		Duration:    duration,
 

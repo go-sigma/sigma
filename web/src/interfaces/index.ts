@@ -298,8 +298,8 @@ export interface IBuilderRunnerItem {
   description?: string;
   scm_branch?: string;
 
-  started_at?: string;
-  ended_at?: string;
+  started_at?: number;
+  ended_at?: number;
   raw_duration?: number;
   duration?: string;
 

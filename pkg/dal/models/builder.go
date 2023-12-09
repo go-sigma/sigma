@@ -15,6 +15,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -90,8 +91,8 @@ type BuilderRunner struct {
 	Description *string
 	ScmBranch   *string
 
-	StartedAt *time.Time
-	EndedAt   *time.Time
+	StartedAt *int64
+	EndedAt   *int64
 	Duration  *int64
 
 	Builder Builder
@@ -102,6 +103,8 @@ func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
 	if b == nil {
 		return nil
 	}
+
+	fmt.Printf("107: %+v\n", b)
 
 	var runnerObj BuilderRunner
 	err := tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).First(&runnerObj).Error
@@ -114,11 +117,11 @@ func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
 	}
 
 	if runnerObj.StartedAt != nil && runnerObj.EndedAt != nil {
-		var duration = runnerObj.EndedAt.Sub(ptr.To(runnerObj.StartedAt))
+		var duration = ptr.To(runnerObj.EndedAt) - ptr.To(runnerObj.StartedAt)
 		err = tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).Updates(
 			map[string]any{
-				"duration": duration.Milliseconds(),
-				"id":       b.ID,
+				"duration": duration,
+				"id":       b.ID, // here will trigger the after update hook, so the id is needed
 			}).Error
 		if err != nil {
 			return err

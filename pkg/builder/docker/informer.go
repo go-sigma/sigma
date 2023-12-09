@@ -113,13 +113,13 @@ func (i *instance) informer(ctx context.Context) {
 							if container.ContainerJSONBase.State.ExitCode == 0 {
 								updates = map[string]any{
 									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
-									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 								}
 								log.Info().Str("id", event.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container succeed")
 							} else {
 								updates = map[string]any{
 									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
-									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 								}
 								log.Error().Int("ExitCode", container.ContainerJSONBase.State.ExitCode).
 									Str("Error", container.ContainerJSONBase.State.Error).
@@ -212,13 +212,13 @@ func (i *instance) cacheList(ctx context.Context) error {
 			if con.ContainerJSONBase.State.ExitCode == 0 {
 				updates = map[string]any{
 					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
-					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 				}
 				log.Info().Str("id", container.ID).Str("name", con.ContainerJSONBase.Name).Msg("Builder container succeed")
 			} else {
 				updates = map[string]any{
 					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
-					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now(),
+					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 				}
 				log.Error().Int("ExitCode", con.ContainerJSONBase.State.ExitCode).
 					Str("Error", con.ContainerJSONBase.State.Error).

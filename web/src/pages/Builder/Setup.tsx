@@ -89,6 +89,16 @@ export default function ({ localServer }: { localServer: string }) {
   let backTo = searchParams.get('back_to') || "";
 
   useEffect(() => {
+    const back = () => {
+      navigate(backTo);
+    }
+    window.addEventListener('popstate', back);
+    return () => {
+      window.removeEventListener('popstate', back);
+    }
+  }, []);
+
+  useEffect(() => {
     let url = `${localServer}/api/v1/namespaces/?limit=${Settings.AutoCompleteSize}`;
     if (namespaceSearch != null && namespaceSearch !== "") {
       url += `&name=${namespaceSearch}`;
