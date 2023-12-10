@@ -5,14 +5,14 @@ ARG ALPINE_VERSION=3.18
 FROM alpine:${ALPINE_VERSION} as cosign
 
 ARG COSIGN_VERSION=v2.2.1
-ARG TARGETARCH
+ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
   # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
-  wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-linux-"${TARGETARCH}"
+  wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}"
 
-FROM golang:${GOLANG_VERSION} as builder
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
 RUN set -eux && \
   # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
@@ -21,7 +21,9 @@ RUN set -eux && \
 COPY . /go/src/github.com/go-sigma/sigma
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build make build-builder
+ARG TARGETOS TARGETARCH
+
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build GOOS=$TARGETOS GOARCH=$TARGETARCH make build-builder
 
 FROM moby/buildkit:${BUILDKIT_VERSION}
 
