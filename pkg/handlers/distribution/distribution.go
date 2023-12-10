@@ -21,6 +21,7 @@ import (
 	"sort"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 )
@@ -34,10 +35,6 @@ var (
 func All(c echo.Context) error {
 	c.Response().Header().Set(consts.APIVersionKey, consts.APIVersionValue)
 
-	sort.SliceStable(routerFactories, func(i, j int) bool {
-		return routerFactories[i].Key < routerFactories[j].Key
-	})
-
 	for index, factory := range routerFactories {
 		err := factory.Value.Initialize(c)
 		if err != nil {
@@ -49,6 +46,7 @@ func All(c echo.Context) error {
 		return nil
 	}
 
+	log.Error().Str("Uri", c.Request().RequestURI).Str("Method", c.Request().Method).Msg("Uri cannot match any route")
 	return c.NoContent(http.StatusMethodNotAllowed)
 }
 
@@ -72,5 +70,8 @@ func RegisterRouterFactory(factory Factory, index int) error {
 		}
 	}
 	routerFactories = append(routerFactories, Item{Key: index, Value: factory})
+	sort.SliceStable(routerFactories, func(i, j int) bool {
+		return routerFactories[i].Key < routerFactories[j].Key
+	})
 	return nil
 }

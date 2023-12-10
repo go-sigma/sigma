@@ -15,7 +15,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -103,8 +102,6 @@ func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
 	if b == nil {
 		return nil
 	}
-
-	fmt.Printf("107: %+v\n", b)
 
 	var runnerObj BuilderRunner
 	err := tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).First(&runnerObj).Error

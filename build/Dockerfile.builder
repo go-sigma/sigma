@@ -4,13 +4,14 @@ ARG ALPINE_VERSION=3.18
 
 FROM alpine:${ALPINE_VERSION} as cosign
 
-ARG COSIGN_VERSION=v2.2.1
+ARG COSIGN_VERSION=v2.2.2
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
   # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
   apk add --no-cache wget && \
-  wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}"
+  wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}" && \
+  chmod +x /tmp/cosign
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 

@@ -16,13 +16,11 @@ package inits
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -36,24 +34,11 @@ func init() {
 }
 
 func signing(_ configs.Configuration) error {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	keyBytes, err := cosign.GenerateKeyPair(nil)
 	if err != nil {
-		log.Error().Err(err).Msg("Generating RSA private key failed")
+		log.Error().Err(err).Msg("Generate key failed")
+		return fmt.Errorf("generate key failed: %v", err)
 	}
-
-	privateKeyPEM := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-	}
-	privateKeyBytes := pem.EncodeToMemory(privateKeyPEM)
-
-	publicKey := &privateKey.PublicKey
-
-	publicKeyPEM := &pem.Block{
-		Type:  "RSA PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(publicKey),
-	}
-	publicKeyBytes := pem.EncodeToMemory(publicKeyPEM)
 
 	ctx := log.Logger.WithContext(context.Background())
 
@@ -61,14 +46,17 @@ func signing(_ configs.Configuration) error {
 	settingService := settingServiceFactory.New()
 	_, err = settingService.Get(ctx, consts.SettingSignPrivateKey)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Msg("Get signing key failed")
+			return err
+		} else {
 			err = query.Q.Transaction(func(tx *query.Query) error {
 				settingService := settingServiceFactory.New(tx)
-				err = settingService.Save(ctx, consts.SettingSignPrivateKey, privateKeyBytes)
+				err = settingService.Save(ctx, consts.SettingSignPrivateKey, keyBytes.PrivateBytes)
 				if err != nil {
 					return err
 				}
-				err = settingService.Save(ctx, consts.SettingSignPublicKey, publicKeyBytes)
+				err = settingService.Save(ctx, consts.SettingSignPublicKey, keyBytes.PublicBytes)
 				if err != nil {
 					return err
 				}
@@ -80,8 +68,6 @@ func signing(_ configs.Configuration) error {
 			}
 			return nil
 		}
-		log.Error().Err(err).Msg("Get signing key failed")
-		return err
 	}
 	return nil
 }
