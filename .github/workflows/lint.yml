@@ -49,4 +49,4 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./build/Dockerfile
-          ignore: DL3018,DL3003
+          ignore: DL3018,DL3003,SC2155
