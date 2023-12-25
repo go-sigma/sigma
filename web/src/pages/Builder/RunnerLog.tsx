@@ -254,7 +254,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
               <div className='pr-2 pl-2 flex gap-1'>
                 <div className='text-gray-600 px-2 py-2 h-10'>
-                  Elapsed: {runnerObj?.status != "Failed" && runnerObj?.status != "Success" && runnerObj?.status != "Stopped" ? Math.floor((Date.now() - (runnerObj?.started_at || Date.now())) / 1000) : (runnerObj.raw_duration || 0) / 1000}s
+                  Elapsed: {runnerObj?.status != "Failed" && runnerObj?.status != "Success" && runnerObj?.status != "Stopped" ? Math.floor((Date.now() - (runnerObj?.started_at || Date.now())) / 1000) : Math.floor((runnerObj.raw_duration || 0) / 1000)}s
                 </div>
               </div>
             </div>

@@ -17,13 +17,12 @@ package caches
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/storage"
-	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -43,14 +42,18 @@ import (
 func (h *handler) CreateCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	var req types.CreateCacheRequest
-	err := utils.BindValidate(c, &req)
+	builderIDStr := c.Param("builder_id")
+	if builderIDStr == "" {
+		log.Error().Msg("Bind and validate request body failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Bind and validate request body failed")
+	}
+	builderID, err := strconv.ParseInt(builderIDStr, 10, 64)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	err = storage.Driver.Upload(ctx, h.genPath(req.BuilderID), c.Request().Body)
+	err = storage.Driver.Upload(ctx, h.genPath(builderID), c.Request().Body)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload file failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Upload file failed: %v", err))

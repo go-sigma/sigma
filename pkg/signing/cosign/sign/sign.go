@@ -67,7 +67,7 @@ func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
 	}
 
 	cmd := exec.Command("cosign", "sign")
-	cmd.Args = append(cmd.Args, "--tlog-upload", "false")
+	cmd.Args = append(cmd.Args, "--tlog-upload=false")
 	if s.Http {
 		cmd.Args = append(cmd.Args, "--allow-http-registry")
 	} else {
@@ -78,8 +78,14 @@ func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
 	}
 	cmd.Args = append(cmd.Args, "--key", temp.Name())
 	cmd.Args = append(cmd.Args, "--registry-token", token)
+	cmd.Args = append(cmd.Args, "--registry-referrers-mode", "oci-1-1")
 	cmd.Args = append(cmd.Args, imageRef)
 	cmd.Env = append(cmd.Env, "COSIGN_PASSWORD=")
+	cmd.Env = append(cmd.Env, "COSIGN_EXPERIMENTAL=1")
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	log.Info().Str("command", cmd.String()).Strs("env", cmd.Env).Msg("Signing image")
 
 	return cmd.Run()
 }
