@@ -1,0 +1,105 @@
+---
+slug: Sigma is coming! Harbor is outdating?
+title: Sigma is coming! Harbor is outdating?
+authors: [tosone]
+---
+
+In the era of cloud-native, where the majority of software artifacts have transitioned from the software itself to OCI-Native images, the OCI-Native image registry has become an indispensable component in most DevOps systems. This shift has reduced the complexity of artifact delivery and allowed for better management of artifacts and their versions from a role-based permission perspective. Moreover, it emphasizes the security of artifact delivery and sets requirements for the speed of container deployment in relation to the image registry.
+
+## Why develop sigma?
+
+The initial idea behind developing Sigma was to reduce the complexity of deploying Harbor components while maintaining their architectural advantages in terms of high availability. Sigma aims to excel in four aspects: artifact metadata management, permission management, artifact distribution, and ease of deployment and maintenance. These aspects were taken into consideration from the very beginning during the design of Sigma.
+
+In many individual user scenarios, there is often a need for a user-friendly artifact metadata management, an easy-to-use UI for the image registry, and a simple deployment and maintenance process. Existing solutions may not fully meet all of these requirements. Additionally, the ability to incorporate image building functionality similar to Docker Hub within the image registry would be highly desirable. For larger teams, stability and compatibility with existing systems are key considerations. They would prefer an image registry that is stable and compatible with their current DevOps systems. Sigma aims to go beyond being just a repository storage role and actively participate in the entire DevOps process.
+
+## The advantages of Sigma
+
+### Deployment Architecture
+
+Sigma simplifies the deployment process by allowing a single file and a single startup command. It starts services for the frontend, asynchronous tasks such as image cleaning and building, and image metadata management, relying only on the file system. In a highly available deployment, the frontend, image metadata management, image cleaning, and image building services can be run as separate services. The API server and image metadata management service are deployed separately. This is mainly because the image metadata management service is involved in image pulling and pushing, which generates significant traffic. By separating these services, the stability of the API server is not affected. The middleware dependencies include object storage, Redis, and PostgreSQL/MySQL. For specific deployment details, please refer to the implementation in the Sigma chart: [https://github.com/go-sigma/sigma/tree/main/deploy/sigma](https://github.com/go-sigma/sigma/tree/main/deploy/sigma).
+
+### Image Metadata Management
+
+Image metadata management follows a similar display approach to Docker Hub, where tags are directly displayed at the repository level instead of displaying artifacts like Harbor and GHCR. Users have a better understanding of tags, which are user-defined, compared to artifact hash values. This aligns with Docker Hub's approach to displaying architecture images. In the case of multi-architecture images, artifact content similar to SBOM(Software Bill of Materials) will be pushed to the artifact list. The Sigma frontend will only display artifacts of types such as image, imageIndex, and chart. However, in the distribution-spec standard interface, Sigma will still return all artifacts.
+
+![](https://fs.tosone.cn/sigma/20231225/tags.jpg)
+
+### Route Matching
+
+The API implemented by the image registry defined in the distribution-spec allows slashes in the repository level (e.g. /v2/library/alpine/manifests/latest). However, most web frameworks treat slashes as separators for resource hierarchy, making it difficult to implement this feature directly or without using regular expressions. In Sigma, requests starting with /v2/ are first routed to a unified router, and then the route matching is performed using string manipulation. For example, the implementation of the routes related to manifests is as follows:
+
+``` go
+func (f factory) Initialize(c echo.Context) error {
+  method := c.Request().Method
+  uri := c.Request().RequestURI
+  urix := uri[:strings.LastIndex(uri, "/")]
+  manifestHandler := handlerNew()
+  if strings.HasSuffix(urix, "/manifests") {
+    switch method {
+    case http.MethodGet:
+      return manifestHandler.GetManifest(c)
+    case http.MethodHead:
+      return manifestHandler.HeadManifest(c)
+    case http.MethodPut:
+      return manifestHandler.PutManifest(c)
+    case http.MethodDelete:
+      return manifestHandler.DeleteManifest(c)
+    default:
+      return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+    }
+  } else if strings.HasSuffix(urix, "/referrers") && method == http.MethodGet {
+    return manifestHandler.GetReferrer(c)
+  }
+  return distribution.Next // Moving on to the next route matching rule.
+}
+```
+
+### Image Storage
+
+Unlike the distribution project, Sigma takes a different approach to storing image manifests and blob files. Distribution primarily relies on the structure of the storage, establishing associations between tags and artifacts, and between artifacts and blobs. This allows distribution to manage image metadata and image blobs without relying on any database, which is a great feature. However, it poses challenges during image garbage collection (gc) because cleaning up images involves cleaning up blobs. Reversing the associations in the file system is difficult, which was the reason why earlier versions of Harbor had to stop image registry push functionality during image cleaning, which was unacceptable.
+
+Sigma, on the other hand, stores these associations directly in a database instead of using the file system. The file system hierarchy is used solely for storing blob data, with the directory structure for storing blobs being consistent with distribution. Artifacts and tags are stored directly in the database. Sigma's image cleaning is implemented as a multithreaded process. It directly deletes unassociated blobs found during the search from the file system hierarchy without affecting the frontend's image push functionality. It's worth mentioning that there is a millisecond-level lock on the same blob during deletion and new blob push, which is imperceptible to users. For specific implementation details, you can refer to this link: [https://github.com/go-sigma/sigma/blob/main/pkg/daemon/gc/gc_blob.go](https://github.com/go-sigma/sigma/blob/main/pkg/daemon/gc/gc_blob.go).
+
+### Image Building
+
+Image building primarily relies on Dockerfiles, but most Dockerfile builds require dependencies on code repositories. Therefore, Sigma currently integrates with GitHub and GitLab, allowing users to retrieve the list of code repositories and select the desired repository to fill in the relevant parameters for the build process.
+
+![](https://fs.tosone.cn/sigma/20231225/build-conf.jpg)
+
+![](https://fs.tosone.cn/sigma/20231225/build-log.jpg)
+
+Users can choose a specific code repository and branch, and fill in the relevant build parameters for the Dockerfile, such as the build architecture and build arguments. Sigma also supports scheduled tasks and triggering builds based on code repository hook events, such as push events and tag events. Sigma allows users to stop tasks at any time during the build process, and real-time logs are displayed in the frontend. When Sigma completes a build, it packages the cached files obtained during the build process and stores them in the file system or object storage integrated with Sigma. The cached files are loaded before the next build. Before completing the build task, the image is signed using cosign, and the private key used for signing is generated by Sigma at startup and stored in the database.
+
+### Support for [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1
+
+Currently, distribution does not support the content defined in [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1. Harbor and Zot have implemented it, and Sigma has also implemented [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1. During image cleaning, Sigma checks the content of the referrer, and when an artifact is deleted, all other artifacts associated with it will also be deleted.
+
+### Quota
+
+Sigma supports setting size and tag limits for namespaces and repositories, following the relationship of subordinate capacity limits between namespaces and repositories. The current capacity usage can be easily viewed on the namespace page, and in the future, there will be support for triggering corresponding hook events when the storage capacity is nearing its limit. See the following image:
+
+![](https://fs.tosone.cn/sigma/20231225/quota.jpg)
+
+Currently, Sigma supports providing corresponding prompt messages to the client when image pushing reaches the storage capacity or tag capacity limit.
+
+![](https://fs.tosone.cn/sigma/20231225/quota-push.jpg)
+
+### Image Scanning
+
+Currently, after the completion of pushing image artifacts, the backend asynchronously executes the task of scanning the image using Trivy. The image scanning task is associated with Trivy's vulnerability database. When the vulnerability database is updated, users can choose whether to re-scan the images. In the future, Sigma will support preventing the pulling of images that have severe vulnerabilities.
+
+![](https://fs.tosone.cn/sigma/20231225/vuln.png)
+
+## Future Plans
+
+- In the storage layer, there are plans to support more object storage drivers. Currently, only filesystem, S3, and COS are supported. If the corresponding object storage supports the S3 protocol, seamless integration will be possible.
+- Some switches will be implemented for image distribution. When serious vulnerabilities are detected in an image, it will not be allowed to be distributed. Images without signatures will also not be allowed to be distributed.
+- More image proxy strategies will be developed to integrate with additional image registries, including caching images from ghcr.io. More image replication strategies will be implemented to provide additional settings at the repository level during proxy operations.
+- The functionality of synchronizing Sigma instance images across multiple regions will be implemented.
+- Hook events triggered by specific events, such as image build completion and image tag push completion, will be supported.
+- Efforts will be made to improve image distribution, including support for P2P and lazy pull features.
+- Integration with more third-party login methods will be done, optimizing permission management and allowing finer-grained permission settings, as well as supporting multi-tenancy management.
+
+## Conclusion
+
+Sigma is currently an early-stage project. It is encouraged for users to try it out and provide valuable feedback. Everyone is welcome to contribute to the future development of Sigma and participate in the project.

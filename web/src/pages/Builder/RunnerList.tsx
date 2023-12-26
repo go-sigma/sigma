@@ -535,7 +535,7 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
         {runnerObj.duration || "-"}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {dayjs().to(dayjs(runnerObj.created_at))}
+        {dayjs.utc(runnerObj.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       {
         runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
