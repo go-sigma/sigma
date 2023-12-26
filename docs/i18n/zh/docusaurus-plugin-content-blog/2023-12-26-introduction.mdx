@@ -1,0 +1,110 @@
+---
+slug: Sigma is coming! Harbor is outdating?
+title: Sigma is coming! Harbor is outdating?
+authors: [tosone]
+---
+
+在云原生的时代，软件交付的制品已经从软件本身转换到了 OCI-Native 的镜像。绝大多数 DevOps 的系统中，OCI-Native 的镜像仓库已经是中间必不可少的一个重要组件，从而减少制品交付的复杂度，并且也可以很好的从角色权限的角度维护制品和制品的各个版本，在此基础上会注重制品交付的安全性，也会在容器部署的速度上对镜像仓库提出要求。
+
+## 为什么自研 sigma？
+
+开发 [sigma](https://github.com/go-sigma/sigma) 的最初的想法是是降低 [Harbor](https://github.com/goharbor/harbor) 组件部署的复杂度，并且在高可用的角度又不失其架构优势。[sigma](https://github.com/go-sigma/sigma) 希望在制品元数据管理、权限管理、制品分发、部署和维护容易程度这四个方面都做到最好，并且在一开始设计 [sigma](https://github.com/go-sigma/sigma) 的时候就对这几方面做出思考。
+
+在很多个人用户的使用场景里可能仅仅是需要制品元数据管理友好、UI 易用的镜像仓库、部署和维护简单的镜像仓库，以上他们并不能都完全很好的符合以上特征，并且在镜像仓库中能够加入类似 [docker hub](https://hub.docker.com/) 的镜像构建功能将会是一个很受欢迎的功能。在较大的团队中看重的功能会在以上基础上希望镜像仓库是稳定的，并且和已有的系统兼容性好，可以对接团队内已有的 DevOps 系统，[sigma](https://github.com/go-sigma/sigma) 希望可以在这方面更深入的参与到整个 DevOps 流程，而不单单是一个仓库存储的角色。
+
+## sigma 的优势
+
+### 部署架构
+
+[sigma](https://github.com/go-sigma/sigma) 在部署层面上最简化可以做到单文件单个启动命令，将前端、镜像清理和镜像构建等异步任务服务以及镜像元数据管理等服务启动起来，并且仅依赖文件系统即可。
+在高可用部署的情况下，可以将前端、镜像元数据管理、镜像清理和镜像构建等异步任务服务等分别作为单独的服务运行，api-server 与镜像元数据管理服务分别单独部署，主要在于镜像元数据管理服务会参与到镜像的拉取和推送服务中，涉及到的流量较大，这样便不会影响到 api-server 的稳定性，依赖的中间件将会有对象存储、Redis、PostgreSQL/MySQL。具体部署细节可以参考 [sigma](https://github.com/go-sigma/sigma) chart 中的实现：[https://github.com/go-sigma/sigma/tree/main/deploy/sigma](https://github.com/go-sigma/sigma/tree/main/deploy/sigma)。
+
+### 镜像元数据管理
+
+镜像元数据管理这里采用和 [docker hub](https://hub.docker.com/) 比较类似的展示方式，在 repository 层级之下展示 tag，而不是像 [Harbor](https://github.com/goharbor/harbor) 和 ghcr 一样展示 artifact，用户其实对于 artifact hash 值的展示不是那么理解，而 tag 是用户自己定义的东西，更容易理解一些，在对架构镜像的展示方式和 docker hub 保持一致。
+在多架构镜像这里，会有类似 sbom 的 artifact 的内容推送到 artifact list 内，[sigma](https://github.com/go-sigma/sigma) 的前端将会仅展示 image、imageIndex、chart 等类型的 artifact，但是在 [distribution-spec](https://github.com/opencontainers/distribution-spec) 标准接口上，[sigma](https://github.com/go-sigma/sigma) 还是会返回所有的 artifact。
+
+![](https://fs.tosone.cn/sigma/20231225/tags.jpg)
+
+### 路由匹配
+
+[distribution-spec](https://github.com/opencontainers/distribution-spec) 定义的镜像仓库实现的 API 上，在 repository 层级这里是允许有斜线存在的（例如：/v2/library/alpine/manifests/latest），在 [distribution](https://github.com/distribution/distribution) 的实现上是利用正则来匹配路由的，在绝大多数的 web 框架都是将斜线当作是资源层级分隔符，导致这里比较难以实现，或者说不利用正则很难有好的实现方式。在 [sigma](https://github.com/go-sigma/sigma) 中首先使得 `/v2/` 的请求进入到统一的一个路由，再使用字符串匹配切割的方式检测路由的匹配情况。例如 manifests 相关的路由实现代码如下：
+
+``` go
+func (f factory) Initialize(c echo.Context) error {
+  method := c.Request().Method
+  uri := c.Request().RequestURI
+  urix := uri[:strings.LastIndex(uri, "/")]
+  manifestHandler := handlerNew()
+  if strings.HasSuffix(urix, "/manifests") {
+    switch method {
+    case http.MethodGet:
+      return manifestHandler.GetManifest(c)
+    case http.MethodHead:
+      return manifestHandler.HeadManifest(c)
+    case http.MethodPut:
+      return manifestHandler.PutManifest(c)
+    case http.MethodDelete:
+      return manifestHandler.DeleteManifest(c)
+    default:
+      return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+    }
+  } else if strings.HasSuffix(urix, "/referrers") && method == http.MethodGet {
+    return manifestHandler.GetReferrer(c)
+  }
+  return distribution.Next // 进入到下一个路由匹配规则中
+}
+```
+
+### 镜像存储
+
+与 [distribution](https://github.com/distribution/distribution) 项目不相同的是在镜像的 manifest 和 blob 文件存储上是完全不同的，[distribution](https://github.com/distribution/distribution) 在镜像的存储上主要依赖存储上的结构，将 tag 与 artifact 组成关联关系，artifact 与 blob 组成关联关系，这样就可以让 [distribution](https://github.com/distribution/distribution) 不依赖任何的数据库就可以达到管理镜像元数据和镜像 blob 的目的，从这一点上来看是很不错的。但是在镜像 gc 的时候会产生很大的麻烦，因为镜像清理要涉及到 blob 的清理，但是反向的关联在文件系统上比较难实现，这也是导致 [Harbor](https://github.com/goharbor/harbor) 在很早之前的版本上只能做到在镜像清理的时候停止镜像仓库的推送功能，这是完全不能接受的。
+
+[sigma](https://github.com/go-sigma/sigma) 在存储这些关联关系的时候不再使用文件系统来实现，而是直接使用数据库，文件系统层级将仅仅存储 blob 数据，存储 blob 的目录结构与 [distribution](https://github.com/distribution/distribution) 上保持一致，artifact 与 tag 直接存储在数据库内。[sigma](https://github.com/go-sigma/sigma) 的镜像清理在实现层面上是多线程的，将没有关联关系的 blob 直接从文件系统层级上删除，并且不会影响到前端的镜像推送功能（需要说明的是，在删除和新的 blob 推送上在相同的 blob 这里是有一个毫秒级的锁在的，用户对此无法感知），具体实现可以看这里：[https://github.com/go-sigma/sigma/blob/main/pkg/daemon/gc/gc_blob.go](https://github.com/go-sigma/sigma/blob/main/pkg/daemon/gc/gc_blob.go)。
+
+### 镜像构建
+
+镜像构建主要依赖 Dockerfile，但是 Dockerfile 构建的时候大多数需要依赖代码仓库，所以 [sigma](https://github.com/go-sigma/sigma) 目前对接了 GitHub 和 GitLab，可以将其中的代码仓库列表获取到让用户选择代码仓库填写相关参数进行构建。
+
+![](https://fs.tosone.cn/sigma/20231225/build-conf.jpg)
+
+![](https://fs.tosone.cn/sigma/20231225/build-log.jpg)
+
+用户可以选择指定的代码仓库和代码仓库的分支，填写 Dockerfile 相关的构建参数，例如：构建架构，build args 等。
+其中也支持定时任务的构建，也支持代码仓库的 hook event 触发构建，例如：push event，tag event 等。
+sigma 在构建的时候随时可以对任务进行停止操作，在构建过程中会有实时的日志展示到前端。在 [sigma](https://github.com/go-sigma/sigma) 构建完成的时候会将构建过程中得到的缓存文件打包缓存到 [sigma](https://github.com/go-sigma/sigma) 对接的文件系统或对象存储中，到下次构建前会将缓存加载进来再做构建，构建任务完成之前还会对镜像使用 [cosign](https://github.com/sigstore/cosign) 进行签名，签名使用的私钥为 [sigma](https://github.com/go-sigma/sigma) 启动时生成的私钥，存储在数据库中。
+
+### [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1 的支持
+
+[distribution](https://github.com/distribution/distribution) 目前尚未支持 [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1 定义的内容，目前 [Harbor](https://github.com/goharbor/harbor) 和 [zot](https://github.com/project-zot/zot) 都是实现了的，[sigma](https://github.com/go-sigma/sigma) 也对 [distribution-spec](https://github.com/opencontainers/distribution-spec) 1.1 做了实现，并且在镜像清理中会检查 referrer 的内容，当 artifact 被删除的时候会连同之前其 artifact 的其他 artifact 全部删除。
+
+### quota
+
+[sigma](https://github.com/go-sigma/sigma) 支持在 namespace 和 repository 设置 size 和 tag 上限，但其中遵循 namespace 和 repository 的从属容量限制关系。
+在 namespace 页面上可以方便查看当前的容量使用情况，未来会支持当存储容量接近上限的时候发出对应的 hook event。如下图：
+
+![](https://fs.tosone.cn/sigma/20231225/quota.jpg)
+
+目前 [sigma](https://github.com/go-sigma/sigma) 支持在镜像推送达到存储容量或者 tag 容量上限的时候，在客户端给出相应的提示信息。
+
+![](https://fs.tosone.cn/sigma/20231225/quota-push.jpg)
+
+### 镜像扫描
+
+目前在镜像类型的制品在推送完成之后就会在后端异步的执行 [trivy](https://github.com/aquasecurity/trivy) 镜像扫描的任务，并且镜像扫描的任务将会和 [trivy](https://github.com/aquasecurity/trivy) 的漏洞库做关联，当漏洞库有更新时，用户可以选择是否重新进行进行镜像扫描，后续 sigma 会支持当镜像有严重漏洞的时候禁止镜像的拉取操作。
+
+![](https://fs.tosone.cn/sigma/20231225/vuln.png)
+
+## 未来规划
+
+- 在存储层将会支持更多的对象存储的 driver，目前仅支持 filesystem，s3，cos，如果对应的对象存储支持 s3 协议则可以无缝对接。
+- 在镜像分发的可分发性上做出一些开关，当镜像被发现一些严重的漏洞的时候将不允许被分发，当镜像没有做签名的时候不允许被分发。
+- 完善更多的镜像 Proxy 策略，对接更多的镜像仓库，可以缓存 ghcr.io 的镜像等等。完善更多的镜像复制策略，在做 proxy 的时候可以在 repository 层级上做更多的设置。
+- 实现多地域 sigma 实例镜像同步的功能。
+- 实现事件触发的 hook event，例如镜像构建完成，镜像 tag 推送完成等事件。
+- 未来在镜像分发方面将会做更多努力，将会支持 P2P 和 lazy pull 特性。
+- 对接更多的第三方登录的方式，优化权限管理，在权限粒度上设置的更精细一些，支持多租户的管理。
+
+## 最后
+
+[sigma](https://github.com/go-sigma/sigma) 目前还属于一个新兴早期的项目，希望大家可以动手实践一下，欢迎提出宝贵建议，更欢迎大家一起建设 [sigma](https://github.com/go-sigma/sigma) 的未来，参与到项目中来。
