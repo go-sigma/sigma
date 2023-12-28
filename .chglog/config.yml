@@ -1,0 +1,46 @@
+style: github
+template: CHANGELOG.tpl.md
+info:
+  title: CHANGELOG
+  repository_url: https://github.com/go-sigma/sigma
+options:
+  commits:
+    filters:
+      Type:
+        - sparkles
+        - bug
+        - zap
+        - recycle
+        - pencil
+        - arrow_up
+        - green_heart
+        - white_check_mark
+  commit_groups:
+    group_by: Type
+    sort_by: Custom
+    title_order:
+      - sparkles
+      - bug
+      - zap
+      - recycle
+      - pencil
+      - arrow_up
+      - green_heart
+      - white_check_mark
+    title_maps:
+      sparkles: Features
+      bug: Bug Fixes
+      zap: Performance Improvements
+      recycle: Code Refactoring
+      pencil: Docs
+      arrow_up: Upgrade
+      green_heart: CI
+      white_check_mark: Unit Tests
+  header:
+    pattern: "^:(\\w*)\\:\\s(.*)$"
+    pattern_maps:
+      - Type
+      - Subject
+  notes:
+    keywords:
+      - BREAKING CHANGE
