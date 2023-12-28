@@ -7,9 +7,8 @@ DOCKER=${DOCKER:-docker}
 "$DOCKER" pull ghcr.io/go-sigma/sigma:nightly-alpine
 "$DOCKER" pull redis:7.0-alpine
 "$DOCKER" pull mysql:8.0
-"$DOCKER" pull postgres:15-alpine
 
-"$DOCKER" save quay.io/minio/minio:RELEASE.2023-11-20T22-40-07Z ghcr.io/go-sigma/sigma:nightly-alpine ghcr.io/go-sigma/sigma-builder:nightly redis:7.0-alpine mysql:8.0 postgres:15-alpine | gzip > sigma.tar.gz
+"$DOCKER" save quay.io/minio/minio:RELEASE.2023-11-20T22-40-07Z ghcr.io/go-sigma/sigma:nightly-alpine ghcr.io/go-sigma/sigma-builder:nightly redis:7.0-alpine mysql:8.0 | gzip > sigma.tar.gz
 
 if [ -d package ]; then
   rm -rf package
@@ -26,6 +25,10 @@ cp conf/sigma.test.io.crt ./package/sigma/conf/
 cp conf/sigma.test.io.key ./package/sigma/conf/
 mv ./sigma.tar.gz ./package/sigma
 
-tar zcvf sigma-offline.tar.gz -C ./package sigma
+if [ -f sigma-offline.tar.gz ]; then
+  rm sigma-offline.tar.gz
+fi
+
+tar zcf sigma-offline.tar.gz -C ./package sigma
 
 rm -rf ./package

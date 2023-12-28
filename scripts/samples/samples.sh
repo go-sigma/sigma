@@ -55,7 +55,7 @@ push_image test-size-limit centos:8
 
 if [ ! -f "./helm" ]; then
   curl -sL https://get.helm.sh/helm-v3.13.1-linux-arm64.tar.gz | tar xvz --strip-components 1
-  rm LICENSE  README.md
+  rm LICENSE README.md
 fi
 
 if [ -d "./demo" ]; then
