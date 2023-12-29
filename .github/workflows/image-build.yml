@@ -49,9 +49,6 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository }}
-          flavor: |
-            latest=auto
-            suffix=-debian,onlatest=true
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
@@ -105,8 +102,7 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
           flavor: |
-            latest=auto
-            suffix=-debian,onlatest=true
+            latest=false
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
