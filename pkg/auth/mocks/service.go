@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/service.go -package=mocks github.com/go-sigma/sigma/pkg/auth Service
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

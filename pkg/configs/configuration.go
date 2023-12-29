@@ -114,7 +114,7 @@ type ConfigurationCacheRedis struct {
 
 // ConfigurationCacheInmemory ...
 type ConfigurationCacheInmemory struct {
-	Size int64 `yaml:"size"`
+	Size int `yaml:"size"`
 }
 
 // ConfigurationCacheDatabase ...
