@@ -41,7 +41,7 @@ type cacher[T any] struct {
 
 // New returns a new Cacher.
 func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
-	cache, err := lru.New2Q[string, ValueWithTtl[T]](10240)
+	cache, err := lru.New2Q[string, ValueWithTtl[T]](config.Cache.Inmemory.Size)
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +86,17 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 		}
 		return result, nil
 	}
-	if result.Ttl != nil && result.Ttl.After(time.Now()) {
+	if result.Ttl == nil {
+		return result.Value, nil
+	}
+	if result.Ttl.After(time.Now()) {
 		return result.Value, nil
 	}
 	err := c.Del(ctx, key)
 	if err != nil {
 		return result.Value, err
 	}
-	return result.Value, nil
+	return c.Get(ctx, key)
 }
 
 // Del deletes the value corresponding to the given key from the cache.

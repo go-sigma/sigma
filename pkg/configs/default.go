@@ -53,4 +53,10 @@ func defaultSettings() {
 	if configuration.Daemon.Gc.Retention == 0 {
 		configuration.Daemon.Gc.Retention = 72 * time.Hour
 	}
+	if configuration.Cache.Inmemory.Size == 0 {
+		configuration.Cache.Inmemory.Size = 10240
+	}
+	if configuration.Cache.Ttl == 0 {
+		configuration.Cache.Ttl = time.Second * 30
+	}
 }
