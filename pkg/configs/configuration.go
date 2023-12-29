@@ -250,6 +250,7 @@ type ConfigurationDaemonKubernetes struct {
 
 // ConfigurationDaemonBuilder ...
 type ConfigurationDaemonBuilder struct {
+	Enabled    bool                          `yaml:"enabled"`
 	Type       enums.BuilderType             `yaml:"type"`
 	Image      string                        `yaml:"image"`
 	Docker     ConfigurationDaemonDocker     `yaml:"docker"`

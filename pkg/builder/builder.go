@@ -62,6 +62,9 @@ type Factory interface {
 var DriverFactories = make(map[string]Factory)
 
 func Initialize(config configs.Configuration) error {
+	if !config.Daemon.Builder.Enabled {
+		return nil
+	}
 	typ := config.Daemon.Builder.Type
 	factory, ok := DriverFactories[typ.String()]
 	if !ok {

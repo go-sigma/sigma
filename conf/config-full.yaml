@@ -113,6 +113,7 @@ daemon:
     # At 02:00 on Saturday
     cron: 0 2 * * 6
   builder:
+    enabled: false
     image: ghcr.io/go-sigma/sigma-builder:nightly
     type: docker
     docker:
