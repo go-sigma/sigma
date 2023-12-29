@@ -4,7 +4,7 @@
 
 ### Features
 
-* Add changlog config
+* Add changlog config ([#263](https://github.com/go-sigma/sigma/issues/263))
 * Add introduction for sigma ([#260](https://github.com/go-sigma/sigma/issues/260))
 * Show elapsed on builder page ([#257](https://github.com/go-sigma/sigma/issues/257))
 * Change cache api ([#256](https://github.com/go-sigma/sigma/issues/256))
