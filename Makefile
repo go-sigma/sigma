@@ -98,15 +98,15 @@ docker-build: ## Use the dockerfile to build the sigma image
 docker-build-builder: ## Use the dockerfile to build the sigma-builder image
 	docker buildx build -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true .
 
-## Format:
-format: sql-format
-
-sql-format: ## format all sql files
-	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
-
 ## Misc:
 migration-create: ## Create a new migration file
 	@migrate create -dir ./migrations -seq -digits 4 -ext sql $(MIGRATION_NAME)
+
+sql-format: ## Format all sql files
+	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
+
+changelog: ## Generate changelog
+	@docker run -v "${PWD}":/workdir quay.io/git-chglog/git-chglog:latest -o CHANGELOG.md
 
 gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
