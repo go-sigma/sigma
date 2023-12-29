@@ -59,14 +59,28 @@ RUN set -eux && \
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
+ARG ZIG_VERSION=0.11.0
+ARG BUILDARCH
+
 RUN set -eux && \
   # sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
 		git \
+    wget \
+    xz-utils \
 	&& \
-	rm -rf /var/lib/apt/lists/*
+	rm -rf /var/lib/apt/lists/* && \
+  case "${BUILDARCH}" in \
+		amd64) export ZIGARCH='x86_64' ;; \
+		arm64) export ZIGARCH='aarch64' ;; \
+	esac; \
+  wget -O zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz https://ziglang.org/download/"${ZIG_VERSION}"/zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz && \
+  tar xf zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz && \
+  mv ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}"/zig /usr/local/bin && \
+  mv ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}"/lib /usr/local/bin && \
+  rm -rf ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}" zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
@@ -75,7 +89,16 @@ WORKDIR /go/src/github.com/go-sigma/sigma
 
 ARG TARGETOS TARGETARCH
 
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build GOOS=$TARGETOS GOARCH=$TARGETARCH make build
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+  case "${TARGETARCH}" in \
+		amd64) export CC="zig cc -target x86_64-linux-musl" ;; \
+		arm64) export CC="zig cc -target aarch64-linux-musl" ;; \
+	esac; \
+  case "${TARGETARCH}" in \
+		amd64) export CXX="zig c++ -target x86_64-linux-musl" ;; \
+		arm64) export CXX="zig c++ -target aarch64-linux-musl" ;; \
+	esac; \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH CC="${CC}" CXX="${CXX}" make build
 
 FROM debian:${DEBIAN_VERSION}
 

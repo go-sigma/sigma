@@ -27,39 +27,23 @@ GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.BuildDate=$(shell d
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)'
 
-BUILDARCH        ?= $(shell uname -m)
+GOOS             ?= linux
+GOARCH           ?= amd64
+CC               ?=
+CXX              ?=
 
-# canonicalized names for host architecture
-ifeq ($(BUILDARCH),aarch64)
-  BUILDARCH=arm64
-endif
-ifeq ($(BUILDARCH),x86_64)
-  BUILDARCH=amd64
-endif
-ifeq ($(BUILDARCH),armv7l)
-  BUILDARCH=armv7
-endif
-
-DOCKER_PLATFORMS ?= linux/$(BUILDARCH)
+DOCKER_PLATFORMS ?= $(GOOS)/$(GOARCH)
 
 .PHONY: all test build vendor
 
 all: build build-builder
 
-all-linux: build-linux build-builder-linux
-
 ## Build:
 build: ## Build sigma and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
+	@CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
 
 build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
-
-build-linux: ## Build sigma for linux and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME) -v .
-
-build-builder-linux: ## Build sigma-builder for release and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on GOOS=linux $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
+	@CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags timetzdata -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 clean: ## Remove build related file
 	rm -fr ./bin
