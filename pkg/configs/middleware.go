@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func init() {
