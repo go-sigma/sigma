@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

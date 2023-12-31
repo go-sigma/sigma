@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/tag_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao TagServiceFactory
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

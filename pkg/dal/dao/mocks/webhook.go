@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/webhook.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WebhookService
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

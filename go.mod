@@ -3,20 +3,20 @@ module github.com/go-sigma/sigma
 go 1.21.4
 
 require (
-	code.gitea.io/sdk/gitea v0.17.0
+	code.gitea.io/sdk/gitea v0.17.1
 	github.com/BurntSushi/toml v1.3.2
 	github.com/IBM/sarama v1.42.1
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.0
-	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/anchore/syft v0.99.0
 	github.com/aquasecurity/trivy v0.48.1
-	github.com/aws/aws-sdk-go v1.49.9
+	github.com/aws/aws-sdk-go v1.49.13
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
-	github.com/casbin/casbin/v2 v2.80.0
+	github.com/casbin/casbin/v2 v2.81.0
 	github.com/casbin/gorm-adapter/v3 v3.20.0
-	github.com/deckarep/golang-set/v2 v2.5.0
+	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/distribution/distribution/v3 v3.0.0-20231016181039-1d410148efe6
 	github.com/distribution/reference v0.5.0
 	github.com/docker/cli v24.0.7+incompatible
@@ -27,7 +27,7 @@ require (
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redsync/redsync/v4 v4.11.0
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
@@ -66,7 +66,7 @@ require (
 	github.com/xanzy/go-gitlab v0.95.2
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.17.0
-	golang.org/x/exp v0.0.0-20231219180239-dc181d75b848
+	golang.org/x/exp v0.0.0-20231226003508-02704c960a9b
 	golang.org/x/net v0.19.0
 	golang.org/x/oauth2 v0.15.0
 	gopkg.in/yaml.v3 v3.0.1

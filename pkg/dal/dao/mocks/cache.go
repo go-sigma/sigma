@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/cache.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao CacheService
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
