@@ -170,10 +170,11 @@ type ListBuilderRunnersRequest struct {
 
 // BuilderRunnerItem ...
 type BuilderRunnerItem struct {
-	ID        int64             `json:"id" example:"10"`
-	BuilderID int64             `json:"builder_id" example:"10"`
-	Log       []byte            `json:"log" example:"log"`
-	Status    enums.BuildStatus `json:"status" example:"Success"`
+	ID            int64             `json:"id" example:"10"`
+	BuilderID     int64             `json:"builder_id" example:"10"`
+	Log           []byte            `json:"log" example:"log"`
+	Status        enums.BuildStatus `json:"status" example:"Success"`
+	StatusMessage *string           `json:"status_message" example:""`
 
 	Tag         *string `json:"tag" example:"v1.0"`
 	RawTag      string  `json:"raw_tag" example:"v1.0"`

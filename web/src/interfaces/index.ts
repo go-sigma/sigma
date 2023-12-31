@@ -293,6 +293,7 @@ export interface IBuilderRunnerItem {
   id: number;
   builder_id: number;
   status: string;
+  status_message?: string;
   tag?: string;
   raw_tag: string;
   description?: string;

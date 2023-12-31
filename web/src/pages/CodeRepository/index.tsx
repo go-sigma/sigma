@@ -23,8 +23,6 @@ import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 
-import "./index.css";
-
 import { IHTTPError, ICodeRepositoryProviderList, ICodeRepositoryProviderItem, IEndpoint, IOauth2ClientID } from '../../interfaces';
 
 export default function ({ localServer }: { localServer: string }) {

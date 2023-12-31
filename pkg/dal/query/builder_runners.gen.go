@@ -34,6 +34,7 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.BuilderID = field.NewInt64(tableName, "builder_id")
 	_builderRunner.Log = field.NewBytes(tableName, "log")
 	_builderRunner.Status = field.NewField(tableName, "status")
+	_builderRunner.StatusMessage = field.NewString(tableName, "status_message")
 	_builderRunner.Tag = field.NewString(tableName, "tag")
 	_builderRunner.RawTag = field.NewString(tableName, "raw_tag")
 	_builderRunner.Description = field.NewString(tableName, "description")
@@ -108,22 +109,23 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 type builderRunner struct {
 	builderRunnerDo builderRunnerDo
 
-	ALL         field.Asterisk
-	CreatedAt   field.Int64
-	UpdatedAt   field.Int64
-	DeletedAt   field.Uint64
-	ID          field.Int64
-	BuilderID   field.Int64
-	Log         field.Bytes
-	Status      field.Field
-	Tag         field.String
-	RawTag      field.String
-	Description field.String
-	ScmBranch   field.String
-	StartedAt   field.Int64
-	EndedAt     field.Int64
-	Duration    field.Int64
-	Builder     builderRunnerBelongsToBuilder
+	ALL           field.Asterisk
+	CreatedAt     field.Int64
+	UpdatedAt     field.Int64
+	DeletedAt     field.Uint64
+	ID            field.Int64
+	BuilderID     field.Int64
+	Log           field.Bytes
+	Status        field.Field
+	StatusMessage field.String
+	Tag           field.String
+	RawTag        field.String
+	Description   field.String
+	ScmBranch     field.String
+	StartedAt     field.Int64
+	EndedAt       field.Int64
+	Duration      field.Int64
+	Builder       builderRunnerBelongsToBuilder
 
 	fieldMap map[string]field.Expr
 }
@@ -147,6 +149,7 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.BuilderID = field.NewInt64(table, "builder_id")
 	b.Log = field.NewBytes(table, "log")
 	b.Status = field.NewField(table, "status")
+	b.StatusMessage = field.NewString(table, "status_message")
 	b.Tag = field.NewString(table, "tag")
 	b.RawTag = field.NewString(table, "raw_tag")
 	b.Description = field.NewString(table, "description")
@@ -182,7 +185,7 @@ func (b *builderRunner) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (b *builderRunner) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 15)
+	b.fieldMap = make(map[string]field.Expr, 16)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -190,6 +193,7 @@ func (b *builderRunner) fillFieldMap() {
 	b.fieldMap["builder_id"] = b.BuilderID
 	b.fieldMap["log"] = b.Log
 	b.fieldMap["status"] = b.Status
+	b.fieldMap["status_message"] = b.StatusMessage
 	b.fieldMap["tag"] = b.Tag
 	b.fieldMap["raw_tag"] = b.RawTag
 	b.fieldMap["description"] = b.Description

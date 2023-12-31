@@ -763,6 +763,7 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `builder_id` integer NOT NULL,
   `log` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Scheduling', 'Building', 'Stopping', 'Stopped')) NOT NULL DEFAULT 'Pending',
+  `status_message` varchar(255),
   -- common settings
   `tag` varchar(128), -- image tag
   `raw_tag` varchar(255) NOT NULL, -- image tag

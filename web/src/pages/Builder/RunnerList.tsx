@@ -16,6 +16,7 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
+import { Tooltip } from 'flowbite';
 import { useNavigate } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
@@ -529,7 +530,21 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {runnerObj.status}
+        <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+          {runnerObj.status_message}
+          <div className="tooltip-arrow" data-popper-arrow></div>
+        </div>
+        <div className={runnerObj.status === "Failed" ? "text-red-600" : ""}
+          id={`target-tooltip-${runnerObj.id}`}
+          onClick={e => {
+            let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runnerObj.id}`),
+              document.getElementById(`target-tooltip-${runnerObj.id}`), { triggerType: "click" });
+            tooltip.show();
+            e.stopPropagation();
+          }}
+        >
+          {runnerObj.status}
+        </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
         {runnerObj.duration || "-"}

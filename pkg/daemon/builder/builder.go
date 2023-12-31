@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -36,9 +37,9 @@ import (
 func init() {
 	workq.TopicHandlers[enums.DaemonBuilder.String()] = definition.Consumer{
 		Handler:     builderRunner,
-		MaxRetry:    6,
+		MaxRetry:    1,
 		Concurrency: 10,
-		Timeout:     time.Minute * 10,
+		Timeout:     time.Minute * 60,
 	}
 }
 
@@ -83,6 +84,35 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 	if err != nil {
 		log.Error().Err(err).Msg("Get runner failed")
 		return fmt.Errorf("Get runner failed: %v", err)
+	}
+
+	defer func() {
+		var updates map[string]any
+		if !(payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart || payload.Action == enums.DaemonBuilderActionStop) {
+			updates = map[string]any{
+				query.BuilderRunner.Status.ColumnName().String():        enums.BuildStatusFailed,
+				query.BuilderRunner.StatusMessage.ColumnName().String(): fmt.Sprintf("Daemon builder action(%s) is not support", payload.Action),
+				query.BuilderRunner.EndedAt.ColumnName().String():       time.Now().UnixMilli(),
+			}
+		}
+		if err != nil {
+			updates = map[string]any{
+				query.BuilderRunner.Status.ColumnName().String():        enums.BuildStatusFailed,
+				query.BuilderRunner.StatusMessage.ColumnName().String(): err.Error(),
+				query.BuilderRunner.EndedAt.ColumnName().String():       time.Now().UnixMilli(),
+			}
+		}
+		if len(updates) > 0 {
+			err = builderService.UpdateRunner(ctx, payload.BuilderID, payload.RunnerID, updates)
+			if err != nil {
+				log.Error().Err(err).Msg("Update runner after got error")
+			}
+		}
+	}()
+
+	if builder.Driver == nil {
+		err = fmt.Errorf("Builder driver is not initialized")
+		return fmt.Errorf("Builder driver is not initialized, or check config.daemon.builder.enabled is true or not")
 	}
 
 	platforms := []enums.OciPlatform{}
@@ -144,17 +174,12 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 		}
 		buildConfig.Builder.ScmProvider = (*enums.ScmProvider)(&builderObj.CodeRepository.User3rdParty.Provider) // TODO: change type
 	}
-	if payload.Action == enums.DaemonBuilderActionStart { // nolint: gocritic
+	if payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart {
 		err = builder.Driver.Start(ctx, buildConfig)
-	} else if payload.Action == enums.DaemonBuilderActionRestart {
-		err = builder.Driver.Start(ctx, buildConfig)
-	} else {
-		log.Error().Err(err).Str("action", payload.Action.String()).Msg("Daemon builder action not found")
-		return fmt.Errorf("Daemon builder action not found")
-	}
-	if err != nil {
-		log.Error().Err(err).Msg("Start or restart builder failed")
-		return fmt.Errorf("Start or restart builder failed: %v", err)
+		if err != nil {
+			log.Error().Err(err).Msg("Start or restart builder failed")
+			return fmt.Errorf("Start or restart builder failed: %v", err)
+		}
 	}
 	return nil
 }

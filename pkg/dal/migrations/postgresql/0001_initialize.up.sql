@@ -857,6 +857,7 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   "builder_id" bigint NOT NULL,
   "log" bytea,
   "status" builder_runner_status NOT NULL DEFAULT 'Pending',
+  "status_message" varchar(255),
   -- common settings
   "tag" varchar(128),
   "raw_tag" varchar(255) NOT NULL,

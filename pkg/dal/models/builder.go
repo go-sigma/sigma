@@ -81,9 +81,10 @@ type BuilderRunner struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	BuilderID int64
-	Log       []byte
-	Status    enums.BuildStatus `gorm:"default:Pending"`
+	BuilderID     int64
+	Log           []byte
+	Status        enums.BuildStatus `gorm:"default:Pending"`
+	StatusMessage *string
 
 	Tag         *string
 	RawTag      string
