@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/workq.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WorkQueueService
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

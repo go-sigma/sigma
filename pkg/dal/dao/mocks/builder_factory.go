@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/builder_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BuilderServiceFactory
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

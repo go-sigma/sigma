@@ -70,7 +70,7 @@ services:
       - default
   minio:
     container_name: minio
-    image: quay.io/minio/minio:RELEASE.2023-11-20T22-40-07Z
+    image: quay.io/minio/minio:RELEASE.2023-12-23T07-19-11Z
     ports:
       - "9000:9000"
       - "9001:9001"

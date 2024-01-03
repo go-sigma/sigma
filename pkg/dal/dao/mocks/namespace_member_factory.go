@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=mocks/namespace_member_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberServiceFactory
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
