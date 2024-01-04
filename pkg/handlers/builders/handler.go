@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -119,18 +120,21 @@ type factory struct{}
 func (f factory) Initialize(e *echo.Echo) error {
 	handler := handlerNew()
 
-	builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
-		middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	builderGroup.POST("/", handler.CreateBuilder)
-	builderGroup.PUT("/:builder_id", handler.UpdateBuilder)
-	builderGroup.GET("/:builder_id/runners/", handler.ListRunners)
-	builderGroup.POST("/:builder_id/runners/run", handler.PostRunnerRun)
-	builderGroup.GET("/:builder_id/runners/:runner_id", handler.GetRunner)
-	builderGroup.GET("/:builder_id/runners/:runner_id/stop", handler.GetRunnerStop)
-	builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerRerun)
+	config := configs.GetConfiguration()
+	if config.Daemon.Builder.Enabled {
+		builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
+			middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+		builderGroup.POST("/", handler.CreateBuilder)
+		builderGroup.PUT("/:builder_id", handler.UpdateBuilder)
+		builderGroup.GET("/:builder_id/runners/", handler.ListRunners)
+		builderGroup.POST("/:builder_id/runners/run", handler.PostRunnerRun)
+		builderGroup.GET("/:builder_id/runners/:runner_id", handler.GetRunner)
+		builderGroup.GET("/:builder_id/runners/:runner_id/stop", handler.GetRunnerStop)
+		builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerRerun)
 
-	builderWithoutAuthGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
-	builderWithoutAuthGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
+		builderWithoutAuthGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
+		builderWithoutAuthGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
+	}
 	return nil
 }
 

@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -110,17 +111,20 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-
 	codeRepositoryHandler := handlerNew()
-	codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
-	codereposGroup.GET("/:provider", codeRepositoryHandler.List)
-	codereposGroup.GET("/:provider/repos/:id", codeRepositoryHandler.Get)
-	codereposGroup.GET("/:provider/user3rdparty", codeRepositoryHandler.User3rdParty)
-	codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
-	codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
-	codereposGroup.GET("/:provider/repos/:id/branches", codeRepositoryHandler.ListBranches)
-	codereposGroup.GET("/:provider/repos/:id/branches/:name", codeRepositoryHandler.GetBranch)
+
+	config := configs.GetConfiguration()
+	if config.Daemon.Builder.Enabled {
+		codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+		codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
+		codereposGroup.GET("/:provider", codeRepositoryHandler.List)
+		codereposGroup.GET("/:provider/repos/:id", codeRepositoryHandler.Get)
+		codereposGroup.GET("/:provider/user3rdparty", codeRepositoryHandler.User3rdParty)
+		codereposGroup.GET("/:provider/resync", codeRepositoryHandler.Resync)
+		codereposGroup.GET("/:provider/owners", codeRepositoryHandler.ListOwners)
+		codereposGroup.GET("/:provider/repos/:id/branches", codeRepositoryHandler.ListBranches)
+		codereposGroup.GET("/:provider/repos/:id/branches/:name", codeRepositoryHandler.GetBranch)
+	}
 	return nil
 }
 

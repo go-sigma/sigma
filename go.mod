@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.21.4
+go 1.21.5
 
 require (
 	code.gitea.io/sdk/gitea v0.17.1
