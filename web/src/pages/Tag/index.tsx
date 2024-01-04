@@ -32,7 +32,7 @@ import Toast from "../../components/Notification";
 import DockerSvg from "../../components/svg/docker";
 import Pagination from "../../components/Pagination";
 import distros, { distroName } from '../../utils/distros';
-import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig } from "../../interfaces";
+import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig } from "../../interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
@@ -89,6 +89,29 @@ export default function Tag({ localServer }: { localServer: string }) {
 
   useEffect(fetchTags, [refresh, page]);
 
+  const [gotConfig, setGotConfig] = useState(false);
+  const [config, setConfig] = useState<ISystemConfig>({
+    daemon: {
+      builder: true
+    }
+  } as ISystemConfig);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/systems/config").then(response => {
+      if (response.status === 200) {
+        const config = response.data as ISystemConfig;
+        setConfig(config);
+        setGotConfig(true);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
   return (
     <Fragment>
       <HelmetProvider>
@@ -104,7 +127,7 @@ export default function Tag({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu localServer={localServer} item="tags" namespace={namespace} repository={repository || ""} />
+        <Menu localServer={localServer} item="tags" namespace={namespace} namespace_id={namespaceId || ""} repository={repository || ""} repository_id={repositoryId || ""} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
           <main className="">
             <Header title="Tag"
@@ -140,7 +163,7 @@ export default function Tag({ localServer }: { localServer: string }) {
               //   )
               // }
               props={
-                (
+                gotConfig && (
                   <div className="sm:flex sm:space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repository/summary?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
@@ -148,12 +171,16 @@ export default function Tag({ localServer }: { localServer: string }) {
                     >
                       Summary
                     </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Builder
-                    </Link>
+                    {
+                      config.daemon.builder && (
+                        <Link
+                          to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
+                          className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                        >
+                          Builder
+                        </Link>
+                      )
+                    }
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
                     >

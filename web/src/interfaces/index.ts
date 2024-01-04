@@ -510,3 +510,9 @@ export interface INamespaceRoleItem {
   created_at: string;
   updated_at: string;
 }
+
+export interface ISystemConfig {
+  daemon: {
+    builder: boolean;
+  };
+}

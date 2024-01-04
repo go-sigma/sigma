@@ -26,7 +26,7 @@ import { Link, useSearchParams, useParams } from "react-router-dom";
 import Menu from "../../components/Menu";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
-import { IRepositoryItem, IHTTPError } from "../../interfaces";
+import { IRepositoryItem, IHTTPError, ISystemConfig } from "../../interfaces";
 
 import "./index.css";
 
@@ -81,6 +81,29 @@ export default function ({ localServer }: { localServer: string }) {
     })
   }
 
+  const [gotConfig, setGotConfig] = useState(false);
+  const [config, setConfig] = useState<ISystemConfig>({
+    daemon: {
+      builder: false
+    }
+  } as ISystemConfig);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/systems/config").then(response => {
+      if (response.status === 200) {
+        const config = response.data as ISystemConfig;
+        setConfig(config);
+        setGotConfig(true);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
   return (
     <>
       <HelmetProvider>
@@ -89,26 +112,30 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen max-h-screen flex overflow-hidden bg-white">
-        <Menu localServer={localServer} item="repositories" namespace={namespace} />
+        <Menu localServer={localServer} item="repositories" namespace={namespace} namespace_id={namespaceId.toString()} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"
               props={
-                (
+                gotConfig && (
                   <div className="sm:flex sm:space-x-8">
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
                     >
                       Summary
                     </span>
+                    {
+                      config.daemon.builder && (
+                        <Link
+                          to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
+                          className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                        >
+                          Builder
+                        </Link>
+                      )
+                    }
                     <Link
-                      to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Builder
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj.name}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Tag list

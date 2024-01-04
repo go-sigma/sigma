@@ -24,15 +24,14 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
 import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/refreshToken"
-import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion } from "../../interfaces";
+import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion, ISystemConfig } from "../../interfaces";
 
-export default function ({ localServer, item, namespace, repository, tag, selfClick }: { localServer: string, item: string, namespace?: string, repository?: string, tag?: string, selfClick?: boolean }) {
+export default function ({ localServer, item, namespace, namespace_id, repository, repository_id, tag, selfClick }: { localServer: string, item: string, namespace?: string, namespace_id?: string, repository?: string, repository_id?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [menuActive, setMenuActive] = useState(item === "" ? "home" : item);
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
-  const isAnonymous = (searchParams.get('anonymous') || "false") === "true";
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
   useClickAway(ref, () => {
@@ -48,35 +47,57 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
 
   // get user info
   useEffect(() => {
-    if (!isAnonymous) {
-      axios.get(localServer + "/api/v1/users/self").then(response => {
-        if (response.status === 200) {
-          const user = response.data as IUserSelf;
-          setUsername(user.username);
-          setEmail(user.email);
-          setUserID(user.id);
-        } else {
-          const errorcode = response.data as IHTTPError;
-          Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response.status === 200) {
+        const user = response.data as IUserSelf;
+        setUsername(user.username);
+        setEmail(user.email);
+        setUserID(user.id);
+        if (user.role === "Anonymous") {
+          setIsAnonymous(true);
         }
-      }).catch(error => {
-        const errorcode = error.response.data as IHTTPError;
+      } else {
+        const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      });
-      setupAutoRefreshToken(localServer, logout);
-      const visibilitychangeHandler = () => {
-        if (document.hidden) {
-          teardownAutoRefreshToken();
-        } else {
-          setupAutoRefreshToken(localServer, logout);
-        }
       }
-      document.addEventListener("visibilitychange", visibilitychangeHandler);
-      return () => {
-        document.removeEventListener("visibilitychange", visibilitychangeHandler);
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+    setupAutoRefreshToken(localServer, logout);
+    const visibilitychangeHandler = () => {
+      if (document.hidden) {
+        teardownAutoRefreshToken();
+      } else {
+        setupAutoRefreshToken(localServer, logout);
       }
     }
-  }, [refresh])
+    document.addEventListener("visibilitychange", visibilitychangeHandler);
+    return () => {
+      document.removeEventListener("visibilitychange", visibilitychangeHandler);
+    }
+  }, [refresh]);
+
+  const [config, setConfig] = useState<ISystemConfig>({
+    daemon: {
+      builder: true
+    }
+  } as ISystemConfig);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/systems/config").then(response => {
+      if (response.status === 200) {
+        const config = response.data as ISystemConfig;
+        setConfig(config);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
 
   const [hotNamespaceTotal, setHotNamespaceTotal] = useState(0);
   const [hotNamespaceList, setHotNamespaceList] = useState<INamespaceItem[]>([]);
@@ -98,22 +119,20 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
     }
-  }, [])
+  }, []);
 
   const logout = () => {
-    if (!isAnonymous) {
-      let tokens: string[] = [localStorage.getItem("token") || "", localStorage.getItem("refresh_token") || ""];
-      axios.post(localServer + "/api/v1/users/logout", {
-        tokens: tokens
-      }).then(response => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh_token");
-        navigate("/login");
-      }).catch(error => {
-        const errorcode = error.response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      });
-    }
+    let tokens: string[] = [localStorage.getItem("token") || "", localStorage.getItem("refresh_token") || ""];
+    axios.post(localServer + "/api/v1/users/logout", {
+      tokens: tokens
+    }).then(response => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      navigate("/login");
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
   }
 
   const [endpoint, setEndpoint] = useState("");
@@ -268,7 +287,7 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
         </div>
         <div className="h-0 flex-1 flex flex-col overflow-y-auto">
           {
-            !isAnonymous && (
+            (
               <div className="px-3 mt-6 relative inline-block text-left" ref={ref}>
                 <div>
                   <button type="button" className="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500" onClick={() => { setShowProfileMenu(!showProfileMenu) }}>
@@ -286,23 +305,27 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                 </div>
                 <div className={showProfileMenu ? "" : "hidden"}>
                   <div className="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200">
-                    <div className="py-1">
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        onClick={e => {
-                          setShowProfileMenu(false);
-                          setCreateRunnerModal(true);
-                          setUsernameInput(username);
-                          setEmailInput(email);
-                        }}
-                      >Update profile</div>
-                      <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        onClick={e => {
-                          setUpdatePasswordModal(true);
-                          setPasswordInput("");
-                          setRepeatPasswordInput("");
-                        }}
-                      >Reset password</div>
-                    </div>
+                    {
+                      !isAnonymous && (
+                        <div className="py-1">
+                          <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={e => {
+                              setShowProfileMenu(false);
+                              setCreateRunnerModal(true);
+                              setUsernameInput(username);
+                              setEmailInput(email);
+                            }}
+                          >Update profile</div>
+                          <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={e => {
+                              setUpdatePasswordModal(true);
+                              setPasswordInput("");
+                              setRepeatPasswordInput("");
+                            }}
+                          >Reset password</div>
+                        </div>
+                      )
+                    }
                     <div className="py-1">
                       <div className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" onClick={logout}>Logout</div>
                     </div>
@@ -348,7 +371,7 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
               </Link>
               {
                 (item === "repositories" || item === "tags" || item === "artifacts") && (
-                  <Link to={`/namespaces/${namespace}/repositories?repository=${repository}`} className={`text-gray-700 group flex items-center px-6 py-2 text-sm font-medium rounded-md ${menuActive === "repositories" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+                  <Link to={`/namespaces/${namespace}/repositories?namespace_id=${namespace_id}`} className={`text-gray-700 group flex items-center px-6 py-2 text-sm font-medium rounded-md ${menuActive === "repositories" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
                     setMenuActive("repositories");
                     (item === "repositories" && selfClick !== true) && e.preventDefault();
                   }}>
@@ -392,17 +415,21 @@ export default function ({ localServer, item, namespace, repository, tag, selfCl
                   </Link>
                 )
               }
-              <Link to={`/coderepos`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
-                setMenuActive("coderepos");
-                item === "coderepos" && e.preventDefault();
-              }}>
-                <span className="text-gray-400 mr-3 h-6 w-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" />
-                  </svg>
-                </span>
-                Code Repository
-              </Link>
+              {
+                !isAnonymous && config.daemon.builder && (
+                  <Link to={`/coderepos`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "coderepos" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
+                    setMenuActive("coderepos");
+                    item === "coderepos" && e.preventDefault();
+                  }}>
+                    <span className="text-gray-400 mr-3 h-6 w-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" />
+                      </svg>
+                    </span>
+                    Code Repository
+                  </Link>
+                )
+              }
               {
                 !isAnonymous && (
                   <Link to={`/settings`} className={`text-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md ${menuActive === "settings" ? "bg-gray-100" : "hover:bg-gray-50 text-gray-700"}`} onClick={e => {
