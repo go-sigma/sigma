@@ -868,6 +868,17 @@ definitions:
         example: "2006-01-02 15:04:05"
         type: string
     type: object
+  types.GetSystemConfigDaemon:
+    properties:
+      builder:
+        example: false
+        type: boolean
+    type: object
+  types.GetSystemConfigResponse:
+    properties:
+      daemon:
+        $ref: '#/definitions/types.GetSystemConfigDaemon'
+    type: object
   types.GetSystemEndpointResponse:
     properties:
       endpoint:
@@ -4542,6 +4553,20 @@ paths:
       summary: Redirect oauth2 provider callback
       tags:
       - OAuth2
+  /systems/config:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSystemConfigResponse'
+      summary: Get config
+      tags:
+      - System
   /systems/endpoint:
     get:
       consumes:

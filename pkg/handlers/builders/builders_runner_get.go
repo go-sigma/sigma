@@ -83,11 +83,12 @@ func (h *handler) GetRunner(c echo.Context) error {
 
 		Log: runnerObj.Log,
 
-		Status:      runnerObj.Status,
-		Tag:         runnerObj.Tag,
-		RawTag:      runnerObj.RawTag,
-		Description: runnerObj.Description,
-		ScmBranch:   runnerObj.ScmBranch,
+		Status:        runnerObj.Status,
+		StatusMessage: runnerObj.StatusMessage,
+		Tag:           runnerObj.Tag,
+		RawTag:        runnerObj.RawTag,
+		Description:   runnerObj.Description,
+		ScmBranch:     runnerObj.ScmBranch,
 
 		StartedAt:   runnerObj.StartedAt,
 		EndedAt:     runnerObj.EndedAt,

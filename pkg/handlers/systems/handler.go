@@ -33,6 +33,8 @@ type Handler interface {
 	GetEndpoint(c echo.Context) error
 	// GetVersion handles the get version request
 	GetVersion(c echo.Context) error
+	// GetConfig handles the get config request
+	GetConfig(c echo.Context) error
 }
 
 var _ Handler = &handler{}
@@ -59,6 +61,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	repositoryHandler := handlerNew()
 	systemGroup.GET("/endpoint", repositoryHandler.GetEndpoint)
 	systemGroup.GET("/version", repositoryHandler.GetVersion)
+	systemGroup.GET("/config", repositoryHandler.GetConfig)
 	return nil
 }
 

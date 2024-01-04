@@ -4353,6 +4353,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/systems/config": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Get config",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetSystemConfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/systems/endpoint": {
             "get": {
                 "consumes": [
@@ -6701,6 +6723,23 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
+                }
+            }
+        },
+        "types.GetSystemConfigDaemon": {
+            "type": "object",
+            "properties": {
+                "builder": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "types.GetSystemConfigResponse": {
+            "type": "object",
+            "properties": {
+                "daemon": {
+                    "$ref": "#/definitions/types.GetSystemConfigDaemon"
                 }
             }
         },

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -73,20 +74,23 @@ func (h *handler) GetRunnerLog(c echo.Context) error {
 				log.Error().Err(err).Msg("Close the ws failed")
 			}
 		}()
-		if runnerObj.Status == enums.BuildStatusFailed || runnerObj.Status == enums.BuildStatusSuccess {
-			// already built
-			reader, err := logger.Driver.Read(ctx, runnerObj.ID)
-			if err != nil {
-				log.Error().Err(err).Msg("Read log failed")
-				return
+		if runnerObj.Status == enums.BuildStatusFailed || runnerObj.Status == enums.BuildStatusSuccess { // already built
+			var reader io.Reader
+			if logger.Driver == nil {
+				reader = strings.NewReader("")
+			} else {
+				reader, err = logger.Driver.Read(ctx, runnerObj.ID)
+				if err != nil {
+					log.Error().Err(err).Msg("Read log failed")
+					return
+				}
 			}
 			err = h.sendLogWithGzip(ws, reader)
 			if err != nil {
 				log.Error().Err(err).Msg("Send log failed")
 				return
 			}
-		} else if runnerObj.Status == enums.BuildStatusBuilding {
-			// still building
+		} else if runnerObj.Status == enums.BuildStatusBuilding { // still building
 			for {
 				reader, writer := io.Pipe()
 				go func() {

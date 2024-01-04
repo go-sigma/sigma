@@ -25,3 +25,13 @@ type GetSystemVersionResponse struct {
 	GitHash   string `json:"git_hash" example:"4225b69a"`
 	BuildDate string `json:"build_date" example:"2023-10-16T11:25:45Z"`
 }
+
+// GetSystemConfigDaemon ...
+type GetSystemConfigDaemon struct {
+	Builder bool `json:"builder" example:"false"`
+}
+
+// GetSystemConfigResponse ...
+type GetSystemConfigResponse struct {
+	Daemon GetSystemConfigDaemon `json:"daemon"`
+}
