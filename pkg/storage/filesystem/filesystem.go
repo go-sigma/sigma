@@ -234,3 +234,8 @@ func (f *fs) Upload(ctx context.Context, p string, body io.Reader) error {
 	}
 	return nil
 }
+
+// Redirect get a temporary link
+func (f *fs) Redirect(_ context.Context, _ string) (string, error) {
+	panic("Never implement")
+}

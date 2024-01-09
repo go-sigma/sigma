@@ -72,7 +72,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 		log.Error().Err(err).Msg("New locker failed")
 		return
 	}
-	lock, err := locker.Lock(context.Background(), consts.LockerMigration, time.Second*30)
+	lock, err := locker.Lock(context.Background(), consts.LockerCronjobBuilder, time.Second*30)
 	if err != nil {
 		log.Error().Err(err).Msg("Cronjob builder get locker failed")
 		return

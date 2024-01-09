@@ -64,6 +64,8 @@ const (
 	InsertBatchSize = 10
 	// MaxNamespaceMember ...
 	MaxNamespaceMember = 10
+	// ObsPresignMaxTtl
+	ObsPresignMaxTtl = time.Minute * 30
 )
 
 const (

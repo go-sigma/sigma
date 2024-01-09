@@ -213,6 +213,7 @@ type ConfigurationStorageQiniu struct {
 // ConfigurationStorage ...
 type ConfigurationStorage struct {
 	RootDirectory string                         `yaml:"rootDirectory"`
+	Redirect      bool                           `yaml:"redirect"`
 	Type          enums.StorageType              `yaml:"type"`
 	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
 	S3            ConfigurationStorageS3         `yaml:"s3"`

@@ -93,10 +93,8 @@ func (h *handler) GetBlob(c echo.Context) error {
 			f := clients.NewClientsFactory()
 			cli, err := f.New(ptr.To(h.config))
 			if err != nil {
-				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
-				}
+				log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
+				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 			}
 			statusCode, header, bodyReader, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
 			if err != nil {
@@ -139,6 +137,15 @@ func (h *handler) GetBlob(c echo.Context) error {
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", blob.Size))
+
+	if h.config.Storage.Redirect && h.config.Storage.Type != enums.StorageTypeFilesystem {
+		redirectUrl, err := storage.Driver.Redirect(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
+		if err != nil {
+			log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob redirect url failed")
+			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		}
+		return c.Redirect(http.StatusPermanentRedirect, redirectUrl)
+	}
 
 	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), 0)
 	if err != nil {

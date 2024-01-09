@@ -254,3 +254,13 @@ func (t *tencentcos) Upload(ctx context.Context, path string, body io.Reader) er
 	_, err := t.client.Object.Put(ctx, path, body, nil)
 	return err
 }
+
+// Redirect get a temporary link
+func (t *tencentcos) Redirect(ctx context.Context, path string) (string, error) {
+	opt := &cos.ObjectGetOptions{}
+	url, err := t.client.Object.GetPresignedURL2(ctx, http.MethodGet, path, consts.ObsPresignMaxTtl, opt)
+	if err != nil {
+		return "", fmt.Errorf("Get object failed: %v", err)
+	}
+	return url.String(), nil
+}

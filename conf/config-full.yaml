@@ -85,8 +85,10 @@ http:
     enabled: false
     certificate: ./conf/sigma.test.io.crt
     key: ./conf/sigma.test.io.key
+
 storage:
   rootdirectory: ./storage
+  redirect: false
   type: filesystem
   filesystem:
     path: /var/lib/sigma/oci/

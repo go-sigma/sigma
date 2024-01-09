@@ -71,6 +71,9 @@ type StorageDriver interface {
 
 	// Upload upload a file to the given path.
 	Upload(ctx context.Context, path string, body io.Reader) error
+
+	// Redirect get a temporary link
+	Redirect(ctx context.Context, path string) (string, error)
 }
 
 // Factory is the interface for the storage driver factory
