@@ -68,7 +68,7 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, [namespace, repository])
 
   const fetchTags = () => {
-    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=image&type=imageIndex&type=chart`;
+    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=Image&type=ImageIndex&type=Chart`;
     if (searchTag !== "") {
       url += `&name=${searchTag}`;
     }
