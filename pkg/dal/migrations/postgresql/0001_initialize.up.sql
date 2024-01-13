@@ -274,6 +274,7 @@ CREATE TYPE artifact_type AS ENUM (
   'Wasm',
   'Provenance',
   'Cosign',
+  'Sif',
   'Unknown'
 );
 

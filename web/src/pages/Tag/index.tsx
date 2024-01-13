@@ -68,7 +68,7 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, [namespace, repository])
 
   const fetchTags = () => {
-    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=Image&type=ImageIndex&type=Chart`;
+    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=Image&type=ImageIndex&type=Chart&type=Sif`;
     if (searchTag !== "") {
       url += `&name=${searchTag}`;
     }
@@ -272,7 +272,7 @@ export default function Tag({ localServer }: { localServer: string }) {
 
                       {/* second row begin */}
                       <div className="text-xs text-gray-600">
-                        Last pushed <span className="font-semibold">{dayjs().to(dayjs(tag.pushed_at))}</span>
+                        Last pushed <span className="font-semibold">{dayjs().to(dayjs.utc(tag.pushed_at).tz(dayjs.tz.guess()))}</span>
                       </div>
                       <div className="mt-2 text-xs text-gray-600">
                         Pull times <span className="font-semibold">{tag.pull_times === undefined ? 0 : tag.pull_times}</span>

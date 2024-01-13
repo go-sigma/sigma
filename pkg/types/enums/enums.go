@@ -141,6 +141,7 @@ type SortMethod string
 // Wasm,
 // Provenance,
 // Cosign,
+// Sif,
 // Unknown,
 // )
 type ArtifactType string

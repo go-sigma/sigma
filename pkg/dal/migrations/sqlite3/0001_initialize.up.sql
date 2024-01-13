@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `raw` BLOB NOT NULL,
   `config_raw` BLOB,
   `config_media_type` varchar(256),
-  `type` text CHECK (`type` IN ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Unknown')) NOT NULL DEFAULT 'Unknown',
+  `type` text CHECK (`type` IN ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Sif', 'Unknown')) NOT NULL DEFAULT 'Unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `referrer_id` integer,

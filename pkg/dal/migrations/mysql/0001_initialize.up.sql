@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `raw` MEDIUMBLOB NOT NULL,
   `config_raw` MEDIUMBLOB,
   `config_media_type` varchar(256),
-  `type` ENUM ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Unknown') NOT NULL DEFAULT 'Unknown',
+  `type` ENUM ('Image', 'ImageIndex', 'Chart', 'Cnab', 'Wasm', 'Provenance', 'Cosign', 'Sif', 'Unknown') NOT NULL DEFAULT 'Unknown',
   `pushed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_pull` timestamp,
   `pull_times` bigint NOT NULL DEFAULT 0,
