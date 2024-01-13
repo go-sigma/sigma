@@ -89,6 +89,7 @@ http:
 
 storage:
   rootdirectory: ./storage
+  redirect: false
   type: filesystem
   filesystem:
     path: /var/lib/sigma/

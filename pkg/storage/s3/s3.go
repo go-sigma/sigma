@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -332,4 +333,13 @@ func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 		Body:   body,
 	})
 	return err
+}
+
+// Redirect get a temporary link
+func (a *awss3) Redirect(ctx context.Context, path string) (string, error) {
+	req, _ := a.S3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(a.bucket),
+		Key:    aws.String(a.sanitizePath(path)),
+	})
+	return req.Presign(consts.ObsPresignMaxTtl)
 }
