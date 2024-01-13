@@ -186,7 +186,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		}
 	} else {
 		for _, reference := range manifest.References() {
-			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" || reference.MediaType == "application/vnd.cncf.helm.config.v1+json" {
+			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" || reference.MediaType == "application/vnd.cncf.helm.config.v1+json" || reference.MediaType == "application/vnd.sylabs.sif.config.v1+json" {
 				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)), 0)
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
@@ -451,6 +451,8 @@ func (h *handler) getArtifactType(descriptor distribution.Descriptor, manifest d
 		return enums.ArtifactTypeWasm
 	case "application/vnd.cncf.helm.config.v1+json":
 		return enums.ArtifactTypeChart
+	case "application/vnd.sylabs.sif.config.v1+json":
+		return enums.ArtifactTypeSif
 	}
 	return enums.ArtifactTypeUnknown
 }
