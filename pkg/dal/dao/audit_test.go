@@ -28,18 +28,19 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-func TestUserServiceFactory(t *testing.T) {
-	f := dao.NewUserServiceFactory()
-	userService := f.New()
-	assert.NotNil(t, userService)
-	userService = f.New(query.Q)
-	assert.NotNil(t, userService)
+func TestAuditServiceFactory(t *testing.T) {
+	f := dao.NewAuditServiceFactory()
+	artifactService := f.New()
+	assert.NotNil(t, artifactService)
+	artifactService = f.New(query.Q)
+	assert.NotNil(t, artifactService)
 }
 
-func TestUserGetByUsername(t *testing.T) {
+func TestAuditService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	err := tests.Initialize(t)
@@ -55,22 +56,39 @@ func TestUserGetByUsername(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	userServiceFactory := dao.NewUserServiceFactory()
-
 	ctx := log.Logger.WithContext(context.Background())
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := userServiceFactory.New(tx)
-		assert.NotNil(t, userService)
-		err := userService.Create(ctx, &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")})
-		assert.NoError(t, err)
-		testUser, err := userService.GetByUsername(ctx, "test-case")
-		assert.NoError(t, err)
-		assert.Equal(t, ptr.To(testUser.Password), "test-case")
-		total, err := userService.Count(ctx)
-		assert.NoError(t, err)
-		assert.Equal(t, total, int64(1))
-		return nil
+	auditServiceFactory := dao.NewAuditServiceFactory()
+	auditService := auditServiceFactory.New()
+	assert.NotNil(t, auditService)
+
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceService := namespaceServiceFactory.New()
+	assert.NotNil(t, namespaceService)
+
+	namespaceObj1 := &models.Namespace{Name: "test"}
+	err = namespaceService.Create(ctx, namespaceObj1)
+	assert.NoError(t, err)
+
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+	assert.NotNil(t, userService)
+
+	userObj := &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")}
+	err = userService.Create(ctx, userObj)
+	assert.NoError(t, err)
+
+	err = auditService.Create(ctx, &models.Audit{
+		UserID:       userObj.ID,
+		NamespaceID:  ptr.Of(namespaceObj1.ID),
+		Action:       enums.AuditActionCreate,
+		ResourceType: enums.AuditResourceTypeNamespace,
+		Resource:     namespaceObj1.Name,
 	})
 	assert.NoError(t, err)
+
+	hotNamespaceObjs, err := auditService.HotNamespace(ctx, userObj.ID, 3)
+	assert.NoError(t, err)
+	assert.Equal(t, len(hotNamespaceObjs), 1)
+	assert.Equal(t, hotNamespaceObjs[0].Name, namespaceObj1.Name)
 }
