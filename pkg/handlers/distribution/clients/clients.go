@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3"
-	"github.com/distribution/distribution/v3/registry/client/auth/challenge"
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
@@ -33,6 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils/challenge"
 
 	_ "github.com/distribution/distribution/v3/manifest/manifestlist"
 	_ "github.com/distribution/distribution/v3/manifest/ocischema"
