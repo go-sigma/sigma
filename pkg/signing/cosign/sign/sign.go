@@ -33,14 +33,14 @@ import (
 )
 
 type signing struct {
-	Multiarch bool
+	MultiArch bool
 	Http      bool
 }
 
 // New ...
-func New(http, multiarch bool) definition.Signing {
+func New(http, multiArch bool) definition.Signing {
 	return &signing{
-		Multiarch: multiarch,
+		MultiArch: multiArch,
 		Http:      http,
 	}
 }
@@ -73,7 +73,7 @@ func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
 	} else {
 		cmd.Args = append(cmd.Args, "--allow-insecure-registry")
 	}
-	if s.Multiarch {
+	if s.MultiArch {
 		cmd.Args = append(cmd.Args, "--recursive")
 	}
 	cmd.Args = append(cmd.Args, "--key", temp.Name())

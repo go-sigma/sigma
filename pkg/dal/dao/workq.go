@@ -30,7 +30,7 @@ import (
 // WorkQueueService is the interface that provides methods to operate on work queue model
 type WorkQueueService interface {
 	// Create creates a new work queue record in the database
-	Create(ctx context.Context, builder *models.WorkQueue) error
+	Create(ctx context.Context, workqObj *models.WorkQueue) error
 	// Get get a work queue record
 	Get(ctx context.Context, topic string) (*models.WorkQueue, error)
 	// UpdateStatus update a work queue record status
@@ -64,8 +64,8 @@ func (s *workQueueServiceFactory) New(txs ...*query.Query) WorkQueueService {
 }
 
 // Create creates a new work queue record in the database
-func (s workQueueService) Create(ctx context.Context, wq *models.WorkQueue) error {
-	return s.tx.WorkQueue.WithContext(ctx).Create(wq)
+func (s workQueueService) Create(ctx context.Context, workqObj *models.WorkQueue) error {
+	return s.tx.WorkQueue.WithContext(ctx).Create(workqObj)
 }
 
 // Get get a work queue record
