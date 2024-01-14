@@ -13,3 +13,20 @@
 // limitations under the License.
 
 package dao_test
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+)
+
+func TestDaemonServiceFactory(t *testing.T) {
+	f := dao.NewDaemonServiceFactory()
+	artifactService := f.New()
+	assert.NotNil(t, artifactService)
+	artifactService = f.New(query.Q)
+	assert.NotNil(t, artifactService)
+}

@@ -12,28 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package signing
+package inits
 
 import (
-	"github.com/go-sigma/sigma/pkg/signing/cosign/sign"
-	"github.com/go-sigma/sigma/pkg/signing/definition"
-	"github.com/go-sigma/sigma/pkg/types/enums"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
-// Options ...
-type Options struct {
-	Type enums.SigningType
+func TestSigning(t *testing.T) {
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
+	}()
 
-	Http      bool
-	MultiArch bool
-}
-
-// NewSigning ...
-func NewSigning(opt Options) definition.Signing {
-	switch opt.Type {
-	case enums.SigningTypeCosign:
-		return sign.New(opt.Http, opt.MultiArch)
-	default:
-		return sign.New(opt.Http, opt.MultiArch)
-	}
+	assert.NoError(t, signing(configs.Configuration{}))
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package signing
+package dao_test
 
 import (
-	"github.com/go-sigma/sigma/pkg/signing/cosign/sign"
-	"github.com/go-sigma/sigma/pkg/signing/definition"
-	"github.com/go-sigma/sigma/pkg/types/enums"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-// Options ...
-type Options struct {
-	Type enums.SigningType
-
-	Http      bool
-	MultiArch bool
-}
-
-// NewSigning ...
-func NewSigning(opt Options) definition.Signing {
-	switch opt.Type {
-	case enums.SigningTypeCosign:
-		return sign.New(opt.Http, opt.MultiArch)
-	default:
-		return sign.New(opt.Http, opt.MultiArch)
-	}
+func TestCodeRepositoryServiceFactory(t *testing.T) {
+	f := dao.NewCodeRepositoryServiceFactory()
+	artifactService := f.New()
+	assert.NotNil(t, artifactService)
+	artifactService = f.New(query.Q)
+	assert.NotNil(t, artifactService)
 }
