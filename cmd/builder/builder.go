@@ -298,7 +298,7 @@ func (b Builder) sign(imageName string) error {
 	s := signing.NewSigning(signing.Options{
 		Type:      enums.SigningTypeCosign,
 		Http:      strings.HasPrefix(b.Endpoint, "http://"),
-		Multiarch: len(b.BuildkitPlatforms) > 1,
+		MultiArch: len(b.BuildkitPlatforms) > 1,
 	})
 	return s.Sign(context.Background(), b.Authorization, b.SigningPrivateKey, imageName)
 }
