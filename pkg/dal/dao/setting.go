@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -29,11 +28,13 @@ import (
 
 // SettingService is the interface that provides methods to operate on setting model
 type SettingService interface {
-	// Save save a new cache record in the database
-	Save(ctx context.Context, key string, val []byte) error
-	// Delete get a cache record
+	// Create create a new setting record in the database
+	Create(ctx context.Context, key string, val []byte) error
+	// Update update a setting record in the database by key
+	Update(ctx context.Context, key string, val []byte) error
+	// Delete get a setting record
 	Delete(ctx context.Context, key string) error
-	// Get get a cache record
+	// Get get a setting record
 	Get(ctx context.Context, key string) (*models.Setting, error)
 }
 
@@ -63,10 +64,17 @@ func (s *settingServiceFactory) New(txs ...*query.Query) SettingService {
 	}
 }
 
-// Save creates a new setting record in the database
-func (s settingService) Save(ctx context.Context, key string, val []byte) error {
+// Create creates a new setting record in the database
+func (s settingService) Create(ctx context.Context, key string, val []byte) error {
 	var setting = models.Setting{Key: key, Val: val}
-	return s.tx.Setting.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(&setting)
+	return s.tx.Setting.WithContext(ctx).Create(&setting)
+}
+
+// Update update a setting record in the database by key
+func (s settingService) Update(ctx context.Context, key string, val []byte) error {
+	var setting = models.Setting{Key: key, Val: val}
+	_, err := s.tx.Setting.WithContext(ctx).Where(s.tx.Setting.Key.Eq(key)).Updates(&setting)
+	return err
 }
 
 // Delete get a cache record

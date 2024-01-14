@@ -100,13 +100,13 @@ swagen: ## Generate swagger from code comments
 	@swag init --output pkg/handlers/apidocs
 
 addlicense: ## Add license to all go files
-	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2023 -c "sigma"
-	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2023 -c "sigma"
-	@addlicense -l apache -y 2023 -c "sigma" main.go
-	@addlicense -l apache -y 2023 -c "sigma" web/web.go
-	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2023 -c "sigma"
-	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2023 -c "sigma"
-	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2023 -c "sigma"
+	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2024 -c "sigma"
+	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2024 -c "sigma"
+	@addlicense -l apache -y 2024 -c "sigma" main.go
+	@addlicense -l apache -y 2024 -c "sigma" web/web.go
+	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2024 -c "sigma"
+	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2024 -c "sigma"
+	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2024 -c "sigma"
 
 ## Kube:
 kube_install: ## Install sigma on k8s using helm

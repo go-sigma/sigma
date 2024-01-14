@@ -52,18 +52,18 @@ func signing(_ configs.Configuration) error {
 		} else {
 			err = query.Q.Transaction(func(tx *query.Query) error {
 				settingService := settingServiceFactory.New(tx)
-				err = settingService.Save(ctx, consts.SettingSignPrivateKey, keyBytes.PrivateBytes)
+				err = settingService.Create(ctx, consts.SettingSignPrivateKey, keyBytes.PrivateBytes)
 				if err != nil {
 					return err
 				}
-				err = settingService.Save(ctx, consts.SettingSignPublicKey, keyBytes.PublicBytes)
+				err = settingService.Create(ctx, consts.SettingSignPublicKey, keyBytes.PublicBytes)
 				if err != nil {
 					return err
 				}
 				return nil
 			})
 			if err != nil {
-				log.Error().Err(err).Msg("Save signing key failed")
+				log.Error().Err(err).Msg("Create signing key failed")
 				return err
 			}
 			return nil
