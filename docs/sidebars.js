@@ -18,6 +18,7 @@ const sidebars = {
       items: [
         'push/docker',
         'push/helm',
+        'push/apptainer',
       ],
     },
   ],
