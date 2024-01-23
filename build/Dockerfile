@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.21.5-alpine3.18
+ARG GOLANG_VERSION=1.21.6-alpine3.18
 ARG NODE_VERSION=18-alpine3.18
 ARG ALPINE_VERSION=3.18
 
@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.100.0
+ARG SYFT_VERSION=0.101.1
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \

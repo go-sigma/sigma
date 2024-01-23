@@ -25,7 +25,6 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -102,7 +101,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
-	err = i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), types.ContainerStartOptions{})
+	err = i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), container.StartOptions{})
 	if err != nil {
 		return fmt.Errorf("Start container failed: %v", err)
 	}
@@ -150,7 +149,7 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Kill container failed")
 		return fmt.Errorf("Kill container failed: %v", err)
 	}
-	err = i.client.ContainerRemove(ctx, i.genContainerID(builderID, runnerID), types.ContainerRemoveOptions{})
+	err = i.client.ContainerRemove(ctx, i.genContainerID(builderID, runnerID), container.RemoveOptions{})
 	if err != nil {
 		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Remove container failed")
 		return fmt.Errorf("Remove container failed: %v", err)
@@ -183,7 +182,7 @@ func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConf
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error {
-	reader, err := i.client.ContainerLogs(ctx, i.genContainerID(builderID, runnerID), types.ContainerLogsOptions{
+	reader, err := i.client.ContainerLogs(ctx, i.genContainerID(builderID, runnerID), container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,

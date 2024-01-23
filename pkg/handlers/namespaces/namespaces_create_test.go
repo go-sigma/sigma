@@ -31,10 +31,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	workqmocks "github.com/go-sigma/sigma/pkg/modules/workq/definition/mocks"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
@@ -52,7 +53,15 @@ func TestPostNamespace(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	namespaceHandler := handlerNew()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	workQueueProducer := workqmocks.NewMockWorkQueueProducer(ctrl)
+	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
+		return nil
+	}).Times(3)
+
+	namespaceHandler := handlerNew(inject{producerClient: workQueueProducer})
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
@@ -129,10 +138,7 @@ func TestPostNamespace(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService := daomocks.NewMockNamespaceService(ctrl)
 	daoMockNamespaceService.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ *models.Namespace) error {
 		return fmt.Errorf("test")
 	}).Times(1)
@@ -141,12 +147,12 @@ func TestPostNamespace(t *testing.T) {
 		return nil, gorm.ErrRecordNotFound
 	}).Times(1)
 
-	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
 	}).Times(2)
 
-	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory})
+	namespaceHandler = handlerNew(inject{namespaceServiceFactory: daoMockNamespaceServiceFactory, producerClient: workQueueProducer})
 
 	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"name":"test"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -160,7 +166,6 @@ func TestPostNamespace(t *testing.T) {
 
 // TestPostNamespaceCreateFailed1 get name failed
 func TestPostNamespaceCreateFailed1(t *testing.T) {
-	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))
@@ -183,12 +188,12 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockNamespaceService := daomock.NewMockNamespaceService(ctrl)
+	daoMockNamespaceService := daomocks.NewMockNamespaceService(ctrl)
 	daoMockNamespaceService.EXPECT().GetByName(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.Namespace, error) {
 		return nil, fmt.Errorf("test")
 	}).Times(1)
 
-	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) dao.NamespaceService {
 		return daoMockNamespaceService
 	}).Times(1)
