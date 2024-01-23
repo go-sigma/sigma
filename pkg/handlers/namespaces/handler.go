@@ -25,6 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -65,6 +67,8 @@ type handler struct {
 	repositoryServiceFactory      dao.RepositoryServiceFactory
 	tagServiceFactory             dao.TagServiceFactory
 	artifactServiceFactory        dao.ArtifactServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 type inject struct {
@@ -75,6 +79,8 @@ type inject struct {
 	repositoryServiceFactory      dao.RepositoryServiceFactory
 	tagServiceFactory             dao.TagServiceFactory
 	artifactServiceFactory        dao.ArtifactServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the distribution handlers
@@ -86,6 +92,7 @@ func handlerNew(injects ...inject) Handler {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	producerClient := workq.ProducerClient
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.authServiceFactory != nil {
@@ -109,6 +116,9 @@ func handlerNew(injects ...inject) Handler {
 		if ij.artifactServiceFactory != nil {
 			artifactServiceFactory = ij.artifactServiceFactory
 		}
+		if ij.producerClient != nil {
+			producerClient = ij.producerClient
+		}
 	}
 	return &handler{
 		authServiceFactory:            authServiceFactory,
@@ -118,6 +128,8 @@ func handlerNew(injects ...inject) Handler {
 		repositoryServiceFactory:      repositoryServiceFactory,
 		tagServiceFactory:             tagServiceFactory,
 		artifactServiceFactory:        artifactServiceFactory,
+
+		producerClient: producerClient,
 	}
 }
 

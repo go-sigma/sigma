@@ -20,4 +20,5 @@ import (
 	_ "github.com/go-sigma/sigma/pkg/daemon/gc"
 	_ "github.com/go-sigma/sigma/pkg/daemon/pushed"
 	_ "github.com/go-sigma/sigma/pkg/daemon/scan"
+	_ "github.com/go-sigma/sigma/pkg/daemon/webhook"
 )

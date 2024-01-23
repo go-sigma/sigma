@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -36,20 +35,26 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// func init() {
-// 	utils.PanicIf(daemon.RegisterTask(enums.DaemonWebhook, webhookRunner))
-// }
+func init() {
+	workq.TopicHandlers[enums.DaemonWebhook.String()] = definition.Consumer{
+		Handler:     webhookRunner,
+		MaxRetry:    6,
+		Concurrency: 10,
+		Timeout:     time.Minute * 10,
+	}
+}
 
-// nolint: unused
-func webhookRunner(ctx context.Context, task *asynq.Task) error {
+func webhookRunner(ctx context.Context, data []byte) error {
 	var payload types.DaemonWebhookPayload
-	err := json.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal(data, &payload)
 	if err != nil {
 		return fmt.Errorf("unmarshal payload failed: %v", err)
 	}
@@ -59,27 +64,23 @@ func webhookRunner(ctx context.Context, task *asynq.Task) error {
 	}
 	if payload.Resend {
 		return w.decorator(w.resend)(ctx, payload)
-	}
-	if payload.Ping {
+	} else if payload.Ping {
 		return w.decorator(w.ping)(ctx, payload)
 	}
 	return w.send(ctx, payload)
 }
 
-// nolint: unused
 type webhook struct {
 	namespaceServiceFactory dao.NamespaceServiceFactory
 	webhookServiceFactory   dao.WebhookServiceFactory
 }
 
-// nolint: unused
 type clientOption struct {
 	SslVerify     bool
 	RetryTimes    int
 	RetryDuration int
 }
 
-// nolint: unused
 func (w webhook) resend(ctx context.Context, payload types.DaemonWebhookPayload) (*models.WebhookLog, error) {
 	webhookService := w.webhookServiceFactory.New()
 	webhookLogObj, err := webhookService.GetLog(ctx, ptr.To(payload.WebhookLogID))
@@ -123,7 +124,6 @@ func (w webhook) resend(ctx context.Context, payload types.DaemonWebhookPayload)
 	return result, nil
 }
 
-// nolint: unused
 func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) error {
 	webhookService := w.webhookServiceFactory.New()
 	filter := map[string]any{
@@ -193,7 +193,6 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 	return nil
 }
 
-// nolint: unused
 func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (*models.WebhookLog, error) {
 	webhookService := w.webhookServiceFactory.New()
 	webhookObj, err := webhookService.Get(ctx, ptr.To(payload.WebhookID))
@@ -236,7 +235,6 @@ func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (
 	return result, nil
 }
 
-// nolint: unused
 func (w webhook) secretHeader(secret *string, body []byte, headers map[string]string) (map[string]string, error) {
 	delete(headers, consts.WebhookSecretHeader)
 	if secret == nil {
@@ -251,7 +249,6 @@ func (w webhook) secretHeader(secret *string, body []byte, headers map[string]st
 	return headers, nil
 }
 
-// nolint: unused
 func (w webhook) client(opt clientOption) *resty.Request {
 	client := resty.New()
 	if !opt.SslVerify {
@@ -269,7 +266,6 @@ func (w webhook) client(opt clientOption) *resty.Request {
 	return client.R()
 }
 
-// nolint: unused
 func (w webhook) decorator(runner func(context.Context, types.DaemonWebhookPayload) (*models.WebhookLog, error)) func(ctx context.Context, payload types.DaemonWebhookPayload) error {
 	return func(ctx context.Context, payload types.DaemonWebhookPayload) error {
 		webhookLogObj, err := runner(ctx, payload)
@@ -285,7 +281,6 @@ func (w webhook) decorator(runner func(context.Context, types.DaemonWebhookPaylo
 	}
 }
 
-// nolint: unused
 func (w webhook) respBody(resp *resty.Response) ([]byte, error) {
 	contentLength, err := strconv.ParseInt(resp.Header().Get(echo.HeaderContentLength), 10, 0)
 	if err != nil {
@@ -301,7 +296,6 @@ func (w webhook) respBody(resp *resty.Response) ([]byte, error) {
 	return respBody, nil
 }
 
-// nolint: unused
 func (w webhook) defaultHeaders() map[string]string {
 	return map[string]string{
 		"User-Agent":           consts.UserAgent,

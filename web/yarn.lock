@@ -715,12 +715,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.11.0":
-  version: 20.11.0
-  resolution: "@types/node@npm:20.11.0"
+"@types/node@npm:^20.11.5":
+  version: 20.11.5
+  resolution: "@types/node@npm:20.11.5"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 560aa850dfccb83326f9cba125459f6c3fb0c71ec78f22c61e4d248f1df78bd25fd6792cef573dfbdc49c882f8e38bb1a82ca87e0e28ff2513629c704c2b02af
+  checksum: 6d18cec852f5cfbed3ec42b5c01c026e7a3f9da540d6e3d6738d4cee9979fb308cf27b6df7ba40a6553e7bc82e678f0ef53ba6e6ad52e5b86bd97b7783c2a42c
   languageName: node
   linkType: hard
 
@@ -758,14 +758,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.47":
-  version: 18.2.47
-  resolution: "@types/react@npm:18.2.47"
+"@types/react@npm:^18.2.48":
+  version: 18.2.48
+  resolution: "@types/react@npm:18.2.48"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: e98ea1827fe60636d0f7ce206397159a29fc30613fae43e349e32c10ad3c0b7e0ed2ded2f3239e07bd5a3cba8736b6114ba196acccc39905ca4a06f56a8d2841
+  checksum: 7e89f18ea2928b1638f564b156d692894dcb9352a7e0a807873c97e858abe1f23dbd165a25dd088a991344e973fdeef88ba5724bfb64504b74072cbc9c220c3a
   languageName: node
   linkType: hard
 
@@ -914,13 +914,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:^10.4.16":
-  version: 10.4.16
-  resolution: "autoprefixer@npm:10.4.16"
+"autoprefixer@npm:^10.4.17":
+  version: 10.4.17
+  resolution: "autoprefixer@npm:10.4.17"
   dependencies:
-    browserslist: "npm:^4.21.10"
-    caniuse-lite: "npm:^1.0.30001538"
-    fraction.js: "npm:^4.3.6"
+    browserslist: "npm:^4.22.2"
+    caniuse-lite: "npm:^1.0.30001578"
+    fraction.js: "npm:^4.3.7"
     normalize-range: "npm:^0.1.2"
     picocolors: "npm:^1.0.0"
     postcss-value-parser: "npm:^4.2.0"
@@ -928,7 +928,7 @@ __metadata:
     postcss: ^8.1.0
   bin:
     autoprefixer: bin/autoprefixer
-  checksum: e00256e754d481a026d928bca729b25954074dd142dbec022f0a7db0d3bbc0dc2e2dc7542e94fec22eff81e21fe140e6856448e2d9a002660cb1e2ad434daee0
+  checksum: 1d21cc8edb7bf993682094ceed03a32c18f5293f071182a64c2c6defb44bbe91d576ad775d2347469a81997b80cea0bbc4ad3eeb5b12710f9feacf2e6c04bb51
   languageName: node
   linkType: hard
 
@@ -1048,7 +1048,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist@npm:^4.0.0, browserslist@npm:^4.21.10":
+"browserslist@npm:^4.0.0":
   version: 4.22.1
   resolution: "browserslist@npm:4.22.1"
   dependencies:
@@ -1167,7 +1167,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001538, caniuse-lite@npm:^1.0.30001541":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001541":
   version: 1.0.30001564
   resolution: "caniuse-lite@npm:1.0.30001564"
   checksum: 27722fea974fc8d2cd334cdef23e1299465c870c97902cc5c293673e6c3ae5241f36f31ca180c903160f0b1c3b51e2b2e8962c537b0a6ac6518a1113b5b5665e
@@ -1178,6 +1178,13 @@ __metadata:
   version: 1.0.30001574
   resolution: "caniuse-lite@npm:1.0.30001574"
   checksum: 27a01d086f5a7300862ea054a9f8b8e155f2cfb83c8223723be0d707e55c653ca5eb1adc196cb28c9aa2ed91d6f87b5372f342c554f1de6769c57a284835b8ed
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001578":
+  version: 1.0.30001579
+  resolution: "caniuse-lite@npm:1.0.30001579"
+  checksum: 4003970f8d01a5fa314e39f4a21751dc750a530f3d19aed225e18e8e02892b590b8b0debfa0961eae9bc0e49b77bfb17cf30d2469540e428a8305e3cc9164fb8
   languageName: node
   linkType: hard
 
@@ -2138,7 +2145,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fraction.js@npm:^4.3.6":
+"fraction.js@npm:^4.3.7":
   version: 4.3.7
   resolution: "fraction.js@npm:4.3.7"
   checksum: df291391beea9ab4c263487ffd9d17fed162dbb736982dee1379b2a8cc94e4e24e46ed508c6d278aded9080ba51872f1bc5f3a5fd8d7c74e5f105b508ac28711
@@ -4539,27 +4546,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.21.2":
-  version: 6.21.2
-  resolution: "react-router-dom@npm:6.21.2"
+"react-router-dom@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "react-router-dom@npm:6.21.3"
   dependencies:
     "@remix-run/router": "npm:1.14.2"
-    react-router: "npm:6.21.2"
+    react-router: "npm:6.21.3"
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 4719098a544da213450b0383cb58de959dc4dd690c90b12efc0771a9915a26b0508c12ee8b52c072fb38b4cb8ea192684f9e5ae49559b2131d085baeab108999
+  checksum: 1bea7bf17eb148461a7a99c9314e5ccc662ae00f563e29c16038e0b1b40aefb7381685f21289df07ad2295087a783c897b4e841ed12b07cd9a0829274a224231
   languageName: node
   linkType: hard
 
-"react-router@npm:6.21.2":
-  version: 6.21.2
-  resolution: "react-router@npm:6.21.2"
+"react-router@npm:6.21.3":
+  version: 6.21.3
+  resolution: "react-router@npm:6.21.3"
   dependencies:
     "@remix-run/router": "npm:1.14.2"
   peerDependencies:
     react: ">=16.8"
-  checksum: 1c923b75e4a6c5e820fd6f79254b77a34a7dd4f708c7c875535a81b331c9c84e8bd1b4f9615d3a84327f689dfd3239ccece1595ba71e09f63e4ae1964acae4fc
+  checksum: 66a0377a74ef2d298b9d617c02ba7a10e7e8b8be34b303068b5b5986f05e965037c51c0d45ea3a7967438f2dfde76c2c0f638cf19d3417fb408608ee9aee1668
   languageName: node
   linkType: hard
 
@@ -4585,9 +4592,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-use@npm:^17.4.2":
-  version: 17.4.2
-  resolution: "react-use@npm:17.4.2"
+"react-use@npm:^17.5.0":
+  version: 17.5.0
+  resolution: "react-use@npm:17.5.0"
   dependencies:
     "@types/js-cookie": "npm:^2.2.6"
     "@xobotyi/scrollbar-width": "npm:^1.9.5"
@@ -4606,7 +4613,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-dom: "*"
-  checksum: 9f75e10af864eb19f8a31e811569472ca3d846b7078e9a7cf3c95a8e5aa8c04b9ef19043edd4c1bddb655204c14e44f1fc0cca3be606c69ec0aba3c2c51fe3b6
+  checksum: b2e606338f329f8f26bccbd1ae428cf63e1d9b4a940cb327823270955a2aae35972be745d333d1a1bd0276a3650038d1f7f6ae1077af5cccba8234a3e7376754
   languageName: node
   linkType: hard
 
@@ -5018,11 +5025,11 @@ __metadata:
     "@tailwindcss/forms": "npm:^0.5.7"
     "@tailwindcss/line-clamp": "npm:^0.4.4"
     "@tailwindcss/typography": "npm:^0.5.10"
-    "@types/node": "npm:^20.11.0"
-    "@types/react": "npm:^18.2.47"
+    "@types/node": "npm:^20.11.5"
+    "@types/react": "npm:^18.2.48"
     "@types/react-dom": "npm:^18.2.18"
     "@vitejs/plugin-react-swc": "npm:^3.5.0"
-    autoprefixer: "npm:^10.4.16"
+    autoprefixer: "npm:^10.4.17"
     axios: "npm:^1.6.5"
     bytemd: "npm:^1.21.0"
     cron-parser: "npm:^4.9.0"
@@ -5040,12 +5047,12 @@ __metadata:
     react-helmet-async: "npm:^2.0.4"
     react-hot-toast: "npm:^2.4.1"
     react-icons: "npm:^5.0.1"
-    react-router-dom: "npm:^6.21.2"
+    react-router-dom: "npm:^6.21.3"
     react-toastify: "npm:^9.1.3"
-    react-use: "npm:^17.4.2"
+    react-use: "npm:^17.5.0"
     tailwindcss: "npm:^3.4.1"
     typescript: "npm:^5.3.3"
-    vite: "npm:^5.0.11"
+    vite: "npm:^5.0.12"
     xterm: "npm:^5.3.0"
     xterm-addon-attach: "npm:^0.9.0"
     xterm-addon-fit: "npm:^0.8.0"
@@ -5656,9 +5663,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.11":
-  version: 5.0.11
-  resolution: "vite@npm:5.0.11"
+"vite@npm:^5.0.12":
+  version: 5.0.12
+  resolution: "vite@npm:5.0.12"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
@@ -5692,7 +5699,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 74a3ddc6d43cf19cb6f827a53d77c481a07517a72b7d82a178df082012ad81ab5231a287a6dcc5471c0b2a5c8dd7e6ea8e1d62d268803057d0315729f09c5e33
+  checksum: c51b8e458851943c903fddde6973e720099ef8a5f364fb107cddade59c9e90f6d9ad98b61a7419cdfa0c6374236e10bff965d0c2d9e7b1790c68b874e5e7950c
   languageName: node
   linkType: hard
 

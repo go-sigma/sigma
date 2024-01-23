@@ -21,6 +21,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
+//go:generate mockgen -destination=mocks/workq.go -package=mocks github.com/go-sigma/sigma/pkg/modules/workq/definition WorkQueueProducer
+
 // Consumer ...
 type Consumer struct {
 	Handler     func(ctx context.Context, payload []byte) error

@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.21.5
+go 1.21.6
 
 require (
 	code.gitea.io/sdk/gitea v0.17.1
@@ -9,9 +9,9 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
-	github.com/anchore/syft v0.100.0
+	github.com/anchore/syft v0.101.1
 	github.com/aquasecurity/trivy v0.48.3
-	github.com/aws/aws-sdk-go v1.49.20
+	github.com/aws/aws-sdk-go v1.50.1
 	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.81.0
@@ -19,8 +19,8 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
 	github.com/distribution/reference v0.5.0
-	github.com/docker/cli v24.0.7+incompatible
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/cli v25.0.0+incompatible
+	github.com/docker/docker v25.0.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.16.0
 	github.com/glebarez/sqlite v1.10.0
@@ -46,9 +46,9 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/buildkit v0.12.4
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20231222210718-961602b10f95
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240118180833-13540199ed26
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc5
+	github.com/opencontainers/image-spec v1.1.0-rc6
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.31.0
@@ -63,10 +63,10 @@ require (
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.45
 	github.com/tidwall/gjson v1.17.0
 	github.com/wagslane/go-password-validator v0.3.0
-	github.com/xanzy/go-gitlab v0.95.2
+	github.com/xanzy/go-gitlab v0.96.0
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.18.0
-	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
 	golang.org/x/net v0.20.0
 	golang.org/x/oauth2 v0.16.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -77,9 +77,9 @@ require (
 	gorm.io/gorm v1.25.5
 	gorm.io/plugin/dbresolver v1.5.0
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/api v0.29.0
-	k8s.io/apimachinery v0.29.0
-	k8s.io/client-go v0.29.0
+	k8s.io/api v0.29.1
+	k8s.io/apimachinery v0.29.1
+	k8s.io/client-go v0.29.1
 )
 
 require (
@@ -100,7 +100,7 @@ require (
 	github.com/anchore/go-logger v0.0.0-20230725134548-c21dafa1ec5a // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20230104203445-02e0a6721501 // indirect
-	github.com/anchore/stereoscope v0.0.0-20231220161148-590920dabc54 // indirect
+	github.com/anchore/stereoscope v0.0.0-20240118133533-eb656fc71793 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/aquasecurity/trivy-db v0.0.0-20231005141211-4fc651f7ac8d // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -173,7 +173,7 @@ require (
 	github.com/google/certificate-transparency-go v1.1.7 // indirect
 	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/go-containerregistry v0.17.0 // indirect
+	github.com/google/go-containerregistry v0.18.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20231023181126-ff6d637d2a7b // indirect
