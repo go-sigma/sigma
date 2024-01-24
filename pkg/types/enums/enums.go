@@ -184,7 +184,7 @@ type WebhookResourceType string
 // pull,
 // push,
 // )
-type WebhookResourceAction string
+type WebhookAction string
 
 // ScmCredentialType x ENUM(
 // ssh,

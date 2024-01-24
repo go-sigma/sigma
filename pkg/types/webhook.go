@@ -98,16 +98,16 @@ type ListWebhookLogRequest struct {
 
 // WebhookLogItem ...
 type WebhookLogItem struct {
-	ID         int64                       `json:"id" example:"1"`
-	Event      enums.WebhookResourceType   `json:"event" example:"event"`
-	Action     enums.WebhookResourceAction `json:"action" example:"action"`
-	StatusCode int                         `json:"status_code" example:"200"`
-	ReqHeader  string                      `json:"req_header" example:""`
-	ReqBody    string                      `json:"req_body" example:""`
-	RespHeader string                      `json:"resp_header" example:""`
-	RespBody   string                      `json:"resp_body" example:""`
-	CreatedAt  string                      `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt  string                      `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID         int64                     `json:"id" example:"1"`
+	Event      enums.WebhookResourceType `json:"event" example:"event"`
+	Action     enums.WebhookAction       `json:"action" example:"action"`
+	StatusCode int                       `json:"status_code" example:"200"`
+	ReqHeader  string                    `json:"req_header" example:""`
+	ReqBody    string                    `json:"req_body" example:""`
+	RespHeader string                    `json:"resp_header" example:""`
+	RespBody   string                    `json:"resp_body" example:""`
+	CreatedAt  string                    `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt  string                    `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetWebhookLogResponse ...

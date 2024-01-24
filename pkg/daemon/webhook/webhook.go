@@ -130,7 +130,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		query.Webhook.Enable.ColumnName().String():      true,
 		query.Webhook.NamespaceID.ColumnName().String(): payload.NamespaceID,
 	}
-	switch payload.Event {
+	switch payload.ResourceType {
 	case enums.WebhookResourceTypeNamespace:
 		filter[query.Webhook.EventNamespace.ColumnName().String()] = true
 	case enums.WebhookResourceTypeRepository:
@@ -158,7 +158,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		}
 		webhookLogObj := &models.WebhookLog{
 			WebhookID: webhookObj.ID,
-			Event:     payload.Event,
+			Event:     payload.ResourceType,
 			Action:    payload.Action,
 			ReqHeader: utils.MustMarshal(headers),
 			ReqBody:   body,
@@ -209,7 +209,7 @@ func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (
 	}
 	var result = &models.WebhookLog{
 		WebhookID: ptr.To(payload.WebhookID),
-		Event:     payload.Event,
+		Event:     payload.ResourceType,
 		ReqHeader: utils.MustMarshal(headers),
 		ReqBody:   body,
 	}
