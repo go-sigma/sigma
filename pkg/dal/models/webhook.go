@@ -51,7 +51,7 @@ type WebhookLog struct {
 	WebhookID int64
 
 	Event      enums.WebhookResourceType
-	Action     enums.WebhookResourceAction
+	Action     enums.WebhookAction
 	StatusCode int
 	ReqHeader  []byte
 	ReqBody    []byte

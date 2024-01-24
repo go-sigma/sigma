@@ -45,14 +45,14 @@ type DaemonGcRepositoryPayload struct {
 
 // DaemonWebhookPayload ...
 type DaemonWebhookPayload struct {
-	NamespaceID  *int64                      `json:"namespace_id"`
-	WebhookID    *int64                      `json:"webhook_id"`
-	WebhookLogID *int64                      `json:"webhook_log_id"`
-	Resend       bool                        `json:"resend"`
-	Ping         bool                        `json:"ping"`
-	Event        enums.WebhookResourceType   `json:"event"`
-	Action       enums.WebhookResourceAction `json:"action"`
-	Payload      []byte                      `json:"payload"`
+	NamespaceID  *int64                    `json:"namespace_id"`
+	WebhookID    *int64                    `json:"webhook_id"`
+	WebhookLogID *int64                    `json:"webhook_log_id"`
+	Resend       bool                      `json:"resend"`
+	Ping         bool                      `json:"ping"`
+	Action       enums.WebhookAction       `json:"action"`
+	ResourceType enums.WebhookResourceType `json:"resource_type"`
+	Payload      []byte                    `json:"payload"`
 }
 
 // DaemonBuilderPayload ...

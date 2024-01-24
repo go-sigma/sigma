@@ -2683,69 +2683,69 @@ func (x Visibility) Value() (driver.Value, error) {
 }
 
 const (
-	// WebhookResourceActionCreate is a WebhookResourceAction of type create.
-	WebhookResourceActionCreate WebhookResourceAction = "create"
-	// WebhookResourceActionUpdate is a WebhookResourceAction of type update.
-	WebhookResourceActionUpdate WebhookResourceAction = "update"
-	// WebhookResourceActionDelete is a WebhookResourceAction of type delete.
-	WebhookResourceActionDelete WebhookResourceAction = "delete"
-	// WebhookResourceActionAdd is a WebhookResourceAction of type add.
-	WebhookResourceActionAdd WebhookResourceAction = "add"
-	// WebhookResourceActionRemove is a WebhookResourceAction of type remove.
-	WebhookResourceActionRemove WebhookResourceAction = "remove"
-	// WebhookResourceActionPull is a WebhookResourceAction of type pull.
-	WebhookResourceActionPull WebhookResourceAction = "pull"
-	// WebhookResourceActionPush is a WebhookResourceAction of type push.
-	WebhookResourceActionPush WebhookResourceAction = "push"
+	// WebhookActionCreate is a WebhookAction of type create.
+	WebhookActionCreate WebhookAction = "create"
+	// WebhookActionUpdate is a WebhookAction of type update.
+	WebhookActionUpdate WebhookAction = "update"
+	// WebhookActionDelete is a WebhookAction of type delete.
+	WebhookActionDelete WebhookAction = "delete"
+	// WebhookActionAdd is a WebhookAction of type add.
+	WebhookActionAdd WebhookAction = "add"
+	// WebhookActionRemove is a WebhookAction of type remove.
+	WebhookActionRemove WebhookAction = "remove"
+	// WebhookActionPull is a WebhookAction of type pull.
+	WebhookActionPull WebhookAction = "pull"
+	// WebhookActionPush is a WebhookAction of type push.
+	WebhookActionPush WebhookAction = "push"
 )
 
-var ErrInvalidWebhookResourceAction = errors.New("not a valid WebhookResourceAction")
+var ErrInvalidWebhookAction = errors.New("not a valid WebhookAction")
 
 // String implements the Stringer interface.
-func (x WebhookResourceAction) String() string {
+func (x WebhookAction) String() string {
 	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
-func (x WebhookResourceAction) IsValid() bool {
-	_, err := ParseWebhookResourceAction(string(x))
+func (x WebhookAction) IsValid() bool {
+	_, err := ParseWebhookAction(string(x))
 	return err == nil
 }
 
-var _WebhookResourceActionValue = map[string]WebhookResourceAction{
-	"create": WebhookResourceActionCreate,
-	"update": WebhookResourceActionUpdate,
-	"delete": WebhookResourceActionDelete,
-	"add":    WebhookResourceActionAdd,
-	"remove": WebhookResourceActionRemove,
-	"pull":   WebhookResourceActionPull,
-	"push":   WebhookResourceActionPush,
+var _WebhookActionValue = map[string]WebhookAction{
+	"create": WebhookActionCreate,
+	"update": WebhookActionUpdate,
+	"delete": WebhookActionDelete,
+	"add":    WebhookActionAdd,
+	"remove": WebhookActionRemove,
+	"pull":   WebhookActionPull,
+	"push":   WebhookActionPush,
 }
 
-// ParseWebhookResourceAction attempts to convert a string to a WebhookResourceAction.
-func ParseWebhookResourceAction(name string) (WebhookResourceAction, error) {
-	if x, ok := _WebhookResourceActionValue[name]; ok {
+// ParseWebhookAction attempts to convert a string to a WebhookAction.
+func ParseWebhookAction(name string) (WebhookAction, error) {
+	if x, ok := _WebhookActionValue[name]; ok {
 		return x, nil
 	}
-	return WebhookResourceAction(""), fmt.Errorf("%s is %w", name, ErrInvalidWebhookResourceAction)
+	return WebhookAction(""), fmt.Errorf("%s is %w", name, ErrInvalidWebhookAction)
 }
 
-// MustParseWebhookResourceAction converts a string to a WebhookResourceAction, and panics if is not valid.
-func MustParseWebhookResourceAction(name string) WebhookResourceAction {
-	val, err := ParseWebhookResourceAction(name)
+// MustParseWebhookAction converts a string to a WebhookAction, and panics if is not valid.
+func MustParseWebhookAction(name string) WebhookAction {
+	val, err := ParseWebhookAction(name)
 	if err != nil {
 		panic(err)
 	}
 	return val
 }
 
-var errWebhookResourceActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+var errWebhookActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
 
 // Scan implements the Scanner interface.
-func (x *WebhookResourceAction) Scan(value interface{}) (err error) {
+func (x *WebhookAction) Scan(value interface{}) (err error) {
 	if value == nil {
-		*x = WebhookResourceAction("")
+		*x = WebhookAction("")
 		return
 	}
 
@@ -2753,30 +2753,30 @@ func (x *WebhookResourceAction) Scan(value interface{}) (err error) {
 	// driver.Value values at the top of the list for expediency
 	switch v := value.(type) {
 	case string:
-		*x, err = ParseWebhookResourceAction(v)
+		*x, err = ParseWebhookAction(v)
 	case []byte:
-		*x, err = ParseWebhookResourceAction(string(v))
-	case WebhookResourceAction:
+		*x, err = ParseWebhookAction(string(v))
+	case WebhookAction:
 		*x = v
-	case *WebhookResourceAction:
+	case *WebhookAction:
 		if v == nil {
-			return errWebhookResourceActionNilPtr
+			return errWebhookActionNilPtr
 		}
 		*x = *v
 	case *string:
 		if v == nil {
-			return errWebhookResourceActionNilPtr
+			return errWebhookActionNilPtr
 		}
-		*x, err = ParseWebhookResourceAction(*v)
+		*x, err = ParseWebhookAction(*v)
 	default:
-		return errors.New("invalid type for WebhookResourceAction")
+		return errors.New("invalid type for WebhookAction")
 	}
 
 	return
 }
 
 // Value implements the driver Valuer interface.
-func (x WebhookResourceAction) Value() (driver.Value, error) {
+func (x WebhookAction) Value() (driver.Value, error) {
 	return x.String(), nil
 }
 

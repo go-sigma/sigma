@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -99,6 +100,16 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit for delete namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for delete namespace failed: %v", err))
+		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  ptr.Of(namespaceObj.ID),
+			Action:       enums.WebhookActionDelete,
+			ResourceType: enums.WebhookResourceTypeNamespace,
+			Payload:      utils.MustMarshal(namespaceObj),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
