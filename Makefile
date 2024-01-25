@@ -33,6 +33,7 @@ CC               ?=
 CXX              ?=
 
 DOCKER_PLATFORMS ?= $(GOOS)/$(GOARCH)
+USE_MIRROR       ?= false
 
 .PHONY: all test build vendor
 
@@ -77,10 +78,10 @@ endif
 
 ## Docker:
 docker-build: ## Use the dockerfile to build the sigma image
-	docker buildx build -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true .
+	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true .
 
 docker-build-builder: ## Use the dockerfile to build the sigma-builder image
-	docker buildx build -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true .
+	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true .
 
 ## Misc:
 migration-create: ## Create a new migration file

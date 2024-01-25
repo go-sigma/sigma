@@ -5,8 +5,10 @@ ARG DEBIAN_VERSION=bookworm-slim
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} as web-builder
 
+ARG USE_MIRROR=false
+
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache make bash ncurses build-base
 
 COPY ./web /web
@@ -17,11 +19,12 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 
 FROM alpine:${ALPINE_VERSION} as syft
 
+ARG USE_MIRROR=false
 ARG SYFT_VERSION=0.101.1
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
   wget -q -O syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz https://github.com/anchore/syft/releases/download/v"${SYFT_VERSION}"/syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
   tar -xzf syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
@@ -30,12 +33,13 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
+ARG USE_MIRROR=false
 ARG TRIVY_VERSION=0.48.3
 ARG ORAS_VERSION=1.0.0
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
   case "${TARGETARCH}" in \
 		amd64) export TRIVYARCH='64bit' ;; \
@@ -59,11 +63,12 @@ RUN set -eux && \
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
+ARG USE_MIRROR=false
 ARG ZIG_VERSION=0.11.0
 ARG BUILDARCH
 
 RUN set -eux && \
-  # sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources; fi && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
@@ -102,8 +107,10 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 
 FROM debian:${DEBIAN_VERSION}
 
+ARG USE_MIRROR=false
+
 RUN set -eux && \
-  # sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources; fi && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
     ca-certificates \

@@ -4,8 +4,10 @@ ARG ALPINE_VERSION=3.18
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} as web-builder
 
+ARG USE_MIRROR=false
+
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache make bash ncurses build-base
 
 COPY ./web /web
@@ -18,9 +20,10 @@ FROM alpine:${ALPINE_VERSION} as syft
 
 ARG SYFT_VERSION=0.101.1
 ARG TARGETOS TARGETARCH
+ARG USE_MIRROR=false
 
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
   wget -q -O syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz https://github.com/anchore/syft/releases/download/v"${SYFT_VERSION}"/syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
   tar -xzf syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
@@ -29,6 +32,7 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} as trivy
 
+ARG USE_MIRROR=false
 ARG TRIVY_VERSION=0.48.3
 ARG ORAS_VERSION=1.0.0
 ARG TARGETOS TARGETARCH
@@ -36,7 +40,7 @@ ARG TARGETOS TARGETARCH
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
   case "${TARGETARCH}" in \
 		amd64) export TRIVYARCH='64bit' ;; \
@@ -60,8 +64,10 @@ RUN set -eux && \
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
+ARG USE_MIRROR=false
+
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache make bash ncurses build-base git openssl && \
   apk add --no-cache zig --repository=https://mirrors.aliyun.com/alpine/edge/testing
 
@@ -85,8 +91,10 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 
 FROM alpine:${ALPINE_VERSION}
 
+ARG USE_MIRROR=false
+
 RUN set -eux && \
-  # sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache curl
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
