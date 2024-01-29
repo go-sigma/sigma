@@ -32,6 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -79,12 +80,20 @@ func (h *handler) ListTags(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	if !h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead) {
-		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", repositoryObj.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	authChecked, err := h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
+			return xerrors.GenDSErrCodeResourceNotFound(err)
+		}
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	if !authChecked {
+		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", repositoryObj.ID).Msg("Auth check failed")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
-	lastFound := false
+	var lastFound bool
 	var lastID int64 = 0
 
 	tagService := h.tagServiceFactory.New()

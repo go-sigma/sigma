@@ -27,13 +27,13 @@ import (
 // Service is the interface for the auth service
 type Service interface {
 	// Namespace ...
-	Namespace(c echo.Context, namespaceID int64, auth enums.Auth) bool
+	Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error)
 	// Repository ...
-	Repository(c echo.Context, repositoryID int64, auth enums.Auth) bool
+	Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error)
 	// Tag ...
-	Tag(c echo.Context, tagID int64, auth enums.Auth) bool
+	Tag(c echo.Context, tagID int64, auth enums.Auth) (bool, error)
 	// Artifact ...
-	Artifact(c echo.Context, artifactID int64, auth enums.Auth) bool
+	Artifact(c echo.Context, artifactID int64, auth enums.Auth) (bool, error)
 }
 
 // ServiceFactory is the interface that provides the artifact service factory methods.

@@ -177,3 +177,17 @@ func StringsJoin[T stringsJoin](strs []T, sep string) string {
 	}
 	return strings.Join(b, sep)
 }
+
+// UnwrapJoinedErrors ...
+func UnwrapJoinedErrors(err error) string {
+	e, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		return err.Error()
+	}
+	es := e.Unwrap()
+	var ss = make([]string, len(es))
+	for index, e := range es {
+		ss[index] = e.Error()
+	}
+	return strings.Join(ss, ": ")
+}

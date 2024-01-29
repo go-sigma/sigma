@@ -319,3 +319,14 @@ func GenDSErrCodeResourceCountQuotaExceedNamespaceTag(name string, limit int64) 
 	}
 	return c
 }
+
+// GenDSErrCodeResourceNotFound ...
+func GenDSErrCodeResourceNotFound(err error) ErrCode {
+	c := ErrCode{
+		Code:           "RESOURCE_NOT_FOUND",
+		Title:          fmt.Sprintf("%v", err),
+		Description:    `The request resource is not found.`,
+		HTTPStatusCode: http.StatusNotFound,
+	}
+	return c
+}

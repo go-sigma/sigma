@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
@@ -69,9 +70,18 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
-	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthRead) {
+
+	authChecked, err := h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthRead)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
+			return xerrors.GenDSErrCodeResourceNotFound(err)
+		}
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))

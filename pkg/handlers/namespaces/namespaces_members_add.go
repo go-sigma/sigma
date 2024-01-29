@@ -67,7 +67,16 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if !h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthAdmin) {
+	authChecked, err := h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthAdmin)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("id", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found", req.NamespaceID))
+		}
+		log.Error().Err(err).Msg("Get namespace failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.NamespaceID))
+	}
+	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}

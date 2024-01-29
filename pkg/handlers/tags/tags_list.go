@@ -73,7 +73,16 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if !h.authServiceFactory.New().Repository(c, req.RepositoryID, enums.AuthRead) {
+	authChecked, err := h.authServiceFactory.New().Repository(c, req.RepositoryID, enums.AuthRead)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+		}
+		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+	}
+	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.RepositoryID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
