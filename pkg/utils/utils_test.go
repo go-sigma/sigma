@@ -16,6 +16,7 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -362,6 +363,39 @@ func TestStringsJoin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := StringsJoin(tt.args.strs, tt.args.sep); got != tt.want {
 				t.Errorf("StringsJoin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUnwrapJoinedErrors(t *testing.T) {
+	type args struct {
+		err error
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "normal",
+			args: args{
+				err: fmt.Errorf("normal error"),
+			},
+			want: "normal error",
+		},
+		{
+			name: "joined",
+			args: args{
+				err: errors.Join(fmt.Errorf("normal error"), fmt.Errorf("normal error2")),
+			},
+			want: "normal error: normal error2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := UnwrapJoinedErrors(tt.args.err); got != tt.want {
+				t.Errorf("UnwrapJoinedErrors() = %v, want %v", got, tt.want)
 			}
 		})
 	}

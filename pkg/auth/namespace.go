@@ -16,6 +16,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -27,53 +28,57 @@ import (
 )
 
 // Namespace ...
-func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) bool {
+func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return false
+		return false, nil
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return false
+		return false, nil
 	}
 
 	// 1. check user is admin or not
 	if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
-		return true
+		return true, nil
 	}
 
 	// 2. check namespace visibility
 	namespaceService := s.namespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, namespaceID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get namespace by id failed")
-		return false
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Msg("Get namespace by id failed")
+			return false, errors.Join(err, fmt.Errorf("Get namespace by id(%d) failed", namespaceID))
+		}
+		log.Error().Err(err).Msg("Get namespace by id not found")
+		return false, errors.Join(err, fmt.Errorf("Get namespace by id(%d) not found", namespaceID))
 	}
 	if namespaceObj.Visibility == enums.VisibilityPublic && auth == enums.AuthRead {
-		return true
+		return true, nil
 	}
 
 	// 3. check user is member of the namespace
 	roleService := s.roleServiceFactory.New()
 	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Get namespace member failed")
+		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace
+			log.Error().Err(err).Msg("Get namespace member by namespace id and user id failed")
 		}
-		return false
+		return false, err
 	}
 	if namespaceMemberObj.Role == enums.NamespaceRoleReader && auth == enums.AuthRead {
-		return true
+		return true, nil
 	}
 	if namespaceMemberObj.Role == enums.NamespaceRoleManager && (auth == enums.AuthManage || auth == enums.AuthRead) {
-		return true
+		return true, nil
 	}
 	if namespaceMemberObj.Role == enums.NamespaceRoleAdmin && (auth == enums.AuthAdmin || auth == enums.AuthManage || auth == enums.AuthRead) {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }

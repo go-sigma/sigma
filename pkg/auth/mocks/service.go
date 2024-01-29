@@ -41,11 +41,12 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Artifact mocks base method.
-func (m *MockService) Artifact(arg0 echo.Context, arg1 int64, arg2 enums.Auth) bool {
+func (m *MockService) Artifact(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Artifact", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Artifact indicates an expected call of Artifact.
@@ -55,11 +56,12 @@ func (mr *MockServiceMockRecorder) Artifact(arg0, arg1, arg2 any) *gomock.Call {
 }
 
 // Namespace mocks base method.
-func (m *MockService) Namespace(arg0 echo.Context, arg1 int64, arg2 enums.Auth) bool {
+func (m *MockService) Namespace(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Namespace", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Namespace indicates an expected call of Namespace.
@@ -69,11 +71,12 @@ func (mr *MockServiceMockRecorder) Namespace(arg0, arg1, arg2 any) *gomock.Call 
 }
 
 // Repository mocks base method.
-func (m *MockService) Repository(arg0 echo.Context, arg1 int64, arg2 enums.Auth) bool {
+func (m *MockService) Repository(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Repository", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Repository indicates an expected call of Repository.
@@ -83,11 +86,12 @@ func (mr *MockServiceMockRecorder) Repository(arg0, arg1, arg2 any) *gomock.Call
 }
 
 // Tag mocks base method.
-func (m *MockService) Tag(arg0 echo.Context, arg1 int64, arg2 enums.Auth) bool {
+func (m *MockService) Tag(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Tag", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Tag indicates an expected call of Tag.

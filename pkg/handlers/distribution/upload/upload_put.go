@@ -74,9 +74,18 @@ func (h *handler) PutUpload(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	if !h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage) {
+
+	authChecked, err := h.authServiceFactory.New().Namespace(c, namespaceObj.ID, enums.AuthManage)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
+			return xerrors.GenDSErrCodeResourceNotFound(err)
+		}
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+	}
+	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 
 	dgest, err := digest.Parse(c.QueryParam("digest"))

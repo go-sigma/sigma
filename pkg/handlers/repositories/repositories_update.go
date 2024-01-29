@@ -68,9 +68,18 @@ func (h *handler) UpdateRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if !h.authServiceFactory.New().Repository(c, req.ID, enums.AuthManage) {
-		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	authChecked, err := h.authServiceFactory.New().Repository(c, req.ID, enums.AuthManage)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Int64("RepositoryID", req.ID).Msg("Resource not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
+		}
+		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Int64("RepositoryID", req.ID).Msg("Get resource failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
+	}
+	if !authChecked {
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api or resource")
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()

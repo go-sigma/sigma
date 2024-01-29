@@ -15,21 +15,29 @@
 package auth
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Tag ...
-func (s service) Tag(c echo.Context, tagID int64, auth enums.Auth) bool {
+func (s service) Tag(c echo.Context, tagID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	tagService := s.tagServiceFactory.New()
 	tagObj, err := tagService.GetByID(ctx, tagID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get tag by id failed")
-		return false
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("tagID", tagID).Msg("Get tag by id failed")
+			return false, errors.Join(err, fmt.Errorf("Get tag by id(%d) failed", tagID))
+		}
+		log.Error().Err(err).Int64("tagID", tagID).Msg("Get tag by id not found")
+		return false, errors.Join(err, fmt.Errorf("Get tag by id(%d) not found", tagID))
 	}
 	return s.Repository(c, tagObj.RepositoryID, auth)
 }
