@@ -2,3 +2,10 @@ coverage:
   precision: 2
   round: down
   range: "30...100"
+  status:
+    patch:
+      default:
+        threshold: 2%
+    project:
+      default:
+        threshold: 2%
