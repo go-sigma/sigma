@@ -26,7 +26,7 @@ import (
 )
 
 // Tag ...
-func (s service) Tag(c echo.Context, tagID int64, auth enums.Auth) (bool, error) {
+func (s authService) Tag(c echo.Context, tagID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	tagService := s.tagServiceFactory.New()

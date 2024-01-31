@@ -45,7 +45,7 @@ var _ Handler = &handler{}
 
 type handler struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
@@ -55,7 +55,7 @@ type handler struct {
 
 type inject struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
@@ -66,7 +66,7 @@ type inject struct {
 // handlerNew creates a new instance of the distribution upload blob handlers
 func handlerNew(injects ...inject) Handler {
 	config := configs.GetConfiguration()
-	authServiceFactory := auth.NewServiceFactory()
+	authServiceFactory := auth.NewAuthServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()

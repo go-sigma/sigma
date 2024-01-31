@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespaces
+package auth
 
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -30,11 +29,18 @@ func TestFactory(t *testing.T) {
 
 	namespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
 	artifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
+	namespaceMemberServiceFactory := daomock.NewMockNamespaceMemberServiceFactory(ctrl)
+	repositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
+	tagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
 
-	handler := handlerNew(inject{namespaceServiceFactory: namespaceServiceFactory, artifactServiceFactory: artifactServiceFactory})
-	assert.NotNil(t, handler)
+	authServiceFactory := NewAuthServiceFactory(inject{
+		namespaceMemberServiceFactory: namespaceMemberServiceFactory,
+		namespaceServiceFactory:       namespaceServiceFactory,
+		repositoryServiceFactory:      repositoryServiceFactory,
+		tagServiceFactory:             tagServiceFactory,
+		artifactServiceFactory:        artifactServiceFactory,
+	})
+	assert.NotNil(t, authServiceFactory)
 
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	assert.NotNil(t, authServiceFactory.New())
 }

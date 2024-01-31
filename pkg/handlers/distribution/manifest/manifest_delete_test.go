@@ -70,7 +70,7 @@ func TestDeleteManifest(t *testing.T) {
 	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))
 
 	h := &handler{
-		authServiceFactory:       auth.NewServiceFactory(),
+		authServiceFactory:       auth.NewAuthServiceFactory(),
 		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),

@@ -26,7 +26,7 @@ import (
 )
 
 // Tag ...
-func (s service) Artifact(c echo.Context, artifactID int64, auth enums.Auth) (bool, error) {
+func (s authService) Artifact(c echo.Context, artifactID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	artifactService := s.artifactServiceFactory.New()
