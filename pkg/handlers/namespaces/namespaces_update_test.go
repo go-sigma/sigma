@@ -162,7 +162,7 @@ func TestPutNamespace(t *testing.T) {
 	}).Times(1)
 
 	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
-	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.Service {
+	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(1)
 
@@ -225,7 +225,7 @@ func TestPutNamespaceFailed1(t *testing.T) {
 	}).Times(1)
 
 	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
-	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.Service {
+	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(1)
 

@@ -41,7 +41,7 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -49,7 +49,7 @@ type handler struct {
 }
 
 type inject struct {
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -62,7 +62,7 @@ func handlerNew(injects ...inject) Handler {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	authServiceFactory := auth.NewServiceFactory()
+	authServiceFactory := auth.NewAuthServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.repositoryServiceFactory != nil {

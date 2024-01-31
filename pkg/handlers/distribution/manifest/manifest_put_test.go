@@ -120,7 +120,7 @@ func TestPutManifest(t *testing.T) {
 				Visibility: enums.VisibilityPublic,
 			},
 		},
-		authServiceFactory:       auth.NewServiceFactory(),
+		authServiceFactory:       auth.NewAuthServiceFactory(),
 		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
 		tagServiceFactory:        dao.NewTagServiceFactory(),

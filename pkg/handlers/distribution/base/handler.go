@@ -41,14 +41,14 @@ var _ Handler = &handler{}
 
 type handler struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 type inject struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 }
@@ -56,7 +56,7 @@ type inject struct {
 // New creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
 	config := configs.GetConfiguration()
-	authServiceFactory := auth.NewServiceFactory()
+	authServiceFactory := auth.NewAuthServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	if len(injects) > 0 {

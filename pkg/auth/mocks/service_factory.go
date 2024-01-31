@@ -40,10 +40,10 @@ func (m *MockServiceFactory) EXPECT() *MockServiceFactoryMockRecorder {
 }
 
 // New mocks base method.
-func (m *MockServiceFactory) New() auth.Service {
+func (m *MockServiceFactory) New() auth.AuthService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New")
-	ret0, _ := ret[0].(auth.Service)
+	ret0, _ := ret[0].(auth.AuthService)
 	return ret0
 }
 

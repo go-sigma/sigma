@@ -72,7 +72,7 @@ func TestDeleteNamespace(t *testing.T) {
 	}).Times(3)
 
 	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
-	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.Service {
+	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(3)
 

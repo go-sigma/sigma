@@ -28,7 +28,7 @@ import (
 )
 
 // Namespace ...
-func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
+func (s authService) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -63,7 +63,7 @@ func (s service) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (
 	}
 
 	// 3. check user is member of the namespace
-	roleService := s.roleServiceFactory.New()
+	roleService := s.namespaceMemberServiceFactory.New()
 	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace

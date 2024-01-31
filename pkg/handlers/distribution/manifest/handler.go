@@ -45,7 +45,7 @@ var _ Handler = &handler{}
 
 type handler struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
@@ -56,7 +56,7 @@ type handler struct {
 
 type inject struct {
 	config                   *configs.Configuration
-	authServiceFactory       auth.ServiceFactory
+	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
@@ -68,7 +68,7 @@ type inject struct {
 // New creates a new instance of the distribution manifest handlers
 func handlerNew(injects ...inject) Handler {
 	config := configs.GetConfiguration()
-	authServiceFactory := auth.NewServiceFactory()
+	authServiceFactory := auth.NewAuthServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()

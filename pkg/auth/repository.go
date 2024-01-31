@@ -26,7 +26,7 @@ import (
 )
 
 // Repository ...
-func (s service) Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error) {
+func (s authService) Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error) {
 	ctx := log.Logger.WithContext(c.Request().Context())
 	repositoryService := s.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, repositoryID)
