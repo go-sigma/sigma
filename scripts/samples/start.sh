@@ -14,7 +14,7 @@ SIGMA_VOLUME=${SIGMA_VOLUME:-$PWD}
   -p 6379:6379 \
   -p 9000:9000 \
   -p 9001:9001 \
-  docker:24-dind
+  docker:25-dind
 
 if [ "$SIGMA_VOLUME" != "$PWD" ]; then
   cp -rf sigma.tar.gz "$SIGMA_VOLUME"
