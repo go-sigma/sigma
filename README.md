@@ -45,11 +45,9 @@ The sigma registry implements the OCI Distribution Spec version 1.1.0.
 - [x] Support registry proxy.
 - [x] Support Namespace quota.
 - [x] Support Image automatic garbage collection.
-- [x] Support Multi-tenancy.
+- [x] Support Image sign.
+- [x] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image replication.
-- [ ] Support Image build in docker, podman and kubernetes.
-- [ ] Support Image sign.
-- [ ] Support helm chart search and index.json.
 
 ## Release Schedule
 
