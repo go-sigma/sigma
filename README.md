@@ -7,26 +7,11 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
-Yet another OCI artifact manager. [Harbor](https://goharbor.io/) is a great product, but it's not easy to use, it is so complex. So I want to make a simple artifact manager, that never depends on [distribution](https://github.com/distribution/distribution) like [harbor](https://goharbor.io/).
+Sigma is an extremely easy-to-deploy and manage image repository, and it adheres to the interface standards defined by the [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0-rc4). It can also support any other client programs that follow the interface definition of the OCI Distribution Specification, such as [oras](https://github.com/oras-project/oras), [apptainer](https://github.com/apptainer/apptainer), [helm](https://github.com/helm/helm), and [nerdctl](https://github.com/containerd/nerdctl).
 
 ## Demo Server
 
 It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 24.0.6.
-
-``` sh
-# Install Docker from get.docker.com
-sh ./scripts/samples/init.sh
-
-# If your docker running with rootless mode,
-# make sure add net.ipv4.ip_unprivileged_port_start=0 to /etc/sysctl.conf and run sudo sysctl --system.
-docker network create sigma
-docker run --name sigma -v /home/admin/config:/etc/sigma \
-  -v /var/run/docker.sock:/var/run/docker.sock -p 443:3000 \
-  -d --net sigma ghcr.io/go-sigma/sigma:nightly-alpine
-
-# Add sample data
-sh ./scripts/samples/samples.sh
-```
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
@@ -34,12 +19,13 @@ I will periodically reboot the container, and since the container doesn't have a
 
 ## Quick Start
 
-Now sigma is under very early development, so it's not easy to use. But you can try it.
+Now you can use this command to run a simple server:
 
 ``` bash
-cd web && yarn && yarn build && cd .. && make build && ./scripts/run_all.sh
-./bin/sigma server -c ./conf/config.yaml
+docker run --name sigma -p 3000:3000 --rm ghcr.io/go-sigma/sigma:nightly-alpine
 ```
+
+The default username and password is: sigma/Admin@123, if you want to modify the default password, please refer to the instructions provided [here](https://docs.sigma.tosone.cn/docs/configuration).
 
 ## Architecture
 
