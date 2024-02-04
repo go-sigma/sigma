@@ -1,4 +1,51 @@
 
+<a name="v1.1.0"></a>
+## [v1.1.0](https://github.com/go-sigma/sigma/compare/v1.0.0...v1.1.0) (2024-02-04)
+
+### Features
+
+* Support build with mirror ([#285](https://github.com/go-sigma/sigma/issues/285))
+* Create namespace send webhook ([#283](https://github.com/go-sigma/sigma/issues/283))
+* Support apptainer sif ([#278](https://github.com/go-sigma/sigma/issues/278))
+* Implement blob redirect ([#275](https://github.com/go-sigma/sigma/issues/275))
+* Support disable image builder ([#273](https://github.com/go-sigma/sigma/issues/273))
+* Use zig as cross compiler ([#269](https://github.com/go-sigma/sigma/issues/269))
+* Support disable image build ([#267](https://github.com/go-sigma/sigma/issues/267))
+
+### Bug Fixes
+
+* Fix artifact type ([#276](https://github.com/go-sigma/sigma/issues/276))
+* Fix builder image not exist ([#272](https://github.com/go-sigma/sigma/issues/272))
+* Enable cgo for sqlite3 ([#268](https://github.com/go-sigma/sigma/issues/268))
+
+### Docs
+
+* Add apptainer docs ([#282](https://github.com/go-sigma/sigma/issues/282))
+
+### Upgrade
+
+* Upgrade dependencies ([#290](https://github.com/go-sigma/sigma/issues/290))
+* Upgrade distribution ([#277](https://github.com/go-sigma/sigma/issues/277))
+* Update dependencies ([#271](https://github.com/go-sigma/sigma/issues/271))
+
+### CI
+
+* Update ci config ([#288](https://github.com/go-sigma/sigma/issues/288))
+* Update tag release config ([#266](https://github.com/go-sigma/sigma/issues/266))
+* Update tag release config ([#265](https://github.com/go-sigma/sigma/issues/265))
+
+### Unit Tests
+
+* Add test for auth ([#289](https://github.com/go-sigma/sigma/issues/289))
+* Add namespace update ut ([#287](https://github.com/go-sigma/sigma/issues/287))
+* Add list namespace ut ([#286](https://github.com/go-sigma/sigma/issues/286))
+* Add delete namespace ut back ([#284](https://github.com/go-sigma/sigma/issues/284))
+* Add unit test for signing init ([#281](https://github.com/go-sigma/sigma/issues/281))
+* Add unit test for workq ([#280](https://github.com/go-sigma/sigma/issues/280))
+* Add unit test for audit ([#279](https://github.com/go-sigma/sigma/issues/279))
+* Add unit test for inmemory cache ([#270](https://github.com/go-sigma/sigma/issues/270))
+
+
 <a name="v1.0.0"></a>
 ## v1.0.0 (2023-12-29)
 

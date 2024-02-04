@@ -2,7 +2,7 @@ GOCMD             = go
 GOTEST            = $(GOCMD) test
 GOVET             = $(GOCMD) vet
 BINARY_NAME       = sigma
-VERSION          ?= 0.0.0
+VERSION          ?= $(shell git describe --tags --always)
 SERVICE_PORT     ?= 3000
 DOCKER_REGISTRY  ?= ghcr.io/go-sigma
 
@@ -91,7 +91,7 @@ sql-format: ## Format all sql files
 	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
 
 changelog: ## Generate changelog
-	@docker run -v "${PWD}":/workdir quay.io/git-chglog/git-chglog:latest -o CHANGELOG.md
+	@docker run -v "${PWD}":/workdir quay.io/git-chglog/git-chglog:latest --next-tag $(VERSION) -o CHANGELOG.md
 
 gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
