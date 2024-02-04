@@ -5687,7 +5687,7 @@ const docTemplate = `{
                 "VisibilityPublic"
             ]
         },
-        "enums.WebhookResourceAction": {
+        "enums.WebhookAction": {
             "type": "string",
             "enum": [
                 "create",
@@ -5699,13 +5699,13 @@ const docTemplate = `{
                 "push"
             ],
             "x-enum-varnames": [
-                "WebhookResourceActionCreate",
-                "WebhookResourceActionUpdate",
-                "WebhookResourceActionDelete",
-                "WebhookResourceActionAdd",
-                "WebhookResourceActionRemove",
-                "WebhookResourceActionPull",
-                "WebhookResourceActionPush"
+                "WebhookActionCreate",
+                "WebhookActionUpdate",
+                "WebhookActionDelete",
+                "WebhookActionAdd",
+                "WebhookActionRemove",
+                "WebhookActionPull",
+                "WebhookActionPush"
             ]
         },
         "enums.WebhookResourceType": {
@@ -6775,7 +6775,7 @@ const docTemplate = `{
                 "action": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/enums.WebhookResourceAction"
+                            "$ref": "#/definitions/enums.WebhookAction"
                         }
                     ],
                     "example": "action"

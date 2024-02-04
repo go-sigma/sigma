@@ -5679,7 +5679,7 @@
                 "VisibilityPublic"
             ]
         },
-        "enums.WebhookResourceAction": {
+        "enums.WebhookAction": {
             "type": "string",
             "enum": [
                 "create",
@@ -5691,13 +5691,13 @@
                 "push"
             ],
             "x-enum-varnames": [
-                "WebhookResourceActionCreate",
-                "WebhookResourceActionUpdate",
-                "WebhookResourceActionDelete",
-                "WebhookResourceActionAdd",
-                "WebhookResourceActionRemove",
-                "WebhookResourceActionPull",
-                "WebhookResourceActionPush"
+                "WebhookActionCreate",
+                "WebhookActionUpdate",
+                "WebhookActionDelete",
+                "WebhookActionAdd",
+                "WebhookActionRemove",
+                "WebhookActionPull",
+                "WebhookActionPush"
             ]
         },
         "enums.WebhookResourceType": {
@@ -6767,7 +6767,7 @@
                 "action": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/enums.WebhookResourceAction"
+                            "$ref": "#/definitions/enums.WebhookAction"
                         }
                     ],
                     "example": "action"

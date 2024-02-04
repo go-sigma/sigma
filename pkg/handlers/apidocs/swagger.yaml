@@ -140,7 +140,7 @@ definitions:
     x-enum-varnames:
     - VisibilityPrivate
     - VisibilityPublic
-  enums.WebhookResourceAction:
+  enums.WebhookAction:
     enum:
     - create
     - update
@@ -151,13 +151,13 @@ definitions:
     - push
     type: string
     x-enum-varnames:
-    - WebhookResourceActionCreate
-    - WebhookResourceActionUpdate
-    - WebhookResourceActionDelete
-    - WebhookResourceActionAdd
-    - WebhookResourceActionRemove
-    - WebhookResourceActionPull
-    - WebhookResourceActionPush
+    - WebhookActionCreate
+    - WebhookActionUpdate
+    - WebhookActionDelete
+    - WebhookActionAdd
+    - WebhookActionRemove
+    - WebhookActionPull
+    - WebhookActionPush
   enums.WebhookResourceType:
     enum:
     - ping
@@ -901,7 +901,7 @@ definitions:
     properties:
       action:
         allOf:
-        - $ref: '#/definitions/enums.WebhookResourceAction'
+        - $ref: '#/definitions/enums.WebhookAction'
         example: action
       created_at:
         example: "2006-01-02 15:04:05"
