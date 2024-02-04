@@ -85,7 +85,7 @@ docker-build-builder: ## Use the dockerfile to build the sigma-builder image
 
 ## Misc:
 migration-create: ## Create a new migration file
-	@migrate create -dir ./migrations -seq -digits 4 -ext sql $(MIGRATION_NAME)
+	@migrate create -dir ./pkg/dal/migrations/mysql -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
 sql-format: ## Format all sql files
 	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
