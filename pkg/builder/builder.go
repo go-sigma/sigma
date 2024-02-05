@@ -202,3 +202,17 @@ func BuildK8sEnv(builderConfig BuilderConfig) ([]corev1.EnvVar, error) {
 	}
 	return k8sEnvs, nil
 }
+
+// BuildEnvMap ...
+func BuildEnvMap(builderConfig BuilderConfig) (map[string]string, error) {
+	envs, err := BuildEnv(builderConfig)
+	if err != nil {
+		return nil, err
+	}
+	var res = make(map[string]string, len(envs))
+	for _, env := range envs {
+		s := strings.SplitN(env, "=", 2)
+		res[s[0]] = s[1]
+	}
+	return res, nil
+}

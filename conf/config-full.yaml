@@ -123,7 +123,9 @@ daemon:
       network: sigma
     kubernetes:
       kubeconfig:
-      namespace:
+      namespace: default
+    podman:
+      uri: unix:///run/podman/podman.sock
 
 auth:
   admin:

@@ -43,7 +43,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.55.2
-          args: --deadline=30m --verbose
+          args: --deadline=30m --verbose --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
           skip-pkg-cache: true
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0

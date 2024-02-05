@@ -53,6 +53,12 @@ func defaultSettings() {
 	if configuration.Daemon.Gc.Retention == 0 {
 		configuration.Daemon.Gc.Retention = 72 * time.Hour
 	}
+	if configuration.Daemon.Builder.Kubernetes.Namespace == "" {
+		configuration.Daemon.Builder.Kubernetes.Namespace = "default"
+	}
+	if configuration.Daemon.Builder.Podman.URI == "" {
+		configuration.Daemon.Builder.Podman.URI = "unix:///run/podman/podman.sock"
+	}
 	if configuration.Cache.Inmemory.Size == 0 {
 		configuration.Cache.Inmemory.Size = 10240
 	}

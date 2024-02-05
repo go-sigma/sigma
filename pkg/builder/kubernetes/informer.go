@@ -27,7 +27,7 @@ import (
 
 func (i *instance) informer(_ context.Context) {
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(i.client, time.Second*30,
-		informers.WithNamespace(i.config.Builder.K8s.Namespace))
+		informers.WithNamespace(i.config.Daemon.Builder.Kubernetes.Namespace))
 	podInformer := informerFactory.Core().V1().Pods().Informer()
 	podEventHandler := cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
