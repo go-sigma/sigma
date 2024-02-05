@@ -50,9 +50,9 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 
 	var err error
 	var restConfig *restclient.Config
-	if config.Builder.K8s.Kubeconfig != "" {
+	if config.Daemon.Builder.Kubernetes.Kubeconfig != nil {
 		cfg := clientcmdapi.NewConfig()
-		err := yaml.Unmarshal([]byte(config.Builder.K8s.Kubeconfig), &cfg)
+		err := yaml.Unmarshal([]byte(ptr.To(config.Daemon.Builder.Kubernetes.Kubeconfig)), &cfg)
 		if err != nil {
 			return nil, fmt.Errorf("Decode kubeconfig failed: %v", err)
 		}
@@ -89,7 +89,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	if err != nil {
 		return err
 	}
-	_, err = i.client.CoreV1().Pods(i.config.Builder.K8s.Namespace).Create(ctx, &corev1.Pod{
+	_, err = i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				"oci-image-builder": consts.AppName,

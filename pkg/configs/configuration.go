@@ -47,13 +47,6 @@ type Configuration struct {
 	Proxy     ConfigurationProxy     `yaml:"proxy"`
 	Daemon    ConfigurationDaemon    `yaml:"daemon"`
 	Auth      ConfigurationAuth      `yaml:"auth"`
-	Builder   ConfigurationBuilder   `yaml:"builder"`
-}
-
-type ConfigurationBuilder struct {
-	Type   string                     `yaml:"type"`
-	K8s    ConfigurationBuilderK8s    `yaml:"k8s"`
-	Docker ConfigurationBuilderDocker `yaml:"docker"`
 }
 
 type ConfigurationBuilderK8s struct {
@@ -246,7 +239,12 @@ type ConfigurationDaemonDocker struct {
 // ConfigurationDaemonKubernetes ...
 type ConfigurationDaemonKubernetes struct {
 	Kubeconfig *string `yaml:"kubeconfig"`
-	Namespace  *string `yaml:"namespace"`
+	Namespace  string  `yaml:"namespace"`
+}
+
+// ConfigurationDaemonPodman ...
+type ConfigurationDaemonPodman struct {
+	URI string `yaml:"uri"`
 }
 
 // ConfigurationDaemonBuilder ...
@@ -256,6 +254,7 @@ type ConfigurationDaemonBuilder struct {
 	Image      string                        `yaml:"image"`
 	Docker     ConfigurationDaemonDocker     `yaml:"docker"`
 	Kubernetes ConfigurationDaemonKubernetes `yaml:"kubernetes"`
+	Podman     ConfigurationDaemonPodman     `yaml:"podman"`
 }
 
 // ConfigurationDaemon ...
