@@ -11,11 +11,11 @@ Sigma is an extremely easy-to-deploy and manage image repository, and it adheres
 
 ## Demo Server
 
-It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 24.0.6.
+It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 20.10.24. I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
-I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
+Status check here: [https://stats.uptimerobot.com/PoB1PhvAoR/796311885](https://stats.uptimerobot.com/PoB1PhvAoR/796311885)
 
 ## Quick Start
 
