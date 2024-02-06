@@ -84,11 +84,11 @@ func TestDelete(t *testing.T) {
 	err = driver.Upload(ctx, "dir/unit-test", strings.NewReader("test"))
 	assert.NoError(t, err)
 
-	reader, err := driver.Reader(ctx, "dir/unit-test", 2)
+	reader, err := driver.Reader(ctx, "dir/unit-test")
 	assert.NoError(t, err)
 	data, err := io.ReadAll(reader)
 	assert.NoError(t, err)
-	assert.Equal(t, "st", string(data))
+	assert.Equal(t, "test", string(data))
 
 	err = driver.Move(ctx, "dir/unit-test", "dir/unit-test-to")
 	assert.NoError(t, err)

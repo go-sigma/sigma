@@ -52,7 +52,7 @@ func (h *handler) GetCache(c echo.Context) error {
 	}
 
 	var path = h.genPath(req.BuilderID)
-	reader, err := storage.Driver.Reader(ctx, path, 0)
+	reader, err := storage.Driver.Reader(ctx, path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Error().Err(err).Str("cache", path).Msg("Cache not found")

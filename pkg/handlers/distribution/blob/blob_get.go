@@ -156,7 +156,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 		return c.Redirect(http.StatusPermanentRedirect, redirectUrl)
 	}
 
-	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), 0)
+	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob reader failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

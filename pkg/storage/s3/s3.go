@@ -22,7 +22,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -56,18 +55,11 @@ type factory struct{}
 var _ storage.Factory = factory{}
 
 func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
-	endpoint := config.Storage.S3.Endpoint
-	region := config.Storage.S3.Region
-	ak := config.Storage.S3.Ak
-	sk := config.Storage.S3.Sk
-	bucket := config.Storage.S3.Bucket
-	forcePathStyle := config.Storage.S3.ForcePathStyle
-
 	sess, err := session.NewSession(&aws.Config{
-		Endpoint:         aws.String(endpoint),
-		Region:           aws.String(region),
-		S3ForcePathStyle: aws.Bool(forcePathStyle),
-		Credentials:      credentials.NewStaticCredentials(ak, sk, ""),
+		Endpoint:         aws.String(config.Storage.S3.Endpoint),
+		Region:           aws.String(config.Storage.S3.Region),
+		S3ForcePathStyle: aws.Bool(config.Storage.S3.ForcePathStyle),
+		Credentials:      credentials.NewStaticCredentials(config.Storage.S3.Ak, config.Storage.S3.Sk, ""),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new session with aws config: %v", err)
@@ -75,7 +67,7 @@ func (f factory) New(config configs.Configuration) (storage.StorageDriver, error
 	return &awss3{
 		S3:            s3.New(sess),
 		uploader:      s3manager.NewUploader(sess),
-		bucket:        bucket,
+		bucket:        config.Storage.S3.Bucket,
 		rootDirectory: strings.TrimPrefix(viper.GetString("storage.rootDirectory"), "/"),
 	}, nil
 }
@@ -243,11 +235,10 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 }
 
 // Reader returns a reader for the given path.
-func (a *awss3) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
+func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) {
 	resp, err := a.S3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
-		Range:  aws.String("bytes=" + strconv.FormatInt(offset, 10) + "-"),
 	})
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {

@@ -67,7 +67,7 @@ func TestNew(t *testing.T) {
 	err = driver.Move(ctx, "dir/unit-test", "dir/unit-test-to")
 	assert.NoError(t, err)
 
-	reader, err := driver.Reader(ctx, "dir/unit-test", 0)
+	reader, err := driver.Reader(ctx, "dir/unit-test")
 	assert.NoError(t, err)
 	contentBytes, err := io.ReadAll(reader)
 	assert.NoError(t, err)

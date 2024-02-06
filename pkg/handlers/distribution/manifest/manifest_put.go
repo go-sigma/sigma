@@ -196,7 +196,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	} else {
 		for _, reference := range manifest.References() {
 			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" || reference.MediaType == "application/vnd.cncf.helm.config.v1+json" || reference.MediaType == "application/vnd.sylabs.sif.config.v1+json" {
-				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)), 0)
+				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)))
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
 					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

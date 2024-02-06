@@ -22,7 +22,6 @@ import (
 	"net/url"
 	"path"
 	"reflect"
-	"strconv"
 	"strings"
 
 	gonanoid "github.com/matoous/go-nanoid"
@@ -192,10 +191,8 @@ func (t *tencentcos) Delete(ctx context.Context, path string) error {
 }
 
 // Reader returns a reader for the given path.
-func (t *tencentcos) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
-	opt := &cos.ObjectGetOptions{
-		Range: fmt.Sprintf("bytes=%s-", strconv.FormatInt(offset, 10)),
-	}
+func (t *tencentcos) Reader(ctx context.Context, path string) (io.ReadCloser, error) {
+	opt := &cos.ObjectGetOptions{}
 	resp, err := t.client.Object.Get(ctx, path, opt)
 	if err != nil {
 		return nil, fmt.Errorf("Get object failed: %v", err)
