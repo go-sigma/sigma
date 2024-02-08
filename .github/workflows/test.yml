@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.21"]
-        node: ["18"]
+        go: ["1.22"]
+        node: ["20"]
     services:
       mysql:
         image: mysql:8.0
@@ -76,6 +76,10 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_SQLITE }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_SQLITE }}
         run: |
           CI_DATABASE_TYPE=sqlite3 go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
@@ -84,8 +88,12 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_SQLITE }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_SQLITE }}
         run: |
-          CI_DATABASE_TYPE=sqlite3 go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
+          CI_DATABASE_TYPE=sqlite3 go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -96,8 +104,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.21"]
-        node: ["18"]
+        go: ["1.22"]
+        node: ["20"]
     services:
       mysql:
         image: mysql:8.0
@@ -157,6 +165,10 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
         run: |
           CI_DATABASE_TYPE=postgresql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
@@ -165,8 +177,12 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
         run: |
-          CI_DATABASE_TYPE=postgresql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
+          CI_DATABASE_TYPE=postgresql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -178,8 +194,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.21"]
-        node: ["18"]
+        go: ["1.22"]
+        node: ["20"]
     services:
       mysql:
         image: mysql:8.0
@@ -239,6 +255,10 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_MYSQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_MYSQL }}
         run: |
           CI_DATABASE_TYPE=mysql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
@@ -247,8 +267,12 @@ jobs:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT_MYSQL }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET_MYSQL }}
         run: |
-          CI_DATABASE_TYPE=mysql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos"`
+          CI_DATABASE_TYPE=mysql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:

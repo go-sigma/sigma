@@ -30,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -40,7 +39,7 @@ import (
 )
 
 type awss3 struct {
-	S3            *s3.S3
+	client        *s3.S3
 	uploader      *s3manager.Uploader
 	rootDirectory string
 	bucket        string
@@ -65,10 +64,10 @@ func (f factory) New(config configs.Configuration) (storage.StorageDriver, error
 		return nil, fmt.Errorf("failed to create new session with aws config: %v", err)
 	}
 	return &awss3{
-		S3:            s3.New(sess),
+		client:        s3.New(sess),
 		uploader:      s3manager.NewUploader(sess),
 		bucket:        config.Storage.S3.Bucket,
-		rootDirectory: strings.TrimPrefix(viper.GetString("storage.rootDirectory"), "/"),
+		rootDirectory: strings.TrimPrefix(config.Storage.RootDirectory, "/"),
 	}, nil
 }
 
@@ -81,7 +80,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	srcPath = a.sanitizePath(srcPath)
 	dstPath = a.sanitizePath(dstPath)
 
-	srcFile, err := a.S3.HeadObject(&s3.HeadObjectInput{
+	srcFile, err := a.client.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(srcPath),
 	})
@@ -91,7 +90,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	srcSize := ptr.To(srcFile.ContentLength)
 
 	if srcSize <= storage.MultipartCopyThresholdSize {
-		_, err := a.S3.CopyObject(&s3.CopyObjectInput{
+		_, err := a.client.CopyObject(&s3.CopyObjectInput{
 			Bucket:     aws.String(a.bucket),
 			Key:        aws.String(dstPath),
 			CopySource: aws.String(path.Join(a.bucket, srcPath)),
@@ -102,7 +101,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		return nil
 	}
 
-	createResp, err := a.S3.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
+	createResp, err := a.client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(dstPath),
 	})
@@ -124,7 +123,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 			if lastByte >= srcSize {
 				lastByte = srcSize - 1
 			}
-			uploadResp, err := a.S3.UploadPartCopy(&s3.UploadPartCopyInput{
+			uploadResp, err := a.client.UploadPartCopy(&s3.UploadPartCopyInput{
 				Bucket:          aws.String(a.bucket),
 				CopySource:      aws.String(path.Join(a.bucket, srcPath)),
 				Key:             aws.String(dstPath),
@@ -150,7 +149,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		}
 	}
 
-	_, err = a.S3.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
+	_, err = a.client.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
 		Key:             aws.String(dstPath),
 		UploadId:        createResp.UploadId,
@@ -171,12 +170,12 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 
 	for {
 		// list all the objects
-		resp, err := a.S3.ListObjectsV2(listObjectsInput)
+		resp, err := a.client.ListObjectsV2(listObjectsInput)
 
 		// resp.Contents can only be empty on the first call
 		// if there were no more results to return after the first call, resp.IsTruncated would have been false
 		// and the loop would exit without recalling ListObjects
-		if err != nil || len(resp.Contents) == 0 {
+		if err != nil {
 			return fmt.Errorf("failed to list objects: %w", err)
 		}
 
@@ -196,7 +195,7 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 			// by default the response returns up to 1,000 key names. The response _might_ contain fewer keys but it will never contain more.
 			// 10000 keys is coincidentally (?) also the max number of keys that can be deleted in a single Delete operation, so we'll just smack
 			// Delete here straight away and reset the object slice when successful.
-			resp, err := a.S3.DeleteObjects(&s3.DeleteObjectsInput{
+			resp, err := a.client.DeleteObjects(&s3.DeleteObjectsInput{
 				Bucket: aws.String(a.bucket),
 				Delete: &s3.Delete{
 					Objects: s3Objects,
@@ -236,14 +235,13 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 
 // Reader returns a reader for the given path.
 func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) {
-	resp, err := a.S3.GetObject(&s3.GetObjectInput{
+	resp, err := a.client.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
 	})
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == s3.ErrCodeNoSuchKey {
-				fmt.Println(254, awsErr.Error())
 				return nil, os.ErrNotExist
 			}
 			return nil, awsErr
@@ -255,7 +253,7 @@ func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) 
 
 // CreateUploadID creates a new upload ID.
 func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error) {
-	resp, err := a.S3.CreateMultipartUploadWithContext(ctx, &s3.CreateMultipartUploadInput{
+	resp, err := a.client.CreateMultipartUploadWithContext(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
 	})
@@ -275,7 +273,7 @@ func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumbe
 	if err != nil {
 		return "", err
 	}
-	resp, err := a.S3.UploadPartCopyWithContext(ctx, &s3.UploadPartCopyInput{
+	resp, err := a.client.UploadPartCopyWithContext(ctx, &s3.UploadPartCopyInput{
 		Bucket:     aws.String(a.bucket),
 		Key:        aws.String(a.sanitizePath(path)),
 		UploadId:   aws.String(uploadID),
@@ -297,7 +295,7 @@ func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts [
 			PartNumber: aws.Int64(int64(i + 1)),
 		}
 	}
-	_, err := a.S3.CompleteMultipartUploadWithContext(ctx, &s3.CompleteMultipartUploadInput{
+	_, err := a.client.CompleteMultipartUploadWithContext(ctx, &s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
 		Key:             aws.String(a.sanitizePath(path)),
 		UploadId:        aws.String(uploadID),
@@ -308,7 +306,7 @@ func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts [
 
 // AbortUpload aborts an upload.
 func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) error {
-	_, err := a.S3.AbortMultipartUploadWithContext(ctx, &s3.AbortMultipartUploadInput{
+	_, err := a.client.AbortMultipartUploadWithContext(ctx, &s3.AbortMultipartUploadInput{
 		Bucket:   aws.String(a.bucket),
 		Key:      aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		UploadId: aws.String(uploadID),
@@ -328,7 +326,7 @@ func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 
 // Redirect get a temporary link
 func (a *awss3) Redirect(ctx context.Context, path string) (string, error) {
-	req, _ := a.S3.GetObjectRequest(&s3.GetObjectInput{
+	req, _ := a.client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
 	})

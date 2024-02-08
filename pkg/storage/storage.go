@@ -53,8 +53,7 @@ type StorageDriver interface {
 
 	// Reader retrieves an io.ReadCloser for the content stored at "path"
 	// with a given byte offset.
-	// May be used to resume reading a stream by providing a nonzero offset.
-	Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error)
+	Reader(ctx context.Context, path string) (io.ReadCloser, error)
 
 	// CreateUploadID creates a new multipart upload and returns an
 	// opaque upload ID.
