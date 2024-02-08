@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.21"]
-        node: ["18"]
+        go: ["1.22"]
+        node: ["20"]
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4

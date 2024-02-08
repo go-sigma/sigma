@@ -27,8 +27,6 @@ func defaultSettings() {
 	viper.SetDefault("auth.jwt.ttl", time.Hour)           // the jwt token ttl
 	viper.SetDefault("auth.jwt.refreshTtl", time.Hour*24) // the refresh token ttl
 
-	viper.SetDefault("storage.rootDirectory", "/var/lib/sigma") // the root directory for filesystem storage
-
 	viper.SetDefault("server.endpoint", "http://127.0.0.1:3000")
 	viper.SetDefault("server.internalEndpoint", "http://127.0.0.1:3000")
 

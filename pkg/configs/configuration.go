@@ -203,6 +203,15 @@ type ConfigurationStorageQiniu struct {
 	UseHTTPS bool   `yaml:"useHttps"`
 }
 
+// ConfigurationStorageOss ...
+type ConfigurationStorageOss struct {
+	Ak             string `yaml:"ak"`
+	Sk             string `yaml:"sk"`
+	Bucket         string `yaml:"bucket"`
+	Endpoint       string `yaml:"endpoint"`
+	ForcePathStyle bool   `yaml:"forcePathStyle"`
+}
+
 // ConfigurationStorage ...
 type ConfigurationStorage struct {
 	RootDirectory string                         `yaml:"rootDirectory"`
@@ -211,7 +220,7 @@ type ConfigurationStorage struct {
 	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
 	S3            ConfigurationStorageS3         `yaml:"s3"`
 	Cos           ConfigurationStorageCos        `yaml:"cos"`
-	Qiniu         ConfigurationStorageQiniu      `yaml:"qiniu"`
+	Oss           ConfigurationStorageOss        `yaml:"oss"`
 }
 
 // ConfigurationProxy ...

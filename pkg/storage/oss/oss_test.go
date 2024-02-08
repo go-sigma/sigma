@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cos
+package oss
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
-	"io"
 	"os"
 	"strings"
 	"testing"
@@ -29,34 +29,39 @@ import (
 
 func TestBigFileMove(t *testing.T) {
 	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(configs.Configuration{
+	var config = configs.Configuration{
 		Storage: configs.ConfigurationStorage{
-			Cos: configs.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
+			Oss: configs.ConfigurationStorageOss{
+				Ak:             os.Getenv("OSS_AK"),
+				Sk:             os.Getenv("OSS_SK"),
+				Bucket:         os.Getenv("OSS_BUCKET"),
+				Endpoint:       os.Getenv("OSS_ENDPOINT"),
+				ForcePathStyle: false,
 			},
+			RootDirectory: "sigma",
 		},
-	})
+	}
+	f := factory{}
+	driver, err := f.New(config)
 	assert.NoError(t, err)
-	assert.NotNil(t, driver)
 
 	var bigFile = "test-big-file.bin"
 	originalFile, _ := os.Create(bigFile)
-	for i := 0; i < 1; i++ { // 1M
+	for i := 0; i < 100; i++ { // generate 100MB
 		data := make([]byte, 1<<20)
 		_, _ = rand.Read(data)
 		_, _ = originalFile.Write(data)
 	}
-	_ = originalFile.Close()
-	file, _ := os.Open(bigFile)
-	defer file.Close()          // nolint: errcheck
-	defer os.RemoveAll(bigFile) // nolint: errcheck
-
-	err = driver.Upload(ctx, "big-file", file)
+	err = originalFile.Close()
 	assert.NoError(t, err)
 
+	defer os.Remove(bigFile) // nolint: errcheck
+
+	bigFileBytes, err := os.ReadFile(bigFile)
+	assert.NoError(t, err)
+
+	err = driver.Upload(ctx, "big-file", bytes.NewReader(bigFileBytes))
+	assert.NoError(t, err)
 	err = driver.Move(ctx, "big-file", "big-file-move-to")
 	assert.NoError(t, err)
 
@@ -68,52 +73,50 @@ func TestBigFileMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(configs.Configuration{
+	var config = configs.Configuration{
 		Storage: configs.ConfigurationStorage{
-			Cos: configs.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
+			Oss: configs.ConfigurationStorageOss{
+				Ak:             os.Getenv("OSS_AK"),
+				Sk:             os.Getenv("OSS_SK"),
+				Bucket:         os.Getenv("OSS_BUCKET"),
+				Endpoint:       os.Getenv("OSS_ENDPOINT"),
+				ForcePathStyle: false,
 			},
+			RootDirectory: "sigma",
 		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, driver)
-
-	err = driver.Upload(ctx, "dir/unit-test", strings.NewReader("test"))
+	}
+	f := factory{}
+	driver, err := f.New(config)
 	assert.NoError(t, err)
 
-	reader, err := driver.Reader(ctx, "dir/unit-test")
+	err = driver.Upload(ctx, "dir/unit-test/unit-test/test.txt", strings.NewReader("test"))
 	assert.NoError(t, err)
-	data, err := io.ReadAll(reader)
+	err = driver.Upload(ctx, "dir/unit-test/test.txt", strings.NewReader("test"))
 	assert.NoError(t, err)
-	assert.Equal(t, "test", string(data))
-
-	err = driver.Move(ctx, "dir/unit-test", "dir/unit-test-to")
+	err = driver.Upload(ctx, "dir/test.txt", strings.NewReader("test"))
 	assert.NoError(t, err)
 
-	err = driver.Delete(ctx, "dir/unit-test")
-	assert.NoError(t, err)
-
-	err = driver.Delete(ctx, "dir/unit-test-to")
+	err = driver.Delete(ctx, "dir")
 	assert.NoError(t, err)
 }
 
 func TestMultiUpload(t *testing.T) {
 	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(configs.Configuration{
+	var config = configs.Configuration{
 		Storage: configs.ConfigurationStorage{
-			Cos: configs.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
+			Oss: configs.ConfigurationStorageOss{
+				Ak:             os.Getenv("OSS_AK"),
+				Sk:             os.Getenv("OSS_SK"),
+				Bucket:         os.Getenv("OSS_BUCKET"),
+				Endpoint:       os.Getenv("OSS_ENDPOINT"),
+				ForcePathStyle: false,
 			},
+			RootDirectory: "sigma",
 		},
-	})
+	}
+	f := factory{}
+	driver, err := f.New(config)
 	assert.NoError(t, err)
-	assert.NotNil(t, driver)
 
 	uploadID, err := driver.CreateUploadID(ctx, "upload-test")
 	assert.NoError(t, err)
@@ -125,10 +128,10 @@ func TestMultiUpload(t *testing.T) {
 		_, _ = originalFile1.Write(data)
 	}
 	_ = originalFile1.Close()
-	file1, _ := os.Open(bigFile1)
-	defer file1.Close()          // nolint: errcheck
+	file1Bytes, err := os.ReadFile(bigFile1)
+	assert.NoError(t, err)
 	defer os.RemoveAll(bigFile1) // nolint: errcheck
-	etag1, err := driver.UploadPart(ctx, "upload-test", uploadID, 1, file1)
+	etag1, err := driver.UploadPart(ctx, "upload-test", uploadID, 1, bytes.NewReader(file1Bytes))
 	assert.NoError(t, err)
 	var bigFile2 = "test-big-file2.bin"
 	originalFile2, _ := os.Create(bigFile2)

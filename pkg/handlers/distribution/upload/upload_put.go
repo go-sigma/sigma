@@ -170,7 +170,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	srcPathReader, err := storage.Driver.Reader(ctx, srcPath, 0)
+	srcPathReader, err := storage.Driver.Reader(ctx, srcPath)
 	if err != nil {
 		log.Error().Err(err).Str("srcPath", srcPath).Msg("Get blob upload failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

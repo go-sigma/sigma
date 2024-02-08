@@ -98,17 +98,9 @@ func (f *fs) Delete(ctx context.Context, path string) error {
 }
 
 // Reader returns a reader for the file at the given path
-func (f *fs) Reader(ctx context.Context, path string, offset int64) (io.ReadCloser, error) {
+func (f *fs) Reader(ctx context.Context, path string) (io.ReadCloser, error) {
 	fp, err := os.OpenFile(storage.SanitizePath(f.rootDirectory, path), os.O_RDONLY, 0644)
 	if err != nil {
-		return nil, err
-	}
-	seekPos, err := fp.Seek(offset, io.SeekStart)
-	if err != nil {
-		fp.Close() // nolint: errcheck
-		return nil, err
-	} else if seekPos < offset {
-		fp.Close() // nolint: errcheck
 		return nil, err
 	}
 	return fp, nil
