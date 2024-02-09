@@ -66,7 +66,7 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthManage)
+	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")

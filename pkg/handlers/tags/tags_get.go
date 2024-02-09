@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -66,7 +67,7 @@ func (h *handler) GetTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead)
+	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")

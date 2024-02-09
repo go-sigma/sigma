@@ -67,7 +67,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthAdmin)
+	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthAdmin)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.NamespaceID).Msg("Namespace not found")

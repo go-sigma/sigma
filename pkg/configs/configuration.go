@@ -189,8 +189,6 @@ type ConfigurationStorageCos struct {
 	Ak             string `yaml:"ak"`
 	Sk             string `yaml:"sk"`
 	Endpoint       string `yaml:"endpoint"`
-	Region         string `yaml:"region"`
-	Bucket         string `yaml:"bucket"`
 	ForcePathStyle bool   `yaml:"forcePathStyle"`
 }
 

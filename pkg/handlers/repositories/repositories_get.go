@@ -68,7 +68,7 @@ func (h *handler) GetRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(c, req.ID, enums.AuthRead)
+	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Int64("RepositoryID", req.ID).Msg("Resource not found")

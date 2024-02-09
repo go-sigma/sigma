@@ -156,12 +156,12 @@ func TestPutNamespace(t *testing.T) {
 		return daoMockNamespaceService
 	}).Times(2)
 
-	authService := authmocks.NewMockService(ctrl)
-	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
+	authService := authmocks.NewMockAuthService(ctrl)
+	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(user models.User, namespaceID int64, auth enums.Auth) (bool, error) {
 		return true, nil
 	}).Times(1)
 
-	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
+	authServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
 	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(1)
@@ -219,12 +219,12 @@ func TestPutNamespaceFailed1(t *testing.T) {
 		return daoMockNamespaceService
 	}).Times(1)
 
-	authService := authmocks.NewMockService(ctrl)
-	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
+	authService := authmocks.NewMockAuthService(ctrl)
+	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(user models.User, namespaceID int64, auth enums.Auth) (bool, error) {
 		return true, nil
 	}).Times(1)
 
-	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
+	authServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
 	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(1)

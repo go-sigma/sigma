@@ -40,6 +40,20 @@ func (m *MockSettingService) EXPECT() *MockSettingServiceMockRecorder {
 	return m.recorder
 }
 
+// Create mocks base method.
+func (m *MockSettingService) Create(arg0 context.Context, arg1 string, arg2 []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockSettingServiceMockRecorder) Create(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSettingService)(nil).Create), arg0, arg1, arg2)
+}
+
 // Delete mocks base method.
 func (m *MockSettingService) Delete(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -69,16 +83,16 @@ func (mr *MockSettingServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSettingService)(nil).Get), arg0, arg1)
 }
 
-// Save mocks base method.
-func (m *MockSettingService) Save(arg0 context.Context, arg1 string, arg2 []byte) error {
+// Update mocks base method.
+func (m *MockSettingService) Update(arg0 context.Context, arg1 string, arg2 []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Update", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Save indicates an expected call of Save.
-func (mr *MockSettingServiceMockRecorder) Save(arg0, arg1, arg2 any) *gomock.Call {
+// Update indicates an expected call of Update.
+func (mr *MockSettingServiceMockRecorder) Update(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSettingService)(nil).Save), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSettingService)(nil).Update), arg0, arg1, arg2)
 }

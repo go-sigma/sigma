@@ -65,7 +65,7 @@ func (h *handler) PutNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthAdmin)
+	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.ID, enums.AuthAdmin)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")

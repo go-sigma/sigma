@@ -101,6 +101,21 @@ func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespaceMember(arg0, arg1,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespaceMember), arg0, arg1, arg2)
 }
 
+// GetNamespacesMember mocks base method.
+func (m *MockNamespaceMemberService) GetNamespacesMember(arg0 context.Context, arg1 []int64, arg2 int64) ([]*models.NamespaceMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNamespacesMember", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.NamespaceMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNamespacesMember indicates an expected call of GetNamespacesMember.
+func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespacesMember(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespacesMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespacesMember), arg0, arg1, arg2)
+}
+
 // ListNamespaceMembers mocks base method.
 func (m *MockNamespaceMemberService) ListNamespaceMembers(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.NamespaceMember, int64, error) {
 	m.ctrl.T.Helper()

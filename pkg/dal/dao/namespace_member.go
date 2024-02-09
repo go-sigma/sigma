@@ -41,6 +41,8 @@ type NamespaceMemberService interface {
 	ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceMember, int64, error)
 	// GetNamespaceMember ...
 	GetNamespaceMember(ctx context.Context, namespaceID int64, userID int64) (*models.NamespaceMember, error)
+	// GetNamespacesMember ...
+	GetNamespacesMember(ctx context.Context, namespaceIDs []int64, userID int64) ([]*models.NamespaceMember, error)
 	// CountNamespaceMember ...
 	CountNamespaceMember(ctx context.Context, userID int64, namespaceID int64) (int64, error)
 }
@@ -162,6 +164,17 @@ func (s namespaceMemberService) GetNamespaceMember(ctx context.Context, namespac
 		s.tx.NamespaceMember.UserID.Eq(userID),
 		s.tx.NamespaceMember.NamespaceID.Eq(namespaceID),
 	).First()
+}
+
+// GetNamespacesMember ...
+func (s namespaceMemberService) GetNamespacesMember(ctx context.Context, namespaceIDs []int64, userID int64) ([]*models.NamespaceMember, error) {
+	if len(namespaceIDs) == 0 {
+		return nil, nil
+	}
+	return s.tx.NamespaceMember.WithContext(ctx).Where(
+		s.tx.NamespaceMember.UserID.Eq(userID),
+		s.tx.NamespaceMember.NamespaceID.In(namespaceIDs...),
+	).Find()
 }
 
 // CountNamespaceMember ...

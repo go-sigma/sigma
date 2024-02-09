@@ -15,19 +15,20 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Tag ...
-func (s authService) Artifact(c echo.Context, artifactID int64, auth enums.Auth) (bool, error) {
-	ctx := log.Logger.WithContext(c.Request().Context())
+func (s authService) Artifact(user models.User, artifactID int64, auth enums.Auth) (bool, error) {
+	ctx := log.Logger.WithContext(context.Background())
 
 	artifactService := s.artifactServiceFactory.New()
 	artifactObj, err := artifactService.Get(ctx, artifactID)
@@ -39,5 +40,5 @@ func (s authService) Artifact(c echo.Context, artifactID int64, auth enums.Auth)
 		log.Error().Err(err).Int64("artifactID", artifactID).Msg("Get artifact by id not found")
 		return false, errors.Join(err, fmt.Errorf("Get artifact by id(%d) not found", artifactID))
 	}
-	return s.Repository(c, artifactObj.RepositoryID, auth)
+	return s.Repository(user, artifactObj.RepositoryID, auth)
 }

@@ -33,6 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -80,7 +81,7 @@ func (h *handler) ListTags(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(c, repositoryObj.ID, enums.AuthRead)
+	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), repositoryObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")

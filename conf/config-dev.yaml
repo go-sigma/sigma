@@ -96,6 +96,10 @@ storage:
     region: cn-north-1
     bucket: sigma
     forcePathStyle: true
+  cos:
+    ak: sigma
+    sk: sigma-sigma
+    endpoint: https://hack-1251887554.cos.na-toronto.myqcloud.com
   oss:
     ak: sigma
     sk: sigma-sigma

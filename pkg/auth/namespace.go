@@ -15,32 +15,21 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Namespace ...
-func (s authService) Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
-	ctx := log.Logger.WithContext(c.Request().Context())
-
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return false, nil
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return false, nil
-	}
+func (s authService) Namespace(user models.User, namespaceID int64, auth enums.Auth) (bool, error) {
+	ctx := log.Logger.WithContext(context.Background())
 
 	// 1. check user is admin or not
 	if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
@@ -81,4 +70,37 @@ func (s authService) Namespace(c echo.Context, namespaceID int64, auth enums.Aut
 		return true, nil
 	}
 	return false, nil
+}
+
+// NamespaceRole ...
+func (s authService) NamespaceRole(user models.User, namespaceID int64) (*enums.NamespaceRole, error) {
+	ctx := log.Logger.WithContext(context.Background())
+
+	roleService := s.namespaceMemberServiceFactory.New()
+	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace
+			log.Error().Err(err).Msg("Get namespace member by namespace id and user id failed")
+		}
+		return nil, err
+	}
+	return ptr.Of(namespaceMemberObj.Role), nil
+}
+
+// NamespaceRole ...
+func (s authService) NamespacesRole(user models.User, namespaceIDs []int64) (map[int64]*enums.NamespaceRole, error) {
+	ctx := log.Logger.WithContext(context.Background())
+
+	roleService := s.namespaceMemberServiceFactory.New()
+	namespaceMemberObjs, err := roleService.GetNamespacesMember(ctx, namespaceIDs, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result = make(map[int64]*enums.NamespaceRole, len(namespaceIDs))
+	for _, o := range namespaceMemberObjs {
+		result[o.NamespaceID] = ptr.Of(o.Role)
+	}
+
+	return result, nil
 }
