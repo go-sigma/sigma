@@ -15,19 +15,20 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // Repository ...
-func (s authService) Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error) {
-	ctx := log.Logger.WithContext(c.Request().Context())
+func (s authService) Repository(user models.User, repositoryID int64, auth enums.Auth) (bool, error) {
+	ctx := log.Logger.WithContext(context.Background())
 	repositoryService := s.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, repositoryID)
 	if err != nil {
@@ -38,5 +39,5 @@ func (s authService) Repository(c echo.Context, repositoryID int64, auth enums.A
 		log.Error().Err(err).Int64("repositoryID", repositoryID).Msg("Get repository by id not found")
 		return false, errors.Join(err, fmt.Errorf("Get repository by id(%d) not found", repositoryID))
 	}
-	return s.Namespace(c, repositoryObj.NamespaceID, auth)
+	return s.Namespace(user, repositoryObj.NamespaceID, auth)
 }

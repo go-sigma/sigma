@@ -69,7 +69,7 @@ func (h *handler) CreateRepository(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(c, req.NamespaceID, enums.AuthManage)
+	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Resource not found")

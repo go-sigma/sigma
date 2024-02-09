@@ -67,7 +67,7 @@ func TestDeleteNamespace(t *testing.T) {
 	}).Times(2)
 
 	authService := authmocks.NewMockAuthService(ctrl)
-	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
+	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(user models.User, namespaceID int64, auth enums.Auth) (bool, error) {
 		return true, nil
 	}).Times(3)
 

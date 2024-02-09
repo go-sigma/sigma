@@ -73,7 +73,7 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(c, req.RepositoryID, enums.AuthRead)
+	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), req.RepositoryID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")

@@ -14,7 +14,6 @@ import (
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	enums "github.com/go-sigma/sigma/pkg/types/enums"
-	echo "github.com/labstack/echo/v4"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,7 +41,7 @@ func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 }
 
 // Artifact mocks base method.
-func (m *MockAuthService) Artifact(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
+func (m *MockAuthService) Artifact(arg0 models.User, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Artifact", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
@@ -57,7 +56,7 @@ func (mr *MockAuthServiceMockRecorder) Artifact(arg0, arg1, arg2 any) *gomock.Ca
 }
 
 // Namespace mocks base method.
-func (m *MockAuthService) Namespace(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
+func (m *MockAuthService) Namespace(arg0 models.User, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Namespace", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
@@ -102,7 +101,7 @@ func (mr *MockAuthServiceMockRecorder) NamespacesRole(arg0, arg1 any) *gomock.Ca
 }
 
 // Repository mocks base method.
-func (m *MockAuthService) Repository(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
+func (m *MockAuthService) Repository(arg0 models.User, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Repository", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
@@ -117,7 +116,7 @@ func (mr *MockAuthServiceMockRecorder) Repository(arg0, arg1, arg2 any) *gomock.
 }
 
 // Tag mocks base method.
-func (m *MockAuthService) Tag(arg0 echo.Context, arg1 int64, arg2 enums.Auth) (bool, error) {
+func (m *MockAuthService) Tag(arg0 models.User, arg1 int64, arg2 enums.Auth) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Tag", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)

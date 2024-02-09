@@ -15,8 +15,6 @@
 package auth
 
 import (
-	"github.com/labstack/echo/v4"
-
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -28,17 +26,17 @@ import (
 // AuthService is the interface for the auth service
 type AuthService interface {
 	// Namespace ...
-	Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error)
+	Namespace(user models.User, namespaceID int64, auth enums.Auth) (bool, error)
 	// NamespaceRole get user role in namespace
 	NamespaceRole(user models.User, namespaceID int64) (*enums.NamespaceRole, error)
 	// NamespacesRole ...
 	NamespacesRole(user models.User, namespaceIDs []int64) (map[int64]*enums.NamespaceRole, error)
 	// Repository ...
-	Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error)
+	Repository(user models.User, repositoryID int64, auth enums.Auth) (bool, error)
 	// Tag ...
-	Tag(c echo.Context, tagID int64, auth enums.Auth) (bool, error)
+	Tag(user models.User, tagID int64, auth enums.Auth) (bool, error)
 	// Artifact ...
-	Artifact(c echo.Context, artifactID int64, auth enums.Auth) (bool, error)
+	Artifact(user models.User, artifactID int64, auth enums.Auth) (bool, error)
 }
 
 // AuthServiceFactory is the interface that provides the artifact service factory methods.

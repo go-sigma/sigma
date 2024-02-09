@@ -78,7 +78,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	}
 
 	authService := h.authServiceFactory.New()
-	authChecked, err := authService.Namespace(c, req.ID, enums.AuthRead)
+	authChecked, err := authService.Namespace(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")
@@ -93,7 +93,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	}
 
 	namespaceRole, err := authService.NamespaceRole(ptr.To(user), req.ID)
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user namespace role failed: %v", err))
 	}
 

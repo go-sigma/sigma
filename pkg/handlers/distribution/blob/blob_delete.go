@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -67,7 +68,7 @@ func (h *handler) DeleteBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(c, namespaceObj.ID, enums.AuthManage)
+	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
