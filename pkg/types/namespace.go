@@ -18,17 +18,18 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // NamespaceItem represents a namespace.
 type NamespaceItem struct {
-	ID              int64            `json:"id" example:"1"`
-	Name            string           `json:"name" example:"test"`
-	Description     *string          `json:"description,omitempty" example:"i am just description"`
-	Overview        *string          `json:"overview,omitempty" example:"i am just overview"`
-	Visibility      enums.Visibility `json:"visibility" example:"private"`
-	RepositoryLimit int64            `json:"repository_limit" example:"10"`
-	RepositoryCount int64            `json:"repository_count" example:"10"`
-	TagLimit        int64            `json:"tag_limit" example:"10"`
-	TagCount        int64            `json:"tag_count" example:"10"`
-	Size            int64            `json:"size" example:"10000"`
-	SizeLimit       int64            `json:"size_limit" example:"10000"`
+	ID              int64                `json:"id" example:"1"`
+	Name            string               `json:"name" example:"test"`
+	Description     *string              `json:"description,omitempty" example:"i am just description"`
+	Overview        *string              `json:"overview,omitempty" example:"i am just overview"`
+	Visibility      enums.Visibility     `json:"visibility" example:"private"`
+	Role            *enums.NamespaceRole `json:"role" example:"NamespaceAdmin"`
+	RepositoryLimit int64                `json:"repository_limit" example:"10"`
+	RepositoryCount int64                `json:"repository_count" example:"10"`
+	TagLimit        int64                `json:"tag_limit" example:"10"`
+	TagCount        int64                `json:"tag_count" example:"10"`
+	Size            int64                `json:"size" example:"10000"`
+	SizeLimit       int64                `json:"size_limit" example:"10000"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

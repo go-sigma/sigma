@@ -19,13 +19,15 @@ import dayjs from 'dayjs';
 import { Tooltip } from 'flowbite';
 import humanFormat from "human-format";
 import { useCopyToClipboard } from 'react-use';
+import { Dialog, Transition, Menu } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useSearchParams, useParams } from 'react-router-dom';
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 
 import Settings from "../../Settings";
 import { trimHTTP } from "../../utils";
-import Menu from "../../components/Menu";
+import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
 import HelmSvg from "../../components/svg/helm";
 import Toast from "../../components/Notification";
@@ -127,41 +129,10 @@ export default function Tag({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <Menu localServer={localServer} item="tags" namespace={namespace} namespace_id={namespaceId || ""} repository={repository || ""} repository_id={repositoryId || ""} />
+        <IMenu localServer={localServer} item="tags" namespace={namespace} namespace_id={namespaceId || ""} repository={repository || ""} repository_id={repositoryId || ""} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
           <main className="">
             <Header title="Tag"
-              // breadcrumb={
-              //   (
-              //     <nav className="flex" aria-label="Breadcrumb">
-              //       <ol className="inline-flex items-center space-x-1 md:space-x-0">
-              //         <li className="inline-flex items-center">
-              //           <Link to={""} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-              //             <svg className="w-3 h-3 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              //               <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
-              //             </svg>
-              //           </Link>
-              //         </li>
-              //         <li className="inline-flex items-center">
-              //           <span className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-              //             <Link to={`/namespaces/${namespace}/repositories`} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-              //               {namespace}
-              //             </Link>
-              //           </span>
-              //         </li>
-              //         <li>
-              //           <div className="flex items-center">
-              //             <span className="text-gray-500 text-sm ml-1">/</span>
-              //             <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-              //               {repository?.substring((namespace?.length || 0) + 1)}
-              //             </span>
-              //             <span className="text-gray-500 text-sm ml-1">/</span>
-              //           </div>
-              //         </li>
-              //       </ol>
-              //     </nav>
-              //   )
-              // }
               props={
                 gotConfig && (
                   <div className="sm:flex sm:space-x-8">
@@ -266,6 +237,42 @@ export default function Tag({ localServer }: { localServer: string }) {
                               )
                             }
                           </code>
+                        </div>
+                        <div className="flex flex-col justify-center">
+                          <Menu as="div" className="relative flex-none" onClick={e => {
+                            e.stopPropagation();
+                          }}>
+                            <Menu.Button className="mx-auto my-auto block p-1 text-gray-500 hover:text-gray-900 margin">
+                              <span className="sr-only">Open options</span>
+                              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+                            </Menu.Button>
+                            <Transition
+                              as={Fragment}
+                              enter="transition ease-out duration-100"
+                              enterFrom="transform opacity-0 scale-95"
+                              enterTo="transform opacity-100 scale-100"
+                              leave="transition ease-in duration-75"
+                              leaveFrom="transform opacity-100 scale-100"
+                              leaveTo="transform opacity-0 scale-95"
+                            >
+                              <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <div
+                                      className={
+                                        (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
+                                      }
+                                      onClick={e => {
+                                        // setDeleteNamespaceModal(true);
+                                      }}
+                                    >
+                                      Delete
+                                    </div>
+                                  )}
+                                </Menu.Item>
+                              </Menu.Items>
+                            </Transition>
+                          </Menu>
                         </div>
                       </div>
                       {/* first row end */}

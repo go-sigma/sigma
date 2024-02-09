@@ -66,12 +66,12 @@ func TestDeleteNamespace(t *testing.T) {
 		return nil
 	}).Times(2)
 
-	authService := authmocks.NewMockService(ctrl)
+	authService := authmocks.NewMockAuthService(ctrl)
 	authService.EXPECT().Namespace(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error) {
 		return true, nil
 	}).Times(3)
 
-	authServiceFactory := authmocks.NewMockServiceFactory(ctrl)
+	authServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
 	authServiceFactory.EXPECT().New().DoAndReturn(func() auth.AuthService {
 		return authService
 	}).Times(3)

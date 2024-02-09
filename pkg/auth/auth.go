@@ -18,16 +18,21 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-//go:generate mockgen -destination=mocks/service.go -package=mocks github.com/go-sigma/sigma/pkg/auth Service
-//go:generate mockgen -destination=mocks/service_factory.go -package=mocks github.com/go-sigma/sigma/pkg/auth ServiceFactory
+//go:generate mockgen -destination=mocks/service.go -package=mocks github.com/go-sigma/sigma/pkg/auth AuthService
+//go:generate mockgen -destination=mocks/service_factory.go -package=mocks github.com/go-sigma/sigma/pkg/auth AuthServiceFactory
 
 // AuthService is the interface for the auth service
 type AuthService interface {
 	// Namespace ...
 	Namespace(c echo.Context, namespaceID int64, auth enums.Auth) (bool, error)
+	// NamespaceRole get user role in namespace
+	NamespaceRole(user models.User, namespaceID int64) (*enums.NamespaceRole, error)
+	// NamespacesRole ...
+	NamespacesRole(user models.User, namespaceIDs []int64) (map[int64]*enums.NamespaceRole, error)
 	// Repository ...
 	Repository(c echo.Context, repositoryID int64, auth enums.Auth) (bool, error)
 	// Tag ...

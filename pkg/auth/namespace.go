@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Namespace ...
@@ -81,4 +83,37 @@ func (s authService) Namespace(c echo.Context, namespaceID int64, auth enums.Aut
 		return true, nil
 	}
 	return false, nil
+}
+
+// NamespaceRole ...
+func (s authService) NamespaceRole(user models.User, namespaceID int64) (*enums.NamespaceRole, error) {
+	ctx := log.Logger.WithContext(context.Background())
+
+	roleService := s.namespaceMemberServiceFactory.New()
+	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace
+			log.Error().Err(err).Msg("Get namespace member by namespace id and user id failed")
+		}
+		return nil, err
+	}
+	return ptr.Of(namespaceMemberObj.Role), nil
+}
+
+// NamespaceRole ...
+func (s authService) NamespacesRole(user models.User, namespaceIDs []int64) (map[int64]*enums.NamespaceRole, error) {
+	ctx := log.Logger.WithContext(context.Background())
+
+	roleService := s.namespaceMemberServiceFactory.New()
+	namespaceMemberObjs, err := roleService.GetNamespacesMember(ctx, namespaceIDs, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result = make(map[int64]*enums.NamespaceRole, len(namespaceIDs))
+	for _, o := range namespaceMemberObjs {
+		result[o.NamespaceID] = ptr.Of(o.Role)
+	}
+
+	return result, nil
 }

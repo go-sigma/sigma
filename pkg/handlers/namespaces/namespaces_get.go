@@ -16,6 +16,7 @@ package namespaces
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -76,7 +77,8 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(c, req.ID, enums.AuthRead)
+	authService := h.authServiceFactory.New()
+	authChecked, err := authService.Namespace(c, req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")
@@ -88,6 +90,11 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+	}
+
+	namespaceRole, err := authService.NamespaceRole(ptr.To(user), req.ID)
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user namespace role failed: %v", err))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
@@ -110,6 +117,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		Description:     namespaceObj.Description,
 		Overview:        ptr.Of(string(namespaceObj.Overview)),
 		Visibility:      namespaceObj.Visibility,
+		Role:            namespaceRole,
 		Size:            namespaceObj.Size,
 		SizeLimit:       namespaceObj.SizeLimit,
 		RepositoryCount: repositoryMapCount[namespaceObj.ID],
