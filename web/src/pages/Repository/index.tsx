@@ -26,17 +26,18 @@ import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
-import Header from "../../components/Header";
-import Pagination from "../../components/Pagination";
-import OrderHeader from "../../components/OrderHeader";
-import Notification from "../../components/Notification";
 import Quota from "../../components/Quota";
 import calcUnit from "../../utils/calcUnit";
+import Header from "../../components/Header";
+import { NamespaceRole, UserRole } from "../../interfaces/enums";
+import Toast from "../../components/Notification";
+import Pagination from "../../components/Pagination";
+import OrderHeader from "../../components/OrderHeader";
 import QuotaSimple from "../../components/QuotaSimple";
+import Notification from "../../components/Notification";
+import { IRepositoryItem, IRepositoryList, IHTTPError, IOrder, IUserSelf, INamespaceItem } from "../../interfaces";
 
 import "./index.css";
-
-import { IRepositoryItem, IRepositoryList, IHTTPError, IOrder } from "../../interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
@@ -48,6 +49,25 @@ export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id');
+  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
+
+  useEffect(() => {
+    if (namespaceId == null || namespaceId == "") {
+      return;
+    }
+    axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
+      if (response.status == 200) {
+        const namespaceObj = response.data as INamespaceItem;
+        setNamespaceObj(namespaceObj);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    })
+  }, []);
 
   const [repositoryText, setRepositoryText] = useState("");
   const [repositoryTextValid, setRepositoryTextValid] = useState(true);
@@ -166,6 +186,23 @@ export default function ({ localServer }: { localServer: string }) {
 
   useEffect(fetchRepository, [refresh, page]);
 
+  const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response.status === 200) {
+        const user = response.data as IUserSelf;
+        setUserObj(user);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
   return (
     <Fragment>
       <HelmetProvider>
@@ -247,8 +284,12 @@ export default function ({ localServer }: { localServer: string }) {
                 </div>
               </div>
               <div className="pr-2 pl-2 flex flex-col">
-                <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                  onClick={() => { setCreateRepositoryModal(true) }}
+                <button className={
+                  (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer focus:ring-2 focus:ring-offset-2 ' : ' cursor-not-allowed ') +
+                  "my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-purple-500 sm:order-1 sm:ml-3"}
+                  onClick={() => {
+                    ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setCreateRepositoryModal(true);
+                  }}
                 >Create</button>
               </div>
             </div>
@@ -302,7 +343,7 @@ export default function ({ localServer }: { localServer: string }) {
                   {
                     repositoryList.items?.map((repository, index) => {
                       return (
-                        <TableItem key={index} localServer={localServer} index={index} namespace={namespace || ""} repository={repository} setRefresh={setRefresh} />
+                        <TableItem key={index} localServer={localServer} index={index} user={userObj} namespace={namespaceObj} repository={repository} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -517,7 +558,7 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, namespace, repository, setRefresh }: { localServer: string, index: number, namespace: string, repository: IRepositoryItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, index, user, namespace, repository, setRefresh }: { localServer: string, index: number, user: IUserSelf, namespace: INamespaceItem, repository: IRepositoryItem, setRefresh: (param: any) => void }) {
   const navigate = useNavigate();
 
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
@@ -642,9 +683,12 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
                   <div
                     className={
                       (active ? 'bg-gray-100' : '') +
+                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer ' : ' cursor-not-allowed ') +
                       ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
                     }
-                    onClick={e => { setUpdateRepositoryModal(true) }}
+                    onClick={e => {
+                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setUpdateRepositoryModal(true);
+                    }}
                   >
                     Update
                   </div>
@@ -654,9 +698,13 @@ function TableItem({ localServer, index, namespace, repository, setRefresh }: { 
                 {({ active }) => (
                   <div
                     className={
-                      (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
+                      (active ? 'bg-gray-50' : '') +
+                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
                     }
-                    onClick={e => { setDeleteRepositoryModal(true) }}
+                    onClick={e => {
+                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setDeleteRepositoryModal(true);
+                    }}
                   >
                     Delete
                   </div>

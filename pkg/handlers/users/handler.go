@@ -56,7 +56,7 @@ type Handler interface {
 	RecoverPasswordReset(c echo.Context) error
 
 	// Self handles the self request
-	Self(c echo.Context) error
+	SelfGet(c echo.Context) error
 	// SelfPut handles the self put request
 	SelfPut(c echo.Context) error
 	// SelfResetPassword handles the self reset request
@@ -139,7 +139,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 	userGroup.GET("/signup", userHandler.Signup)
 	userGroup.GET("/create", userHandler.Signup)
 
-	userGroup.GET("/self", userHandler.Self)
+	userGroup.GET("/self", userHandler.SelfGet)
 	userGroup.PUT("/self", userHandler.SelfPut)
 	userGroup.PUT("/self/reset-password", userHandler.SelfResetPassword)
 

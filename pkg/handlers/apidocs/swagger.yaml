@@ -1010,6 +1010,10 @@ definitions:
       repository_limit:
         example: 10
         type: integer
+      role:
+        allOf:
+        - $ref: '#/definitions/enums.NamespaceRole'
+        example: NamespaceAdmin
       size:
         example: 10000
         type: integer

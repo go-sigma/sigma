@@ -36,7 +36,8 @@ import QuotaSimple from "../../components/QuotaSimple";
 
 import "./index.css";
 
-import { INamespaceItem, INamespaceList, IHTTPError, IOrder } from "../../interfaces";
+import { INamespaceItem, INamespaceList, IHTTPError, IOrder, IUserSelf } from "../../interfaces";
+import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
@@ -124,6 +125,23 @@ export default function Namespace({ localServer }: { localServer: string }) {
   }
 
   useEffect(() => { fetchNamespace() }, [refresh, page, sortOrder, sortName]);
+
+  const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response.status === 200) {
+        const user = response.data as IUserSelf;
+        setUserObj(user);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
 
   const createNamespace = () => {
     if (!(namespaceTextValid && descriptionTextValid && sizeLimitValid && repositoryCountLimitValid && tagCountLimitValid)) {
@@ -267,7 +285,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   {
                     namespaceList.items?.map((namespace, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
+                        <TableItem key={namespace.id} index={index} user={userObj} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -539,7 +557,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, namespace, setRefresh }: { localServer: string, index: number, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, index, user, namespace, setRefresh }: { localServer: string, index: number, user: IUserSelf, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
   const navigate = useNavigate();
 
   const [updateNamespaceModal, setUpdateNamespaceModal] = useState(false);
@@ -681,10 +699,11 @@ function TableItem({ localServer, index, namespace, setRefresh }: { localServer:
                   <div
                     className={
                       (active ? 'bg-gray-100' : '') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
+                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
                     }
                     onClick={e => {
-                      setUpdateNamespaceModal(true);
+                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setUpdateNamespaceModal(true);
                     }}
                   >
                     Update
@@ -695,10 +714,12 @@ function TableItem({ localServer, index, namespace, setRefresh }: { localServer:
                 {({ active }) => (
                   <div
                     className={
-                      (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
+                      (active ? 'bg-gray-50' : '') +
+                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
                     }
                     onClick={e => {
-                      setDeleteNamespaceModal(true);
+                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setDeleteNamespaceModal(true);
                     }}
                   >
                     Delete
