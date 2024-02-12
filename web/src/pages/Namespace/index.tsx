@@ -18,20 +18,18 @@ import axios from "axios";
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
-import { Dialog, Transition, Menu } from "@headlessui/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Dialog, Transition, Menu } from "@headlessui/react";
+import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 
 import Settings from "../../Settings";
 import IMenu from "../../components/Menu";
+import Quota from "../../components/Quota";
+import calcUnit from "../../utils/calcUnit";
 import Header from "../../components/Header";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
-import calcUnit from "../../utils/calcUnit";
-
-import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
 
 import "./index.css";

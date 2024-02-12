@@ -29,12 +29,12 @@ import IMenu from "../../components/Menu";
 import Quota from "../../components/Quota";
 import calcUnit from "../../utils/calcUnit";
 import Header from "../../components/Header";
-import { NamespaceRole, UserRole } from "../../interfaces/enums";
 import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import OrderHeader from "../../components/OrderHeader";
 import QuotaSimple from "../../components/QuotaSimple";
 import Notification from "../../components/Notification";
+import { NamespaceRole, UserRole } from "../../interfaces/enums";
 import { IRepositoryItem, IRepositoryList, IHTTPError, IOrder, IUserSelf, INamespaceItem } from "../../interfaces";
 
 import "./index.css";
@@ -638,7 +638,7 @@ function TableItem({ localServer, index, user, namespace, repository, setRefresh
     <tr>
       <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          navigate(`/namespaces/${namespace}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`);
+          navigate(`/namespaces/${namespace.name}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`);
         }}
       >
         <div className="flex items-center space-x-3 lg:pl-2">

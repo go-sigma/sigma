@@ -133,7 +133,7 @@ export interface IArtifact {
   updated_at: string;
 }
 
-export interface ITag {
+export interface ITagItem {
   id: number;
   name: string;
   artifact: IArtifact;
@@ -145,7 +145,7 @@ export interface ITag {
 }
 
 export interface ITagList {
-  items: ITag[];
+  items: ITagItem[];
   total: number;
 }
 

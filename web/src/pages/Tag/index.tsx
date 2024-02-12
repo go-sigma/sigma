@@ -19,11 +19,12 @@ import dayjs from 'dayjs';
 import { Tooltip } from 'flowbite';
 import humanFormat from "human-format";
 import { useCopyToClipboard } from 'react-use';
-import { Dialog, Transition, Menu } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useSearchParams, useParams } from 'react-router-dom';
+import { Dialog, Transition, Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 import Settings from "../../Settings";
 import { trimHTTP } from "../../utils";
@@ -33,8 +34,8 @@ import Toast from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Notification from "../../components/Notification";
 import distros, { distroName } from '../../utils/distros';
-import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig, IUserSelf, INamespaceItem } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
+import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig, IUserSelf, INamespaceItem, ITagItem } from "../../interfaces";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
@@ -54,6 +55,9 @@ export default function Tag({ localServer }: { localServer: string }) {
   const [endpoint, setEndpoint] = useState("");
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+
+  const [deleteTagModal, setDeleteTagModal] = useState(false);
+  const [deleteTagModalTag, setDeleteTagModalTag] = useState<ITagItem>({} as ITagItem);
 
   useEffect(() => {
     axios.get(localServer + "/api/v1/users/self").then(response => {
@@ -151,6 +155,20 @@ export default function Tag({ localServer }: { localServer: string }) {
     });
   }, []);
 
+  const deleteTag = (tagId: number) => {
+    axios.delete(`${localServer}/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/${tagId}`).then(response => {
+      if (response.status === 204) {
+        setRefresh({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
   return (
     <Fragment>
       <HelmetProvider>
@@ -228,6 +246,69 @@ export default function Tag({ localServer }: { localServer: string }) {
             </div>
           </main>
           <div className="flex-1 overflow-y-auto">
+            <Transition.Root show={deleteTagModal} as={Fragment}>
+              <Dialog as="div" className="relative z-10" onClose={setDeleteTagModal}>
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0"
+                  enterTo="opacity-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                </Transition.Child>
+
+                <div className="fixed inset-0 z-10 overflow-y-auto">
+                  <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                    <Transition.Child
+                      as={Fragment}
+                      enter="ease-out duration-300"
+                      enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                      enterTo="opacity-100 translate-y-0 sm:scale-100"
+                      leave="ease-in duration-200"
+                      leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                      leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    >
+                      <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                        <div className="sm:flex sm:items-start">
+                          <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                          </div>
+                          <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                              Delete tag
+                            </Dialog.Title>
+                            <div className="mt-2">
+                              <p className="text-sm text-gray-500">
+                                Are you sure you want to delete the tag <span className="text-black font-medium">{deleteTagModalTag.name}</span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                          <button
+                            type="button"
+                            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                            onClick={e => { setDeleteTagModal(false); deleteTag(deleteTagModalTag.id); }}
+                          >
+                            Delete
+                          </button>
+                          <button
+                            type="button"
+                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                            onClick={() => setDeleteTagModal(false)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </Dialog.Panel>
+                    </Transition.Child>
+                  </div>
+                </div>
+              </Dialog>
+            </Transition.Root>
             <div className="flex flex-col border-b border-gray-200">
               {
                 tagList.items?.map((tag, index) => {
@@ -302,7 +383,8 @@ export default function Tag({ localServer }: { localServer: string }) {
                                         ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
                                       }
                                       onClick={e => {
-                                        // setDeleteNamespaceModal(true);
+                                        setDeleteTagModal(true);
+                                        setDeleteTagModalTag(tag);
                                       }}
                                     >
                                       Delete

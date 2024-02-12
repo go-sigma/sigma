@@ -4547,7 +4547,7 @@ __metadata:
     react-use: "npm:^17.5.0"
     tailwindcss: "npm:^3.4.1"
     typescript: "npm:^5.3.3"
-    vite: "npm:^5.1.0"
+    vite: "npm:^5.1.1"
     xterm: "npm:^5.3.0"
     xterm-addon-attach: "npm:^0.9.0"
     xterm-addon-fit: "npm:^0.8.0"
@@ -5136,9 +5136,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "vite@npm:5.1.0"
+"vite@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "vite@npm:5.1.1"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
@@ -5172,7 +5172,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 62aa632b6f30cfca39db534b5b461b1e73dc4f4a3093088c1140a1e1b0c4c8f4eacc0e472a0d96d765ad6976b00e202da20a647865886df692240a2b06b62c6f
+  checksum: d7c23284aeb3a8333e0ea208fab7da4dd4f69134f22ff959d865f56d48c3afd04fbc548368c15a5fbc0c6453ee950db42bd3532aa0dd50b85464eabefaa51396
   languageName: node
   linkType: hard
 
