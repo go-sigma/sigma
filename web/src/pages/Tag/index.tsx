@@ -29,12 +29,12 @@ import Settings from "../../Settings";
 import { trimHTTP } from "../../utils";
 import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
-import HelmSvg from "../../components/svg/helm";
 import Toast from "../../components/Notification";
-import DockerSvg from "../../components/svg/docker";
 import Pagination from "../../components/Pagination";
+import Notification from "../../components/Notification";
 import distros, { distroName } from '../../utils/distros';
-import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig } from "../../interfaces";
+import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig, IUserSelf, INamespaceItem } from "../../interfaces";
+import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
@@ -52,6 +52,43 @@ export default function Tag({ localServer }: { localServer: string }) {
   const [, copyToClipboard] = useCopyToClipboard();
 
   const [endpoint, setEndpoint] = useState("");
+
+  const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response.status === 200) {
+        const user = response.data as IUserSelf;
+        setUserObj(user);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
+
+  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
+
+  useEffect(() => {
+    if (namespaceId == null || namespaceId == "") {
+      return;
+    }
+    axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
+      if (response.status == 200) {
+        const namespaceObj = response.data as INamespaceItem;
+        setNamespaceObj(namespaceObj);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    })
+  }, []);
 
   useEffect(() => {
     let url = localServer + `/api/v1/systems/endpoint`;
@@ -260,7 +297,9 @@ export default function Tag({ localServer }: { localServer: string }) {
                                   {({ active }) => (
                                     <div
                                       className={
-                                        (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
+                                        (active ? 'bg-gray-50' : '') +
+                                        (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                                        ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
                                       }
                                       onClick={e => {
                                         // setDeleteNamespaceModal(true);
@@ -319,7 +358,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                             </th>
                           </tr>
                         </thead>
-                        <TableItem namespace={namespace || ""} repository={repository || ""} artifact={tag.artifact} artifacts={tag.artifacts} />
+                        <TableItem namespace={namespaceObj} repository={repository || ""} artifact={tag.artifact} artifacts={tag.artifacts} />
                       </table>
                       {/* third row end */}
                     </div>
@@ -345,7 +384,7 @@ function skipManifest(raw: string) {
   return false;
 }
 
-function TableItem({ namespace, repository, artifact, artifacts }: { namespace: string, repository: string, artifact: IArtifact, artifacts: IArtifact[] }) {
+function TableItem({ namespace, repository, artifact, artifacts }: { namespace: INamespaceItem, repository: string, artifact: IArtifact, artifacts: IArtifact[] }) {
   const artifactObj = JSON.parse(artifact.raw);
 
   return (

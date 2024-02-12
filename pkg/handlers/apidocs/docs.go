@@ -6931,6 +6931,14 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
+                "role": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.NamespaceRole"
+                        }
+                    ],
+                    "example": "NamespaceAdmin"
+                },
                 "size": {
                     "type": "integer",
                     "example": 10000

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 sigma
+ * Copyright 2024 sigma
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { NamespaceRole, UserRole } from "./enums";
 
 export interface INotification {
   level?: string;
@@ -49,7 +51,7 @@ export interface IUserSelf {
   id: number;
   username: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface IOauth2ClientID {
@@ -76,6 +78,7 @@ export interface INamespaceItem {
   tag_count: number;
   tag_limit: number;
   visibility: string;
+  role?: NamespaceRole;
   created_at: string;
   updated_at: string;
 }

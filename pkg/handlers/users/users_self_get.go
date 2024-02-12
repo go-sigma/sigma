@@ -27,8 +27,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// Self handles the self request
-func (h *handler) Self(c echo.Context) error {
+// Self handles the self get request
+func (h *handler) SelfGet(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
