@@ -52,5 +52,11 @@
     "typescript": "^5.3.3",
     "vite": "^5.1.1"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.0.2",
+  "importSort": {
+    ".js, .jsx, .es6, .es, .mjs, .ts, .tsx": {
+      "parser": "babylon",
+      "style": "renke"
+    }
+  }
 }

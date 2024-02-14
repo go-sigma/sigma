@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import ReactDOM from 'react-dom/client';
-import { HashRouter as Router } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 
+import './index.css';
+
+import ReactDOM from 'react-dom/client';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import { HashRouter as Router } from 'react-router-dom';
 
 import App from './App';
-
-import './index.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

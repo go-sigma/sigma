@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
-import { Fragment, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Dialog, Transition, Menu } from "@headlessui/react";
-import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
-
-import Settings from "../../Settings";
-import IMenu from "../../components/Menu";
-import Quota from "../../components/Quota";
-import calcUnit from "../../utils/calcUnit";
-import Header from "../../components/Header";
-import Toast from "../../components/Notification";
-import Pagination from "../../components/Pagination";
-import OrderHeader from "../../components/OrderHeader";
-import QuotaSimple from "../../components/QuotaSimple";
-
 import "./index.css";
 
-import { INamespaceItem, INamespaceList, IHTTPError, IOrder, IUserSelf } from "../../interfaces";
+import axios from "axios";
+import dayjs from 'dayjs';
+import { Dialog, Menu, Transition } from "@headlessui/react";
+import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
+import { Fragment, useEffect, useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import { useNavigate } from 'react-router-dom';
+
+import Header from "../../components/Header";
+import IMenu from "../../components/Menu";
+import OrderHeader from "../../components/OrderHeader";
+import Pagination from "../../components/Pagination";
+import Quota from "../../components/Quota";
+import QuotaSimple from "../../components/QuotaSimple";
+import Settings from "../../Settings";
+import Toast from "../../components/Notification";
+import calcUnit from "../../utils/calcUnit";
+import { IHTTPError, INamespaceItem, INamespaceList, IOrder, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function Namespace({ localServer }: { localServer: string }) {

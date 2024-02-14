@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-
 import { IUserLoginResponse } from "../interfaces";
+import axios from "axios";
 
 let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
 

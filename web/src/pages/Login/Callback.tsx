@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import { useState, useEffect } from "react";
+import "./index.css";
+
+import { IHTTPError, IUserLoginResponse, IUserSelf } from "../../interfaces";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import Toast from "../../components/Notification";
-import { IHTTPError, IUserSelf, IUserLoginResponse } from "../../interfaces";
-
-import "./index.css";
+import axios from "axios";
 
 export default function ({ localServer }: { localServer: string }) {
   const { provider } = useParams<{ provider: string }>();

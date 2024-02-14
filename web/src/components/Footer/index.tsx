@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import { AiOutlineGithub, AiOutlineTwitter } from "react-icons/ai";
 import { Link } from "react-router-dom";
-import { AiOutlineTwitter, AiOutlineGithub } from "react-icons/ai";
 
 export default function Footer() {
   return (

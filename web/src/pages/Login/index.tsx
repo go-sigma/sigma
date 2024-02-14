@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { IEndpoint, IHTTPError, IOauth2ClientID, IUserLoginResponse } from "../../interfaces";
+import { useEffect, useState } from "react";
 
 import Notification from "../../components/Notification";
-import { IHTTPError, IUserLoginResponse, IOauth2ClientID, IEndpoint } from "../../interfaces";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ export default function Login({ localServer }: { localServer: string }) {
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     });
-  }, [])
+  }, []);
 
   useEffect(() => { // if user have already login redirect to home
     axios.get(localServer + "/api/v1/users/self").then(response => {

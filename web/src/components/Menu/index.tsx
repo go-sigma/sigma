@@ -16,15 +16,15 @@
 
 import _ from 'lodash';
 import axios from "axios";
-import { useClickAway } from 'react-use';
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useClickAway } from 'react-use';
 
 import Regex from "../../utils/regex";
 import Toast from "../../components/Notification";
+import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "../../interfaces";
 import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/refreshToken"
-import { INamespaceItem, INamespaceList, IHTTPError, IUserSelf, IEndpoint, IVersion, ISystemConfig } from "../../interfaces";
 
 export default function ({ localServer, item, namespace, namespace_id, repository, repository_id, tag, selfClick }: { localServer: string, item: string, namespace?: string, namespace_id?: string, repository?: string, repository_id?: string, tag?: string, selfClick?: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);

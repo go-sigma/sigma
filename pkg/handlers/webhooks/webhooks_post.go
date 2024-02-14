@@ -72,7 +72,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		log.Error().Err(err).Msg("Get webhook count failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
-	if total > 5 {
+	if total > consts.MaxWebhooks {
 		log.Error().Int64("total", total).Msg("Reached the maximum webhooks")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Reached the maximum webhooks")
 	}

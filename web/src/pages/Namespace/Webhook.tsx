@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
+import "./index.css";
+
 import axios from "axios";
-import { useParams, Link } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Link, useParams } from 'react-router-dom';
 
-import Menu from "../../components/Menu";
 import Header from "../../components/Header";
+import Menu from "../../components/Menu";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
-
-import "./index.css";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -59,16 +59,16 @@ export default function Repository({ localServer }: { localServer: string }) {
                     Users
                   </Link>
                   <Link
-                    to="#"
-                    className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
-                  >
-                    Webhook
-                  </Link>
-                  <Link
                     to={`/namespaces/${namespace}/namespace-daemon-tasks`}
                     className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                   >
                     Daemon task
+                  </Link>
+                  <Link
+                    to="#"
+                    className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
+                  >
+                    Webhook
                   </Link>
                 </div>
               )

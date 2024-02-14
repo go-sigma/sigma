@@ -16,19 +16,19 @@
 
 import "bytemd/dist/index.css";
 
+import "./index.css";
+
 import axios from "axios";
 import gfm from "@bytemd/plugin-gfm";
-import { useEffect, useState } from "react";
 import { Editor, Viewer } from "@bytemd/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Link, useSearchParams, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
+import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
 import { IHTTPError, INamespaceItem } from "../../interfaces";
-
-import "./index.css";
 
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -113,17 +113,17 @@ export default function ({ localServer }: { localServer: string }) {
                     >
                       Members
                     </Link>
-                    {/* <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Webhook
-                    </Link> */}
                     <Link
                       to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Daemon task
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Webhook
                     </Link>
                   </div>
                 )

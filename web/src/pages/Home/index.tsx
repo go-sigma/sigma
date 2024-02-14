@@ -16,11 +16,10 @@
 
 import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-
-import Menu from "../../components/Menu";
-import Header from "../../components/Header";
-
 import { ScaleIcon } from '@heroicons/react/24/outline';
+
+import Header from "../../components/Header";
+import Menu from "../../components/Menu";
 
 const cards = [
   { name: 'Account balance1', href: '#', icon: ScaleIcon, amount: '$30,659.45' },
