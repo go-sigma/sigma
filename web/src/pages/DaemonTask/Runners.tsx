@@ -133,7 +133,7 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title={location.pathname.startsWith("/settings") ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
               props={
                 location.pathname.startsWith("/settings") ? null : (
-                  <div className="sm:flex sm:space-x-8">
+                  <div className="flex space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repositories`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"

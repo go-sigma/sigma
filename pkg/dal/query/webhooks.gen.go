@@ -32,7 +32,7 @@ func newWebhook(db *gorm.DB, opts ...gen.DOOption) webhook {
 	_webhook.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_webhook.ID = field.NewInt64(tableName, "id")
 	_webhook.NamespaceID = field.NewInt64(tableName, "namespace_id")
-	_webhook.Url = field.NewString(tableName, "url")
+	_webhook.URL = field.NewString(tableName, "url")
 	_webhook.Secret = field.NewString(tableName, "secret")
 	_webhook.SslVerify = field.NewBool(tableName, "ssl_verify")
 	_webhook.RetryTimes = field.NewInt(tableName, "retry_times")
@@ -58,7 +58,7 @@ type webhook struct {
 	DeletedAt       field.Uint64
 	ID              field.Int64
 	NamespaceID     field.Int64
-	Url             field.String
+	URL             field.String
 	Secret          field.String
 	SslVerify       field.Bool
 	RetryTimes      field.Int
@@ -90,7 +90,7 @@ func (w *webhook) updateTableName(table string) *webhook {
 	w.DeletedAt = field.NewUint64(table, "deleted_at")
 	w.ID = field.NewInt64(table, "id")
 	w.NamespaceID = field.NewInt64(table, "namespace_id")
-	w.Url = field.NewString(table, "url")
+	w.URL = field.NewString(table, "url")
 	w.Secret = field.NewString(table, "secret")
 	w.SslVerify = field.NewBool(table, "ssl_verify")
 	w.RetryTimes = field.NewInt(table, "retry_times")
@@ -131,7 +131,7 @@ func (w *webhook) fillFieldMap() {
 	w.fieldMap["deleted_at"] = w.DeletedAt
 	w.fieldMap["id"] = w.ID
 	w.fieldMap["namespace_id"] = w.NamespaceID
-	w.fieldMap["url"] = w.Url
+	w.fieldMap["url"] = w.URL
 	w.fieldMap["secret"] = w.Secret
 	w.fieldMap["ssl_verify"] = w.SslVerify
 	w.fieldMap["retry_times"] = w.RetryTimes

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -66,6 +67,11 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
+	err = h.PostWebhookValidate(req)
+	if err != nil {
+		return err
+	}
+
 	webhookService := h.webhookServiceFactory.New()
 	_, total, err := webhookService.List(ctx, req.NamespaceID, types.Pagination{}, types.Sortable{})
 	if err != nil {
@@ -81,7 +87,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		webhookService := h.webhookServiceFactory.New(tx)
 		webhookObj := &models.Webhook{
 			NamespaceID:     req.NamespaceID,
-			Url:             req.Url,
+			URL:             req.URL,
 			Secret:          req.Secret,
 			SslVerify:       req.SslVerify,
 			RetryTimes:      req.RetryTimes,
@@ -90,8 +96,8 @@ func (h *handler) PostWebhook(c echo.Context) error {
 			EventNamespace:  req.EventNamespace,
 			EventRepository: req.EventRepository,
 			EventTag:        req.EventTag,
-			EventMember:     req.EventMember,
 			EventArtifact:   req.EventArtifact,
+			EventMember:     req.EventMember,
 		}
 		err = webhookService.Create(ctx, webhookObj)
 		if err != nil {
@@ -117,4 +123,12 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 	return c.NoContent(http.StatusCreated)
+}
+
+func (h *handler) PostWebhookValidate(req types.PostWebhookRequest) error {
+	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) {
+		log.Error().Str("URL", req.URL).Msg("URL is invalid")
+		return xerrors.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'")
+	}
+	return nil
 }

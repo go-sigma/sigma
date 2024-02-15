@@ -111,7 +111,7 @@ func (w webhook) resend(ctx context.Context, payload types.DaemonWebhookPayload)
 		SetDoNotParseResponse(true).
 		SetHeaders(headers).
 		SetBody(webhookLogObj.ReqBody).
-		Execute(http.MethodPost, webhookLogObj.Webhook.Url)
+		Execute(http.MethodPost, webhookLogObj.Webhook.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 			SetDoNotParseResponse(true).
 			SetHeaders(headers).
 			SetBody(webhookLogObj.ReqBody).
-			Execute(http.MethodPost, webhookObj.Url)
+			Execute(http.MethodPost, webhookObj.URL)
 		if err != nil {
 			log.Error().Err(err).Msg("Send webhook failed")
 			continue
@@ -222,7 +222,7 @@ func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (
 		SetDoNotParseResponse(true).
 		SetHeaders(headers).
 		SetBody(body).
-		Execute(http.MethodPost, webhookObj.Url)
+		Execute(http.MethodPost, webhookObj.URL)
 	if err != nil {
 		return nil, err
 	}

@@ -64,7 +64,7 @@ func (h *handler) ListWebhook(c echo.Context) error {
 		resp = append(resp, types.WebhookItem{
 			ID:              webhookObj.ID,
 			NamespaceID:     webhookObj.NamespaceID,
-			Url:             webhookObj.Url,
+			Url:             webhookObj.URL,
 			Secret:          webhookObj.Secret,
 			SslVerify:       webhookObj.SslVerify,
 			RetryTimes:      webhookObj.RetryTimes,

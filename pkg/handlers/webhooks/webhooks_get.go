@@ -66,7 +66,7 @@ func (h *handler) GetWebhook(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetWebhookResponse{
 		ID:              webhookObj.ID,
 		NamespaceID:     webhookObj.NamespaceID,
-		Url:             webhookObj.Url,
+		Url:             webhookObj.URL,
 		Secret:          webhookObj.Secret,
 		SslVerify:       webhookObj.SslVerify,
 		RetryTimes:      webhookObj.RetryTimes,

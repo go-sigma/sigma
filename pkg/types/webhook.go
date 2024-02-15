@@ -19,7 +19,7 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 // PostWebhookRequest ...
 type PostWebhookRequest struct {
 	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1" swaggerignore:"true"`
-	Url             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
+	URL             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
 	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
 	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`

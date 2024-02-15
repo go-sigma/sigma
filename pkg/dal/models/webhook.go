@@ -28,7 +28,7 @@ type Webhook struct {
 	ID        int64                 `gorm:"primaryKey"`
 
 	NamespaceID     *int64
-	Url             string
+	URL             string
 	Secret          *string
 	SslVerify       bool
 	RetryTimes      int

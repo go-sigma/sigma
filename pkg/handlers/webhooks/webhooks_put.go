@@ -82,7 +82,7 @@ func (h *handler) PutWebhook(c echo.Context) error {
 
 	updates := make(map[string]any, 15)
 	if req.Url != nil {
-		updates[query.Webhook.Url.ColumnName().String()] = ptr.To(req.Url)
+		updates[query.Webhook.URL.ColumnName().String()] = ptr.To(req.Url)
 	}
 	if req.Secret != nil {
 		updates[query.Webhook.Secret.ColumnName().String()] = ptr.To(req.Secret)
