@@ -64,6 +64,8 @@ const (
 	InsertBatchSize = 10
 	// MaxNamespaceMember ...
 	MaxNamespaceMember = 10
+	// MaxWebhooks ...
+	MaxWebhooks = 5
 	// ObsPresignMaxTtl
 	ObsPresignMaxTtl = time.Minute * 30
 )

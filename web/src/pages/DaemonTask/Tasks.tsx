@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
+import Toast from 'react-hot-toast';
 import axios from "axios";
 import dayjs from 'dayjs';
 import parser from 'cron-parser';
-import { Tooltip } from 'flowbite';
-import Toast from 'react-hot-toast';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
-import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
-import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid';
-import { useParams, useSearchParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Tooltip } from 'flowbite';
 
-import Settings from "../../Settings";
-import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
+import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
+import Settings from "../../Settings";
 import {
   IGcArtifactRule,
   IGcArtifactRunnerItem,

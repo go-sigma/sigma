@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
+import * as monaco from 'monaco-editor';
 import _ from 'lodash';
 import axios from "axios";
-import * as monaco from 'monaco-editor';
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import Editor, { loader } from '@monaco-editor/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { Combobox, Listbox, Transition } from '@headlessui/react';
 import { Fragment, useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Listbox, Transition, Combobox } from '@headlessui/react';
-import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid';
-import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import Settings from '../../Settings';
 import Header from '../../components/Header';
 import HeaderMenu from '../../components/Menu';
+import Settings from '../../Settings';
 import Toast from "../../components/Notification";
-
-import { IHTTPError, INamespaceList, INamespaceItem, IRepositoryItem, IRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryItem, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, ICodeRepositoryList, ICodeRepositoryOwnerList, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, IBuilderItem } from '../../interfaces';
-
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '../../interfaces';
 
 self.MonacoEnvironment = {
   getWorker() {

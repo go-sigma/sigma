@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import { useNavigate } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import {
+  ICodeRepositoryProviderItem,
+  ICodeRepositoryProviderList,
+  IEndpoint,
+  IHTTPError,
+  IOauth2ClientID
+} from '../../interfaces';
 
-import Menu from "../../components/Menu";
 import Header from "../../components/Header";
+import Menu from "../../components/Menu";
 import Toast from "../../components/Notification";
-
-import { IHTTPError, ICodeRepositoryProviderList, ICodeRepositoryProviderItem, IEndpoint, IOauth2ClientID } from '../../interfaces';
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 export default function ({ localServer }: { localServer: string }) {
   const [providers, setProviders] = useState<ICodeRepositoryProviderItem[]>();

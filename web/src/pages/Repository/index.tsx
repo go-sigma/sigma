@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
+import "./index.css";
+
 import axios from "axios";
 import dayjs from "dayjs";
-import { useDebounce } from "react-use";
-import { Fragment, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Dialog, Transition, Menu } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { Fragment, useEffect, useState } from "react";
+import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useDebounce } from "react-use";
 
-import Settings from "../../Settings";
-import IMenu from "../../components/Menu";
-import Quota from "../../components/Quota";
-import calcUnit from "../../utils/calcUnit";
 import Header from "../../components/Header";
-import Toast from "../../components/Notification";
-import Pagination from "../../components/Pagination";
-import OrderHeader from "../../components/OrderHeader";
-import QuotaSimple from "../../components/QuotaSimple";
+import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
+import OrderHeader from "../../components/OrderHeader";
+import Pagination from "../../components/Pagination";
+import Quota from "../../components/Quota";
+import QuotaSimple from "../../components/QuotaSimple";
+import Settings from "../../Settings";
+import Toast from "../../components/Notification";
+import calcUnit from "../../utils/calcUnit";
+import { IHTTPError, INamespaceItem, IOrder, IRepositoryItem, IRepositoryList, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
-import { IRepositoryItem, IRepositoryList, IHTTPError, IOrder, IUserSelf, INamespaceItem } from "../../interfaces";
-
-import "./index.css";
 
 export default function ({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
@@ -236,17 +236,17 @@ export default function ({ localServer }: { localServer: string }) {
                     >
                       Members
                     </Link>
-                    {/* <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Webhook
-                    </Link> */}
                     <Link
                       to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Daemon task
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Webhook
                     </Link>
                   </div>
                 )

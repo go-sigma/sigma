@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import axios from "axios";
 import Toast from 'react-hot-toast';
+import axios from "axios";
+import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { Combobox, Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronUpDownIcon, CheckIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { Dialog, Listbox, Menu, Transition, Combobox } from "@headlessui/react";
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import Settings from "../../Settings";
-import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
-import Pagination from "../../components/Pagination";
+import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
+import Pagination from "../../components/Pagination";
+import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, INamespaceRoleItem as INamespaceMemberItem, INamespaceRoleList, IUserItem, IUserList } from "../../interfaces";
 
 const namespaceRoles = [
@@ -179,17 +179,17 @@ export default function Member({ localServer }: { localServer: string }) {
                     >
                       Members
                     </Link>
-                    {/* <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Webhook
-                    </Link> */}
                     <Link
                       to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Daemon task
+                    </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      Webhook
                     </Link>
                   </div>
                 )

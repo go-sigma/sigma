@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import "./index.css";
+
+import { ExclamationTriangleIcon, InboxIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
-import { InboxIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 import { INotification } from "../../interfaces";
-
-import "./index.css";
 
 export default function (noti: INotification) {
   const id = toast('fake-toast', {

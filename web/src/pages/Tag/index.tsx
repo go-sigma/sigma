@@ -16,26 +16,38 @@
 
 import axios from "axios";
 import dayjs from 'dayjs';
-import { Tooltip } from 'flowbite';
 import humanFormat from "human-format";
-import { useCopyToClipboard } from 'react-use';
+import { Dialog, Menu, Transition } from "@headlessui/react";
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Dialog, Transition, Menu } from "@headlessui/react";
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { Link, useSearchParams, useParams } from 'react-router-dom';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Tooltip } from 'flowbite';
+import { useCopyToClipboard } from 'react-use';
 
-import Settings from "../../Settings";
-import { trimHTTP } from "../../utils";
-import IMenu from "../../components/Menu";
 import Header from "../../components/Header";
-import Toast from "../../components/Notification";
-import Pagination from "../../components/Pagination";
+import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
+import Pagination from "../../components/Pagination";
+import Settings from "../../Settings";
+import Toast from "../../components/Notification";
 import distros, { distroName } from '../../utils/distros';
+import {
+  IArtifact,
+  IEndpoint,
+  IHTTPError,
+  IImageConfig,
+  INamespaceItem,
+  ISbom,
+  ISystemConfig,
+  ITagItem,
+  ITagList,
+  IUserSelf,
+  IVuln
+} from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
-import { ITagList, IHTTPError, IEndpoint, IArtifact, IVuln, ISbom, IImageConfig, ISystemConfig, IUserSelf, INamespaceItem, ITagItem } from "../../interfaces";
+import { trimHTTP } from "../../utils";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);

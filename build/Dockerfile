@@ -34,7 +34,6 @@ FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG USE_MIRROR=false
 ARG TRIVY_VERSION=0.49.0
-ARG ORAS_VERSION=1.0.0
 ARG TARGETOS TARGETARCH
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -51,16 +50,9 @@ RUN set -eux && \
   tar -xzf trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mv trivy /usr/local/bin/trivy && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
-  wget -q -O oras_"${ORAS_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz https://github.com/oras-project/oras/releases/download/v"${ORAS_VERSION}"/oras_"${ORAS_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
-  tar -xzf oras_"${ORAS_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
-  mv oras /usr/local/bin/oras && \
-  rm oras_"${ORAS_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
-  oras pull ghcr.io/aquasecurity/trivy-db:2 && \
   mkdir -p /opt/trivy/ && \
-  mv ./db.tar.gz /opt/trivy/db.tar.gz && \
-  cd /opt/trivy && \
-  tar -xzf db.tar.gz && \
-  rm db.tar.gz
+  trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress && \
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
@@ -99,8 +91,7 @@ RUN set -eux && \
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
-COPY --from=trivy /opt/trivy/trivy.db /opt/trivy/db/trivy.db
-COPY --from=trivy /opt/trivy/metadata.json /opt/trivy/db/metadata.json
+COPY --from=trivy /opt/trivy/ /opt/trivy/
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 
