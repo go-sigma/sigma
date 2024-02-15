@@ -12,7 +12,6 @@ require (
 	github.com/anchore/syft v0.101.0
 	github.com/aquasecurity/trivy v0.49.0
 	github.com/aws/aws-sdk-go v1.50.17
-	github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.82.0
 	github.com/casbin/gorm-adapter/v3 v3.20.0

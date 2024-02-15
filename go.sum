@@ -279,8 +279,6 @@ github.com/bugsnag/bugsnag-go v0.0.0-20141110184014-b1d153021fcd/go.mod h1:2oa8n
 github.com/bugsnag/osext v0.0.0-20130617224835-0dd3f918b21b/go.mod h1:obH5gd0BsqsP2LwDJ9aOkm/6J86V6lyAXCoQWGw3K50=
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
 github.com/bwesterb/go-ristretto v1.2.3/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
-github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949 h1:JG8x1j2Jvu4e1JwzEug80tkFXDEjl1MZxBWqUDaGM/U=
-github.com/bytedance/json v0.0.0-20190516032711-0d89175f1949/go.mod h1:sP1wlZn6XebMh0e4IPCNmVKCwQIXK4CDjUsQUbi0Ewo=
 github.com/caarlos0/env/v9 v9.0.0 h1:SI6JNsOA+y5gj9njpgybykATIylrRMklbs5ch6wO6pc=
 github.com/caarlos0/env/v9 v9.0.0/go.mod h1:ye5mlCVMYh6tZ+vCgrs/B95sj88cg5Tlnc0XIzgZ020=
 github.com/casbin/casbin/v2 v2.82.0 h1:2CgvunqQQoepcbGRnMc9vEcDhuqh3B5yWKoj+kKSxf8=
