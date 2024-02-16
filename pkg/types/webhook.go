@@ -24,12 +24,12 @@ type PostWebhookRequest struct {
 	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
 	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`
 	RetryDuration   int     `json:"retry_duration" validate:"required" example:"5"`
-	Enable          bool    `json:"enable" validate:"required,boolean" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventRepository bool    `json:"event_repository" validate:"boolean" example:"true"`
-	EventTag        bool    `json:"event_tag" validate:"boolean" example:"true"`
-	EventArtifact   bool    `json:"event_artifact" validate:"boolean" example:"true"`
-	EventMember     bool    `json:"event_member" validate:"boolean" example:"true"`
+	Enable          bool    `json:"enable" example:"true"`
+	EventNamespace  *bool   `json:"event_namespace,omitempty" example:"true"`
+	EventRepository bool    `json:"event_repository" example:"true"`
+	EventTag        bool    `json:"event_tag" example:"true"`
+	EventArtifact   bool    `json:"event_artifact" example:"true"`
+	EventMember     bool    `json:"event_member" example:"true"`
 }
 
 type PutWebhookRequest struct {
@@ -58,11 +58,11 @@ type GetWebhookRequest struct {
 	ID int64 `json:"id" param:"id" example:"1"`
 }
 
-// GetWebhookResponse ...
-type GetWebhookResponse struct {
+// WebhookItem ...
+type WebhookItem struct {
 	ID              int64   `json:"id" example:"1"`
 	NamespaceID     *int64  `json:"namespace_id,omitempty" example:"1"`
-	Url             string  `json:"url" example:"http://example.com/webhook"`
+	URL             string  `json:"url" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" example:"secret"`
 	SslVerify       bool    `json:"ssl_verify" example:"true"`
 	RetryTimes      int     `json:"retry_times" example:"3"`
@@ -85,8 +85,8 @@ type ListWebhookRequest struct {
 	NamespaceID *int64 `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1"`
 }
 
-// WebhookItem ...
-type WebhookItem = GetWebhookResponse
+// // WebhookItem ...
+// type WebhookItem = GetWebhookResponse
 
 // ListWebhookLogRequest ...
 type ListWebhookLogRequest struct {

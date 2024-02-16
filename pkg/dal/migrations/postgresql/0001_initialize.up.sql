@@ -219,7 +219,8 @@ CREATE TYPE audit_resource_type AS ENUM (
   'Namespace',
   'Repository',
   'Tag',
-  'Builder'
+  'Builder',
+  'Webhook'
 );
 
 CREATE TABLE IF NOT EXISTS "audits" (
@@ -745,17 +746,18 @@ INSERT INTO "namespaces" ("name", "visibility")
 
 CREATE TABLE IF NOT EXISTS "webhooks" (
   "id" bigserial PRIMARY KEY,
-  "namespace_id" bigint NOT NULL,
+  "namespace_id" bigint,
   "url" varchar(128) NOT NULL,
   "secret" varchar(63),
+  "enable" smallint NOT NULL DEFAULT 1,
   "ssl_verify" smallint NOT NULL DEFAULT 1,
-  "retry_times" smallint NOT NULL DEFAULT 3,
+  "retry_times" smallint NOT NULL DEFAULT 1,
   "retry_duration" smallint NOT NULL DEFAULT 5,
   "event_namespace" smallint,
-  "event_repository" smallint NOT NULL DEFAULT 1,
-  "event_tag" smallint NOT NULL DEFAULT 1,
-  "event_pull_push" smallint NOT NULL DEFAULT 1,
-  "event_member" smallint NOT NULL DEFAULT 1,
+  "event_repository" smallint NOT NULL DEFAULT 0,
+  "event_tag" smallint NOT NULL DEFAULT 0,
+  "event_artifact" smallint NOT NULL DEFAULT 0,
+  "event_member" smallint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0

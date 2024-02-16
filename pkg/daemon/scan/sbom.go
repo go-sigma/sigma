@@ -86,7 +86,7 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 	image := fmt.Sprintf("%s/%s@%s", utils.TrimHTTP(config.HTTP.InternalEndpoint), artifact.Repository.Name, artifact.Digest)
 	filename := fmt.Sprintf("%s.sbom.json", uuid.New().String())
 
-	cmd := exec.Command("syft", "packages", "-q", "-o", "json", "--file", filename, fmt.Sprintf("registry:%s", image))
+	cmd := exec.Command("syft", "scan", "-q", "-o", fmt.Sprintf("json=%s", filename), fmt.Sprintf("registry:%s", image)) // nolint: gosec
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -136,6 +136,9 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 		}
 		return err
 	}
+	defer func() {
+		fileContent.Close() // nolint: errcheck
+	}()
 	err = json.NewDecoder(fileContent).Decode(&syftObj)
 	if err != nil {
 		log.Error().Err(err).Str("filename", filename).Msg("Decode sbom file failed")

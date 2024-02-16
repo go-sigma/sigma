@@ -67,13 +67,13 @@ func (h *handler) DeleteTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), req.ID, enums.AuthRead)
+	authChecked, err := h.authServiceFactory.New().Tag(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
-		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
+		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 	if !authChecked {

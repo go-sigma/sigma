@@ -519,3 +519,26 @@ export interface ISystemConfig {
     builder: boolean;
   };
 }
+
+export interface IWebhookItem {
+  id: number;
+  namespace_id?: number;
+  url: string;
+  secret?: string;
+  ssl_verify: boolean;
+  retry_times: number;
+  retry_duration: number;
+  enable: boolean;
+  event_namespace?: boolean;
+  event_repository: boolean;
+  event_tag: boolean;
+  event_artifact: boolean;
+  event_member: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IWebhookList {
+  items: IWebhookItem[];
+  total: number;
+}

@@ -53,6 +53,8 @@ func (h *handler) ListWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
+	// TODO: auth check
+
 	webhookService := h.webhookServiceFactory.New()
 	webhookObjs, total, err := webhookService.List(ctx, req.NamespaceID, req.Pagination, req.Sortable)
 	if err != nil {
@@ -64,7 +66,7 @@ func (h *handler) ListWebhook(c echo.Context) error {
 		resp = append(resp, types.WebhookItem{
 			ID:              webhookObj.ID,
 			NamespaceID:     webhookObj.NamespaceID,
-			Url:             webhookObj.URL,
+			URL:             webhookObj.URL,
 			Secret:          webhookObj.Secret,
 			SslVerify:       webhookObj.SslVerify,
 			RetryTimes:      webhookObj.RetryTimes,

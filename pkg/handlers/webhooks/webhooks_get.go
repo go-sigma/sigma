@@ -39,7 +39,7 @@ import (
 //	@Produce	json
 //	@Router		/webhooks/{id} [get]
 //	@Param		id	path		string	true	"Webhook id"
-//	@Success	200	{object}	types.CommonList{items=[]types.GetWebhookResponse}
+//	@Success	200	{object}	types.CommonList{items=[]types.WebhookItem}
 //	@Failure	500	{object}	xerrors.ErrCode
 //	@Failure	401	{object}	xerrors.ErrCode
 func (h *handler) GetWebhook(c echo.Context) error {
@@ -63,10 +63,10 @@ func (h *handler) GetWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
-	return c.JSON(http.StatusOK, types.GetWebhookResponse{
+	return c.JSON(http.StatusOK, types.WebhookItem{
 		ID:              webhookObj.ID,
 		NamespaceID:     webhookObj.NamespaceID,
-		Url:             webhookObj.URL,
+		URL:             webhookObj.URL,
 		Secret:          webhookObj.Secret,
 		SslVerify:       webhookObj.SslVerify,
 		RetryTimes:      webhookObj.RetryTimes,

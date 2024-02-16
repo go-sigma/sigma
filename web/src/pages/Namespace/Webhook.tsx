@@ -28,7 +28,7 @@ import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
-import { IHTTPError, INamespaceItem } from "../../interfaces";
+import { IHTTPError, INamespaceItem, IOrder, IWebhookList } from "../../interfaces";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -58,10 +58,10 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [total, setTotal] = useState(0);
 
   const [enable, setEnable] = useState(true);
-  const [eventNamespace, setEventNamespace] = useState(false);
-  const [eventRepository, setEventRepository] = useState(false);
-  const [eventTag, setEventTag] = useState(false);
-  const [eventMember, setEventMember] = useState(false);
+  const [eventNamespace, setEventNamespace] = useState(true);
+  const [eventRepository, setEventRepository] = useState(true);
+  const [eventTag, setEventTag] = useState(true);
+  const [eventMember, setEventMember] = useState(true);
   const [eventArtifact, setEventArtifact] = useState(false);
 
   const [retryTimes, setRetryTimes] = useState<string | number>(1);
@@ -76,11 +76,7 @@ export default function Repository({ localServer }: { localServer: string }) {
   const [sslVerify, setSslVerify] = useState(true);
   const [secret, setSecret] = useState<string | undefined>();
   const [secretValid, setSecretValid] = useState(true);
-  useEffect(() => {
-    if (secret != undefined && secret.length >= 0 && secret.length <= 63) {
-      setSecretValid(true);
-    }
-  }, [secret]);
+  useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
   const [url, setUrl] = useState<string>("");
   const [urlValid, setUrlValid] = useState(true);
   useEffect(() => { url != "" && setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128) }, [url]);
@@ -95,15 +91,88 @@ export default function Repository({ localServer }: { localServer: string }) {
     }
   }, [url]);
 
+  const [refresh, setRefresh] = useState({});
+  const [sortOrder, setSortOrder] = useState(IOrder.None);
+  const [sortName, setSortName] = useState("");
+  const [webhookList, setWebhookList] = useState<IWebhookList>({} as IWebhookList);
+
+  const fetchWebhook = () => {
+    let url = localServer + `/api/v1/webhooks/?limit=${Settings.PageSize}&page=${page}`;
+    if (sortName !== "") {
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`
+    }
+    axios.get(url).then(response => {
+      if (response?.status === 200) {
+        const webhookList = response.data as IWebhookList;
+        setWebhookList(webhookList);
+        setTotal(webhookList.total);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  useEffect(() => { fetchWebhook() }, [refresh, page, sortOrder, sortName]);
+
   const createWebhook = () => {
     if (url === "") {
       setUrlValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
-    // if (!()) {
+    if (!(retryTimesValid && retryDurationValid && secretValid && urlValid)) {
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {
+      enable: enable,
+      url: url,
+      retry_times: retryTimes,
+      retry_duration: retryDuration,
+      event_repository: eventRepository,
+      event_tag: eventTag,
+      event_artifact: eventArtifact,
+      event_member: eventMember,
+    };
+    if (secret != undefined && secret.length != 0) {
+      data["secret"] = secret;
+    }
+    if (showSslVerify) {
+      data["ssl_verify"] = sslVerify;
+    }
 
-    // }
+    let u = `${localServer}/api/v1/webhooks/`;
+    if (namespaceId != null) {
+      data["event_namespace"] = eventNamespace
+      u += `?namespace_id=${namespaceId}`
+    }
+    axios.post(u, data, {}).then(response => {
+      if (response.status === 201) {
+        setRefresh({});
+        setUrl("");
+        setUrlValid(true);
+        setSecret("");
+        setSecretValid(true);
+        setRetryTimes(1);
+        setRetryDuration(5);
+        setEnable(true);
+        setEventNamespace(true);
+        setEventRepository(true);
+        setEventTag(true);
+        setEventArtifact(false);
+        setEventMember(true);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
   }
 
   return (
@@ -311,7 +380,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                         <input
                           type="text"
                           name="description"
-                          placeholder="63 characters"
+                          placeholder="max 63 characters"
                           className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                           value={secret}
                           onChange={e => setSecret(e.target.value)}
@@ -412,13 +481,13 @@ export default function Repository({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-row gap-4">
-                      {/* <div className="flex items-center">
-                        <input id="checked-checkbox" type="checkbox"
+                      <div className="flex items-center">
+                        <input id="event-namespace" type="checkbox"
                           checked={eventNamespace}
                           onChange={e => setEventNamespace(!eventNamespace)}
                           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
-                      </div> */}
+                        <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                      </div>
                       <div className="flex items-center">
                         <input id="event-repository" type="checkbox"
                           checked={eventRepository}
@@ -435,8 +504,8 @@ export default function Repository({ localServer }: { localServer: string }) {
                       </div>
                       <div className="flex items-center">
                         <input id="event-artifact" type="checkbox"
-                          checked={eventMember}
-                          onChange={e => setEventMember(!eventMember)}
+                          checked={eventArtifact}
+                          onChange={e => setEventArtifact(!eventArtifact)}
                           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                         <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
                       </div>
@@ -452,7 +521,7 @@ export default function Repository({ localServer }: { localServer: string }) {
                       <button
                         type="button"
                         className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                      // onClick={e => addMember()}
+                        onClick={e => createWebhook()}
                       >
                         Create
                       </button>
@@ -473,4 +542,25 @@ export default function Repository({ localServer }: { localServer: string }) {
       </Transition.Root>
     </Fragment >
   )
+}
+
+function TableItem() {
+  return (
+    <tr className="align-middle">
+      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+        onClick={() => {
+          // navigate(`/namespaces/${namespace.name}/repositories?namespace_id=${namespace.id}`);
+        }}
+      >
+        <div className="items-center space-x-3 lg:pl-2">
+          <div className="truncate hover:text-gray-600">
+            <span>
+              {/* {namespace.name}
+              <span className="text-gray-500 font-normal ml-4">{namespace.description}</span> */}
+            </span>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
 }

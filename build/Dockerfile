@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=0.101.1
+ARG SYFT_VERSION=0.105.0
 ARG TARGETOS TARGETARCH
 ARG USE_MIRROR=false
 

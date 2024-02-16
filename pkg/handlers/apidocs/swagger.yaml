@@ -932,54 +932,6 @@ definitions:
         example: "2006-01-02 15:04:05"
         type: string
     type: object
-  types.GetWebhookResponse:
-    properties:
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      enable:
-        example: true
-        type: boolean
-      event_artifact:
-        example: true
-        type: boolean
-      event_member:
-        example: true
-        type: boolean
-      event_namespace:
-        example: true
-        type: boolean
-      event_repository:
-        example: true
-        type: boolean
-      event_tag:
-        example: true
-        type: boolean
-      id:
-        example: 1
-        type: integer
-      namespace_id:
-        example: 1
-        type: integer
-      retry_duration:
-        example: 5
-        type: integer
-      retry_times:
-        example: 3
-        type: integer
-      secret:
-        example: secret
-        type: string
-      ssl_verify:
-        example: true
-        type: boolean
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      url:
-        example: http://example.com/webhook
-        type: string
-    type: object
   types.ListCodeRepositoryProvidersResponse:
     properties:
       provider:
@@ -1199,7 +1151,6 @@ definitions:
         maxLength: 128
         type: string
     required:
-    - enable
     - retry_duration
     - retry_times
     - ssl_verify
@@ -5084,7 +5035,7 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.GetWebhookResponse'
+                    $ref: '#/definitions/types.WebhookItem'
                   type: array
               type: object
         "401":

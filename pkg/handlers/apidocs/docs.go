@@ -5157,7 +5157,7 @@ const docTemplate = `{
                                         "items": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/types.GetWebhookResponse"
+                                                "$ref": "#/definitions/types.WebhookItem"
                                             }
                                         }
                                     }
@@ -6822,71 +6822,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GetWebhookResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "enable": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "event_artifact": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "event_member": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "event_namespace": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "event_repository": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "event_tag": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "namespace_id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "retry_duration": {
-                    "type": "integer",
-                    "example": 5
-                },
-                "retry_times": {
-                    "type": "integer",
-                    "example": 3
-                },
-                "secret": {
-                    "type": "string",
-                    "example": "secret"
-                },
-                "ssl_verify": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "url": {
-                    "type": "string",
-                    "example": "http://example.com/webhook"
-                }
-            }
-        },
         "types.ListCodeRepositoryProvidersResponse": {
             "type": "object",
             "properties": {
@@ -7157,7 +7092,6 @@ const docTemplate = `{
         "types.PostWebhookRequest": {
             "type": "object",
             "required": [
-                "enable",
                 "retry_duration",
                 "retry_times",
                 "ssl_verify",

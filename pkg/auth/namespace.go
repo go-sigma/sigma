@@ -58,7 +58,7 @@ func (s authService) Namespace(user models.User, namespaceID int64, auth enums.A
 		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace
 			log.Error().Err(err).Msg("Get namespace member by namespace id and user id failed")
 		}
-		return false, err
+		return false, nil
 	}
 	if namespaceMemberObj.Role == enums.NamespaceRoleReader && auth == enums.AuthRead {
 		return true, nil
