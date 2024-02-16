@@ -5111,7 +5111,39 @@ paths:
       summary: List webhook logs
       tags:
       - Webhook
-  /webhooks/{webhook_id}/logs/{id}:
+  /webhooks/{webhook_id}/logs/{webhook_log_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - description: Webhook log id
+        in: path
+        name: webhook_log_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete a webhook log
+      tags:
+      - Webhook
     get:
       consumes:
       - application/json
@@ -5123,7 +5155,7 @@ paths:
         type: integer
       - description: Webhook log id
         in: path
-        name: id
+        name: webhook_log_id
         required: true
         type: integer
       produces:
@@ -5151,6 +5183,67 @@ paths:
       security:
       - BasicAuth: []
       summary: Get a webhook log
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/logs/{webhook_log_id}/resend:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - description: Webhook log id
+        in: path
+        name: webhook_log_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Resend a webhook log
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/ping:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Send a webhook ping event
       tags:
       - Webhook
 securityDefinitions:

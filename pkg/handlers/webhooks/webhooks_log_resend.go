@@ -16,18 +16,19 @@ package webhooks
 
 import "github.com/labstack/echo/v4"
 
-// GetWebhookPing handles the send webhook ping event request
+// GetWebhookLogResend handles the resend webhook log request
 //
-//	@Summary	Send a webhook ping event
+//	@Summary	Resend a webhook log
 //	@security	BasicAuth
 //	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/{webhook_id}/ping [get]
-//	@Param		webhook_id	path	int64	true	"Webhook id"
+//	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id}/resend [get]
+//	@Param		webhook_id		path	int64	true	"Webhook id"
+//	@Param		webhook_log_id	path	int64	true	"Webhook log id"
 //	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
 //	@Failure	401	{object}	xerrors.ErrCode
-func (h *handler) GetWebhookPing(c echo.Context) error {
+func (h *handler) GetWebhookLogResend(c echo.Context) error {
 	return nil
 }

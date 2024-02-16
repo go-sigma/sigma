@@ -39,14 +39,16 @@ type Handler interface {
 	DeleteWebhook(c echo.Context) error
 	// PutWebhook handles the put webhook request
 	PutWebhook(c echo.Context) error
-	// PingWebhook ...
-	PingWebhook(c echo.Context) error
-	// LogWebhook ...
-	LogWebhook(c echo.Context) error
-	// LogsWebhook ...
-	LogsWebhook(c echo.Context) error
-	// Resend ...
-	Resend(c echo.Context) error
+	// GetWebhookPing ...
+	GetWebhookPing(c echo.Context) error
+	// GetWebhookLog ...
+	GetWebhookLog(c echo.Context) error
+	// DeleteWebhookLog ...
+	DeleteWebhookLog(c echo.Context) error
+	// ListWebhookLogs ...
+	ListWebhookLogs(c echo.Context) error
+	// GetWebhookLogResend ...
+	GetWebhookLogResend(c echo.Context) error
 }
 
 var _ Handler = &handler{}
@@ -95,14 +97,15 @@ func (f factory) Initialize(e *echo.Echo) error {
 
 	webhookHandler := handlerNew()
 	webhookGroup.POST("/", webhookHandler.PostWebhook)
-	webhookGroup.PUT("/:id", webhookHandler.PutWebhook)
+	webhookGroup.PUT("/:webhook_id", webhookHandler.PutWebhook)
 	webhookGroup.GET("/", webhookHandler.ListWebhook)
-	webhookGroup.GET("/:id", webhookHandler.GetWebhook)
-	webhookGroup.DELETE("/:id", webhookHandler.DeleteWebhook)
-	webhookGroup.GET("/:webhook_id/logs", webhookHandler.LogsWebhook)
-	webhookGroup.GET("/:webhook_id/logs/:log_id", webhookHandler.LogWebhook)
-	webhookGroup.GET("/:id/ping", webhookHandler.PingWebhook)
-	webhookGroup.GET("/:id/resend", webhookHandler.Resend)
+	webhookGroup.GET("/:webhook_id", webhookHandler.GetWebhook)
+	webhookGroup.DELETE("/:webhook_id", webhookHandler.DeleteWebhook)
+	webhookGroup.GET("/:webhook_id/logs/", webhookHandler.ListWebhookLogs)
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id", webhookHandler.GetWebhookLog)
+	webhookGroup.DELETE("/:webhook_id/logs/:webhook_log_id", webhookHandler.DeleteWebhookLog)
+	webhookGroup.GET("/:webhook_id/ping", webhookHandler.GetWebhookPing)
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id/resend", webhookHandler.GetWebhookLogResend)
 	return nil
 }
 

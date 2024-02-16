@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,19 @@ package webhooks
 
 import "github.com/labstack/echo/v4"
 
-// Resend ...
-func (h *handler) Resend(c echo.Context) error {
+// DeleteWebhookLog handles the delete webhook log request
+//
+//	@Summary	Delete a webhook log
+//	@security	BasicAuth
+//	@Tags		Webhook
+//	@Accept		json
+//	@Produce	json
+//	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id} [delete]
+//	@Param		webhook_id		path	int64	true	"Webhook id"
+//	@Param		webhook_log_id	path	int64	true	"Webhook log id"
+//	@Success	204
+//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	xerrors.ErrCode
+func (h *handler) DeleteWebhookLog(c echo.Context) error {
 	return nil
 }

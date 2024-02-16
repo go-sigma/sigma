@@ -33,7 +33,7 @@ type PostWebhookRequest struct {
 }
 
 type PutWebhookRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+	ID int64 `json:"webhook_id" param:"webhook_id" validate:"required,number" swaggerignore:"true"`
 
 	Url             *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
@@ -50,12 +50,12 @@ type PutWebhookRequest struct {
 
 // DeleteWebhookRequest ...
 type DeleteWebhookRequest struct {
-	ID int64 `json:"id" param:"id" example:"1"`
+	ID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 }
 
 // GetWebhookRequest ...
 type GetWebhookRequest struct {
-	ID int64 `json:"id" param:"id" example:"1"`
+	ID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 }
 
 // WebhookItem ...
@@ -112,6 +112,17 @@ type WebhookLogItem struct {
 
 // GetWebhookLogRequest ...
 type GetWebhookLogRequest struct {
+	WebhookID    int64 `json:"webhook_id" param:"webhook_id" example:"1"`
+	WebhookLogID int64 `json:"webhook_log_id" param:"webhook_log_id" example:"1"`
+}
+
+// GetWebhookLogPingRequest ...
+type GetWebhookLogPingRequest struct {
+	WebhookID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
+}
+
+// GetWebhookLogResendRequest ...
+type GetWebhookLogResendRequest struct {
 	WebhookID    int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 	WebhookLogID int64 `json:"webhook_log_id" param:"webhook_log_id" example:"1"`
 }
