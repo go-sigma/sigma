@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import "./index.css";
-
 import axios from "axios";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
@@ -414,7 +412,6 @@ export default function Repository({ localServer }: { localServer: string }) {
                       <div className="col-span-2 flex flex-row">
                         <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
                           <div className="flex">
-                            {/* <span className="text-red-600">*</span> */}
                             <span className="leading-6 ">Retry Times</span>
                             <span>:</span>
                           </div>

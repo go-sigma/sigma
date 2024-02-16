@@ -31,7 +31,7 @@ import Login from "./pages/Login";
 import LoginCallback from './pages/Login/Callback';
 import NamespaceMember from "./pages/Namespace/Member";
 import NamespaceSummary from "./pages/Namespace/Summary";
-import NamespaceWebhooks from "./pages/Namespace/Webhook";
+import NamespaceWebhooks from "./pages/Webhook/List";
 import Namespaces from "./pages/Namespace";
 import Repositories from "./pages/Repository";
 import Setting from './pages/Setting';
