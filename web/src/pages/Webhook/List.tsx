@@ -15,7 +15,7 @@
  */
 
 import axios from "axios";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -26,7 +26,11 @@ import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
-import { IHTTPError, INamespaceItem, IOrder, IWebhookList } from "../../interfaces";
+import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookItem, IWebhookList } from "../../interfaces";
+import OrderHeader from "../../components/OrderHeader";
+import dayjs from "dayjs";
+import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function Repository({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -50,6 +54,23 @@ export default function Repository({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
+  }, []);
+
+  const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response.status === 200) {
+        const user = response.data as IUserSelf;
+        setUserObj(user);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
   }, []);
 
   const [page, setPage] = useState(1);
@@ -90,9 +111,16 @@ export default function Repository({ localServer }: { localServer: string }) {
   }, [url]);
 
   const [refresh, setRefresh] = useState({});
+  const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
+  const [updatedAtOrder, setUpdatedAtOrder] = useState(IOrder.None);
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
   const [webhookList, setWebhookList] = useState<IWebhookList>({} as IWebhookList);
+
+  const resetOrder = () => {
+    setCreatedAtOrder(IOrder.None);
+    setUpdatedAtOrder(IOrder.None);
+  }
 
   const fetchWebhook = () => {
     let url = localServer + `/api/v1/webhooks/?limit=${Settings.PageSize}&page=${page}`;
@@ -247,50 +275,29 @@ export default function Repository({ localServer }: { localServer: string }) {
                 <thead>
                   <tr>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      <span className="lg:pl-2">Namespace</span>
+                      <span className="lg:pl-2">URL</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      {/* <OrderHeader text={"Size"} orderStatus={sizeOrder} setOrder={(e) => {
-                        resetOrder();
-                        setSizeOrder(e);
-                        setSortOrder(e);
-                        setSortName("size");
-                      }} /> */}
+                      <span className="lg:pl-2">Enable</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      {/* <OrderHeader text={"Repository count"} orderStatus={repositoryCountOrder} setOrder={(e) => {
-                        resetOrder();
-                        setRepositoryOrder(e);
-                        setSortOrder(e);
-                        setSortName("repository_count");
-                      }} /> */}
+                      <span className="lg:pl-2">SSL Verify</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      {/* <OrderHeader text={"Tag count"} orderStatus={tagCountOrder} setOrder={(e) => {
-                        resetOrder();
-                        setTagCountOrder(e);
-                        setSortOrder(e);
-                        setSortName("tag_count");
-                      }} /> */}
-                    </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      Visibility
-                    </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      {/* <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
+                      <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
                         resetOrder();
                         setCreatedAtOrder(e);
                         setSortOrder(e);
                         setSortName("created_at");
-                      }} /> */}
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                      {/* <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
+                      <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
                         resetOrder();
                         setUpdatedAtOrder(e);
                         setSortOrder(e);
                         setSortName("updated_at");
-                      }} /> */}
+                      }} />
                     </th>
                     <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                       Action
@@ -298,13 +305,13 @@ export default function Repository({ localServer }: { localServer: string }) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 max-h-max">
-                  {/* {
-                    namespaceList.items?.map((namespace, index) => {
+                  {
+                    webhookList.items?.map((webhook, index) => {
                       return (
-                        <TableItem key={namespace.id} index={index} user={userObj} namespace={namespace} localServer={localServer} setRefresh={setRefresh} />
+                        <TableItem key={webhook.id} index={index} userObj={userObj} namespaceObj={namespaceObj} localServer={localServer} webhookObj={webhook} setRefresh={setRefresh} />
                       );
                     })
-                  } */}
+                  }
                 </tbody>
               </table>
             </div>
@@ -541,7 +548,23 @@ export default function Repository({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem() {
+function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
+  const [deleteWebhookModal, setDeleteWebhookModal] = useState(false);
+
+  const deleteWebhook = () => {
+    axios.delete(`${localServer}/api/v1/webhooks/${webhookObj.id}`).then(response => {
+      if (response.status === 204) {
+        setRefresh({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
@@ -552,11 +575,143 @@ function TableItem() {
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
-              {/* {namespace.name}
-              <span className="text-gray-500 font-normal ml-4">{namespace.description}</span> */}
+              {webhookObj.url}
             </span>
           </div>
         </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center cursor-pointer">
+        {webhookObj.enable ? "Active" : "Inactive"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center cursor-pointer">
+        {webhookObj.ssl_verify ? "Enable" : "Disable"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {dayjs.utc(webhookObj.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+        {dayjs.utc(webhookObj.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
+      </td>
+      <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
+        e.stopPropagation();
+      }}>
+        <Menu as="div" className="relative flex-none" onClick={e => {
+          e.stopPropagation();
+        }}>
+          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
+            <span className="sr-only">Open options</span>
+            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+          </Menu.Button>
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
+              <Menu.Item>
+                {({ active }) => (
+                  <div
+                    className={
+                      (active ? 'bg-gray-100' : '') +
+                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
+                    }
+                    onClick={e => {
+                      // ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setUpdateNamespaceModal(true);
+                    }}
+                  >
+                    Update
+                  </div>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <div
+                    className={
+                      (active ? 'bg-gray-50' : '') +
+                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
+                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
+                    }
+                    onClick={e => {
+                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setDeleteWebhookModal(true);
+                    }}
+                  >
+                    Delete
+                  </div>
+                )}
+              </Menu.Item>
+            </Menu.Items>
+          </Transition>
+        </Menu>
+      </td>
+      <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
+        <Transition.Root show={deleteWebhookModal} as={Fragment}>
+          <Dialog as="div" className="relative z-10" onClose={setDeleteWebhookModal}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 z-10 overflow-y-auto">
+              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                  enterTo="opacity-100 translate-y-0 sm:scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                >
+                  <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 min-w-[600px]">
+                    <div className="sm:flex sm:items-start">
+                      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                      </div>
+                      <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                          Delete webhook
+                        </Dialog.Title>
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-500">
+                            Are you sure you want to delete the webhook <span className="text-black font-medium">{webhookObj.url}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                      <button
+                        type="button"
+                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                        onClick={e => { setDeleteWebhookModal(false); deleteWebhook(); }}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        onClick={() => setDeleteWebhookModal(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition.Root>
       </td>
     </tr>
   );
