@@ -21,7 +21,7 @@ type PostWebhookRequest struct {
 	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1" swaggerignore:"true"`
 	URL             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
+	SslVerify       bool    `json:"ssl_verify" example:"true"`
 	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`
 	RetryDuration   int     `json:"retry_duration" validate:"required" example:"5"`
 	Enable          bool    `json:"enable" example:"true"`
@@ -109,9 +109,6 @@ type WebhookLogItem struct {
 	CreatedAt  string                    `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt  string                    `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
-
-// GetWebhookLogResponse ...
-type GetWebhookLogResponse = WebhookLogItem
 
 // GetWebhookLogRequest ...
 type GetWebhookLogRequest struct {

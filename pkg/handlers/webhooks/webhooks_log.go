@@ -40,7 +40,7 @@ import (
 //	@Router		/webhooks/{webhook_id}/logs/{id} [get]
 //	@Param		webhook_id	path		int64	true	"Webhook id"
 //	@Param		id			path		int64	true	"Webhook log id"
-//	@Success	200			{object}	types.CommonList{items=[]types.GetWebhookLogResponse}
+//	@Success	200			{object}	types.CommonList{items=[]types.WebhookLogItem}
 //	@Failure	500			{object}	xerrors.ErrCode
 //	@Failure	401			{object}	xerrors.ErrCode
 func (h *handler) LogWebhook(c echo.Context) error {
@@ -72,7 +72,7 @@ func (h *handler) LogWebhook(c echo.Context) error {
 		log.Error().Err(err).Int64("id", req.WebhookLogID).Msg("Get webhook log failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get webhook log(%d) failed", req.WebhookLogID))
 	}
-	return c.JSON(http.StatusOK, types.GetWebhookLogResponse{
+	return c.JSON(http.StatusOK, types.WebhookLogItem{
 		ID:         webhookLogObj.ID,
 		Event:      webhookLogObj.Event,
 		Action:     webhookLogObj.Action,

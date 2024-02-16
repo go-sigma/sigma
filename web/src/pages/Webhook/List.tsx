@@ -20,6 +20,8 @@ import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Tooltip } from 'flowbite';
+import dayjs from "dayjs";
+import { useNavigate } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -28,11 +30,10 @@ import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookItem, IWebhookList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
-import dayjs from "dayjs";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
-export default function Repository({ localServer }: { localServer: string }) {
+export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id');
@@ -191,6 +192,7 @@ export default function Repository({ localServer }: { localServer: string }) {
         setEventTag(true);
         setEventArtifact(false);
         setEventMember(true);
+        setCreateWebhookModal(false);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -549,7 +551,10 @@ export default function Repository({ localServer }: { localServer: string }) {
 }
 
 function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
+  const navigate = useNavigate();
+
   const [deleteWebhookModal, setDeleteWebhookModal] = useState(false);
+  const [updateWebhookModal, setUpdateWebhookModal] = useState(false);
 
   const deleteWebhook = () => {
     axios.delete(`${localServer}/api/v1/webhooks/${webhookObj.id}`).then(response => {
@@ -565,11 +570,47 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
     });
   }
 
+  const [enable, setEnable] = useState(webhookObj.enable);
+  const [eventNamespace, setEventNamespace] = useState(webhookObj.event_namespace);
+  const [eventRepository, setEventRepository] = useState(webhookObj.event_repository);
+  const [eventTag, setEventTag] = useState(webhookObj.event_tag);
+  const [eventMember, setEventMember] = useState(webhookObj.event_member);
+  const [eventArtifact, setEventArtifact] = useState(webhookObj.event_artifact);
+
+  const [retryTimes, setRetryTimes] = useState<string | number>(webhookObj.retry_times);
+  const [retryTimesValid, setRetryTimesValid] = useState(true);
+  useEffect(() => { setRetryTimesValid(Number.isInteger(retryTimes) && parseInt(retryTimes.toString()) >= 1 && parseInt(retryTimes.toString()) <= 5) }, [retryTimes]);
+  const [retryDuration, setRetryDuration] = useState<string | number>(webhookObj.retry_duration);
+  const [retryDurationValid, setRetryDurationValid] = useState(true);
+  useEffect(() => { setRetryDurationValid(Number.isInteger(retryDuration) && parseInt(retryDuration.toString()) >= 0 && parseInt(retryDuration.toString()) <= 10) }, [retryDuration]);
+
+  const [showSslVerify, setShowSslVerify] = useState(webhookObj.ssl_verify);
+
+  const [sslVerify, setSslVerify] = useState(true);
+  const [secret, setSecret] = useState<string | undefined>(webhookObj.secret);
+  const [secretValid, setSecretValid] = useState(true);
+  useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
+  const [url, setUrl] = useState<string>(webhookObj.url);
+  const [urlValid, setUrlValid] = useState(true);
+  useEffect(() => { url != "" && setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128) }, [url]);
+
+  useEffect(() => {
+    if (url.startsWith("https://")) {
+      setShowSslVerify(true);
+    } else {
+      setShowSslVerify(false);
+    }
+  }, [url]);
+
+  const updateWebhook = () => {
+    axios.put(`${localServer}/api/v1/webhooks/${webhookObj.id}`)
+  }
+
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          // navigate(`/namespaces/${namespace.name}/repositories?namespace_id=${namespace.id}`);
+          navigate(`/namespaces/${namespaceObj.name}/namespace-webhook-logs/${webhookObj.id}?namespace_id=${namespaceObj.id}`);
         }}
       >
         <div className="items-center space-x-3 lg:pl-2">
@@ -621,7 +662,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
                       ' block px-3 py-1 text-sm leading-6 text-gray-900'
                     }
                     onClick={e => {
-                      // ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setUpdateNamespaceModal(true);
+                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setUpdateWebhookModal(true);
                     }}
                   >
                     Update
@@ -647,6 +688,233 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
             </Menu.Items>
           </Transition>
         </Menu>
+      </td>
+      <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
+        <Transition.Root show={updateWebhookModal} as={Fragment}>
+          <Dialog as="div" className="relative z-10" onClose={setUpdateWebhookModal}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+            </Transition.Child>
+            <div className="fixed inset-0 z-10 overflow-y-auto">
+              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                  enterTo="opacity-100 translate-y-0 sm:scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                >
+                  <Dialog.Panel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
+                    >
+                      Create webhook
+                    </Dialog.Title>
+                    <div className="flex flex-col gap-0 mt-4">
+                      <div className="grid grid-cols-12 gap-4">
+                        <div className="col-span-2 flex flex-row">
+                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                            <div className="flex">
+                              <span className="text-red-600">*</span>
+                              <span className="leading-6 ">URL</span>
+                              <span>:</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="col-span-10">
+                          <input
+                            type="text"
+                            name="description"
+                            placeholder="128 characters"
+                            className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={url}
+                            onChange={e => setUrl(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-12 gap-4 mt-4">
+                        <div className="col-span-2 flex flex-row">
+                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                            <div className="flex">
+                              <span className="leading-6 ">Secret</span>
+                              <span>:</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="col-span-10">
+                          <input
+                            type="text"
+                            name="description"
+                            placeholder="max 63 characters"
+                            className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={secret}
+                            onChange={e => setSecret(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      {
+                        showSslVerify ? (
+                          <div className="grid grid-cols-12 gap-4 mt-4">
+                            <div className="col-span-2 flex flex-row">
+                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                                <div className="flex">
+                                  <span className="leading-6 ">SSL Verify</span>
+                                  <span>:</span>
+                                </div>
+                              </label>
+                            </div>
+                            <div className="col-span-10 flex flex-row">
+                              <label className="inline-flex items-center cursor-pointer">
+                                <input type="checkbox"
+                                  checked={sslVerify}
+                                  onChange={e => setSslVerify(!sslVerify)}
+                                  className="sr-only peer" />
+                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                              </label>
+                            </div>
+                          </div>
+                        ) : null
+                      }
+                      <div className="grid grid-cols-12 gap-4 mt-4">
+                        <div className="col-span-2 flex flex-row">
+                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                            <div className="flex">
+                              <span className="leading-6 ">Retry Times</span>
+                              <span>:</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="col-span-4 flex flex-row">
+                          <input
+                            type="text"
+                            name="description"
+                            placeholder="1 <= times <= 5"
+                            className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={retryTimes}
+                            onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div className="col-span-2 flex flex-row">
+                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                            <div className="flex">
+                              <span className="leading-6 ">Retry Duration</span>
+                              <div className="flex flex-row cursor-pointer"
+                                id="gcRepositoryRetentionDaysHelp"
+                                onClick={e => {
+                                  let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
+                                    document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
+                                  tooltip.show();
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                </svg>
+                              </div>
+                              <span>:</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="col-span-4 flex flex-row">
+                          <input
+                            type="text"
+                            name="description"
+                            placeholder="less than 10"
+                            className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={retryDuration}
+                            onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-12 gap-4 mt-4">
+                        <div className="col-span-2 flex flex-row">
+                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                            <div className="flex">
+                              <span className="leading-6 ">Enable</span>
+                              <span>:</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="col-span-10 flex flex-row">
+                          <label className="inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                              checked={enable}
+                              onChange={e => setEnable(!enable)}
+                              className="sr-only peer" />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-row gap-4">
+                        <div className="flex items-center">
+                          <input id="event-namespace" type="checkbox"
+                            checked={eventNamespace}
+                            onChange={e => setEventNamespace(!eventNamespace)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                        </div>
+                        <div className="flex items-center">
+                          <input id="event-repository" type="checkbox"
+                            checked={eventRepository}
+                            onChange={e => setEventRepository(!eventRepository)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
+                        </div>
+                        <div className="flex items-center">
+                          <input id="event-tag" type="checkbox"
+                            checked={eventTag}
+                            onChange={e => setEventTag(!eventTag)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
+                        </div>
+                        <div className="flex items-center">
+                          <input id="event-artifact" type="checkbox"
+                            checked={eventArtifact}
+                            onChange={e => setEventArtifact(!eventArtifact)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
+                        </div>
+                        <div className="flex items-center">
+                          <input id="event-member"
+                            checked={eventMember}
+                            onChange={e => setEventMember(!eventMember)}
+                            type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
+                        </div>
+                      </div>
+                      <div className="flex flex-row-reverse mt-4 pt-4 border-t">
+                        <button
+                          type="button"
+                          className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                          onClick={e => updateWebhook()}
+                        >
+                          Update
+                        </button>
+                        <button
+                          type="button"
+                          className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                          onClick={e => { setUpdateWebhookModal(false) }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition.Root>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
         <Transition.Root show={deleteWebhookModal} as={Fragment}>

@@ -5366,7 +5366,7 @@ const docTemplate = `{
                                         "items": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/types.GetWebhookLogResponse"
+                                                "$ref": "#/definitions/types.WebhookLogItem"
                                             }
                                         }
                                     }
@@ -6769,59 +6769,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GetWebhookLogResponse": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.WebhookAction"
-                        }
-                    ],
-                    "example": "action"
-                },
-                "created_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                },
-                "event": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.WebhookResourceType"
-                        }
-                    ],
-                    "example": "event"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "req_body": {
-                    "type": "string",
-                    "example": ""
-                },
-                "req_header": {
-                    "type": "string",
-                    "example": ""
-                },
-                "resp_body": {
-                    "type": "string",
-                    "example": ""
-                },
-                "resp_header": {
-                    "type": "string",
-                    "example": ""
-                },
-                "status_code": {
-                    "type": "integer",
-                    "example": 200
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2006-01-02 15:04:05"
-                }
-            }
-        },
         "types.ListCodeRepositoryProvidersResponse": {
             "type": "object",
             "properties": {
@@ -7094,7 +7041,6 @@ const docTemplate = `{
             "required": [
                 "retry_duration",
                 "retry_times",
-                "ssl_verify",
                 "url"
             ],
             "properties": {
@@ -7797,6 +7743,59 @@ const docTemplate = `{
                 "url": {
                     "type": "string",
                     "example": "http://example.com/webhook"
+                }
+            }
+        },
+        "types.WebhookLogItem": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookAction"
+                        }
+                    ],
+                    "example": "action"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "event": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookResourceType"
+                        }
+                    ],
+                    "example": "event"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "req_body": {
+                    "type": "string",
+                    "example": ""
+                },
+                "req_header": {
+                    "type": "string",
+                    "example": ""
+                },
+                "resp_body": {
+                    "type": "string",
+                    "example": ""
+                },
+                "resp_header": {
+                    "type": "string",
+                    "example": ""
+                },
+                "status_code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
                 }
             }
         },

@@ -14,31 +14,38 @@
  * limitations under the License.
  */
 
-import { Route, Routes, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-import BuilderRunnerList from './pages/Builder/RunnerList';
-import BuilderRunnerLog from './pages/Builder/RunnerLog';
-import BuildersSetup from './pages/Builder/Setup';
-import CodeRepositoryHome from './pages/CodeRepository';
-import CodeRepositoryList from './pages/CodeRepository/List';
-import DaemonTaskRecords from "./pages/DaemonTask/Records";
-import DaemonTaskRunners from "./pages/DaemonTask/Runners";
-import DaemonTasks from "./pages/DaemonTask/Tasks";
+import Tag from "./pages/Tag";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Namespaces from "./pages/Namespace";
+import Repositories from "./pages/Repository";
+import Summary from './pages/Repository/Summary';
 import LoginCallback from './pages/Login/Callback';
 import NamespaceMember from "./pages/Namespace/Member";
 import NamespaceSummary from "./pages/Namespace/Summary";
+
 import NamespaceWebhooks from "./pages/Webhook/List";
-import Namespaces from "./pages/Namespace";
-import Repositories from "./pages/Repository";
+import NamespaceWebhookLogs from "./pages/Webhook/Log";
+
+import DaemonTasks from "./pages/DaemonTask/Tasks";
+import DaemonTaskRunners from "./pages/DaemonTask/Runners";
+import DaemonTaskRecords from "./pages/DaemonTask/Records";
+
+import CodeRepositoryHome from './pages/CodeRepository';
+import CodeRepositoryList from './pages/CodeRepository/List';
+
+import BuildersSetup from './pages/Builder/Setup';
+import BuilderRunnerList from './pages/Builder/RunnerList';
+import BuilderRunnerLog from './pages/Builder/RunnerLog';
+
 import Setting from './pages/Setting';
 import SettingUsers from './pages/Setting/Users';
-import Summary from './pages/Repository/Summary';
-import Tag from "./pages/Tag";
-import { setupAxiosInterceptor } from './utils/request';
+
+import { setupAxiosInterceptor } from './utils/request'
 
 const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "";
 // const localServer = process.env.NODE_ENV === "development" ? "https://sigma.tosone.cn" : "";
@@ -83,6 +90,7 @@ export default function App() {
         <Route path="/namespaces/:namespace/namespace-summary" element={<NamespaceSummary localServer={localServer} />} />
         <Route path="/namespaces/:namespace/members" element={<NamespaceMember localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/namespace-webhook-logs/:webhook_id" element={<NamespaceWebhookLogs localServer={localServer} />} />
 
         <Route path="/namespaces/:namespace/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />

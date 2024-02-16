@@ -897,41 +897,6 @@ definitions:
         example: v1.0.0
         type: string
     type: object
-  types.GetWebhookLogResponse:
-    properties:
-      action:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookAction'
-        example: action
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      event:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookResourceType'
-        example: event
-      id:
-        example: 1
-        type: integer
-      req_body:
-        example: ""
-        type: string
-      req_header:
-        example: ""
-        type: string
-      resp_body:
-        example: ""
-        type: string
-      resp_header:
-        example: ""
-        type: string
-      status_code:
-        example: 200
-        type: integer
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-    type: object
   types.ListCodeRepositoryProvidersResponse:
     properties:
       provider:
@@ -1153,7 +1118,6 @@ definitions:
     required:
     - retry_duration
     - retry_times
-    - ssl_verify
     - url
     type: object
   types.PutWebhookRequest:
@@ -1642,6 +1606,41 @@ definitions:
         type: string
       url:
         example: http://example.com/webhook
+        type: string
+    type: object
+  types.WebhookLogItem:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookAction'
+        example: action
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      event:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceType'
+        example: event
+      id:
+        example: 1
+        type: integer
+      req_body:
+        example: ""
+        type: string
+      req_header:
+        example: ""
+        type: string
+      resp_body:
+        example: ""
+        type: string
+      resp_header:
+        example: ""
+        type: string
+      status_code:
+        example: 200
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
         type: string
     type: object
   xerrors.ErrCode:
@@ -5138,7 +5137,7 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.GetWebhookLogResponse'
+                    $ref: '#/definitions/types.WebhookLogItem'
                   type: array
               type: object
         "401":
