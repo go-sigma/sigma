@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.21.6
+go 1.22.0
 
 require (
 	code.gitea.io/sdk/gitea v0.17.1
@@ -10,8 +10,8 @@ require (
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/anchore/syft v0.105.0
-	github.com/aquasecurity/trivy v0.49.0
-	github.com/aws/aws-sdk-go v1.50.17
+	github.com/aquasecurity/trivy v0.49.1
+	github.com/aws/aws-sdk-go v1.50.20
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.82.0
 	github.com/casbin/gorm-adapter/v3 v3.20.0
@@ -19,14 +19,14 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
 	github.com/distribution/reference v0.5.0
-	github.com/docker/cli v24.0.7+incompatible
+	github.com/docker/cli v25.0.1+incompatible
 	github.com/docker/docker v25.0.3+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.16.0
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redsync/redsync/v4 v4.11.0
+	github.com/go-redsync/redsync/v4 v4.12.0
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
@@ -46,9 +46,9 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/buildkit v0.12.5
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240127010305-05cf62402d05
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240216225611-48588f1a3f55
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc6
+	github.com/opencontainers/image-spec v1.1.0
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.32.0
@@ -61,7 +61,7 @@ require (
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.3
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.46
-	github.com/tidwall/gjson v1.17.0
+	github.com/tidwall/gjson v1.17.1
 	github.com/wagslane/go-password-validator v0.3.0
 	github.com/xanzy/go-gitlab v0.97.0
 	go.uber.org/mock v0.4.0
@@ -77,9 +77,9 @@ require (
 	gorm.io/gorm v1.25.7
 	gorm.io/plugin/dbresolver v1.5.0
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/api v0.29.1
-	k8s.io/apimachinery v0.29.1
-	k8s.io/client-go v0.29.1
+	k8s.io/api v0.29.2
+	k8s.io/apimachinery v0.29.2
+	k8s.io/client-go v0.29.2
 )
 
 require (
