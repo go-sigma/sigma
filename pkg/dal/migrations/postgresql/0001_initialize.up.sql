@@ -219,7 +219,8 @@ CREATE TYPE audit_resource_type AS ENUM (
   'Namespace',
   'Repository',
   'Tag',
-  'Builder'
+  'Builder',
+  'Webhook'
 );
 
 CREATE TABLE IF NOT EXISTS "audits" (
@@ -745,17 +746,18 @@ INSERT INTO "namespaces" ("name", "visibility")
 
 CREATE TABLE IF NOT EXISTS "webhooks" (
   "id" bigserial PRIMARY KEY,
-  "namespace_id" bigint NOT NULL,
+  "namespace_id" bigint,
   "url" varchar(128) NOT NULL,
   "secret" varchar(63),
+  "enable" smallint NOT NULL DEFAULT 1,
   "ssl_verify" smallint NOT NULL DEFAULT 1,
-  "retry_times" smallint NOT NULL DEFAULT 3,
+  "retry_times" smallint NOT NULL DEFAULT 1,
   "retry_duration" smallint NOT NULL DEFAULT 5,
   "event_namespace" smallint,
-  "event_repository" smallint NOT NULL DEFAULT 1,
-  "event_tag" smallint NOT NULL DEFAULT 1,
-  "event_pull_push" smallint NOT NULL DEFAULT 1,
-  "event_member" smallint NOT NULL DEFAULT 1,
+  "event_repository" smallint NOT NULL DEFAULT 0,
+  "event_tag" smallint NOT NULL DEFAULT 0,
+  "event_artifact" smallint NOT NULL DEFAULT 0,
+  "event_member" smallint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
@@ -767,10 +769,29 @@ CREATE INDEX "webhooks_idx_updated_at" ON "webhooks" ("updated_at");
 
 CREATE INDEX "webhooks_idx_deleted_at" ON "webhooks" ("deleted_at");
 
+CREATE TYPE webhook_resource_type AS ENUM (
+  'Webhook',
+  'Namespace',
+  'Repository',
+  'Tag',
+  'Artifact',
+  'Member'
+);
+
+CREATE TYPE webhook_action AS ENUM (
+  'Create',
+  'Update',
+  'Delete',
+  'Add',
+  'Remove',
+  'Ping'
+);
+
 CREATE TABLE IF NOT EXISTS "webhook_logs" (
   "id" bigserial PRIMARY KEY,
-  "webhook_id" bigint NOT NULL,
-  "event" varchar(128) NOT NULL,
+  "webhook_id" bigint,
+  "resource_type" webhook_resource_type NOT NULL,
+  "action" webhook_action NOT NULL,
   "status_code" smallint NOT NULL,
   "req_header" bytea NOT NULL,
   "req_body" bytea NOT NULL,

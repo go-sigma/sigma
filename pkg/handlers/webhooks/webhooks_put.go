@@ -80,9 +80,30 @@ func (h *handler) PutWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
+	if webhookOldObj.NamespaceID == nil {
+		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		}
+	} else {
+		namespaceID := ptr.To(webhookOldObj.NamespaceID)
+		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
+			}
+			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
+		}
+		if !authChecked {
+			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		}
+	}
+
 	updates := make(map[string]any, 15)
 	if req.Url != nil {
-		updates[query.Webhook.Url.ColumnName().String()] = ptr.To(req.Url)
+		updates[query.Webhook.URL.ColumnName().String()] = ptr.To(req.Url)
 	}
 	if req.Secret != nil {
 		updates[query.Webhook.Secret.ColumnName().String()] = ptr.To(req.Secret)

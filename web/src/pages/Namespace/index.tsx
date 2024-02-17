@@ -26,12 +26,12 @@ import { useNavigate } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import Notification from "../../components/Notification";
 import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
 import Settings from "../../Settings";
-import Toast from "../../components/Notification";
 import calcUnit from "../../utils/calcUnit";
 import { IHTTPError, INamespaceItem, INamespaceList, IOrder, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
@@ -113,11 +113,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setTotal(namespaceList.total);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 
@@ -132,17 +132,17 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setUserObj(user);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 
   const createNamespace = () => {
     if (!(namespaceTextValid && descriptionTextValid && sizeLimitValid && repositoryCountLimitValid && tagCountLimitValid)) {
-      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     setCreateNamespaceModal(false);
@@ -164,11 +164,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -615,11 +615,11 @@ function TableItem({ localServer, index, user, namespace, setRefresh }: { localS
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 
@@ -629,11 +629,11 @@ function TableItem({ localServer, index, user, namespace, setRefresh }: { localS
         setRefresh({});
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
   }
 

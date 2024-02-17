@@ -28,7 +28,7 @@ import Menu from "../../components/Menu";
 import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
-import Toast from "../../components/Notification";
+import Notification from "../../components/Notification";
 import {
   IBuilderItem,
   IBuilderRunnerItem,
@@ -68,11 +68,11 @@ export default function ({ localServer }: { localServer: string }) {
         setBranchText(r.builder?.scm_branch || "");
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, [namespace, repository_id]);
 
@@ -115,11 +115,11 @@ export default function ({ localServer }: { localServer: string }) {
       return;
     }
     if (!(tagTemplateTextValid && branchTextValid && descriptionTextValid)) {
-      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     if (builderObj.source !== "Dockerfile" && branchText === "") {
-      Toast({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
     const data: { [key: string]: any } = {
@@ -140,11 +140,11 @@ export default function ({ localServer }: { localServer: string }) {
         navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${namespaceId}`);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 
@@ -187,11 +187,11 @@ export default function ({ localServer }: { localServer: string }) {
         setTotal(r.total);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, [namespace, repository_id, builderObj, refreshState, sortOrder, sortName]);
 
@@ -209,7 +209,7 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title="Repository"
               props={
                 (
-                  <div className="sm:flex sm:space-x-8">
+                  <div className="flex space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repository/summary?repository=${repositoryObj?.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
@@ -500,11 +500,11 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
         navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${repositoryObj?.namespace_id}`, { replace: true });
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 
@@ -512,11 +512,11 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
     axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repositoryObj?.id}/builders/${runnerObj.builder_id}/runners/${runnerObj.id}/stop`).then(response => {
       if (response?.status === 204) { } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
 

@@ -119,7 +119,7 @@ func (a *Tag) AfterDelete(tx *gorm.DB) error {
 		return err
 	}
 
-	tx.Exec(`UPDATE
+	err = tx.Exec(`UPDATE
 	  repositories
 	SET
 	  tag_count = (
@@ -131,7 +131,7 @@ func (a *Tag) AfterDelete(tx *gorm.DB) error {
 			  tags.deleted_at = 0 AND
 	      tags.repository_id = ?)
 	WHERE
-	  id = ?`, repositoryObj.ID, repositoryObj.ID)
+	  id = ?`, repositoryObj.ID, repositoryObj.ID).Error
 	if err != nil {
 		return err
 	}

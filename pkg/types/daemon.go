@@ -48,8 +48,7 @@ type DaemonWebhookPayload struct {
 	NamespaceID  *int64                    `json:"namespace_id"`
 	WebhookID    *int64                    `json:"webhook_id"`
 	WebhookLogID *int64                    `json:"webhook_log_id"`
-	Resend       bool                      `json:"resend"`
-	Ping         bool                      `json:"ping"`
+	Type         enums.WebhookType         `json:"type"`
 	Action       enums.WebhookAction       `json:"action"`
 	ResourceType enums.WebhookResourceType `json:"resource_type"`
 	Payload      []byte                    `json:"payload"`

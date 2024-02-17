@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -28,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -35,20 +35,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostWebhook handles the post webhook request
+// GetWebhookLogResend handles the resend webhook log request
 //
-//	@Summary	Create a webhook
-//	@Tags		Webhook
+//	@Summary	Resend a webhook log
 //	@security	BasicAuth
+//	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/ [post]
-//	@Param		message	body	types.PostWebhookRequest	true	"Webhook object"
-//	@Success	201
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	404	{object}	xerrors.ErrCode
+//	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id}/resend [get]
+//	@Param		webhook_id		path	int64	true	"Webhook id"
+//	@Param		webhook_log_id	path	int64	true	"Webhook log id"
+//	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handler) PostWebhook(c echo.Context) error {
+//	@Failure	401	{object}	xerrors.ErrCode
+func (h *handler) GetWebhookLogResend(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -62,19 +62,30 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PostWebhookRequest
+	var req types.GetWebhookLogResendRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if req.NamespaceID == nil {
+	webhookService := h.webhookServiceFactory.New()
+	webhookLogObj, err := webhookService.GetLog(ctx, req.WebhookLogID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("WebhookID", req.WebhookID).Int64("WebhookLogID", req.WebhookLogID).Msg("Webhook not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Webhook log(%d) not found", req.WebhookLogID))
+		}
+		log.Error().Err(err).Int64("WebhookID", req.WebhookID).Int64("WebhookLogID", req.WebhookLogID).Msg("Get webhook failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get webhook log(%d) failed", req.WebhookLogID))
+	}
+
+	if webhookLogObj.Webhook.NamespaceID == nil {
 		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {
-		namespaceID := ptr.To(req.NamespaceID)
+		namespaceID := ptr.To(webhookLogObj.Webhook.NamespaceID)
 		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -90,51 +101,25 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		}
 	}
 
-	err = h.PostWebhookValidate(req)
-	if err != nil {
-		return err
-	}
-
-	webhookService := h.webhookServiceFactory.New()
-	_, total, err := webhookService.List(ctx, req.NamespaceID, types.Pagination{}, types.Sortable{})
-	if err != nil {
-		log.Error().Err(err).Msg("Get webhook count failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-	if total > consts.MaxWebhooks {
-		log.Error().Int64("total", total).Msg("Reached the maximum webhooks")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Reached the maximum webhooks")
-	}
-
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		webhookService := h.webhookServiceFactory.New(tx)
-		webhookObj := &models.Webhook{
-			NamespaceID:     req.NamespaceID,
-			URL:             req.URL,
-			Secret:          req.Secret,
-			SslVerify:       req.SslVerify,
-			RetryTimes:      req.RetryTimes,
-			RetryDuration:   req.RetryDuration,
-			Enable:          req.Enable,
-			EventNamespace:  req.EventNamespace,
-			EventRepository: req.EventRepository,
-			EventTag:        req.EventTag,
-			EventArtifact:   req.EventArtifact,
-			EventMember:     req.EventMember,
-		}
-		err = webhookService.Create(ctx, webhookObj)
+		err := h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  webhookLogObj.Webhook.NamespaceID,
+			WebhookID:    ptr.Of(webhookLogObj.Webhook.ID),
+			WebhookLogID: ptr.Of(req.WebhookLogID),
+			Type:         enums.WebhookTypeResend,
+		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
-			log.Error().Err(err).Msg("Create webhook failed")
-			return xerrors.HTTPErrCodeInternalError.Detail("Create webhook failed")
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
-			NamespaceID:  req.NamespaceID,
-			Action:       enums.AuditActionCreate,
+			NamespaceID:  webhookLogObj.Webhook.NamespaceID,
+			Action:       enums.AuditActionDelete,
 			ResourceType: enums.AuditResourceTypeWebhook,
-			Resource:     strconv.FormatInt(webhookObj.ID, 10),
-			ReqRaw:       utils.MustMarshal(webhookObj),
+			Resource:     strconv.FormatInt(webhookLogObj.Webhook.ID, 10),
+			ReqRaw:       utils.MustMarshal(webhookLogObj.Webhook),
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit failed")
@@ -145,13 +130,5 @@ func (h *handler) PostWebhook(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return c.NoContent(http.StatusCreated)
-}
-
-func (h *handler) PostWebhookValidate(req types.PostWebhookRequest) error {
-	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) {
-		log.Error().Str("URL", req.URL).Msg("URL is invalid")
-		return xerrors.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'")
-	}
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

@@ -95,7 +95,7 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title="Repository"
               props={
                 (
-                  <div className="sm:flex sm:space-x-8">
+                  <div className="flex space-x-8">
                     <span
                       className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
                     >
@@ -120,7 +120,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Daemon task
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      to={`/namespaces/${namespace}/namespace-webhooks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Webhook

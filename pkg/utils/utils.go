@@ -15,13 +15,13 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/bytedance/json"
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"

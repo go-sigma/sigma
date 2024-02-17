@@ -156,7 +156,7 @@ export default function Member({ localServer }: { localServer: string }) {
             <Header title="Namespace - Member"
               props={
                 (
-                  <div className="sm:flex sm:space-x-8">
+                  <div className="flex space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
@@ -186,7 +186,7 @@ export default function Member({ localServer }: { localServer: string }) {
                       Daemon task
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      to={`/namespaces/${namespace}/namespace-webhooks?namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Webhook
@@ -195,7 +195,7 @@ export default function Member({ localServer }: { localServer: string }) {
                 )
               }
             />
-            <div className="pt-2 pb-2 flex justify-between">
+            <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
               <div className="pr-2 pl-2">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">

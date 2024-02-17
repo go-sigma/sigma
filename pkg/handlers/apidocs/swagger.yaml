@@ -142,13 +142,12 @@ definitions:
     - VisibilityPublic
   enums.WebhookAction:
     enum:
-    - create
-    - update
-    - delete
-    - add
-    - remove
-    - pull
-    - push
+    - Create
+    - Update
+    - Delete
+    - Add
+    - Remove
+    - Ping
     type: string
     x-enum-varnames:
     - WebhookActionCreate
@@ -156,19 +155,18 @@ definitions:
     - WebhookActionDelete
     - WebhookActionAdd
     - WebhookActionRemove
-    - WebhookActionPull
-    - WebhookActionPush
+    - WebhookActionPing
   enums.WebhookResourceType:
     enum:
-    - ping
-    - namespace
-    - repository
-    - tag
-    - artifact
-    - member
+    - Webhook
+    - Namespace
+    - Repository
+    - Tag
+    - Artifact
+    - Member
     type: string
     x-enum-varnames:
-    - WebhookResourceTypePing
+    - WebhookResourceTypeWebhook
     - WebhookResourceTypeNamespace
     - WebhookResourceTypeRepository
     - WebhookResourceTypeTag
@@ -897,89 +895,6 @@ definitions:
         example: v1.0.0
         type: string
     type: object
-  types.GetWebhookLogResponse:
-    properties:
-      action:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookAction'
-        example: action
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      event:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookResourceType'
-        example: event
-      id:
-        example: 1
-        type: integer
-      req_body:
-        example: ""
-        type: string
-      req_header:
-        example: ""
-        type: string
-      resp_body:
-        example: ""
-        type: string
-      resp_header:
-        example: ""
-        type: string
-      status_code:
-        example: 200
-        type: integer
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-    type: object
-  types.GetWebhookResponse:
-    properties:
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      enable:
-        example: true
-        type: boolean
-      event_artifact:
-        example: true
-        type: boolean
-      event_member:
-        example: true
-        type: boolean
-      event_namespace:
-        example: true
-        type: boolean
-      event_repository:
-        example: true
-        type: boolean
-      event_tag:
-        example: true
-        type: boolean
-      id:
-        example: 1
-        type: integer
-      namespace_id:
-        example: 1
-        type: integer
-      retry_duration:
-        example: 5
-        type: integer
-      retry_times:
-        example: 3
-        type: integer
-      secret:
-        example: secret
-        type: string
-      ssl_verify:
-        example: true
-        type: boolean
-      updated_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      url:
-        example: http://example.com/webhook
-        type: string
-    type: object
   types.ListCodeRepositoryProvidersResponse:
     properties:
       provider:
@@ -1181,6 +1096,9 @@ definitions:
       event_tag:
         example: true
         type: boolean
+      namespace_id:
+        example: 1
+        type: integer
       retry_duration:
         example: 5
         type: integer
@@ -1199,10 +1117,8 @@ definitions:
         maxLength: 128
         type: string
     required:
-    - enable
     - retry_duration
     - retry_times
-    - ssl_verify
     - url
     type: object
   types.PutWebhookRequest:
@@ -1691,6 +1607,41 @@ definitions:
         type: string
       url:
         example: http://example.com/webhook
+        type: string
+    type: object
+  types.WebhookLogItem:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookAction'
+        example: action
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      event:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceType'
+        example: event
+      id:
+        example: 1
+        type: integer
+      req_body:
+        example: ""
+        type: string
+      req_header:
+        example: ""
+        type: string
+      resp_body:
+        example: ""
+        type: string
+      resp_header:
+        example: ""
+        type: string
+      status_code:
+        example: 200
+        type: integer
+      updated_at:
+        example: "2006-01-02 15:04:05"
         type: string
     type: object
   xerrors.ErrCode:
@@ -4939,43 +4890,6 @@ paths:
       summary: Update a webhook
       tags:
       - Webhook
-  /webhooks:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: create webhook for namespace
-        in: query
-        name: namespace_id
-        type: integer
-      - description: Webhook object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostWebhookRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Create a webhook
-      tags:
-      - Webhook
   /webhooks/:
     get:
       consumes:
@@ -5036,6 +4950,38 @@ paths:
       summary: List webhooks
       tags:
       - Webhook
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a webhook
+      tags:
+      - Webhook
   /webhooks/{id}:
     delete:
       consumes:
@@ -5084,7 +5030,7 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.GetWebhookResponse'
+                    $ref: '#/definitions/types.WebhookItem'
                   type: array
               type: object
         "401":
@@ -5161,7 +5107,39 @@ paths:
       summary: List webhook logs
       tags:
       - Webhook
-  /webhooks/{webhook_id}/logs/{id}:
+  /webhooks/{webhook_id}/logs/{webhook_log_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - description: Webhook log id
+        in: path
+        name: webhook_log_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete a webhook log
+      tags:
+      - Webhook
     get:
       consumes:
       - application/json
@@ -5173,7 +5151,7 @@ paths:
         type: integer
       - description: Webhook log id
         in: path
-        name: id
+        name: webhook_log_id
         required: true
         type: integer
       produces:
@@ -5187,7 +5165,7 @@ paths:
             - properties:
                 items:
                   items:
-                    $ref: '#/definitions/types.GetWebhookLogResponse'
+                    $ref: '#/definitions/types.WebhookLogItem'
                   type: array
               type: object
         "401":
@@ -5201,6 +5179,67 @@ paths:
       security:
       - BasicAuth: []
       summary: Get a webhook log
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/logs/{webhook_log_id}/resend:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      - description: Webhook log id
+        in: path
+        name: webhook_log_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Resend a webhook log
+      tags:
+      - Webhook
+  /webhooks/{webhook_id}/ping:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook id
+        in: path
+        name: webhook_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Send a webhook ping event
       tags:
       - Webhook
 securityDefinitions:

@@ -215,7 +215,7 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title="Repository"
               props={
                 (
-                  <div className="sm:flex sm:space-x-8">
+                  <div className="flex space-x-8">
                     <Link
                       to={`/namespaces/${namespace}/repository/summary?repository=${repositoryObj?.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"

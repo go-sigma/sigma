@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package artifact
+package daemons
 
 import (
 	"testing"
@@ -28,16 +28,10 @@ func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
-	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
-	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
+	daoMockDaemonServiceFactory := daomocks.NewMockDaemonServiceFactory(ctrl)
 
 	handler := handlerNew(inject{
-		tagServiceFactory:        daoMockTagServiceFactory,
-		artifactServiceFactory:   daoMockArtifactServiceFactory,
-		namespaceServiceFactory:  daoMockNamespaceServiceFactory,
-		repositoryServiceFactory: daoMockRepositoryServiceFactory,
+		daemonServiceFactory: daoMockDaemonServiceFactory,
 	})
 	assert.NotNil(t, handler)
 

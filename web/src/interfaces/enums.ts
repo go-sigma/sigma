@@ -26,3 +26,22 @@ export enum UserRole {
   User = "User",
   Anonymous = "Anonymous",
 }
+
+export enum WebhookResourceType {
+  Ping = "ping",
+  Namespace = "namespace",
+  Repository = "repository",
+  Tag = "tag",
+  Artifact = "artifact",
+  Member = "member"
+}
+
+export enum WebhookAction {
+  Create = "create",
+  Update = "update",
+  Delete = "delete",
+  Add = "add",
+  Remove = "remove",
+  Pull = "pull",
+  Push = "push"
+}

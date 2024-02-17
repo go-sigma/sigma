@@ -18,22 +18,22 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // PostWebhookRequest ...
 type PostWebhookRequest struct {
-	NamespaceID     *int64  `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1" swaggerignore:"true"`
-	Url             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
+	NamespaceID     *int64  `json:"namespace_id,omitempty" validate:"omitempty,numeric" example:"1"`
+	URL             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       bool    `json:"ssl_verify" validate:"required" example:"true"`
+	SslVerify       bool    `json:"ssl_verify" example:"true"`
 	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`
 	RetryDuration   int     `json:"retry_duration" validate:"required" example:"5"`
-	Enable          bool    `json:"enable" validate:"required,boolean" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventRepository bool    `json:"event_repository" validate:"boolean" example:"true"`
-	EventTag        bool    `json:"event_tag" validate:"boolean" example:"true"`
-	EventArtifact   bool    `json:"event_artifact" validate:"boolean" example:"true"`
-	EventMember     bool    `json:"event_member" validate:"boolean" example:"true"`
+	Enable          bool    `json:"enable" example:"true"`
+	EventNamespace  *bool   `json:"event_namespace,omitempty" example:"true"`
+	EventRepository bool    `json:"event_repository" example:"true"`
+	EventTag        bool    `json:"event_tag" example:"true"`
+	EventArtifact   bool    `json:"event_artifact" example:"true"`
+	EventMember     bool    `json:"event_member" example:"true"`
 }
 
 type PutWebhookRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+	ID int64 `json:"webhook_id" param:"webhook_id" validate:"required,number" swaggerignore:"true"`
 
 	Url             *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
@@ -50,19 +50,19 @@ type PutWebhookRequest struct {
 
 // DeleteWebhookRequest ...
 type DeleteWebhookRequest struct {
-	ID int64 `json:"id" param:"id" example:"1"`
+	ID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 }
 
 // GetWebhookRequest ...
 type GetWebhookRequest struct {
-	ID int64 `json:"id" param:"id" example:"1"`
+	ID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 }
 
-// GetWebhookResponse ...
-type GetWebhookResponse struct {
+// WebhookItem ...
+type WebhookItem struct {
 	ID              int64   `json:"id" example:"1"`
 	NamespaceID     *int64  `json:"namespace_id,omitempty" example:"1"`
-	Url             string  `json:"url" example:"http://example.com/webhook"`
+	URL             string  `json:"url" example:"http://example.com/webhook"`
 	Secret          *string `json:"secret,omitempty" example:"secret"`
 	SslVerify       bool    `json:"ssl_verify" example:"true"`
 	RetryTimes      int     `json:"retry_times" example:"3"`
@@ -84,9 +84,6 @@ type ListWebhookRequest struct {
 
 	NamespaceID *int64 `json:"namespace_id,omitempty" query:"namespace_id" validate:"omitempty,numeric" example:"1"`
 }
-
-// WebhookItem ...
-type WebhookItem = GetWebhookResponse
 
 // ListWebhookLogRequest ...
 type ListWebhookLogRequest struct {
@@ -110,57 +107,113 @@ type WebhookLogItem struct {
 	UpdatedAt  string                    `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
-// GetWebhookLogResponse ...
-type GetWebhookLogResponse = WebhookLogItem
-
 // GetWebhookLogRequest ...
 type GetWebhookLogRequest struct {
 	WebhookID    int64 `json:"webhook_id" param:"webhook_id" example:"1"`
 	WebhookLogID int64 `json:"webhook_log_id" param:"webhook_log_id" example:"1"`
 }
 
+// GetWebhookLogResendRequest ...
+type GetWebhookLogResendRequest struct {
+	WebhookID    int64 `json:"webhook_id" param:"webhook_id" example:"1"`
+	WebhookLogID int64 `json:"webhook_log_id" param:"webhook_log_id" example:"1"`
+}
+
+// DeleteWebhookLogRequest ...
+type DeleteWebhookLogRequest struct {
+	WebhookID    int64 `json:"webhook_id" param:"webhook_id" example:"1"`
+	WebhookLogID int64 `json:"webhook_log_id" param:"webhook_log_id" example:"1"`
+}
+
+// GetWebhookPingRequest ...
+type GetWebhookPingRequest struct {
+	WebhookID int64 `json:"webhook_id" param:"webhook_id" example:"1"`
+}
+
+// DaemonWebhookNamespace ...
+type DaemonWebhookNamespace struct {
+	ID              int64            `json:"id" example:"1"`
+	Name            string           `json:"name" example:"test"`
+	Description     *string          `json:"description,omitempty" example:"i am just description"`
+	Overview        *string          `json:"overview,omitempty" example:"i am just overview"`
+	Visibility      enums.Visibility `json:"visibility" example:"private"`
+	RepositoryLimit int64            `json:"repository_limit" example:"10"`
+	RepositoryCount int64            `json:"repository_count" example:"10"`
+	TagLimit        int64            `json:"tag_limit" example:"10"`
+	TagCount        int64            `json:"tag_count" example:"10"`
+	Size            int64            `json:"size" example:"10000"`
+	SizeLimit       int64            `json:"size_limit" example:"10000"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// DaemonWebhookRepository ...
+type DaemonWebhookRepository struct {
+	ID          int64            `json:"id" example:"1"`
+	NamespaceID int64            `json:"namespace_id" example:"1"`
+	Name        string           `json:"name" example:"busybox"`
+	Description *string          `json:"description,omitempty" example:"i am just description"`
+	Overview    *string          `json:"overview,omitempty" example:"i am just overview"`
+	Visibility  enums.Visibility `json:"visibility" example:"private"`
+	TagCount    int64            `json:"tag_count" example:"100"`
+	TagLimit    *int64           `json:"tag_limit" example:"1000"`
+	SizeLimit   *int64           `json:"size_limit" example:"10000"`
+	Size        *int64           `json:"size" example:"10000"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+type DaemonWebhookTag struct {
+}
+
+type DaemonWebhookArtifact struct {
+}
+
 // DaemonWebhookPayloadPing ...
 type DaemonWebhookPayloadPing struct {
-	Event string `json:"event"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"webhook"`
+	Action       enums.WebhookAction       `json:"action" example:"ping"`
+	Namespace    *DaemonWebhookNamespace   `json:"namespace"`
 }
 
 // DaemonWebhookPayloadNamespace ...
 type DaemonWebhookPayloadNamespace struct {
-	Event     string        `json:"event"`
-	Operate   string        `json:"operate"`
-	Namespace NamespaceItem `json:"namespace"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"namespace"`
+	Action       enums.WebhookAction       `json:"action" example:"create"`
+	Namespace    DaemonWebhookNamespace    `json:"namespace"`
 }
 
 // DaemonWebhookPayloadRepository ...
 type DaemonWebhookPayloadRepository struct {
-	Event      string         `json:"event"`
-	Operate    string         `json:"operate"`
-	Namespace  NamespaceItem  `json:"namespace"`
-	Repository RepositoryItem `json:"repository"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"repository"`
+	Action       enums.WebhookAction       `json:"action" example:"create"`
+	Namespace    DaemonWebhookNamespace    `json:"namespace"`
+	Repository   DaemonWebhookRepository   `json:"repository"`
 }
 
 // DaemonWebhookPayloadTag ...
 type DaemonWebhookPayloadTag struct {
-	Event      string         `json:"event"`
-	Operate    string         `json:"operate"`
-	Namespace  NamespaceItem  `json:"namespace"`
-	Repository RepositoryItem `json:"repository"`
-	Tag        TagItem        `json:"tag"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"tag"`
+	Action       enums.WebhookAction       `json:"action" example:"create"`
+	Namespace    DaemonWebhookNamespace    `json:"namespace"`
+	Repository   DaemonWebhookRepository   `json:"repository"`
+	Tag          DaemonWebhookTag          `json:"tag"`
+}
+
+// DaemonWebhookPayloadArtifact ...
+type DaemonWebhookPayloadArtifact struct {
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"artifact"`
+	Action       enums.WebhookAction       `json:"action" example:"create"`
+	Namespace    DaemonWebhookNamespace    `json:"namespace"`
+	Repository   DaemonWebhookRepository   `json:"repository"`
+	Artifact     DaemonWebhookArtifact     `json:"artifact"`
 }
 
 // DaemonWebhookPayloadMember ...
 type DaemonWebhookPayloadMember struct {
-	Event     string         `json:"event"`
-	Operate   string         `json:"operate"`
-	Namespace *NamespaceItem `json:"namespace,omitempty"`
-	User      UserItem       `json:"user"`
-}
-
-// DaemonWebhookPayloadPullPush ...
-type DaemonWebhookPayloadPullPush struct {
-	Event      string         `json:"event"`
-	Operate    string         `json:"operate"`
-	Namespace  NamespaceItem  `json:"namespace"`
-	Repository RepositoryItem `json:"repository"`
-	Tag        TagItem        `json:"tag"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"member"`
+	Action       enums.WebhookAction       `json:"action" example:"create"`
+	Namespace    *DaemonWebhookNamespace   `json:"namespace"`
 }

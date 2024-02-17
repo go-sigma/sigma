@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -35,20 +34,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// PostWebhook handles the post webhook request
+// DeleteWebhookLog handles the delete webhook log request
 //
-//	@Summary	Create a webhook
-//	@Tags		Webhook
+//	@Summary	Delete a webhook log
 //	@security	BasicAuth
+//	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/ [post]
-//	@Param		message	body	types.PostWebhookRequest	true	"Webhook object"
-//	@Success	201
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	404	{object}	xerrors.ErrCode
+//	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id} [delete]
+//	@Param		webhook_id		path	int64	true	"Webhook id"
+//	@Param		webhook_log_id	path	int64	true	"Webhook log id"
+//	@Success	204
 //	@Failure	500	{object}	xerrors.ErrCode
-func (h *handler) PostWebhook(c echo.Context) error {
+//	@Failure	401	{object}	xerrors.ErrCode
+func (h *handler) DeleteWebhookLog(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
@@ -62,19 +61,30 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	var req types.PostWebhookRequest
+	var req types.DeleteWebhookLogRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	if req.NamespaceID == nil {
+	webhookService := h.webhookServiceFactory.New()
+	webhookObj, err := webhookService.Get(ctx, req.WebhookID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Err(err).Int64("WebhookID", req.WebhookID).Int64("WebhookLogID", req.WebhookLogID).Msg("Webhook not found")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Webhook(%d) not found", req.WebhookID))
+		}
+		log.Error().Err(err).Int64("WebhookID", req.WebhookID).Int64("WebhookLogID", req.WebhookLogID).Msg("Get webhook failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get webhook(%d) failed", req.WebhookID))
+	}
+
+	if webhookObj.NamespaceID == nil {
 		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {
-		namespaceID := ptr.To(req.NamespaceID)
+		namespaceID := ptr.To(webhookObj.NamespaceID)
 		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -90,39 +100,9 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		}
 	}
 
-	err = h.PostWebhookValidate(req)
-	if err != nil {
-		return err
-	}
-
-	webhookService := h.webhookServiceFactory.New()
-	_, total, err := webhookService.List(ctx, req.NamespaceID, types.Pagination{}, types.Sortable{})
-	if err != nil {
-		log.Error().Err(err).Msg("Get webhook count failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
-	}
-	if total > consts.MaxWebhooks {
-		log.Error().Int64("total", total).Msg("Reached the maximum webhooks")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Reached the maximum webhooks")
-	}
-
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		webhookService := h.webhookServiceFactory.New(tx)
-		webhookObj := &models.Webhook{
-			NamespaceID:     req.NamespaceID,
-			URL:             req.URL,
-			Secret:          req.Secret,
-			SslVerify:       req.SslVerify,
-			RetryTimes:      req.RetryTimes,
-			RetryDuration:   req.RetryDuration,
-			Enable:          req.Enable,
-			EventNamespace:  req.EventNamespace,
-			EventRepository: req.EventRepository,
-			EventTag:        req.EventTag,
-			EventArtifact:   req.EventArtifact,
-			EventMember:     req.EventMember,
-		}
-		err = webhookService.Create(ctx, webhookObj)
+		err = webhookService.DeleteByID(ctx, req.WebhookLogID)
 		if err != nil {
 			log.Error().Err(err).Msg("Create webhook failed")
 			return xerrors.HTTPErrCodeInternalError.Detail("Create webhook failed")
@@ -130,8 +110,8 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
-			NamespaceID:  req.NamespaceID,
-			Action:       enums.AuditActionCreate,
+			NamespaceID:  webhookObj.NamespaceID,
+			Action:       enums.AuditActionDelete,
 			ResourceType: enums.AuditResourceTypeWebhook,
 			Resource:     strconv.FormatInt(webhookObj.ID, 10),
 			ReqRaw:       utils.MustMarshal(webhookObj),
@@ -145,13 +125,5 @@ func (h *handler) PostWebhook(c echo.Context) error {
 	if err != nil {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
-	return c.NoContent(http.StatusCreated)
-}
-
-func (h *handler) PostWebhookValidate(req types.PostWebhookRequest) error {
-	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) {
-		log.Error().Str("URL", req.URL).Msg("URL is invalid")
-		return xerrors.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'")
-	}
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
