@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespaces
+package webhooks
 
 import (
 	"testing"
@@ -22,29 +22,23 @@ import (
 	"go.uber.org/mock/gomock"
 
 	authmocks "github.com/go-sigma/sigma/pkg/auth/mocks"
-	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 )
 
 func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
+	daoMockWebhookServiceFactory := daomock.NewMockWebhookServiceFactory(ctrl)
+	daoMockAuditServiceFactory := daomock.NewMockAuditServiceFactory(ctrl)
 	daoMockAuthServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
-	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
-	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockNamespaceMemberServiceFactory := daomocks.NewMockNamespaceMemberServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
-	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
-	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
 
 	handler := handlerNew(inject{
-		authServiceFactory:            daoMockAuthServiceFactory,
-		auditServiceFactory:           daoMockAuditServiceFactory,
-		namespaceServiceFactory:       daoMockNamespaceServiceFactory,
-		namespaceMemberServiceFactory: daoMockNamespaceMemberServiceFactory,
-		repositoryServiceFactory:      daoMockRepositoryServiceFactory,
-		artifactServiceFactory:        daoMockArtifactServiceFactory,
-		tagServiceFactory:             daoMockTagServiceFactory,
+		namespaceServiceFactory: daoMockNamespaceServiceFactory,
+		webhookServiceFactory:   daoMockWebhookServiceFactory,
+		auditServiceFactory:     daoMockAuditServiceFactory,
+		authServiceFactory:      daoMockAuthServiceFactory,
 	})
 	assert.NotNil(t, handler)
 

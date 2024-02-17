@@ -20,10 +20,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -54,15 +57,21 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
+	authServiceFactory      auth.AuthServiceFactory
 	namespaceServiceFactory dao.NamespaceServiceFactory
 	webhookServiceFactory   dao.WebhookServiceFactory
 	auditServiceFactory     dao.AuditServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 type inject struct {
+	authServiceFactory      auth.AuthServiceFactory
 	namespaceServiceFactory dao.NamespaceServiceFactory
 	webhookServiceFactory   dao.WebhookServiceFactory
 	auditServiceFactory     dao.AuditServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the webhook handlers
@@ -70,6 +79,8 @@ func handlerNew(injects ...inject) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
+	authServiceFactory := auth.NewAuthServiceFactory()
+	producerClient := workq.ProducerClient
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.namespaceServiceFactory != nil {
@@ -81,11 +92,19 @@ func handlerNew(injects ...inject) Handler {
 		if ij.auditServiceFactory != nil {
 			auditServiceFactory = ij.auditServiceFactory
 		}
+		if ij.authServiceFactory != nil {
+			authServiceFactory = ij.authServiceFactory
+		}
+		if ij.producerClient != nil {
+			producerClient = ij.producerClient
+		}
 	}
 	return &handler{
+		authServiceFactory:      authServiceFactory,
 		namespaceServiceFactory: namespaceServiceFactory,
 		webhookServiceFactory:   webhookServiceFactory,
 		auditServiceFactory:     auditServiceFactory,
+		producerClient:          producerClient,
 	}
 }
 

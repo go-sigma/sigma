@@ -4963,65 +4963,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks": {
-            "post": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Webhook"
-                ],
-                "summary": "Create a webhook",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "create webhook for namespace",
-                        "name": "namespace_id",
-                        "in": "query"
-                    },
-                    {
-                        "description": "Webhook object",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.PostWebhookRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
-                        }
-                    }
-                }
-            }
-        },
         "/webhooks/": {
             "get": {
                 "security": [
@@ -5104,6 +5045,57 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Create a webhook",
+                "parameters": [
+                    {
+                        "description": "Webhook object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostWebhookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/xerrors.ErrCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/xerrors.ErrCode"
                         }
@@ -5837,13 +5829,12 @@ const docTemplate = `{
         "enums.WebhookAction": {
             "type": "string",
             "enum": [
-                "create",
-                "update",
-                "delete",
-                "add",
-                "remove",
-                "pull",
-                "push"
+                "Create",
+                "Update",
+                "Delete",
+                "Add",
+                "Remove",
+                "Ping"
             ],
             "x-enum-varnames": [
                 "WebhookActionCreate",
@@ -5851,22 +5842,21 @@ const docTemplate = `{
                 "WebhookActionDelete",
                 "WebhookActionAdd",
                 "WebhookActionRemove",
-                "WebhookActionPull",
-                "WebhookActionPush"
+                "WebhookActionPing"
             ]
         },
         "enums.WebhookResourceType": {
             "type": "string",
             "enum": [
-                "ping",
-                "namespace",
-                "repository",
-                "tag",
-                "artifact",
-                "member"
+                "Webhook",
+                "Namespace",
+                "Repository",
+                "Tag",
+                "Artifact",
+                "Member"
             ],
             "x-enum-varnames": [
-                "WebhookResourceTypePing",
+                "WebhookResourceTypeWebhook",
                 "WebhookResourceTypeNamespace",
                 "WebhookResourceTypeRepository",
                 "WebhookResourceTypeTag",
@@ -7214,6 +7204,10 @@ const docTemplate = `{
                 "event_tag": {
                     "type": "boolean",
                     "example": true
+                },
+                "namespace_id": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "retry_duration": {
                     "type": "integer",

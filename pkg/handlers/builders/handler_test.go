@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package namespaces
+package builders
 
 import (
 	"testing"
@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	authmocks "github.com/go-sigma/sigma/pkg/auth/mocks"
 	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 )
 
@@ -29,22 +28,22 @@ func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockAuthServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
-	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
 	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockNamespaceMemberServiceFactory := daomocks.NewMockNamespaceMemberServiceFactory(ctrl)
 	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
-	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
-	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
+	daoMockWebhookServiceFactory := daomocks.NewMockWebhookServiceFactory(ctrl)
+	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
+	daoMockBuilderServiceFactory := daomocks.NewMockBuilderServiceFactory(ctrl)
+	daoMockUserServiceFactory := daomocks.NewMockUserServiceFactory(ctrl)
+	daoMockCodeRepositoryServiceFactory := daomocks.NewMockCodeRepositoryServiceFactory(ctrl)
 
 	handler := handlerNew(inject{
-		authServiceFactory:            daoMockAuthServiceFactory,
-		auditServiceFactory:           daoMockAuditServiceFactory,
-		namespaceServiceFactory:       daoMockNamespaceServiceFactory,
-		namespaceMemberServiceFactory: daoMockNamespaceMemberServiceFactory,
-		repositoryServiceFactory:      daoMockRepositoryServiceFactory,
-		artifactServiceFactory:        daoMockArtifactServiceFactory,
-		tagServiceFactory:             daoMockTagServiceFactory,
+		namespaceServiceFactory:      daoMockNamespaceServiceFactory,
+		repositoryServiceFactory:     daoMockRepositoryServiceFactory,
+		webhookServiceFactory:        daoMockWebhookServiceFactory,
+		auditServiceFactory:          daoMockAuditServiceFactory,
+		builderServiceFactory:        daoMockBuilderServiceFactory,
+		userServiceFactory:           daoMockUserServiceFactory,
+		codeRepositoryServiceFactory: daoMockCodeRepositoryServiceFactory,
 	})
 	assert.NotNil(t, handler)
 

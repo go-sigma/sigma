@@ -48,15 +48,15 @@ type WebhookLog struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	WebhookID int64
+	WebhookID *int64
 
-	Event      enums.WebhookResourceType
-	Action     enums.WebhookAction
-	StatusCode int
-	ReqHeader  []byte
-	ReqBody    []byte
-	RespHeader []byte
-	RespBody   []byte
+	ResourceType enums.WebhookResourceType
+	Action       enums.WebhookAction
+	StatusCode   int
+	ReqHeader    []byte
+	ReqBody      []byte
+	RespHeader   []byte
+	RespBody     []byte
 
 	Webhook Webhook
 }

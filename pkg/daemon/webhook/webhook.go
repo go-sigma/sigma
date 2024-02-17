@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -53,26 +52,35 @@ func init() {
 }
 
 func webhookRunner(ctx context.Context, data []byte) error {
+	ctx = log.Logger.WithContext(ctx)
+
 	var payload types.DaemonWebhookPayload
 	err := json.Unmarshal(data, &payload)
 	if err != nil {
 		return fmt.Errorf("unmarshal payload failed: %v", err)
 	}
 	w := webhook{
-		namespaceServiceFactory: dao.NewNamespaceServiceFactory(),
-		webhookServiceFactory:   dao.NewWebhookServiceFactory(),
+		namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
+		repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
+		tagServiceFactory:        dao.NewTagServiceFactory(),
+		webhookServiceFactory:    dao.NewWebhookServiceFactory(),
 	}
-	if payload.Resend {
+	switch payload.Type {
+	case enums.WebhookTypeResend:
 		return w.decorator(w.resend)(ctx, payload)
-	} else if payload.Ping {
+	case enums.WebhookTypePing:
 		return w.decorator(w.ping)(ctx, payload)
+	case enums.WebhookTypeSend:
+		return w.send(ctx, payload)
 	}
-	return w.send(ctx, payload)
+	return nil
 }
 
 type webhook struct {
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	webhookServiceFactory   dao.WebhookServiceFactory
+	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
+	tagServiceFactory        dao.TagServiceFactory
+	webhookServiceFactory    dao.WebhookServiceFactory
 }
 
 type clientOption struct {
@@ -88,10 +96,10 @@ func (w webhook) resend(ctx context.Context, payload types.DaemonWebhookPayload)
 		return nil, err
 	}
 	var result = &models.WebhookLog{
-		WebhookID: webhookLogObj.WebhookID,
-		Event:     webhookLogObj.Event,
-		ReqHeader: webhookLogObj.ReqHeader,
-		ReqBody:   webhookLogObj.ReqBody,
+		WebhookID:    webhookLogObj.WebhookID,
+		ResourceType: webhookLogObj.ResourceType,
+		ReqHeader:    webhookLogObj.ReqHeader,
+		ReqBody:      webhookLogObj.ReqBody,
 	}
 	var headers map[string]string
 	err = json.Unmarshal(webhookLogObj.ReqHeader, &headers)
@@ -147,7 +155,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		return err
 	}
 	body := utils.MustMarshal(types.DaemonWebhookPayloadPing{
-		Event: string(enums.WebhookResourceTypePing),
+		ResourceType: enums.WebhookResourceTypeNamespace,
 	})
 	headers := w.defaultHeaders()
 	for _, webhookObj := range webhookObjs {
@@ -157,11 +165,11 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 			continue
 		}
 		webhookLogObj := &models.WebhookLog{
-			WebhookID: webhookObj.ID,
-			Event:     payload.ResourceType,
-			Action:    payload.Action,
-			ReqHeader: utils.MustMarshal(headers),
-			ReqBody:   body,
+			WebhookID:    &webhookObj.ID,
+			ResourceType: payload.ResourceType,
+			Action:       payload.Action,
+			ReqHeader:    utils.MustMarshal(headers),
+			ReqBody:      body,
 		}
 		client := w.client(clientOption{
 			SslVerify:     webhookObj.SslVerify,
@@ -200,18 +208,25 @@ func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (
 		return nil, err
 	}
 	headers := w.defaultHeaders()
-	body := utils.MustMarshal(types.DaemonWebhookPayloadPing{
-		Event: string(enums.WebhookResourceTypePing),
-	})
+	pingObj := types.DaemonWebhookPayloadPing{
+		ResourceType: enums.WebhookResourceTypeWebhook,
+		Action:       enums.WebhookActionPing,
+	}
+	pingObj.Namespace, err = w.getNamespace(ctx, webhookObj.NamespaceID)
+	if err != nil {
+		return nil, err
+	}
+	body := utils.MustMarshal(pingObj)
 	headers, err = w.secretHeader(webhookObj.Secret, body, headers)
 	if err != nil {
 		return nil, err
 	}
 	var result = &models.WebhookLog{
-		WebhookID: ptr.To(payload.WebhookID),
-		Event:     payload.ResourceType,
-		ReqHeader: utils.MustMarshal(headers),
-		ReqBody:   body,
+		WebhookID:    payload.WebhookID,
+		ResourceType: payload.ResourceType,
+		Action:       payload.Action,
+		ReqHeader:    utils.MustMarshal(headers),
+		ReqBody:      body,
 	}
 	client := w.client(clientOption{
 		SslVerify:     webhookObj.SslVerify,
@@ -282,18 +297,9 @@ func (w webhook) decorator(runner func(context.Context, types.DaemonWebhookPaylo
 }
 
 func (w webhook) respBody(resp *resty.Response) ([]byte, error) {
-	contentLength, err := strconv.ParseInt(resp.Header().Get(echo.HeaderContentLength), 10, 0)
-	if err != nil {
-		return nil, err
-	}
-	var respBody []byte
-	if contentLength > 0 && contentLength < 1024*100 {
-		respBody, err = io.ReadAll(resp.RawBody())
-		if err != nil {
-			return nil, err
-		}
-	}
-	return respBody, nil
+	reader := resp.RawBody()
+	defer reader.Close() // nolint: errcheck
+	return io.ReadAll(&io.LimitedReader{R: reader, N: 10 * 1024})
 }
 
 func (w webhook) defaultHeaders() map[string]string {

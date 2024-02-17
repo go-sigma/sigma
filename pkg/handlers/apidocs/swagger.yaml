@@ -142,13 +142,12 @@ definitions:
     - VisibilityPublic
   enums.WebhookAction:
     enum:
-    - create
-    - update
-    - delete
-    - add
-    - remove
-    - pull
-    - push
+    - Create
+    - Update
+    - Delete
+    - Add
+    - Remove
+    - Ping
     type: string
     x-enum-varnames:
     - WebhookActionCreate
@@ -156,19 +155,18 @@ definitions:
     - WebhookActionDelete
     - WebhookActionAdd
     - WebhookActionRemove
-    - WebhookActionPull
-    - WebhookActionPush
+    - WebhookActionPing
   enums.WebhookResourceType:
     enum:
-    - ping
-    - namespace
-    - repository
-    - tag
-    - artifact
-    - member
+    - Webhook
+    - Namespace
+    - Repository
+    - Tag
+    - Artifact
+    - Member
     type: string
     x-enum-varnames:
-    - WebhookResourceTypePing
+    - WebhookResourceTypeWebhook
     - WebhookResourceTypeNamespace
     - WebhookResourceTypeRepository
     - WebhookResourceTypeTag
@@ -1098,6 +1096,9 @@ definitions:
       event_tag:
         example: true
         type: boolean
+      namespace_id:
+        example: 1
+        type: integer
       retry_duration:
         example: 5
         type: integer
@@ -4889,43 +4890,6 @@ paths:
       summary: Update a webhook
       tags:
       - Webhook
-  /webhooks:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: create webhook for namespace
-        in: query
-        name: namespace_id
-        type: integer
-      - description: Webhook object
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/types.PostWebhookRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/xerrors.ErrCode'
-      security:
-      - BasicAuth: []
-      summary: Create a webhook
-      tags:
-      - Webhook
   /webhooks/:
     get:
       consumes:
@@ -4984,6 +4948,38 @@ paths:
       security:
       - BasicAuth: []
       summary: List webhooks
+      tags:
+      - Webhook
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Webhook object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/xerrors.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Create a webhook
       tags:
       - Webhook
   /webhooks/{id}:

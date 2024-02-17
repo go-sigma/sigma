@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,17 +21,31 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	authmocks "github.com/go-sigma/sigma/pkg/auth/mocks"
+	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 )
 
 func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockRepositoryService := daomock.NewMockRepositoryServiceFactory(ctrl)
-	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
+	daoMockAuthServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
+	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
+	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
+	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
+	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
+	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
+	daoMockBuilderServiceFactory := daomocks.NewMockBuilderServiceFactory(ctrl)
 
-	handler := handlerNew(inject{repositoryServiceFactory: daoMockRepositoryService, artifactServiceFactory: daoMockArtifactService})
+	handler := handlerNew(inject{
+		authServiceFactory:       daoMockAuthServiceFactory,
+		auditServiceFactory:      daoMockAuditServiceFactory,
+		namespaceServiceFactory:  daoMockNamespaceServiceFactory,
+		repositoryServiceFactory: daoMockRepositoryServiceFactory,
+		artifactServiceFactory:   daoMockArtifactServiceFactory,
+		tagServiceFactory:        daoMockTagServiceFactory,
+		builderServiceFactory:    daoMockBuilderServiceFactory,
+	})
 	assert.NotNil(t, handler)
 
 	f := factory{}

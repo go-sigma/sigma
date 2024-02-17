@@ -51,6 +51,8 @@ type WebhookService interface {
 	ListLogs(ctx context.Context, webhookID int64, pagination types.Pagination, sort types.Sortable) ([]*models.WebhookLog, int64, error)
 	// GetLog get webhook log with the specified webhook ID
 	GetLog(ctx context.Context, webhookLogID int64) (*models.WebhookLog, error)
+	// DeleteLogByID delete webhook log by id
+	DeleteLogByID(ctx context.Context, webhookLogID int64) error
 }
 
 type webhookService struct {
@@ -173,4 +175,10 @@ func (s *webhookService) CreateLog(ctx context.Context, webhookLog *models.Webho
 // GetLog get webhook log with the specified webhook ID
 func (s *webhookService) GetLog(ctx context.Context, webhookLogID int64) (*models.WebhookLog, error) {
 	return s.tx.WebhookLog.WithContext(ctx).Where(s.tx.WebhookLog.ID.Eq(webhookLogID)).Preload(s.tx.WebhookLog.Webhook).First()
+}
+
+// DeleteLogByID delete webhook log by id
+func (s *webhookService) DeleteLogByID(ctx context.Context, webhookLogID int64) error {
+	_, err := s.tx.WebhookLog.WithContext(ctx).Where(s.tx.WebhookLog.ID.Eq(webhookLogID)).Delete()
+	return err
 }

@@ -769,10 +769,29 @@ CREATE INDEX "webhooks_idx_updated_at" ON "webhooks" ("updated_at");
 
 CREATE INDEX "webhooks_idx_deleted_at" ON "webhooks" ("deleted_at");
 
+CREATE TYPE webhook_resource_type AS ENUM (
+  'Webhook',
+  'Namespace',
+  'Repository',
+  'Tag',
+  'Artifact',
+  'Member'
+);
+
+CREATE TYPE webhook_action AS ENUM (
+  'Create',
+  'Update',
+  'Delete',
+  'Add',
+  'Remove',
+  'Ping'
+);
+
 CREATE TABLE IF NOT EXISTS "webhook_logs" (
   "id" bigserial PRIMARY KEY,
-  "webhook_id" bigint NOT NULL,
-  "event" varchar(128) NOT NULL,
+  "webhook_id" bigint,
+  "resource_type" webhook_resource_type NOT NULL,
+  "action" webhook_action NOT NULL,
   "status_code" smallint NOT NULL,
   "req_header" bytea NOT NULL,
   "req_body" bytea NOT NULL,

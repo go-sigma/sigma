@@ -32,7 +32,7 @@ func newWebhookLog(db *gorm.DB, opts ...gen.DOOption) webhookLog {
 	_webhookLog.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_webhookLog.ID = field.NewInt64(tableName, "id")
 	_webhookLog.WebhookID = field.NewInt64(tableName, "webhook_id")
-	_webhookLog.Event = field.NewField(tableName, "event")
+	_webhookLog.ResourceType = field.NewField(tableName, "resource_type")
 	_webhookLog.Action = field.NewField(tableName, "action")
 	_webhookLog.StatusCode = field.NewInt(tableName, "status_code")
 	_webhookLog.ReqHeader = field.NewBytes(tableName, "req_header")
@@ -53,20 +53,20 @@ func newWebhookLog(db *gorm.DB, opts ...gen.DOOption) webhookLog {
 type webhookLog struct {
 	webhookLogDo webhookLogDo
 
-	ALL        field.Asterisk
-	CreatedAt  field.Int64
-	UpdatedAt  field.Int64
-	DeletedAt  field.Uint64
-	ID         field.Int64
-	WebhookID  field.Int64
-	Event      field.Field
-	Action     field.Field
-	StatusCode field.Int
-	ReqHeader  field.Bytes
-	ReqBody    field.Bytes
-	RespHeader field.Bytes
-	RespBody   field.Bytes
-	Webhook    webhookLogBelongsToWebhook
+	ALL          field.Asterisk
+	CreatedAt    field.Int64
+	UpdatedAt    field.Int64
+	DeletedAt    field.Uint64
+	ID           field.Int64
+	WebhookID    field.Int64
+	ResourceType field.Field
+	Action       field.Field
+	StatusCode   field.Int
+	ReqHeader    field.Bytes
+	ReqBody      field.Bytes
+	RespHeader   field.Bytes
+	RespBody     field.Bytes
+	Webhook      webhookLogBelongsToWebhook
 
 	fieldMap map[string]field.Expr
 }
@@ -88,7 +88,7 @@ func (w *webhookLog) updateTableName(table string) *webhookLog {
 	w.DeletedAt = field.NewUint64(table, "deleted_at")
 	w.ID = field.NewInt64(table, "id")
 	w.WebhookID = field.NewInt64(table, "webhook_id")
-	w.Event = field.NewField(table, "event")
+	w.ResourceType = field.NewField(table, "resource_type")
 	w.Action = field.NewField(table, "action")
 	w.StatusCode = field.NewInt(table, "status_code")
 	w.ReqHeader = field.NewBytes(table, "req_header")
@@ -127,7 +127,7 @@ func (w *webhookLog) fillFieldMap() {
 	w.fieldMap["deleted_at"] = w.DeletedAt
 	w.fieldMap["id"] = w.ID
 	w.fieldMap["webhook_id"] = w.WebhookID
-	w.fieldMap["event"] = w.Event
+	w.fieldMap["resource_type"] = w.ResourceType
 	w.fieldMap["action"] = w.Action
 	w.fieldMap["status_code"] = w.StatusCode
 	w.fieldMap["req_header"] = w.ReqHeader

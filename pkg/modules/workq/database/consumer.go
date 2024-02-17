@@ -90,6 +90,7 @@ func (h *consumerHandler) consume(topic string) error {
 	err = h.consumer.Handler(ctx, wq.Payload)
 	wq.Times++
 	if err != nil {
+		log.Error().Err(err).Str("Topic", topic).Int64("WorkQueueID", wq.ID).Msg("Daemon task run failed")
 		if wq.Times < h.consumer.MaxRetry {
 			return workQueueService.UpdateStatus(daoCtx, wq.ID, newVersion, uuid.New().String(), wq.Times, enums.TaskCommonStatusPending)
 		}

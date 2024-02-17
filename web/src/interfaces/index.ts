@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NamespaceRole, UserRole } from "./enums";
+import { NamespaceRole, UserRole, WebhookAction, WebhookResourceType } from "./enums";
 
 export interface INotification {
   level?: string;
@@ -540,5 +540,22 @@ export interface IWebhookItem {
 
 export interface IWebhookList {
   items: IWebhookItem[];
+  total: number;
+}
+
+export interface IWebhookLogItem {
+  id: number;
+  event: WebhookResourceType;
+  action: WebhookAction;
+  status_code: number;
+  req_header: string;
+  req_body: string;
+  resp_body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IWebhookLogList {
+  items: IWebhookLogItem[];
   total: number;
 }

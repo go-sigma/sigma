@@ -15,6 +15,7 @@
 package webhooks
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -29,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -39,9 +42,8 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks [post]
-//	@Param		namespace_id	query	int64						false	"create webhook for namespace"
-//	@Param		message			body	types.PostWebhookRequest	true	"Webhook object"
+//	@Router		/webhooks/ [post]
+//	@Param		message	body	types.PostWebhookRequest	true	"Webhook object"
 //	@Success	201
 //	@Failure	400	{object}	xerrors.ErrCode
 //	@Failure	404	{object}	xerrors.ErrCode
@@ -65,6 +67,27 @@ func (h *handler) PostWebhook(c echo.Context) error {
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+	}
+
+	if req.NamespaceID == nil {
+		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		}
+	} else {
+		namespaceID := ptr.To(req.NamespaceID)
+		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
+				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
+			}
+			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
+		}
+		if !authChecked {
+			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
+			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		}
 	}
 
 	err = h.PostWebhookValidate(req)

@@ -166,25 +166,31 @@ type AuditAction string
 type AuditResourceType string
 
 // WebhookResourceType x ENUM(
-// ping,
-// namespace,
-// repository,
-// tag,
-// artifact,
-// member,
+// Webhook,
+// Namespace,
+// Repository,
+// Tag,
+// Artifact,
+// Member,
 // )
 type WebhookResourceType string
 
-// WebhookOperate x ENUM(
-// create,
-// update,
-// delete,
-// add,
-// remove,
-// pull,
-// push,
+// WebhookAction x ENUM(
+// Create,
+// Update,
+// Delete,
+// Add,
+// Remove,
+// Ping,
 // )
 type WebhookAction string
+
+// WebhookType x ENUM(
+// Ping,
+// Send,
+// Resend,
+// )
+type WebhookType string
 
 // ScmCredentialType x ENUM(
 // ssh,

@@ -599,8 +599,9 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
 
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
-  `webhook_id` bigint NOT NULL,
-  `event` varchar(128) NOT NULL,
+  `webhook_id` bigint,
+  `resource_type` ENUM ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member') NOT NULL,
+  `action` ENUM ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping') NOT NULL,
   `status_code` smallint NOT NULL,
   `req_header` BLOB NOT NULL,
   `req_body` BLOB NOT NULL,

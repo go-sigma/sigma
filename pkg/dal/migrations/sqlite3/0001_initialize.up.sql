@@ -692,8 +692,9 @@ CREATE INDEX `webhooks_idx_deleted_at` ON `webhooks` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
-  `webhook_id` integer NOT NULL,
-  `event` varchar(128) NOT NULL,
+  `webhook_id` integer,
+  `resource_type` text CHECK (`resource_type` IN ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member')) NOT NULL,
+  `action` text CHECK (`action` IN ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping')) NOT NULL,
   `status_code` integer NOT NULL,
   `req_header` BLOB NOT NULL,
   `req_body` BLOB NOT NULL,

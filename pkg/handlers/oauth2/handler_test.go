@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package users
+package oauth2
 
 import (
-	"context"
-	"net/http"
 	"testing"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/inits"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/validators"
+	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 )
 
 const (
@@ -37,27 +30,19 @@ const (
 )
 
 func TestFactory(t *testing.T) {
-	logger.SetLevel("debug")
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	daoMockUserServiceFactory := daomocks.NewMockUserServiceFactory(ctrl)
+
+	handler, err := handlerNew(inject{
+		userServiceFactory: daoMockUserServiceFactory,
+	})
+	assert.NotNil(t, handler)
+	assert.NoError(t, err)
 
 	config := &configs.Configuration{
 		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
 			Jwt: configs.ConfigurationAuthJwt{
 				PrivateKey: privateKeyString,
 			},
@@ -65,47 +50,7 @@ func TestFactory(t *testing.T) {
 	}
 	configs.SetConfiguration(config)
 
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
-
-	var f = factory{}
-	err := f.Initialize(e)
+	f := factory{}
+	err = f.Initialize(echo.New())
 	assert.NoError(t, err)
-
-	go func() {
-		err = e.Start(":8080")
-		assert.ErrorIs(t, err, http.ErrServerClosed)
-	}()
-
-	time.Sleep(1 * time.Second)
-
-	url := "http://127.0.0.1:8080/user/login"
-
-	req, err := http.NewRequest("GET", url, nil)
-	assert.NoError(t, err)
-	req.SetBasicAuth("sigma", "sigma")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	assert.NoError(t, err)
-	err = resp.Body.Close()
-	assert.NoError(t, err)
-
-	assert.NoError(t, e.Shutdown(context.Background()))
-}
-
-func TestFactoryFailed(t *testing.T) {
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString + "1",
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-	assert.Error(t, factory{}.Initialize(echo.New()))
 }

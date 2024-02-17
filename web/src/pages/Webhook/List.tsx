@@ -126,7 +126,10 @@ export default function ({ localServer }: { localServer: string }) {
   const fetchWebhook = () => {
     let url = localServer + `/api/v1/webhooks/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
-      url += `&sort=${sortName}&method=${sortOrder.toString()}`
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`;
+    }
+    if (namespaceId != null) {
+      url += `&namespace_id=${namespaceId}`;
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
@@ -174,8 +177,8 @@ export default function ({ localServer }: { localServer: string }) {
 
     let u = `${localServer}/api/v1/webhooks/`;
     if (namespaceId != null) {
-      data["event_namespace"] = eventNamespace
-      u += `?namespace_id=${namespaceId}`
+      data["event_namespace"] = eventNamespace;
+      data["namespace_id"] = parseInt(namespaceId);
     }
     axios.post(u, data, {}).then(response => {
       if (response.status === 201) {
@@ -603,7 +606,48 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
   }, [url]);
 
   const updateWebhook = () => {
-    axios.put(`${localServer}/api/v1/webhooks/${webhookObj.id}`)
+    if (url === "") {
+      setUrlValid(false);
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    if (!(retryTimesValid && retryDurationValid && secretValid && urlValid)) {
+      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      return;
+    }
+    const data: { [key: string]: any } = {
+      enable: enable,
+      url: url,
+      retry_times: retryTimes,
+      retry_duration: retryDuration,
+      event_repository: eventRepository,
+      event_tag: eventTag,
+      event_artifact: eventArtifact,
+      event_member: eventMember,
+    };
+    if (secret != undefined && secret.length != 0) {
+      data["secret"] = secret;
+    }
+    if (showSslVerify) {
+      data["ssl_verify"] = sslVerify;
+    }
+
+    let u = `${localServer}/api/v1/webhooks/`;
+    if (namespaceObj.id != 0) {
+      data["event_namespace"] = eventNamespace
+      u += `?namespace_id=${namespaceObj.id}`
+    }
+    axios.put(`${localServer}/api/v1/webhooks/${webhookObj.id}`, data).then(response => {
+      if (response.status === 204) {
+        setRefresh({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
   }
 
   return (
