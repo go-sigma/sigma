@@ -20,13 +20,14 @@ import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import dayjs from "dayjs";
+import { Drawer } from 'flowbite';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
-import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookItem, IWebhookList, IWebhookLogItem, IWebhookLogList } from "../../interfaces";
+import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookLogItem, IWebhookLogList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
@@ -88,6 +89,8 @@ export default function ({ localServer }: { localServer: string }) {
     setUpdatedAtOrder(IOrder.None);
   }
 
+  const [fetchWebhookSuccess, setFetchWebhookSuccess] = useState(false);
+
   useEffect(() => {
     let url = localServer + `/api/v1/webhooks/${webhookId}/logs/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
@@ -98,13 +101,16 @@ export default function ({ localServer }: { localServer: string }) {
         const webhookLogList = response.data as IWebhookLogList;
         setWebhookLogList(webhookLogList);
         setTotal(webhookLogList.total);
+        setFetchWebhookSuccess(true);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        setFetchWebhookSuccess(false);
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      setFetchWebhookSuccess(false);
     });
   }, [refresh, page, sortOrder, sortName]);
 
@@ -123,6 +129,17 @@ export default function ({ localServer }: { localServer: string }) {
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (fetchWebhookSuccess) {
+        setRefresh({});
+      }
+    }, 5000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [fetchWebhookSuccess]);
 
   return (
     <Fragment>
@@ -341,9 +358,25 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
     });
   }
 
+  const [drawerShow, setDrawerShow] = useState(false);
+
   return (
     <tr className="align-middle">
-      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer">
+      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+        onClick={e => {
+          let el = document.getElementById(`drawer-${index}`);
+          const drawer = new Drawer(el, {
+            placement: 'right',
+            onHide: () => {
+              setDrawerShow(false);
+            },
+            onShow: () => {
+              setDrawerShow(true);
+            },
+          });
+          drawer.show();
+        }}
+      >
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
@@ -549,6 +582,46 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
             </div>
           </Dialog>
         </Transition.Root>
+      </td>
+      <td className={drawerShow ? "absolute" : "absolute hidden"} onClick={e => { e.preventDefault() }}>
+        <div id={`drawer-${index}`} className="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white w-[800px] dark:bg-gray-800" aria-labelledby="drawer-right-label">
+          <h5 id="drawer-right-label" className="items-center pb-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+            Request headers
+          </h5>
+          <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
+            {
+              Object.entries(JSON.parse(webhookLogObj.req_header))
+                .map(([k, v]) => `${k}: ${v}`)
+                .join('\n')
+            }
+          </kbd>
+          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+            Request body
+          </h5>
+          <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
+            {
+              JSON.stringify(JSON.parse(webhookLogObj.req_body), null, 2)
+            }
+          </kbd>
+          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+            Response headers
+          </h5>
+          <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
+            {
+              Object.entries(JSON.parse(webhookLogObj.resp_header))
+                .map(([k, v]) => `${k}: ${v}`)
+                .join('\n')
+            }
+          </kbd>
+          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+            Response body
+          </h5>
+          <kbd className="text-gray-600 whitespace-pre-wrap text-sm mt-4 block">
+            {
+              webhookLogObj.resp_body
+            }
+          </kbd>
+        </div>
       </td>
     </tr>
   );
