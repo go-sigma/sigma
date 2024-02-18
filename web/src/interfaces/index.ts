@@ -550,6 +550,7 @@ export interface IWebhookLogItem {
   status_code: number;
   req_header: string;
   req_body: string;
+  resp_header: string;
   resp_body: string;
   created_at: string;
   updated_at: string;
