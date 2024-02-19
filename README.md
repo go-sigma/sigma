@@ -9,14 +9,6 @@
 
 Sigma is an image registry that is extremely easy to deploy and maintain, and it adheres to the interface standards defined by the [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0), it can also support any other client programs that follow the interface definition of the OCI Distribution Specification, such as [oras](https://github.com/oras-project/oras), [apptainer](https://github.com/apptainer/apptainer), [helm](https://github.com/helm/helm), and [nerdctl](https://github.com/containerd/nerdctl).
 
-## Demo Server
-
-It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 20.10.24. I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
-
-Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
-
-Status check here: [https://stats.uptimerobot.com/PoB1PhvAoR/796311885](https://stats.uptimerobot.com/PoB1PhvAoR/796311885)
-
 ## Quick Start
 
 Now you can use this command to run a simple server:
@@ -26,6 +18,14 @@ docker run --name sigma -p 3000:3000 --rm ghcr.io/go-sigma/sigma:nightly-alpine
 ```
 
 The default username and password is: sigma/Admin@123, if you want to modify the default password, please refer to the instructions provided [here](https://docs.sigma.tosone.cn/docs/configuration).
+
+## Demo Server
+
+It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 20.10.24. I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
+
+Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
+
+Status check here: [https://stats.uptimerobot.com/PoB1PhvAoR/796311885](https://stats.uptimerobot.com/PoB1PhvAoR/796311885)
 
 ## Architecture
 

@@ -98,11 +98,11 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		SecurityOpt: []string{"seccomp=unconfined", "apparmor=unconfined"},
 		NetworkMode: container.NetworkMode(i.config.Daemon.Builder.Docker.Network),
 	}
-	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
+	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
-	err = i.client.ContainerStart(ctx, i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID), types.ContainerStartOptions{})
+	err = i.client.ContainerStart(ctx, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID), types.ContainerStartOptions{})
 	if err != nil {
 		return fmt.Errorf("Start container failed: %v", err)
 	}
@@ -141,24 +141,24 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 			log.Error().Err(err).Msg("Update runner status failed")
 		}
 	}()
-	err = i.client.ContainerKill(ctx, i.genContainerID(builderID, runnerID), "SIGKILL")
+	err = i.client.ContainerKill(ctx, builder.GenContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
 		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
-			log.Info().Str("id", i.genContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
+			log.Info().Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
 			return nil
 		}
-		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Kill container failed")
+		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Kill container failed")
 		return fmt.Errorf("Kill container failed: %v", err)
 	}
-	err = i.client.ContainerRemove(ctx, i.genContainerID(builderID, runnerID), types.ContainerRemoveOptions{})
+	err = i.client.ContainerRemove(ctx, builder.GenContainerID(builderID, runnerID), types.ContainerRemoveOptions{})
 	if err != nil {
-		log.Error().Err(err).Str("id", i.genContainerID(builderID, runnerID)).Msg("Remove container failed")
+		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Remove container failed")
 		return fmt.Errorf("Remove container failed: %v", err)
 	}
 	for j := 0; j < retryMax; j++ {
-		_, err = i.client.ContainerInspect(ctx, i.genContainerID(builderID, runnerID))
+		_, err = i.client.ContainerInspect(ctx, builder.GenContainerID(builderID, runnerID))
 		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf("No such container: %s", i.genContainerID(builderID, runnerID))) {
+			if strings.Contains(err.Error(), fmt.Sprintf("No such container: %s", builder.GenContainerID(builderID, runnerID))) {
 				return nil
 			}
 			return fmt.Errorf("Inspect container with error: %v", err)
@@ -183,38 +183,15 @@ func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConf
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error {
-	reader, err := i.client.ContainerLogs(ctx, i.genContainerID(builderID, runnerID), types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Follow:     true,
-	})
+	reader, err := i.client.ContainerLogs(ctx, builder.GenContainerID(builderID, runnerID),
+		types.ContainerLogsOptions{
+			ShowStdout: true,
+			ShowStderr: false,
+			Follow:     true,
+		})
 	if err != nil {
 		return fmt.Errorf("Get container logs failed: %v", err)
 	}
-	_, err = stdcopy.StdCopy(writer, writer, reader)
+	_, err = stdcopy.StdCopy(writer, nil, reader)
 	return err
-}
-
-// genContainerID ...
-func (i instance) genContainerID(builderID, runnerID int64) string {
-	return fmt.Sprintf("sigma-builder-%d-%d", builderID, runnerID)
-}
-
-// getBuilderTaskID ...
-func (i instance) getBuilderTaskID(containerName string) (int64, int64, error) {
-	containerName = strings.TrimPrefix(containerName, "/")
-	ids := strings.TrimPrefix(containerName, "sigma-builder-")
-	if len(strings.Split(ids, "-")) != 2 {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed", containerName)
-	}
-	builderIDStr, runnerIDStr := strings.Split(ids, "-")[0], strings.Split(ids, "-")[1]
-	builderID, err := strconv.ParseInt(builderIDStr, 10, 0)
-	if err != nil {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
-	}
-	runnerID, err := strconv.ParseInt(runnerIDStr, 10, 0)
-	if err != nil {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
-	}
-	return builderID, runnerID, nil
 }

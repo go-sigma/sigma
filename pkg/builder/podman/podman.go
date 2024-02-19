@@ -74,7 +74,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		return err
 	}
 	s := specgen.NewSpecGenerator(i.config.Daemon.Builder.Image, false)
-	s.Name = i.genContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
+	s.Name = builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
 	s.Env = envs
 	s.Entrypoint = []string{}
 	s.Command = []string{"sigma-builder"}
@@ -98,7 +98,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
-	name := i.genContainerID(builderID, runnerID)
+	name := builder.GenContainerID(builderID, runnerID)
 	err := containers.Kill(i.conn, name, &containers.KillOptions{Signal: ptr.Of("SIGKILL")})
 	if err != nil {
 		return fmt.Errorf("kill container failed: %v", err)
@@ -122,7 +122,7 @@ func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConf
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error {
-	var name = i.genContainerID(builderID, runnerID)
+	var name = builder.GenContainerID(builderID, runnerID)
 	var stdoutChan = make(chan string, 10)
 	var stderrChan = make(chan string, 10)
 
@@ -131,7 +131,11 @@ func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writ
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = containers.Logs(i.conn, name, &containers.LogOptions{}, stdoutChan, stderrChan)
+		err = containers.Logs(i.conn, name, &containers.LogOptions{
+			Follow: ptr.Of(true),
+			Stderr: ptr.Of(false),
+			Stdout: ptr.Of(true),
+		}, stdoutChan, stderrChan)
 		if err != nil {
 			err = fmt.Errorf("Get container(%s) log stream failed: %v", name, err)
 		}
@@ -167,9 +171,4 @@ func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writ
 	wgStd.Wait()
 
 	return nil
-}
-
-// genContainerID ...
-func (i instance) genContainerID(builderID, runnerID int64) string {
-	return fmt.Sprintf("sigma-builder-%d-%d", builderID, runnerID)
 }

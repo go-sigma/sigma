@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -46,6 +47,7 @@ type Builder interface {
 	LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error
 }
 
+// BuilderConfig ...
 type BuilderConfig struct {
 	types.Builder
 }
@@ -61,6 +63,7 @@ type Factory interface {
 // DriverFactories ...
 var DriverFactories = make(map[string]Factory)
 
+// Initialize ...
 func Initialize(config configs.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
 		return nil
@@ -215,4 +218,33 @@ func BuildEnvMap(builderConfig BuilderConfig) (map[string]string, error) {
 		res[s[0]] = s[1]
 	}
 	return res, nil
+}
+
+const (
+	// ContainerPrefix ...
+	ContainerPrefix = "sigma-builder-"
+)
+
+// GenContainerID ...
+func GenContainerID(builderID, runnerID int64) string {
+	return fmt.Sprintf("%s%d-%d", ContainerPrefix, builderID, runnerID)
+}
+
+// ParseContainerID ...
+func ParseContainerID(containerName string) (int64, int64, error) {
+	containerName = strings.TrimPrefix(containerName, "/")
+	ids := strings.TrimPrefix(containerName, ContainerPrefix)
+	if len(strings.Split(ids, "-")) != 2 {
+		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed", containerName)
+	}
+	builderIDStr, runnerIDStr := strings.Split(ids, "-")[0], strings.Split(ids, "-")[1]
+	builderID, err := strconv.ParseInt(builderIDStr, 10, 0)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
+	}
+	runnerID, err := strconv.ParseInt(runnerIDStr, 10, 0)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
+	}
+	return builderID, runnerID, nil
 }

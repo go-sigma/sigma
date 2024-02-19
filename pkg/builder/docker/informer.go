@@ -25,6 +25,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -65,7 +66,7 @@ func (i *instance) informer(ctx context.Context) {
 								container.ContainerJSONBase.State.Status == "running" || // TODO: we should test all case
 								container.ContainerJSONBase.State.Status == "exited") {
 							log.Info().Str("id", event.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container started")
-							builderID, runnerID, err := i.getBuilderTaskID(container.ContainerJSONBase.Name)
+							builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name)
 							if err != nil {
 								log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
 								continue
@@ -92,7 +93,7 @@ func (i *instance) informer(ctx context.Context) {
 							}
 						}
 
-						builderID, runnerID, err := i.getBuilderTaskID(container.ContainerJSONBase.Name)
+						builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name)
 						if err != nil {
 							log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
 							continue
@@ -192,7 +193,7 @@ func (i *instance) cacheList(ctx context.Context) error {
 		} else {
 			continue
 		}
-		builderID, runnerID, err := i.getBuilderTaskID(name)
+		builderID, runnerID, err := builder.ParseContainerID(name)
 		if err != nil {
 			log.Error().Err(err).Msg("Parse builder task id failed")
 			continue
