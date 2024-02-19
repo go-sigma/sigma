@@ -109,6 +109,14 @@ func (h *handler) GetManifest(c echo.Context) error {
 			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
+		if h.config.Proxy.Enabled { // we also check the manifest in remote proxy server
+			err = h.getManifestFallbackProxy(c, refs)
+			if err != nil {
+				log.Error().Err(err).Msg("Additional check remote proxy server failed")
+			} else {
+				return nil
+			}
+		}
 		err = tagService.Incr(ctx, tag.ID)
 		if err != nil {
 			log.Error().Err(err).Str("ref", ref).Msg("Incr tag failed")
@@ -124,6 +132,14 @@ func (h *handler) GetManifest(c echo.Context) error {
 		}
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
+	}
+	if h.config.Proxy.Enabled { // we also check the manifest in remote proxy server
+		err = h.getManifestFallbackProxy(c, refs)
+		if err != nil {
+			log.Error().Err(err).Msg("Additional check remote proxy server failed")
+		} else {
+			return nil
+		}
 	}
 
 	return c.Blob(http.StatusOK, artifact.ContentType, artifact.Raw)
