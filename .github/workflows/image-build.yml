@@ -43,12 +43,20 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: registry.cn-zhangjiakou.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}
+            registry.cn-zhangjiakou.aliyuncs.com/tosone/sigma
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
@@ -96,12 +104,20 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: registry.cn-zhangjiakou.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}
+            registry.cn-zhangjiakou.aliyuncs.com/tosone/sigma
           flavor: |
             latest=false
           tags: |
@@ -151,12 +167,20 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: registry.cn-zhangjiakou.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}-builder
+            registry.cn-zhangjiakou.aliyuncs.com/tosone/sigma-builder
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
