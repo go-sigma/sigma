@@ -85,6 +85,7 @@ func Serve(serverConfig ServerConfig) error {
 	config := ptr.To(configs.GetConfiguration())
 
 	e.Use(middleware.CORS())
+	e.Use(middlewares.Etag())
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
