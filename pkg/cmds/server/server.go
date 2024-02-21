@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -84,6 +85,8 @@ func Serve(serverConfig ServerConfig) error {
 	config := ptr.To(configs.GetConfiguration())
 
 	e.Use(middleware.CORS())
+	e.Use(echoprometheus.NewMiddleware(consts.AppName))
+	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
 	e.Use(middlewares.RedirectRepository(config))
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
