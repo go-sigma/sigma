@@ -21,6 +21,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -55,6 +56,8 @@ func Worker() error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	e.Use(echoprometheus.NewMiddleware(consts.AppName))
+	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
 	if viper.GetInt("log.level") < 1 {
 		pprof.Register(e)

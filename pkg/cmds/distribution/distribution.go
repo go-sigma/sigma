@@ -21,6 +21,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -28,6 +29,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/storage"
@@ -55,6 +57,8 @@ func Serve() error {
 	}))
 
 	e.Use(middleware.CORS())
+	e.Use(echoprometheus.NewMiddleware(consts.AppName))
+	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
