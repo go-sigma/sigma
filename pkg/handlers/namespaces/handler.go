@@ -137,12 +137,11 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(e *echo.Echo) error {
-	namespaceGroupWithoutAuth := e.Group(consts.APIV1 + "/namespaces")
 	namespaceGroup := e.Group(consts.APIV1+"/namespaces", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	namespaceHandler := handlerNew()
 
-	namespaceGroupWithoutAuth.GET("/", namespaceHandler.ListNamespaces)
+	namespaceGroup.GET("/", namespaceHandler.ListNamespaces)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
 	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)

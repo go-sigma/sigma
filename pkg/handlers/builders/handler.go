@@ -131,9 +131,7 @@ func (f factory) Initialize(e *echo.Echo) error {
 		builderGroup.GET("/:builder_id/runners/:runner_id", handler.GetRunner)
 		builderGroup.GET("/:builder_id/runners/:runner_id/stop", handler.GetRunnerStop)
 		builderGroup.GET("/:builder_id/runners/:runner_id/rerun", handler.GetRunnerRerun)
-
-		builderWithoutAuthGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
-		builderWithoutAuthGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
+		builderGroup.GET("/:builder_id/runners/:runner_id/log", handler.GetRunnerLog)
 	}
 	return nil
 }
