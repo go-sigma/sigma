@@ -25,7 +25,6 @@ import (
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -59,7 +58,7 @@ func Worker() error {
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
-	if viper.GetInt("log.level") < 1 {
+	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
 		pprof.Register(e)
 	}
 

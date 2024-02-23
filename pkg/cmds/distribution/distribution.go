@@ -33,6 +33,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/serializer"
 )
 
@@ -56,13 +58,15 @@ func Serve() error {
 		}
 	}))
 
+	config := ptr.To(configs.GetConfiguration())
+
 	e.Use(middleware.CORS())
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
-	if viper.GetInt("log.level") < 1 {
+	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
 		pprof.Register(e)
 	}
 
