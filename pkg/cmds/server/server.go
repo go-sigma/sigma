@@ -88,12 +88,11 @@ func Serve(serverConfig ServerConfig) error {
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
+	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
+		pprof.Register(e, consts.PprofPath)
+	}
 	e.Use(middlewares.RedirectRepository(config))
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
-
-	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e)
-	}
 
 	if !serverConfig.WithoutDistribution {
 		handlers.InitializeDistribution(e)

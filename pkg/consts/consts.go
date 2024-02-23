@@ -68,6 +68,8 @@ const (
 	MaxWebhooks = 5
 	// ObsPresignMaxTtl
 	ObsPresignMaxTtl = time.Minute * 30
+	// PprofPath ...
+	PprofPath = "/__debug/pprof"
 )
 
 const (
