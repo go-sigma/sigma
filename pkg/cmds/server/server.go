@@ -27,7 +27,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -92,7 +91,7 @@ func Serve(serverConfig ServerConfig) error {
 	e.Use(middlewares.RedirectRepository(config))
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
-	if viper.GetInt("log.level") < 1 {
+	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
 		pprof.Register(e)
 	}
 
@@ -129,15 +128,15 @@ func Serve(serverConfig ServerConfig) error {
 
 	go func() {
 		log.Info().Str("addr", consts.ServerPort).Msg("Server listening")
-		if viper.GetBool("http.tls.enabled") {
-			crtBytes, err := os.ReadFile(viper.GetString("http.tls.certificate"))
+		if config.HTTP.TLS.Enabled {
+			crtBytes, err := os.ReadFile(config.HTTP.TLS.Certificate)
 			if err != nil {
-				log.Fatal().Err(err).Str("certificate", viper.GetString("http.tls.certificate")).Msgf("Read certificate failed")
+				log.Fatal().Err(err).Str("certificate", config.HTTP.TLS.Certificate).Msgf("Read certificate failed")
 				return
 			}
-			keyBytes, err := os.ReadFile(viper.GetString("http.tls.key"))
+			keyBytes, err := os.ReadFile(config.HTTP.TLS.Key)
 			if err != nil {
-				log.Fatal().Err(err).Str("key", viper.GetString("http.tls.key")).Msgf("Read key failed")
+				log.Fatal().Err(err).Str("key", config.HTTP.TLS.Key).Msgf("Read key failed")
 				return
 			}
 			err = e.StartTLS(consts.ServerPort, crtBytes, keyBytes)
