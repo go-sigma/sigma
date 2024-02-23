@@ -67,7 +67,7 @@ func Serve() error {
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
 	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e)
+		pprof.Register(e, consts.PprofPath)
 	}
 
 	handlers.InitializeDistribution(e)

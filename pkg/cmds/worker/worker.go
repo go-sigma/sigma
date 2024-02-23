@@ -59,7 +59,7 @@ func Worker() error {
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
 	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e)
+		pprof.Register(e, consts.PprofPath)
 	}
 
 	go func() {

@@ -81,5 +81,8 @@ func skipRedirect(c echo.Context) bool {
 			strings.HasSuffix(reqPath, ".svg")) {
 		return true
 	}
+	if strings.HasPrefix(reqPath, "/__debug") {
+		return true
+	}
 	return false
 }
