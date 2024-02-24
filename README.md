@@ -21,11 +21,11 @@ The default username and password is: sigma/Admin@123, if you want to modify the
 
 ## Demo Server
 
-It runs on AWS ec2 (2C4G, Disk 40G), Linux distribution is Debian 12.1, Docker version 20.10.24. I will periodically reboot the container, and since the container doesn't have any disk mount, every reboot will clear all the data.
+It is deployed on an AWS EC2 instance (2C4G, 40G disk) running Debian 12.1 as the Linux distribution. The Docker version used is 25.0.3. The demo server was set up following these [instructions](https://github.com/go-sigma/demo-server).
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
-Status check here: [https://stats.uptimerobot.com/PoB1PhvAoR/796311885](https://stats.uptimerobot.com/PoB1PhvAoR/796311885)
+Status check here: [https://grafana.sigma.tosone.cn/public-dashboards/f6f5d4296c674e10b34cbe927dd565c5](https://grafana.sigma.tosone.cn/public-dashboards/f6f5d4296c674e10b34cbe927dd565c5)
 
 ## Architecture
 
