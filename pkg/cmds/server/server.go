@@ -16,6 +16,9 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
+	"hash"
+	"hash/crc32"
 	"net/http"
 	"os"
 	"os/signal"
@@ -84,7 +87,27 @@ func Serve(serverConfig ServerConfig) error {
 	config := ptr.To(configs.GetConfiguration())
 
 	e.Use(middleware.CORS())
-	e.Use(middlewares.Etag())
+	e.Use(middlewares.WithEtagConfig(middlewares.EtagConfig{
+		Skipper: func(c echo.Context) bool {
+			reqPath := c.Request().URL.Path
+			if strings.HasPrefix(reqPath, "/api/v1/") {
+				return true
+			}
+			if strings.HasPrefix(reqPath, "/v2/") {
+				return true
+			}
+			return false
+		},
+		Weak: true,
+		HashFn: func(config middlewares.EtagConfig) hash.Hash {
+			if config.Weak {
+				const crcPol = 0xD5828281
+				crc32qTable := crc32.MakeTable(crcPol)
+				return crc32.New(crc32qTable)
+			}
+			return sha256.New()
+		},
+	}))
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
 	e.Use(middlewares.Healthz())
