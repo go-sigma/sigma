@@ -592,6 +592,7 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   KEY `webhooks_idx_created_at` (`created_at`),
   KEY `webhooks_idx_updated_at` (`updated_at`),
   KEY `webhooks_idx_deleted_at` (`deleted_at`)

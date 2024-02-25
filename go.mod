@@ -5,16 +5,16 @@ go 1.22.0
 require (
 	code.gitea.io/sdk/gitea v0.17.1
 	github.com/BurntSushi/toml v1.3.2
-	github.com/IBM/sarama v1.42.2
+	github.com/IBM/sarama v1.43.0
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/anchore/syft v0.105.0
 	github.com/aquasecurity/trivy v0.49.1
-	github.com/aws/aws-sdk-go v1.50.20
+	github.com/aws/aws-sdk-go v1.50.25
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.82.0
-	github.com/casbin/gorm-adapter/v3 v3.20.0
+	github.com/casbin/gorm-adapter/v3 v3.21.0
 	github.com/containers/podman/v4 v4.9.3
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
@@ -26,7 +26,7 @@ require (
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redsync/redsync/v4 v4.12.0
+	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
@@ -46,10 +46,10 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/buildkit v0.12.5
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240216225611-48588f1a3f55
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240221212224-f453e4a5b541
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
-	github.com/redis/go-redis/v9 v9.4.0
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.32.0
 	github.com/sigstore/cosign/v2 v2.2.3
@@ -66,7 +66,7 @@ require (
 	github.com/xanzy/go-gitlab v0.97.0
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.19.0
-	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 	golang.org/x/net v0.21.0
 	golang.org/x/oauth2 v0.17.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -148,7 +148,7 @@ require (
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
-	github.com/eapache/go-resiliency v1.5.0 // indirect
+	github.com/eapache/go-resiliency v1.6.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
@@ -233,7 +233,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect

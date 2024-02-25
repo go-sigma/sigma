@@ -15,12 +15,12 @@
  */
 
 import axios from "axios";
-import { Dialog, Menu, Transition } from "@headlessui/react";
-import { Fragment, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
 import dayjs from "dayjs";
 import { Drawer } from 'flowbite';
+import { Fragment, useEffect, useState } from "react";
+import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -33,6 +33,7 @@ import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function ({ localServer }: { localServer: string }) {
+  const location = useLocation();
   const { namespace, webhook_id } = useParams<{ namespace: string, webhook_id: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id');
@@ -43,6 +44,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    if (location.pathname.startsWith("/settings")) {
+      return;
+    }
     if (namespaceId == null || namespaceId == "") {
       return;
     }
@@ -156,11 +160,11 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item="Repository" />
+        <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "webhooks" : "repositories"} />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Webhook" props={
-              (
+              location.pathname.startsWith("/settings") ? null : (
                 <div className="flex space-x-8">
                   <Link
                     to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}

@@ -108,8 +108,12 @@ func (h *handler) PostWebhook(c echo.Context) error {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		webhookService := h.webhookServiceFactory.New(tx)
+		namespaceID := req.NamespaceID
+		if ptr.To(req.NamespaceID) == 0 {
+			namespaceID = nil
+		}
 		webhookObj := &models.Webhook{
-			NamespaceID:     req.NamespaceID,
+			NamespaceID:     namespaceID,
 			URL:             req.URL,
 			Secret:          req.Secret,
 			SslVerify:       req.SslVerify,
@@ -130,7 +134,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
-			NamespaceID:  req.NamespaceID,
+			NamespaceID:  namespaceID,
 			Action:       enums.AuditActionCreate,
 			ResourceType: enums.AuditResourceTypeWebhook,
 			Resource:     strconv.FormatInt(webhookObj.ID, 10),

@@ -25,8 +25,6 @@ It is deployed on an AWS EC2 instance (2C4G, 40G disk) running Debian 12.1 as th
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
-Status check here: [https://grafana.sigma.tosone.cn/public-dashboards/f6f5d4296c674e10b34cbe927dd565c5](https://grafana.sigma.tosone.cn/public-dashboards/f6f5d4296c674e10b34cbe927dd565c5)
-
 ## Architecture
 
 <img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/main/assets/architecture.png" width="100%" />

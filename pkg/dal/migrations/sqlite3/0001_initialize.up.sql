@@ -681,7 +681,8 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_member` integer NOT NULL DEFAULT 0,
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
-  `deleted_at` integer NOT NULL DEFAULT 0
+  `deleted_at` integer NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
 );
 
 CREATE INDEX `webhooks_idx_created_at` ON `webhooks` (`created_at`);
