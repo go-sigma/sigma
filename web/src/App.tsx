@@ -89,8 +89,8 @@ export default function App() {
         <Route path="/namespaces" element={<Namespaces localServer={localServer} />} />
         <Route path="/namespaces/:namespace/namespace-summary" element={<NamespaceSummary localServer={localServer} />} />
         <Route path="/namespaces/:namespace/members" element={<NamespaceMember localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/namespace-webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
-        <Route path="/namespaces/:namespace/namespace-webhook-logs/:webhook_id" element={<NamespaceWebhookLogs localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
+        <Route path="/namespaces/:namespace/webhooks/:webhook_id" element={<NamespaceWebhookLogs localServer={localServer} />} />
 
         <Route path="/namespaces/:namespace/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
         <Route path="/namespaces/:namespace/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
@@ -111,6 +111,8 @@ export default function App() {
 
         <Route path="/settings" element={<Setting localServer={localServer} />} />
         <Route path="/settings/users" element={<SettingUsers localServer={localServer} />} />
+        <Route path="/settings/webhooks" element={<NamespaceWebhooks localServer={localServer} />} />
+        <Route path="/settings/webhooks/:webhook_id" element={<NamespaceWebhookLogs localServer={localServer} />} />
         <Route path="/settings/daemon-tasks" element={<DaemonTasks localServer={localServer} />} />
         <Route path="/settings/daemon-tasks/:resource" element={<DaemonTaskRunners localServer={localServer} />} />
         <Route path="/settings/daemon-tasks/:resource/:runner_id/records" element={<DaemonTaskRecords localServer={localServer} />} />

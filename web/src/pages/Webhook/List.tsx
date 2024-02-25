@@ -18,10 +18,9 @@ import axios from "axios";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { Tooltip } from 'flowbite';
 import dayjs from "dayjs";
-import { useNavigate } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -34,12 +33,16 @@ import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
 export default function ({ localServer }: { localServer: string }) {
+  const location = useLocation();
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id');
   const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
 
   useEffect(() => {
+    if (location.pathname.startsWith("/settings")) {
+      return;
+    }
     if (namespaceId == null || namespaceId == "") {
       return;
     }
@@ -128,7 +131,7 @@ export default function ({ localServer }: { localServer: string }) {
     if (sortName !== "") {
       url += `&sort=${sortName}&method=${sortOrder.toString()}`;
     }
-    if (namespaceId != null) {
+    if (namespaceId != null && namespaceId != "0") {
       url += `&namespace_id=${namespaceId}`;
     }
     axios.get(url).then(response => {
@@ -221,11 +224,11 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="tooltip-arrow" data-popper-arrow></div>
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item="Repository" />
+        <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "webhooks" : "repositories"} />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Webhook" props={
-              (
+              location.pathname.startsWith("/settings") ? null : (
                 <div className="flex space-x-8">
                   <Link
                     to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
@@ -554,6 +557,7 @@ export default function ({ localServer }: { localServer: string }) {
 }
 
 function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [deleteWebhookModal, setDeleteWebhookModal] = useState(false);
@@ -654,7 +658,12 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
-          navigate(`/namespaces/${namespaceObj.name}/namespace-webhook-logs/${webhookObj.id}?namespace_id=${namespaceObj.id}`);
+          if (location.pathname.startsWith("/settings")) {
+            navigate(`/settings/webhooks/${webhookObj.id}`);
+          } else {
+            navigate(`/namespaces/${namespaceObj.name}/webhooks/${webhookObj.id}?namespace_id=${namespaceObj.id}`);
+          }
+          // navigate(`/namespaces/${namespaceObj.name}/webhooks/${webhookObj.id}?namespace_id=${namespaceObj.id}`);
         }}
       >
         <div className="items-center space-x-3 lg:pl-2">

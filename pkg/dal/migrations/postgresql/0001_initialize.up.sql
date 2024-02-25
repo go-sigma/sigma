@@ -760,7 +760,8 @@ CREATE TABLE IF NOT EXISTS "webhooks" (
   "event_member" smallint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
-  "deleted_at" bigint NOT NULL DEFAULT 0
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
 );
 
 CREATE INDEX "webhooks_idx_created_at" ON "webhooks" ("created_at");

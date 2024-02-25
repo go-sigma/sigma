@@ -103,7 +103,7 @@ export default function ({ localServer }: { localServer: string }) {
                       Users
                     </Link>
                     <Link
-                      to={`/namespaces/${namespace}/namespace-webhooks`}
+                      to={`/namespaces/${namespace}/webhooks`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Webhook
