@@ -27,7 +27,9 @@ type Webhook struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	NamespaceID     *int64
+	NamespaceID *int64
+	Namespace   *Namespace
+
 	URL             string
 	Secret          *string
 	SslVerify       bool
@@ -48,7 +50,8 @@ type WebhookLog struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	WebhookID *int64
+	WebhookID int64
+	Webhook   Webhook
 
 	ResourceType enums.WebhookResourceType
 	Action       enums.WebhookAction
@@ -57,6 +60,4 @@ type WebhookLog struct {
 	ReqBody      []byte
 	RespHeader   []byte
 	RespBody     []byte
-
-	Webhook Webhook
 }

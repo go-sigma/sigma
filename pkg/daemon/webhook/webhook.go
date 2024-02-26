@@ -165,7 +165,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 			continue
 		}
 		webhookLogObj := &models.WebhookLog{
-			WebhookID:    &webhookObj.ID,
+			WebhookID:    webhookObj.ID,
 			ResourceType: payload.ResourceType,
 			Action:       payload.Action,
 			ReqHeader:    utils.MustMarshal(headers),
@@ -203,7 +203,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 
 func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (*models.WebhookLog, error) {
 	webhookService := w.webhookServiceFactory.New()
-	webhookObj, err := webhookService.Get(ctx, ptr.To(payload.WebhookID))
+	webhookObj, err := webhookService.Get(ctx, payload.WebhookID)
 	if err != nil {
 		return nil, err
 	}

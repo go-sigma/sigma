@@ -7902,14 +7902,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
-                "event": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.WebhookResourceType"
-                        }
-                    ],
-                    "example": "event"
-                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -7921,6 +7913,14 @@ const docTemplate = `{
                 "req_header": {
                     "type": "string",
                     "example": ""
+                },
+                "resource_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookResourceType"
+                        }
+                    ],
+                    "example": "event"
                 },
                 "resp_body": {
                     "type": "string",

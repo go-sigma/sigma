@@ -1618,10 +1618,6 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
-      event:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookResourceType'
-        example: event
       id:
         example: 1
         type: integer
@@ -1631,6 +1627,10 @@ definitions:
       req_header:
         example: ""
         type: string
+      resource_type:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceType'
+        example: event
       resp_body:
         example: ""
         type: string

@@ -110,15 +110,15 @@ func (h *handler) GetWebhookLog(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.WebhookLogItem{
-		ID:         webhookLogObj.ID,
-		Event:      webhookLogObj.ResourceType,
-		Action:     webhookLogObj.Action,
-		StatusCode: webhookLogObj.StatusCode,
-		ReqHeader:  string(webhookLogObj.ReqHeader),
-		ReqBody:    string(webhookLogObj.ReqBody),
-		RespHeader: string(webhookLogObj.RespHeader),
-		RespBody:   string(webhookLogObj.RespBody),
-		CreatedAt:  time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		UpdatedAt:  time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		ID:           webhookLogObj.ID,
+		ResourceType: webhookLogObj.ResourceType,
+		Action:       webhookLogObj.Action,
+		StatusCode:   webhookLogObj.StatusCode,
+		ReqHeader:    string(webhookLogObj.ReqHeader),
+		ReqBody:      string(webhookLogObj.ReqBody),
+		RespHeader:   string(webhookLogObj.RespHeader),
+		RespBody:     string(webhookLogObj.RespBody),
+		CreatedAt:    time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*webhookLogObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
 }

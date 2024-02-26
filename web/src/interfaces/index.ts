@@ -545,7 +545,7 @@ export interface IWebhookList {
 
 export interface IWebhookLogItem {
   id: number;
-  event: WebhookResourceType;
+  resource_type: WebhookResourceType;
   action: WebhookAction;
   status_code: number;
   req_header: string;
