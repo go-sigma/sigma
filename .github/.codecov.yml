@@ -9,3 +9,9 @@ coverage:
     project:
       default:
         threshold: 4%
+ignore:
+  - "./main.go"
+  - "./web/"
+  - "./cmd/"
+  - "./pkg/cmds/"
+  - "./pkg/tests/"
