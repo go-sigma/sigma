@@ -2695,6 +2695,10 @@ const (
 	WebhookActionRemove WebhookAction = "Remove"
 	// WebhookActionPing is a WebhookAction of type Ping.
 	WebhookActionPing WebhookAction = "Ping"
+	// WebhookActionStarted is a WebhookAction of type Started.
+	WebhookActionStarted WebhookAction = "Started"
+	// WebhookActionFinished is a WebhookAction of type Finished.
+	WebhookActionFinished WebhookAction = "Finished"
 )
 
 var ErrInvalidWebhookAction = errors.New("not a valid WebhookAction")
@@ -2712,12 +2716,14 @@ func (x WebhookAction) IsValid() bool {
 }
 
 var _WebhookActionValue = map[string]WebhookAction{
-	"Create": WebhookActionCreate,
-	"Update": WebhookActionUpdate,
-	"Delete": WebhookActionDelete,
-	"Add":    WebhookActionAdd,
-	"Remove": WebhookActionRemove,
-	"Ping":   WebhookActionPing,
+	"Create":   WebhookActionCreate,
+	"Update":   WebhookActionUpdate,
+	"Delete":   WebhookActionDelete,
+	"Add":      WebhookActionAdd,
+	"Remove":   WebhookActionRemove,
+	"Ping":     WebhookActionPing,
+	"Started":  WebhookActionStarted,
+	"Finished": WebhookActionFinished,
 }
 
 // ParseWebhookAction attempts to convert a string to a WebhookAction.
@@ -2790,6 +2796,22 @@ const (
 	WebhookResourceTypeArtifact WebhookResourceType = "Artifact"
 	// WebhookResourceTypeMember is a WebhookResourceType of type Member.
 	WebhookResourceTypeMember WebhookResourceType = "Member"
+	// WebhookResourceTypeDaemonTaskGcRepositoryRule is a WebhookResourceType of type DaemonTaskGcRepositoryRule.
+	WebhookResourceTypeDaemonTaskGcRepositoryRule WebhookResourceType = "DaemonTaskGcRepositoryRule"
+	// WebhookResourceTypeDaemonTaskGcTagRule is a WebhookResourceType of type DaemonTaskGcTagRule.
+	WebhookResourceTypeDaemonTaskGcTagRule WebhookResourceType = "DaemonTaskGcTagRule"
+	// WebhookResourceTypeDaemonTaskGcArtifactRule is a WebhookResourceType of type DaemonTaskGcArtifactRule.
+	WebhookResourceTypeDaemonTaskGcArtifactRule WebhookResourceType = "DaemonTaskGcArtifactRule"
+	// WebhookResourceTypeDaemonTaskGcBlobRule is a WebhookResourceType of type DaemonTaskGcBlobRule.
+	WebhookResourceTypeDaemonTaskGcBlobRule WebhookResourceType = "DaemonTaskGcBlobRule"
+	// WebhookResourceTypeDaemonTaskGcRepositoryRunner is a WebhookResourceType of type DaemonTaskGcRepositoryRunner.
+	WebhookResourceTypeDaemonTaskGcRepositoryRunner WebhookResourceType = "DaemonTaskGcRepositoryRunner"
+	// WebhookResourceTypeDaemonTaskGcTagRunner is a WebhookResourceType of type DaemonTaskGcTagRunner.
+	WebhookResourceTypeDaemonTaskGcTagRunner WebhookResourceType = "DaemonTaskGcTagRunner"
+	// WebhookResourceTypeDaemonTaskGcArtifactRunner is a WebhookResourceType of type DaemonTaskGcArtifactRunner.
+	WebhookResourceTypeDaemonTaskGcArtifactRunner WebhookResourceType = "DaemonTaskGcArtifactRunner"
+	// WebhookResourceTypeDaemonTaskGcBlobRunner is a WebhookResourceType of type DaemonTaskGcBlobRunner.
+	WebhookResourceTypeDaemonTaskGcBlobRunner WebhookResourceType = "DaemonTaskGcBlobRunner"
 )
 
 var ErrInvalidWebhookResourceType = errors.New("not a valid WebhookResourceType")
@@ -2807,12 +2829,20 @@ func (x WebhookResourceType) IsValid() bool {
 }
 
 var _WebhookResourceTypeValue = map[string]WebhookResourceType{
-	"Webhook":    WebhookResourceTypeWebhook,
-	"Namespace":  WebhookResourceTypeNamespace,
-	"Repository": WebhookResourceTypeRepository,
-	"Tag":        WebhookResourceTypeTag,
-	"Artifact":   WebhookResourceTypeArtifact,
-	"Member":     WebhookResourceTypeMember,
+	"Webhook":                      WebhookResourceTypeWebhook,
+	"Namespace":                    WebhookResourceTypeNamespace,
+	"Repository":                   WebhookResourceTypeRepository,
+	"Tag":                          WebhookResourceTypeTag,
+	"Artifact":                     WebhookResourceTypeArtifact,
+	"Member":                       WebhookResourceTypeMember,
+	"DaemonTaskGcRepositoryRule":   WebhookResourceTypeDaemonTaskGcRepositoryRule,
+	"DaemonTaskGcTagRule":          WebhookResourceTypeDaemonTaskGcTagRule,
+	"DaemonTaskGcArtifactRule":     WebhookResourceTypeDaemonTaskGcArtifactRule,
+	"DaemonTaskGcBlobRule":         WebhookResourceTypeDaemonTaskGcBlobRule,
+	"DaemonTaskGcRepositoryRunner": WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+	"DaemonTaskGcTagRunner":        WebhookResourceTypeDaemonTaskGcTagRunner,
+	"DaemonTaskGcArtifactRunner":   WebhookResourceTypeDaemonTaskGcArtifactRunner,
+	"DaemonTaskGcBlobRunner":       WebhookResourceTypeDaemonTaskGcBlobRunner,
 }
 
 // ParseWebhookResourceType attempts to convert a string to a WebhookResourceType.

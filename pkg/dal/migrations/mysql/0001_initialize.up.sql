@@ -589,6 +589,7 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_tag` tinyint NOT NULL DEFAULT 0,
   `event_artifact` tinyint NOT NULL DEFAULT 0,
   `event_member` tinyint NOT NULL DEFAULT 0,
+  `event_daemon_task` tinyint NOT NULL DEFAULT 0,
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
@@ -601,8 +602,8 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
   `webhook_id` bigint,
-  `resource_type` ENUM ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member') NOT NULL,
-  `action` ENUM ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping') NOT NULL,
+  `resource_type` ENUM ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member', 'DaemonTaskGcRepositoryRule', 'DaemonTaskGcTagRule', 'DaemonTaskGcArtifactRule', 'DaemonTaskGcBlobRule', 'DaemonTaskGcRepositoryRunner', 'DaemonTaskGcTagRunner', 'DaemonTaskGcArtifactRunner', 'DaemonTaskGcBlobRunner') NOT NULL,
+  `action` ENUM ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping', 'Started', 'Finished') NOT NULL,
   `status_code` smallint NOT NULL,
   `req_header` BLOB NOT NULL,
   `req_body` BLOB NOT NULL,

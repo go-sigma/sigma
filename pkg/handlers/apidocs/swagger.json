@@ -5826,7 +5826,9 @@
                 "Delete",
                 "Add",
                 "Remove",
-                "Ping"
+                "Ping",
+                "Started",
+                "Finished"
             ],
             "x-enum-varnames": [
                 "WebhookActionCreate",
@@ -5834,7 +5836,9 @@
                 "WebhookActionDelete",
                 "WebhookActionAdd",
                 "WebhookActionRemove",
-                "WebhookActionPing"
+                "WebhookActionPing",
+                "WebhookActionStarted",
+                "WebhookActionFinished"
             ]
         },
         "enums.WebhookResourceType": {
@@ -5845,7 +5849,15 @@
                 "Repository",
                 "Tag",
                 "Artifact",
-                "Member"
+                "Member",
+                "DaemonTaskGcRepositoryRule",
+                "DaemonTaskGcTagRule",
+                "DaemonTaskGcArtifactRule",
+                "DaemonTaskGcBlobRule",
+                "DaemonTaskGcRepositoryRunner",
+                "DaemonTaskGcTagRunner",
+                "DaemonTaskGcArtifactRunner",
+                "DaemonTaskGcBlobRunner"
             ],
             "x-enum-varnames": [
                 "WebhookResourceTypeWebhook",
@@ -5853,7 +5865,15 @@
                 "WebhookResourceTypeRepository",
                 "WebhookResourceTypeTag",
                 "WebhookResourceTypeArtifact",
-                "WebhookResourceTypeMember"
+                "WebhookResourceTypeMember",
+                "WebhookResourceTypeDaemonTaskGcRepositoryRule",
+                "WebhookResourceTypeDaemonTaskGcTagRule",
+                "WebhookResourceTypeDaemonTaskGcArtifactRule",
+                "WebhookResourceTypeDaemonTaskGcBlobRule",
+                "WebhookResourceTypeDaemonTaskGcRepositoryRunner",
+                "WebhookResourceTypeDaemonTaskGcTagRunner",
+                "WebhookResourceTypeDaemonTaskGcArtifactRunner",
+                "WebhookResourceTypeDaemonTaskGcBlobRunner"
             ]
         },
         "types.AddNamespaceMemberRequest": {

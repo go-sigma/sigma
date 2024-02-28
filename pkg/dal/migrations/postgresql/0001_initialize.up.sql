@@ -758,6 +758,7 @@ CREATE TABLE IF NOT EXISTS "webhooks" (
   "event_tag" smallint NOT NULL DEFAULT 0,
   "event_artifact" smallint NOT NULL DEFAULT 0,
   "event_member" smallint NOT NULL DEFAULT 0,
+  "event_daemon_task" smallint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -776,7 +777,15 @@ CREATE TYPE webhook_resource_type AS ENUM (
   'Repository',
   'Tag',
   'Artifact',
-  'Member'
+  'Member',
+  'DaemonTaskGcRepositoryRule',
+  'DaemonTaskGcTagRule',
+  'DaemonTaskGcArtifactRule',
+  'DaemonTaskGcBlobRule',
+  'DaemonTaskGcRepositoryRunner',
+  'DaemonTaskGcTagRunner',
+  'DaemonTaskGcArtifactRunner',
+  'DaemonTaskGcBlobRunner'
 );
 
 CREATE TYPE webhook_action AS ENUM (
@@ -785,7 +794,9 @@ CREATE TYPE webhook_action AS ENUM (
   'Delete',
   'Add',
   'Remove',
-  'Ping'
+  'Ping',
+  'Started',
+  'Finished'
 );
 
 CREATE TABLE IF NOT EXISTS "webhook_logs" (

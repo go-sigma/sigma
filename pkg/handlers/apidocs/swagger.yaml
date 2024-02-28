@@ -148,6 +148,8 @@ definitions:
     - Add
     - Remove
     - Ping
+    - Started
+    - Finished
     type: string
     x-enum-varnames:
     - WebhookActionCreate
@@ -156,6 +158,8 @@ definitions:
     - WebhookActionAdd
     - WebhookActionRemove
     - WebhookActionPing
+    - WebhookActionStarted
+    - WebhookActionFinished
   enums.WebhookResourceType:
     enum:
     - Webhook
@@ -164,6 +168,14 @@ definitions:
     - Tag
     - Artifact
     - Member
+    - DaemonTaskGcRepositoryRule
+    - DaemonTaskGcTagRule
+    - DaemonTaskGcArtifactRule
+    - DaemonTaskGcBlobRule
+    - DaemonTaskGcRepositoryRunner
+    - DaemonTaskGcTagRunner
+    - DaemonTaskGcArtifactRunner
+    - DaemonTaskGcBlobRunner
     type: string
     x-enum-varnames:
     - WebhookResourceTypeWebhook
@@ -172,6 +184,14 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
+    - WebhookResourceTypeDaemonTaskGcRepositoryRule
+    - WebhookResourceTypeDaemonTaskGcTagRule
+    - WebhookResourceTypeDaemonTaskGcArtifactRule
+    - WebhookResourceTypeDaemonTaskGcBlobRule
+    - WebhookResourceTypeDaemonTaskGcRepositoryRunner
+    - WebhookResourceTypeDaemonTaskGcTagRunner
+    - WebhookResourceTypeDaemonTaskGcArtifactRunner
+    - WebhookResourceTypeDaemonTaskGcBlobRunner
   types.AddNamespaceMemberRequest:
     properties:
       role:

@@ -43,6 +43,12 @@ func newWebhook(db *gorm.DB, opts ...gen.DOOption) webhook {
 	_webhook.EventTag = field.NewBool(tableName, "event_tag")
 	_webhook.EventArtifact = field.NewBool(tableName, "event_artifact")
 	_webhook.EventMember = field.NewBool(tableName, "event_member")
+	_webhook.EventDaemonTask = field.NewBool(tableName, "event_daemon_task")
+	_webhook.Namespace = webhookBelongsToNamespace{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Namespace", "models.Namespace"),
+	}
 
 	_webhook.fillFieldMap()
 
@@ -69,6 +75,8 @@ type webhook struct {
 	EventTag        field.Bool
 	EventArtifact   field.Bool
 	EventMember     field.Bool
+	EventDaemonTask field.Bool
+	Namespace       webhookBelongsToNamespace
 
 	fieldMap map[string]field.Expr
 }
@@ -101,6 +109,7 @@ func (w *webhook) updateTableName(table string) *webhook {
 	w.EventTag = field.NewBool(table, "event_tag")
 	w.EventArtifact = field.NewBool(table, "event_artifact")
 	w.EventMember = field.NewBool(table, "event_member")
+	w.EventDaemonTask = field.NewBool(table, "event_daemon_task")
 
 	w.fillFieldMap()
 
@@ -125,7 +134,7 @@ func (w *webhook) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (w *webhook) fillFieldMap() {
-	w.fieldMap = make(map[string]field.Expr, 16)
+	w.fieldMap = make(map[string]field.Expr, 18)
 	w.fieldMap["created_at"] = w.CreatedAt
 	w.fieldMap["updated_at"] = w.UpdatedAt
 	w.fieldMap["deleted_at"] = w.DeletedAt
@@ -142,6 +151,8 @@ func (w *webhook) fillFieldMap() {
 	w.fieldMap["event_tag"] = w.EventTag
 	w.fieldMap["event_artifact"] = w.EventArtifact
 	w.fieldMap["event_member"] = w.EventMember
+	w.fieldMap["event_daemon_task"] = w.EventDaemonTask
+
 }
 
 func (w webhook) clone(db *gorm.DB) webhook {
@@ -152,6 +163,77 @@ func (w webhook) clone(db *gorm.DB) webhook {
 func (w webhook) replaceDB(db *gorm.DB) webhook {
 	w.webhookDo.ReplaceDB(db)
 	return w
+}
+
+type webhookBelongsToNamespace struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a webhookBelongsToNamespace) Where(conds ...field.Expr) *webhookBelongsToNamespace {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a webhookBelongsToNamespace) WithContext(ctx context.Context) *webhookBelongsToNamespace {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a webhookBelongsToNamespace) Session(session *gorm.Session) *webhookBelongsToNamespace {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a webhookBelongsToNamespace) Model(m *models.Webhook) *webhookBelongsToNamespaceTx {
+	return &webhookBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+type webhookBelongsToNamespaceTx struct{ tx *gorm.Association }
+
+func (a webhookBelongsToNamespaceTx) Find() (result *models.Namespace, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a webhookBelongsToNamespaceTx) Append(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a webhookBelongsToNamespaceTx) Replace(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a webhookBelongsToNamespaceTx) Delete(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a webhookBelongsToNamespaceTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a webhookBelongsToNamespaceTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type webhookDo struct{ gen.DO }

@@ -172,6 +172,14 @@ type AuditResourceType string
 // Tag,
 // Artifact,
 // Member,
+// DaemonTaskGcRepositoryRule,
+// DaemonTaskGcTagRule,
+// DaemonTaskGcArtifactRule,
+// DaemonTaskGcBlobRule,
+// DaemonTaskGcRepositoryRunner,
+// DaemonTaskGcTagRunner,
+// DaemonTaskGcArtifactRunner,
+// DaemonTaskGcBlobRunner,
 // )
 type WebhookResourceType string
 
@@ -182,6 +190,8 @@ type WebhookResourceType string
 // Add,
 // Remove,
 // Ping,
+// Started,
+// Finished,
 // )
 type WebhookAction string
 

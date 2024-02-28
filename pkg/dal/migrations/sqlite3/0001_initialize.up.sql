@@ -679,6 +679,7 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_tag` integer NOT NULL DEFAULT 0,
   `event_artifact` integer NOT NULL DEFAULT 0,
   `event_member` integer NOT NULL DEFAULT 0,
+  `event_daemon_task` integer NOT NULL DEFAULT 0,
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
@@ -694,8 +695,8 @@ CREATE INDEX `webhooks_idx_deleted_at` ON `webhooks` (`deleted_at`);
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `webhook_id` integer,
-  `resource_type` text CHECK (`resource_type` IN ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member')) NOT NULL,
-  `action` text CHECK (`action` IN ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping')) NOT NULL,
+  `resource_type` text CHECK (`resource_type` IN ('Webhook', 'Namespace', 'Repository', 'Tag', 'Artifact', 'Member', 'DaemonTaskGcRepositoryRule', 'DaemonTaskGcTagRule', 'DaemonTaskGcArtifactRule', 'DaemonTaskGcBlobRule', 'DaemonTaskGcRepositoryRunner', 'DaemonTaskGcTagRunner', 'DaemonTaskGcArtifactRunner', 'DaemonTaskGcBlobRunner')) NOT NULL,
+  `action` text CHECK (`action` IN ('Create', 'Update', 'Delete', 'Add', 'Remove', 'Ping', 'Started', 'Finished')) NOT NULL,
   `status_code` integer NOT NULL,
   `req_header` BLOB NOT NULL,
   `req_body` BLOB NOT NULL,

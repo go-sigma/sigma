@@ -41,6 +41,7 @@ type Webhook struct {
 	EventTag        bool
 	EventArtifact   bool
 	EventMember     bool
+	EventDaemonTask bool
 }
 
 // WebhookLog ...
