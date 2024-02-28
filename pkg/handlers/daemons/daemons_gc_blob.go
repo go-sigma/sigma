@@ -55,11 +55,16 @@ import (
 func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	// We still keep the "NamespaceID" field because we want to ensure API consistency and it can also be used for permission verification.
 	var req types.UpdateGcBlobRuleRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+	}
+	if req.NamespaceID != 0 {
+		log.Error().Msg("NamespaceID should always be 0 in action UpdateGcBlobRule")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
 	daemonService := h.daemonServiceFactory.New()
@@ -103,6 +108,15 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msg("Update gc blob rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc blob rule failed: %v", err))
+		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			Action:       enums.WebhookActionUpdate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRule,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
@@ -181,7 +195,10 @@ func (h *handler) GetGcBlobLatestRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	// TODO: check namespaceID is 0
+	if req.NamespaceID != 0 {
+		log.Error().Msg("NamespaceID should always be 0 in action GetGcBlobLatestRunner")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
@@ -250,19 +267,18 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	// TODO: check namespace id
 	daemonService := h.daemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc blob rule not found")
+			log.Error().Err(err).Msg("Get gc blob rule not found")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc blob rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc blob rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
-		log.Error().Int64("NamespaceID", req.NamespaceID).Msg("The gc blob rule is running")
+		log.Error().Msg("The gc blob rule is running")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc blob rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -278,15 +294,24 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcBlob.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()))
 		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			Action:       enums.WebhookActionCreate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
-			var e xerrors.ErrCode
-			if errors.As(err, &e) {
-				return xerrors.NewHTTPError(c, e)
-			}
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
+	if err != nil {
+		var e xerrors.ErrCode
+		if errors.As(err, &e) {
+			return xerrors.NewHTTPError(c, e)
+		}
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+	}
 
 	return c.NoContent(http.StatusCreated)
 }

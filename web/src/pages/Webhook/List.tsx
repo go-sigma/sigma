@@ -179,9 +179,9 @@ export default function ({ localServer }: { localServer: string }) {
     }
 
     let u = `${localServer}/api/v1/webhooks/`;
-    if (namespaceId != null) {
+    if (location.pathname.startsWith("/settings")) {
       data["event_namespace"] = eventNamespace;
-      data["namespace_id"] = parseInt(namespaceId);
+      data["namespace_id"] = parseInt(namespaceId || "");
     }
     axios.post(u, data, {}).then(response => {
       if (response.status === 201) {
@@ -493,13 +493,17 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-row gap-4">
-                      <div className="flex items-center">
-                        <input id="event-namespace" type="checkbox"
-                          checked={eventNamespace}
-                          onChange={e => setEventNamespace(!eventNamespace)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
-                      </div>
+                      {
+                        location.pathname.startsWith("/settings") ? null : (
+                          <div className="flex items-center">
+                            <input id="event-namespace" type="checkbox"
+                              checked={eventNamespace}
+                              onChange={e => setEventNamespace(!eventNamespace)}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                            <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                          </div>
+                        )
+                      }
                       <div className="flex items-center">
                         <input id="event-repository" type="checkbox"
                           checked={eventRepository}

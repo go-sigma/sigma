@@ -24,6 +24,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -102,23 +104,32 @@ var _ Handler = &handler{}
 
 type handler struct {
 	daemonServiceFactory dao.DaemonServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 type inject struct {
 	daemonServiceFactory dao.DaemonServiceFactory
+
+	producerClient definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
 	daemonServiceFactory := dao.NewDaemonServiceFactory()
+	producerClient := workq.ProducerClient
 	if len(injects) > 0 {
 		ij := injects[0]
 		if ij.daemonServiceFactory != nil {
 			daemonServiceFactory = ij.daemonServiceFactory
 		}
+		if ij.producerClient != nil {
+			producerClient = ij.producerClient
+		}
 	}
 	return &handler{
 		daemonServiceFactory: daemonServiceFactory,
+		producerClient:       producerClient,
 	}
 }
 

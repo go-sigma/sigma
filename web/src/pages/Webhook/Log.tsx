@@ -384,7 +384,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
             <span>
-              {webhookLogObj.event}
+              {webhookLogObj.resource_type}
             </span>
           </div>
         </div>
@@ -494,7 +494,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
                         </Dialog.Title>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            Are you sure you want to resend the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.event}</span>
+                            Are you sure you want to resend the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.resource_type}</span>
                           </p>
                         </div>
                       </div>
@@ -559,7 +559,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
                         </Dialog.Title>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            Are you sure you want to delete the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.event}</span>
+                            Are you sure you want to delete the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.resource_type}</span>
                           </p>
                         </div>
                       </div>
