@@ -73,6 +73,11 @@ type gcTag struct {
 	ctx    context.Context
 	config configs.Configuration
 
+	runnerObj *models.DaemonGcTagRunner
+
+	successCount int64
+	failedCount  int64
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -91,7 +96,8 @@ type gcTag struct {
 	collectRecordChan               chan tagTaskCollectRecord
 	collectRecordChanOnce           *sync.Once
 
-	runnerChan chan decoratorStatus
+	runnerChan  chan decoratorStatus
+	webhookChan chan decoratorWebhook
 
 	waitAllDone *sync.WaitGroup
 }
@@ -100,15 +106,17 @@ type gcTag struct {
 func (g gcTag) Run(runnerID int64) error {
 	defer close(g.runnerChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcTagRunner(g.ctx, runnerID)
+
+	var err error
+	g.runnerObj, err = g.daemonServiceFactory.New().GetGcTagRunner(g.ctx, runnerID)
 	if err != nil {
 		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc tag runner failed: %v", err)
 	}
 
-	if runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
-		log.Error().Err(err).Interface("RetentionRuleType", runnerObj.Rule.RetentionRuleType).Msg("Gc tag rule retention type is invalid")
-		return fmt.Errorf("gc tag rule retention type is invalid: %v", runnerObj.Rule.RetentionRuleType)
+	if g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
+		log.Error().Err(err).Interface("RetentionRuleType", g.runnerObj.Rule.RetentionRuleType).Msg("Gc tag rule retention type is invalid")
+		return fmt.Errorf("gc tag rule retention type is invalid: %v", g.runnerObj.Rule.RetentionRuleType)
 	}
 
 	namespaceService := g.namespaceServiceFactory.New()
@@ -120,8 +128,8 @@ func (g gcTag) Run(runnerID int64) error {
 	g.collectRecordChanOnce.Do(g.collectRecord)
 	g.waitAllDone.Add(5)
 
-	if runnerObj.Rule.NamespaceID != nil {
-		g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+	if g.runnerObj.Rule.NamespaceID != nil {
+		g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: ptr.To(g.runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
@@ -131,7 +139,7 @@ func (g gcTag) Run(runnerID int64) error {
 				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
-				g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: nsObj.ID}
+				g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: nsObj.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -242,14 +250,13 @@ func (g gcTag) deleteTag() {
 }
 
 func (g gcTag) collectRecord() {
-	var successCount, failedCount int64
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		defer func() {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
-				"success_count": successCount,
-				"failed_count":  failedCount,
+				"success_count": g.successCount,
+				"failed_count":  g.failedCount,
 			}}
 		}()
 		for task := range g.collectRecordChan {
@@ -266,9 +273,9 @@ func (g gcTag) collectRecord() {
 				continue
 			}
 			if task.Status == enums.GcRecordStatusSuccess {
-				successCount++
+				g.successCount++
 			} else {
-				failedCount++
+				g.failedCount++
 			}
 		}
 	}()

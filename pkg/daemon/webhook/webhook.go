@@ -149,17 +149,19 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		filter[query.Webhook.EventArtifact.ColumnName().String()] = true
 	case enums.WebhookResourceTypeMember:
 		filter[query.Webhook.EventMember.ColumnName().String()] = true
+	case enums.WebhookResourceTypeDaemonTaskGcArtifactRule, enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
+		enums.WebhookResourceTypeDaemonTaskGcBlobRule, enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		enums.WebhookResourceTypeDaemonTaskGcRepositoryRule, enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		enums.WebhookResourceTypeDaemonTaskGcTagRule, enums.WebhookResourceTypeDaemonTaskGcTagRunner:
+		filter[query.Webhook.EventDaemonTask.ColumnName().String()] = true
 	}
 	webhookObjs, err := webhookService.GetByFilter(ctx, filter)
 	if err != nil {
 		return err
 	}
-	body := utils.MustMarshal(types.DaemonWebhookPayloadPing{
-		ResourceType: enums.WebhookResourceTypeNamespace,
-	})
 	headers := w.defaultHeaders()
 	for _, webhookObj := range webhookObjs {
-		headers, err = w.secretHeader(webhookObj.Secret, body, headers)
+		headers, err = w.secretHeader(webhookObj.Secret, payload.Payload, headers)
 		if err != nil {
 			log.Error().Err(err).Msg("Calculate secret header failed")
 			continue
@@ -169,7 +171,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 			ResourceType: payload.ResourceType,
 			Action:       payload.Action,
 			ReqHeader:    utils.MustMarshal(headers),
-			ReqBody:      body,
+			ReqBody:      payload.Payload,
 		}
 		client := w.client(clientOption{
 			SslVerify:     webhookObj.SslVerify,

@@ -299,7 +299,7 @@ func (h *handler) CreateGcTagRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc tag rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		runnerObj := &models.DaemonGcTagRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcTagRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("RuleID", ruleObj.ID).Msgf("Create gc tag runner failed: %v", err)

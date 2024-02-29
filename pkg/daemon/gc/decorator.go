@@ -25,8 +25,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -42,22 +46,54 @@ type decoratorStatus struct {
 	Updates map[string]any
 }
 
+// decoratorWebhook used for webhook trigger
+type decoratorWebhook struct {
+	NamespaceID *int64
+	Meta        types.WebhookPayload
+	WebhookObj  any
+}
+
+type inject struct {
+	daemonServiceFactory dao.DaemonServiceFactory
+
+	producerClient definition.WorkQueueProducer
+}
+
+// Runner ...
+type Runner interface {
+	// Run ...
+	Run(runnerID int64) error
+}
+
 // decorator is a decorator for daemon gc task runners
-func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
+func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []byte) error { // nolint: unparam
 	return func(ctx context.Context, payload []byte) error {
 		ctx = log.Logger.WithContext(ctx)
 		id := gjson.GetBytes(payload, "runner_id").Int()
 
+		producerClient := workq.ProducerClient
+		daemonServiceFactory := dao.NewDaemonServiceFactory()
+		if len(injects) > 0 {
+			ij := injects[0]
+			if ij.producerClient != nil {
+				producerClient = ij.producerClient
+			}
+			if ij.daemonServiceFactory != nil {
+				daemonServiceFactory = ij.daemonServiceFactory
+			}
+		}
+
 		var runnerChan = make(chan decoratorStatus, 3)
-		var gc = initGc(ctx, daemon, runnerChan)
+		var webhookChan = make(chan decoratorWebhook, 3)
+		var gc = initGc(ctx, daemon, runnerChan, webhookChan)
 		if gc == nil {
 			return fmt.Errorf("daemon %s not support", daemon.String())
 		}
 
-		daemonService := dao.NewDaemonServiceFactory().New()
+		daemonService := daemonServiceFactory.New()
 
 		var waitAllEvents = &sync.WaitGroup{}
-		waitAllEvents.Add(1)
+		waitAllEvents.Add(2)
 		go func() {
 			defer waitAllEvents.Done()
 
@@ -101,6 +137,16 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 			}
 		}()
 
+		go func() {
+			defer waitAllEvents.Done()
+			for webhook := range webhookChan {
+				err := triggerWebhook(ctx, webhook, producerClient)
+				if err != nil {
+					log.Error().Err(err).Msg("Webhook event produce failed")
+				}
+			}
+		}()
+
 		err := gc.Run(id)
 		if err != nil {
 			return fmt.Errorf("gc runner(%s) failed: %v", daemon.String(), err)
@@ -112,13 +158,7 @@ func decorator(daemon enums.Daemon) func(context.Context, []byte) error {
 	}
 }
 
-// Runner ...
-type Runner interface {
-	// Run ...
-	Run(runnerID int64) error
-}
-
-func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus) Runner {
+func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus, webhookChan chan decoratorWebhook) Runner {
 	switch daemon {
 	case enums.DaemonGcRepository:
 		return &gcRepository{
@@ -139,7 +179,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			collectRecordChan:                       make(chan repositoryTaskCollectRecord, pagination),
 			collectRecordChanOnce:                   &sync.Once{},
 
-			runnerChan: runnerChan,
+			runnerChan:  runnerChan,
+			webhookChan: webhookChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}
@@ -163,7 +204,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			collectRecordChan:                   make(chan artifactTaskCollectRecord, pagination),
 			collectRecordChanOnce:               &sync.Once{},
 
-			runnerChan: runnerChan,
+			runnerChan:  runnerChan,
+			webhookChan: webhookChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}
@@ -190,7 +232,8 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			collectRecordChan:               make(chan tagTaskCollectRecord, pagination),
 			collectRecordChanOnce:           &sync.Once{},
 
-			runnerChan: runnerChan,
+			runnerChan:  runnerChan,
+			webhookChan: webhookChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}
@@ -208,11 +251,25 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			collectRecordChan:     make(chan blobTaskCollectRecord, pagination),
 			collectRecordChanOnce: &sync.Once{},
 
-			runnerChan: runnerChan,
+			runnerChan:  runnerChan,
+			webhookChan: webhookChan,
 
 			waitAllDone: &sync.WaitGroup{},
 		}
 	default:
 		return nil
 	}
+}
+
+func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClient definition.WorkQueueProducer) error {
+	err := producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		NamespaceID:  webhook.NamespaceID,
+		Action:       webhook.Meta.Action,
+		ResourceType: webhook.Meta.ResourceType,
+		Payload:      utils.MustMarshal(webhook.WebhookObj),
+	}, definition.ProducerOption{})
+	if err != nil {
+		return fmt.Errorf("Webhook event produce failed: %v", err)
+	}
+	return nil
 }

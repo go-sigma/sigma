@@ -191,6 +191,7 @@ type WebhookResourceType string
 // Remove,
 // Ping,
 // Started,
+// Doing,
 // Finished,
 // )
 type WebhookAction string
@@ -301,3 +302,9 @@ type NamespaceRole string
 // Admin,
 // )
 type Auth string
+
+// OperateType x ENUM(
+// Manual,
+// Automatic,
+// )
+type OperateType string

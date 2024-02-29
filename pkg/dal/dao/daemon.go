@@ -196,6 +196,7 @@ func (s *daemonService) GetGcTagRunner(ctx context.Context, runnerID int64) (*mo
 	return s.tx.DaemonGcTagRunner.WithContext(ctx).
 		Where(s.tx.DaemonGcTagRunner.ID.Eq(runnerID)).
 		Preload(s.tx.DaemonGcTagRunner.Rule).
+		Preload(s.tx.DaemonGcTagRunner.OperateUser).
 		First()
 }
 
@@ -309,6 +310,7 @@ func (s *daemonService) GetGcRepositoryRunner(ctx context.Context, runnerID int6
 	return s.tx.DaemonGcRepositoryRunner.WithContext(ctx).
 		Where(s.tx.DaemonGcRepositoryRunner.ID.Eq(runnerID)).
 		Preload(s.tx.DaemonGcRepositoryRunner.Rule).
+		Preload(s.tx.DaemonGcRepositoryRunner.OperateUser).
 		Order(s.tx.DaemonGcRepositoryRunner.CreatedAt.Desc()).First()
 }
 
@@ -422,6 +424,7 @@ func (s *daemonService) GetGcArtifactRunner(ctx context.Context, runnerID int64)
 	return s.tx.DaemonGcArtifactRunner.WithContext(ctx).
 		Where(s.tx.DaemonGcArtifactRunner.ID.Eq(runnerID)).
 		Preload(s.tx.DaemonGcArtifactRunner.Rule).
+		Preload(s.tx.DaemonGcArtifactRunner.OperateUser).
 		First()
 }
 
@@ -529,6 +532,7 @@ func (s *daemonService) GetGcBlobRunner(ctx context.Context, runnerID int64) (*m
 	return s.tx.DaemonGcBlobRunner.WithContext(ctx).
 		Where(s.tx.DaemonGcBlobRunner.ID.Eq(runnerID)).
 		Preload(s.tx.DaemonGcTagRunner.Rule).
+		Preload(s.tx.DaemonGcTagRunner.OperateUser).
 		First()
 }
 

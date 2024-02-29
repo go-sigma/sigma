@@ -289,7 +289,7 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcArtifactRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		runnerObj := &models.DaemonGcArtifactRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcArtifactRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc artifact runner failed: %v", err)

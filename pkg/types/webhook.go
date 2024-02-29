@@ -217,3 +217,40 @@ type DaemonWebhookPayloadMember struct {
 	Action       enums.WebhookAction       `json:"action" example:"create"`
 	Namespace    *DaemonWebhookNamespace   `json:"namespace"`
 }
+
+// WebhookPayload ...
+type WebhookPayload struct {
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"Namespace"`
+	Action       enums.WebhookAction       `json:"action" example:"Create"`
+}
+
+// WebhookPayloadUser ...
+type WebhookPayloadUser struct {
+	ID        int64            `json:"id"`
+	Username  string           `json:"username"`
+	Email     string           `json:"email"`
+	Status    enums.UserStatus `json:"status"`
+	LastLogin string           `json:"last_login"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// WebhookPayloadGcBlob ...
+type WebhookPayloadGcBlob struct {
+	WebhookPayload
+	OperateType  enums.OperateType   `json:"operate_type" example:"Automatic"`
+	OperateUser  *WebhookPayloadUser `json:"operate_user"`
+	SuccessCount int64               `json:"success_count"`
+	FailedCount  int64               `json:"failed_count"`
+}
+
+// WebhookPayloadGcArtifact ...
+type WebhookPayloadGcArtifact struct {
+	WebhookPayload
+	NamespaceID  *int64
+	OperateType  enums.OperateType `json:"operate_type" example:"Automatic"`
+	OperateUser  *UserItem         `json:"operate_user"`
+	SuccessCount int64             `json:"success_count"`
+	FailedCount  int64             `json:"failed_count"`
+}

@@ -23,6 +23,11 @@ CREATE TYPE user_role AS ENUM (
   'Anonymous'
 );
 
+CREATE TYPE operate_type AS ENUM (
+  'Automatic',
+  'Manual'
+);
+
 CREATE TABLE IF NOT EXISTS "users" (
   "id" bigserial PRIMARY KEY,
   "username" varchar(64) NOT NULL,
@@ -464,6 +469,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_runners" (
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
+  "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -530,6 +536,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_runners" (
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
+  "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -591,6 +598,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
+  "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -648,6 +656,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_runners" (
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
+  "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,

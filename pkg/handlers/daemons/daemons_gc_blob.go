@@ -282,7 +282,7 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc blob rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		runnerObj := &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcBlobRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("RuleID", ruleObj.ID).Msgf("Create gc blob runner failed: %v", err)

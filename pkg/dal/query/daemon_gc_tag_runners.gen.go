@@ -34,6 +34,8 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 	_daemonGcTagRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcTagRunner.Message = field.NewBytes(tableName, "message")
 	_daemonGcTagRunner.Status = field.NewField(tableName, "status")
+	_daemonGcTagRunner.OperateType = field.NewField(tableName, "operate_type")
+	_daemonGcTagRunner.OperateUserID = field.NewInt64(tableName, "operate_user_id")
 	_daemonGcTagRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcTagRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcTagRunner.Duration = field.NewInt64(tableName, "duration")
@@ -50,6 +52,12 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 		},
 	}
 
+	_daemonGcTagRunner.OperateUser = daemonGcTagRunnerBelongsToOperateUser{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("OperateUser", "models.User"),
+	}
+
 	_daemonGcTagRunner.fillFieldMap()
 
 	return _daemonGcTagRunner
@@ -58,20 +66,24 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 type daemonGcTagRunner struct {
 	daemonGcTagRunnerDo daemonGcTagRunnerDo
 
-	ALL          field.Asterisk
-	CreatedAt    field.Int64
-	UpdatedAt    field.Int64
-	DeletedAt    field.Uint64
-	ID           field.Int64
-	RuleID       field.Int64
-	Message      field.Bytes
-	Status       field.Field
-	StartedAt    field.Time
-	EndedAt      field.Time
-	Duration     field.Int64
-	SuccessCount field.Int64
-	FailedCount  field.Int64
-	Rule         daemonGcTagRunnerBelongsToRule
+	ALL           field.Asterisk
+	CreatedAt     field.Int64
+	UpdatedAt     field.Int64
+	DeletedAt     field.Uint64
+	ID            field.Int64
+	RuleID        field.Int64
+	Message       field.Bytes
+	Status        field.Field
+	OperateType   field.Field
+	OperateUserID field.Int64
+	StartedAt     field.Time
+	EndedAt       field.Time
+	Duration      field.Int64
+	SuccessCount  field.Int64
+	FailedCount   field.Int64
+	Rule          daemonGcTagRunnerBelongsToRule
+
+	OperateUser daemonGcTagRunnerBelongsToOperateUser
 
 	fieldMap map[string]field.Expr
 }
@@ -95,6 +107,8 @@ func (d *daemonGcTagRunner) updateTableName(table string) *daemonGcTagRunner {
 	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Message = field.NewBytes(table, "message")
 	d.Status = field.NewField(table, "status")
+	d.OperateType = field.NewField(table, "operate_type")
+	d.OperateUserID = field.NewInt64(table, "operate_user_id")
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
@@ -128,7 +142,7 @@ func (d *daemonGcTagRunner) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (d *daemonGcTagRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 13)
+	d.fieldMap = make(map[string]field.Expr, 16)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
@@ -136,6 +150,8 @@ func (d *daemonGcTagRunner) fillFieldMap() {
 	d.fieldMap["rule_id"] = d.RuleID
 	d.fieldMap["message"] = d.Message
 	d.fieldMap["status"] = d.Status
+	d.fieldMap["operate_type"] = d.OperateType
+	d.fieldMap["operate_user_id"] = d.OperateUserID
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
@@ -226,6 +242,77 @@ func (a daemonGcTagRunnerBelongsToRuleTx) Clear() error {
 }
 
 func (a daemonGcTagRunnerBelongsToRuleTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type daemonGcTagRunnerBelongsToOperateUser struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUser) Where(conds ...field.Expr) *daemonGcTagRunnerBelongsToOperateUser {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUser) WithContext(ctx context.Context) *daemonGcTagRunnerBelongsToOperateUser {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUser) Session(session *gorm.Session) *daemonGcTagRunnerBelongsToOperateUser {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUser) Model(m *models.DaemonGcTagRunner) *daemonGcTagRunnerBelongsToOperateUserTx {
+	return &daemonGcTagRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+type daemonGcTagRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Find() (result *models.User, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Append(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Replace(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Delete(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
 }
 

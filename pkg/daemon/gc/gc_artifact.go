@@ -30,6 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -64,6 +65,11 @@ type gcArtifact struct {
 	ctx    context.Context
 	config configs.Configuration
 
+	runnerObj *models.DaemonGcArtifactRunner
+
+	successCount int64
+	failedCount  int64
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -79,7 +85,8 @@ type gcArtifact struct {
 	collectRecordChan                   chan artifactTaskCollectRecord
 	collectRecordChanOnce               *sync.Once
 
-	runnerChan chan decoratorStatus
+	runnerChan  chan decoratorStatus
+	webhookChan chan decoratorWebhook
 
 	waitAllDone *sync.WaitGroup
 }
@@ -87,7 +94,9 @@ type gcArtifact struct {
 func (g gcArtifact) Run(runnerID int64) error {
 	defer close(g.runnerChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcArtifactRunner(g.ctx, runnerID)
+
+	var err error
+	g.runnerObj, err = g.daemonServiceFactory.New().GetGcArtifactRunner(g.ctx, runnerID)
 	if err != nil {
 		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc artifact runner failed: %v", err), Ended: true}
 		return fmt.Errorf("get gc artifact runner failed: %v", err)
@@ -101,8 +110,8 @@ func (g gcArtifact) Run(runnerID int64) error {
 	g.collectRecordChanOnce.Do(g.collectRecord)
 	g.waitAllDone.Add(4)
 
-	if runnerObj.Rule.NamespaceID != nil {
-		g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+	if g.runnerObj.Rule.NamespaceID != nil {
+		g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: ptr.To(g.runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
@@ -112,7 +121,7 @@ func (g gcArtifact) Run(runnerID int64) error {
 				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, ns := range namespaceObjs {
-				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ns.ID}
+				g.deleteArtifactWithNamespaceChan <- artifactWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: ns.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -239,14 +248,13 @@ func (g gcArtifact) deleteArtifact() {
 }
 
 func (g gcArtifact) collectRecord() {
-	var successCount, failedCount int64
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		defer func() {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
-				"success_count": successCount,
-				"failed_count":  failedCount,
+				"success_count": g.successCount,
+				"failed_count":  g.failedCount,
 			}}
 		}()
 		for task := range g.collectRecordChan {
@@ -263,10 +271,22 @@ func (g gcArtifact) collectRecord() {
 				continue
 			}
 			if task.Status == enums.GcRecordStatusSuccess {
-				successCount++
+				g.successCount++
 			} else {
-				failedCount++
+				g.failedCount++
 			}
 		}
 	}()
+}
+
+func (g gcArtifact) packWebhookObj(action enums.WebhookAction, runnerObj *models.DaemonGcBlobRunner, successCount, failedCount int64) types.WebhookPayloadGcArtifact {
+	return types.WebhookPayloadGcArtifact{
+		WebhookPayload: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+			Action:       action,
+		},
+		OperateType:  runnerObj.OperateType,
+		SuccessCount: successCount,
+		FailedCount:  failedCount,
+	}
 }
