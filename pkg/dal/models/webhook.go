@@ -30,18 +30,18 @@ type Webhook struct {
 	NamespaceID *int64
 	Namespace   *Namespace
 
-	URL             string
-	Secret          *string
-	SslVerify       bool
-	RetryTimes      int
-	RetryDuration   int
-	Enable          bool
-	EventNamespace  *bool
-	EventRepository bool
-	EventTag        bool
-	EventArtifact   bool
-	EventMember     bool
-	EventDaemonTask bool
+	URL               string
+	Secret            *string
+	SslVerify         bool
+	RetryTimes        int
+	RetryDuration     int
+	Enable            bool
+	EventNamespace    *bool
+	EventRepository   bool
+	EventTag          bool
+	EventArtifact     bool
+	EventMember       bool
+	EventDaemonTaskGc bool
 }
 
 // WebhookLog ...

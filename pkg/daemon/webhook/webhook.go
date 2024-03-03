@@ -153,7 +153,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		enums.WebhookResourceTypeDaemonTaskGcBlobRule, enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 		enums.WebhookResourceTypeDaemonTaskGcRepositoryRule, enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
 		enums.WebhookResourceTypeDaemonTaskGcTagRule, enums.WebhookResourceTypeDaemonTaskGcTagRunner:
-		filter[query.Webhook.EventDaemonTask.ColumnName().String()] = true
+		filter[query.Webhook.EventDaemonTaskGc.ColumnName().String()] = true
 	}
 	webhookObjs, err := webhookService.GetByFilter(ctx, filter)
 	if err != nil {

@@ -230,7 +230,7 @@ func (s *daemonService) UpdateGcTagRunner(ctx context.Context, runnerID int64, u
 	if len(updates) == 0 {
 		return nil
 	}
-	_, err := s.tx.DaemonGcTagRunner.WithContext(ctx).Where(s.tx.DaemonGcTagRunner.RuleID.Eq(runnerID)).Updates(updates)
+	_, err := s.tx.DaemonGcTagRunner.WithContext(ctx).Where(s.tx.DaemonGcTagRunner.ID.Eq(runnerID)).Updates(updates)
 	return err
 }
 

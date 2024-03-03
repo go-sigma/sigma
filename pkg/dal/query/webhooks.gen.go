@@ -43,7 +43,7 @@ func newWebhook(db *gorm.DB, opts ...gen.DOOption) webhook {
 	_webhook.EventTag = field.NewBool(tableName, "event_tag")
 	_webhook.EventArtifact = field.NewBool(tableName, "event_artifact")
 	_webhook.EventMember = field.NewBool(tableName, "event_member")
-	_webhook.EventDaemonTask = field.NewBool(tableName, "event_daemon_task")
+	_webhook.EventDaemonTaskGc = field.NewBool(tableName, "event_daemon_task_gc")
 	_webhook.Namespace = webhookBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -58,25 +58,25 @@ func newWebhook(db *gorm.DB, opts ...gen.DOOption) webhook {
 type webhook struct {
 	webhookDo webhookDo
 
-	ALL             field.Asterisk
-	CreatedAt       field.Int64
-	UpdatedAt       field.Int64
-	DeletedAt       field.Uint64
-	ID              field.Int64
-	NamespaceID     field.Int64
-	URL             field.String
-	Secret          field.String
-	SslVerify       field.Bool
-	RetryTimes      field.Int
-	RetryDuration   field.Int
-	Enable          field.Bool
-	EventNamespace  field.Bool
-	EventRepository field.Bool
-	EventTag        field.Bool
-	EventArtifact   field.Bool
-	EventMember     field.Bool
-	EventDaemonTask field.Bool
-	Namespace       webhookBelongsToNamespace
+	ALL               field.Asterisk
+	CreatedAt         field.Int64
+	UpdatedAt         field.Int64
+	DeletedAt         field.Uint64
+	ID                field.Int64
+	NamespaceID       field.Int64
+	URL               field.String
+	Secret            field.String
+	SslVerify         field.Bool
+	RetryTimes        field.Int
+	RetryDuration     field.Int
+	Enable            field.Bool
+	EventNamespace    field.Bool
+	EventRepository   field.Bool
+	EventTag          field.Bool
+	EventArtifact     field.Bool
+	EventMember       field.Bool
+	EventDaemonTaskGc field.Bool
+	Namespace         webhookBelongsToNamespace
 
 	fieldMap map[string]field.Expr
 }
@@ -109,7 +109,7 @@ func (w *webhook) updateTableName(table string) *webhook {
 	w.EventTag = field.NewBool(table, "event_tag")
 	w.EventArtifact = field.NewBool(table, "event_artifact")
 	w.EventMember = field.NewBool(table, "event_member")
-	w.EventDaemonTask = field.NewBool(table, "event_daemon_task")
+	w.EventDaemonTaskGc = field.NewBool(table, "event_daemon_task_gc")
 
 	w.fillFieldMap()
 
@@ -151,7 +151,7 @@ func (w *webhook) fillFieldMap() {
 	w.fieldMap["event_tag"] = w.EventTag
 	w.fieldMap["event_artifact"] = w.EventArtifact
 	w.fieldMap["event_member"] = w.EventMember
-	w.fieldMap["event_daemon_task"] = w.EventDaemonTask
+	w.fieldMap["event_daemon_task_gc"] = w.EventDaemonTaskGc
 
 }
 

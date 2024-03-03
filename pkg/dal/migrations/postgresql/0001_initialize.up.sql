@@ -352,12 +352,6 @@ CREATE TABLE IF NOT EXISTS "artifact_vulnerabilities" (
   CONSTRAINT "artifact_vulnerability_unique_with_artifact" UNIQUE ("artifact_id", "deleted_at")
 );
 
-CREATE INDEX "artifact_vulnerabilities_idx_created_at" ON "artifact_vulnerabilities" ("created_at");
-
-CREATE INDEX "artifact_vulnerabilities_idx_updated_at" ON "artifact_vulnerabilities" ("updated_at");
-
-CREATE INDEX "artifact_vulnerabilities_idx_deleted_at" ON "artifact_vulnerabilities" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "tags" (
   "id" bigserial PRIMARY KEY,
   "repository_id" bigint NOT NULL,
@@ -374,12 +368,6 @@ CREATE TABLE IF NOT EXISTS "tags" (
   CONSTRAINT "tags_unique_with_repo" UNIQUE ("repository_id", "name", "deleted_at")
 );
 
-CREATE INDEX "tags_idx_created_at" ON "tags" ("created_at");
-
-CREATE INDEX "tags_idx_updated_at" ON "tags" ("updated_at");
-
-CREATE INDEX "tags_idx_deleted_at" ON "tags" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "blobs" (
   "id" bigserial PRIMARY KEY,
   "digest" varchar(256) NOT NULL UNIQUE,
@@ -394,12 +382,6 @@ CREATE TABLE IF NOT EXISTS "blobs" (
   CONSTRAINT "blobs_unique_with_digest" UNIQUE ("digest", "deleted_at")
 );
 
-CREATE INDEX "blobs_idx_created_at" ON "blobs" ("created_at");
-
-CREATE INDEX "blobs_idx_updated_at" ON "blobs" ("updated_at");
-
-CREATE INDEX "blobs_idx_deleted_at" ON "blobs" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "blob_uploads" (
   "id" bigserial PRIMARY KEY,
   "part_number" int NOT NULL,
@@ -413,12 +395,6 @@ CREATE TABLE IF NOT EXISTS "blob_uploads" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "blob_uploads_unique_with_upload_id_etag" UNIQUE ("upload_id", "etag", "deleted_at")
 );
-
-CREATE INDEX "blob_uploads_idx_created_at" ON "blob_uploads" ("created_at");
-
-CREATE INDEX "blob_uploads_idx_updated_at" ON "blob_uploads" ("updated_at");
-
-CREATE INDEX "blob_uploads_idx_deleted_at" ON "blob_uploads" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "artifact_artifacts" (
   "artifact_id" bigint NOT NULL,
@@ -458,18 +434,13 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_rules" (
   CONSTRAINT "daemon_gc_tag_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
 );
 
-CREATE INDEX "daemon_gc_tag_rules_idx_created_at" ON "daemon_gc_tag_rules" ("created_at");
-
-CREATE INDEX "daemon_gc_tag_rules_idx_updated_at" ON "daemon_gc_tag_rules" ("updated_at");
-
-CREATE INDEX "daemon_gc_tag_rules_idx_deleted_at" ON "daemon_gc_tag_rules" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_tag_runners" (
   "id" bigserial PRIMARY KEY,
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
+  "operate_user_id" bigint,
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -478,14 +449,9 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_runners" (
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_tag_rules" ("id")
+  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_tag_rules" ("id"),
+  FOREIGN KEY ("operate_user_id") REFERENCES "users" ("id")
 );
-
-CREATE INDEX "daemon_gc_tag_runners_idx_created_at" ON "daemon_gc_tag_runners" ("created_at");
-
-CREATE INDEX "daemon_gc_tag_runners_idx_updated_at" ON "daemon_gc_tag_runners" ("updated_at");
-
-CREATE INDEX "daemon_gc_tag_runners_idx_deleted_at" ON "daemon_gc_tag_runners" ("deleted_at");
 
 CREATE TYPE gc_record_status AS ENUM (
   'Success',
@@ -504,12 +470,6 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_records" (
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_tag_runners" ("id")
 );
 
-CREATE INDEX "daemon_gc_tag_records_idx_created_at" ON "daemon_gc_tag_records" ("created_at");
-
-CREATE INDEX "daemon_gc_tag_records_idx_updated_at" ON "daemon_gc_tag_records" ("updated_at");
-
-CREATE INDEX "daemon_gc_tag_records_idx_deleted_at" ON "daemon_gc_tag_records" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   "id" bigserial PRIMARY KEY,
   "namespace_id" bigint,
@@ -525,18 +485,13 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   CONSTRAINT "daemon_gc_repository_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
 );
 
-CREATE INDEX "daemon_gc_repository_rules_idx_created_at" ON "daemon_gc_repository_rules" ("created_at");
-
-CREATE INDEX "daemon_gc_repository_rules_idx_updated_at" ON "daemon_gc_repository_rules" ("updated_at");
-
-CREATE INDEX "daemon_gc_repository_rules_idx_deleted_at" ON "daemon_gc_repository_rules" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_repository_runners" (
   "id" bigserial PRIMARY KEY,
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
+  "operate_user_id" bigint,
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -545,14 +500,9 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_runners" (
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
-  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_repository_rules" ("id")
+  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_repository_rules" ("id"),
+  FOREIGN KEY ("operate_user_id") REFERENCES "users" ("id")
 );
-
-CREATE INDEX "daemon_gc_repository_runners_idx_created_at" ON "daemon_gc_repository_runners" ("created_at");
-
-CREATE INDEX "daemon_gc_repository_runners_idx_updated_at" ON "daemon_gc_repository_runners" ("updated_at");
-
-CREATE INDEX "daemon_gc_repository_runners_idx_deleted_at" ON "daemon_gc_repository_runners" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_repository_records" (
   "id" bigserial PRIMARY KEY,
@@ -565,12 +515,6 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_records" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_repository_runners" ("id")
 );
-
-CREATE INDEX "daemon_gc_repository_records_idx_created_at" ON "daemon_gc_repository_records" ("created_at");
-
-CREATE INDEX "daemon_gc_repository_records_idx_updated_at" ON "daemon_gc_repository_records" ("updated_at");
-
-CREATE INDEX "daemon_gc_repository_records_idx_deleted_at" ON "daemon_gc_repository_records" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_rules" (
   "id" bigserial PRIMARY KEY,
@@ -587,18 +531,13 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_rules" (
   CONSTRAINT "daemon_gc_artifact_rules_unique_with_ns" UNIQUE ("namespace_id", "deleted_at")
 );
 
-CREATE INDEX "daemon_gc_artifact_rules_idx_created_at" ON "daemon_gc_artifact_rules" ("created_at");
-
-CREATE INDEX "daemon_gc_artifact_rules_idx_updated_at" ON "daemon_gc_artifact_rules" ("updated_at");
-
-CREATE INDEX "daemon_gc_artifact_rules_idx_deleted_at" ON "daemon_gc_artifact_rules" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "id" bigserial PRIMARY KEY,
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
+  "operate_user_id" bigint,
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -607,14 +546,9 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
-  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_artifact_rules" ("id")
+  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_artifact_rules" ("id"),
+  FOREIGN KEY ("operate_user_id") REFERENCES "users" ("id")
 );
-
-CREATE INDEX "daemon_gc_artifact_runners_idx_created_at" ON "daemon_gc_artifact_runners" ("created_at");
-
-CREATE INDEX "daemon_gc_artifact_runners_idx_updated_at" ON "daemon_gc_artifact_runners" ("updated_at");
-
-CREATE INDEX "daemon_gc_artifact_runners_idx_deleted_at" ON "daemon_gc_artifact_runners" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
   "id" bigserial PRIMARY KEY,
@@ -628,12 +562,6 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_artifact_runners" ("id")
 );
 
-CREATE INDEX "daemon_gc_artifact_records_idx_created_at" ON "daemon_gc_artifact_records" ("created_at");
-
-CREATE INDEX "daemon_gc_artifact_records_idx_updated_at" ON "daemon_gc_artifact_records" ("updated_at");
-
-CREATE INDEX "daemon_gc_artifact_records_idx_deleted_at" ON "daemon_gc_artifact_records" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "id" bigserial PRIMARY KEY,
   "retention_day" integer NOT NULL DEFAULT 0,
@@ -645,18 +573,13 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
-CREATE INDEX "daemon_gc_blob_rules_idx_created_at" ON "daemon_gc_blob_rules" ("created_at");
-
-CREATE INDEX "daemon_gc_blob_rules_idx_updated_at" ON "daemon_gc_blob_rules" ("updated_at");
-
-CREATE INDEX "daemon_gc_blob_rules_idx_deleted_at" ON "daemon_gc_blob_rules" ("deleted_at");
-
 CREATE TABLE IF NOT EXISTS "daemon_gc_blob_runners" (
   "id" bigserial PRIMARY KEY,
   "rule_id" bigint NOT NULL,
   "message" bytea,
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
+  "operate_user_id" bigint,
   "started_at" timestamp,
   "ended_at" timestamp,
   "duration" bigint,
@@ -665,14 +588,9 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_runners" (
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" integer NOT NULL DEFAULT 0,
-  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_blob_rules" ("id")
+  FOREIGN KEY ("rule_id") REFERENCES "daemon_gc_blob_rules" ("id"),
+  FOREIGN KEY ("operate_user_id") REFERENCES "users" ("id")
 );
-
-CREATE INDEX "daemon_gc_blob_runners_idx_created_at" ON "daemon_gc_blob_runners" ("created_at");
-
-CREATE INDEX "daemon_gc_blob_runners_idx_updated_at" ON "daemon_gc_blob_runners" ("updated_at");
-
-CREATE INDEX "daemon_gc_blob_runners_idx_deleted_at" ON "daemon_gc_blob_runners" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_blob_records" (
   "id" bigserial PRIMARY KEY,
@@ -685,12 +603,6 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_records" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("runner_id") REFERENCES "daemon_gc_blob_runners" ("id")
 );
-
-CREATE INDEX "daemon_gc_blob_records_idx_created_at" ON "daemon_gc_blob_records" ("created_at");
-
-CREATE INDEX "daemon_gc_blob_records_idx_updated_at" ON "daemon_gc_blob_records" ("updated_at");
-
-CREATE INDEX "daemon_gc_blob_records_idx_deleted_at" ON "daemon_gc_blob_records" ("deleted_at");
 
 CREATE TABLE "casbin_rules" (
   "id" bigserial PRIMARY KEY,
@@ -721,12 +633,6 @@ CREATE TABLE IF NOT EXISTS "namespace_members" (
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   CONSTRAINT "namespace_members_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
 );
-
-CREATE INDEX "namespace_members_idx_created_at" ON "namespace_members" ("created_at");
-
-CREATE INDEX "namespace_members_idx_updated_at" ON "namespace_members" ("updated_at");
-
-CREATE INDEX "namespace_members_idx_deleted_at" ON "namespace_members" ("deleted_at");
 
 -- ptype type
 -- v0 sub
@@ -767,18 +673,12 @@ CREATE TABLE IF NOT EXISTS "webhooks" (
   "event_tag" smallint NOT NULL DEFAULT 0,
   "event_artifact" smallint NOT NULL DEFAULT 0,
   "event_member" smallint NOT NULL DEFAULT 0,
-  "event_daemon_task" smallint NOT NULL DEFAULT 0,
+  "event_daemon_task_gc" smallint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
   FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id")
 );
-
-CREATE INDEX "webhooks_idx_created_at" ON "webhooks" ("created_at");
-
-CREATE INDEX "webhooks_idx_updated_at" ON "webhooks" ("updated_at");
-
-CREATE INDEX "webhooks_idx_deleted_at" ON "webhooks" ("deleted_at");
 
 CREATE TYPE webhook_resource_type AS ENUM (
   'Webhook',
@@ -879,12 +779,6 @@ CREATE TABLE IF NOT EXISTS "builders" (
   CONSTRAINT "builders_unique_with_repository" UNIQUE ("repository_id", "deleted_at")
 );
 
-CREATE INDEX "builders_idx_created_at" ON "builders" ("created_at");
-
-CREATE INDEX "builders_idx_updated_at" ON "builders" ("updated_at");
-
-CREATE INDEX "builders_idx_deleted_at" ON "builders" ("deleted_at");
-
 CREATE TYPE builder_runner_status AS ENUM (
   'Pending',
   'Doing',
@@ -916,11 +810,6 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   FOREIGN KEY ("builder_id") REFERENCES "builders" ("id")
 );
 
-CREATE INDEX "builder_runners_idx_created_at" ON "builder_runners" ("created_at");
-
-CREATE INDEX "builder_runners_idx_updated_at" ON "builder_runners" ("updated_at");
-
-CREATE INDEX "builder_runners_idx_deleted_at" ON "builder_runners" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "work_queues" (
   "id" bigserial PRIMARY KEY,
@@ -934,11 +823,6 @@ CREATE TABLE IF NOT EXISTS "work_queues" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
-CREATE INDEX "work_queues_idx_created_at" ON "work_queues" ("created_at");
-
-CREATE INDEX "work_queues_idx_updated_at" ON "work_queues" ("updated_at");
-
-CREATE INDEX "work_queues_idx_deleted_at" ON "work_queues" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "caches" (
   "id" bigserial PRIMARY KEY,
@@ -949,13 +833,6 @@ CREATE TABLE IF NOT EXISTS "caches" (
   "deleted_at" integer NOT NULL DEFAULT 0
 );
 
-CREATE INDEX "caches_idx_created_at" ON "caches" ("created_at");
-
-CREATE INDEX "caches_idx_updated_at" ON "caches" ("updated_at");
-
-CREATE INDEX "caches_idx_deleted_at" ON "caches" ("deleted_at");
-
-CREATE INDEX "idx_created_at" ON "caches" ("created_at");
 
 CREATE TABLE IF NOT EXISTS "settings" (
   "id" bigserial PRIMARY KEY,
@@ -966,9 +843,4 @@ CREATE TABLE IF NOT EXISTS "settings" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
-CREATE INDEX "settings_idx_created_at" ON "settings" ("created_at");
-
-CREATE INDEX "settings_idx_updated_at" ON "settings" ("updated_at");
-
-CREATE INDEX "settings_idx_deleted_at" ON "settings" ("deleted_at");
 

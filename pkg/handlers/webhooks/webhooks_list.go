@@ -100,21 +100,22 @@ func (h *handler) ListWebhook(c echo.Context) error {
 	var resp = make([]any, 0, len(webhookObjs))
 	for _, webhookObj := range webhookObjs {
 		resp = append(resp, types.WebhookItem{
-			ID:              webhookObj.ID,
-			NamespaceID:     webhookObj.NamespaceID,
-			URL:             webhookObj.URL,
-			Secret:          webhookObj.Secret,
-			SslVerify:       webhookObj.SslVerify,
-			RetryTimes:      webhookObj.RetryTimes,
-			RetryDuration:   webhookObj.RetryDuration,
-			Enable:          webhookObj.Enable,
-			EventNamespace:  webhookObj.EventNamespace,
-			EventRepository: webhookObj.EventRepository,
-			EventTag:        webhookObj.EventTag,
-			EventArtifact:   webhookObj.EventArtifact,
-			EventMember:     webhookObj.EventMember,
-			CreatedAt:       time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-			UpdatedAt:       time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			ID:                webhookObj.ID,
+			NamespaceID:       webhookObj.NamespaceID,
+			URL:               webhookObj.URL,
+			Secret:            webhookObj.Secret,
+			SslVerify:         webhookObj.SslVerify,
+			RetryTimes:        webhookObj.RetryTimes,
+			RetryDuration:     webhookObj.RetryDuration,
+			Enable:            webhookObj.Enable,
+			EventNamespace:    webhookObj.EventNamespace,
+			EventRepository:   webhookObj.EventRepository,
+			EventTag:          webhookObj.EventTag,
+			EventArtifact:     webhookObj.EventArtifact,
+			EventMember:       webhookObj.EventMember,
+			EventDaemonTaskGc: webhookObj.EventDaemonTaskGc,
+			CreatedAt:         time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:         time.Unix(0, int64(time.Millisecond)*webhookObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})

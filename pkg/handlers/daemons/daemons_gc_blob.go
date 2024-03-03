@@ -261,6 +261,17 @@ func (h *handler) GetGcBlobLatestRunner(c echo.Context) error {
 func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+
 	var req types.CreateGcBlobRunnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
@@ -282,7 +293,9 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc blob rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
+		runnerObj := &models.DaemonGcBlobRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending,
+			OperateType:   enums.OperateTypeManual,
+			OperateUserID: ptr.Of(user.ID)}
 		err = daemonService.CreateGcBlobRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("RuleID", ruleObj.ID).Msgf("Create gc blob runner failed: %v", err)

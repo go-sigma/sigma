@@ -43,12 +43,6 @@ CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   CONSTRAINT `user_3rdparty_unique_with_account_id` UNIQUE (`provider`, `account_id`, `deleted_at`)
 );
 
-CREATE INDEX `user_3rdparty_idx_created_at` ON `user_3rdparty` (`created_at`);
-
-CREATE INDEX `user_3rdparty_idx_updated_at` ON `user_3rdparty` (`updated_at`);
-
-CREATE INDEX `user_3rdparty_idx_deleted_at` ON `user_3rdparty` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_3rdparty_id` bigint NOT NULL,
@@ -63,12 +57,6 @@ CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`)
 );
 
-CREATE INDEX `code_repository_clone_credentials_idx_created_at` ON `code_repository_clone_credentials` (`created_at`);
-
-CREATE INDEX `code_repository_clone_credentials_idx_updated_at` ON `code_repository_clone_credentials` (`updated_at`);
-
-CREATE INDEX `code_repository_clone_credentials_idx_deleted_at` ON `code_repository_clone_credentials` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `code_repository_owners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_3rdparty_id` bigint NOT NULL,
@@ -81,12 +69,6 @@ CREATE TABLE IF NOT EXISTS `code_repository_owners` (
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
   CONSTRAINT `code_repository_owners_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `deleted_at`)
 );
-
-CREATE INDEX `code_repository_owners_idx_created_at` ON `code_repository_owners` (`created_at`);
-
-CREATE INDEX `code_repository_owners_idx_updated_at` ON `code_repository_owners` (`updated_at`);
-
-CREATE INDEX `code_repository_owners_idx_deleted_at` ON `code_repository_owners` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `code_repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -106,12 +88,6 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   CONSTRAINT `code_repositories_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `repository_id`, `deleted_at`)
 );
 
-CREATE INDEX `code_repositories_idx_created_at` ON `code_repositories` (`created_at`);
-
-CREATE INDEX `code_repositories_idx_updated_at` ON `code_repositories` (`updated_at`);
-
-CREATE INDEX `code_repositories_idx_deleted_at` ON `code_repositories` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `code_repository_branches` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `code_repository_id` integer NOT NULL,
@@ -123,12 +99,6 @@ CREATE TABLE IF NOT EXISTS `code_repository_branches` (
   CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`)
 );
 
-CREATE INDEX `code_repository_branches_idx_created_at` ON `code_repository_branches` (`created_at`);
-
-CREATE INDEX `code_repository_branches_idx_updated_at` ON `code_repository_branches` (`updated_at`);
-
-CREATE INDEX `code_repository_branches_idx_deleted_at` ON `code_repository_branches` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` integer NOT NULL,
@@ -139,12 +109,6 @@ CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `user_recover_codes_unique_with_use_id` UNIQUE (`user_id`, `deleted_at`)
 );
-
-CREATE INDEX `user_recover_codes_idx_created_at` ON `user_recover_codes` (`created_at`);
-
-CREATE INDEX `user_recover_codes_idx_updated_at` ON `user_recover_codes` (`updated_at`);
-
-CREATE INDEX `user_recover_codes_idx_deleted_at` ON `user_recover_codes` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `namespaces` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -164,12 +128,6 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
 );
 
-CREATE INDEX `namespaces_idx_created_at` ON `namespaces` (`created_at`);
-
-CREATE INDEX `namespaces_idx_updated_at` ON `namespaces` (`updated_at`);
-
-CREATE INDEX `namespaces_idx_deleted_at` ON `namespaces` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `audits` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `user_id` bigint NOT NULL,
@@ -184,12 +142,6 @@ CREATE TABLE IF NOT EXISTS `audits` (
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
 );
-
-CREATE INDEX `audits_idx_created_at` ON `audits` (`created_at`);
-
-CREATE INDEX `audits_idx_updated_at` ON `audits` (`updated_at`);
-
-CREATE INDEX `audits_idx_deleted_at` ON `audits` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -207,12 +159,6 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
 );
-
-CREATE INDEX `repositories_idx_created_at` ON `repositories` (`created_at`);
-
-CREATE INDEX `repositories_idx_updated_at` ON `repositories` (`updated_at`);
-
-CREATE INDEX `repositories_idx_deleted_at` ON `repositories` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -237,12 +183,6 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
 );
 
-CREATE INDEX `artifacts_idx_created_at` ON `artifacts` (`created_at`);
-
-CREATE INDEX `artifacts_idx_updated_at` ON `artifacts` (`updated_at`);
-
-CREATE INDEX `artifacts_idx_deleted_at` ON `artifacts` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `artifact_id` integer NOT NULL,
@@ -258,12 +198,6 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
 );
-
-CREATE INDEX `artifact_sboms_idx_created_at` ON `artifact_sboms` (`created_at`);
-
-CREATE INDEX `artifact_sboms_idx_updated_at` ON `artifact_sboms` (`updated_at`);
-
-CREATE INDEX `artifact_sboms_idx_deleted_at` ON `artifact_sboms` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -282,12 +216,6 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
 );
 
-CREATE INDEX `artifact_vulnerabilities_idx_created_at` ON `artifact_vulnerabilities` (`created_at`);
-
-CREATE INDEX `artifact_vulnerabilities_idx_updated_at` ON `artifact_vulnerabilities` (`updated_at`);
-
-CREATE INDEX `artifact_vulnerabilities_idx_deleted_at` ON `artifact_vulnerabilities` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `repository_id` integer NOT NULL,
@@ -304,12 +232,6 @@ CREATE TABLE IF NOT EXISTS `tags` (
   CONSTRAINT `tags_unique_with_repo` UNIQUE (`repository_id`, `name`, `deleted_at`)
 );
 
-CREATE INDEX `tags_idx_created_at` ON `tags` (`created_at`);
-
-CREATE INDEX `tags_idx_updated_at` ON `tags` (`updated_at`);
-
-CREATE INDEX `tags_idx_deleted_at` ON `tags` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `blobs` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `digest` varchar(256) NOT NULL UNIQUE,
@@ -324,12 +246,6 @@ CREATE TABLE IF NOT EXISTS `blobs` (
   CONSTRAINT `blobs_unique_with_digest` UNIQUE (`digest`, `deleted_at`)
 );
 
-CREATE INDEX `blobs_idx_created_at` ON `blobs` (`created_at`);
-
-CREATE INDEX `blobs_idx_updated_at` ON `blobs` (`updated_at`);
-
-CREATE INDEX `blobs_idx_deleted_at` ON `blobs` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `part_number` int NOT NULL,
@@ -343,12 +259,6 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `blob_uploads_unique_with_upload_id_etag` UNIQUE (`upload_id`, `etag`, `deleted_at`)
 );
-
-CREATE INDEX `blob_uploads_idx_created_at` ON `blob_uploads` (`created_at`);
-
-CREATE INDEX `blob_uploads_idx_updated_at` ON `blob_uploads` (`updated_at`);
-
-CREATE INDEX `blob_uploads_idx_deleted_at` ON `blob_uploads` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `artifact_artifacts` (
   `artifact_id` integer NOT NULL,
@@ -383,17 +293,12 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
 );
 
-CREATE INDEX `daemon_gc_tag_rules_idx_created_at` ON `daemon_gc_tag_rules` (`created_at`);
-
-CREATE INDEX `daemon_gc_tag_rules_idx_updated_at` ON `daemon_gc_tag_rules` (`updated_at`);
-
-CREATE INDEX `daemon_gc_tag_rules_idx_deleted_at` ON `daemon_gc_tag_rules` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `rule_id` integer NOT NULL,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `operate_type` text CHECK (`operate_type` IN ('Automatic', 'Manual')) NOT NULL DEFAULT 'Automatic',
+  `operate_user_id` bigint,
   `message` BLOB,
   `started_at` timestamp,
   `ended_at` timestamp,
@@ -403,14 +308,9 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`),
+  FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
 );
-
-CREATE INDEX `daemon_gc_tag_runners_idx_created_at` ON `daemon_gc_tag_runners` (`created_at`);
-
-CREATE INDEX `daemon_gc_tag_runners_idx_updated_at` ON `daemon_gc_tag_runners` (`updated_at`);
-
-CREATE INDEX `daemon_gc_tag_runners_idx_deleted_at` ON `daemon_gc_tag_runners` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -423,12 +323,6 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
   `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_tag_runners` (`id`)
 );
-
-CREATE INDEX `daemon_gc_tag_records_idx_created_at` ON `daemon_gc_tag_records` (`created_at`);
-
-CREATE INDEX `daemon_gc_tag_records_idx_updated_at` ON `daemon_gc_tag_records` (`updated_at`);
-
-CREATE INDEX `daemon_gc_tag_records_idx_deleted_at` ON `daemon_gc_tag_records` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -445,17 +339,12 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
 );
 
-CREATE INDEX `daemon_gc_repository_rules_idx_created_at` ON `daemon_gc_repository_rules` (`created_at`);
-
-CREATE INDEX `daemon_gc_repository_rules_idx_updated_at` ON `daemon_gc_repository_rules` (`updated_at`);
-
-CREATE INDEX `daemon_gc_repository_rules_idx_deleted_at` ON `daemon_gc_repository_rules` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `rule_id` bigint NOT NULL,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `operate_type` text CHECK (`operate_type` IN ('Automatic', 'Manual')) NOT NULL DEFAULT 'Automatic',
+  `operate_user_id` bigint,
   `message` BLOB,
   `started_at` timestamp,
   `ended_at` timestamp,
@@ -465,14 +354,9 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`),
+  FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
 );
-
-CREATE INDEX `daemon_gc_repository_runners_idx_created_at` ON `daemon_gc_repository_runners` (`created_at`);
-
-CREATE INDEX `daemon_gc_repository_runners_idx_updated_at` ON `daemon_gc_repository_runners` (`updated_at`);
-
-CREATE INDEX `daemon_gc_repository_runners_idx_deleted_at` ON `daemon_gc_repository_runners` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -485,12 +369,6 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
   `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
 );
-
-CREATE INDEX `daemon_gc_repository_records_idx_created_at` ON `daemon_gc_repository_records` (`created_at`);
-
-CREATE INDEX `daemon_gc_repository_records_idx_updated_at` ON `daemon_gc_repository_records` (`updated_at`);
-
-CREATE INDEX `daemon_gc_repository_records_idx_deleted_at` ON `daemon_gc_repository_records` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -507,18 +385,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
 );
 
-CREATE INDEX `daemon_gc_artifact_rules_idx_created_at` ON `daemon_gc_artifact_rules` (`created_at`);
-
-CREATE INDEX `daemon_gc_artifact_rules_idx_updated_at` ON `daemon_gc_artifact_rules` (`updated_at`);
-
-CREATE INDEX `daemon_gc_artifact_rules_idx_deleted_at` ON `daemon_gc_artifact_rules` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `rule_id` integer,
   `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `operate_type` text CHECK (`operate_type` IN ('Automatic', 'Manual')) NOT NULL DEFAULT 'Automatic',
+  `operate_user_id` bigint,
   `started_at` timestamp,
   `ended_at` timestamp,
   `duration` integer,
@@ -527,14 +400,9 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`),
+  FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
 );
-
-CREATE INDEX `daemon_gc_artifact_runners_idx_created_at` ON `daemon_gc_artifact_runners` (`created_at`);
-
-CREATE INDEX `daemon_gc_artifact_runners_idx_updated_at` ON `daemon_gc_artifact_runners` (`updated_at`);
-
-CREATE INDEX `daemon_gc_artifact_runners_idx_deleted_at` ON `daemon_gc_artifact_runners` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -548,12 +416,6 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`)
 );
 
-CREATE INDEX `daemon_gc_artifact_records_idx_created_at` ON `daemon_gc_artifact_records` (`created_at`);
-
-CREATE INDEX `daemon_gc_artifact_records_idx_updated_at` ON `daemon_gc_artifact_records` (`updated_at`);
-
-CREATE INDEX `daemon_gc_artifact_records_idx_deleted_at` ON `daemon_gc_artifact_records` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `is_running` integer NOT NULL DEFAULT 0,
@@ -566,18 +428,13 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `deleted_at` integer NOT NULL DEFAULT 0
 );
 
-CREATE INDEX `daemon_gc_blob_rules_idx_created_at` ON `daemon_gc_blob_rules` (`created_at`);
-
-CREATE INDEX `daemon_gc_blob_rules_idx_updated_at` ON `daemon_gc_blob_rules` (`updated_at`);
-
-CREATE INDEX `daemon_gc_blob_rules_idx_deleted_at` ON `daemon_gc_blob_rules` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `rule_id` integer NOT NULL,
   `message` BLOB,
   `status` text CHECK (`status` IN ('Success', 'Failed', 'Pending', 'Doing')) NOT NULL DEFAULT 'Pending',
   `operate_type` text CHECK (`operate_type` IN ('Automatic', 'Manual')) NOT NULL DEFAULT 'Automatic',
+  `operate_user_id` bigint,
   `started_at` timestamp,
   `ended_at` timestamp,
   `duration` integer,
@@ -586,14 +443,9 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`)
+  FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`),
+  FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
 );
-
-CREATE INDEX `daemon_gc_blob_runners_idx_created_at` ON `daemon_gc_blob_runners` (`created_at`);
-
-CREATE INDEX `daemon_gc_blob_runners_idx_updated_at` ON `daemon_gc_blob_runners` (`updated_at`);
-
-CREATE INDEX `daemon_gc_blob_runners_idx_deleted_at` ON `daemon_gc_blob_runners` (`deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -606,12 +458,6 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `deleted_at` integer NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_blob_runners` (`id`)
 );
-
-CREATE INDEX `daemon_gc_blob_records_idx_created_at` ON `daemon_gc_blob_records` (`created_at`);
-
-CREATE INDEX `daemon_gc_blob_records_idx_updated_at` ON `daemon_gc_blob_records` (`updated_at`);
-
-CREATE INDEX `daemon_gc_blob_records_idx_deleted_at` ON `daemon_gc_blob_records` (`deleted_at`);
 
 CREATE TABLE `casbin_rules` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -637,12 +483,6 @@ CREATE TABLE IF NOT EXISTS `namespace_members` (
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
 );
-
-CREATE INDEX `namespace_members_idx_created_at` ON `namespace_members` (`created_at`);
-
-CREATE INDEX `namespace_members_idx_updated_at` ON `namespace_members` (`updated_at`);
-
-CREATE INDEX `namespace_members_idx_deleted_at` ON `namespace_members` (`deleted_at`);
 
 -- ptype type
 -- v0 sub
@@ -683,7 +523,7 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `event_tag` integer NOT NULL DEFAULT 0,
   `event_artifact` integer NOT NULL DEFAULT 0,
   `event_member` integer NOT NULL DEFAULT 0,
-  `event_daemon_task` integer NOT NULL DEFAULT 0,
+  `event_daemon_task_gc` integer NOT NULL DEFAULT 0,
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0,
@@ -760,12 +600,6 @@ CREATE TABLE IF NOT EXISTS `builders` (
   CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
 );
 
-CREATE INDEX `builders_idx_created_at` ON `builders` (`created_at`);
-
-CREATE INDEX `builders_idx_updated_at` ON `builders` (`updated_at`);
-
-CREATE INDEX `builders_idx_deleted_at` ON `builders` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `builder_runners` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `builder_id` integer NOT NULL,
@@ -787,12 +621,6 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
 );
 
-CREATE INDEX `builder_runners_idx_created_at` ON `builder_runners` (`created_at`);
-
-CREATE INDEX `builder_runners_idx_updated_at` ON `builder_runners` (`updated_at`);
-
-CREATE INDEX `builder_runners_idx_deleted_at` ON `builder_runners` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `work_queues` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `topic` varchar(30) NOT NULL,
@@ -805,12 +633,6 @@ CREATE TABLE IF NOT EXISTS `work_queues` (
   `deleted_at` integer NOT NULL DEFAULT 0
 );
 
-CREATE INDEX `work_queues_idx_created_at` ON `work_queues` (`created_at`);
-
-CREATE INDEX `work_queues_idx_updated_at` ON `work_queues` (`updated_at`);
-
-CREATE INDEX `work_queues_idx_deleted_at` ON `work_queues` (`deleted_at`);
-
 CREATE TABLE IF NOT EXISTS `caches` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
   `key` varchar(256) NOT NULL UNIQUE,
@@ -819,14 +641,6 @@ CREATE TABLE IF NOT EXISTS `caches` (
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0
 );
-
-CREATE INDEX `caches_idx_created_at` ON `caches` (`created_at`);
-
-CREATE INDEX `caches_idx_updated_at` ON `caches` (`updated_at`);
-
-CREATE INDEX `caches_idx_deleted_at` ON `caches` (`deleted_at`);
-
-CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
 
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
@@ -837,9 +651,4 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `deleted_at` integer NOT NULL DEFAULT 0
 );
 
-CREATE INDEX `settings_idx_created_at` ON `settings` (`created_at`);
-
-CREATE INDEX `settings_idx_updated_at` ON `settings` (`updated_at`);
-
-CREATE INDEX `settings_idx_deleted_at` ON `settings` (`deleted_at`);
 

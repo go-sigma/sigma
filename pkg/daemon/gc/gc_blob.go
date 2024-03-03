@@ -90,7 +90,12 @@ func (g gcBlob) Run(runnerID int64) error {
 	var err error
 	g.runnerObj, err = g.daemonServiceFactory.New().GetGcBlobRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc blob runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcBlob,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Get gc blob runner failed: %v", err),
+			Ended:   true,
+		}
 		return fmt.Errorf("get gc blob runner failed: %v", err)
 	}
 
@@ -114,7 +119,12 @@ func (g gcBlob) Run(runnerID int64) error {
 	for {
 		blobs, err := blobService.FindWithLastPull(g.ctx, timeTarget, curIndex, pagination)
 		if err != nil {
-			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get blob with last pull failed: %v", err), Ended: true}
+			g.runnerChan <- decoratorStatus{
+				Daemon:  enums.DaemonGcBlob,
+				Status:  enums.TaskCommonStatusFailed,
+				Message: fmt.Sprintf("Get blob with last pull failed: %v", err),
+				Ended:   true,
+			}
 			g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
 				ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 				Action:       enums.WebhookActionFinished,
@@ -160,7 +170,7 @@ func (g gcBlob) Run(runnerID int64) error {
 	close(g.deleteBlobChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusSuccess, Ended: true}
 	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
 		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 		Action:       enums.WebhookActionFinished,
@@ -239,7 +249,7 @@ func (g gcBlob) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadG
 		SuccessCount: g.successCount,
 		FailedCount:  g.failedCount,
 	}
-	if g.runnerObj.OperateType == enums.OperateTypeAutomatic && g.runnerObj.OperateUser != nil {
+	if g.runnerObj.OperateType == enums.OperateTypeManual && g.runnerObj.OperateUser != nil {
 		payload.OperateUser = &types.WebhookPayloadUser{
 			ID:        g.runnerObj.OperateUser.ID,
 			Username:  g.runnerObj.OperateUser.Username,

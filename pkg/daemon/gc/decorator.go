@@ -93,7 +93,7 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 		daemonService := daemonServiceFactory.New()
 
 		var waitAllEvents = &sync.WaitGroup{}
-		waitAllEvents.Add(2)
+		waitAllEvents.Add(1)
 		go func() {
 			defer waitAllEvents.Done()
 
@@ -265,6 +265,7 @@ func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClien
 	err := producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
 		NamespaceID:  webhook.NamespaceID,
 		Action:       webhook.Meta.Action,
+		Type:         enums.WebhookTypeSend,
 		ResourceType: webhook.Meta.ResourceType,
 		Payload:      utils.MustMarshal(webhook.WebhookObj),
 	}, definition.ProducerOption{})

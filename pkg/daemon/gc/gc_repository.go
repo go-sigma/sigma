@@ -23,10 +23,12 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -98,9 +100,19 @@ func (g gcRepository) Run(runnerID int64) error {
 	var err error
 	g.runnerObj, err = g.daemonServiceFactory.New().GetGcRepositoryRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcRepository,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Get gc repository runner failed: %v", err),
+			Ended:   true,
+		}
 		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
+
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       enums.WebhookActionStarted,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionStarted)}
 
 	g.deleteRepositoryWithNamespaceChanOnce.Do(g.deleteRepositoryWithNamespace)
 	g.deleteRepositoryCheckRepositoryChanOnce.Do(g.deleteRepositoryCheck)
@@ -117,7 +129,16 @@ func (g gcRepository) Run(runnerID int64) error {
 		for {
 			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				g.runnerChan <- decoratorStatus{
+					Daemon:  enums.DaemonGcRepository,
+					Status:  enums.TaskCommonStatusFailed,
+					Message: fmt.Sprintf("Get namespace with cursor failed: %v", err),
+					Ended:   true,
+				}
+				g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+					ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+					Action:       enums.WebhookActionFinished,
+				}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
@@ -132,7 +153,15 @@ func (g gcRepository) Run(runnerID int64) error {
 	close(g.deleteRepositoryWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{
+		Daemon: enums.DaemonGcRepository,
+		Status: enums.TaskCommonStatusSuccess,
+		Ended:  true,
+	}
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       enums.WebhookActionFinished,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 
 	return nil
 }
@@ -245,4 +274,28 @@ func (g gcRepository) collectRecord() {
 			}
 		}
 	}()
+}
+
+func (g gcRepository) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadGcRepository {
+	payload := types.WebhookPayloadGcRepository{
+		WebhookPayload: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+			Action:       action,
+		},
+		OperateType:  g.runnerObj.OperateType,
+		SuccessCount: g.successCount,
+		FailedCount:  g.failedCount,
+	}
+	if g.runnerObj.OperateType == enums.OperateTypeManual && g.runnerObj.OperateUser != nil {
+		payload.OperateUser = &types.WebhookPayloadUser{
+			ID:        g.runnerObj.OperateUser.ID,
+			Username:  g.runnerObj.OperateUser.Username,
+			Email:     ptr.To(g.runnerObj.OperateUser.Email),
+			Status:    g.runnerObj.OperateUser.Status,
+			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		}
+	}
+	return payload
 }
