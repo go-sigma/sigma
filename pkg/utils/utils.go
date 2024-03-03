@@ -25,9 +25,13 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
+	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetContentLength returns the content length of the request.
@@ -190,4 +194,19 @@ func UnwrapJoinedErrors(err error) string {
 		ss[index] = e.Error()
 	}
 	return strings.Join(ss, ": ")
+}
+
+// GetUserFromCtx ...
+func GetUserFromCtx(c echo.Context) (*models.User, error) {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return nil, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return nil, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	}
+	return user, nil
 }

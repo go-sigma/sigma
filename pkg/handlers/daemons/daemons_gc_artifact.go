@@ -108,6 +108,16 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc artifact rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
 		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  namespaceID,
+			Action:       enums.WebhookActionUpdate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRule,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+		}
 		return nil
 	})
 	if err != nil {
@@ -279,7 +289,7 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcArtifactRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		runnerObj := &models.DaemonGcArtifactRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcArtifactRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc artifact runner failed: %v", err)
@@ -290,6 +300,16 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String()))
+		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  namespaceID,
+			Action:       enums.WebhookActionCreate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})

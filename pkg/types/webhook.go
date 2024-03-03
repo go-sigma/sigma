@@ -18,34 +18,36 @@ import "github.com/go-sigma/sigma/pkg/types/enums"
 
 // PostWebhookRequest ...
 type PostWebhookRequest struct {
-	NamespaceID     *int64  `json:"namespace_id,omitempty" validate:"omitempty,numeric" example:"1"`
-	URL             string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
-	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       bool    `json:"ssl_verify" example:"true"`
-	RetryTimes      int     `json:"retry_times" validate:"required" example:"3"`
-	RetryDuration   int     `json:"retry_duration" validate:"required" example:"5"`
-	Enable          bool    `json:"enable" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" example:"true"`
-	EventRepository bool    `json:"event_repository" example:"true"`
-	EventTag        bool    `json:"event_tag" example:"true"`
-	EventArtifact   bool    `json:"event_artifact" example:"true"`
-	EventMember     bool    `json:"event_member" example:"true"`
+	NamespaceID       *int64  `json:"namespace_id,omitempty" validate:"omitempty,numeric" example:"1"`
+	URL               string  `json:"url" validate:"required,url,max=128" example:"http://example.com/webhook"`
+	Secret            *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
+	SslVerify         bool    `json:"ssl_verify" example:"true"`
+	RetryTimes        int     `json:"retry_times" validate:"required" example:"3"`
+	RetryDuration     int     `json:"retry_duration" validate:"required" example:"5"`
+	Enable            bool    `json:"enable" example:"true"`
+	EventNamespace    *bool   `json:"event_namespace,omitempty" example:"true"`
+	EventRepository   bool    `json:"event_repository" example:"true"`
+	EventTag          bool    `json:"event_tag" example:"true"`
+	EventArtifact     bool    `json:"event_artifact" example:"true"`
+	EventMember       bool    `json:"event_member" example:"true"`
+	EventDaemonTaskGc bool    `json:"event_daemon_task_gc" example:"true"`
 }
 
 type PutWebhookRequest struct {
 	ID int64 `json:"webhook_id" param:"webhook_id" validate:"required,number" swaggerignore:"true"`
 
-	Url             *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
-	Secret          *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
-	SslVerify       *bool   `json:"ssl_verify,omitempty" validate:"omitempty,boolean" example:"true"`
-	RetryTimes      *int    `json:"retry_times,omitempty" validate:"omitempty,number" example:"3"`
-	RetryDuration   *int    `json:"retry_duration,omitempty" validate:"omitempty,number" example:"5"`
-	Enable          *bool   `json:"enable,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventRepository *bool   `json:"event_repository,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventTag        *bool   `json:"event_tag,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventArtifact   *bool   `json:"event_artifact,omitempty" validate:"omitempty,boolean" example:"true"`
-	EventMember     *bool   `json:"event_member,omitempty" validate:"omitempty,boolean" example:"true"`
+	Url               *string `json:"url,omitempty" validate:"omitempty,url,max=128" example:"http://example.com/webhook"`
+	Secret            *string `json:"secret,omitempty" validate:"omitempty,max=63" example:"secret"`
+	SslVerify         *bool   `json:"ssl_verify,omitempty" validate:"omitempty,boolean" example:"true"`
+	RetryTimes        *int    `json:"retry_times,omitempty" validate:"omitempty,number" example:"3"`
+	RetryDuration     *int    `json:"retry_duration,omitempty" validate:"omitempty,number" example:"5"`
+	Enable            *bool   `json:"enable,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventNamespace    *bool   `json:"event_namespace,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventRepository   *bool   `json:"event_repository,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventTag          *bool   `json:"event_tag,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventArtifact     *bool   `json:"event_artifact,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventMember       *bool   `json:"event_member,omitempty" validate:"omitempty,boolean" example:"true"`
+	EventDaemonTaskGc *bool   `json:"event_daemon_task_gc,omitempty" validate:"omitempty,boolean" example:"true"`
 }
 
 // DeleteWebhookRequest ...
@@ -60,21 +62,22 @@ type GetWebhookRequest struct {
 
 // WebhookItem ...
 type WebhookItem struct {
-	ID              int64   `json:"id" example:"1"`
-	NamespaceID     *int64  `json:"namespace_id,omitempty" example:"1"`
-	URL             string  `json:"url" example:"http://example.com/webhook"`
-	Secret          *string `json:"secret,omitempty" example:"secret"`
-	SslVerify       bool    `json:"ssl_verify" example:"true"`
-	RetryTimes      int     `json:"retry_times" example:"3"`
-	RetryDuration   int     `json:"retry_duration" example:"5"`
-	Enable          bool    `json:"enable" example:"true"`
-	EventNamespace  *bool   `json:"event_namespace,omitempty" example:"true"`
-	EventRepository bool    `json:"event_repository" example:"true"`
-	EventTag        bool    `json:"event_tag" example:"true"`
-	EventArtifact   bool    `json:"event_artifact" example:"true"`
-	EventMember     bool    `json:"event_member" example:"true"`
-	CreatedAt       string  `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt       string  `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID                int64   `json:"id" example:"1"`
+	NamespaceID       *int64  `json:"namespace_id,omitempty" example:"1"`
+	URL               string  `json:"url" example:"http://example.com/webhook"`
+	Secret            *string `json:"secret,omitempty" example:"secret"`
+	SslVerify         bool    `json:"ssl_verify" example:"true"`
+	RetryTimes        int     `json:"retry_times" example:"3"`
+	RetryDuration     int     `json:"retry_duration" example:"5"`
+	Enable            bool    `json:"enable" example:"true"`
+	EventNamespace    *bool   `json:"event_namespace,omitempty" example:"true"`
+	EventRepository   bool    `json:"event_repository" example:"true"`
+	EventTag          bool    `json:"event_tag" example:"true"`
+	EventArtifact     bool    `json:"event_artifact" example:"true"`
+	EventMember       bool    `json:"event_member" example:"true"`
+	EventDaemonTaskGc bool    `json:"event_daemon_task_gc" example:"true"`
+	CreatedAt         string  `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt         string  `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // ListWebhookRequest ...
@@ -95,16 +98,16 @@ type ListWebhookLogRequest struct {
 
 // WebhookLogItem ...
 type WebhookLogItem struct {
-	ID         int64                     `json:"id" example:"1"`
-	Event      enums.WebhookResourceType `json:"event" example:"event"`
-	Action     enums.WebhookAction       `json:"action" example:"action"`
-	StatusCode int                       `json:"status_code" example:"200"`
-	ReqHeader  string                    `json:"req_header" example:""`
-	ReqBody    string                    `json:"req_body" example:""`
-	RespHeader string                    `json:"resp_header" example:""`
-	RespBody   string                    `json:"resp_body" example:""`
-	CreatedAt  string                    `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt  string                    `json:"updated_at" example:"2006-01-02 15:04:05"`
+	ID           int64                     `json:"id" example:"1"`
+	Action       enums.WebhookAction       `json:"action" example:"action"`
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"event"`
+	StatusCode   int                       `json:"status_code" example:"200"`
+	ReqHeader    string                    `json:"req_header" example:""`
+	ReqBody      string                    `json:"req_body" example:""`
+	RespHeader   string                    `json:"resp_header" example:""`
+	RespBody     string                    `json:"resp_body" example:""`
+	CreatedAt    string                    `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt    string                    `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // GetWebhookLogRequest ...
@@ -216,4 +219,61 @@ type DaemonWebhookPayloadMember struct {
 	ResourceType enums.WebhookResourceType `json:"resource_type" example:"member"`
 	Action       enums.WebhookAction       `json:"action" example:"create"`
 	Namespace    *DaemonWebhookNamespace   `json:"namespace"`
+}
+
+// WebhookPayload ...
+type WebhookPayload struct {
+	ResourceType enums.WebhookResourceType `json:"resource_type" example:"Namespace"`
+	Action       enums.WebhookAction       `json:"action" example:"Create"`
+}
+
+// WebhookPayloadUser ...
+type WebhookPayloadUser struct {
+	ID        int64            `json:"id"`
+	Username  string           `json:"username"`
+	Email     string           `json:"email"`
+	Status    enums.UserStatus `json:"status"`
+	LastLogin string           `json:"last_login"`
+
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// WebhookPayloadGcBlob ...
+type WebhookPayloadGcBlob struct {
+	WebhookPayload
+	OperateType  enums.OperateType   `json:"operate_type" example:"Automatic"`
+	OperateUser  *WebhookPayloadUser `json:"operate_user"`
+	SuccessCount int64               `json:"success_count"`
+	FailedCount  int64               `json:"failed_count"`
+}
+
+// WebhookPayloadGcArtifact ...
+type WebhookPayloadGcArtifact struct {
+	WebhookPayload
+	NamespaceID  *int64              `json:"namespace_id"`
+	OperateType  enums.OperateType   `json:"operate_type" example:"Automatic"`
+	OperateUser  *WebhookPayloadUser `json:"operate_user"`
+	SuccessCount int64               `json:"success_count"`
+	FailedCount  int64               `json:"failed_count"`
+}
+
+// WebhookPayloadGcRepository ...
+type WebhookPayloadGcRepository struct {
+	WebhookPayload
+	NamespaceID  *int64              `json:"namespace_id"`
+	OperateType  enums.OperateType   `json:"operate_type" example:"Automatic"`
+	OperateUser  *WebhookPayloadUser `json:"operate_user"`
+	SuccessCount int64               `json:"success_count"`
+	FailedCount  int64               `json:"failed_count"`
+}
+
+// WebhookPayloadGcTag ...
+type WebhookPayloadGcTag struct {
+	WebhookPayload
+	NamespaceID  *int64              `json:"namespace_id"`
+	OperateType  enums.OperateType   `json:"operate_type" example:"Automatic"`
+	OperateUser  *WebhookPayloadUser `json:"operate_user"`
+	SuccessCount int64               `json:"success_count"`
+	FailedCount  int64               `json:"failed_count"`
 }

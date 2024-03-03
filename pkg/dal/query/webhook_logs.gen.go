@@ -43,6 +43,11 @@ func newWebhookLog(db *gorm.DB, opts ...gen.DOOption) webhookLog {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Webhook", "models.Webhook"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Webhook.Namespace", "models.Namespace"),
+		},
 	}
 
 	_webhookLog.fillFieldMap()
@@ -151,6 +156,10 @@ type webhookLogBelongsToWebhook struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	Namespace struct {
+		field.RelationField
+	}
 }
 
 func (a webhookLogBelongsToWebhook) Where(conds ...field.Expr) *webhookLogBelongsToWebhook {

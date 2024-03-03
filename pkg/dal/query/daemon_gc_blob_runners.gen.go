@@ -34,6 +34,8 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 	_daemonGcBlobRunner.RuleID = field.NewInt64(tableName, "rule_id")
 	_daemonGcBlobRunner.Status = field.NewField(tableName, "status")
 	_daemonGcBlobRunner.Message = field.NewBytes(tableName, "message")
+	_daemonGcBlobRunner.OperateType = field.NewField(tableName, "operate_type")
+	_daemonGcBlobRunner.OperateUserID = field.NewInt64(tableName, "operate_user_id")
 	_daemonGcBlobRunner.StartedAt = field.NewTime(tableName, "started_at")
 	_daemonGcBlobRunner.EndedAt = field.NewTime(tableName, "ended_at")
 	_daemonGcBlobRunner.Duration = field.NewInt64(tableName, "duration")
@@ -45,6 +47,12 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 		RelationField: field.NewRelation("Rule", "models.DaemonGcBlobRule"),
 	}
 
+	_daemonGcBlobRunner.OperateUser = daemonGcBlobRunnerBelongsToOperateUser{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("OperateUser", "models.User"),
+	}
+
 	_daemonGcBlobRunner.fillFieldMap()
 
 	return _daemonGcBlobRunner
@@ -53,20 +61,24 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 type daemonGcBlobRunner struct {
 	daemonGcBlobRunnerDo daemonGcBlobRunnerDo
 
-	ALL          field.Asterisk
-	CreatedAt    field.Int64
-	UpdatedAt    field.Int64
-	DeletedAt    field.Uint64
-	ID           field.Int64
-	RuleID       field.Int64
-	Status       field.Field
-	Message      field.Bytes
-	StartedAt    field.Time
-	EndedAt      field.Time
-	Duration     field.Int64
-	SuccessCount field.Int64
-	FailedCount  field.Int64
-	Rule         daemonGcBlobRunnerBelongsToRule
+	ALL           field.Asterisk
+	CreatedAt     field.Int64
+	UpdatedAt     field.Int64
+	DeletedAt     field.Uint64
+	ID            field.Int64
+	RuleID        field.Int64
+	Status        field.Field
+	Message       field.Bytes
+	OperateType   field.Field
+	OperateUserID field.Int64
+	StartedAt     field.Time
+	EndedAt       field.Time
+	Duration      field.Int64
+	SuccessCount  field.Int64
+	FailedCount   field.Int64
+	Rule          daemonGcBlobRunnerBelongsToRule
+
+	OperateUser daemonGcBlobRunnerBelongsToOperateUser
 
 	fieldMap map[string]field.Expr
 }
@@ -90,6 +102,8 @@ func (d *daemonGcBlobRunner) updateTableName(table string) *daemonGcBlobRunner {
 	d.RuleID = field.NewInt64(table, "rule_id")
 	d.Status = field.NewField(table, "status")
 	d.Message = field.NewBytes(table, "message")
+	d.OperateType = field.NewField(table, "operate_type")
+	d.OperateUserID = field.NewInt64(table, "operate_user_id")
 	d.StartedAt = field.NewTime(table, "started_at")
 	d.EndedAt = field.NewTime(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
@@ -123,7 +137,7 @@ func (d *daemonGcBlobRunner) GetFieldByName(fieldName string) (field.OrderExpr, 
 }
 
 func (d *daemonGcBlobRunner) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 13)
+	d.fieldMap = make(map[string]field.Expr, 16)
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
@@ -131,6 +145,8 @@ func (d *daemonGcBlobRunner) fillFieldMap() {
 	d.fieldMap["rule_id"] = d.RuleID
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["message"] = d.Message
+	d.fieldMap["operate_type"] = d.OperateType
+	d.fieldMap["operate_user_id"] = d.OperateUserID
 	d.fieldMap["started_at"] = d.StartedAt
 	d.fieldMap["ended_at"] = d.EndedAt
 	d.fieldMap["duration"] = d.Duration
@@ -217,6 +233,77 @@ func (a daemonGcBlobRunnerBelongsToRuleTx) Clear() error {
 }
 
 func (a daemonGcBlobRunnerBelongsToRuleTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type daemonGcBlobRunnerBelongsToOperateUser struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUser) Where(conds ...field.Expr) *daemonGcBlobRunnerBelongsToOperateUser {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUser) WithContext(ctx context.Context) *daemonGcBlobRunnerBelongsToOperateUser {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUser) Session(session *gorm.Session) *daemonGcBlobRunnerBelongsToOperateUser {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUser) Model(m *models.DaemonGcBlobRunner) *daemonGcBlobRunnerBelongsToOperateUserTx {
+	return &daemonGcBlobRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+type daemonGcBlobRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Find() (result *models.User, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Append(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Replace(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Delete(values ...*models.User) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
 }
 

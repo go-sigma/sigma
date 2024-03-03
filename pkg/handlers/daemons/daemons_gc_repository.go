@@ -108,6 +108,16 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc repository rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  namespaceID,
+			Action:       enums.WebhookActionUpdate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRule,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+		}
 		return nil
 	})
 	if err != nil {
@@ -279,7 +289,7 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc repository rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		runnerObj := &models.DaemonGcRepositoryRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending}
+		runnerObj := &models.DaemonGcRepositoryRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcRepositoryRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
@@ -290,6 +300,16 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
+		}
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			NamespaceID:  namespaceID,
+			Action:       enums.WebhookActionCreate,
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+			Payload:      utils.MustMarshal(req),
+		}, definition.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Msg("Webhook event produce failed")
+			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})

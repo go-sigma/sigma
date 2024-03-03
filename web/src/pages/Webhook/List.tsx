@@ -85,7 +85,8 @@ export default function ({ localServer }: { localServer: string }) {
   const [eventRepository, setEventRepository] = useState(true);
   const [eventTag, setEventTag] = useState(true);
   const [eventMember, setEventMember] = useState(true);
-  const [eventArtifact, setEventArtifact] = useState(false);
+  const [eventArtifact, setEventArtifact] = useState(true);
+  const [eventDaemonTaskGc, setEventDaemonTaskGc] = useState(true);
 
   const [retryTimes, setRetryTimes] = useState<string | number>(1);
   const [retryTimesValid, setRetryTimesValid] = useState(true);
@@ -170,6 +171,7 @@ export default function ({ localServer }: { localServer: string }) {
       event_tag: eventTag,
       event_artifact: eventArtifact,
       event_member: eventMember,
+      event_daemon_task_gc: eventDaemonTaskGc,
     };
     if (secret != undefined && secret.length != 0) {
       data["secret"] = secret;
@@ -179,9 +181,9 @@ export default function ({ localServer }: { localServer: string }) {
     }
 
     let u = `${localServer}/api/v1/webhooks/`;
-    if (namespaceId != null) {
+    if (location.pathname.startsWith("/settings")) {
       data["event_namespace"] = eventNamespace;
-      data["namespace_id"] = parseInt(namespaceId);
+      data["namespace_id"] = parseInt(namespaceId || "");
     }
     axios.post(u, data, {}).then(response => {
       if (response.status === 201) {
@@ -493,12 +495,23 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-row gap-4">
+                      {
+                        location.pathname.startsWith("/settings") ? (
+                          <div className="flex items-center">
+                            <input id="event-namespace" type="checkbox"
+                              checked={eventNamespace}
+                              onChange={e => setEventNamespace(!eventNamespace)}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                            <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                          </div>
+                        ) : null
+                      }
                       <div className="flex items-center">
-                        <input id="event-namespace" type="checkbox"
-                          checked={eventNamespace}
-                          onChange={e => setEventNamespace(!eventNamespace)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                        <input id="event-member"
+                          checked={eventMember}
+                          onChange={e => setEventMember(!eventMember)}
+                          type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                        <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
                       </div>
                       <div className="flex items-center">
                         <input id="event-repository" type="checkbox"
@@ -522,11 +535,11 @@ export default function ({ localServer }: { localServer: string }) {
                         <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
                       </div>
                       <div className="flex items-center">
-                        <input id="event-member"
-                          checked={eventMember}
-                          onChange={e => setEventMember(!eventMember)}
-                          type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
+                        <input id="event-daemon-task-gc" type="checkbox"
+                          checked={eventDaemonTaskGc}
+                          onChange={e => setEventDaemonTaskGc(!eventDaemonTaskGc)}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                        <label htmlFor="event-daemon-task-gc" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gc Event</label>
                       </div>
                     </div>
                     <div className="flex flex-row-reverse mt-4 pt-4 border-t">

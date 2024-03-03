@@ -64,7 +64,7 @@ func TestPutNamespace(t *testing.T) {
 	workQueueProducer := workqmocks.NewMockWorkQueueProducer(ctrl)
 	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
 		return nil
-	}).Times(1)
+	}).Times(3)
 
 	namespaceHandler := handlerNew(inject{producerClient: workQueueProducer})
 

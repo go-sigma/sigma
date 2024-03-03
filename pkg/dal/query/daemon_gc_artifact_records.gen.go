@@ -52,6 +52,11 @@ func newDaemonGcArtifactRecord(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 				RelationField: field.NewRelation("Runner.Rule.Namespace", "models.Namespace"),
 			},
 		},
+		OperateUser: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Runner.OperateUser", "models.User"),
+		},
 	}
 
 	_daemonGcArtifactRecord.fillFieldMap()
@@ -156,6 +161,9 @@ type daemonGcArtifactRecordBelongsToRunner struct {
 		Namespace struct {
 			field.RelationField
 		}
+	}
+	OperateUser struct {
+		field.RelationField
 	}
 }
 

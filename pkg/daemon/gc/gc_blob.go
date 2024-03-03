@@ -25,11 +25,13 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -60,6 +62,11 @@ type gcBlob struct {
 	ctx    context.Context
 	config configs.Configuration
 
+	runnerObj *models.DaemonGcBlobRunner
+
+	successCount int64
+	failedCount  int64
+
 	blobServiceFactory   dao.BlobServiceFactory
 	daemonServiceFactory dao.DaemonServiceFactory
 	storageDriverFactory storage.StorageDriverFactory
@@ -69,7 +76,8 @@ type gcBlob struct {
 	collectRecordChan     chan blobTaskCollectRecord
 	collectRecordChanOnce *sync.Once
 
-	runnerChan chan decoratorStatus
+	runnerChan  chan decoratorStatus
+	webhookChan chan decoratorWebhook
 
 	waitAllDone *sync.WaitGroup
 }
@@ -79,17 +87,28 @@ func (g gcBlob) Run(runnerID int64) error {
 	defer close(g.runnerChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusDoing, Started: true}
 
-	runnerObj, err := g.daemonServiceFactory.New().GetGcBlobRunner(g.ctx, runnerID)
+	var err error
+	g.runnerObj, err = g.daemonServiceFactory.New().GetGcBlobRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc blob runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcBlob,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Get gc blob runner failed: %v", err),
+			Ended:   true,
+		}
 		return fmt.Errorf("get gc blob runner failed: %v", err)
 	}
+
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		Action:       enums.WebhookActionStarted,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionStarted)}
 
 	blobService := g.blobServiceFactory.New()
 
 	timeTarget := time.Now()
-	if runnerObj.Rule.RetentionDay > 0 {
-		timeTarget = time.Now().Add(-1 * time.Duration(runnerObj.Rule.RetentionDay) * 24 * time.Hour)
+	if g.runnerObj.Rule.RetentionDay > 0 {
+		timeTarget = time.Now().Add(-1 * time.Duration(g.runnerObj.Rule.RetentionDay) * 24 * time.Hour)
 	}
 
 	g.deleteBlobChanOnce.Do(g.deleteBlob)
@@ -100,7 +119,16 @@ func (g gcBlob) Run(runnerID int64) error {
 	for {
 		blobs, err := blobService.FindWithLastPull(g.ctx, timeTarget, curIndex, pagination)
 		if err != nil {
-			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get blob with last pull failed: %v", err), Ended: true}
+			g.runnerChan <- decoratorStatus{
+				Daemon:  enums.DaemonGcBlob,
+				Status:  enums.TaskCommonStatusFailed,
+				Message: fmt.Sprintf("Get blob with last pull failed: %v", err),
+				Ended:   true,
+			}
+			g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+				ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+				Action:       enums.WebhookActionFinished,
+			}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 			return fmt.Errorf("get blob with last pull failed: %v", err)
 		}
 		var ids []int64
@@ -110,6 +138,10 @@ func (g gcBlob) Run(runnerID int64) error {
 		associateBlobIDs, err := blobService.FindAssociateWithArtifact(g.ctx, ids)
 		if err != nil {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Check blob associate with artifact failed: %v", err), Ended: true}
+			g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+				ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+				Action:       enums.WebhookActionFinished,
+			}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 			return fmt.Errorf("check blob associate with artifact failed: %v", err)
 		}
 		notAssociateBlobIDs := mapset.NewSet(ids...)
@@ -126,7 +158,7 @@ func (g gcBlob) Run(runnerID int64) error {
 			}
 			if len(notAssociateBlobObjs) > 0 {
 				for _, blob := range notAssociateBlobObjs {
-					g.deleteBlobChan <- blobTask{Runner: ptr.To(runnerObj), Blob: ptr.To(blob)}
+					g.deleteBlobChan <- blobTask{Runner: ptr.To(g.runnerObj), Blob: ptr.To(blob)}
 				}
 			}
 		}
@@ -138,7 +170,11 @@ func (g gcBlob) Run(runnerID int64) error {
 	close(g.deleteBlobChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		Action:       enums.WebhookActionFinished,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 
 	return nil
 }
@@ -172,14 +208,13 @@ func (g gcBlob) deleteBlob() {
 }
 
 func (g gcBlob) collectRecord() {
-	var successCount, failedCount int64
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		defer func() {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
-				"success_count": successCount,
-				"failed_count":  failedCount,
+				"success_count": g.successCount,
+				"failed_count":  g.failedCount,
 			}}
 		}()
 		for task := range g.collectRecordChan {
@@ -196,10 +231,34 @@ func (g gcBlob) collectRecord() {
 				continue
 			}
 			if task.Status == enums.GcRecordStatusSuccess {
-				successCount++
+				g.successCount++
 			} else {
-				failedCount++
+				g.failedCount++
 			}
 		}
 	}()
+}
+
+func (g gcBlob) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadGcBlob {
+	payload := types.WebhookPayloadGcBlob{
+		WebhookPayload: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+			Action:       action,
+		},
+		OperateType:  g.runnerObj.OperateType,
+		SuccessCount: g.successCount,
+		FailedCount:  g.failedCount,
+	}
+	if g.runnerObj.OperateType == enums.OperateTypeManual && g.runnerObj.OperateUser != nil {
+		payload.OperateUser = &types.WebhookPayloadUser{
+			ID:        g.runnerObj.OperateUser.ID,
+			Username:  g.runnerObj.OperateUser.Username,
+			Email:     ptr.To(g.runnerObj.OperateUser.Email),
+			Status:    g.runnerObj.OperateUser.Status,
+			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		}
+	}
+	return payload
 }

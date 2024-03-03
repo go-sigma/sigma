@@ -5834,7 +5834,9 @@ const docTemplate = `{
                 "Delete",
                 "Add",
                 "Remove",
-                "Ping"
+                "Ping",
+                "Started",
+                "Finished"
             ],
             "x-enum-varnames": [
                 "WebhookActionCreate",
@@ -5842,7 +5844,9 @@ const docTemplate = `{
                 "WebhookActionDelete",
                 "WebhookActionAdd",
                 "WebhookActionRemove",
-                "WebhookActionPing"
+                "WebhookActionPing",
+                "WebhookActionStarted",
+                "WebhookActionFinished"
             ]
         },
         "enums.WebhookResourceType": {
@@ -5853,7 +5857,15 @@ const docTemplate = `{
                 "Repository",
                 "Tag",
                 "Artifact",
-                "Member"
+                "Member",
+                "DaemonTaskGcRepositoryRule",
+                "DaemonTaskGcTagRule",
+                "DaemonTaskGcArtifactRule",
+                "DaemonTaskGcBlobRule",
+                "DaemonTaskGcRepositoryRunner",
+                "DaemonTaskGcTagRunner",
+                "DaemonTaskGcArtifactRunner",
+                "DaemonTaskGcBlobRunner"
             ],
             "x-enum-varnames": [
                 "WebhookResourceTypeWebhook",
@@ -5861,7 +5873,15 @@ const docTemplate = `{
                 "WebhookResourceTypeRepository",
                 "WebhookResourceTypeTag",
                 "WebhookResourceTypeArtifact",
-                "WebhookResourceTypeMember"
+                "WebhookResourceTypeMember",
+                "WebhookResourceTypeDaemonTaskGcRepositoryRule",
+                "WebhookResourceTypeDaemonTaskGcTagRule",
+                "WebhookResourceTypeDaemonTaskGcArtifactRule",
+                "WebhookResourceTypeDaemonTaskGcBlobRule",
+                "WebhookResourceTypeDaemonTaskGcRepositoryRunner",
+                "WebhookResourceTypeDaemonTaskGcTagRunner",
+                "WebhookResourceTypeDaemonTaskGcArtifactRunner",
+                "WebhookResourceTypeDaemonTaskGcBlobRunner"
             ]
         },
         "types.AddNamespaceMemberRequest": {
@@ -7902,14 +7922,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2006-01-02 15:04:05"
                 },
-                "event": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.WebhookResourceType"
-                        }
-                    ],
-                    "example": "event"
-                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -7921,6 +7933,14 @@ const docTemplate = `{
                 "req_header": {
                     "type": "string",
                     "example": ""
+                },
+                "resource_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.WebhookResourceType"
+                        }
+                    ],
+                    "example": "event"
                 },
                 "resp_body": {
                     "type": "string",

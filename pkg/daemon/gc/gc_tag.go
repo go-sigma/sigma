@@ -24,10 +24,12 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -73,6 +75,11 @@ type gcTag struct {
 	ctx    context.Context
 	config configs.Configuration
 
+	runnerObj *models.DaemonGcTagRunner
+
+	successCount int64
+	failedCount  int64
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -91,7 +98,8 @@ type gcTag struct {
 	collectRecordChan               chan tagTaskCollectRecord
 	collectRecordChanOnce           *sync.Once
 
-	runnerChan chan decoratorStatus
+	runnerChan  chan decoratorStatus
+	webhookChan chan decoratorWebhook
 
 	waitAllDone *sync.WaitGroup
 }
@@ -100,15 +108,36 @@ type gcTag struct {
 func (g gcTag) Run(runnerID int64) error {
 	defer close(g.runnerChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcTagRunner(g.ctx, runnerID)
+
+	var err error
+	g.runnerObj, err = g.daemonServiceFactory.New().GetGcTagRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc tag runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcTag,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Get gc tag runner failed: %v", err),
+			Ended:   true,
+		}
 		return fmt.Errorf("get gc tag runner failed: %v", err)
 	}
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+		Action:       enums.WebhookActionStarted,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionStarted)}
 
-	if runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
-		log.Error().Err(err).Interface("RetentionRuleType", runnerObj.Rule.RetentionRuleType).Msg("Gc tag rule retention type is invalid")
-		return fmt.Errorf("gc tag rule retention type is invalid: %v", runnerObj.Rule.RetentionRuleType)
+	if g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcTag,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Gc tag rule retention type(%s) is invalid", g.runnerObj.Rule.RetentionRuleType),
+			Ended:   true,
+		}
+		g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+			Action:       enums.WebhookActionFinished,
+		}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
+		log.Error().Err(err).Interface("RetentionRuleType", g.runnerObj.Rule.RetentionRuleType).Msg("Gc tag rule retention type is invalid")
+		return fmt.Errorf("gc tag rule retention type is invalid: %v", g.runnerObj.Rule.RetentionRuleType)
 	}
 
 	namespaceService := g.namespaceServiceFactory.New()
@@ -120,18 +149,27 @@ func (g gcTag) Run(runnerID int64) error {
 	g.collectRecordChanOnce.Do(g.collectRecord)
 	g.waitAllDone.Add(5)
 
-	if runnerObj.Rule.NamespaceID != nil {
-		g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+	if g.runnerObj.Rule.NamespaceID != nil {
+		g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: ptr.To(g.runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
 			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				g.runnerChan <- decoratorStatus{
+					Daemon:  enums.DaemonGcTag,
+					Status:  enums.TaskCommonStatusFailed,
+					Message: fmt.Sprintf("Get namespace with cursor failed: %v", err),
+					Ended:   true,
+				}
+				g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+					ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+					Action:       enums.WebhookActionFinished,
+				}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
-				g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: nsObj.ID}
+				g.deleteTagWithNamespaceChan <- tagWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: nsObj.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -142,7 +180,15 @@ func (g gcTag) Run(runnerID int64) error {
 	close(g.deleteTagWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{
+		Daemon: enums.DaemonGcTag,
+		Status: enums.TaskCommonStatusSuccess,
+		Ended:  true,
+	}
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+		Action:       enums.WebhookActionFinished,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 
 	return nil
 }
@@ -242,14 +288,13 @@ func (g gcTag) deleteTag() {
 }
 
 func (g gcTag) collectRecord() {
-	var successCount, failedCount int64
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		defer func() {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
-				"success_count": successCount,
-				"failed_count":  failedCount,
+				"success_count": g.successCount,
+				"failed_count":  g.failedCount,
 			}}
 		}()
 		for task := range g.collectRecordChan {
@@ -266,10 +311,34 @@ func (g gcTag) collectRecord() {
 				continue
 			}
 			if task.Status == enums.GcRecordStatusSuccess {
-				successCount++
+				g.successCount++
 			} else {
-				failedCount++
+				g.failedCount++
 			}
 		}
 	}()
+}
+
+func (g gcTag) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadGcTag {
+	payload := types.WebhookPayloadGcTag{
+		WebhookPayload: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+			Action:       action,
+		},
+		OperateType:  g.runnerObj.OperateType,
+		SuccessCount: g.successCount,
+		FailedCount:  g.failedCount,
+	}
+	if g.runnerObj.OperateType == enums.OperateTypeManual && g.runnerObj.OperateUser != nil {
+		payload.OperateUser = &types.WebhookPayloadUser{
+			ID:        g.runnerObj.OperateUser.ID,
+			Username:  g.runnerObj.OperateUser.Username,
+			Email:     ptr.To(g.runnerObj.OperateUser.Email),
+			Status:    g.runnerObj.OperateUser.Status,
+			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		}
+	}
+	return payload
 }

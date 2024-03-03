@@ -148,6 +148,8 @@ definitions:
     - Add
     - Remove
     - Ping
+    - Started
+    - Finished
     type: string
     x-enum-varnames:
     - WebhookActionCreate
@@ -156,6 +158,8 @@ definitions:
     - WebhookActionAdd
     - WebhookActionRemove
     - WebhookActionPing
+    - WebhookActionStarted
+    - WebhookActionFinished
   enums.WebhookResourceType:
     enum:
     - Webhook
@@ -164,6 +168,14 @@ definitions:
     - Tag
     - Artifact
     - Member
+    - DaemonTaskGcRepositoryRule
+    - DaemonTaskGcTagRule
+    - DaemonTaskGcArtifactRule
+    - DaemonTaskGcBlobRule
+    - DaemonTaskGcRepositoryRunner
+    - DaemonTaskGcTagRunner
+    - DaemonTaskGcArtifactRunner
+    - DaemonTaskGcBlobRunner
     type: string
     x-enum-varnames:
     - WebhookResourceTypeWebhook
@@ -172,6 +184,14 @@ definitions:
     - WebhookResourceTypeTag
     - WebhookResourceTypeArtifact
     - WebhookResourceTypeMember
+    - WebhookResourceTypeDaemonTaskGcRepositoryRule
+    - WebhookResourceTypeDaemonTaskGcTagRule
+    - WebhookResourceTypeDaemonTaskGcArtifactRule
+    - WebhookResourceTypeDaemonTaskGcBlobRule
+    - WebhookResourceTypeDaemonTaskGcRepositoryRunner
+    - WebhookResourceTypeDaemonTaskGcTagRunner
+    - WebhookResourceTypeDaemonTaskGcArtifactRunner
+    - WebhookResourceTypeDaemonTaskGcBlobRunner
   types.AddNamespaceMemberRequest:
     properties:
       role:
@@ -1618,10 +1638,6 @@ definitions:
       created_at:
         example: "2006-01-02 15:04:05"
         type: string
-      event:
-        allOf:
-        - $ref: '#/definitions/enums.WebhookResourceType'
-        example: event
       id:
         example: 1
         type: integer
@@ -1631,6 +1647,10 @@ definitions:
       req_header:
         example: ""
         type: string
+      resource_type:
+        allOf:
+        - $ref: '#/definitions/enums.WebhookResourceType'
+        example: event
       resp_body:
         example: ""
         type: string

@@ -20,15 +20,18 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/copier"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 //go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryService
@@ -93,9 +96,10 @@ func (s *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 
 // AutoCreateNamespace ...
 type AutoCreateNamespace struct {
-	AutoCreate bool
-	Visibility enums.Visibility
-	UserID     int64
+	AutoCreate     bool
+	Visibility     enums.Visibility
+	UserID         int64
+	ProducerClient definition.WorkQueueProducer
 }
 
 // Create creates a new repository.
@@ -123,6 +127,24 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		if err != nil {
 			return err
 		}
+		err = s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
+			PType: ptr.Of("g"),
+			V0:    ptr.Of(fmt.Sprintf("%d", autoCreateNamespace.UserID)),
+			V1:    ptr.Of(enums.NamespaceRoleAdmin.String()),
+			V2:    ptr.Of(namespaceObj.Name),
+			V3:    ptr.Of(""),
+			V4:    ptr.Of(""),
+			V5:    ptr.Of(""),
+		})
+		if err != nil {
+			return err
+		}
+		namespaceMember := &models.NamespaceMember{UserID: autoCreateNamespace.UserID, NamespaceID: namespaceObj.ID, Role: enums.NamespaceRoleAdmin}
+		err = s.tx.NamespaceMember.WithContext(ctx).Create(namespaceMember)
+		if err != nil {
+			return err
+		}
+
 		err = s.tx.Audit.WithContext(ctx).Create(&models.Audit{
 			UserID:       autoCreateNamespace.UserID,
 			NamespaceID:  ptr.Of(namespaceObj.ID),
@@ -132,6 +154,19 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		})
 		if err != nil {
 			return err
+		}
+
+		if autoCreateNamespace.ProducerClient != nil {
+			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+				NamespaceID:  ptr.Of(namespaceObj.ID),
+				Action:       enums.WebhookActionCreate,
+				ResourceType: enums.WebhookResourceTypeNamespace,
+				Payload:      utils.MustMarshal(namespaceObj),
+			}, definition.ProducerOption{Tx: s.tx})
+			if err != nil {
+				log.Error().Err(err).Msg("Webhook event produce failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+			}
 		}
 	}
 	repositoryObj.NamespaceID = namespaceObj.ID
@@ -151,9 +186,22 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 			Action:       enums.AuditActionCreate,
 			ResourceType: enums.AuditResourceTypeRepository,
 			Resource:     repositoryObj.Name,
+			ReqRaw:       utils.MustMarshal(repositoryObj),
 		})
 		if err != nil {
 			return err
+		}
+		if autoCreateNamespace.ProducerClient != nil {
+			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+				NamespaceID:  ptr.Of(namespaceObj.ID),
+				Action:       enums.WebhookActionCreate,
+				ResourceType: enums.WebhookResourceTypeRepository,
+				Payload:      utils.MustMarshal(repositoryObj),
+			}, definition.ProducerOption{Tx: s.tx})
+			if err != nil {
+				log.Error().Err(err).Msg("Webhook event produce failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+			}
 		}
 		return nil
 	}

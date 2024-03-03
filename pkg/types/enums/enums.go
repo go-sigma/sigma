@@ -172,6 +172,14 @@ type AuditResourceType string
 // Tag,
 // Artifact,
 // Member,
+// DaemonTaskGcRepositoryRule,
+// DaemonTaskGcTagRule,
+// DaemonTaskGcArtifactRule,
+// DaemonTaskGcBlobRule,
+// DaemonTaskGcRepositoryRunner,
+// DaemonTaskGcTagRunner,
+// DaemonTaskGcArtifactRunner,
+// DaemonTaskGcBlobRunner,
 // )
 type WebhookResourceType string
 
@@ -182,6 +190,9 @@ type WebhookResourceType string
 // Add,
 // Remove,
 // Ping,
+// Started,
+// Doing,
+// Finished,
 // )
 type WebhookAction string
 
@@ -291,3 +302,9 @@ type NamespaceRole string
 // Admin,
 // )
 type Auth string
+
+// OperateType x ENUM(
+// Manual,
+// Automatic,
+// )
+type OperateType string

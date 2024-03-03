@@ -9,9 +9,9 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
-	github.com/anchore/syft v0.105.0
+	github.com/anchore/syft v0.105.1
 	github.com/aquasecurity/trivy v0.49.1
-	github.com/aws/aws-sdk-go v1.50.25
+	github.com/aws/aws-sdk-go v1.50.27
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.82.0
 	github.com/casbin/gorm-adapter/v3 v3.21.0
@@ -63,9 +63,9 @@ require (
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.46
 	github.com/tidwall/gjson v1.17.1
 	github.com/wagslane/go-password-validator v0.3.0
-	github.com/xanzy/go-gitlab v0.97.0
+	github.com/xanzy/go-gitlab v0.98.0
 	go.uber.org/mock v0.4.0
-	golang.org/x/crypto v0.19.0
+	golang.org/x/crypto v0.20.0
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 	golang.org/x/net v0.21.0
 	golang.org/x/oauth2 v0.17.0
@@ -75,7 +75,7 @@ require (
 	gorm.io/driver/sqlite v1.5.5
 	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.25.7
-	gorm.io/plugin/dbresolver v1.5.0
+	gorm.io/plugin/dbresolver v1.5.1
 	gorm.io/plugin/soft_delete v1.2.1
 	k8s.io/api v0.29.2
 	k8s.io/apimachinery v0.29.2
@@ -103,7 +103,7 @@ require (
 	github.com/anchore/go-logger v0.0.0-20230725134548-c21dafa1ec5a // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20240202171727-877e1747d426 // indirect
-	github.com/anchore/stereoscope v0.0.2-0.20240208195325-681f6715b0e3 // indirect
+	github.com/anchore/stereoscope v0.0.2-0.20240216182029-6171ee21e1d5 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/aquasecurity/trivy-db v0.0.0-20231005141211-4fc651f7ac8d // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -381,7 +381,7 @@ require (
 	modernc.org/libc v1.41.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
-	modernc.org/sqlite v1.29.1 // indirect
+	modernc.org/sqlite v1.29.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect

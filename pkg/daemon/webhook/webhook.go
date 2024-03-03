@@ -149,27 +149,29 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		filter[query.Webhook.EventArtifact.ColumnName().String()] = true
 	case enums.WebhookResourceTypeMember:
 		filter[query.Webhook.EventMember.ColumnName().String()] = true
+	case enums.WebhookResourceTypeDaemonTaskGcArtifactRule, enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
+		enums.WebhookResourceTypeDaemonTaskGcBlobRule, enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		enums.WebhookResourceTypeDaemonTaskGcRepositoryRule, enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		enums.WebhookResourceTypeDaemonTaskGcTagRule, enums.WebhookResourceTypeDaemonTaskGcTagRunner:
+		filter[query.Webhook.EventDaemonTaskGc.ColumnName().String()] = true
 	}
 	webhookObjs, err := webhookService.GetByFilter(ctx, filter)
 	if err != nil {
 		return err
 	}
-	body := utils.MustMarshal(types.DaemonWebhookPayloadPing{
-		ResourceType: enums.WebhookResourceTypeNamespace,
-	})
 	headers := w.defaultHeaders()
 	for _, webhookObj := range webhookObjs {
-		headers, err = w.secretHeader(webhookObj.Secret, body, headers)
+		headers, err = w.secretHeader(webhookObj.Secret, payload.Payload, headers)
 		if err != nil {
 			log.Error().Err(err).Msg("Calculate secret header failed")
 			continue
 		}
 		webhookLogObj := &models.WebhookLog{
-			WebhookID:    &webhookObj.ID,
+			WebhookID:    webhookObj.ID,
 			ResourceType: payload.ResourceType,
 			Action:       payload.Action,
 			ReqHeader:    utils.MustMarshal(headers),
-			ReqBody:      body,
+			ReqBody:      payload.Payload,
 		}
 		client := w.client(clientOption{
 			SslVerify:     webhookObj.SslVerify,
@@ -203,7 +205,7 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 
 func (w webhook) ping(ctx context.Context, payload types.DaemonWebhookPayload) (*models.WebhookLog, error) {
 	webhookService := w.webhookServiceFactory.New()
-	webhookObj, err := webhookService.Get(ctx, ptr.To(payload.WebhookID))
+	webhookObj, err := webhookService.Get(ctx, payload.WebhookID)
 	if err != nil {
 		return nil, err
 	}

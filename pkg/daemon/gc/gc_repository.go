@@ -23,10 +23,12 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -65,6 +67,11 @@ type gcRepository struct {
 	ctx    context.Context
 	config configs.Configuration
 
+	runnerObj *models.DaemonGcRepositoryRunner
+
+	successCount int64
+	failedCount  int64
+
 	namespaceServiceFactory  dao.NamespaceServiceFactory
 	repositoryServiceFactory dao.RepositoryServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
@@ -79,7 +86,8 @@ type gcRepository struct {
 	collectRecordChan                       chan repositoryTaskCollectRecord
 	collectRecordChanOnce                   *sync.Once
 
-	runnerChan chan decoratorStatus
+	runnerChan  chan decoratorStatus
+	webhookChan chan decoratorWebhook
 
 	waitAllDone *sync.WaitGroup
 }
@@ -88,11 +96,23 @@ type gcRepository struct {
 func (g gcRepository) Run(runnerID int64) error {
 	defer close(g.runnerChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing, Started: true}
-	runnerObj, err := g.daemonServiceFactory.New().GetGcRepositoryRunner(g.ctx, runnerID)
+
+	var err error
+	g.runnerObj, err = g.daemonServiceFactory.New().GetGcRepositoryRunner(g.ctx, runnerID)
 	if err != nil {
-		g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get gc repository runner failed: %v", err), Ended: true}
+		g.runnerChan <- decoratorStatus{
+			Daemon:  enums.DaemonGcRepository,
+			Status:  enums.TaskCommonStatusFailed,
+			Message: fmt.Sprintf("Get gc repository runner failed: %v", err),
+			Ended:   true,
+		}
 		return fmt.Errorf("get gc repository runner failed: %v", err)
 	}
+
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       enums.WebhookActionStarted,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionStarted)}
 
 	g.deleteRepositoryWithNamespaceChanOnce.Do(g.deleteRepositoryWithNamespace)
 	g.deleteRepositoryCheckRepositoryChanOnce.Do(g.deleteRepositoryCheck)
@@ -102,18 +122,27 @@ func (g gcRepository) Run(runnerID int64) error {
 
 	namespaceService := g.namespaceServiceFactory.New()
 
-	if runnerObj.Rule.NamespaceID != nil {
-		g.deleteRepositoryWithNamespaceChan <- repositoryWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: ptr.To(runnerObj.Rule.NamespaceID)}
+	if g.runnerObj.Rule.NamespaceID != nil {
+		g.deleteRepositoryWithNamespaceChan <- repositoryWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: ptr.To(g.runnerObj.Rule.NamespaceID)}
 	} else {
 		var namespaceCurIndex int64
 		for {
 			namespaceObjs, err := namespaceService.FindWithCursor(g.ctx, pagination, namespaceCurIndex)
 			if err != nil {
-				g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusFailed, Message: fmt.Sprintf("Get namespace with cursor failed: %v", err), Ended: true}
+				g.runnerChan <- decoratorStatus{
+					Daemon:  enums.DaemonGcRepository,
+					Status:  enums.TaskCommonStatusFailed,
+					Message: fmt.Sprintf("Get namespace with cursor failed: %v", err),
+					Ended:   true,
+				}
+				g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+					ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+					Action:       enums.WebhookActionFinished,
+				}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 				return fmt.Errorf("get namespace with cursor failed: %v", err)
 			}
 			for _, nsObj := range namespaceObjs {
-				g.deleteRepositoryWithNamespaceChan <- repositoryWithNamespaceTask{Runner: ptr.To(runnerObj), NamespaceID: nsObj.ID}
+				g.deleteRepositoryWithNamespaceChan <- repositoryWithNamespaceTask{Runner: ptr.To(g.runnerObj), NamespaceID: nsObj.ID}
 			}
 			if len(namespaceObjs) < pagination {
 				break
@@ -124,7 +153,15 @@ func (g gcRepository) Run(runnerID int64) error {
 	close(g.deleteRepositoryWithNamespaceChan)
 	g.waitAllDone.Wait()
 
-	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusSuccess, Ended: true}
+	g.runnerChan <- decoratorStatus{
+		Daemon: enums.DaemonGcRepository,
+		Status: enums.TaskCommonStatusSuccess,
+		Ended:  true,
+	}
+	g.webhookChan <- decoratorWebhook{Meta: types.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       enums.WebhookActionFinished,
+	}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 
 	return nil
 }
@@ -208,14 +245,13 @@ func (g gcRepository) deleteRepository() {
 }
 
 func (g gcRepository) collectRecord() {
-	var successCount, failedCount int64
 	daemonService := g.daemonServiceFactory.New()
 	go func() {
 		defer g.waitAllDone.Done()
 		defer func() {
 			g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing, Updates: map[string]any{
-				"success_count": successCount,
-				"failed_count":  failedCount,
+				"success_count": g.successCount,
+				"failed_count":  g.failedCount,
 			}}
 		}()
 		for task := range g.collectRecordChan {
@@ -232,10 +268,34 @@ func (g gcRepository) collectRecord() {
 				continue
 			}
 			if task.Status == enums.GcRecordStatusSuccess {
-				successCount++
+				g.successCount++
 			} else {
-				failedCount++
+				g.failedCount++
 			}
 		}
 	}()
+}
+
+func (g gcRepository) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadGcRepository {
+	payload := types.WebhookPayloadGcRepository{
+		WebhookPayload: types.WebhookPayload{
+			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+			Action:       action,
+		},
+		OperateType:  g.runnerObj.OperateType,
+		SuccessCount: g.successCount,
+		FailedCount:  g.failedCount,
+	}
+	if g.runnerObj.OperateType == enums.OperateTypeManual && g.runnerObj.OperateUser != nil {
+		payload.OperateUser = &types.WebhookPayloadUser{
+			ID:        g.runnerObj.OperateUser.ID,
+			Username:  g.runnerObj.OperateUser.Username,
+			Email:     ptr.To(g.runnerObj.OperateUser.Email),
+			Status:    g.runnerObj.OperateUser.Status,
+			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		}
+	}
+	return payload
 }

@@ -51,19 +51,13 @@ import (
 func (h *handler) PostWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, err := utils.GetUserFromCtx(c)
+	if err != nil {
+		return err
 	}
 
 	var req types.PostWebhookRequest
-	err := utils.BindValidate(c, &req)
+	err = utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
@@ -113,18 +107,19 @@ func (h *handler) PostWebhook(c echo.Context) error {
 			namespaceID = nil
 		}
 		webhookObj := &models.Webhook{
-			NamespaceID:     namespaceID,
-			URL:             req.URL,
-			Secret:          req.Secret,
-			SslVerify:       req.SslVerify,
-			RetryTimes:      req.RetryTimes,
-			RetryDuration:   req.RetryDuration,
-			Enable:          req.Enable,
-			EventNamespace:  req.EventNamespace,
-			EventRepository: req.EventRepository,
-			EventTag:        req.EventTag,
-			EventArtifact:   req.EventArtifact,
-			EventMember:     req.EventMember,
+			NamespaceID:       namespaceID,
+			URL:               req.URL,
+			Secret:            req.Secret,
+			SslVerify:         req.SslVerify,
+			RetryTimes:        req.RetryTimes,
+			RetryDuration:     req.RetryDuration,
+			Enable:            req.Enable,
+			EventNamespace:    req.EventNamespace,
+			EventRepository:   req.EventRepository,
+			EventTag:          req.EventTag,
+			EventArtifact:     req.EventArtifact,
+			EventMember:       req.EventMember,
+			EventDaemonTaskGc: req.EventDaemonTaskGc,
 		}
 		err = webhookService.Create(ctx, webhookObj)
 		if err != nil {

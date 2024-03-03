@@ -135,6 +135,9 @@ func (h *handler) PutWebhook(c echo.Context) error {
 	if req.EventMember != nil {
 		updates[query.Webhook.EventMember.ColumnName().String()] = ptr.To(req.EventMember)
 	}
+	if req.EventMember != nil {
+		updates[query.Webhook.EventDaemonTaskGc.ColumnName().String()] = ptr.To(req.EventDaemonTaskGc)
+	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		webhookService := h.webhookServiceFactory.New(tx)
