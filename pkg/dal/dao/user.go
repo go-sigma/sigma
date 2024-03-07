@@ -49,6 +49,10 @@ type UserService interface {
 	ListWithoutUsername(ctx context.Context, except []string, withoutAdmin bool, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.User, int64, error)
 	// UpdateByID updates the namespace with the specified namespace ID.
 	UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error
+	// AddPlatformMember bind a platform role for user
+	AddPlatformMember(ctx context.Context, userID int64, role enums.UserRole) error
+	// DeletePlatformMember unbind platform role for user
+	DeletePlatformMember(ctx context.Context, userID int64, role enums.UserRole) error
 	// Count gets the total number of users.
 	Count(ctx context.Context) (int64, error)
 	// GetUser3rdPartyByAccountID gets the user with the specified oauth2 provider.
@@ -252,4 +256,21 @@ func (s *userService) UpdateByID(ctx context.Context, id int64, updates map[stri
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// AddPlatformMember bind a platform role for user
+func (s *userService) AddPlatformMember(ctx context.Context, userID int64, role enums.UserRole) error {
+	return s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
+		PType: ptr.Of("g"),
+		V1:    ptr.Of(fmt.Sprintf("%d", userID)),
+		V2:    ptr.Of(role.String()),
+	})
+}
+
+// DeletePlatformMember unbind platform role for user
+func (s *userService) DeletePlatformMember(ctx context.Context, userID int64, role enums.UserRole) error {
+	_, err := s.tx.CasbinRule.WithContext(ctx).Where(s.tx.CasbinRule.PType.Eq("g"),
+		s.tx.CasbinRule.V0.Eq(fmt.Sprintf("%d", userID)),
+		s.tx.CasbinRule.V1.Eq(role.String())).Delete()
+	return err
 }
