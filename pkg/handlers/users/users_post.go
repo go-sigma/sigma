@@ -73,10 +73,10 @@ func (h *handler) Post(c echo.Context) error {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 		}
 		if userObj.Role == enums.UserRoleAdmin {
-			_, err = dal.AuthEnforcer.AddRoleForUser(fmt.Sprintf("%d", userObj.ID), "admin")
+			err = userService.AddPlatformMember(ctx, userObj.ID, userObj.Role)
 			if err != nil {
-				log.Error().Err(err).Msg("Add role for user failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add role for user failed: %v", err))
+				log.Error().Err(err).Msg("Add platform role for user failed")
+				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add platform role for user failed: %v", err))
 			}
 		}
 		return nil
@@ -87,6 +87,11 @@ func (h *handler) Post(c echo.Context) error {
 			return xerrors.NewHTTPError(c, e)
 		}
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create user failed: %v", err))
+	}
+
+	err = dal.AuthEnforcer.LoadPolicy()
+	if err != nil {
+		log.Error().Err(err).Msg("Reload policy failed")
 	}
 
 	return c.NoContent(http.StatusCreated)

@@ -42,6 +42,20 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
+// AddPlatformMember mocks base method.
+func (m *MockUserService) AddPlatformMember(arg0 context.Context, arg1 int64, arg2 enums.UserRole) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPlatformMember", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddPlatformMember indicates an expected call of AddPlatformMember.
+func (mr *MockUserServiceMockRecorder) AddPlatformMember(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPlatformMember", reflect.TypeOf((*MockUserService)(nil).AddPlatformMember), arg0, arg1, arg2)
+}
+
 // Count mocks base method.
 func (m *MockUserService) Count(arg0 context.Context) (int64, error) {
 	m.ctrl.T.Helper()
@@ -97,6 +111,20 @@ func (m *MockUserService) CreateUser3rdParty(arg0 context.Context, arg1 *models.
 func (mr *MockUserServiceMockRecorder) CreateUser3rdParty(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser3rdParty", reflect.TypeOf((*MockUserService)(nil).CreateUser3rdParty), arg0, arg1)
+}
+
+// DeletePlatformMember mocks base method.
+func (m *MockUserService) DeletePlatformMember(arg0 context.Context, arg1 int64, arg2 enums.UserRole) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePlatformMember", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePlatformMember indicates an expected call of DeletePlatformMember.
+func (mr *MockUserServiceMockRecorder) DeletePlatformMember(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePlatformMember", reflect.TypeOf((*MockUserService)(nil).DeletePlatformMember), arg0, arg1, arg2)
 }
 
 // DeleteRecoverCode mocks base method.
