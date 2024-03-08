@@ -54,3 +54,7 @@ Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 - [Distribution](https://distribution.github.io/distribution/)
 - [Harbor](https://goharbor.io/)
 - [zot](https://zotregistry.io/)
+
+## Contact me
+
+<img alt="wechat" src="./assets/wechat.jpg" style="height: 300px !important;width: 300px !important;" />
