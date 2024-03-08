@@ -262,8 +262,8 @@ func (s *userService) UpdateByID(ctx context.Context, id int64, updates map[stri
 func (s *userService) AddPlatformMember(ctx context.Context, userID int64, role enums.UserRole) error {
 	return s.tx.CasbinRule.WithContext(ctx).Create(&models.CasbinRule{
 		PType: ptr.Of("g"),
-		V1:    ptr.Of(fmt.Sprintf("%d", userID)),
-		V2:    ptr.Of(role.String()),
+		V0:    ptr.Of(fmt.Sprintf("%d", userID)),
+		V1:    ptr.Of(role.String()),
 	})
 }
 
