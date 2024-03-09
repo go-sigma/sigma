@@ -80,7 +80,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
