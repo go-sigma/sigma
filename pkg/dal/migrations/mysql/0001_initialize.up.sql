@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `user_id` bigint NOT NULL,
   `namespace_id` bigint,
   `action` ENUM ('Create', 'Update', 'Delete', 'Pull', 'Push') NOT NULL,
-  `resource_type` ENUM ('Namespace', 'Repository', 'Tag', 'Builder', 'Webhook') NOT NULL,
+  `resource_type` ENUM ('Namespace', 'Repository', 'Tag', 'Builder', 'Webhook', 'NamespaceMember') NOT NULL,
   `resource` varchar(256) NOT NULL,
   `req_raw` BLOB,
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),

@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `user_id` bigint NOT NULL,
   `namespace_id` bigint,
   `action` text CHECK (`action` IN ('Create', 'Update', 'Delete', 'Pull', 'Push')) NOT NULL,
-  `resource_type` text CHECK (`resource_type` IN ('Namespace', 'Repository', 'Tag', 'Builder', 'Webhook')) NOT NULL,
+  `resource_type` text CHECK (`resource_type` IN ('Namespace', 'Repository', 'Tag', 'Builder', 'Webhook', 'NamespaceMember')) NOT NULL,
   `resource` varchar(256) NOT NULL,
   `req_raw` BLOB,
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
@@ -650,5 +650,4 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` integer NOT NULL DEFAULT 0
 );
-
 
