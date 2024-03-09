@@ -18,11 +18,12 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import './index.css';
 
-import ReactDOM from 'react-dom/client';
 import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+import ReactDOM from 'react-dom/client';
 import { HashRouter as Router } from 'react-router-dom';
 
 import App from './App';

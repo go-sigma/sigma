@@ -19,7 +19,7 @@ import axios from "axios";
 
 let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
 
-const REFRESH_TOKEN_INTERVAL_TIMEOUT = 60 * 10 * 1000; // 10 mins
+const REFRESH_TOKEN_INTERVAL_TIMEOUT = 6 * 10 * 1000 // 1 min
 
 export function refreshToken(
   localServer: string,

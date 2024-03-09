@@ -21,7 +21,11 @@ export const setupAxiosInterceptor = (navigate: any) => {
     return response;
   }, error => {
     if (error?.response?.status === 401) {
-      navigate('/login');
+      if (error?.response?.config?.url?.endsWith("/api/v1/users/login")) {
+        return Promise.resolve(error?.response);
+      } else {
+        navigate('/login');
+      }
     } else if (error?.response?.status === 500) {
       return Promise.reject(error);
     } else {
