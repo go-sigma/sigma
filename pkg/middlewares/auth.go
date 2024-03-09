@@ -93,7 +93,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Username or password is not correct")
 				}
 				uid = user.ID
 
@@ -105,7 +105,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Username or password is not correct")
 				}
 			case strings.HasPrefix(authorization, "Bearer"):
 				jti, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
