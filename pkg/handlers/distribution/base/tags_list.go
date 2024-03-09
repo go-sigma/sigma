@@ -91,7 +91,7 @@ func (h *handler) ListTags(c echo.Context) error {
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", repositoryObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 
 	var lastFound bool

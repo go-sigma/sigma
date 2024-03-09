@@ -73,11 +73,11 @@ func (h *handler) GetManifest(c echo.Context) error {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
 			return xerrors.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")

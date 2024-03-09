@@ -85,7 +85,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 
 	blobUploadService := h.blobUploadServiceFactory.New()

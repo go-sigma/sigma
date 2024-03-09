@@ -225,7 +225,8 @@ CREATE TYPE audit_resource_type AS ENUM (
   'Repository',
   'Tag',
   'Builder',
-  'Webhook'
+  'Webhook',
+  'NamespaceMember'
 );
 
 CREATE TABLE IF NOT EXISTS "audits" (
@@ -810,7 +811,6 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   FOREIGN KEY ("builder_id") REFERENCES "builders" ("id")
 );
 
-
 CREATE TABLE IF NOT EXISTS "work_queues" (
   "id" bigserial PRIMARY KEY,
   "topic" varchar(30) NOT NULL,
@@ -823,7 +823,6 @@ CREATE TABLE IF NOT EXISTS "work_queues" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
-
 CREATE TABLE IF NOT EXISTS "caches" (
   "id" bigserial PRIMARY KEY,
   "key" varchar(256) NOT NULL UNIQUE,
@@ -833,7 +832,6 @@ CREATE TABLE IF NOT EXISTS "caches" (
   "deleted_at" integer NOT NULL DEFAULT 0
 );
 
-
 CREATE TABLE IF NOT EXISTS "settings" (
   "id" bigserial PRIMARY KEY,
   "key" varchar(256) NOT NULL UNIQUE,
@@ -842,5 +840,4 @@ CREATE TABLE IF NOT EXISTS "settings" (
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
-
 
