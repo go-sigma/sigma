@@ -25,7 +25,7 @@ RESET            := $(shell tput -Txterm sgr0)
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.Version=$(shell git describe --tags --dirty --always)
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.BuildDate=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git rev-parse --short HEAD)
-GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)'
+GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)' -trimpath
 
 GOOS             ?= linux
 GOARCH           ?= amd64
