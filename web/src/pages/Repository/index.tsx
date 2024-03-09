@@ -603,7 +603,7 @@ function TableItem({ localServer, index, user, namespace, repository, setRefresh
       return;
     }
     setUpdateRepositoryModal(false);
-    axios.put(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository.id}`, {
+    axios.put(localServer + `/api/v1/namespaces/${namespace.id}/repositories/${repository.id}`, {
       description: descriptionText,
       size_limit: realSizeLimit,
       tag_limit: tagCountLimit,
@@ -621,7 +621,7 @@ function TableItem({ localServer, index, user, namespace, repository, setRefresh
   }
 
   const deleteRepository = () => {
-    axios.delete(localServer + `/api/v1/namespaces/${namespace}/repositories/${repository.id}`).then(response => {
+    axios.delete(localServer + `/api/v1/namespaces/${namespace.id}/repositories/${repository.id}`).then(response => {
       if (response.status === 204) {
         setRefresh({});
       } else {

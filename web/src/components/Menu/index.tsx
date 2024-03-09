@@ -505,7 +505,7 @@ export default function ({ localServer, item, namespace, namespace_id, repositor
                           return (
                             <Link
                               key={index}
-                              to={`/namespaces/${ns.name}/repositories`}
+                              to={`/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`}
                               className="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-50 cursor-pointer"
                               onClick={e => {
                                 item === "repositories" && ns.name === namespace && e.preventDefault();
