@@ -17,10 +17,15 @@ package logger
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
 	"gorm.io/gorm/logger"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // ZLogger is the logger for gorm
@@ -52,6 +57,34 @@ func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, i
 	var event = zl.Debug()
 
 	event = event.Str("elapsed", time.Since(begin).String())
+
+	logLevel := configs.GetConfiguration().Log.Level
+	if logLevel == enums.LogLevelDebug || logLevel == enums.LogLevelTrace {
+		for i := 0; i < 15; i++ {
+			_, f, n, ok := runtime.Caller(i)
+			if !ok {
+				break
+			}
+			if ok {
+				if strings.HasPrefix(f, "github.com/go-sigma/sigma/pkg") {
+					if strings.HasPrefix(f, "github.com/go-sigma/sigma/pkg/dal/query") ||
+						strings.HasPrefix(f, "github.com/go-sigma/sigma/pkg/dal/dao") ||
+						strings.HasPrefix(f, "github.com/go-sigma/sigma/pkg/logger") {
+						continue
+					}
+					lastIndex := strings.LastIndex(f, "/")
+					left := f[:lastIndex]
+					f = f[lastIndex+1:]
+					if strings.Contains(left, "/") {
+						lastIndex = strings.LastIndex(left, "/")
+						f = left[lastIndex+1:] + "/" + f
+					}
+					event.Str("call", fmt.Sprintf("%s:%d", f, n))
+					break
+				}
+			}
+		}
+	}
 
 	sql, rows := f()
 	if sql != "" {
