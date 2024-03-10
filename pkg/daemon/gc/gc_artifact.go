@@ -239,6 +239,7 @@ func (g gcArtifact) deleteArtifactCheck() {
 				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get artifact referrers failed")
 				continue
 			}
+			// TODO: maybe here should be submit a transaction clear all of the objects, include refers and index
 			for _, a := range delArtifacts {
 				g.deleteArtifactChan <- artifactTask{Runner: task.Runner, Artifact: ptr.To(a)}
 			}
