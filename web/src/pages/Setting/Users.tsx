@@ -21,6 +21,7 @@ import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
+import { Tooltip } from 'flowbite-react';
 
 import Header from "../../components/Header";
 import Menu from "../../components/Menu";
@@ -389,14 +390,23 @@ export default function ({ localServer }: { localServer: string }) {
                     {
                       emailInputValid ? null : (
                         <span>
-                          Password is invalid, please try 'Admin@123'.
+                          Email is invalid, please try 'test@test.com'.
                         </span>
                       )
                     }
                   </p>
 
-                  <label htmlFor="namespace_count_limit" className="block text-sm font-medium text-gray-700">
-                    Namespace count limit
+                  <label htmlFor="namespace_count_limit" className="text-sm font-medium text-gray-700 flex flex-row items-center">
+                    <div>
+                      Namespace count limit
+                    </div>
+                    <Tooltip content="0 means no limit">
+                      <div className="flex flex-row cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                    </Tooltip>
                   </label>
                   <div className="relative mt-2 rounded-md shadow-sm">
                     <input
@@ -599,10 +609,10 @@ function TableItem({ localServer, user, setRefresh }: { localServer: string, use
         {user.status}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(user.last_login))}
+        {dayjs.utc(user.last_login).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-        {dayjs().to(dayjs(user.created_at))}
+        {dayjs.utc(user.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="text-center px-4 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer hover:text-gray-700"
         onClick={e => {

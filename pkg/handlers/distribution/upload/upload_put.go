@@ -210,7 +210,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		Digest:      dgest.String(),
 		Size:        sizeBefore + length,
 		ContentType: contentType,
-		PushedAt:    time.Now(),
+		PushedAt:    time.Now().UnixMilli(),
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Create blob record failed")

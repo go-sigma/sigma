@@ -107,11 +107,11 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 				}
 				if status.Started {
 					startedAt = time.Now()
-					updates["started_at"] = startedAt
+					updates["started_at"] = startedAt.UnixMilli()
 				}
 				if status.Ended {
 					endedAt := time.Now()
-					updates["ended_at"] = endedAt
+					updates["ended_at"] = endedAt.UnixMilli()
 					updates["duration"] = endedAt.Sub(startedAt).Milliseconds()
 				}
 				if len(status.Updates) != 0 {

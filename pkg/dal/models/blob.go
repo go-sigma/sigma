@@ -15,16 +15,13 @@
 package models
 
 import (
-	"database/sql"
-	"time"
-
 	"gorm.io/gen"
 	"gorm.io/plugin/soft_delete"
 )
 
 // Blob represents a blob
 type Blob struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -33,9 +30,9 @@ type Blob struct {
 	Size        int64
 	ContentType string
 
-	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"autoCreateTime"`
-	PullTimes uint      `gorm:"default:0"`
+	LastPull  int64
+	PushedAt  int64 `gorm:"autoCreateTime:milli"`
+	PullTimes uint  `gorm:"default:0"`
 
 	Artifacts []*Artifact `gorm:"many2many:artifact_blobs;"`
 }

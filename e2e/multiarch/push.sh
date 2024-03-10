@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 # docker buildx create --use --config ./buildkit.toml
 
 docker buildx build --sbom=true --platform linux/amd64,linux/arm64 --tag 192.168.31.198:3000/library/alpine:3.18.0 --file alpine.Dockerfile --push .

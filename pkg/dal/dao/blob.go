@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"time"
 
@@ -34,7 +33,7 @@ type BlobService interface {
 	// Create creates a new blob.
 	Create(ctx context.Context, blob *models.Blob) error
 	// FindWithLastPull find with last pull
-	FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error)
+	FindWithLastPull(ctx context.Context, before int64, last, limit int64) ([]*models.Blob, error)
 	// FindAssociateWithArtifact ...
 	FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error)
 	// FindByDigest finds the blob with the specified digest.
@@ -84,10 +83,10 @@ func (s *blobService) Create(ctx context.Context, blob *models.Blob) error {
 }
 
 // FindWithLastPull ...
-func (s *blobService) FindWithLastPull(ctx context.Context, before time.Time, last, limit int64) ([]*models.Blob, error) {
+func (s *blobService) FindWithLastPull(ctx context.Context, before int64, last, limit int64) ([]*models.Blob, error) {
 	return s.tx.Blob.WithContext(ctx).
-		Where(s.tx.Blob.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
-		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before.UTC().UnixMilli())).
+		Where(s.tx.Blob.LastPull.Lt(before)).
+		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before)).
 		Where(s.tx.Blob.ID.Gt(last)).Find()
 }
 
@@ -122,7 +121,7 @@ func (s *blobService) Incr(ctx context.Context, id int64) error {
 	_, err := s.tx.Blob.WithContext(ctx).Where(s.tx.Blob.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
-			"last_pull":  time.Now(),
+			"last_pull":  time.Now().UnixMilli(),
 		})
 	return err
 }

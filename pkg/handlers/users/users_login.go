@@ -22,10 +22,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
@@ -44,33 +43,27 @@ import (
 func (h *handler) Login(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, err := utils.GetUserFromCtx(c)
+	if err != nil {
+		return err
 	}
 
 	userService := h.userServiceFactory.New()
-	err := userService.UpdateByID(ctx, user.ID, map[string]any{
-		query.User.LastLogin.ColumnName().String(): time.Now(),
+	err = userService.UpdateByID(ctx, user.ID, map[string]any{
+		query.User.LastLogin.ColumnName().String(): time.Now().UnixMilli(),
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Update user last login failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
-	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
+	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
+	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

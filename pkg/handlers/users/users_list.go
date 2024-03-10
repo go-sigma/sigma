@@ -69,7 +69,7 @@ func (h *handler) List(c echo.Context) error {
 			Username:       userObj.Username,
 			Email:          ptr.To(userObj.Email),
 			Status:         userObj.Status,
-			LastLogin:      userObj.LastLogin.Format(consts.DefaultTimePattern),
+			LastLogin:      time.Unix(0, int64(time.Millisecond)*userObj.LastLogin).UTC().Format(consts.DefaultTimePattern),
 			NamespaceLimit: userObj.NamespaceLimit,
 			NamespaceCount: userObj.NamespaceCount,
 			CreatedAt:      time.Unix(0, int64(time.Millisecond)*userObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),

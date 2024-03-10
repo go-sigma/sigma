@@ -266,7 +266,6 @@ type ConfigurationDaemonBuilder struct {
 
 // ConfigurationDaemon ...
 type ConfigurationDaemon struct {
-	Gc      ConfigurationDaemonGc      `yaml:"gc"`
 	Builder ConfigurationDaemonBuilder `yaml:"builder"`
 }
 

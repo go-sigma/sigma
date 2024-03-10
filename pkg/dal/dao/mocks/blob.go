@@ -12,7 +12,6 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	gomock "go.uber.org/mock/gomock"
@@ -130,7 +129,7 @@ func (mr *MockBlobServiceMockRecorder) FindByDigests(arg0, arg1 any) *gomock.Cal
 }
 
 // FindWithLastPull mocks base method.
-func (m *MockBlobService) FindWithLastPull(arg0 context.Context, arg1 time.Time, arg2, arg3 int64) ([]*models.Blob, error) {
+func (m *MockBlobService) FindWithLastPull(arg0 context.Context, arg1, arg2, arg3 int64) ([]*models.Blob, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*models.Blob)

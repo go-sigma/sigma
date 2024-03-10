@@ -272,6 +272,7 @@ func (g gcTag) deleteTag() {
 		defer g.waitAllDone.Done()
 		defer close(g.collectRecordChan)
 		for task := range g.deleteTagChan {
+			// TODO: we should set a lock for the delete action
 			err := tagService.DeleteByID(g.ctx, task.Tag.ID)
 			if err != nil {
 				log.Error().Err(err).Int64("id", task.Tag.ID).Msg("Delete tag by id failed")
@@ -335,7 +336,7 @@ func (g gcTag) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadGc
 			Username:  g.runnerObj.OperateUser.Username,
 			Email:     ptr.To(g.runnerObj.OperateUser.Email),
 			Status:    g.runnerObj.OperateUser.Status,
-			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			LastLogin: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.LastLogin).UTC().Format(consts.DefaultTimePattern),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		}

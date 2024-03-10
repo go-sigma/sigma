@@ -206,16 +206,13 @@ func (g gcRepository) deleteRepositoryCheck() {
 			if count > 0 {
 				continue
 			}
-			if task.Runner.Rule.RetentionDay == 0 {
-				repositoryObj, err := repositoryService.Get(g.ctx, task.Repository.ID)
-				if err != nil {
-					log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Get repository by id failed")
-					continue
-				}
-				log.Info().Interface("repo", repositoryObj).Send()
-				// if !repositoryObj.UpdatedAt.Before(time.Now().Add(-1 * 24 * time.Duration(task.Runner.Rule.RetentionDay) * time.Hour)) {
-				// 	continue
-				// }
+			repositoryObj, err := repositoryService.Get(g.ctx, task.Repository.ID)
+			if err != nil {
+				log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Get repository by id failed")
+				continue
+			}
+			if time.Now().Add(-1*24*time.Duration(task.Runner.Rule.RetentionDay)*time.Hour).UnixMilli() > repositoryObj.UpdatedAt {
+				continue
 			}
 			g.deleteRepositoryChan <- task
 		}
@@ -228,6 +225,7 @@ func (g gcRepository) deleteRepository() {
 		defer g.waitAllDone.Done()
 		defer close(g.collectRecordChan)
 		for task := range g.deleteRepositoryChan {
+			// TODO: we should set a lock for the delete action
 			err := repositoryService.DeleteByID(g.ctx, task.Repository.ID)
 			if err != nil {
 				log.Error().Err(err).Int64("RepositoryID", task.Repository.ID).Msg("Delete repository by id failed")
@@ -292,7 +290,7 @@ func (g gcRepository) packWebhookObj(action enums.WebhookAction) types.WebhookPa
 			Username:  g.runnerObj.OperateUser.Username,
 			Email:     ptr.To(g.runnerObj.OperateUser.Email),
 			Status:    g.runnerObj.OperateUser.Status,
-			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			LastLogin: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.LastLogin).UTC().Format(consts.DefaultTimePattern),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		}

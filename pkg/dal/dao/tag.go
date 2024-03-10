@@ -221,7 +221,7 @@ func (s *tagService) Incr(ctx context.Context, id int64) error {
 	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
-			"last_pull":  time.Now(),
+			"last_pull":  time.Now().UnixMilli(),
 		})
 	return err
 }

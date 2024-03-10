@@ -116,11 +116,6 @@ proxy:
 
 # daemon task config
 daemon:
-  gc:
-    # if blob not associate with artifact
-    retention: 72h
-    # At 02:00 on Saturday
-    cron: 0 2 * * 6
   builder:
     image: sigma-builder:latest
     type: docker
@@ -142,7 +137,7 @@ auth:
     service: ""
   jwt:
     ttl: 1h
-    refreshTtl: 24h
+    refreshTtl: 72h
     # generate the key with: openssl genrsa 4096 | base64
     privateKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSB"
   oauth2:

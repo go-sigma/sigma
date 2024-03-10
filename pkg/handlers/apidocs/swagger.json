@@ -5828,6 +5828,7 @@
                 "Remove",
                 "Ping",
                 "Started",
+                "Doing",
                 "Finished"
             ],
             "x-enum-varnames": [
@@ -5838,6 +5839,7 @@
                 "WebhookActionRemove",
                 "WebhookActionPing",
                 "WebhookActionStarted",
+                "WebhookActionDoing",
                 "WebhookActionFinished"
             ]
         },
@@ -7201,6 +7203,10 @@
                     "type": "boolean",
                     "example": true
                 },
+                "event_daemon_task_gc": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "event_member": {
                     "type": "boolean",
                     "example": true
@@ -7253,6 +7259,10 @@
                     "example": true
                 },
                 "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_daemon_task_gc": {
                     "type": "boolean",
                     "example": true
                 },
@@ -7846,6 +7856,10 @@
                     "example": true
                 },
                 "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_daemon_task_gc": {
                     "type": "boolean",
                     "example": true
                 },

@@ -15,9 +15,6 @@
 package models
 
 import (
-	"database/sql"
-	"time"
-
 	"gorm.io/gen"
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
@@ -28,7 +25,7 @@ import (
 
 // Artifact represents an artifact
 type Artifact struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -45,9 +42,9 @@ type Artifact struct {
 	ConfigMediaType *string
 	Type            enums.ArtifactType `gorm:"default:Unknown"`
 
-	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"autoCreateTime"`
-	PullTimes int64     `gorm:"default:0"`
+	LastPull  int64
+	PushedAt  int64 `gorm:"autoCreateTime:milli"`
+	PullTimes int64 `gorm:"default:0"`
 
 	Vulnerability ArtifactVulnerability `gorm:"foreignKey:ArtifactID;"`
 	Sbom          ArtifactSbom          `gorm:"foreignKey:ArtifactID;"`
@@ -179,7 +176,7 @@ type ArtifactSbom struct {
 
 // ArtifactVulnerability represents an artifact vulnerability
 type ArtifactVulnerability struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

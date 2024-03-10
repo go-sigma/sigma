@@ -12,7 +12,6 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
 	models "github.com/go-sigma/sigma/pkg/dal/models"
 	types "github.com/go-sigma/sigma/pkg/types"
@@ -230,7 +229,7 @@ func (mr *MockArtifactServiceMockRecorder) FindAssociateWithTag(arg0, arg1 any) 
 }
 
 // FindWithLastPull mocks base method.
-func (m *MockArtifactService) FindWithLastPull(arg0 context.Context, arg1 int64, arg2 time.Time, arg3, arg4 int64) ([]*models.Artifact, error) {
+func (m *MockArtifactService) FindWithLastPull(arg0 context.Context, arg1, arg2, arg3, arg4 int64) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*models.Artifact)

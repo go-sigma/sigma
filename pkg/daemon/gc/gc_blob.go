@@ -106,9 +106,9 @@ func (g gcBlob) Run(runnerID int64) error {
 
 	blobService := g.blobServiceFactory.New()
 
-	timeTarget := time.Now()
+	timeTarget := time.Now().UnixMilli()
 	if g.runnerObj.Rule.RetentionDay > 0 {
-		timeTarget = time.Now().Add(-1 * time.Duration(g.runnerObj.Rule.RetentionDay) * 24 * time.Hour)
+		timeTarget = time.Now().Add(-1 * time.Duration(g.runnerObj.Rule.RetentionDay) * 24 * time.Hour).UnixMilli()
 	}
 
 	g.deleteBlobChanOnce.Do(g.deleteBlob)
@@ -185,6 +185,7 @@ func (g gcBlob) deleteBlob() {
 		defer g.waitAllDone.Done()
 		defer close(g.collectRecordChan)
 		for task := range g.deleteBlobChan {
+			// TODO: we should set a lock for the delete action
 			err := blobService.DeleteByID(g.ctx, task.Blob.ID)
 			if err != nil {
 				log.Error().Err(err).Interface("Task", task).Msgf("Delete blob failed: %v", err)
@@ -255,7 +256,7 @@ func (g gcBlob) packWebhookObj(action enums.WebhookAction) types.WebhookPayloadG
 			Username:  g.runnerObj.OperateUser.Username,
 			Email:     ptr.To(g.runnerObj.OperateUser.Email),
 			Status:    g.runnerObj.OperateUser.Status,
-			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			LastLogin: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.LastLogin).UTC().Format(consts.DefaultTimePattern),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		}

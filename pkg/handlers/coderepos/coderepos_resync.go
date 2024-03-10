@@ -84,7 +84,7 @@ func (h *handler) Resync(c echo.Context) error {
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := h.userServiceFactory.New(tx)
 		err = userService.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
-			query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now(),
+			query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now().UnixMilli(),
 			query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    enums.TaskCommonStatusDoing,
 			query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   "",
 		})

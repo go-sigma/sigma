@@ -35,7 +35,7 @@ func newDaemonGcBlobRule(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRule {
 	_daemonGcBlobRule.RetentionDay = field.NewInt(tableName, "retention_day")
 	_daemonGcBlobRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcBlobRule.CronRule = field.NewString(tableName, "cron_rule")
-	_daemonGcBlobRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
+	_daemonGcBlobRule.CronNextTrigger = field.NewInt64(tableName, "cron_next_trigger")
 
 	_daemonGcBlobRule.fillFieldMap()
 
@@ -54,7 +54,7 @@ type daemonGcBlobRule struct {
 	RetentionDay    field.Int
 	CronEnabled     field.Bool
 	CronRule        field.String
-	CronNextTrigger field.Time
+	CronNextTrigger field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -79,7 +79,7 @@ func (d *daemonGcBlobRule) updateTableName(table string) *daemonGcBlobRule {
 	d.RetentionDay = field.NewInt(table, "retention_day")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
-	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
+	d.CronNextTrigger = field.NewInt64(table, "cron_next_trigger")
 
 	d.fillFieldMap()
 
