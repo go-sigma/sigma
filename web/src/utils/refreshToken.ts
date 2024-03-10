@@ -19,15 +19,19 @@ import axios from "axios";
 
 let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
 
-const REFRESH_TOKEN_INTERVAL_TIMEOUT = 6 * 10 * 1000 // 1 min
+const REFRESH_TOKEN_INTERVAL_TIMEOUT = 60 * 1000; // 10s
 
 export function refreshToken(
   localServer: string,
   onFailed: () => void
 ) {
+  if (localStorage.getItem('refresh_token') == null) {
+    return;
+  }
   let headers: { [key: string]: any } = {
     "Authorization": "Bearer " + localStorage.getItem('refresh_token'),
   };
+
   let url = localServer + `/api/v1/users/login`;
   axios.post(url, {}, {
     headers: headers,
