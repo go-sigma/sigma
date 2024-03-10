@@ -36,8 +36,8 @@ func newDaemonGcBlobRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcBlobRunner
 	_daemonGcBlobRunner.Message = field.NewBytes(tableName, "message")
 	_daemonGcBlobRunner.OperateType = field.NewField(tableName, "operate_type")
 	_daemonGcBlobRunner.OperateUserID = field.NewInt64(tableName, "operate_user_id")
-	_daemonGcBlobRunner.StartedAt = field.NewTime(tableName, "started_at")
-	_daemonGcBlobRunner.EndedAt = field.NewTime(tableName, "ended_at")
+	_daemonGcBlobRunner.StartedAt = field.NewInt64(tableName, "started_at")
+	_daemonGcBlobRunner.EndedAt = field.NewInt64(tableName, "ended_at")
 	_daemonGcBlobRunner.Duration = field.NewInt64(tableName, "duration")
 	_daemonGcBlobRunner.SuccessCount = field.NewInt64(tableName, "success_count")
 	_daemonGcBlobRunner.FailedCount = field.NewInt64(tableName, "failed_count")
@@ -71,8 +71,8 @@ type daemonGcBlobRunner struct {
 	Message       field.Bytes
 	OperateType   field.Field
 	OperateUserID field.Int64
-	StartedAt     field.Time
-	EndedAt       field.Time
+	StartedAt     field.Int64
+	EndedAt       field.Int64
 	Duration      field.Int64
 	SuccessCount  field.Int64
 	FailedCount   field.Int64
@@ -104,8 +104,8 @@ func (d *daemonGcBlobRunner) updateTableName(table string) *daemonGcBlobRunner {
 	d.Message = field.NewBytes(table, "message")
 	d.OperateType = field.NewField(table, "operate_type")
 	d.OperateUserID = field.NewInt64(table, "operate_user_id")
-	d.StartedAt = field.NewTime(table, "started_at")
-	d.EndedAt = field.NewTime(table, "ended_at")
+	d.StartedAt = field.NewInt64(table, "started_at")
+	d.EndedAt = field.NewInt64(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
 	d.SuccessCount = field.NewInt64(table, "success_count")
 	d.FailedCount = field.NewInt64(table, "failed_count")

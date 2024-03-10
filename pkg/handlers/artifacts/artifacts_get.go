@@ -68,8 +68,8 @@ func (h *handler) GetArtifact(c echo.Context) error {
 		Size:      artifactObj.Size,
 		BlobSize:  artifactObj.BlobsSize,
 		PullTimes: artifactObj.PullTimes,
-		LastPull:  artifactObj.LastPull.Time.Format(consts.DefaultTimePattern),
-		PushedAt:  artifactObj.PushedAt.Format(consts.DefaultTimePattern),
+		LastPull:  time.Unix(0, int64(time.Millisecond)*artifactObj.LastPull).UTC().Format(consts.DefaultTimePattern),
+		PushedAt:  time.Unix(0, int64(time.Millisecond)*artifactObj.PushedAt).UTC().Format(consts.DefaultTimePattern),
 		CreatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		UpdatedAt: time.Unix(0, int64(time.Millisecond)*artifactObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})

@@ -80,7 +80,7 @@ func TestBlobService(t *testing.T) {
 		assert.Equal(t, len(blobs1), int(2))
 
 		time.Sleep(time.Second * 3)
-		blobFindWithLastPull, err := blobService.FindWithLastPull(ctx, time.Now(), 0, 1000)
+		blobFindWithLastPull, err := blobService.FindWithLastPull(ctx, time.Now().UnixMilli(), 0, 1000)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(blobFindWithLastPull))
 
@@ -106,7 +106,6 @@ func TestBlobService(t *testing.T) {
 		blob1, err = blobService.FindByDigest(ctx, "sha256:123")
 		assert.NoError(t, err)
 		assert.Equal(t, blob1.PullTimes, uint(1))
-		assert.True(t, blob1.LastPull.Valid)
 
 		err = blobService.DeleteByID(ctx, blob1.ID)
 		assert.NoError(t, err)

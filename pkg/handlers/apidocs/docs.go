@@ -5836,6 +5836,7 @@ const docTemplate = `{
                 "Remove",
                 "Ping",
                 "Started",
+                "Doing",
                 "Finished"
             ],
             "x-enum-varnames": [
@@ -5846,6 +5847,7 @@ const docTemplate = `{
                 "WebhookActionRemove",
                 "WebhookActionPing",
                 "WebhookActionStarted",
+                "WebhookActionDoing",
                 "WebhookActionFinished"
             ]
         },
@@ -7209,6 +7211,10 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "event_daemon_task_gc": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "event_member": {
                     "type": "boolean",
                     "example": true
@@ -7261,6 +7267,10 @@ const docTemplate = `{
                     "example": true
                 },
                 "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_daemon_task_gc": {
                     "type": "boolean",
                     "example": true
                 },
@@ -7854,6 +7864,10 @@ const docTemplate = `{
                     "example": true
                 },
                 "event_artifact": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "event_daemon_task_gc": {
                     "type": "boolean",
                     "example": true
                 },

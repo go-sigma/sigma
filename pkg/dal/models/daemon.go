@@ -15,8 +15,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -24,7 +22,7 @@ import (
 
 // DaemonGcTagRule ...
 type DaemonGcTagRule struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -35,7 +33,7 @@ type DaemonGcTagRule struct {
 	IsRunning           bool `gorm:"default:false"`
 	CronEnabled         bool `gorm:"default:false"`
 	CronRule            *string
-	CronNextTrigger     *time.Time
+	CronNextTrigger     *int64
 	RetentionRuleType   enums.RetentionRuleType
 	RetentionRuleAmount int64
 	RetentionPattern    *string
@@ -43,7 +41,7 @@ type DaemonGcTagRule struct {
 
 // DaemonGcTagRunner ...
 type DaemonGcTagRunner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -58,8 +56,8 @@ type DaemonGcTagRunner struct {
 	OperateUserID *int64
 	OperateUser   *User
 
-	StartedAt    *time.Time
-	EndedAt      *time.Time
+	StartedAt    *int64
+	EndedAt      *int64
 	Duration     *int64
 	SuccessCount *int64
 	FailedCount  *int64
@@ -67,7 +65,7 @@ type DaemonGcTagRunner struct {
 
 // DaemonGcTagRecords ...
 type DaemonGcTagRecord struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -82,7 +80,7 @@ type DaemonGcTagRecord struct {
 
 // DaemonGcRepositoryRule ...
 type DaemonGcRepositoryRule struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -94,12 +92,12 @@ type DaemonGcRepositoryRule struct {
 	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
-	CronNextTrigger *time.Time
+	CronNextTrigger *int64
 }
 
 // DaemonGcRepositoryRunner ...
 type DaemonGcRepositoryRunner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -114,8 +112,8 @@ type DaemonGcRepositoryRunner struct {
 	OperateUserID *int64
 	OperateUser   *User
 
-	StartedAt    *time.Time
-	EndedAt      *time.Time
+	StartedAt    *int64
+	EndedAt      *int64
 	Duration     *int64
 	SuccessCount *int64
 	FailedCount  *int64
@@ -123,7 +121,7 @@ type DaemonGcRepositoryRunner struct {
 
 // DaemonGcRepositoryRecord ...
 type DaemonGcRepositoryRecord struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -138,7 +136,7 @@ type DaemonGcRepositoryRecord struct {
 
 // DaemonGcArtifactRule ...
 type DaemonGcArtifactRule struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -150,11 +148,11 @@ type DaemonGcArtifactRule struct {
 	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
-	CronNextTrigger *time.Time
+	CronNextTrigger *int64
 }
 
 type DaemonGcArtifactRunner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -169,8 +167,8 @@ type DaemonGcArtifactRunner struct {
 	OperateUserID *int64
 	OperateUser   *User
 
-	StartedAt    *time.Time
-	EndedAt      *time.Time
+	StartedAt    *int64
+	EndedAt      *int64
 	Duration     *int64
 	SuccessCount *int64
 	FailedCount  *int64
@@ -178,7 +176,7 @@ type DaemonGcArtifactRunner struct {
 
 // DaemonGcArtifactRecord ...
 type DaemonGcArtifactRecord struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -193,7 +191,7 @@ type DaemonGcArtifactRecord struct {
 
 // DaemonGcBlobRule ...
 type DaemonGcBlobRule struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -202,12 +200,12 @@ type DaemonGcBlobRule struct {
 	RetentionDay    int  `gorm:"default:0"`
 	CronEnabled     bool `gorm:"default:false"`
 	CronRule        *string
-	CronNextTrigger *time.Time
+	CronNextTrigger *int64
 }
 
 // DaemonGcBlobRunner ...
 type DaemonGcBlobRunner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -222,15 +220,15 @@ type DaemonGcBlobRunner struct {
 	OperateUserID *int64
 	OperateUser   *User
 
-	StartedAt    *time.Time
-	EndedAt      *time.Time
+	StartedAt    *int64
+	EndedAt      *int64
 	Duration     *int64
 	SuccessCount *int64
 	FailedCount  *int64
 }
 
 type DaemonGcBlobRecord struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

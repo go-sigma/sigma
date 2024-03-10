@@ -22,7 +22,7 @@ import (
 
 // CodeRepository ...
 type CodeRepository struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -46,7 +46,7 @@ type CodeRepository struct {
 
 // CodeRepositoryBranch ...
 type CodeRepositoryBranch struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -57,7 +57,7 @@ type CodeRepositoryBranch struct {
 
 // CodeRepositoryOwner ...
 type CodeRepositoryOwner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -72,7 +72,7 @@ type CodeRepositoryOwner struct {
 
 // CodeRepositoryCloneCredential ...
 type CodeRepositoryCloneCredential struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

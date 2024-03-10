@@ -36,7 +36,7 @@ func newDaemonGcRepositoryRule(db *gorm.DB, opts ...gen.DOOption) daemonGcReposi
 	_daemonGcRepositoryRule.RetentionDay = field.NewInt(tableName, "retention_day")
 	_daemonGcRepositoryRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcRepositoryRule.CronRule = field.NewString(tableName, "cron_rule")
-	_daemonGcRepositoryRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
+	_daemonGcRepositoryRule.CronNextTrigger = field.NewInt64(tableName, "cron_next_trigger")
 	_daemonGcRepositoryRule.Namespace = daemonGcRepositoryRuleBelongsToNamespace{
 		db: db.Session(&gorm.Session{}),
 
@@ -61,7 +61,7 @@ type daemonGcRepositoryRule struct {
 	RetentionDay    field.Int
 	CronEnabled     field.Bool
 	CronRule        field.String
-	CronNextTrigger field.Time
+	CronNextTrigger field.Int64
 	Namespace       daemonGcRepositoryRuleBelongsToNamespace
 
 	fieldMap map[string]field.Expr
@@ -88,7 +88,7 @@ func (d *daemonGcRepositoryRule) updateTableName(table string) *daemonGcReposito
 	d.RetentionDay = field.NewInt(table, "retention_day")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
-	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
+	d.CronNextTrigger = field.NewInt64(table, "cron_next_trigger")
 
 	d.fillFieldMap()
 

@@ -41,8 +41,8 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.ConfigRaw = field.NewBytes(tableName, "config_raw")
 	_artifact.ConfigMediaType = field.NewString(tableName, "config_media_type")
 	_artifact.Type = field.NewField(tableName, "type")
-	_artifact.LastPull = field.NewField(tableName, "last_pull")
-	_artifact.PushedAt = field.NewTime(tableName, "pushed_at")
+	_artifact.LastPull = field.NewInt64(tableName, "last_pull")
+	_artifact.PushedAt = field.NewInt64(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
 	_artifact.ReferrerID = field.NewInt64(tableName, "referrer_id")
 	_artifact.Vulnerability = artifactHasOneVulnerability{
@@ -318,8 +318,8 @@ type artifact struct {
 	ConfigRaw       field.Bytes
 	ConfigMediaType field.String
 	Type            field.Field
-	LastPull        field.Field
-	PushedAt        field.Time
+	LastPull        field.Int64
+	PushedAt        field.Int64
 	PullTimes       field.Int64
 	ReferrerID      field.Int64
 	Vulnerability   artifactHasOneVulnerability
@@ -364,8 +364,8 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.ConfigRaw = field.NewBytes(table, "config_raw")
 	a.ConfigMediaType = field.NewString(table, "config_media_type")
 	a.Type = field.NewField(table, "type")
-	a.LastPull = field.NewField(table, "last_pull")
-	a.PushedAt = field.NewTime(table, "pushed_at")
+	a.LastPull = field.NewInt64(table, "last_pull")
+	a.PushedAt = field.NewInt64(table, "pushed_at")
 	a.PullTimes = field.NewInt64(table, "pull_times")
 	a.ReferrerID = field.NewInt64(table, "referrer_id")
 

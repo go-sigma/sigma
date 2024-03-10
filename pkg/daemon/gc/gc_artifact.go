@@ -170,7 +170,10 @@ func (g gcArtifact) deleteArtifactWithNamespace() {
 		defer close(g.deleteArtifactCheckChan)
 		for task := range g.deleteArtifactWithNamespaceChan {
 			var repositoryCurIndex int64
-			timeTarget := time.Now().Add(-1 * g.config.Daemon.Gc.Retention)
+			timeTarget := time.Now().UnixMilli()
+			if g.runnerObj.Rule.RetentionDay > 0 {
+				timeTarget = time.Now().Add(-1 * time.Duration(g.runnerObj.Rule.RetentionDay) * 24 * time.Hour).UnixMilli()
+			}
 			for {
 				repositoryObjs, err := repositoryService.FindAll(g.ctx, task.NamespaceID, pagination, repositoryCurIndex)
 				if err != nil {
@@ -249,6 +252,8 @@ func (g gcArtifact) deleteArtifact() {
 		defer g.waitAllDone.Done()
 		defer close(g.collectRecordChan)
 		for task := range g.deleteArtifactChan {
+			// TODO: we should set a lock for the delete action
+			// otherwise, we should delete the artifact in goroutine
 			err := query.Q.Transaction(func(tx *query.Query) error {
 				err := g.artifactServiceFactory.New(tx).DeleteByID(g.ctx, task.Artifact.ID)
 				if err != nil {
@@ -319,7 +324,7 @@ func (g gcArtifact) packWebhookObj(action enums.WebhookAction) types.WebhookPayl
 			Username:  g.runnerObj.OperateUser.Username,
 			Email:     ptr.To(g.runnerObj.OperateUser.Email),
 			Status:    g.runnerObj.OperateUser.Status,
-			LastLogin: g.runnerObj.OperateUser.LastLogin.Format(consts.DefaultTimePattern),
+			LastLogin: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.LastLogin).UTC().Format(consts.DefaultTimePattern),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt: time.Unix(0, int64(time.Millisecond)*g.runnerObj.OperateUser.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		}

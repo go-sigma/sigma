@@ -95,7 +95,7 @@ func TestDeleteArtifact(t *testing.T) {
 		assert.NoError(t, err)
 		tagServiceFactory := dao.NewTagServiceFactory()
 		tagService := tagServiceFactory.New(tx)
-		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
+		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
 		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
 		return nil

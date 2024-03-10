@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"time"
 
@@ -39,7 +38,7 @@ type ArtifactService interface {
 	// Create create a new artifact if conflict do nothing.
 	Create(ctx context.Context, artifact *models.Artifact) error
 	// FindWithLastPull ...
-	FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error)
+	FindWithLastPull(ctx context.Context, repositoryID int64, before int64, limit, last int64) ([]*models.Artifact, error)
 	// FindAssociateWithTag ...
 	FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error)
 	// FindAssociateWithArtifact ...
@@ -120,10 +119,10 @@ func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact)
 }
 
 // FindWithLastPull ...
-func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before time.Time, limit, last int64) ([]*models.Artifact, error) {
+func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before int64, limit, last int64) ([]*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
-		Where(s.tx.Artifact.LastPull.Lt(sql.NullTime{Valid: true, Time: before})).
-		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before.UTC().UnixMilli())).
+		Where(s.tx.Artifact.LastPull.Lt(before)).
+		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before)).
 		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Limit(int(limit)).Find()
 }
@@ -218,7 +217,7 @@ func (s *artifactService) Incr(ctx context.Context, id int64) error {
 	_, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.ID.Eq(id)).
 		UpdateColumns(map[string]interface{}{
 			"pull_times": gorm.Expr("pull_times + ?", 1),
-			"last_pull":  time.Now(),
+			"last_pull":  time.Now().UnixMilli(),
 		})
 	return err
 }

@@ -36,8 +36,8 @@ func newDaemonGcTagRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRunner {
 	_daemonGcTagRunner.Status = field.NewField(tableName, "status")
 	_daemonGcTagRunner.OperateType = field.NewField(tableName, "operate_type")
 	_daemonGcTagRunner.OperateUserID = field.NewInt64(tableName, "operate_user_id")
-	_daemonGcTagRunner.StartedAt = field.NewTime(tableName, "started_at")
-	_daemonGcTagRunner.EndedAt = field.NewTime(tableName, "ended_at")
+	_daemonGcTagRunner.StartedAt = field.NewInt64(tableName, "started_at")
+	_daemonGcTagRunner.EndedAt = field.NewInt64(tableName, "ended_at")
 	_daemonGcTagRunner.Duration = field.NewInt64(tableName, "duration")
 	_daemonGcTagRunner.SuccessCount = field.NewInt64(tableName, "success_count")
 	_daemonGcTagRunner.FailedCount = field.NewInt64(tableName, "failed_count")
@@ -76,8 +76,8 @@ type daemonGcTagRunner struct {
 	Status        field.Field
 	OperateType   field.Field
 	OperateUserID field.Int64
-	StartedAt     field.Time
-	EndedAt       field.Time
+	StartedAt     field.Int64
+	EndedAt       field.Int64
 	Duration      field.Int64
 	SuccessCount  field.Int64
 	FailedCount   field.Int64
@@ -109,8 +109,8 @@ func (d *daemonGcTagRunner) updateTableName(table string) *daemonGcTagRunner {
 	d.Status = field.NewField(table, "status")
 	d.OperateType = field.NewField(table, "operate_type")
 	d.OperateUserID = field.NewInt64(table, "operate_user_id")
-	d.StartedAt = field.NewTime(table, "started_at")
-	d.EndedAt = field.NewTime(table, "ended_at")
+	d.StartedAt = field.NewInt64(table, "started_at")
+	d.EndedAt = field.NewInt64(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
 	d.SuccessCount = field.NewInt64(table, "success_count")
 	d.FailedCount = field.NewInt64(table, "failed_count")

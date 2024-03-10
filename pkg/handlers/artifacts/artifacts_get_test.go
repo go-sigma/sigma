@@ -90,14 +90,14 @@ func TestGetArtifact(t *testing.T) {
 			Size:         1234,
 			ContentType:  "application/octet-stream",
 			Raw:          []byte("test"),
-			PushedAt:     time.Now(),
+			PushedAt:     time.Now().UnixMilli(),
 			Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
 		}
 		err = artifactService.Create(ctx, artifactObj)
 		assert.NoError(t, err)
 		tagServiceFactory := dao.NewTagServiceFactory()
 		tagService := tagServiceFactory.New(tx)
-		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
+		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
 		err = tagService.Create(ctx, tagObj)
 		assert.NoError(t, err)
 		return nil

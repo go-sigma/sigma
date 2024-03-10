@@ -117,8 +117,8 @@ proxy:
 # daemon task config
 daemon:
   builder:
-    enabled: false
-    image: ghcr.io/go-sigma/sigma-builder:latest
+    enabled: true
+    image: docker.io/tosone/sigma-builder:latest
     type: docker
     docker:
       sock:

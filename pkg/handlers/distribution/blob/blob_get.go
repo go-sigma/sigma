@@ -132,7 +132,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 				}
 				// Note: the blob exist in the storage, but not in the database,
 				// so gc should delete the file directly.
-				err = blobService.Create(ctx, &models.Blob{Digest: dgest.String(), Size: blobSize, ContentType: contentType, PushedAt: time.Now()})
+				err = blobService.Create(ctx, &models.Blob{Digest: dgest.String(), Size: blobSize, ContentType: contentType, PushedAt: time.Now().UnixMilli()})
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Create blob failed")
 					return

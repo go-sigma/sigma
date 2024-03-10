@@ -22,7 +22,7 @@ import (
 
 // WorkQueue ...
 type WorkQueue struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

@@ -35,8 +35,8 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 	_blob.Digest = field.NewString(tableName, "digest")
 	_blob.Size = field.NewInt64(tableName, "size")
 	_blob.ContentType = field.NewString(tableName, "content_type")
-	_blob.LastPull = field.NewField(tableName, "last_pull")
-	_blob.PushedAt = field.NewTime(tableName, "pushed_at")
+	_blob.LastPull = field.NewInt64(tableName, "last_pull")
+	_blob.PushedAt = field.NewInt64(tableName, "pushed_at")
 	_blob.PullTimes = field.NewUint(tableName, "pull_times")
 	_blob.Artifacts = blobManyToManyArtifacts{
 		db: db.Session(&gorm.Session{}),
@@ -218,8 +218,8 @@ type blob struct {
 	Digest      field.String
 	Size        field.Int64
 	ContentType field.String
-	LastPull    field.Field
-	PushedAt    field.Time
+	LastPull    field.Int64
+	PushedAt    field.Int64
 	PullTimes   field.Uint
 	Artifacts   blobManyToManyArtifacts
 
@@ -245,8 +245,8 @@ func (b *blob) updateTableName(table string) *blob {
 	b.Digest = field.NewString(table, "digest")
 	b.Size = field.NewInt64(table, "size")
 	b.ContentType = field.NewString(table, "content_type")
-	b.LastPull = field.NewField(table, "last_pull")
-	b.PushedAt = field.NewTime(table, "pushed_at")
+	b.LastPull = field.NewInt64(table, "last_pull")
+	b.PushedAt = field.NewInt64(table, "pushed_at")
 	b.PullTimes = field.NewUint(table, "pull_times")
 
 	b.fillFieldMap()

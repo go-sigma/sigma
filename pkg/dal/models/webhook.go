@@ -22,7 +22,7 @@ import (
 
 // Webhook ...
 type Webhook struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -46,7 +46,7 @@ type Webhook struct {
 
 // WebhookLog ...
 type WebhookLog struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

@@ -75,10 +75,10 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc artifact rule is running")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc artifact rule is running")
 	}
-	var nextTrigger *time.Time
+	var nextTrigger *int64
 	if req.CronRule != nil {
 		schedule, _ := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow).Parse(ptr.To(req.CronRule))
-		nextTrigger = ptr.Of(schedule.Next(time.Now()))
+		nextTrigger = ptr.Of(schedule.Next(time.Now()).UnixMilli()) // TODO: set unix
 	}
 	updates := make(map[string]any, 5)
 	updates[query.DaemonGcArtifactRule.RetentionDay.ColumnName().String()] = req.RetentionDay
@@ -166,11 +166,15 @@ func (h *handler) GetGcArtifactRule(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc artifact rule failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
+	var nextTrigger *string
+	if ruleObj.CronNextTrigger != nil {
+		nextTrigger = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(ruleObj.CronNextTrigger)).UTC().Format(consts.DefaultTimePattern))
+	}
 	return c.JSON(http.StatusOK, types.GetGcArtifactRuleResponse{
 		RetentionDay:    ruleObj.RetentionDay,
 		CronEnabled:     ruleObj.CronEnabled,
 		CronRule:        ruleObj.CronRule,
-		CronNextTrigger: ptr.Of(ptr.To(ruleObj.CronNextTrigger).Format(consts.DefaultTimePattern)),
+		CronNextTrigger: nextTrigger,
 		CreatedAt:       time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		UpdatedAt:       time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
@@ -221,12 +225,12 @@ func (h *handler) GetGcArtifactLatestRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc artifact runner failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc artifact runner failed: %v", err))
 	}
-	var startedAt, endedAt string
+	var startedAt, endedAt *string
 	if runnerObj.StartedAt != nil {
-		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+		startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
 	}
 	if runnerObj.EndedAt != nil {
-		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+		endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
 	}
 	var duration *string
 	if runnerObj.Duration != nil {
@@ -240,8 +244,8 @@ func (h *handler) GetGcArtifactLatestRunner(c echo.Context) error {
 		SuccessCount: runnerObj.SuccessCount,
 		RawDuration:  runnerObj.Duration,
 		Duration:     duration,
-		StartedAt:    ptr.Of(startedAt),
-		EndedAt:      ptr.Of(endedAt),
+		StartedAt:    startedAt,
+		EndedAt:      endedAt,
 		CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})
@@ -370,12 +374,12 @@ func (h *handler) ListGcArtifactRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		var startedAt, endedAt string
+		var startedAt, endedAt *string
 		if runnerObj.StartedAt != nil {
-			startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+			startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
 		}
 		if runnerObj.EndedAt != nil {
-			endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+			endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
 		}
 		var duration *string
 		if runnerObj.Duration != nil {
@@ -389,8 +393,8 @@ func (h *handler) ListGcArtifactRunners(c echo.Context) error {
 			FailedCount:  runnerObj.FailedCount,
 			RawDuration:  runnerObj.Duration,
 			Duration:     duration,
-			StartedAt:    ptr.Of(startedAt),
-			EndedAt:      ptr.Of(endedAt),
+			StartedAt:    startedAt,
+			EndedAt:      endedAt,
 			CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
@@ -435,12 +439,12 @@ func (h *handler) GetGcArtifactRunner(c echo.Context) error {
 		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc artifact runner not found")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc artifact runner not found: %v", err))
 	}
-	var startedAt, endedAt string
+	var startedAt, endedAt *string
 	if runnerObj.StartedAt != nil {
-		startedAt = runnerObj.StartedAt.Format(consts.DefaultTimePattern)
+		startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
 	}
 	if runnerObj.EndedAt != nil {
-		endedAt = runnerObj.EndedAt.Format(consts.DefaultTimePattern)
+		endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
 	}
 	var duration *string
 	if runnerObj.Duration != nil {
@@ -454,8 +458,8 @@ func (h *handler) GetGcArtifactRunner(c echo.Context) error {
 		FailedCount:  runnerObj.FailedCount,
 		RawDuration:  runnerObj.Duration,
 		Duration:     duration,
-		StartedAt:    ptr.Of(startedAt),
-		EndedAt:      ptr.Of(endedAt),
+		StartedAt:    startedAt,
+		EndedAt:      endedAt,
 		CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})

@@ -60,7 +60,6 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 		}
 	}
-	fmt.Println(63, iuser, user)
 
 	var req types.ListNamespaceRequest
 	err := utils.BindValidate(c, &req)

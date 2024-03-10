@@ -194,7 +194,6 @@ func TestArtifactService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, artifact1.ID, artifactObj.ID)
 		assert.Equal(t, artifact1.PullTimes, int64(1))
-		assert.True(t, artifact1.LastPull.Valid)
 
 		nsCount1, err := artifactService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 		assert.NoError(t, err)

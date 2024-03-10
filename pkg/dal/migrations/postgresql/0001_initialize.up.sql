@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS "users" (
   "username" varchar(64) NOT NULL,
   "password" varchar(256),
   "email" varchar(256),
-  "last_login" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_login" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "namespace_limit" bigint NOT NULL DEFAULT 0,
   "namespace_count" bigint NOT NULL DEFAULT 0,
   "status" user_status NOT NULL DEFAULT 'Active',
@@ -43,12 +43,6 @@ CREATE TABLE IF NOT EXISTS "users" (
   "deleted_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "users_unique_with_username" UNIQUE ("username", "deleted_at")
 );
-
-CREATE INDEX "users_idx_created_at" ON "users" ("created_at");
-
-CREATE INDEX "users_idx_updated_at" ON "users" ("updated_at");
-
-CREATE INDEX "users_idx_deleted_at" ON "users" ("deleted_at");
 
 CREATE INDEX "users_idx_status" ON "users" ("status");
 
@@ -63,7 +57,7 @@ CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   "account_id" varchar(256),
   "token" varchar(256),
   "refresh_token" varchar(256),
-  "cr_last_update_timestamp" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "cr_last_update_timestamp" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "cr_last_update_status" daemon_status NOT NULL DEFAULT 'Doing',
   "cr_last_update_message" varchar(256),
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
@@ -72,12 +66,6 @@ CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
   CONSTRAINT "user_3rdparty_unique_with_account_id" UNIQUE ("provider", "account_id", "deleted_at")
 );
-
-CREATE INDEX "user_3rdparty_idx_created_at" ON "user_3rdparty" ("created_at");
-
-CREATE INDEX "user_3rdparty_idx_updated_at" ON "user_3rdparty" ("updated_at");
-
-CREATE INDEX "user_3rdparty_idx_deleted_at" ON "user_3rdparty" ("deleted_at");
 
 CREATE TYPE code_repository_clone_credentials_type AS enum (
   'none',
@@ -296,8 +284,8 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "config_raw" bytea,
   "config_media_type" varchar(256),
   "type" artifact_type NOT NULL DEFAULT 'Unknown',
-  "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_pull" timestamp,
+  "pushed_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "last_pull" bigint,
   "pull_times" bigint NOT NULL DEFAULT 0,
   "referrer_id" bigint,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
@@ -358,8 +346,8 @@ CREATE TABLE IF NOT EXISTS "tags" (
   "repository_id" bigint NOT NULL,
   "artifact_id" bigint NOT NULL,
   "name" varchar(128) NOT NULL,
-  "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_pull" timestamp,
+  "pushed_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "last_pull" bigint,
   "pull_times" bigint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
@@ -374,8 +362,8 @@ CREATE TABLE IF NOT EXISTS "blobs" (
   "digest" varchar(256) NOT NULL UNIQUE,
   "size" bigint NOT NULL DEFAULT 0,
   "content_type" varchar(256) NOT NULL,
-  "pushed_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_pull" timestamp,
+  "pushed_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
+  "last_pull" bigint,
   "pull_times" bigint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
@@ -424,7 +412,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_rules" (
   "namespace_id" bigint,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
-  "cron_next_trigger" timestamp,
+  "cron_next_trigger" bigint,
   "retention_rule_type" retention_rule_type NOT NULL DEFAULT 'Quantity',
   "retention_rule_amount" bigint NOT NULL DEFAULT 1,
   "retention_pattern" varchar(64),
@@ -442,8 +430,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_tag_runners" (
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "operate_user_id" bigint,
-  "started_at" timestamp,
-  "ended_at" timestamp,
+  "started_at" bigint,
+  "ended_at" bigint,
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
@@ -478,7 +466,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_rules" (
   "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
-  "cron_next_trigger" timestamp,
+  "cron_next_trigger" bigint,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -493,8 +481,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_repository_runners" (
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "operate_user_id" bigint,
-  "started_at" timestamp,
-  "ended_at" timestamp,
+  "started_at" bigint,
+  "ended_at" bigint,
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
@@ -524,7 +512,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_rules" (
   "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
-  "cron_next_trigger" timestamp,
+  "cron_next_trigger" bigint,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
@@ -539,8 +527,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_runners" (
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "operate_user_id" bigint,
-  "started_at" timestamp,
-  "ended_at" timestamp,
+  "started_at" bigint,
+  "ended_at" bigint,
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
@@ -568,7 +556,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),
-  "cron_next_trigger" timestamp,
+  "cron_next_trigger" bigint,
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0
@@ -581,8 +569,8 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_blob_runners" (
   "status" daemon_status NOT NULL DEFAULT 'Pending',
   "operate_type" operate_type NOT NULL DEFAULT 'Automatic',
   "operate_user_id" bigint,
-  "started_at" timestamp,
-  "ended_at" timestamp,
+  "started_at" bigint,
+  "ended_at" bigint,
   "duration" bigint,
   "success_count" bigint,
   "failed_count" bigint,
@@ -760,7 +748,7 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "cron_rules" varchar(30),
   "cron_branch" varchar(256),
   "cron_tag_template" varchar(256),
-  "cron_next_trigger" timestamp,
+  "cron_next_trigger" bigint,
   -- webhook settings
   "webhook_branch_name" varchar(256),
   "webhook_branch_tag_template" varchar(256),

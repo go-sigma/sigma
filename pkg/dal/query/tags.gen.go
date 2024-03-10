@@ -34,8 +34,8 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 	_tag.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_tag.ArtifactID = field.NewInt64(tableName, "artifact_id")
 	_tag.Name = field.NewString(tableName, "name")
-	_tag.LastPull = field.NewField(tableName, "last_pull")
-	_tag.PushedAt = field.NewTime(tableName, "pushed_at")
+	_tag.LastPull = field.NewInt64(tableName, "last_pull")
+	_tag.PushedAt = field.NewInt64(tableName, "pushed_at")
 	_tag.PullTimes = field.NewInt64(tableName, "pull_times")
 	_tag.Repository = tagBelongsToRepository{
 		db: db.Session(&gorm.Session{}),
@@ -202,8 +202,8 @@ type tag struct {
 	RepositoryID field.Int64
 	ArtifactID   field.Int64
 	Name         field.String
-	LastPull     field.Field
-	PushedAt     field.Time
+	LastPull     field.Int64
+	PushedAt     field.Int64
 	PullTimes    field.Int64
 	Repository   tagBelongsToRepository
 
@@ -231,8 +231,8 @@ func (t *tag) updateTableName(table string) *tag {
 	t.RepositoryID = field.NewInt64(table, "repository_id")
 	t.ArtifactID = field.NewInt64(table, "artifact_id")
 	t.Name = field.NewString(table, "name")
-	t.LastPull = field.NewField(table, "last_pull")
-	t.PushedAt = field.NewTime(table, "pushed_at")
+	t.LastPull = field.NewInt64(table, "last_pull")
+	t.PushedAt = field.NewInt64(table, "pushed_at")
 	t.PullTimes = field.NewInt64(table, "pull_times")
 
 	t.fillFieldMap()

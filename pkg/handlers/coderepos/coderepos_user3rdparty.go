@@ -77,7 +77,7 @@ func (h *handler) User3rdParty(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.GetCodeRepositoryUser3rdPartyResponse{
 		ID:                    user3rdPartyObj.ID,
 		AccountID:             ptr.To(user3rdPartyObj.AccountID),
-		CrLastUpdateTimestamp: user3rdPartyObj.CrLastUpdateTimestamp.Format(consts.DefaultTimePattern),
+		CrLastUpdateTimestamp: time.Unix(0, int64(time.Millisecond)*user3rdPartyObj.CrLastUpdateTimestamp).UTC().Format(consts.DefaultTimePattern),
 		CrLastUpdateStatus:    user3rdPartyObj.CrLastUpdateStatus,
 		CrLastUpdateMessage:   user3rdPartyObj.CrLastUpdateMessage,
 

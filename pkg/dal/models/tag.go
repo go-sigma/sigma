@@ -15,9 +15,6 @@
 package models
 
 import (
-	"database/sql"
-	"time"
-
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
@@ -26,7 +23,7 @@ import (
 
 // Tag represents a tag
 type Tag struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -35,9 +32,9 @@ type Tag struct {
 	ArtifactID   int64
 	Name         string
 
-	LastPull  sql.NullTime
-	PushedAt  time.Time `gorm:"autoCreateTime"`
-	PullTimes int64     `gorm:"default:0"`
+	LastPull  int64
+	PushedAt  int64 `gorm:"autoCreateTime:milli"`
+	PullTimes int64 `gorm:"default:0"`
 
 	Repository *Repository
 	Artifact   *Artifact

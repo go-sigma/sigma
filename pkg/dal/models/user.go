@@ -15,8 +15,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -24,7 +22,7 @@ import (
 
 // User is the model for the user table.
 type User struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -32,7 +30,7 @@ type User struct {
 	Username       string
 	Password       *string
 	Email          *string
-	LastLogin      time.Time        `gorm:"autoCreateTime"`
+	LastLogin      int64            `gorm:"autoCreateTime:milli"`
 	Status         enums.UserStatus `gorm:"default:Active"`
 	Role           enums.UserRole   `gorm:"default:User"`
 	NamespaceLimit int64            `gorm:"default:0"`
@@ -41,7 +39,7 @@ type User struct {
 
 // User3rdParty ...
 type User3rdParty struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
@@ -52,7 +50,7 @@ type User3rdParty struct {
 	Token        *string
 	RefreshToken *string
 
-	CrLastUpdateTimestamp time.Time              `gorm:"autoCreateTime"`
+	CrLastUpdateTimestamp int64                  `gorm:"autoUpdateTime:milli"`
 	CrLastUpdateStatus    enums.TaskCommonStatus `gorm:"default:Doing"`
 	CrLastUpdateMessage   *string
 
@@ -65,7 +63,7 @@ func (User3rdParty) TableName() string {
 }
 
 type UserRecoverCode struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`

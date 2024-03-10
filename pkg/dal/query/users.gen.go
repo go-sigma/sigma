@@ -34,7 +34,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Email = field.NewString(tableName, "email")
-	_user.LastLogin = field.NewTime(tableName, "last_login")
+	_user.LastLogin = field.NewInt64(tableName, "last_login")
 	_user.Status = field.NewField(tableName, "status")
 	_user.Role = field.NewField(tableName, "role")
 	_user.NamespaceLimit = field.NewInt64(tableName, "namespace_limit")
@@ -56,7 +56,7 @@ type user struct {
 	Username       field.String
 	Password       field.String
 	Email          field.String
-	LastLogin      field.Time
+	LastLogin      field.Int64
 	Status         field.Field
 	Role           field.Field
 	NamespaceLimit field.Int64
@@ -84,7 +84,7 @@ func (u *user) updateTableName(table string) *user {
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Email = field.NewString(table, "email")
-	u.LastLogin = field.NewTime(table, "last_login")
+	u.LastLogin = field.NewInt64(table, "last_login")
 	u.Status = field.NewField(table, "status")
 	u.Role = field.NewField(table, "role")
 	u.NamespaceLimit = field.NewInt64(table, "namespace_limit")

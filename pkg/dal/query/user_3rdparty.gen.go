@@ -36,7 +36,7 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 	_user3rdParty.AccountID = field.NewString(tableName, "account_id")
 	_user3rdParty.Token = field.NewString(tableName, "token")
 	_user3rdParty.RefreshToken = field.NewString(tableName, "refresh_token")
-	_user3rdParty.CrLastUpdateTimestamp = field.NewTime(tableName, "cr_last_update_timestamp")
+	_user3rdParty.CrLastUpdateTimestamp = field.NewInt64(tableName, "cr_last_update_timestamp")
 	_user3rdParty.CrLastUpdateStatus = field.NewField(tableName, "cr_last_update_status")
 	_user3rdParty.CrLastUpdateMessage = field.NewString(tableName, "cr_last_update_message")
 	_user3rdParty.User = user3rdPartyBelongsToUser{
@@ -63,7 +63,7 @@ type user3rdParty struct {
 	AccountID             field.String
 	Token                 field.String
 	RefreshToken          field.String
-	CrLastUpdateTimestamp field.Time
+	CrLastUpdateTimestamp field.Int64
 	CrLastUpdateStatus    field.Field
 	CrLastUpdateMessage   field.String
 	User                  user3rdPartyBelongsToUser
@@ -92,7 +92,7 @@ func (u *user3rdParty) updateTableName(table string) *user3rdParty {
 	u.AccountID = field.NewString(table, "account_id")
 	u.Token = field.NewString(table, "token")
 	u.RefreshToken = field.NewString(table, "refresh_token")
-	u.CrLastUpdateTimestamp = field.NewTime(table, "cr_last_update_timestamp")
+	u.CrLastUpdateTimestamp = field.NewInt64(table, "cr_last_update_timestamp")
 	u.CrLastUpdateStatus = field.NewField(table, "cr_last_update_status")
 	u.CrLastUpdateMessage = field.NewString(table, "cr_last_update_message")
 

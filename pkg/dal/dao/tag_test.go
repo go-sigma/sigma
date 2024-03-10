@@ -110,7 +110,6 @@ func TestTagService(t *testing.T) {
 		tag3, err := tagService.GetByID(ctx, tagObj.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, tag3.PullTimes, int64(1))
-		assert.True(t, tag3.LastPull.Valid)
 
 		tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, nil, types.Pagination{
 			Limit: ptr.Of(int(100)),

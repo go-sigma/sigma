@@ -64,7 +64,7 @@ func crRunner(ctx context.Context, payload []byte) error {
 	}
 	userService := dao.NewUserServiceFactory().New()
 	err = userService.UpdateUser3rdParty(ctx, task.User3rdPartyID, map[string]any{
-		query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now(),
+		query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now().UnixMilli(),
 		query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    status,
 		query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   statusMessage,
 	})

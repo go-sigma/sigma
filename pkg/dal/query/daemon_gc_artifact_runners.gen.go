@@ -36,8 +36,8 @@ func newDaemonGcArtifactRunner(db *gorm.DB, opts ...gen.DOOption) daemonGcArtifa
 	_daemonGcArtifactRunner.Message = field.NewBytes(tableName, "message")
 	_daemonGcArtifactRunner.OperateType = field.NewField(tableName, "operate_type")
 	_daemonGcArtifactRunner.OperateUserID = field.NewInt64(tableName, "operate_user_id")
-	_daemonGcArtifactRunner.StartedAt = field.NewTime(tableName, "started_at")
-	_daemonGcArtifactRunner.EndedAt = field.NewTime(tableName, "ended_at")
+	_daemonGcArtifactRunner.StartedAt = field.NewInt64(tableName, "started_at")
+	_daemonGcArtifactRunner.EndedAt = field.NewInt64(tableName, "ended_at")
 	_daemonGcArtifactRunner.Duration = field.NewInt64(tableName, "duration")
 	_daemonGcArtifactRunner.SuccessCount = field.NewInt64(tableName, "success_count")
 	_daemonGcArtifactRunner.FailedCount = field.NewInt64(tableName, "failed_count")
@@ -76,8 +76,8 @@ type daemonGcArtifactRunner struct {
 	Message       field.Bytes
 	OperateType   field.Field
 	OperateUserID field.Int64
-	StartedAt     field.Time
-	EndedAt       field.Time
+	StartedAt     field.Int64
+	EndedAt       field.Int64
 	Duration      field.Int64
 	SuccessCount  field.Int64
 	FailedCount   field.Int64
@@ -109,8 +109,8 @@ func (d *daemonGcArtifactRunner) updateTableName(table string) *daemonGcArtifact
 	d.Message = field.NewBytes(table, "message")
 	d.OperateType = field.NewField(table, "operate_type")
 	d.OperateUserID = field.NewInt64(table, "operate_user_id")
-	d.StartedAt = field.NewTime(table, "started_at")
-	d.EndedAt = field.NewTime(table, "ended_at")
+	d.StartedAt = field.NewInt64(table, "started_at")
+	d.EndedAt = field.NewInt64(table, "ended_at")
 	d.Duration = field.NewInt64(table, "duration")
 	d.SuccessCount = field.NewInt64(table, "success_count")
 	d.FailedCount = field.NewInt64(table, "failed_count")

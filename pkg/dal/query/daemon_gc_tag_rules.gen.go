@@ -35,7 +35,7 @@ func newDaemonGcTagRule(db *gorm.DB, opts ...gen.DOOption) daemonGcTagRule {
 	_daemonGcTagRule.IsRunning = field.NewBool(tableName, "is_running")
 	_daemonGcTagRule.CronEnabled = field.NewBool(tableName, "cron_enabled")
 	_daemonGcTagRule.CronRule = field.NewString(tableName, "cron_rule")
-	_daemonGcTagRule.CronNextTrigger = field.NewTime(tableName, "cron_next_trigger")
+	_daemonGcTagRule.CronNextTrigger = field.NewInt64(tableName, "cron_next_trigger")
 	_daemonGcTagRule.RetentionRuleType = field.NewField(tableName, "retention_rule_type")
 	_daemonGcTagRule.RetentionRuleAmount = field.NewInt64(tableName, "retention_rule_amount")
 	_daemonGcTagRule.RetentionPattern = field.NewString(tableName, "retention_pattern")
@@ -62,7 +62,7 @@ type daemonGcTagRule struct {
 	IsRunning           field.Bool
 	CronEnabled         field.Bool
 	CronRule            field.String
-	CronNextTrigger     field.Time
+	CronNextTrigger     field.Int64
 	RetentionRuleType   field.Field
 	RetentionRuleAmount field.Int64
 	RetentionPattern    field.String
@@ -91,7 +91,7 @@ func (d *daemonGcTagRule) updateTableName(table string) *daemonGcTagRule {
 	d.IsRunning = field.NewBool(table, "is_running")
 	d.CronEnabled = field.NewBool(table, "cron_enabled")
 	d.CronRule = field.NewString(table, "cron_rule")
-	d.CronNextTrigger = field.NewTime(table, "cron_next_trigger")
+	d.CronNextTrigger = field.NewInt64(table, "cron_next_trigger")
 	d.RetentionRuleType = field.NewField(table, "retention_rule_type")
 	d.RetentionRuleAmount = field.NewInt64(table, "retention_rule_amount")
 	d.RetentionPattern = field.NewString(table, "retention_pattern")
