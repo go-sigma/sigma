@@ -85,15 +85,16 @@ func (s *blobService) Create(ctx context.Context, blob *models.Blob) error {
 // FindWithLastPull ...
 func (s *blobService) FindWithLastPull(ctx context.Context, before int64, last, limit int64) ([]*models.Blob, error) {
 	return s.tx.Blob.WithContext(ctx).
+		Where(s.tx.Blob.ID.Gt(last)).
 		Where(s.tx.Blob.LastPull.Lt(before)).
 		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before)).
-		Where(s.tx.Blob.ID.Gt(last)).Find()
+		Find()
 }
 
 // FindAssociateWithArtifact ...
 func (s *blobService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
 	var result []int64
-	err := s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT blob_id FROM artifact_blobs WHERE blob_id in (?)", ids).Scan(&result).Error
+	err := s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT blob_id FROM artifact_blobs LEFT JOIN artifacts ON artifacts.id = artifact_blobs.artifact_id WHERE artifacts.deleted_at = 0 AND blob_id in (?)", ids).Scan(&result).Error
 	return result, err
 }
 

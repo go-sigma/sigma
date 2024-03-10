@@ -131,6 +131,9 @@ func (g gcBlob) Run(runnerID int64) error {
 			}, WebhookObj: g.packWebhookObj(enums.WebhookActionFinished)}
 			return fmt.Errorf("get blob with last pull failed: %v", err)
 		}
+		if len(blobs) == 0 {
+			break
+		}
 		var ids []int64
 		for _, blob := range blobs {
 			ids = append(ids, blob.ID)
@@ -165,6 +168,7 @@ func (g gcBlob) Run(runnerID int64) error {
 		if len(blobs) < pagination {
 			break
 		}
+		log.Info().Interface("blob", blobs[len(blobs)-1]).Send()
 		curIndex = blobs[len(blobs)-1].ID
 	}
 	close(g.deleteBlobChan)
