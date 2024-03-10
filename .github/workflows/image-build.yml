@@ -9,7 +9,7 @@ on:
       - gh-readonly-queue/main/*
       - release-*
     tags:
-      - "v*.*.*"
+      - "v*"
   pull_request:
     branches:
       - main
