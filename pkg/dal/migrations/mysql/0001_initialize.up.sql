@@ -450,7 +450,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
+  FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_blob_runners` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `casbin_rules` (

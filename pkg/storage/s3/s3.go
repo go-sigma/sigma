@@ -221,7 +221,9 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 		s3Objects = s3Objects[:0]
 
 		// resp.Contents must have at least one element or we would have returned not found
-		listObjectsInput.StartAfter = resp.Contents[len(resp.Contents)-1].Key
+		if len(resp.Contents) > 0 {
+			listObjectsInput.StartAfter = resp.Contents[len(resp.Contents)-1].Key
+		}
 
 		// from the s3 api docs, IsTruncated "specifies whether (true) or not (false) all of the results were returned"
 		// if everything has been returned, break

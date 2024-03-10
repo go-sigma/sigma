@@ -157,7 +157,7 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 			Version: syftObj.Distro.VersionID,
 		},
 	}
-	syftMetadata, ok := syftObj.Source.Metadata.(source.StereoscopeImageSourceMetadata)
+	syftMetadata, ok := syftObj.Source.Metadata.(source.ImageMetadata)
 	if ok {
 		report.Os = syftMetadata.OS
 		report.Architecture = syftMetadata.Architecture
