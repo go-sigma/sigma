@@ -1011,13 +1011,13 @@ func (a artifactDo) ArtifactSizeByRepository(repositoryID int64) (result models.
 	return
 }
 
-// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_index_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
+// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
 func (a artifactDo) ArtifactAssociated(artifactID int64) (result map[string]interface{}, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
 	params = append(params, artifactID)
-	generateSQL.WriteString("SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_index_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=? ")
+	generateSQL.WriteString("SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=? ")
 
 	result = make(map[string]interface{})
 	var executeSQL *gorm.DB

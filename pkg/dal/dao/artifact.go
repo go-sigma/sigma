@@ -121,10 +121,10 @@ func (s *artifactService) Create(ctx context.Context, artifact *models.Artifact)
 // FindWithLastPull ...
 func (s *artifactService) FindWithLastPull(ctx context.Context, repositoryID int64, before int64, limit, last int64) ([]*models.Artifact, error) {
 	return s.tx.Artifact.WithContext(ctx).
+		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Where(s.tx.Artifact.LastPull.Lt(before)).
 		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before)).
-		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID)).
-		Limit(int(limit)).Find()
+		Limit(int(limit)).Order(s.tx.Artifact.ID).Find()
 }
 
 // FindAssociateWithTag ...
