@@ -141,13 +141,13 @@ func (s *artifactService) FindAssociateWithArtifact(ctx context.Context, ids []i
 	if err != nil {
 		return nil, err
 	}
-	var artifactIndexes []int64
-	err = s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_index_id FROM artifact_artifacts WHERE artifact_index_id in (?)", ids).Scan(&artifactIndexes).Error
+	var artifactSubs []int64
+	err = s.tx.Blob.WithContext(ctx).UnderlyingDB().Raw("SELECT artifact_sub_id FROM artifact_artifacts WHERE artifact_sub_id in (?)", ids).Scan(&artifactSubs).Error
 	if err != nil {
 		return nil, err
 	}
 	resultSet := mapset.NewSet(artifacts...)
-	resultSet.Append(artifactIndexes...)
+	resultSet.Append(artifactSubs...)
 	return resultSet.ToSlice(), err
 }
 
@@ -209,7 +209,7 @@ func (s *artifactService) AssociateBlobs(ctx context.Context, artifact *models.A
 
 // AssociateArtifact ...
 func (s *artifactService) AssociateArtifact(ctx context.Context, artifact *models.Artifact, artifacts []*models.Artifact) error {
-	return s.tx.Artifact.ArtifactIndexes.WithContext(ctx).Model(artifact).Append(artifacts...)
+	return s.tx.Artifact.ArtifactSubs.WithContext(ctx).Model(artifact).Append(artifacts...)
 }
 
 // Incr increases the pull times of the artifact.

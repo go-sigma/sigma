@@ -92,8 +92,8 @@ func (h *handler) GetTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var artifacts = make([]types.TagItemArtifact, 0, len(tag.Artifact.ArtifactIndexes))
-	for _, item := range tag.Artifact.ArtifactIndexes {
+	var artifacts = make([]types.TagItemArtifact, 0, len(tag.Artifact.ArtifactSubs))
+	for _, item := range tag.Artifact.ArtifactSubs {
 		artifacts = append(artifacts, types.TagItemArtifact{
 			ID:            item.ID,
 			Digest:        item.Digest,

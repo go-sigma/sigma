@@ -96,7 +96,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					field.RelationField
 				}
 			}
-			ArtifactIndexes struct {
+			ArtifactSubs struct {
 				field.RelationField
 			}
 			Blobs struct {
@@ -239,10 +239,10 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 					RelationField: field.NewRelation("Vulnerability.Artifact.Tags.Artifact", "models.Artifact"),
 				},
 			},
-			ArtifactIndexes: struct {
+			ArtifactSubs: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Vulnerability.Artifact.ArtifactIndexes", "models.Artifact"),
+				RelationField: field.NewRelation("Vulnerability.Artifact.ArtifactSubs", "models.Artifact"),
 			},
 			Blobs: struct {
 				field.RelationField
@@ -284,10 +284,10 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 		RelationField: field.NewRelation("Referrer", "models.Artifact"),
 	}
 
-	_artifact.ArtifactIndexes = artifactManyToManyArtifactIndexes{
+	_artifact.ArtifactSubs = artifactManyToManyArtifactSubs{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("ArtifactIndexes", "models.Artifact"),
+		RelationField: field.NewRelation("ArtifactSubs", "models.Artifact"),
 	}
 
 	_artifact.Blobs = artifactManyToManyBlobs{
@@ -332,7 +332,7 @@ type artifact struct {
 
 	Referrer artifactBelongsToReferrer
 
-	ArtifactIndexes artifactManyToManyArtifactIndexes
+	ArtifactSubs artifactManyToManyArtifactSubs
 
 	Blobs artifactManyToManyBlobs
 
@@ -475,7 +475,7 @@ type artifactHasOneVulnerability struct {
 				field.RelationField
 			}
 		}
-		ArtifactIndexes struct {
+		ArtifactSubs struct {
 			field.RelationField
 		}
 		Blobs struct {
@@ -836,13 +836,13 @@ func (a artifactBelongsToReferrerTx) Count() int64 {
 	return a.tx.Count()
 }
 
-type artifactManyToManyArtifactIndexes struct {
+type artifactManyToManyArtifactSubs struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a artifactManyToManyArtifactIndexes) Where(conds ...field.Expr) *artifactManyToManyArtifactIndexes {
+func (a artifactManyToManyArtifactSubs) Where(conds ...field.Expr) *artifactManyToManyArtifactSubs {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -855,27 +855,27 @@ func (a artifactManyToManyArtifactIndexes) Where(conds ...field.Expr) *artifactM
 	return &a
 }
 
-func (a artifactManyToManyArtifactIndexes) WithContext(ctx context.Context) *artifactManyToManyArtifactIndexes {
+func (a artifactManyToManyArtifactSubs) WithContext(ctx context.Context) *artifactManyToManyArtifactSubs {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a artifactManyToManyArtifactIndexes) Session(session *gorm.Session) *artifactManyToManyArtifactIndexes {
+func (a artifactManyToManyArtifactSubs) Session(session *gorm.Session) *artifactManyToManyArtifactSubs {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a artifactManyToManyArtifactIndexes) Model(m *models.Artifact) *artifactManyToManyArtifactIndexesTx {
-	return &artifactManyToManyArtifactIndexesTx{a.db.Model(m).Association(a.Name())}
+func (a artifactManyToManyArtifactSubs) Model(m *models.Artifact) *artifactManyToManyArtifactSubsTx {
+	return &artifactManyToManyArtifactSubsTx{a.db.Model(m).Association(a.Name())}
 }
 
-type artifactManyToManyArtifactIndexesTx struct{ tx *gorm.Association }
+type artifactManyToManyArtifactSubsTx struct{ tx *gorm.Association }
 
-func (a artifactManyToManyArtifactIndexesTx) Find() (result []*models.Artifact, err error) {
+func (a artifactManyToManyArtifactSubsTx) Find() (result []*models.Artifact, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a artifactManyToManyArtifactIndexesTx) Append(values ...*models.Artifact) (err error) {
+func (a artifactManyToManyArtifactSubsTx) Append(values ...*models.Artifact) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -883,7 +883,7 @@ func (a artifactManyToManyArtifactIndexesTx) Append(values ...*models.Artifact) 
 	return a.tx.Append(targetValues...)
 }
 
-func (a artifactManyToManyArtifactIndexesTx) Replace(values ...*models.Artifact) (err error) {
+func (a artifactManyToManyArtifactSubsTx) Replace(values ...*models.Artifact) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -891,7 +891,7 @@ func (a artifactManyToManyArtifactIndexesTx) Replace(values ...*models.Artifact)
 	return a.tx.Replace(targetValues...)
 }
 
-func (a artifactManyToManyArtifactIndexesTx) Delete(values ...*models.Artifact) (err error) {
+func (a artifactManyToManyArtifactSubsTx) Delete(values ...*models.Artifact) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -899,11 +899,11 @@ func (a artifactManyToManyArtifactIndexesTx) Delete(values ...*models.Artifact) 
 	return a.tx.Delete(targetValues...)
 }
 
-func (a artifactManyToManyArtifactIndexesTx) Clear() error {
+func (a artifactManyToManyArtifactSubsTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a artifactManyToManyArtifactIndexesTx) Count() int64 {
+func (a artifactManyToManyArtifactSubsTx) Count() int64 {
 	return a.tx.Count()
 }
 
@@ -1011,13 +1011,13 @@ func (a artifactDo) ArtifactSizeByRepository(repositoryID int64) (result models.
 	return
 }
 
-// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
+// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_sub_id=@artifactID
 func (a artifactDo) ArtifactAssociated(artifactID int64) (result map[string]interface{}, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
 	params = append(params, artifactID)
-	generateSQL.WriteString("SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=? ")
+	generateSQL.WriteString("SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_sub_id=? ")
 
 	result = make(map[string]interface{})
 	var executeSQL *gorm.DB
