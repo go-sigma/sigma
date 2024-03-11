@@ -226,12 +226,15 @@ func (g gcArtifact) deleteArtifactCheck() {
 				continue
 			}
 			// 3. check manifest index associate with this artifact
-			err = artifactService.IsArtifactAssociatedWithArtifact(g.ctx, task.Artifact.ID)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
-			}
-			if err == nil {
-				continue
+			if !(task.Artifact.ContentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
+				task.Artifact.ContentType == "application/vnd.oci.image.index.v1+json") { // skip this check if artifact is manifest index
+				err = artifactService.IsArtifactAssociatedWithArtifact(g.ctx, task.Artifact.ID)
+				if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+					log.Error().Err(err).Int64("repositoryID", task.Artifact.RepositoryID).Int64("artifactID", task.Artifact.ID).Msg("Get manifest associated with manifest index failed")
+				}
+				if err == nil {
+					continue
+				}
 			}
 			// 4. delete the artifact that referrer to this artifact
 			delArtifacts, err := artifactService.GetReferrers(g.ctx, task.Artifact.RepositoryID, task.Artifact.Digest, nil)

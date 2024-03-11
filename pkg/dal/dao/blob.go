@@ -88,7 +88,7 @@ func (s *blobService) FindWithLastPull(ctx context.Context, before int64, last, 
 		Where(s.tx.Blob.ID.Gt(last)).
 		Where(s.tx.Blob.LastPull.Lt(before)).
 		Or(s.tx.Blob.LastPull.IsNull(), s.tx.Blob.UpdatedAt.Lt(before)).
-		Find()
+		Order(s.tx.Blob.ID).Find()
 }
 
 // FindAssociateWithArtifact ...

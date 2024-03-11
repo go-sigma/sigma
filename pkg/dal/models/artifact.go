@@ -71,7 +71,7 @@ type ArtifactSizeByNamespaceOrRepository interface {
 
 // ArtifactAssociated ...
 type ArtifactAssociated interface {
-	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_index_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
+	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
 	ArtifactAssociated(artifactID int64) (gen.M, error)
 }
 
