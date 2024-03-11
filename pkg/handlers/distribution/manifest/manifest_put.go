@@ -336,7 +336,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 		return xerrors.DSErrCodeUnknown
 	}
 
-	artifactObj.ArtifactIndexes = artifactObjs
+	artifactObj.ArtifactSubs = artifactObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		artifactService := h.artifactServiceFactory.New(tx)

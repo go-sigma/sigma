@@ -183,10 +183,10 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 				RelationField: field.NewRelation("Artifact.Tags.Artifact", "models.Artifact"),
 			},
 		},
-		ArtifactIndexes: struct {
+		ArtifactSubs: struct {
 			field.RelationField
 		}{
-			RelationField: field.NewRelation("Artifact.ArtifactIndexes", "models.Artifact"),
+			RelationField: field.NewRelation("Artifact.ArtifactSubs", "models.Artifact"),
 		},
 		Blobs: struct {
 			field.RelationField
@@ -360,7 +360,7 @@ type artifactVulnerabilityBelongsToArtifact struct {
 			field.RelationField
 		}
 	}
-	ArtifactIndexes struct {
+	ArtifactSubs struct {
 		field.RelationField
 	}
 	Blobs struct {

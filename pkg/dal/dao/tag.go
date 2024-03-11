@@ -171,9 +171,9 @@ func (s *tagService) FindWithDayCursor(ctx context.Context, repositoryID int64, 
 // GetByID gets the tag with the specified tag ID.
 func (s *tagService) GetByID(ctx context.Context, tagID int64) (*models.Tag, error) {
 	q := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(tagID))
-	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
-	q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+	q.UnderlyingDB().Preload("Artifact.ArtifactSubs.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactSubs.Sbom")
+	q.Preload(s.tx.Tag.Artifact.ArtifactSubs)
 	q.Preload(s.tx.Tag.Artifact.Vulnerability)
 	q.Preload(s.tx.Tag.Artifact.Sbom)
 	return q.First()
@@ -270,14 +270,14 @@ func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *stri
 		q = q.Order(s.tx.Tag.UpdatedAt.Desc())
 	}
 	if len(types) > 0 {
-		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes.On(s.tx.Artifact.Type.In(mTypes...)))
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactSubs.On(s.tx.Artifact.Type.In(mTypes...)))
 	} else {
-		q = q.Preload(s.tx.Tag.Artifact.ArtifactIndexes)
+		q = q.Preload(s.tx.Tag.Artifact.ArtifactSubs)
 	}
 	q = q.Preload(s.tx.Tag.Artifact.Vulnerability)
 	q = q.Preload(s.tx.Tag.Artifact.Sbom)
-	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Vulnerability")
-	q.UnderlyingDB().Preload("Artifact.ArtifactIndexes.Sbom")
+	q.UnderlyingDB().Preload("Artifact.ArtifactSubs.Vulnerability")
+	q.UnderlyingDB().Preload("Artifact.ArtifactSubs.Sbom")
 	return q.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
 

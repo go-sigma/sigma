@@ -127,7 +127,7 @@ func (h *handler) ListTag(c echo.Context) error {
 			continue
 		}
 		var artifacts []types.TagItemArtifact
-		for _, item := range tag.Artifact.ArtifactIndexes {
+		for _, item := range tag.Artifact.ArtifactSubs {
 			artifacts = append(artifacts, types.TagItemArtifact{
 				ID:              item.ID,
 				Digest:          item.Digest,

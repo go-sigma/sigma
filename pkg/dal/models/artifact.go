@@ -52,12 +52,11 @@ type Artifact struct {
 	ReferrerID *int64
 	Referrer   *Artifact
 
-	// ArtifactIndexes Perhaps the variable naming here is not ideal, but we don't want to change it.
-	// In the artifact_artifacts table, artifact_id refers to the upper-level artifact index,
-	// and artifact_index_id refers to the lower-level artifact.
-	ArtifactIndexes []*Artifact `gorm:"many2many:artifact_artifacts;"`
-	Blobs           []*Blob     `gorm:"many2many:artifact_blobs;"`
-	Tags            []*Tag      `gorm:"foreignKey:ArtifactID;"`
+	// ArtifactSubs In the artifact_artifacts table, artifact_id refers to the upper-level artifact index,
+	// and artifact_sub_id refers to the lower-level artifact.
+	ArtifactSubs []*Artifact `gorm:"many2many:artifact_artifacts;"`
+	Blobs        []*Blob     `gorm:"many2many:artifact_blobs;"`
+	Tags         []*Tag      `gorm:"foreignKey:ArtifactID;"`
 }
 
 // ArtifactSizeByNamespaceOrRepository ...
@@ -71,7 +70,7 @@ type ArtifactSizeByNamespaceOrRepository interface {
 
 // ArtifactAssociated ...
 type ArtifactAssociated interface {
-	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_index_id=@artifactID
+	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_sub_id=@artifactID
 	ArtifactAssociated(artifactID int64) (gen.M, error)
 }
 

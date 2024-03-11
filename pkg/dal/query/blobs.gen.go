@@ -182,10 +182,10 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 				RelationField: field.NewRelation("Artifacts.Tags.Artifact", "models.Artifact"),
 			},
 		},
-		ArtifactIndexes: struct {
+		ArtifactSubs: struct {
 			field.RelationField
 		}{
-			RelationField: field.NewRelation("Artifacts.ArtifactIndexes", "models.Artifact"),
+			RelationField: field.NewRelation("Artifacts.ArtifactSubs", "models.Artifact"),
 		},
 		Blobs: struct {
 			field.RelationField
@@ -349,7 +349,7 @@ type blobManyToManyArtifacts struct {
 			field.RelationField
 		}
 	}
-	ArtifactIndexes struct {
+	ArtifactSubs struct {
 		field.RelationField
 	}
 	Blobs struct {
