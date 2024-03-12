@@ -29,6 +29,7 @@ var (
 	distIndexHtml = echo.MustSubFS(indexHTML, "dist")
 )
 
+// RegisterHandlers ...
 func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/", "index.html", distIndexHtml)
 	e.StaticFS("/", distDirFS)

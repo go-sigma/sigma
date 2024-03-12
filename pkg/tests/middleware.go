@@ -31,6 +31,8 @@ type CIDatabase interface {
 	Init() error
 	// DeInit remove the database or database file for ci tests
 	DeInit() error
+	// GetName get database name
+	GetName() enums.Database
 }
 
 type Factory interface {

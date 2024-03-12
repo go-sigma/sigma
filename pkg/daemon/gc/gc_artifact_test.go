@@ -14,76 +14,114 @@
 
 package gc
 
-// import (
-// 	"context"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+	"testing"
 
-// 	"github.com/rs/zerolog/log"
-// 	"github.com/spf13/viper"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/dao"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/tests"
-// 	"github.com/go-sigma/sigma/pkg/types/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// )
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+)
 
-// func TestGcArtifact(t *testing.T) {
-// 	viper.SetDefault("log.level", "debug")
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, tests.Initialize(t))
-// 	assert.NoError(t, tests.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, tests.DB.DeInit())
-// 	}()
+func TestGcArtifactNormal(t *testing.T) {
+	viper.SetDefault("log.level", "debug")
+	logger.SetLevel("debug")
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
+	defer func() {
+		conn, err := dal.DB.DB()
+		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
+	}()
 
-// 	ctx := log.Logger.WithContext(context.Background())
+	ctx := log.Logger.WithContext(context.Background())
 
-// 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-// 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-// 	artifactServiceFactory := dao.NewArtifactServiceFactory()
-// 	userServiceFactory := dao.NewUserServiceFactory()
+	sql, err := os.ReadFile(fmt.Sprintf("./testdata/gc_artifact_normal.%s.sql", tests.DB.GetName()))
+	assert.NoError(t, err)
 
-// 	userService := userServiceFactory.New()
-// 	userObj := &models.User{Username: "gc-artifact", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-// 	err := userService.Create(ctx, userObj)
-// 	assert.NoError(t, err)
+	for _, s := range strings.Split(string(sql), ";\n") {
+		s := strings.TrimSpace(s)
+		if len(s) == 0 {
+			continue
+		}
+		err = dal.DB.Debug().Exec(s).Error
+		assert.NoError(t, err)
+	}
 
-// 	namespaceService := namespaceServiceFactory.New()
-// 	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
-// 	err = namespaceService.Create(ctx, namespaceObj)
-// 	assert.NoError(t, err)
+	var runnerChan = make(chan decoratorStatus, 4)
+	var webhookChan = make(chan decoratorWebhook, 4)
 
-// 	repositoryService := repositoryServiceFactory.New()
-// 	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-// 	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-// 	assert.NoError(t, err)
+	runner := initGc(ctx, enums.DaemonGcArtifact, runnerChan, webhookChan)
+	err = runner.Run(1)
+	assert.NoError(t, err)
 
-// 	artifactService := artifactServiceFactory.New()
-// 	artifactObj := &models.Artifact{
-// 		RepositoryID: repositoryObj.ID,
-// 		Digest:       "sha256:812535778d12027c8dd62a23e0547009560b2710c7da7ea2cd83a935ccb525ba",
-// 		Size:         123,
-// 		ContentType:  "test",
-// 		Raw:          []byte("test"),
-// 		CreatedAt:    time.Now().Add(time.Hour * 73 * -1),
-// 		UpdatedAt:    time.Now().Add(time.Hour * 73 * -1),
-// 	}
-// 	err = artifactService.Create(ctx, artifactObj)
-// 	assert.NoError(t, err)
+	var webhookArr = make([]string, 0, 10)
+	for status := range webhookChan {
+		webhookArr = append(webhookArr, string(status.Meta.Action))
+	}
+	assert.Equal(t, []string{"Started", "Finished"}, webhookArr)
 
-// 	g := gc{
-// 		namespaceServiceFactory:  namespaceServiceFactory,
-// 		repositoryServiceFactory: repositoryServiceFactory,
-// 		artifactServiceFactory:   artifactServiceFactory,
-// 	}
-// 	err = g.gcArtifact(ctx, "")
-// 	assert.NoError(t, err)
-// }
+	var statusArr = make([]string, 0, 10)
+	for status := range runnerChan {
+		statusArr = append(statusArr, string(status.Status))
+	}
+	assert.Equal(t, []string{"Doing", "Doing", "Success"}, statusArr)
+
+	artifactService := dao.NewArtifactServiceFactory().New()
+	_, err = artifactService.Get(ctx, 5)
+	assert.Equal(t, gorm.ErrRecordNotFound, err)
+	artifact1, err := artifactService.Get(ctx, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, "application/vnd.oci.image.manifest.v1+json", artifact1.ContentType)
+	assert.Equal(t, int64(1), artifact1.ID)
+	artifact2, err := artifactService.Get(ctx, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, "application/vnd.oci.image.manifest.v1+json", artifact1.ContentType)
+	assert.Equal(t, int64(2), artifact2.ID)
+	artifact3, err := artifactService.Get(ctx, 3)
+	assert.NoError(t, err)
+	assert.Equal(t, "application/vnd.oci.image.manifest.v1+json", artifact1.ContentType)
+	assert.Equal(t, int64(3), artifact3.ID)
+	artifact4, err := artifactService.Get(ctx, 4)
+	assert.NoError(t, err)
+	assert.Equal(t, "application/vnd.oci.image.manifest.v1+json", artifact1.ContentType)
+	assert.Equal(t, int64(4), artifact4.ID)
+
+	runnerChan = make(chan decoratorStatus, 4)
+	webhookChan = make(chan decoratorWebhook, 4)
+	runner = initGc(ctx, enums.DaemonGcArtifact, runnerChan, webhookChan)
+	err = runner.Run(1)
+	assert.NoError(t, err)
+
+	webhookArr = make([]string, 0, 10)
+	for status := range webhookChan {
+		webhookArr = append(webhookArr, string(status.Meta.Action))
+	}
+	assert.Equal(t, []string{"Started", "Finished"}, webhookArr)
+
+	statusArr = make([]string, 0, 10)
+	for status := range runnerChan {
+		statusArr = append(statusArr, string(status.Status))
+	}
+	assert.Equal(t, []string{"Doing", "Doing", "Success"}, statusArr)
+
+	_, err = artifactService.Get(ctx, 1)
+	assert.Equal(t, gorm.ErrRecordNotFound, err)
+	_, err = artifactService.Get(ctx, 2)
+	assert.Equal(t, gorm.ErrRecordNotFound, err)
+	_, err = artifactService.Get(ctx, 3)
+	assert.Equal(t, gorm.ErrRecordNotFound, err)
+	_, err = artifactService.Get(ctx, 4)
+	assert.Equal(t, gorm.ErrRecordNotFound, err)
+}

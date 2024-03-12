@@ -71,3 +71,8 @@ func (d *sqlite3CIDatabase) DeInit() error {
 	}
 	return nil
 }
+
+// GetName get database name
+func (d *sqlite3CIDatabase) GetName() enums.Database {
+	return enums.DatabaseSqlite3
+}

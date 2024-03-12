@@ -105,3 +105,8 @@ func (d *postgresqlCIDatabase) DeInit() error {
 	// }
 	return nil
 }
+
+// GetName get database name
+func (d *postgresqlCIDatabase) GetName() enums.Database {
+	return enums.DatabasePostgresql
+}

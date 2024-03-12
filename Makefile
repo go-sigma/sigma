@@ -88,7 +88,7 @@ migration-create: ## Create a new migration file
 	@migrate create -dir ./pkg/dal/migrations/mysql -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
 sql-format: ## Format all sql files
-	@find ${PWD}/pkg/dal/migrations -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
+	@find ${PWD}/pkg -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
 
 changelog: ## Generate changelog
 	@docker run -v "${PWD}":/workdir quay.io/git-chglog/git-chglog:latest --next-tag $(VERSION) -o CHANGELOG.md

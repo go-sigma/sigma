@@ -97,3 +97,8 @@ func (d *mysqlCIDatabase) DeInit() error {
 	}
 	return nil
 }
+
+// GetName get database name
+func (d *mysqlCIDatabase) GetName() enums.Database {
+	return enums.DatabaseMysql
+}
