@@ -94,6 +94,7 @@ type gcArtifact struct {
 
 func (g gcArtifact) Run(runnerID int64) error {
 	defer close(g.runnerChan)
+	defer close(g.webhookChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcArtifact, Status: enums.TaskCommonStatusDoing, Started: true}
 
 	var err error
