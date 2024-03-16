@@ -34,6 +34,7 @@ CXX              ?=
 
 DOCKER_PLATFORMS ?= $(GOOS)/$(GOARCH)
 USE_MIRROR       ?= false
+WITH_TRIVY_DB    ?= false
 
 .PHONY: all test build vendor
 
@@ -77,11 +78,17 @@ endif
 	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
 
 ## Docker:
-docker-build: ## Use the dockerfile to build the sigma image
-	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
+docker-build: docker-build-builder-local dockerfile-local ## Use the dockerfile to build the sigma image
+	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 docker-build-builder: ## Use the dockerfile to build the sigma-builder image
 	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
+
+docker-build-builder-local: ## Use the dockerfile to build the sigma-builder image and save to local tarball file
+	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.tar .
+
+dockerfile-local: ## Use skopeo to copy dockerfile to local tarball file
+	skopeo copy -a docker://docker/dockerfile:1.7.0 oci-archive:bin/dockerfile.tar
 
 ## Misc:
 migration-create: ## Create a new migration file

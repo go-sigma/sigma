@@ -19,6 +19,12 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+        run: |
+          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+          sudo apt update
+          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
       - name: Build
         run: |
           IP=`hostname -I | awk '{print $1}'`
@@ -27,7 +33,8 @@ jobs:
           echo $DOCKER_HOST
 
           docker buildx create --use
-          docker buildx build -f build/Dockerfile --platform linux/amd64 --progress plain --output type=docker,dest=- -t sigma:latest . | docker load
+          make docker-build-builder-local dockerfile-local
+          docker buildx build -f build/Dockerfile --build-arg WITH_TRIVY_DB=true --platform linux/amd64 --progress plain --output type=docker,dest=- -t sigma:latest . | docker load
       - name: Run sigma
         run: |
           docker run --name sigma -v /var/run/docker.sock:/var/run/docker.sock -d -p 3000:3000 sigma:latest

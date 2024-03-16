@@ -195,6 +195,7 @@ pkg/**/*.html
 .vscode/
 
 *.tar.gz
+*.tar
 *.zstd
 web/.yarn/
 docs/.yarn/
