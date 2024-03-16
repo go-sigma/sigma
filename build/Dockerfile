@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.22.0-alpine3.19
+ARG GOLANG_VERSION=1.22.1-alpine3.19
 ARG NODE_VERSION=20-alpine3.19
 ARG ALPINE_VERSION=3.19
 
@@ -33,6 +33,7 @@ RUN set -eux && \
 FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG USE_MIRROR=false
+ARG WITH_TRIVY_DB=false
 ARG TRIVY_VERSION=0.49.0
 ARG TARGETOS TARGETARCH
 
@@ -51,8 +52,22 @@ RUN set -eux && \
   mv trivy /usr/local/bin/trivy && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mkdir -p /opt/trivy/ && \
-  trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress && \
-  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
+  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress; fi && \
+  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress; fi
+
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as skopeo
+
+ARG USE_MIRROR=false
+ARG SKOPEO_VERSION=1.15.0
+ARG TARGETOS TARGETARCH
+
+RUN set -eux && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
+  apk add --no-cache make git && \
+  git clone --branch v"${SKOPEO_VERSION}" https://github.com/containers/skopeo /go/src/github.com/containers/skopeo && \
+  cd /go/src/github.com/containers/skopeo && \
+  DISABLE_CGO=1 make bin/skopeo."${TARGETOS}"."${TARGETARCH}" && \
+  cp bin/skopeo."${TARGETOS}"."${TARGETARCH}" /tmp/skopeo
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
@@ -92,6 +107,9 @@ RUN set -eux && \
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/ /opt/trivy/
+COPY --from=skopeo /tmp/skopeo /usr/local/bin/skopeo
+COPY ./bin/builder.tar /baseimages/builder.tar
+COPY ./bin/dockerfile.tar /baseimages/dockerfile.tar
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 

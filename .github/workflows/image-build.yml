@@ -47,8 +47,29 @@ jobs:
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+        run: |
+          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+          sudo apt update
+          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+      - name: Save dockerfile to local
+        run: |
+          make dockerfile-local
+      - name: Build sigma builder
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: build/Dockerfile.builder
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: docker.io/sigma/sigma-builder:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -75,6 +96,91 @@ jobs:
           provenance: false
           sbom: false
           outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+  image-build-alpine-trivydb:
+    name: image-build-alpine-trivydb
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+        shell: bash
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: ghcr.io
+          username: tosone
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: tosone
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+        run: |
+          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+          sudo apt update
+          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+      - name: Save dockerfile to local
+        run: |
+          make dockerfile-local
+      - name: Build sigma builder
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: build/Dockerfile.builder
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: docker.io/sigma/sigma-builder:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+            docker.io/tosone/sigma
+          flavor: |
+            latest=false
+          tags: |
+            type=ref,event=pr
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
+            type=semver,pattern={{version}}-alpine-trivydb
+            type=semver,pattern={{major}}.{{minor}}-alpine-trivydb
+            type=semver,pattern={{major}}-alpine-trivydb
+            type=raw,value=nightly-alpine-trivydb,enable={{is_default_branch}}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: build/Dockerfile
+          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          build-args: |
+            WITH_TRIVY_DB=true
   image-build-debian:
     name: image-build-debian
     runs-on: ubuntu-22.04
@@ -107,8 +213,29 @@ jobs:
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+        run: |
+          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+          sudo apt update
+          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+      - name: Save dockerfile to local
+        run: |
+          make dockerfile-local
+      - name: Build sigma builder
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: build/Dockerfile.builder
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: docker.io/sigma/sigma-builder:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -137,8 +264,8 @@ jobs:
           provenance: false
           sbom: false
           outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
-  image-build-builder:
-    name: image-build-builder
+  image-build-debian-trivydb:
+    name: image-build-debian-trivydb
     runs-on: ubuntu-22.04
     steps:
       - name: Delete huge unnecessary folders, and clean apt cache
@@ -169,27 +296,50 @@ jobs:
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+        run: |
+          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+          sudo apt update
+          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+      - name: Save dockerfile to local
+        run: |
+          make dockerfile-local
+      - name: Build sigma builder
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: build/Dockerfile.builder
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: docker.io/sigma/sigma-builder:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ github.repository }}-builder
-            docker.io/tosone/sigma-builder
+            ghcr.io/${{ github.repository }}
+            docker.io/tosone/sigma
+          flavor: |
+            latest=false
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=nightly,enable={{is_default_branch}}
+            type=semver,pattern={{version}}-debian-trivydb
+            type=semver,pattern={{major}}.{{minor}}-debian-trivydb
+            type=semver,pattern={{major}}-debian-trivydb
+            type=raw,value=nightly-debian-trivydb,enable={{is_default_branch}}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/Dockerfile.debian
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -197,3 +347,5 @@ jobs:
           provenance: false
           sbom: false
           outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          build-args: |
+            WITH_TRIVY_DB=true
