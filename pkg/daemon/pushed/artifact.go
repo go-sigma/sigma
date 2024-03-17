@@ -46,7 +46,7 @@ func init() {
 			}
 			return r.run(ctx, payload)
 		},
-		MaxRetry:    6,
+		MaxRetry:    1,
 		Concurrency: 10,
 		Timeout:     time.Minute * 10,
 	}
@@ -87,6 +87,7 @@ func (r runnerArtifact) run(ctx context.Context, payload types.DaemonArtifactPus
 		query.Repository.Size.ColumnName().String(): repositorySize,
 	})
 	if err != nil {
+		log.Error().Err(err).Msg("Update repository failed")
 		return err
 	}
 	return nil

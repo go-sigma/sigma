@@ -47,15 +47,9 @@ import (
 func (h *handler) GetBlob(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, err := utils.GetUserFromCtx(c)
+	if err != nil {
+		return err
 	}
 
 	uri := c.Request().URL.Path

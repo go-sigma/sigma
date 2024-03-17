@@ -21,7 +21,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -112,14 +111,8 @@ func TestRepositoryService(t *testing.T) {
 		err = repositoryService.UpdateRepository(ctx, repository1.ID, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")})
 		assert.NoError(t, err)
 
-		err = repositoryService.UpdateRepository(ctx, 10, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")})
-		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
-
 		err = repositoryService.DeleteByID(ctx, repositoryObj.ID)
 		assert.NoError(t, err)
-
-		err = repositoryService.DeleteByID(ctx, repositoryObj.ID)
-		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 		return nil
 	})

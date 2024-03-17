@@ -325,12 +325,9 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, id int64, upda
 	if len(updates) == 0 {
 		return nil
 	}
-	result, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).UpdateColumns(updates)
+	_, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).UpdateColumns(updates)
 	if err != nil {
 		return err
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
@@ -346,12 +343,9 @@ func (s *repositoryService) CountRepository(ctx context.Context, namespaceID int
 
 // DeleteByID deletes the repository with the specified repository ID.
 func (s *repositoryService) DeleteByID(ctx context.Context, id int64) error {
-	matched, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
+	_, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
 	if err != nil {
 		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

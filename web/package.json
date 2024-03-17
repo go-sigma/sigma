@@ -18,13 +18,13 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.10",
-    "axios": "^1.6.7",
+    "axios": "^1.6.8",
     "bytemd": "^1.21.0",
     "cron-parser": "^4.9.0",
     "csstype": "^3.1.3",
     "dayjs": "^1.11.10",
     "flowbite": "^2.3.0",
-    "flowbite-react": "^0.7.2",
+    "flowbite-react": "^0.7.3",
     "human-format": "^1.2.0",
     "lodash": "^4.17.21",
     "monaco-editor": "^0.47.0",
@@ -34,16 +34,16 @@
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.0.1",
     "react-router-dom": "^6.22.3",
-    "react-toastify": "^10.0.4",
+    "react-toastify": "^10.0.5",
     "react-use": "^17.5.0",
     "xterm": "^5.3.0",
     "xterm-addon-attach": "^0.9.0",
     "xterm-addon-fit": "^0.8.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.25",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
+    "@types/node": "^20.11.28",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react-swc": "^3.6.0",
     "autoprefixer": "^10.4.18",
     "cssnano": "^6.1.0",
@@ -52,7 +52,7 @@
     "postcss-nesting": "^12.1.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2",
-    "vite": "^5.1.5"
+    "vite": "^5.1.6"
   },
   "packageManager": "yarn@4.1.1"
 }
