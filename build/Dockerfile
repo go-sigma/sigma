@@ -53,7 +53,7 @@ RUN set -eux && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mkdir -p /opt/trivy/ && \
   if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress; fi && \
-  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress; fi
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as skopeo
 
@@ -108,8 +108,7 @@ COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/ /opt/trivy/
 COPY --from=skopeo /tmp/skopeo /usr/local/bin/skopeo
-COPY ./bin/builder.tar /baseimages/builder.tar
-COPY ./bin/dockerfile.tar /baseimages/dockerfile.tar
+COPY ./bin/*.tar /baseimages/
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 
