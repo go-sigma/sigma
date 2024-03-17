@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -27,9 +26,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
-	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
@@ -42,15 +38,9 @@ import (
 func (h *handler) HeadBlob(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
-	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, err := utils.GetUserFromCtx(c)
+	if err != nil {
+		return err
 	}
 
 	uri := c.Request().URL.Path
@@ -90,59 +80,12 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
 	}
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
-
-	cache, err := cacher.New(consts.CacherBlob, func(key string) (*models.Blob, error) {
-		dgest, err := digest.Parse(key)
-		if err != nil {
-			log.Error().Err(err).Str("digest", key).Msg("Parse digest failed")
-			return nil, xerrors.DSErrCodeUnknown
-		}
-		blobService := h.blobServiceFactory.New()
-		blob, err := blobService.FindByDigest(ctx, dgest.String())
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if !h.config.Proxy.Enabled {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Blob not found")
-					return nil, xerrors.DSErrCodeBlobUnknown
-				}
-				f := clients.NewClientsFactory()
-				cli, err := f.New(ptr.To(h.config))
-				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
-				}
-				statusCode, header, _, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
-				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
-				}
-				if statusCode != http.StatusOK {
-					log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
-				}
-				contentLength, err := strconv.ParseInt(header.Get(echo.HeaderContentLength), 10, 64)
-				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
-					return nil, xerrors.DSErrCodeUnknown
-				}
-				blob = &models.Blob{
-					Digest:      dgest.String(),
-					Size:        contentLength,
-					ContentType: header.Get(echo.HeaderContentType),
-				}
-				c.Response().Header().Set("Content-Length", header.Get(echo.HeaderContentLength))
-				return blob, nil
-			}
-			log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-			return nil, xerrors.DSErrCodeBlobUnknown
-		}
-		return blob, nil
-	})
+	cacher, err := h.blobCacher(c)
 	if err != nil {
-		log.Error().Err(err).Msg("Head blob failed")
+		log.Error().Err(err).Msg("New blob cacher failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
-	blobObj, err := cache.Get(ctx, dgest.String())
+	blobObj, err := cacher.Get(ctx, dgest.String())
 	if err != nil {
 		if err, ok := err.(xerrors.ErrCode); ok {
 			return xerrors.NewDSError(c, err)

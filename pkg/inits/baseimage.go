@@ -48,7 +48,7 @@ const baseImageDir = "/baseimages"
 func initBaseimage(config configs.Configuration) error {
 	dir := strings.TrimPrefix(baseImageDir, "./")
 	if !utils.IsDir(dir) {
-		log.Info().Msg("baseimage not found")
+		log.Info().Msg("Baseimage not found")
 		return nil
 	}
 	locker, err := locker.New(config)

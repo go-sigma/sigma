@@ -99,7 +99,7 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 		cmd.Env = append(cmd.Env, "SYFT_REGISTRY_INSECURE_SKIP_TLS_VERIFY=true")
 	}
 
-	log.Info().Str("artifactDigest", artifact.Digest).Strs("env", cmd.Env).Str("command", cmd.String()).Msg("Start sbom artifact")
+	log.Info().Str("artifactDigest", artifact.Digest).Strs("env", cmd.Env).Str("cmd", cmd.String()).Msg("Start sbom artifact")
 
 	defer func() {
 		if utils.IsFile(filename) {
@@ -112,12 +112,14 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 
 	err = cmd.Run()
 	if err != nil {
-		log.Error().Err(err).Msg("Run syft failed")
+		var stdoutBytes = stdout.Bytes()
+		var stderrBytes = stderr.Bytes()
+		log.Error().Err(err).Str("stdout", string(stdoutBytes)).Str("stderr", string(stderrBytes)).Msg("Run syft failed")
 		statusChan <- decoratorArtifactStatus{
 			Daemon:  enums.DaemonSbom,
 			Status:  enums.TaskCommonStatusFailed,
-			Stdout:  stdout.Bytes(),
-			Stderr:  stderr.Bytes(),
+			Stdout:  stdoutBytes,
+			Stderr:  stderrBytes,
 			Message: fmt.Sprintf("Run syft failed: %s", err.Error()),
 		}
 		return err
