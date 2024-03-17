@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -83,6 +84,12 @@ func Serve() error {
 			log.Fatal().Err(err).Msg("Listening on interface failed")
 		}
 	}()
+
+	<-time.After(time.Second * 3)
+	err = inits.AfterInitialize(config)
+	if err != nil {
+		log.Error().Err(err).Msg("init something after server initialized")
+	}
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	// Use a buffered channel to avoid missing signals as recommended for signal.Notify

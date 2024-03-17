@@ -19,4 +19,8 @@ const (
 	SettingSignPrivateKey = "signing.private_key"
 	// SettingSignPublicKey is the public key for signing
 	SettingSignPublicKey = "signing.public_key"
+	// SettingBaseimageDockerfileKey ...
+	SettingBaseimageDockerfileKey = "baseimage.dockerfile"
+	// SettingBaseimageBuilderKey ...
+	SettingBaseimageBuilderKey = "baseimage.builder"
 )

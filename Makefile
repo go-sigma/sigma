@@ -85,10 +85,10 @@ docker-build-builder: ## Use the dockerfile to build the sigma-builder image
 	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 docker-build-builder-local: ## Use the dockerfile to build the sigma-builder image and save to local tarball file
-	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.tar .
+	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/Dockerfile.builder --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.$(VERSION).tar .
 
 dockerfile-local: ## Use skopeo to copy dockerfile to local tarball file
-	skopeo copy -a docker://docker/dockerfile:1.7.0 oci-archive:bin/dockerfile.tar
+	skopeo copy -a docker://docker/dockerfile:1.7.0 oci-archive:bin/dockerfile.1.7.0.tar
 
 ## Misc:
 migration-create: ## Create a new migration file

@@ -45,7 +45,7 @@ import (
 func init() {
 	workq.TopicHandlers[enums.DaemonSbom.String()] = definition.Consumer{
 		Handler:     decorator(runnerSbom),
-		MaxRetry:    6,
+		MaxRetry:    1,
 		Concurrency: 10,
 		Timeout:     time.Minute * 10,
 	}
