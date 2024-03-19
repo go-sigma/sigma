@@ -43,24 +43,21 @@ func TestBlobServiceFactory(t *testing.T) {
 func TestBlobService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
 
 	f := dao.NewBlobServiceFactory()
-	err = query.Q.Transaction(func(tx *query.Query) error {
+	err := query.Q.Transaction(func(tx *query.Query) error {
 		blobService := f.New(tx)
-		err = blobService.Create(ctx, &models.Blob{
+		err := blobService.Create(ctx, &models.Blob{
 			Digest:      "sha256:123",
 			Size:        123,
 			ContentType: "test",

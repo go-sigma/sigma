@@ -82,6 +82,7 @@ type CacherType string
 // redis,
 // kafka,
 // database,
+// inmemory,
 // )
 type WorkQueueType string
 

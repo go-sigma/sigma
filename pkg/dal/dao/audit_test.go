@@ -43,17 +43,13 @@ func TestAuditServiceFactory(t *testing.T) {
 func TestAuditService(t *testing.T) {
 	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -67,7 +63,7 @@ func TestAuditService(t *testing.T) {
 	assert.NotNil(t, namespaceService)
 
 	namespaceObj1 := &models.Namespace{Name: "test"}
-	err = namespaceService.Create(ctx, namespaceObj1)
+	err := namespaceService.Create(ctx, namespaceObj1)
 	assert.NoError(t, err)
 
 	userServiceFactory := dao.NewUserServiceFactory()

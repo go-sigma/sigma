@@ -203,12 +203,6 @@ func (s *namespaceService) UpdateByID(ctx context.Context, id int64, updates map
 	if len(updates) == 0 {
 		return nil
 	}
-	matched, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Updates(updates)
-	if err != nil {
-		return err
-	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	_, err := s.tx.Namespace.WithContext(ctx).Where(s.tx.Namespace.ID.Eq(id)).Updates(updates)
+	return err
 }

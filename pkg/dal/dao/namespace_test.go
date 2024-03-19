@@ -111,9 +111,6 @@ func TestNamespaceService(t *testing.T) {
 		err = namespaceService.UpdateByID(ctx, namespaceObj.ID, map[string]interface{}{query.Namespace.Description.ColumnName().String(): "test"})
 		assert.NoError(t, err)
 
-		err = namespaceService.UpdateByID(ctx, 10, map[string]interface{}{query.Namespace.Description.ColumnName().String(): "test"})
-		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
-
 		err = namespaceService.DeleteByID(ctx, namespaceObj.ID)
 		assert.NoError(t, err)
 
