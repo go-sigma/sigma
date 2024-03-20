@@ -23,10 +23,6 @@ database:
     dbname: sigma
     sslmode: disable
 
-# deploy available: single, replica
-# replica should use external redis
-deploy: single
-
 redis:
   # redis type available: none, external
   # none: means never use redis
@@ -47,12 +43,14 @@ cache:
     threshold: 0.2
 
 workqueue:
-  # the workqueue type available: redis, kafka, database
-  type: redis
+  # the workqueue type available: redis, kafka, database, inmemory
+  type: database
   redis:
     concurrency: 10
   kafka: {}
   database: {}
+  inmemory:
+    concurrency: 1024
 
 locker:
   # the locker type available: redis, database

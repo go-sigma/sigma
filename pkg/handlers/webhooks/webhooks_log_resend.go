@@ -102,7 +102,7 @@ func (h *handler) GetWebhookLogResend(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		err := h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err := h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  webhookLogObj.Webhook.NamespaceID,
 			WebhookID:    webhookLogObj.Webhook.ID,
 			WebhookLogID: ptr.Of(req.WebhookLogID),

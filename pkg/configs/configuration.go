@@ -135,12 +135,17 @@ type ConfigurationWorkQueueDatabase struct {
 type ConfigurationWorkQueueKafka struct {
 }
 
+type ConfigurationWorkQueueInmemmory struct {
+	Concurrency int `yaml:"concurrency"`
+}
+
 // ConfigurationWorkQueue ...
 type ConfigurationWorkQueue struct {
-	Type     enums.WorkQueueType            `yaml:"type"`
-	Redis    ConfigurationWorkQueueRedis    `yaml:"redis"`
-	Database ConfigurationWorkQueueDatabase `yaml:"database"`
-	Kafka    ConfigurationWorkQueueKafka    `yaml:"kafka"`
+	Type     enums.WorkQueueType             `yaml:"type"`
+	Redis    ConfigurationWorkQueueRedis     `yaml:"redis"`
+	Database ConfigurationWorkQueueDatabase  `yaml:"database"`
+	Kafka    ConfigurationWorkQueueKafka     `yaml:"kafka"`
+	Inmemory ConfigurationWorkQueueInmemmory `yaml:"inmemory"`
 }
 
 // ConfigurationLocker ...

@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models
+package inmemory
 
 import (
-	"gorm.io/plugin/soft_delete"
+	"context"
+	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// WorkQueue ...
-type WorkQueue struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        int64                 `gorm:"primaryKey"`
+func TestProducer(t *testing.T) {
+	producer, err := NewWorkQueueProducer(configs.Configuration{}, nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, producer)
 
-	Topic   enums.Daemon
-	Payload []byte
-	Times   int
-	Version string
-	Status  enums.TaskCommonStatus `gorm:"default:Pending"`
+	packs[enums.DaemonBuilder] = make(chan *models.WorkQueue, 10)
+	err = producer.Produce(context.Background(), enums.DaemonBuilder, "test", definition.ProducerOption{})
+	assert.NoError(t, err)
 }

@@ -38,7 +38,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcBlob.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcBlob] = definition.Consumer{
 		Handler:     decorator(enums.DaemonGcBlob),
 		MaxRetry:    6,
 		Concurrency: 10,

@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -96,7 +97,7 @@ type MessageWrapper struct {
 }
 
 // NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[string]definition.Consumer) error {
+func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
@@ -120,16 +121,16 @@ func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[string]defi
 		if err != nil {
 			return err
 		}
-		go func(consumer definition.Consumer, topic string) {
+		go func(consumer definition.Consumer, topic enums.Daemon) {
 			for {
 				handler := &ConsumerGroupHandler{
 					processingSemaphore: make(chan struct{}, consumer.Concurrency),
 					consumer:            consumer,
 					producer:            producer,
 				}
-				err := consumerGroup.Consume(context.Background(), []string{topic}, handler)
+				err := consumerGroup.Consume(context.Background(), []string{topic.String()}, handler)
 				if err != nil {
-					log.Error().Err(err).Str("topic", topic).Msg("Consume topics failed")
+					log.Error().Err(err).Str("topic", topic.String()).Msg("Consume topics failed")
 					return
 				}
 			}

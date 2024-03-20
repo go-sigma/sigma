@@ -122,7 +122,7 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 				return err
 			}
 
-			err = workq.ProducerClient.Produce(ctx, string(enums.DaemonBuilder), types.DaemonBuilderPayload{
+			err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 				Action:    enums.DaemonBuilderActionStart,
 				BuilderID: builderObj.ID,
 				RunnerID:  runner.ID,

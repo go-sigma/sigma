@@ -101,7 +101,7 @@ func (h *handler) GetWebhookPing(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		err := h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err := h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  webhookObj.NamespaceID,
 			WebhookID:    webhookObj.ID,
 			Type:         enums.WebhookTypePing,

@@ -37,7 +37,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcArtifact.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcArtifact] = definition.Consumer{
 		Handler:     decorator(enums.DaemonGcArtifact),
 		MaxRetry:    6,
 		Concurrency: 10,

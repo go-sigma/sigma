@@ -31,7 +31,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonArtifactPushed.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonArtifactPushed] = definition.Consumer{
 		Handler: func(ctx context.Context, data []byte) error {
 			var payload types.DaemonArtifactPushedPayload
 			err := json.Unmarshal(data, &payload)

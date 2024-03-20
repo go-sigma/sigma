@@ -86,7 +86,7 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 			log.Error().Err(err).Msg("Create builder runner failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,

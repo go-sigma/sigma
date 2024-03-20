@@ -43,7 +43,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonWebhook.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonWebhook] = definition.Consumer{
 		Handler:     webhookRunner,
 		MaxRetry:    6,
 		Concurrency: 10,

@@ -108,7 +108,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc repository rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRule,
@@ -299,13 +299,13 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcRepository.String(),
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcRepository,
 			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,

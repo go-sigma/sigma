@@ -108,7 +108,7 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc artifact rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRule,
@@ -299,13 +299,13 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc artifact runner failed: %v", err)
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcArtifact.String(),
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcArtifact,
 			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,

@@ -35,7 +35,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonBuilder.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonBuilder] = definition.Consumer{
 		Handler:     builderRunner,
 		MaxRetry:    1,
 		Concurrency: 10,

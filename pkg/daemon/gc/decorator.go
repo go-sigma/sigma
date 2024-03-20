@@ -262,7 +262,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 }
 
 func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClient definition.WorkQueueProducer) error {
-	err := producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+	err := producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 		NamespaceID:  webhook.NamespaceID,
 		Action:       webhook.Meta.Action,
 		Type:         enums.WebhookTypeSend,

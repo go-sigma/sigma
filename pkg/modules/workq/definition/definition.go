@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 //go:generate mockgen -destination=mocks/workq.go -package=mocks github.com/go-sigma/sigma/pkg/modules/workq/definition WorkQueueProducer
@@ -39,5 +40,5 @@ type ProducerOption struct {
 // WorkQueueProducer ...
 type WorkQueueProducer interface {
 	// Produce ...
-	Produce(ctx context.Context, topic string, payload any, option ProducerOption) error
+	Produce(ctx context.Context, topic enums.Daemon, payload any, option ProducerOption) error
 }

@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package database
+package inmemory
 
 import (
 	"context"
-	"errors"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
+// This is only for small-scale deployment, a message queue with 1024 messages should suffice, and it can be adjusted appropriately if necessary.
+var packs = make(map[enums.Daemon]chan *models.WorkQueue, 10)
+
 // NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
+func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
 	for topic, c := range topicHandlers {
+		packs[topic] = make(chan *models.WorkQueue, config.WorkQueue.Inmemory.Concurrency)
 		go func(consumer definition.Consumer, topic enums.Daemon) {
 			handler := &consumerHandler{
 				processingSemaphore: make(chan struct{}, consumer.Concurrency),
@@ -57,44 +57,30 @@ func (h *consumerHandler) Consume(topic enums.Daemon) {
 				log.Error().Err(err).Msg("Consume topic failed")
 			}
 		}()
-		<-time.After(time.Second * 5)
 	}
 }
 
-func (h *consumerHandler) consume(topic enums.Daemon) error {
+func (h *consumerHandler) consume(topic enums.Daemon) error { // nolint: unparam
 	defer func() {
 		<-h.processingSemaphore
 	}()
-	workQueueService := dao.NewWorkQueueServiceFactory().New()
-	// daoCtx := log.Logger.WithContext(context.Background())
-	daoCtx := context.Background()
-	wq, err := workQueueService.Get(daoCtx, topic.String())
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Trace().Err(err).Msgf("None task in topic(%s)", topic)
-			return nil
-		}
-		return err
-	}
-	newVersion := uuid.New().String()
-	err = workQueueService.UpdateStatus(daoCtx, wq.ID, wq.Version, newVersion, wq.Times, enums.TaskCommonStatusDoing)
-	if err != nil {
-		return err
-	}
+	wq := <-packs[topic]
 	ctx := context.Background()
 	if h.consumer.Timeout != 0 {
 		var ctxCancel context.CancelFunc
 		ctx, ctxCancel = context.WithTimeout(ctx, h.consumer.Timeout)
 		defer ctxCancel()
 	}
-	err = h.consumer.Handler(ctx, wq.Payload)
+	err := h.consumer.Handler(ctx, wq.Payload)
 	wq.Times++
 	if err != nil {
-		log.Error().Err(err).Str("Topic", topic.String()).Int64("WorkQueueID", wq.ID).Msg("Daemon task run failed")
+		log.Error().Err(err).Str("Topic", topic.String()).Msg("Daemon task run failed")
 		if wq.Times < h.consumer.MaxRetry {
-			return workQueueService.UpdateStatus(daoCtx, wq.ID, newVersion, uuid.New().String(), wq.Times, enums.TaskCommonStatusPending)
+			packs[topic] <- wq
+			return nil
 		}
-		return workQueueService.UpdateStatus(daoCtx, wq.ID, newVersion, uuid.New().String(), wq.Times, enums.TaskCommonStatusFailed)
+		log.Error().Err(err).Str("Topic", topic.String()).Msg("Daemon task run failed and reach max retry")
+		return nil
 	}
-	return workQueueService.UpdateStatus(daoCtx, wq.ID, newVersion, uuid.New().String(), wq.Times, enums.TaskCommonStatusSuccess)
+	return nil
 }

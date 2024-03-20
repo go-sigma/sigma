@@ -157,7 +157,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 		}
 
 		if autoCreateNamespace.ProducerClient != nil {
-			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 				NamespaceID:  ptr.Of(namespaceObj.ID),
 				Action:       enums.WebhookActionCreate,
 				ResourceType: enums.WebhookResourceTypeNamespace,
@@ -192,7 +192,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 			return err
 		}
 		if autoCreateNamespace.ProducerClient != nil {
-			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+			err = autoCreateNamespace.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 				NamespaceID:  ptr.Of(namespaceObj.ID),
 				Action:       enums.WebhookActionCreate,
 				ResourceType: enums.WebhookResourceTypeRepository,

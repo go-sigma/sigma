@@ -110,7 +110,7 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 			log.Error().Err(err).Msg("Create audit for delete namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for delete namespace failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.WebhookActionDelete,
 			ResourceType: enums.WebhookResourceTypeNamespace,

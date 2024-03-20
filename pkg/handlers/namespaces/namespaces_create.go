@@ -120,7 +120,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 			log.Error().Err(err).Msg("Create audit failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeNamespace,

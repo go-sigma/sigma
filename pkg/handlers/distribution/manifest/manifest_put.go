@@ -267,7 +267,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				return xerrors.DSErrCodeUnknown
 			}
 			if workq.ProducerClient != nil { // TODO: init in test
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+				err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
 					RepositoryID: repositoryObj.ID,
 					Tag:          refs.Tag,
 				}, definition.ProducerOption{Tx: tx})
@@ -278,7 +278,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 			}
 		}
 		if workq.ProducerClient != nil {
-			err = workq.ProducerClient.Produce(ctx, enums.DaemonArtifactPushed.String(), types.DaemonArtifactPushedPayload{
+			err = workq.ProducerClient.Produce(ctx, enums.DaemonArtifactPushed, types.DaemonArtifactPushedPayload{
 				RepositoryID: repositoryObj.ID,
 			}, definition.ProducerOption{Tx: tx})
 			if err != nil {
@@ -365,7 +365,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 				return xerrors.DSErrCodeUnknown
 			}
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed.String(), types.DaemonTagPushedPayload{
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
 			RepositoryID: repositoryObj.ID,
 			Tag:          refs.Tag,
 		}, definition.ProducerOption{Tx: tx})
@@ -400,7 +400,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 	taskSbomPayload := types.TaskSbom{
 		ArtifactID: artifactObj.ID,
 	}
-	err = workq.ProducerClient.Produce(ctx, enums.DaemonSbom.String(), taskSbomPayload, definition.ProducerOption{})
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonSbom, taskSbomPayload, definition.ProducerOption{})
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return
@@ -421,7 +421,7 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	taskVulnerabilityPayload := types.TaskVulnerability{
 		ArtifactID: artifactObj.ID,
 	}
-	err = workq.ProducerClient.Produce(ctx, enums.DaemonVulnerability.String(), taskVulnerabilityPayload, definition.ProducerOption{})
+	err = workq.ProducerClient.Produce(ctx, enums.DaemonVulnerability, taskVulnerabilityPayload, definition.ProducerOption{})
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return

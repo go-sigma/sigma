@@ -36,7 +36,7 @@ import (
 // deleteRepositoryWithNamespace -> deleteRepositoryCheckEmpty -> deleteRepository -> collectRecord
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcRepository.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcRepository] = definition.Consumer{
 		Handler:     decorator(enums.DaemonGcRepository),
 		MaxRetry:    6,
 		Concurrency: 10,
