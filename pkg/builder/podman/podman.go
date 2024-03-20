@@ -23,9 +23,9 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/containers/podman/v4/pkg/bindings"
-	"github.com/containers/podman/v4/pkg/bindings/containers"
-	"github.com/containers/podman/v4/pkg/specgen"
+	"github.com/containers/podman/v5/pkg/bindings"
+	"github.com/containers/podman/v5/pkg/bindings/containers"
+	"github.com/containers/podman/v5/pkg/specgen"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog/log"
 
