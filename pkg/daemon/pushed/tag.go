@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonTagPushed.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonTagPushed] = definition.Consumer{
 		Handler: func(ctx context.Context, data []byte) error {
 			var payload types.DaemonTagPushedPayload
 			err := json.Unmarshal(data, &payload)

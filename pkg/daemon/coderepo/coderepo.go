@@ -35,7 +35,7 @@ const (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonCodeRepository.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonCodeRepository] = definition.Consumer{
 		Handler:     crRunner,
 		MaxRetry:    6,
 		Concurrency: 10,

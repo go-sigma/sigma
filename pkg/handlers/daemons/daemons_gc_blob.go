@@ -109,7 +109,7 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc blob rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc blob rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRule,
 			Payload:      utils.MustMarshal(req),
@@ -305,13 +305,13 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 			log.Error().Int64("RuleID", ruleObj.ID).Msgf("Create gc blob runner failed: %v", err)
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc blob runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcBlob.String(),
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcBlob,
 			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcBlob.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook.String(), types.DaemonWebhookPayload{
+		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 			Payload:      utils.MustMarshal(req),

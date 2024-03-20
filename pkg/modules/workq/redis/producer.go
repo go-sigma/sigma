@@ -23,16 +23,17 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 type producer struct {
 	client        *asynq.Client
-	topicHandlers map[string]definition.Consumer
+	topicHandlers map[enums.Daemon]definition.Consumer
 }
 
 // NewWorkQueueProducer ...
-func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[string]definition.Consumer) (definition.WorkQueueProducer, error) {
+func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
 	redisOpt, err := asynq.ParseRedisURI(config.Redis.Url)
 	if err != nil {
 		return nil, fmt.Errorf("asynq.ParseRedisURI error: %v", err)
@@ -45,7 +46,7 @@ func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[string
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic string, payload any, _ definition.ProducerOption) error {
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ definition.ProducerOption) error {
 	consumer, ok := p.topicHandlers[topic]
 	if !ok {
 		return fmt.Errorf("Topic %s not registered", topic)
@@ -61,6 +62,6 @@ func (p *producer) Produce(ctx context.Context, topic string, payload any, _ def
 	} else {
 		opts = append(opts, asynq.Timeout(time.Hour))
 	}
-	_, err := p.client.Enqueue(asynq.NewTask(topic, utils.MustMarshal(payload)), opts...)
+	_, err := p.client.Enqueue(asynq.NewTask(topic.String(), utils.MustMarshal(payload)), opts...)
 	return err
 }

@@ -54,6 +54,9 @@ func defaultSettings() {
 	if configuration.Daemon.Builder.Podman.URI == "" {
 		configuration.Daemon.Builder.Podman.URI = "unix:///run/podman/podman.sock"
 	}
+	if configuration.WorkQueue.Inmemory.Concurrency == 0 {
+		configuration.WorkQueue.Inmemory.Concurrency = 1024
+	}
 	if configuration.Cache.Inmemory.Size == 0 {
 		configuration.Cache.Inmemory.Size = 10240
 	}

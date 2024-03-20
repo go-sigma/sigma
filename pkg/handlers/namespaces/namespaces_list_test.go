@@ -40,6 +40,7 @@ import (
 	workqmocks "github.com/go-sigma/sigma/pkg/modules/workq/definition/mocks"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -61,7 +62,7 @@ func TestListNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	workQueueProducer := workqmocks.NewMockWorkQueueProducer(ctrl)
-	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
+	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic enums.Daemon, payload any, option definition.ProducerOption) error {
 		return nil
 	}).Times(1)
 

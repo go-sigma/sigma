@@ -228,7 +228,7 @@ func (h *handler) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
+				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
 					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
@@ -255,7 +255,7 @@ func (h *handler) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
+				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
 					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")

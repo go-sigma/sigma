@@ -91,7 +91,7 @@ func (h *handler) Resync(c echo.Context) error {
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail("Update user status failed")
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository.String(),
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
 			types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")

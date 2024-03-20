@@ -20,6 +20,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/workq/database"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq/inmemory"
 	"github.com/go-sigma/sigma/pkg/modules/workq/kafka"
 	"github.com/go-sigma/sigma/pkg/modules/workq/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -31,21 +32,24 @@ type Message struct {
 	Payload []byte
 }
 
-var TopicHandlers = make(map[string]definition.Consumer)
+var TopicHandlers = make(map[enums.Daemon]definition.Consumer)
 
 // ProducerClient ...
 var ProducerClient definition.WorkQueueProducer
 
 // Initialize ...
 func Initialize(config configs.Configuration) error {
+	fmt.Println(42, config.WorkQueue.Type)
 	var err error
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
-		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
+		err = database.NewWorkQueueConsumer(config, TopicHandlers)
 	case enums.WorkQueueTypeKafka:
-		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
+		err = kafka.NewWorkQueueConsumer(config, TopicHandlers)
 	case enums.WorkQueueTypeRedis:
-		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
+		err = redis.NewWorkQueueConsumer(config, TopicHandlers)
+	case enums.WorkQueueTypeInmemory:
+		err = inmemory.NewWorkQueueConsumer(config, TopicHandlers)
 	default:
 		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
 	}
@@ -54,11 +58,13 @@ func Initialize(config configs.Configuration) error {
 	}
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
-		err = database.NewWorkQueueConsumer(config, TopicHandlers)
+		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeKafka:
-		err = kafka.NewWorkQueueConsumer(config, TopicHandlers)
+		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeRedis:
-		err = redis.NewWorkQueueConsumer(config, TopicHandlers)
+		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeInmemory:
+		ProducerClient, err = inmemory.NewWorkQueueProducer(config, TopicHandlers)
 	default:
 		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
 	}

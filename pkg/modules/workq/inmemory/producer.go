@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,53 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafka
+package inmemory
 
 import (
 	"context"
 
-	"github.com/IBM/sarama"
-	"github.com/rs/zerolog/log"
-
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
+type producer struct{}
+
 // NewWorkQueueProducer ...
 func NewWorkQueueProducer(_ configs.Configuration, _ map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 5
-	client, err := sarama.NewClient([]string{}, config)
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := sarama.NewSyncProducerFromClient(client)
-	if err != nil {
-		log.Error().Err(err).Msg("Create producer failed")
-		return nil, err
-	}
-	return &producer{
-		producer: p,
-	}, nil
+	p := &producer{}
+	return p, nil
 }
 
-type producer struct {
-	producer sarama.SyncProducer
-}
-
-func (p *producer) Produce(_ context.Context, topic enums.Daemon, payload any, _ definition.ProducerOption) error {
-	message := MessageWrapper{
-		Times:   0,
+// Produce ...
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ definition.ProducerOption) error {
+	wq := &models.WorkQueue{
+		Topic:   topic,
 		Payload: utils.MustMarshal(payload),
 	}
-	_, _, err := p.producer.SendMessage(&sarama.ProducerMessage{
-		Topic: topic.String(),
-		Value: sarama.ByteEncoder(utils.MustMarshal(message)),
-	})
-	return err
+	packs[topic] <- wq
+	return nil
 }

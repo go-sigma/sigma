@@ -62,7 +62,7 @@ func TestWorkQueueService(t *testing.T) {
 	assert.NotNil(t, workqService)
 
 	workqObj := &models.WorkQueue{
-		Topic:   "topic",
+		Topic:   enums.DaemonGc,
 		Payload: []byte("payload"),
 		Version: "version",
 	}
@@ -72,7 +72,7 @@ func TestWorkQueueService(t *testing.T) {
 	err = workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending)
 	assert.NoError(t, err)
 
-	workqNewObj, err := workqService.Get(ctx, "topic")
+	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc.String())
 	assert.NoError(t, err)
 	assert.Equal(t, workqObj.ID, workqNewObj.ID)
 	assert.Equal(t, workqObj.Topic, workqNewObj.Topic)

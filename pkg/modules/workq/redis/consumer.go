@@ -24,10 +24,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[string]definition.Consumer) error {
+func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
 	redisOpt, err := asynq.ParseRedisURI(config.Redis.Url)
 	if err != nil {
 		return fmt.Errorf("asynq.ParseRedisURI error: %v", err)
@@ -41,7 +42,7 @@ func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[string
 	)
 	mux := asynq.NewServeMux()
 	for topic, handler := range topicHandlers {
-		mux.HandleFunc(topic, func(consumer definition.Consumer) func(context.Context, *asynq.Task) error {
+		mux.HandleFunc(topic.String(), func(consumer definition.Consumer) func(context.Context, *asynq.Task) error {
 			return func(ctx context.Context, task *asynq.Task) error {
 				return consumer.Handler(ctx, task.Payload())
 			}

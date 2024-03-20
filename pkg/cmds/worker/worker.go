@@ -43,11 +43,7 @@ func Worker() error {
 		return err
 	}
 
-	err = workq.Initialize(configs.Configuration{
-		WorkQueue: configs.ConfigurationWorkQueue{
-			Type: enums.WorkQueueTypeDatabase,
-		},
-	})
+	err = workq.Initialize(config)
 	if err != nil {
 		return err
 	}

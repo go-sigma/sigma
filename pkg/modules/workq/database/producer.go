@@ -24,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -32,7 +33,7 @@ type producer struct {
 }
 
 // NewWorkQueueProducer ...
-func NewWorkQueueProducer(_ configs.Configuration, _ map[string]definition.Consumer) (definition.WorkQueueProducer, error) {
+func NewWorkQueueProducer(_ configs.Configuration, _ map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
 	p := &producer{
 		workQueueServiceFactory: dao.NewWorkQueueServiceFactory(),
 	}
@@ -40,7 +41,7 @@ func NewWorkQueueProducer(_ configs.Configuration, _ map[string]definition.Consu
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, option definition.ProducerOption) error {
 	tx := query.Q
 	if option.Tx != nil {
 		tx = option.Tx

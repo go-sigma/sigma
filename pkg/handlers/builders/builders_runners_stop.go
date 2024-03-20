@@ -78,7 +78,7 @@ func (h *handler) GetRunnerStop(c echo.Context) error {
 			log.Error().Err(err).Msg("Update runner status failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update runner status failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder.String(), types.DaemonBuilderPayload{
+		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStop,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,

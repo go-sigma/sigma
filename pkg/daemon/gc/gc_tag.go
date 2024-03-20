@@ -37,7 +37,7 @@ import (
 // deleteTagWithNamespace -> deleteTagWithRepository -> deleteTagCheckPattern -> deleteTag -> collectRecord
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcTag.String()] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcTag] = definition.Consumer{
 		Handler:     decorator(enums.DaemonGcTag),
 		MaxRetry:    6,
 		Concurrency: 10,

@@ -43,12 +43,14 @@ cache:
     threshold: 0.2
 
 workqueue:
-  # the workqueue type available: redis, kafka, database
-  type: database
+  # the workqueue type available: redis, kafka, database, inmemory
+  type: inmemory
   redis:
     concurrency: 10
   kafka: {}
   database: {}
+  inmemory:
+    concurrency: 1024
 
 locker:
   # the locker type available: redis, database

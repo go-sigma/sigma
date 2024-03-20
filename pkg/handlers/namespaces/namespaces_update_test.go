@@ -62,7 +62,7 @@ func TestPutNamespace(t *testing.T) {
 	defer ctrl.Finish()
 
 	workQueueProducer := workqmocks.NewMockWorkQueueProducer(ctrl)
-	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic string, payload any, option definition.ProducerOption) error {
+	workQueueProducer.EXPECT().Produce(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, topic enums.Daemon, payload any, option definition.ProducerOption) error {
 		return nil
 	}).Times(3)
 
