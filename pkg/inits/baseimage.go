@@ -43,9 +43,10 @@ func init() {
 
 const baseImageDir = "/baseimages"
 
-// const baseImageDir = "./bin"
-
 func initBaseimage(config configs.Configuration) error {
+	if !config.Daemon.Builder.Enabled {
+		return nil
+	}
 	dir := strings.TrimPrefix(baseImageDir, "./")
 	if !utils.IsDir(dir) {
 		log.Info().Msg("Baseimage not found")
