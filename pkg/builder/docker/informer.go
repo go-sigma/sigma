@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/zerolog/log"
@@ -149,7 +150,7 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		log.Error().Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("Add container id to controlled array failed")
 		return fmt.Errorf("Add container id to controlled array failed")
 	}
-	reader, err := i.client.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
+	reader, err := i.client.ContainerLogs(ctx, containerID, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,
@@ -168,7 +169,7 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		return fmt.Errorf("Close container logs failed: %v", err)
 	}
 
-	err = i.client.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
+	err = i.client.ContainerRemove(ctx, containerID, container.RemoveOptions{})
 	if err != nil {
 		log.Error().Err(err).Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("Remove container failed")
 		return fmt.Errorf("Remove container failed: %v", err)
@@ -178,7 +179,7 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 }
 
 func (i *instance) cacheList(ctx context.Context) error {
-	containers, err := i.client.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := i.client.ContainerList(ctx, container.ListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
 	})
