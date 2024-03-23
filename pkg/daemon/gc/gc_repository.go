@@ -95,6 +95,7 @@ type gcRepository struct {
 // Run ...
 func (g gcRepository) Run(runnerID int64) error {
 	defer close(g.runnerChan)
+	defer close(g.webhookChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcRepository, Status: enums.TaskCommonStatusDoing, Started: true}
 
 	var err error

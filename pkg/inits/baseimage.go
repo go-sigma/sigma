@@ -49,7 +49,7 @@ func initBaseimage(config configs.Configuration) error {
 	}
 	dir := strings.TrimPrefix(baseImageDir, "./")
 	if !utils.IsDir(dir) {
-		log.Info().Msg("Baseimage not found")
+		log.Info().Msg("Baseimage not found, skip push image")
 		return nil
 	}
 	locker, err := locker.New(config)
