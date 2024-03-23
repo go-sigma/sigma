@@ -85,6 +85,7 @@ type gcBlob struct {
 // Run ...
 func (g gcBlob) Run(runnerID int64) error {
 	defer close(g.runnerChan)
+	defer close(g.webhookChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcBlob, Status: enums.TaskCommonStatusDoing, Started: true}
 
 	var err error

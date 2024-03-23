@@ -93,7 +93,7 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 		daemonService := daemonServiceFactory.New()
 
 		var waitAllEvents = &sync.WaitGroup{}
-		waitAllEvents.Add(1)
+		waitAllEvents.Add(2)
 		go func() {
 			defer waitAllEvents.Done()
 

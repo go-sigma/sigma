@@ -107,6 +107,7 @@ type gcTag struct {
 // Run ...
 func (g gcTag) Run(runnerID int64) error {
 	defer close(g.runnerChan)
+	defer close(g.webhookChan)
 	g.runnerChan <- decoratorStatus{Daemon: enums.DaemonGcTag, Status: enums.TaskCommonStatusDoing, Started: true}
 
 	var err error
