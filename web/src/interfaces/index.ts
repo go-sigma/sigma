@@ -518,6 +518,11 @@ export interface ISystemConfig {
   daemon: {
     builder: boolean;
   };
+  anonymous: boolean;
+  oauth2: {
+    github: boolean;
+    gitlab: boolean;
+  }
 }
 
 export interface IWebhookItem {

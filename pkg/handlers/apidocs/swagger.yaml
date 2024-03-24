@@ -894,10 +894,24 @@ definitions:
         example: false
         type: boolean
     type: object
+  types.GetSystemConfigOAuth2:
+    properties:
+      github:
+        example: false
+        type: boolean
+      gitlab:
+        example: false
+        type: boolean
+    type: object
   types.GetSystemConfigResponse:
     properties:
+      anonymous:
+        example: false
+        type: boolean
       daemon:
         $ref: '#/definitions/types.GetSystemConfigDaemon'
+      oauth2:
+        $ref: '#/definitions/types.GetSystemConfigOAuth2'
     type: object
   types.GetSystemEndpointResponse:
     properties:

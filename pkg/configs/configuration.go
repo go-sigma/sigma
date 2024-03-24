@@ -301,18 +301,21 @@ type ConfigurationAuthJwt struct {
 
 // ConfigurationAuthOauth2Github ...
 type ConfigurationAuthOauth2Github struct {
+	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
 
 // ConfigurationAuthOauth2Gitlab ...
 type ConfigurationAuthOauth2Gitlab struct {
+	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
 
 // ConfigurationAuthOauth2Gitea ...
 type ConfigurationAuthOauth2Gitea struct {
+	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
@@ -320,14 +323,20 @@ type ConfigurationAuthOauth2Gitea struct {
 // ConfigurationAuthOauth2 ...
 type ConfigurationAuthOauth2 struct {
 	Github ConfigurationAuthOauth2Github `yaml:"github"`
-	Gitlab ConfigurationAuthOauth2Github `yaml:"gitlab"`
-	Gitea  ConfigurationAuthOauth2Github `yaml:"gitea"`
+	Gitlab ConfigurationAuthOauth2Gitlab `yaml:"gitlab"`
+	Gitea  ConfigurationAuthOauth2Gitea  `yaml:"gitea"`
+}
+
+// ConfigurationAuthAnonymous ...
+type ConfigurationAuthAnonymous struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 // ConfigurationAuth ...
 type ConfigurationAuth struct {
-	Admin  ConfigurationAuthAdmin  `yaml:"admin"`
-	Token  ConfigurationAuthToken  `yaml:"token"`
-	Oauth2 ConfigurationAuthOauth2 `yaml:"oauth2"`
-	Jwt    ConfigurationAuthJwt    `yaml:"jwt"`
+	Anonymous ConfigurationAuthAnonymous `yaml:"anonymous"`
+	Admin     ConfigurationAuthAdmin     `yaml:"admin"`
+	Token     ConfigurationAuthToken     `yaml:"token"`
+	Oauth2    ConfigurationAuthOauth2    `yaml:"oauth2"`
+	Jwt       ConfigurationAuthJwt       `yaml:"jwt"`
 }

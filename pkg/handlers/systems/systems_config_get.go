@@ -35,5 +35,10 @@ func (h *handler) GetConfig(c echo.Context) error {
 		Daemon: types.GetSystemConfigDaemon{
 			Builder: h.config.Daemon.Builder.Enabled,
 		},
+		Anonymous: h.config.Auth.Anonymous.Enabled,
+		OAuth2: types.GetSystemConfigOAuth2{
+			GitHub: h.config.Auth.Oauth2.Github.Enabled,
+			GitLab: h.config.Auth.Oauth2.Gitlab.Enabled,
+		},
 	})
 }
