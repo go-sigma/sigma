@@ -55,8 +55,8 @@ type decoratorWebhook struct {
 
 type inject struct {
 	daemonServiceFactory dao.DaemonServiceFactory
-
-	producerClient definition.WorkQueueProducer
+	storageDriverFactory storage.StorageDriverFactory
+	producerClient       definition.WorkQueueProducer
 }
 
 // Runner ...
@@ -85,7 +85,7 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 
 		var runnerChan = make(chan decoratorStatus, 3)
 		var webhookChan = make(chan decoratorWebhook, 3)
-		var gc = initGc(ctx, daemon, runnerChan, webhookChan)
+		var gc = initGc(ctx, daemon, runnerChan, webhookChan, injects...)
 		if gc == nil {
 			return fmt.Errorf("daemon %s not support", daemon.String())
 		}
@@ -158,7 +158,7 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 	}
 }
 
-func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus, webhookChan chan decoratorWebhook) Runner {
+func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorStatus, webhookChan chan decoratorWebhook, injects ...inject) Runner {
 	switch daemon {
 	case enums.DaemonGcRepository:
 		return &gcRepository{
@@ -238,7 +238,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcBlob:
-		return &gcBlob{
+		runner := &gcBlob{
 			ctx:    log.Logger.WithContext(ctx),
 			config: ptr.To(configs.GetConfiguration()),
 
@@ -256,6 +256,13 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 
 			waitAllDone: &sync.WaitGroup{},
 		}
+		if len(injects) > 0 {
+			ij := injects[0]
+			if ij.storageDriverFactory != nil {
+				runner.storageDriverFactory = ij.storageDriverFactory
+			}
+		}
+		return runner
 	default:
 		return nil
 	}
