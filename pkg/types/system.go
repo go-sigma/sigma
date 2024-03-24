@@ -31,7 +31,15 @@ type GetSystemConfigDaemon struct {
 	Builder bool `json:"builder" example:"false"`
 }
 
+// GetSystemConfigOAuth2 ...
+type GetSystemConfigOAuth2 struct {
+	GitHub bool `json:"github" example:"false"`
+	GitLab bool `json:"gitlab" example:"false"`
+}
+
 // GetSystemConfigResponse ...
 type GetSystemConfigResponse struct {
-	Daemon GetSystemConfigDaemon `json:"daemon"`
+	Daemon    GetSystemConfigDaemon `json:"daemon"`
+	Anonymous bool                  `json:"anonymous" example:"false"`
+	OAuth2    GetSystemConfigOAuth2 `json:"oauth2"`
 }

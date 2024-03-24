@@ -15,7 +15,7 @@
  */
 
 import { ToastContainer } from 'react-toastify';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import Tag from "./pages/Tag";
@@ -52,7 +52,8 @@ const localServer = process.env.NODE_ENV === "development" ? "http://127.0.0.1:3
 
 export default function App() {
   const navigate = useNavigate();
-  setupAxiosInterceptor(navigate);
+  const location = useLocation();
+  setupAxiosInterceptor(navigate, location);
 
   return (
     <>

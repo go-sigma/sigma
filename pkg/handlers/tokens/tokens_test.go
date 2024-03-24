@@ -37,7 +37,6 @@ import (
 )
 
 func TestToken(t *testing.T) {
-	viper.Reset()
 	logger.SetLevel("debug")
 	e := echo.New()
 	e.HideBanner = true
@@ -51,14 +50,6 @@ func TestToken(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	// viper.SetDefault("auth.internalUser.password", "internal-sigma")
-	// viper.SetDefault("auth.internalUser.username", "internal-sigma")
-	// viper.SetDefault("auth.admin.password", "sigma")
-	// viper.SetDefault("auth.admin.username", "sigma")
-	// viper.SetDefault("auth.jwt.privateKey", privateKeyString)
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	config := &configs.Configuration{
 		Auth: configs.ConfigurationAuth{

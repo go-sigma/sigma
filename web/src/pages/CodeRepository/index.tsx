@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+
+import Menu from "../../components/Menu";
+import Header from "../../components/Header";
+import Notification from "../../components/Notification";
+
 import {
   ICodeRepositoryProviderItem,
   ICodeRepositoryProviderList,
   IEndpoint,
   IHTTPError,
-  IOauth2ClientID
+  IOauth2ClientID,
+  ISystemConfig
 } from '../../interfaces';
-
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import Toast from "../../components/Notification";
-import axios from "axios";
-import { useNavigate } from 'react-router-dom';
 
 export default function ({ localServer }: { localServer: string }) {
   const [providers, setProviders] = useState<ICodeRepositoryProviderItem[]>();
@@ -43,11 +45,11 @@ export default function ({ localServer }: { localServer: string }) {
         setEndpoint(e.endpoint);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, [])
 
@@ -58,11 +60,11 @@ export default function ({ localServer }: { localServer: string }) {
         setProviders(data.items);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 
@@ -76,6 +78,33 @@ export default function ({ localServer }: { localServer: string }) {
     }
     return false;
   }
+
+  const [config, setConfig] = useState<ISystemConfig>({
+    daemon: {
+      builder: true
+    },
+    anonymous: false,
+    oauth2: {
+      github: false,
+      gitlab: false,
+    },
+  } as ISystemConfig);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/systems/config").then(response => {
+      if (response !== undefined && response.status === 200) {
+        const config = response.data as ISystemConfig;
+        console.log(config);
+        setConfig(config);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, []);
 
   return (
     <Fragment>
@@ -92,8 +121,16 @@ export default function ({ localServer }: { localServer: string }) {
           </main>
           <div>
             <div className="px-3 py-3 grid grid-cols-8 gap-2">
-              <GitHubButton localServer={localServer} endpoint={endpoint} active={hasProvider('github')} />
-              <GitLabButton localServer={localServer} endpoint={endpoint} active={hasProvider('gitlab')} />
+              {
+                config.oauth2.github && (
+                  <GitHubButton localServer={localServer} endpoint={endpoint} active={hasProvider('github')} />
+                )
+              }
+              {
+                config.oauth2.gitlab && (
+                  <GitLabButton localServer={localServer} endpoint={endpoint} active={hasProvider('gitlab')} />
+                )
+              }
             </div>
           </div>
         </div>
@@ -113,11 +150,11 @@ function GitHubButton({ localServer, endpoint, active }: { localServer: string, 
         setClientID(data.client_id);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 
@@ -165,11 +202,11 @@ function GitLabButton({ localServer, endpoint, active }: { localServer: string, 
         setClientID(data.client_id);
       } else {
         const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
       const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 

@@ -131,6 +131,9 @@ daemon:
       uri: unix:///run/podman/podman.sock
 
 auth:
+  anonymous:
+    # anonymous will disabled if auth.anonymous.enabled set false
+    enabled: true
   admin:
     username: sigma
     password: sigma
@@ -144,6 +147,13 @@ auth:
     privateKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSB"
   oauth2:
     github:
+      # github login will disable if auth.oauth.github.enabled set false
+      enabled: false
       clientId: "e5f9fa9e372dfac66aed"
       clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"
+    gitlab:
+      # gitlab login will disable if auth.oauth.gitlab.enabled set false
+      enabled: false
+      clientId: "4df6efcf8c319efb73e8116c72d881c559ccaf822096220a13cee3047b05ed70"
+      clientSecret: "94ceddf22fc1560f33caec6be32c9c61a91719bd2df3b5127ccd43187192f95b"
 ```

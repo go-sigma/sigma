@@ -24,7 +24,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the system handlers
@@ -40,15 +39,24 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config configs.Configuration
+	config *configs.Configuration
 }
 
-type inject struct{}
+type inject struct {
+	config *configs.Configuration
+}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(_ ...inject) Handler {
+func handlerNew(injects ...inject) Handler {
+	config := configs.GetConfiguration()
+	if len(injects) > 0 {
+		ij := injects[0]
+		if ij.config != nil {
+			config = ij.config
+		}
+	}
 	return &handler{
-		config: ptr.To(configs.GetConfiguration()),
+		config: config,
 	}
 }
 

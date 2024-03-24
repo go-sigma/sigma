@@ -6894,11 +6894,31 @@ const docTemplate = `{
                 }
             }
         },
+        "types.GetSystemConfigOAuth2": {
+            "type": "object",
+            "properties": {
+                "github": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "gitlab": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
         "types.GetSystemConfigResponse": {
             "type": "object",
             "properties": {
+                "anonymous": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "daemon": {
                     "$ref": "#/definitions/types.GetSystemConfigDaemon"
+                },
+                "oauth2": {
+                    "$ref": "#/definitions/types.GetSystemConfigOAuth2"
                 }
             }
         },

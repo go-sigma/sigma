@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { IEndpoint, IHTTPError, IOauth2ClientID, IUserLoginResponse } from "../../interfaces";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 import Notification from "../../components/Notification";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "../../interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
@@ -80,6 +80,33 @@ export default function Login({ localServer }: { localServer: string }) {
       }
     }).catch(error => {
       console.log("get user self info failed:", error);
+    });
+  }, []);
+
+  const [config, setConfig] = useState<ISystemConfig>({
+    daemon: {
+      builder: true
+    },
+    anonymous: false,
+    oauth2: {
+      github: false,
+      gitlab: false,
+    },
+  } as ISystemConfig);
+
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/systems/config").then(response => {
+      if (response !== undefined && response.status === 200) {
+        const config = response.data as ISystemConfig;
+        console.log(config);
+        setConfig(config);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
   }, []);
 
@@ -165,29 +192,45 @@ export default function Login({ localServer }: { localServer: string }) {
                     login(username, password);
                   }}
                 >
-                  Sign in
+                  Sign in {config.anonymous ? "xx" : ""}
                 </button>
               </div>
             </div>
 
-            <div>
-              <div className="relative mt-10">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-gray-200" />
+            {
+              (config.anonymous || config.oauth2.github || config.oauth2.gitlab) ? (
+                <div>
+                  <div className="relative mt-10">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="w-full border-t border-gray-200" />
+                    </div>
+                    <div className="relative flex justify-center text-sm font-medium leading-6">
+                      <span className="bg-white px-6 text-gray-900">Or continue with</span>
+                    </div>
+                  </div>
+                  {
+                    config.anonymous && (
+                      <div className="mt-6 grid grid-cols-1 gap-4">
+                        <button
+                          className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F] border-gray-800"
+                          onClick={e => login("", "", true)}
+                        >Anonymous</button>
+                      </div>
+                    )
+                  }
+                  {
+                    config.oauth2.github && (
+                      <GitHubButton localServer={localServer} endpoint={endpoint} />
+                    )
+                  }
+                  {
+                    config.oauth2.gitlab && (
+                      <GitLabButton localServer={localServer} endpoint={endpoint} />
+                    )
+                  }
                 </div>
-                <div className="relative flex justify-center text-sm font-medium leading-6">
-                  <span className="bg-white px-6 text-gray-900">Or continue with</span>
-                </div>
-              </div>
-              <div className="mt-6 grid grid-cols-1 gap-4">
-                <button
-                  className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F] border-gray-800"
-                  onClick={e => login("", "", true)}
-                >Anonymous</button>
-              </div>
-              <GitHubButton localServer={localServer} endpoint={endpoint} />
-              <GitLabButton localServer={localServer} endpoint={endpoint} />
-            </div>
+              ) : null
+            }
           </div>
         </div>
       </div>
