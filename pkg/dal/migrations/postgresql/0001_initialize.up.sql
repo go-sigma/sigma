@@ -553,6 +553,7 @@ CREATE TABLE IF NOT EXISTS "daemon_gc_artifact_records" (
 
 CREATE TABLE IF NOT EXISTS "daemon_gc_blob_rules" (
   "id" bigserial PRIMARY KEY,
+  "is_running" smallint NOT NULL DEFAULT 0,
   "retention_day" integer NOT NULL DEFAULT 0,
   "cron_enabled" smallint NOT NULL DEFAULT 0,
   "cron_rule" varchar(30),

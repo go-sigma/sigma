@@ -192,7 +192,7 @@ export default function Login({ localServer }: { localServer: string }) {
                     login(username, password);
                   }}
                 >
-                  Sign in {config.anonymous ? "xx" : ""}
+                  Sign in
                 </button>
               </div>
             </div>

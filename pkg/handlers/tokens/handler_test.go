@@ -17,9 +17,7 @@ package token
 import (
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -36,11 +34,8 @@ const (
 )
 
 func TestFactory(t *testing.T) {
-	viper.Reset()
 	logger.SetLevel("debug")
 	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
@@ -50,8 +45,6 @@ func TestFactory(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	config := &configs.Configuration{
 		Auth: configs.ConfigurationAuth{
