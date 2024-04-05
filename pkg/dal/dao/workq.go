@@ -32,7 +32,7 @@ type WorkQueueService interface {
 	// Create creates a new work queue record in the database
 	Create(ctx context.Context, workqObj *models.WorkQueue) error
 	// Get get a work queue record
-	Get(ctx context.Context, topic string) (*models.WorkQueue, error)
+	Get(ctx context.Context, topic enums.Daemon) (*models.WorkQueue, error)
 	// UpdateStatus update a work queue record status
 	UpdateStatus(ctx context.Context, id int64, version, newVersion string, times int, status enums.TaskCommonStatus) error
 }
@@ -69,7 +69,7 @@ func (s workQueueService) Create(ctx context.Context, workqObj *models.WorkQueue
 }
 
 // Get get a work queue record
-func (s workQueueService) Get(ctx context.Context, topic string) (*models.WorkQueue, error) {
+func (s workQueueService) Get(ctx context.Context, topic enums.Daemon) (*models.WorkQueue, error) {
 	return s.tx.WorkQueue.WithContext(ctx).Where(
 		s.tx.WorkQueue.Status.Eq(enums.TaskCommonStatusPending),
 		s.tx.WorkQueue.Topic.Eq(topic),

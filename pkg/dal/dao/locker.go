@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 )
 
 //go:generate mockgen -destination=mocks/locker.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao LockerService
@@ -32,9 +33,11 @@ import (
 // LockerService is the interface that provides methods to operate on locker model
 type LockerService interface {
 	// Create creates a new work queue record in the database
-	Create(ctx context.Context, name string) error
+	Create(ctx context.Context, key, val string, expire int64) error
 	// Delete get a locker record
-	Delete(ctx context.Context, name string) error
+	Delete(ctx context.Context, key, val string) error
+	// Renew renew a locker record
+	Renew(ctx context.Context, key, val string, expire int64) error
 }
 
 type lockerService struct {
@@ -64,28 +67,52 @@ func (s *lockerServiceFactory) New(txs ...*query.Query) LockerService {
 }
 
 // Create creates a new work queue record in the database
-func (s lockerService) Create(ctx context.Context, name string) error {
-	for i := 0; i < 6; i++ {
-		err := s.tx.Locker.WithContext(ctx).Create(&models.Locker{Name: name})
-		if err == nil {
-			return nil
+func (s lockerService) Create(ctx context.Context, key, value string, expire int64) error {
+	lock, err := s.tx.Locker.WithContext(ctx).Where(s.tx.Locker.Key.Eq(key)).First()
+	if err == nil {
+		if lock.Expire < time.Now().UnixMilli() {
+			_, err = s.tx.Locker.WithContext(ctx).Where(s.tx.Locker.Key.Eq(key)).Delete()
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Locker %s already exists", key)
 		}
-		if !errors.Is(err, gorm.ErrDuplicatedKey) {
-			return err
-		}
-		<-time.After(time.Second)
 	}
-	return fmt.Errorf("cannot acquire locker for %s", name)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	return s.tx.Locker.WithContext(ctx).Create(&models.Locker{Key: key, Value: value, Expire: expire})
 }
 
 // Delete get a locker record
-func (s lockerService) Delete(ctx context.Context, name string) error {
-	matched, err := s.tx.Locker.WithContext(ctx).Unscoped().Where(s.tx.Locker.Name.Eq(name)).Delete()
-	if err != nil {
-		return err
+func (s lockerService) Delete(ctx context.Context, key, value string) error {
+	_, err := s.tx.Locker.WithContext(ctx).Unscoped().Where(
+		s.tx.Locker.Key.Eq(key), s.tx.Locker.Value.Eq(value)).Delete()
+	return err
+}
+
+// Renew renew a locker record
+func (s lockerService) Renew(ctx context.Context, key, value string, expire int64) error {
+	lock, err := s.tx.Locker.WithContext(ctx).Where(s.tx.Locker.Key.Eq(key)).First()
+	if err == nil {
+		if lock.Value != value {
+			return definition.ErrLockNotHeld
+		}
+		if lock.Expire < time.Now().UnixMilli() {
+			_, err = s.tx.Locker.WithContext(ctx).Where(s.tx.Locker.Key.Eq(key)).Delete()
+			if err != nil {
+				return err
+			}
+			return definition.ErrLockAlreadyExpired
+		} else {
+			_, err := s.tx.Locker.WithContext(ctx).Where(s.tx.Locker.Key.Eq(key)).UpdateColumns(map[string]any{
+				query.Locker.Expire.ColumnName().String(): expire,
+			})
+			if err != nil {
+				return err
+			}
+		}
 	}
-	if matched.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	return err
 }

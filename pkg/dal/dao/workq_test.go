@@ -72,7 +72,7 @@ func TestWorkQueueService(t *testing.T) {
 	err = workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending)
 	assert.NoError(t, err)
 
-	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc.String())
+	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc)
 	assert.NoError(t, err)
 	assert.Equal(t, workqObj.ID, workqNewObj.ID)
 	assert.Equal(t, workqObj.Topic, workqNewObj.Topic)

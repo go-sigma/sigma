@@ -31,7 +31,7 @@ func newWorkQueue(db *gorm.DB, opts ...gen.DOOption) workQueue {
 	_workQueue.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_workQueue.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_workQueue.ID = field.NewInt64(tableName, "id")
-	_workQueue.Topic = field.NewString(tableName, "topic")
+	_workQueue.Topic = field.NewField(tableName, "topic")
 	_workQueue.Payload = field.NewBytes(tableName, "payload")
 	_workQueue.Times = field.NewInt(tableName, "times")
 	_workQueue.Version = field.NewString(tableName, "version")
@@ -50,7 +50,7 @@ type workQueue struct {
 	UpdatedAt field.Int64
 	DeletedAt field.Uint64
 	ID        field.Int64
-	Topic     field.String
+	Topic     field.Field
 	Payload   field.Bytes
 	Times     field.Int
 	Version   field.String
@@ -75,7 +75,7 @@ func (w *workQueue) updateTableName(table string) *workQueue {
 	w.UpdatedAt = field.NewInt64(table, "updated_at")
 	w.DeletedAt = field.NewUint64(table, "deleted_at")
 	w.ID = field.NewInt64(table, "id")
-	w.Topic = field.NewString(table, "topic")
+	w.Topic = field.NewField(table, "topic")
 	w.Payload = field.NewBytes(table, "payload")
 	w.Times = field.NewInt(table, "times")
 	w.Version = field.NewString(table, "version")

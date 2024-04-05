@@ -40,17 +40,17 @@ func (m *MockLockerService) EXPECT() *MockLockerServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockLockerService) Create(arg0 context.Context, arg1 string) error {
+func (m *MockLockerService) Create(arg0 context.Context, arg1 string, arg2 int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockLockerServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockLockerServiceMockRecorder) Create(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLockerService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLockerService)(nil).Create), arg0, arg1, arg2)
 }
 
 // Delete mocks base method.
@@ -65,4 +65,18 @@ func (m *MockLockerService) Delete(arg0 context.Context, arg1 string) error {
 func (mr *MockLockerServiceMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLockerService)(nil).Delete), arg0, arg1)
+}
+
+// Renew mocks base method.
+func (m *MockLockerService) Renew(arg0 context.Context, arg1 string, arg2 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Renew", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Renew indicates an expected call of Renew.
+func (mr *MockLockerServiceMockRecorder) Renew(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Renew", reflect.TypeOf((*MockLockerService)(nil).Renew), arg0, arg1, arg2)
 }

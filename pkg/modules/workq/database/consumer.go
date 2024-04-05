@@ -68,7 +68,7 @@ func (h *consumerHandler) consume(topic enums.Daemon) error {
 	workQueueService := dao.NewWorkQueueServiceFactory().New()
 	// daoCtx := log.Logger.WithContext(context.Background())
 	daoCtx := context.Background()
-	wq, err := workQueueService.Get(daoCtx, topic.String())
+	wq, err := workQueueService.Get(daoCtx, topic)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Trace().Err(err).Msgf("None task in topic(%s)", topic)

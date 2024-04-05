@@ -199,3 +199,4 @@ pkg/**/*.html
 *.zstd
 web/.yarn/
 docs/.yarn/
+coverage.txt
