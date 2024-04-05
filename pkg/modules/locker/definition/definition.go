@@ -16,17 +16,36 @@ package definition
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
-// Lock ...
+const (
+	// MinLockExpire ...
+	MinLockExpire = 100 * time.Millisecond
+)
+
+var (
+	// ErrLockNotHeld is returned when trying to release an inactive lock.
+	ErrLockNotHeld = errors.New("locker not held")
+	// ErrLockTooShort expire should longer than 100ms
+	ErrLockTooShort = errors.New("locker expire is too short")
+	// ErrLockAlreadyExpired lock already expired
+	ErrLockAlreadyExpired = errors.New("locker already expired")
+)
+
+// Lock lock interface
 type Lock interface {
 	// Unlock ...
-	Unlock() error
+	Unlock(ctx context.Context) error
+	// Renew ...
+	Renew(ctx context.Context, ttls ...time.Duration) error
 }
 
-// Locker ...
+// Locker locker interface
 type Locker interface {
-	// Lock ...
-	Lock(ctx context.Context, name string, expire time.Duration) (Lock, error)
+	// Acquire ...
+	Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (Lock, error)
+	// AcquireWithRenew acquire lock with renew the lock
+	AcquireWithRenew(ctx context.Context, key string, expire, waitTimeout time.Duration) error
 }

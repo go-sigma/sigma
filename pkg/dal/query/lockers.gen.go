@@ -31,7 +31,9 @@ func newLocker(db *gorm.DB, opts ...gen.DOOption) locker {
 	_locker.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_locker.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_locker.ID = field.NewInt64(tableName, "id")
-	_locker.Name = field.NewString(tableName, "name")
+	_locker.Key = field.NewString(tableName, "key")
+	_locker.Expire = field.NewInt64(tableName, "expire")
+	_locker.Value = field.NewString(tableName, "value")
 
 	_locker.fillFieldMap()
 
@@ -46,7 +48,9 @@ type locker struct {
 	UpdatedAt field.Int64
 	DeletedAt field.Uint64
 	ID        field.Int64
-	Name      field.String
+	Key       field.String
+	Expire    field.Int64
+	Value     field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -67,7 +71,9 @@ func (l *locker) updateTableName(table string) *locker {
 	l.UpdatedAt = field.NewInt64(table, "updated_at")
 	l.DeletedAt = field.NewUint64(table, "deleted_at")
 	l.ID = field.NewInt64(table, "id")
-	l.Name = field.NewString(table, "name")
+	l.Key = field.NewString(table, "key")
+	l.Expire = field.NewInt64(table, "expire")
+	l.Value = field.NewString(table, "value")
 
 	l.fillFieldMap()
 
@@ -92,12 +98,14 @@ func (l *locker) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (l *locker) fillFieldMap() {
-	l.fieldMap = make(map[string]field.Expr, 5)
+	l.fieldMap = make(map[string]field.Expr, 7)
 	l.fieldMap["created_at"] = l.CreatedAt
 	l.fieldMap["updated_at"] = l.UpdatedAt
 	l.fieldMap["deleted_at"] = l.DeletedAt
 	l.fieldMap["id"] = l.ID
-	l.fieldMap["name"] = l.Name
+	l.fieldMap["key"] = l.Key
+	l.fieldMap["expire"] = l.Expire
+	l.fieldMap["value"] = l.Value
 }
 
 func (l locker) clone(db *gorm.DB) locker {

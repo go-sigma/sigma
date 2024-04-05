@@ -73,16 +73,12 @@ func Initialize(config configs.Configuration) error {
 	if err != nil {
 		return err
 	}
-	lock, err := locker.Lock(context.Background(), consts.LockerMigration, time.Second*30)
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
+	err = locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err := lock.Unlock()
-		if err != nil {
-			log.Error().Err(err).Msg("Migrate locker release failed")
-		}
-	}()
 
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
@@ -165,7 +161,7 @@ func connectPostgres(config configs.Configuration) (string, error) {
 func connectSqlite3(config configs.Configuration) (string, error) {
 	dbname := config.Database.Sqlite3.Path
 
-	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open(dbname+"?_busy_timeout=10000"), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},

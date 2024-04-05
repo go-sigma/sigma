@@ -56,16 +56,12 @@ func initBaseimage(config configs.Configuration) error {
 	if err != nil {
 		return err
 	}
-	lock, err := locker.Lock(context.Background(), consts.LockerBaseimage, time.Second*30)
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
+	err = locker.AcquireWithRenew(ctx, consts.LockerBaseimage, time.Second*3, time.Second*5)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err := lock.Unlock()
-		if err != nil {
-			log.Error().Err(err).Msg("Initialize baseimage failed")
-		}
-	}()
 
 	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".tar") {

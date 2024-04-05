@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS `lockers` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `idx_lockers_key` UNIQUE (`key`, `deleted_at`),
+  CONSTRAINT `idx_lockers_key` UNIQUE (`key`, `deleted_at`)
 );
 

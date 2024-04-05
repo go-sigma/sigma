@@ -15,7 +15,7 @@ require (
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.84.1
 	github.com/casbin/gorm-adapter/v3 v3.21.0
-	github.com/containers/podman/v5 v5.0.0
+	github.com/containers/podman/v5 v5.0.1
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
 	github.com/distribution/reference v0.5.0
@@ -26,7 +26,6 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -119,8 +118,8 @@ require (
 	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect
-	github.com/containers/buildah v1.35.1 // indirect
-	github.com/containers/common v0.58.0 // indirect
+	github.com/containers/buildah v1.35.3 // indirect
+	github.com/containers/common v0.58.1 // indirect
 	github.com/containers/image/v5 v5.30.0 // indirect
 	github.com/containers/libtrust v0.0.0-20230121012942-c1716e8a8d01 // indirect
 	github.com/containers/ocicrypt v1.1.9 // indirect

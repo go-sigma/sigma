@@ -72,17 +72,13 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 		log.Error().Err(err).Msg("New locker failed")
 		return
 	}
-	lock, err := locker.Lock(context.Background(), consts.LockerCronjobBuilder, time.Second*30)
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
+	err = locker.AcquireWithRenew(ctx, consts.LockerCronjobBuilder, time.Second*3, time.Second*5)
 	if err != nil {
 		log.Error().Err(err).Msg("Cronjob builder get locker failed")
 		return
 	}
-	defer func() {
-		err := lock.Unlock()
-		if err != nil {
-			log.Error().Err(err).Msg("Migrate locker release failed")
-		}
-	}()
 
 	ctx = log.Logger.WithContext(ctx)
 	builderService := r.builderServiceFactory.New()

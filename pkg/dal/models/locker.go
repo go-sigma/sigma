@@ -25,5 +25,7 @@ type Locker struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	Name string `gorm:"uniqueIndex,size:256"`
+	Key    string
+	Expire int64
+	Value  string
 }

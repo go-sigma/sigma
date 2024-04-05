@@ -39,7 +39,6 @@ var ProducerClient definition.WorkQueueProducer
 
 // Initialize ...
 func Initialize(config configs.Configuration) error {
-	fmt.Println(42, config.WorkQueue.Type)
 	var err error
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
