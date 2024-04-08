@@ -14,6 +14,9 @@
 
 package definition
 
+//go:generate mockgen -destination=mocks/lock.go -package=mocks github.com/go-sigma/sigma/pkg/modules/locker/definition Lock
+//go:generate mockgen -destination=mocks/locker.go -package=mocks github.com/go-sigma/sigma/pkg/modules/locker/definition Locker
+
 import (
 	"context"
 	"errors"
