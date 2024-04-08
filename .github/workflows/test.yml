@@ -81,7 +81,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_SQLITE }}
         run: |
-          CI_DATABASE_TYPE=sqlite3 go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+          CI_DATABASE_TYPE=sqlite3 go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -93,7 +93,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_SQLITE }}
         run: |
-          CI_DATABASE_TYPE=sqlite3 go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
+          CI_DATABASE_TYPE=sqlite3 go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -170,7 +170,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
         run: |
-          CI_DATABASE_TYPE=postgresql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+          CI_DATABASE_TYPE=postgresql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -182,7 +182,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
         run: |
-          CI_DATABASE_TYPE=postgresql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
+          CI_DATABASE_TYPE=postgresql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -260,7 +260,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_MYSQL }}
         run: |
-          CI_DATABASE_TYPE=mysql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
+          CI_DATABASE_TYPE=mysql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks"`
       - name: Run tests
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -272,7 +272,7 @@ jobs:
           OSS_SK: ${{ secrets.OSS_SK }}
           OSS_BUCKET: ${{ secrets.OSS_BUCKET_MYSQL }}
         run: |
-          CI_DATABASE_TYPE=mysql go test -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
+          CI_DATABASE_TYPE=mysql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss"`
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:

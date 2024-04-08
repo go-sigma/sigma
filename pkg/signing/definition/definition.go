@@ -16,6 +16,9 @@ package definition
 
 import "context"
 
+//go:generate mockgen -destination=mocks/signing.go -package=mocks github.com/go-sigma/sigma/pkg/signing/definition Signing
+//go:generate mockgen -destination=mocks/verifying.go -package=mocks github.com/go-sigma/sigma/pkg/signing/definition Verifying
+
 // Signing ...
 type Signing interface {
 	Sign(ctx context.Context, token, priKey, ref string) error
