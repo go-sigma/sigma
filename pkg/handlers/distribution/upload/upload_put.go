@@ -45,20 +45,21 @@ import (
 func (h *handler) PutUpload(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, needRet, err := utils.GetUserFromCtxForDs(c)
+	if err != nil {
+		return err
 	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	if needRet {
+		return nil
 	}
 
 	uri := c.Request().URL.Path
-	uploadID := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	c.Response().Header().Set("Location", fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, uri))
+
+	uploadID := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
+	if strings.Contains(uploadID, "/") {
+		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadInvalid)
+	}
 
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	_, namespace, _, _, err := imagerefs.Parse(repository)

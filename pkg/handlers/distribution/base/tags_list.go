@@ -29,7 +29,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -41,15 +40,12 @@ var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference
 
 // ListTags handles the list tags request
 func (h *handler) ListTags(c echo.Context) error {
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, needRet, err := utils.GetUserFromCtxForDs(c)
+	if err != nil {
+		return err
 	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	if needRet {
+		return nil
 	}
 
 	var uri = c.Request().URL.Path
@@ -58,7 +54,6 @@ func (h *handler) ListTags(c echo.Context) error {
 	}
 
 	var n = 1000
-	var err error
 	var nStr = c.QueryParam("n")
 	if nStr != "" {
 		n, err = strconv.Atoi(nStr)

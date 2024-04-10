@@ -197,16 +197,31 @@ func UnwrapJoinedErrors(err error) string {
 }
 
 // GetUserFromCtx ...
-func GetUserFromCtx(c echo.Context) (*models.User, error) {
+func GetUserFromCtx(c echo.Context) (*models.User, bool, error) {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return nil, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return nil, true, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return nil, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return nil, true, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
-	return user, nil
+	return user, false, nil
+}
+
+// GetUserFromCtxForDs ...
+func GetUserFromCtxForDs(c echo.Context) (*models.User, bool, error) {
+	iuser := c.Get(consts.ContextUser)
+	if iuser == nil {
+		log.Error().Msg("Get user from header failed")
+		return nil, true, xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+	}
+	user, ok := iuser.(*models.User)
+	if !ok {
+		log.Error().Msg("Convert user from header failed")
+		return nil, true, xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+	}
+	return user, false, nil
 }

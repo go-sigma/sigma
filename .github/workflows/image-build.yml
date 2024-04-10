@@ -49,12 +49,19 @@ jobs:
         with:
           username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+      - name: Setup golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build latest skopeo
         run: |
-          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
-          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
-          sudo apt update
-          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+          git clone --depth 1 --branch v1.15.0 https://github.com/containers/skopeo.git
+          cd skopeo
+          DISABLE_CGO=1 make bin/skopeo
+          sudo cp ./bin/skopeo /usr/bin/skopeo
+          cd ..
+          rm -rf skopeo
+          skopeo --version
       - name: Save dockerfile to local
         run: |
           make dockerfile-local
@@ -130,12 +137,19 @@ jobs:
         with:
           username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+      - name: Setup golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build latest skopeo
         run: |
-          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
-          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
-          sudo apt update
-          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+          git clone --depth 1 --branch v1.15.0 https://github.com/containers/skopeo.git
+          cd skopeo
+          DISABLE_CGO=1 make bin/skopeo
+          sudo cp ./bin/skopeo /usr/bin/skopeo
+          cd ..
+          rm -rf skopeo
+          skopeo --version
       - name: Save dockerfile to local
         run: |
           make dockerfile-local
@@ -215,12 +229,19 @@ jobs:
         with:
           username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+      - name: Setup golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build latest skopeo
         run: |
-          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
-          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
-          sudo apt update
-          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+          git clone --depth 1 --branch v1.15.0 https://github.com/containers/skopeo.git
+          cd skopeo
+          DISABLE_CGO=1 make bin/skopeo
+          sudo cp ./bin/skopeo /usr/bin/skopeo
+          cd ..
+          rm -rf skopeo
+          skopeo --version
       - name: Save dockerfile to local
         run: |
           make dockerfile-local
@@ -298,12 +319,19 @@ jobs:
         with:
           username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need 1.14
+      - name: Setup golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build latest skopeo
         run: |
-          echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
-          curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
-          sudo apt update
-          sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+          git clone --depth 1 --branch v1.15.0 https://github.com/containers/skopeo.git
+          cd skopeo
+          DISABLE_CGO=1 make bin/skopeo
+          sudo cp ./bin/skopeo /usr/bin/skopeo
+          cd ..
+          rm -rf skopeo
+          skopeo --version
       - name: Save dockerfile to local
         run: |
           make dockerfile-local
