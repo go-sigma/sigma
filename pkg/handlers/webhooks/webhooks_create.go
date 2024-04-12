@@ -51,9 +51,12 @@ import (
 func (h *handler) PostWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	user, err := utils.GetUserFromCtx(c)
+	user, needRet, err := utils.GetUserFromCtx(c)
 	if err != nil {
 		return err
+	}
+	if needRet {
+		return nil
 	}
 
 	var req types.PostWebhookRequest

@@ -25,7 +25,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -41,15 +40,12 @@ import (
 func (h *handler) DeleteManifest(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, needRet, err := utils.GetUserFromCtxForDs(c)
+	if err != nil {
+		return err
 	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	if needRet {
+		return nil
 	}
 
 	uri := c.Request().URL.Path

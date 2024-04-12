@@ -21,17 +21,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/opencontainers/go-digest"
 	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 func TestPanicIf(t *testing.T) {
@@ -396,6 +401,160 @@ func TestUnwrapJoinedErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := UnwrapJoinedErrors(tt.args.err); got != tt.want {
 				t.Errorf("UnwrapJoinedErrors() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetUserFromCtx(t *testing.T) {
+	type args struct {
+		c echo.Context
+	}
+	tests := []struct {
+		name     string
+		args     func(rec *httptest.ResponseRecorder) args
+		want     *models.User
+		wantBool bool
+		wantErr  bool
+		respBody string
+	}{
+		{
+			name: "normal",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				e.Set(consts.ContextUser, &models.User{Username: "test", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")})
+				return args{c: e}
+			},
+			want:     &models.User{Username: "test", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")},
+			wantBool: false,
+			wantErr:  false,
+			respBody: "",
+		},
+		{
+			name: "err-1",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				return args{c: e}
+			},
+			wantErr:  false,
+			wantBool: true,
+			respBody: string(MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+		},
+		{
+			name: "err-2",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				e.Set(consts.ContextUser, "test")
+				return args{c: e}
+			},
+			wantErr:  false,
+			wantBool: true,
+			respBody: string(MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			got, gotBool, err := GetUserFromCtx(tt.args(rec).c)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetUserFromCtx() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotBool != tt.wantBool {
+				t.Errorf("GetUserFromCtx() bool = %v, want %v", gotBool, tt.wantBool)
+			}
+			result := strings.TrimSpace(rec.Body.String())
+			if !reflect.DeepEqual(result, tt.respBody) {
+				t.Errorf("GetUserFromCtx() body = %v, want %v", result, tt.respBody)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetUserFromCtx() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetUserFromCtxForDs(t *testing.T) {
+	type args struct {
+		c echo.Context
+	}
+	tests := []struct {
+		name     string
+		args     func(rec *httptest.ResponseRecorder) args
+		want     *models.User
+		wantErr  bool
+		wantBool bool
+		respBody string
+	}{
+		{
+			name: "normal",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				e.Set(consts.ContextUser, &models.User{Username: "test", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")})
+				return args{c: e}
+			},
+			want:     &models.User{Username: "test", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")},
+			wantErr:  false,
+			wantBool: false,
+			respBody: "",
+		},
+		{
+			name: "err-1",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				return args{c: e}
+			},
+			wantErr:  false,
+			wantBool: true,
+			respBody: string(MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
+				{
+					Code:    xerrors.DSErrCodeUnauthorized.Code,
+					Message: xerrors.DSErrCodeUnauthorized.Title,
+					Detail:  xerrors.DSErrCodeUnauthorized.Description,
+				},
+			}})),
+		},
+		{
+			name: "err-2",
+			args: func(rec *httptest.ResponseRecorder) args {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				e := echo.New().NewContext(req, rec)
+				e.Set(consts.ContextUser, "test")
+				return args{c: e}
+			},
+			wantErr:  false,
+			wantBool: true,
+			respBody: string(MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
+				{
+					Code:    xerrors.DSErrCodeUnauthorized.Code,
+					Message: xerrors.DSErrCodeUnauthorized.Title,
+					Detail:  xerrors.DSErrCodeUnauthorized.Description,
+				},
+			}})),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			got, gotBool, err := GetUserFromCtxForDs(tt.args(rec).c)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetUserFromCtxForDs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotBool != tt.wantBool {
+				t.Errorf("GetUserFromCtx() bool = %v, want %v", gotBool, tt.wantBool)
+			}
+			result := strings.TrimSpace(rec.Body.String())
+			if !reflect.DeepEqual(result, tt.respBody) {
+				t.Errorf("GetUserFromCtxForDs() body = %v, want %v", result, tt.respBody)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetUserFromCtxForDs() = %v, want %v", got, tt.want)
 			}
 		})
 	}

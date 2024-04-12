@@ -25,26 +25,22 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListRepositories handles the list repositories request
 func (h *handler) ListRepositories(c echo.Context) error {
-	iuser := c.Get(consts.ContextUser)
-	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	user, needRet, err := utils.GetUserFromCtxForDs(c)
+	if err != nil {
+		return err
 	}
-	user, ok := iuser.(*models.User)
-	if !ok {
-		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+	if needRet {
+		return nil
 	}
 
 	var n = 1000
-	var err error
 	var nStr = c.QueryParam("n")
 	if nStr != "" {
 		n, err = strconv.Atoi(nStr)

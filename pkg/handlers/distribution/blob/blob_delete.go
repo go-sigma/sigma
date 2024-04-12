@@ -37,9 +37,12 @@ import (
 func (h *handler) DeleteBlob(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
-	user, err := utils.GetUserFromCtx(c)
+	user, needRet, err := utils.GetUserFromCtxForDs(c)
 	if err != nil {
 		return err
+	}
+	if needRet {
+		return nil
 	}
 
 	uri := c.Request().URL.Path
