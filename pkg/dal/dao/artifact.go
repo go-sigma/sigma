@@ -353,20 +353,28 @@ func (s *artifactService) UpdateVulnerability(ctx context.Context, artifactID in
 
 // GetNamespaceSize get the specific namespace size
 func (s *artifactService) GetNamespaceSize(ctx context.Context, namespaceID int64) (int64, error) {
-	result, err := s.tx.Artifact.WithContext(ctx).ArtifactSizeByNamespace(namespaceID)
+	q := s.tx.Artifact.WithContext(ctx).Select(s.tx.Artifact.BlobsSize.Sum().As("blobs_size")).
+		Where(s.tx.Artifact.NamespaceID.Eq(namespaceID)).
+		Clauses(clause.Locking{Strength: clause.LockingStrengthUpdate,
+			Table: clause.Table{Name: clause.CurrentTable}})
+	res, err := q.First()
 	if err != nil {
 		return 0, err
 	}
-	return result.Size, nil
+	return res.BlobsSize, nil
 }
 
 // GetRepositorySize get the specific repository size
 func (s *artifactService) GetRepositorySize(ctx context.Context, repositoryID int64) (int64, error) {
-	result, err := s.tx.Artifact.WithContext(ctx).ArtifactSizeByRepository(repositoryID)
+	q := s.tx.Artifact.WithContext(ctx).Select(s.tx.Artifact.BlobsSize.Sum().As("blobs_size")).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Clauses(clause.Locking{Strength: clause.LockingStrengthUpdate,
+			Table: clause.Table{Name: clause.CurrentTable}})
+	res, err := q.First()
 	if err != nil {
 		return 0, err
 	}
-	return result.Size, nil
+	return res.BlobsSize, nil
 }
 
 // GetReferrers ...

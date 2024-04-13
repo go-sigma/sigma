@@ -16,11 +16,9 @@ package models
 
 import (
 	"gorm.io/gen"
-	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Artifact represents an artifact
@@ -29,6 +27,9 @@ type Artifact struct {
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
+
+	NamespaceID int64
+	Namespace   Namespace
 
 	RepositoryID int64
 	Repository   Repository
@@ -74,89 +75,89 @@ type ArtifactAssociated interface {
 	ArtifactAssociated(artifactID int64) (gen.M, error)
 }
 
-// AfterCreate ...
-func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
-	if a == nil {
-		return nil
-	}
-	var repositoryObj Repository
-	err := tx.Model(&Repository{}).Where(&Repository{ID: a.RepositoryID}).First(&repositoryObj).Error
-	if err != nil {
-		return err
-	}
-	var namespaceObj Namespace
-	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).First(&namespaceObj).Error
-	if err != nil {
-		return err
-	}
-	if namespaceObj.SizeLimit > 0 && namespaceObj.Size+a.BlobsSize > namespaceObj.SizeLimit {
-		return xerrors.GenDSErrCodeResourceSizeQuotaExceedNamespace(namespaceObj.Name, namespaceObj.Size, namespaceObj.SizeLimit, a.BlobsSize)
-	}
-	if repositoryObj.SizeLimit > 0 && repositoryObj.Size+a.BlobsSize > repositoryObj.SizeLimit {
-		return xerrors.GenDSErrCodeResourceSizeQuotaExceedRepository(repositoryObj.Name, repositoryObj.Size, repositoryObj.SizeLimit, a.BlobsSize)
-	}
+// // AfterCreate ...
+// func (a *Artifact) BeforeCreate(tx *gorm.DB) error {
+// 	if a == nil {
+// 		return nil
+// 	}
+// 	var repositoryObj Repository
+// 	err := tx.Model(&Repository{}).Where(&Repository{ID: a.RepositoryID}).First(&repositoryObj).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var namespaceObj Namespace
+// 	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).First(&namespaceObj).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if namespaceObj.SizeLimit > 0 && namespaceObj.Size+a.BlobsSize > namespaceObj.SizeLimit {
+// 		return xerrors.GenDSErrCodeResourceSizeQuotaExceedNamespace(namespaceObj.Name, namespaceObj.Size, namespaceObj.SizeLimit, a.BlobsSize)
+// 	}
+// 	if repositoryObj.SizeLimit > 0 && repositoryObj.Size+a.BlobsSize > repositoryObj.SizeLimit {
+// 		return xerrors.GenDSErrCodeResourceSizeQuotaExceedRepository(repositoryObj.Name, repositoryObj.Size, repositoryObj.SizeLimit, a.BlobsSize)
+// 	}
 
-	// we should check all the checker here, and update the size and tag count
-	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumns(
-		map[string]any{
-			"size": namespaceObj.Size + a.BlobsSize,
-		}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumns(map[string]any{
-		"size": repositoryObj.Size + a.BlobsSize,
-	}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	// we should check all the checker here, and update the size and tag count
+// 	err = tx.Model(&Namespace{}).Where(&Namespace{ID: repositoryObj.NamespaceID}).UpdateColumns(
+// 		map[string]any{
+// 			"size": namespaceObj.Size + a.BlobsSize,
+// 		}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Model(&Repository{}).Where(&Repository{ID: repositoryObj.ID}).UpdateColumns(map[string]any{
+// 		"size": repositoryObj.Size + a.BlobsSize,
+// 	}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-// BeforeUpdate ...
-func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
-	if a == nil {
-		return nil
-	}
-	var repositoryObj Repository
-	err := tx.Model(&Repository{}).Where("id = ?", a.RepositoryID).First(&repositoryObj).Error
-	if err != nil {
-		return err
-	}
+// // BeforeUpdate ...
+// func (a *Artifact) BeforeUpdate(tx *gorm.DB) error {
+// 	if a == nil {
+// 		return nil
+// 	}
+// 	var repositoryObj Repository
+// 	err := tx.Model(&Repository{}).Where("id = ?", a.RepositoryID).First(&repositoryObj).Error
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = tx.Exec(`UPDATE
-  namespaces
-SET
-  size = (
-    SELECT
-      SUM(artifacts.blobs_size)
-    FROM
-      repositories
-      INNER JOIN artifacts ON repositories.id = artifacts.repository_id
-    WHERE
-      repositories.namespace_id = ?)
-WHERE
-  id = ?`, repositoryObj.NamespaceID, repositoryObj.NamespaceID).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Exec(`UPDATE
-  repositories
-SET
-  size = (
-    SELECT
-      SUM(size)
-    FROM
-      artifacts
-    WHERE
-		  artifacts.repository_id = ?)
-WHERE
-  id = ?`, repositoryObj.ID, repositoryObj.ID).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	err = tx.Exec(`UPDATE
+//   namespaces
+// SET
+//   size = (
+//     SELECT
+//       SUM(artifacts.blobs_size)
+//     FROM
+//       repositories
+//       INNER JOIN artifacts ON repositories.id = artifacts.repository_id
+//     WHERE
+//       repositories.namespace_id = ?)
+// WHERE
+//   id = ?`, repositoryObj.NamespaceID, repositoryObj.NamespaceID).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Exec(`UPDATE
+//   repositories
+// SET
+//   size = (
+//     SELECT
+//       SUM(size)
+//     FROM
+//       artifacts
+//     WHERE
+// 		  artifacts.repository_id = ?)
+// WHERE
+//   id = ?`, repositoryObj.ID, repositoryObj.ID).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // ArtifactSbom represents an artifact sbom
 type ArtifactSbom struct {

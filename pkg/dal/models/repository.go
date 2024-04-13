@@ -15,10 +15,7 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
-
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Repository represents a repository
@@ -41,48 +38,48 @@ type Repository struct {
 	Builder   *Builder
 }
 
-// BeforeCreate ...
-func (a *Repository) BeforeCreate(tx *gorm.DB) error {
-	if a == nil {
-		return nil
-	}
-	var namespaceObj Namespace
-	err := tx.Model(&Namespace{}).Where(&Namespace{ID: a.NamespaceID}).First(&namespaceObj).Error
-	if err != nil {
-		return err
-	}
-	if namespaceObj.RepositoryLimit > 0 && namespaceObj.RepositoryCount+1 > namespaceObj.RepositoryLimit {
-		return xerrors.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
-	}
-	err = tx.Model(&Namespace{}).Where(&Namespace{ID: a.NamespaceID}).UpdateColumns(
-		map[string]any{
-			"repository_count": namespaceObj.RepositoryCount + 1,
-		}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// // BeforeCreate ...
+// func (a *Repository) BeforeCreate(tx *gorm.DB) error {
+// 	if a == nil {
+// 		return nil
+// 	}
+// 	var namespaceObj Namespace
+// 	err := tx.Model(&Namespace{}).Where(&Namespace{ID: a.NamespaceID}).First(&namespaceObj).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if namespaceObj.RepositoryLimit > 0 && namespaceObj.RepositoryCount+1 > namespaceObj.RepositoryLimit {
+// 		return xerrors.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
+// 	}
+// 	err = tx.Model(&Namespace{}).Where(&Namespace{ID: a.NamespaceID}).UpdateColumns(
+// 		map[string]any{
+// 			"repository_count": namespaceObj.RepositoryCount + 1,
+// 		}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-// AfterUpdate ...
-func (a *Repository) AfterUpdate(tx *gorm.DB) error {
-	if a == nil {
-		return nil
-	}
-	err := tx.Exec(`UPDATE
-  namespaces
-SET
-  repository_count = (
-    SELECT
-      count(repositories.id)
-    FROM
-      repositories
-    WHERE
-      namespace_id = ?)
-WHERE
-  id = ?`, a.NamespaceID, a.NamespaceID).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// // AfterUpdate ...
+// func (a *Repository) AfterUpdate(tx *gorm.DB) error {
+// 	if a == nil {
+// 		return nil
+// 	}
+// 	err := tx.Exec(`UPDATE
+//   namespaces
+// SET
+//   repository_count = (
+//     SELECT
+//       count(repositories.id)
+//     FROM
+//       repositories
+//     WHERE
+//       namespace_id = ?)
+// WHERE
+//   id = ?`, a.NamespaceID, a.NamespaceID).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }

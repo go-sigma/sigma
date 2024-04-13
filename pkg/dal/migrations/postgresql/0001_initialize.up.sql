@@ -275,6 +275,7 @@ CREATE TYPE artifact_type AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "artifacts" (
   "id" bigserial PRIMARY KEY,
+  "namespace_id" bigint NOT NULL,
   "repository_id" bigint NOT NULL,
   "digest" varchar(256) NOT NULL,
   "size" bigint NOT NULL DEFAULT 0,
@@ -291,6 +292,7 @@ CREATE TABLE IF NOT EXISTS "artifacts" (
   "created_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "updated_at" bigint NOT NULL DEFAULT ((EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::bigint),
   "deleted_at" bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY ("namespace_id") REFERENCES "namespaces" ("id"),
   FOREIGN KEY ("repository_id") REFERENCES "repositories" ("id"),
   FOREIGN KEY ("referrer_id") REFERENCES "artifacts" ("id"),
   CONSTRAINT "artifacts_unique_with_repo" UNIQUE ("repository_id", "digest", "deleted_at")

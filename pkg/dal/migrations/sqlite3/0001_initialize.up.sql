@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS `repositories` (
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` integer PRIMARY KEY AUTOINCREMENT,
+  `namespace_id` integer NOT NULL,
   `repository_id` integer NOT NULL,
   `digest` varchar(256) NOT NULL,
   `size` integer NOT NULL DEFAULT 0,
@@ -172,6 +173,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `created_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `updated_at` integer NOT NULL DEFAULT (unixepoch () * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
+  FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`referrer_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)

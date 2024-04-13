@@ -17,11 +17,9 @@ package models
 import (
 	"time"
 
-	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Builder represents a builder
@@ -98,33 +96,33 @@ type BuilderRunner struct {
 	Builder Builder
 }
 
-// AfterUpdate ...
-func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
-	if b == nil {
-		return nil
-	}
+// // AfterUpdate ...
+// func (b *BuilderRunner) AfterUpdate(tx *gorm.DB) error {
+// 	if b == nil {
+// 		return nil
+// 	}
 
-	var runnerObj BuilderRunner
-	err := tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).First(&runnerObj).Error
-	if err != nil {
-		return err
-	}
+// 	var runnerObj BuilderRunner
+// 	err := tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).First(&runnerObj).Error
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if runnerObj.Duration != nil {
-		return nil
-	}
+// 	if runnerObj.Duration != nil {
+// 		return nil
+// 	}
 
-	if runnerObj.StartedAt != nil && runnerObj.EndedAt != nil {
-		var duration = ptr.To(runnerObj.EndedAt) - ptr.To(runnerObj.StartedAt)
-		err = tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).Updates(
-			map[string]any{
-				"duration": duration,
-				"id":       b.ID, // here will trigger the after update hook, so the id is needed
-			}).Error
-		if err != nil {
-			return err
-		}
-	}
+// 	if runnerObj.StartedAt != nil && runnerObj.EndedAt != nil {
+// 		var duration = ptr.To(runnerObj.EndedAt) - ptr.To(runnerObj.StartedAt)
+// 		err = tx.Model(&BuilderRunner{}).Where("id = ?", b.ID).Updates(
+// 			map[string]any{
+// 				"duration": duration,
+// 				"id":       b.ID, // here will trigger the after update hook, so the id is needed
+// 			}).Error
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

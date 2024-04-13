@@ -15,9 +15,6 @@
 package models
 
 import (
-	"strings"
-
-	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -50,18 +47,18 @@ func init() {
 	policyStatements = append(policyStatements, policyStatement1)
 }
 
-func policyStatement(namespaceName string) string {
-	var result string
-	for _, p := range policyStatements {
-		result += strings.ReplaceAll(p, "^_^Namespace^_^", namespaceName)
-	}
-	return result
-}
+// func policyStatement(namespaceName string) string {
+// 	var result string
+// 	for _, p := range policyStatements {
+// 		result += strings.ReplaceAll(p, "^_^Namespace^_^", namespaceName)
+// 	}
+// 	return result
+// }
 
 // BeforeCreate ...
-func (n *Namespace) BeforeCreate(tx *gorm.DB) error {
-	if n == nil || n.ID == 0 {
-		return nil
-	}
-	return tx.Exec(policyStatement(n.Name)).Error
-}
+// func (n *Namespace) BeforeCreate(tx *gorm.DB) error {
+// 	if n == nil || n.ID == 0 {
+// 		return nil
+// 	}
+// 	return tx.Exec(policyStatement(n.Name)).Error
+// }

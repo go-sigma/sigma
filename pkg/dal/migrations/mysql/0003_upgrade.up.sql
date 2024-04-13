@@ -9,3 +9,8 @@ CREATE TABLE IF NOT EXISTS `lockers` (
   CONSTRAINT `idx_lockers_key` UNIQUE (`key`, `deleted_at`)
 );
 
+ALTER TABLE `artifacts`
+  ADD COLUMN `namespace_id` bigint NOT NULL AFTER `id`;
+
+ALTER TABLE `artifacts`
+  ADD CONSTRAINT FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)

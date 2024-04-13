@@ -45,17 +45,13 @@ func TestGetArtifact(t *testing.T) {
 	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -65,44 +61,35 @@ func TestGetArtifact(t *testing.T) {
 		repositoryName = "busybox"
 	)
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userServiceFactory := dao.NewUserServiceFactory()
-		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-		err = userService.Create(ctx, userObj)
-		assert.NoError(t, err)
-		namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-		err := namespaceService.Create(ctx, namespaceObj)
-		assert.NoError(t, err)
-		log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
-		repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID}
-		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-		assert.NoError(t, err)
-		artifactServiceFactory := dao.NewArtifactServiceFactory()
-		artifactService := artifactServiceFactory.New(tx)
-		artifactObj := &models.Artifact{
-			RepositoryID: repositoryObj.ID,
-			Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
-			Size:         1234,
-			ContentType:  "application/octet-stream",
-			Raw:          []byte("test"),
-			PushedAt:     time.Now().UnixMilli(),
-			Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
-		}
-		err = artifactService.Create(ctx, artifactObj)
-		assert.NoError(t, err)
-		tagServiceFactory := dao.NewTagServiceFactory()
-		tagService := tagServiceFactory.New(tx)
-		tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
-		err = tagService.Create(ctx, tagObj)
-		assert.NoError(t, err)
-		return nil
-	})
-	assert.NoError(t, err)
+	userServiceFactory := dao.NewUserServiceFactory()
+	userService := userServiceFactory.New()
+	userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	assert.NoError(t, userService.Create(ctx, userObj))
+	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
+	namespaceService := namespaceServiceFactory.New()
+	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
+	assert.NoError(t, namespaceService.Create(ctx, namespaceObj))
+	log.Info().Interface("namespace", namespaceObj).Msg("namespace created")
+	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
+	repositoryService := repositoryServiceFactory.New()
+	repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID}
+	assert.NoError(t, repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
+	artifactServiceFactory := dao.NewArtifactServiceFactory()
+	artifactService := artifactServiceFactory.New()
+	artifactObj := &models.Artifact{
+		RepositoryID: repositoryObj.ID,
+		Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
+		Size:         1234,
+		ContentType:  "application/octet-stream",
+		Raw:          []byte("test"),
+		PushedAt:     time.Now().UnixMilli(),
+		Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
+	}
+	assert.NoError(t, artifactService.Create(ctx, artifactObj))
+	tagServiceFactory := dao.NewTagServiceFactory()
+	tagService := tagServiceFactory.New()
+	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
+	assert.NoError(t, tagService.Create(ctx, tagObj))
 
 	artifactHandler := handlerNew()
 
@@ -114,8 +101,7 @@ func TestGetArtifact(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.SetParamNames("namespace", "digest")
 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.Equal(t, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf", gjson.GetBytes(rec.Body.Bytes(), "digest").String())
 
@@ -127,8 +113,7 @@ func TestGetArtifact(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("digest")
 	c.SetParamValues("sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
 	q = make(url.Values)
@@ -139,8 +124,7 @@ func TestGetArtifact(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "digest")
 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
 	q = make(url.Values)
@@ -151,8 +135,7 @@ func TestGetArtifact(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "digest")
 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
 	ctrl := gomock.NewController(t)
@@ -177,8 +160,7 @@ func TestGetArtifact(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "digest")
 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 
 	daoMockRepositoryService := daomock.NewMockRepositoryService(ctrl)
@@ -200,7 +182,6 @@ func TestGetArtifact(t *testing.T) {
 	c = e.NewContext(req, rec)
 	c.SetParamNames("namespace", "digest")
 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-	err = artifactHandler.GetArtifact(c)
-	assert.NoError(t, err)
+	assert.NoError(t, artifactHandler.GetArtifact(c))
 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }

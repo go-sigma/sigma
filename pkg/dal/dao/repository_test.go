@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -35,19 +34,14 @@ import (
 
 func TestRepositoryServiceFactory(t *testing.T) {
 	f := dao.NewRepositoryServiceFactory()
-	repositoryService := f.New()
-	assert.NotNil(t, repositoryService)
-	repositoryService = f.New(query.Q)
-	assert.NotNil(t, repositoryService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }
 
 func TestRepositoryService(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
@@ -61,58 +55,46 @@ func TestRepositoryService(t *testing.T) {
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	userServiceFactory := dao.NewUserServiceFactory()
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := userServiceFactory.New(tx)
-		userObj := &models.User{Username: "repository-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-		err = userService.Create(ctx, userObj)
-		assert.NoError(t, err)
+	userService := userServiceFactory.New()
+	userObj := &models.User{Username: "repository-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+	assert.NoError(t, userService.Create(ctx, userObj))
 
-		namespaceService := namespaceServiceFactory.New(tx)
-		namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
-		err = namespaceService.Create(ctx, namespaceObj)
-		assert.NoError(t, err)
+	namespaceService := namespaceServiceFactory.New()
+	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
+	assert.NoError(t, namespaceService.Create(ctx, namespaceObj))
 
-		repositoryService := repositoryServiceFactory.New(tx)
-		repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
-		err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID})
-		assert.NoError(t, err)
+	repositoryService := repositoryServiceFactory.New()
+	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+	assert.NoError(t, repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
 
-		namespaceObj1 := &models.Namespace{Name: "test1", Visibility: enums.VisibilityPrivate}
-		err = namespaceService.Create(ctx, namespaceObj1)
-		assert.NoError(t, err)
-		err = repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox"}, dao.AutoCreateNamespace{UserID: userObj.ID})
-		assert.NoError(t, err)
+	namespaceObj1 := &models.Namespace{Name: "test1", Visibility: enums.VisibilityPrivate}
+	assert.NoError(t, namespaceService.Create(ctx, namespaceObj1))
+	assert.NoError(t, repositoryService.Create(ctx, &models.Repository{Name: "test1/busybox"}, dao.AutoCreateNamespace{UserID: userObj.ID}))
 
-		count1, err := repositoryService.CountRepository(ctx, namespaceObj.ID, nil)
-		assert.NoError(t, err)
-		assert.Equal(t, count1, int64(1))
-
-		repository1, err := repositoryService.Get(ctx, repositoryObj.ID)
-		assert.NoError(t, err)
-		assert.Equal(t, repositoryObj.ID, repository1.ID)
-
-		repository2, err := repositoryService.GetByName(ctx, "test/busybox")
-		assert.NoError(t, err)
-		assert.Equal(t, repositoryObj.ID, repository2.ID)
-
-		repositories1, count, err := repositoryService.ListRepository(ctx, namespaceObj.ID, nil, types.Pagination{
-			Limit: ptr.Of(int(100)),
-			Page:  ptr.Of(int(1)),
-		}, types.Sortable{Sort: ptr.Of("created_at"), Method: ptr.Of(enums.SortMethodAsc)})
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(repositories1)), count)
-
-		repositories2, err := repositoryService.ListByDtPagination(ctx, 100, 1)
-		assert.NoError(t, err)
-		assert.Equal(t, len(repositories2), int(1))
-
-		err = repositoryService.UpdateRepository(ctx, repository1.ID, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")})
-		assert.NoError(t, err)
-
-		err = repositoryService.DeleteByID(ctx, repositoryObj.ID)
-		assert.NoError(t, err)
-
-		return nil
-	})
+	count1, err := repositoryService.CountRepository(ctx, namespaceObj.ID, nil)
 	assert.NoError(t, err)
+	assert.Equal(t, count1, int64(1))
+
+	repository1, err := repositoryService.Get(ctx, repositoryObj.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, repositoryObj.ID, repository1.ID)
+
+	repository2, err := repositoryService.GetByName(ctx, "test/busybox")
+	assert.NoError(t, err)
+	assert.Equal(t, repositoryObj.ID, repository2.ID)
+
+	repositories1, count, err := repositoryService.ListRepository(ctx, namespaceObj.ID, nil, types.Pagination{
+		Limit: ptr.Of(int(100)),
+		Page:  ptr.Of(int(1)),
+	}, types.Sortable{Sort: ptr.Of("created_at"), Method: ptr.Of(enums.SortMethodAsc)})
+	assert.NoError(t, err)
+	assert.Equal(t, int64(len(repositories1)), count)
+
+	repositories2, err := repositoryService.ListByDtPagination(ctx, 100, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, len(repositories2), int(1))
+
+	assert.NoError(t, repositoryService.UpdateRepository(ctx, repository1.ID, map[string]any{"description": ptr.Of("test"), "overview": []byte("test")}))
+
+	assert.NoError(t, repositoryService.DeleteByID(ctx, repositoryObj.ID))
 }

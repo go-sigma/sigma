@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -34,14 +33,11 @@ import (
 
 func TestAuditServiceFactory(t *testing.T) {
 	f := dao.NewAuditServiceFactory()
-	artifactService := f.New()
-	assert.NotNil(t, artifactService)
-	artifactService = f.New(query.Q)
-	assert.NotNil(t, artifactService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }
 
 func TestAuditService(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())

@@ -19,12 +19,11 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/rs/zerolog/log"
-
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 )
 
 //go:embed migrations/mysql/*.sql
@@ -36,12 +35,20 @@ var postgresqlFS embed.FS
 //go:embed migrations/sqlite3/*.sql
 var sqliteFS embed.FS
 
-func migrateMysql(dsn string) error {
+func migrateMysql(database string) error {
 	d, err := iofs.New(mysqlFS, "migrations/mysql")
 	if err != nil {
 		return err
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("mysql://%s", dsn))
+	rawDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get raw db instance failed")
+	}
+	migrateDriver, err := mysql.WithInstance(rawDB, &mysql.Config{})
+	if err != nil {
+		return fmt.Errorf("get migrate driver failed")
+	}
+	m, err := migrate.NewWithInstance("iofs", d, database, migrateDriver)
 	if err != nil {
 		return err
 	}
@@ -57,12 +64,20 @@ func migrateMysql(dsn string) error {
 	return nil
 }
 
-func migratePostgres(dsn string) error {
+func migratePostgres(database string) error {
 	d, err := iofs.New(postgresqlFS, "migrations/postgresql")
 	if err != nil {
 		return err
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("postgres://%s", dsn))
+	rawDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get raw db instance failed")
+	}
+	migrateDriver, err := postgres.WithInstance(rawDB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("get migrate driver failed")
+	}
+	m, err := migrate.NewWithInstance("iofs", d, database, migrateDriver)
 	if err != nil {
 		return err
 	}
@@ -78,12 +93,20 @@ func migratePostgres(dsn string) error {
 	return nil
 }
 
-func migrateSqlite(dsn string) error {
+func migrateSqlite() error {
 	d, err := iofs.New(sqliteFS, "migrations/sqlite3")
 	if err != nil {
 		return err
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("sqlite3://%s", dsn))
+	rawDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get raw db instance failed")
+	}
+	migrateDriver, err := sqlite3.WithInstance(rawDB, &sqlite3.Config{})
+	if err != nil {
+		return fmt.Errorf("get migrate driver failed")
+	}
+	m, err := migrate.NewWithInstance("iofs", d, "", migrateDriver)
 	if err != nil {
 		return err
 	}

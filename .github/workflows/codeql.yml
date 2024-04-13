@@ -2,11 +2,15 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+      - release-*
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
   schedule:
-    - cron: '45 0 * * 4'
+    - cron: "0 0 * * *"
 
 jobs:
   analyze:
@@ -20,28 +24,28 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: go
-          build-mode: manual
+          - language: go
+            build-mode: manual
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        lfs: true
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
-        build-mode: ${{ matrix.build-mode }}
-    - run: corepack enable
-    - if: matrix.language == 'go'
-      run: |
-        cd web
-        yarn install --immutable
-        yarn build
-        cd ..
-        make build
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - run: corepack enable
+      - if: matrix.language == 'go'
+        run: |
+          cd web
+          yarn install --immutable
+          yarn build
+          cd ..
+          make build
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"

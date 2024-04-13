@@ -136,6 +136,7 @@ CREATE TABLE IF NOT EXISTS `audits` (
 
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
+  `namespace_id` bigint NOT NULL,
   `name` varchar(64) NOT NULL,
   `description` varchar(255),
   `overview` BLOB,
@@ -143,7 +144,6 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   `size` bigint NOT NULL DEFAULT 0,
   `tag_limit` bigint NOT NULL DEFAULT 0,
   `tag_count` bigint NOT NULL DEFAULT 0,
-  `namespace_id` bigint NOT NULL,
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
