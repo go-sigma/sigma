@@ -58,7 +58,7 @@ func TestListRepositories(t *testing.T) {
 	assert.NoError(t, dao.NewNamespaceServiceFactory().New().Create(ctx, namespaceObj))
 	repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
 	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
-	artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
+	artifactObj := &models.Artifact{NamespaceID: namespaceObj.ID, RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
 	assert.NoError(t, dao.NewArtifactServiceFactory().New().Create(ctx, artifactObj))
 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
 	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))

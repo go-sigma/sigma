@@ -79,6 +79,7 @@ func TestListArtifact(t *testing.T) {
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	artifactService := artifactServiceFactory.New()
 	artifactObj := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
 		Size:         1234,

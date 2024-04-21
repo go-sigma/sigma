@@ -43,11 +43,12 @@ var (
 // Initialize initializes the database connection
 func Initialize(config configs.Configuration) error {
 	var err error
+	var dsn string
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
-		err = connectMysql(config)
+		dsn, err = connectMysql(config)
 	case enums.DatabasePostgresql:
-		err = connectPostgres(config)
+		dsn, err = connectPostgres(config)
 	case enums.DatabaseSqlite3:
 		err = connectSqlite3(config)
 	default:
@@ -81,9 +82,9 @@ func Initialize(config configs.Configuration) error {
 
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
-		err = migrateMysql(config.Database.Mysql.DBName)
+		err = migrateMysql(dsn)
 	case enums.DatabasePostgresql:
-		err = migratePostgres(config.Database.Postgresql.DBName)
+		err = migratePostgres(dsn)
 	case enums.DatabaseSqlite3:
 		err = migrateSqlite()
 	default:
@@ -106,7 +107,7 @@ func Initialize(config configs.Configuration) error {
 	return nil
 }
 
-func connectMysql(config configs.Configuration) error {
+func connectMysql(config configs.Configuration) (string, error) {
 	host := config.Database.Mysql.Host
 	port := config.Database.Mysql.Port
 	user := config.Database.Mysql.User
@@ -123,15 +124,15 @@ func connectMysql(config configs.Configuration) error {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	return nil
+	return dsn, nil
 }
 
-func connectPostgres(config configs.Configuration) error {
+func connectPostgres(config configs.Configuration) (string, error) {
 	host := config.Database.Postgresql.Host
 	port := config.Database.Postgresql.Port
 	user := config.Database.Postgresql.User
@@ -147,12 +148,12 @@ func connectPostgres(config configs.Configuration) error {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	return nil
+	return fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname), nil
 }
 
 func connectSqlite3(config configs.Configuration) error {

@@ -57,7 +57,7 @@ func TestTagService(t *testing.T) {
 	userService := dao.NewUserServiceFactory().New()
 	namespaceService := dao.NewNamespaceServiceFactory().New()
 	repositoryService := dao.NewRepositoryServiceFactory().New()
-	artirfactService := dao.NewArtifactServiceFactory().New()
+	artifactService := dao.NewArtifactServiceFactory().New()
 
 	userObj := &models.User{Username: "tag-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
 	assert.NoError(t, userService.Create(ctx, userObj))
@@ -73,6 +73,7 @@ func TestTagService(t *testing.T) {
 		RepositoryID: repositoryObj.ID,
 		Name:         "latest",
 		Artifact: &models.Artifact{
+			NamespaceID:  namespaceObj.ID,
 			RepositoryID: repositoryObj.ID,
 			Digest:       "sha256:xxx",
 			Size:         123,
@@ -118,13 +119,14 @@ func TestTagService(t *testing.T) {
 	assert.NoError(t, err)
 
 	artifactObj := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxxx",
 		Size:         123,
 		ContentType:  "test",
 		Raw:          []byte("test"),
 	}
-	assert.NoError(t, artirfactService.Create(ctx, artifactObj))
+	assert.NoError(t, artifactService.Create(ctx, artifactObj))
 
 	tagObj1 := &models.Tag{
 		RepositoryID: repositoryObj.ID,
@@ -141,13 +143,14 @@ func TestTagService(t *testing.T) {
 	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
 	artifactObj2 := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxxxxxx",
 		Size:         123,
 		ContentType:  "test",
 		Raw:          []byte("test"),
 	}
-	assert.NoError(t, artirfactService.Create(ctx, artifactObj2))
+	assert.NoError(t, artifactService.Create(ctx, artifactObj2))
 
 	tagObj2 := &models.Tag{
 		RepositoryID: repositoryObj.ID,

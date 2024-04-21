@@ -72,6 +72,7 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	artifactService := artifactServiceFactory.New()
 	artifactObj1 := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxx",
 		Size:         123,
@@ -81,6 +82,7 @@ func TestArtifactServiceAssociateArtifact(t *testing.T) {
 	assert.NoError(t, artifactService.Create(ctx, artifactObj1))
 
 	artifactObj2 := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxxx",
 		Size:         1234,
@@ -120,6 +122,7 @@ func TestArtifactService(t *testing.T) {
 	assert.NoError(t, repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
 
 	artifactObj := &models.Artifact{
+		NamespaceID:  repositoryObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxx",
 		Size:         123,
@@ -132,6 +135,7 @@ func TestArtifactService(t *testing.T) {
 		RepositoryID: repositoryObj.ID,
 		Name:         "latest",
 		Artifact: &models.Artifact{
+			NamespaceID:  repositoryObj.ID,
 			RepositoryID: repositoryObj.ID,
 			Digest:       "sha256:xxx",
 			Size:         123,
@@ -219,6 +223,7 @@ func TestArtifactService(t *testing.T) {
 		dao.AutoCreateNamespace{UserID: userObj.ID}))
 
 	assert.NoError(t, artifactService.Create(ctx, &models.Artifact{
+		NamespaceID:  repositoryObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       "sha256:xxxx",
 		Size:         123,
