@@ -161,7 +161,7 @@ func connectSqlite3(config configs.Configuration) error {
 
 	// +"?_busy_timeout=10000&_journal_mode=wal&mode=rwc&cache=shared"
 	// &_locking_mode=EXCLUSIVE
-	db, err := gorm.Open(sqlite.Open("file:"+dbname+"?_busy_timeout=30000&_locking_mode=EXCLUSIVE"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("file:"+dbname+"?_busy_timeout=30000"), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},

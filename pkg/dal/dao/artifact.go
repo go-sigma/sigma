@@ -354,7 +354,7 @@ func (s *artifactService) UpdateVulnerability(ctx context.Context, artifactID in
 // GetNamespaceSize get the specific namespace size
 func (s *artifactService) GetNamespaceSize(ctx context.Context, namespaceID int64) (int64, error) {
 	res, err := s.tx.Artifact.WithContext(ctx).Select(s.tx.Artifact.BlobsSize.Sum().As("blobs_size")).
-		Where(s.tx.Artifact.NamespaceID.Eq(namespaceID)).First()
+		Where(s.tx.Artifact.NamespaceID.Eq(namespaceID)).Take()
 	if err != nil {
 		return 0, err
 	}
