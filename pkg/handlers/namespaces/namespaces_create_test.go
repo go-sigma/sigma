@@ -34,6 +34,7 @@ import (
 	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	workqmocks "github.com/go-sigma/sigma/pkg/modules/workq/definition/mocks"
 	"github.com/go-sigma/sigma/pkg/tests"
@@ -43,6 +44,7 @@ import (
 )
 
 func TestPostNamespace(t *testing.T) {
+	logger.SetLevel("debug")
 	e := echo.New()
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))

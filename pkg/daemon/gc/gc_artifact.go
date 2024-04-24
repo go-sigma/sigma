@@ -28,7 +28,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -256,16 +255,18 @@ func (g gcArtifact) deleteArtifact() {
 	go func() {
 		defer g.waitAllDone.Done()
 		defer close(g.collectRecordChan)
+		// artifactService := g.artifactServiceFactory.New()
 		for task := range g.deleteArtifactChan {
 			// TODO: we should set a lock for the delete action
 			// otherwise, we should delete the artifact in goroutine
-			err := query.Q.Transaction(func(tx *query.Query) error {
-				err := g.artifactServiceFactory.New(tx).DeleteByID(g.ctx, task.Artifact.ID)
-				if err != nil {
-					return err
-				}
-				return nil
-			})
+			// err := query.Q.Transaction(func(tx *query.Query) error {
+			err := g.artifactServiceFactory.New().DeleteByID(g.ctx, task.Artifact.ID)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return nil
+			// })
+			//
 			if err != nil {
 				log.Error().Err(err).Interface("blob", task).Msgf("Delete blob failed: %v", err)
 				g.collectRecordChan <- artifactTaskCollectRecord{

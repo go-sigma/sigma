@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -33,44 +32,31 @@ import (
 
 func TestUserServiceFactory(t *testing.T) {
 	f := dao.NewUserServiceFactory()
-	userService := f.New()
-	assert.NotNil(t, userService)
-	userService = f.New(query.Q)
-	assert.NotNil(t, userService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }
 
 func TestUserGetByUsername(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	userServiceFactory := dao.NewUserServiceFactory()
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := userServiceFactory.New(tx)
-		assert.NotNil(t, userService)
-		err := userService.Create(ctx, &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")})
-		assert.NoError(t, err)
-		testUser, err := userService.GetByUsername(ctx, "test-case")
-		assert.NoError(t, err)
-		assert.Equal(t, ptr.To(testUser.Password), "test-case")
-		total, err := userService.Count(ctx)
-		assert.NoError(t, err)
-		assert.Equal(t, total, int64(1))
-		return nil
-	})
+	userService := dao.NewUserServiceFactory().New()
+	assert.NotNil(t, userService)
+	assert.NoError(t, userService.Create(ctx, &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")}))
+
+	testUser, err := userService.GetByUsername(ctx, "test-case")
 	assert.NoError(t, err)
+	assert.Equal(t, ptr.To(testUser.Password), "test-case")
+	total, err := userService.Count(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, total, int64(1))
 }

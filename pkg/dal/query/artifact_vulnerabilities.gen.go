@@ -43,6 +43,11 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Artifact", "models.Artifact"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Artifact.Namespace", "models.Namespace"),
+		},
 		Repository: struct {
 			field.RelationField
 			Namespace struct {
@@ -312,6 +317,9 @@ type artifactVulnerabilityBelongsToArtifact struct {
 
 	field.RelationField
 
+	Namespace struct {
+		field.RelationField
+	}
 	Repository struct {
 		field.RelationField
 		Namespace struct {

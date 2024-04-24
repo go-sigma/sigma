@@ -50,7 +50,7 @@ func Initialize(config configs.Configuration) error {
 	case enums.DatabasePostgresql:
 		dsn, err = connectPostgres(config)
 	case enums.DatabaseSqlite3:
-		dsn, err = connectSqlite3(config)
+		err = connectSqlite3(config)
 	default:
 		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
@@ -86,7 +86,7 @@ func Initialize(config configs.Configuration) error {
 	case enums.DatabasePostgresql:
 		err = migratePostgres(dsn)
 	case enums.DatabaseSqlite3:
-		err = migrateSqlite(dsn)
+		err = migrateSqlite()
 	default:
 		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
@@ -153,25 +153,35 @@ func connectPostgres(config configs.Configuration) (string, error) {
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
 	DB = db
 
-	migrateDsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname)
-
-	return migrateDsn, nil
+	return fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname), nil
 }
 
-func connectSqlite3(config configs.Configuration) (string, error) {
+func connectSqlite3(config configs.Configuration) error {
 	dbname := config.Database.Sqlite3.Path
 
-	db, err := gorm.Open(sqlite.Open(dbname+"?_busy_timeout=10000"), &gorm.Config{
+	// +"?_busy_timeout=10000&_journal_mode=wal&mode=rwc&cache=shared"
+	// &_locking_mode=EXCLUSIVE
+	db, err := gorm.Open(sqlite.Open("file:"+dbname+"?_busy_timeout=30000"), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
 	db = db.WithContext(log.Logger.WithContext(context.Background()))
+
+	rawDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	rawDB.SetMaxOpenConns(10)
+	rawDB.SetMaxIdleConns(3)
+	rawDB.SetConnMaxIdleTime(time.Hour)
+	rawDB.SetConnMaxLifetime(time.Hour)
+
 	DB = db
 
-	return dbname, nil
+	return nil
 }

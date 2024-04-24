@@ -25,8 +25,6 @@ import (
 
 func TestCodeRepositoryServiceFactory(t *testing.T) {
 	f := dao.NewCodeRepositoryServiceFactory()
-	artifactService := f.New()
-	assert.NotNil(t, artifactService)
-	artifactService = f.New(query.Q)
-	assert.NotNil(t, artifactService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }

@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -40,19 +39,14 @@ func TestWorkQueueServiceFactory(t *testing.T) {
 }
 
 func TestWorkQueueService(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -66,11 +60,9 @@ func TestWorkQueueService(t *testing.T) {
 		Payload: []byte("payload"),
 		Version: "version",
 	}
-	err = workqService.Create(ctx, workqObj)
-	assert.NoError(t, err)
+	assert.NoError(t, workqService.Create(ctx, workqObj))
 
-	err = workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending)
-	assert.NoError(t, err)
+	assert.NoError(t, workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending))
 
 	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc)
 	assert.NoError(t, err)

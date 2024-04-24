@@ -189,10 +189,12 @@ conf/sigma-dev.yaml
 
 # database
 *.db
+*.db*
 
 pkg/**/*.html
 
 .vscode/
+.zed/
 
 *.tar.gz
 *.tar

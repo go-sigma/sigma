@@ -42,6 +42,11 @@ func newBlob(db *gorm.DB, opts ...gen.DOOption) blob {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Artifacts", "models.Artifact"),
+		Namespace: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Artifacts.Namespace", "models.Namespace"),
+		},
 		Repository: struct {
 			field.RelationField
 			Namespace struct {
@@ -301,6 +306,9 @@ type blobManyToManyArtifacts struct {
 
 	field.RelationField
 
+	Namespace struct {
+		field.RelationField
+	}
 	Repository struct {
 		field.RelationField
 		Namespace struct {

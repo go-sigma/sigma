@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -38,19 +37,14 @@ func TestSettingServiceFactory(t *testing.T) {
 }
 
 func TestSettingService(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
 	ctx := log.Logger.WithContext(context.Background())
@@ -59,8 +53,7 @@ func TestSettingService(t *testing.T) {
 	settingService := settingServiceFactory.New()
 	assert.NotNil(t, settingService)
 
-	err = settingService.Create(ctx, "key", []byte("val"))
-	assert.NoError(t, err)
+	assert.NoError(t, settingService.Create(ctx, "key", []byte("val")))
 
 	settingObj, err := settingService.Get(ctx, "key")
 	assert.NoError(t, err)
@@ -68,8 +61,7 @@ func TestSettingService(t *testing.T) {
 	assert.Equal(t, "key", settingObj.Key)
 	assert.Equal(t, []byte("val"), settingObj.Val)
 
-	err = settingService.Update(ctx, "key", []byte("new"))
-	assert.NoError(t, err)
+	assert.NoError(t, settingService.Update(ctx, "key", []byte("new")))
 
 	settingObj, err = settingService.Get(ctx, "key")
 	assert.NoError(t, err)
@@ -77,6 +69,5 @@ func TestSettingService(t *testing.T) {
 	assert.Equal(t, "key", settingObj.Key)
 	assert.Equal(t, []byte("new"), settingObj.Val)
 
-	err = settingService.Delete(ctx, "key")
-	assert.NoError(t, err)
+	assert.NoError(t, settingService.Delete(ctx, "key"))
 }

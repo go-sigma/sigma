@@ -28,12 +28,14 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestListTags(t *testing.T) {
+	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
@@ -58,7 +60,7 @@ func TestListTags(t *testing.T) {
 	assert.NoError(t, err)
 	repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
 	assert.NoError(t, dao.NewRepositoryServiceFactory().New().Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
-	artifactObj := &models.Artifact{RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
+	artifactObj := &models.Artifact{NamespaceID: namespaceObj.ID, RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
 	assert.NoError(t, dao.NewArtifactServiceFactory().New().Create(ctx, artifactObj))
 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
 	assert.NoError(t, dao.NewTagServiceFactory().New().Create(ctx, tagObj))

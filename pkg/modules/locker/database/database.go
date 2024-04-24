@@ -53,7 +53,7 @@ func (l lockerDatabase) Acquire(ctx context.Context, key string, expire, waitTim
 	}
 	ddlCtx, cancel := context.WithTimeout(ctx, waitTimeout)
 	defer cancel()
-	ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
+	ticker := time.NewTicker(time.Duration(500) * time.Millisecond)
 	defer func() {
 		ticker.Stop()
 	}()
@@ -89,7 +89,7 @@ func (l lockerDatabase) AcquireWithRenew(ctx context.Context, key string, expire
 	}
 
 	go func() {
-		ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
+		ticker := time.NewTicker(time.Duration(500) * time.Millisecond)
 		defer func() {
 			ticker.Stop()
 		}()

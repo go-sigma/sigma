@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -29,23 +28,17 @@ import (
 )
 
 func TestWebhook(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
-	err := tests.Initialize(t)
-	assert.NoError(t, err)
-	err = tests.DB.Init()
-	assert.NoError(t, err)
+	assert.NoError(t, tests.Initialize(t))
+	assert.NoError(t, tests.DB.Init())
 	defer func() {
 		conn, err := dal.DB.DB()
 		assert.NoError(t, err)
-		err = conn.Close()
-		assert.NoError(t, err)
-		err = tests.DB.DeInit()
-		assert.NoError(t, err)
+		assert.NoError(t, conn.Close())
+		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	f := dao.NewWebhookServiceFactory()
-	webhookService := f.New()
+	webhookService := dao.NewWebhookServiceFactory().New()
 
 	ctx := log.Logger.WithContext(context.Background())
 

@@ -32,6 +32,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.UpdatedAt = field.NewInt64(tableName, "updated_at")
 	_artifact.DeletedAt = field.NewUint64(tableName, "deleted_at")
 	_artifact.ID = field.NewInt64(tableName, "id")
+	_artifact.NamespaceID = field.NewInt64(tableName, "namespace_id")
 	_artifact.RepositoryID = field.NewInt64(tableName, "repository_id")
 	_artifact.Digest = field.NewString(tableName, "digest")
 	_artifact.Size = field.NewInt64(tableName, "size")
@@ -51,6 +52,9 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 		RelationField: field.NewRelation("Vulnerability", "models.ArtifactVulnerability"),
 		Artifact: struct {
 			field.RelationField
+			Namespace struct {
+				field.RelationField
+			}
 			Repository struct {
 				field.RelationField
 				Namespace struct {
@@ -107,6 +111,11 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 			}
 		}{
 			RelationField: field.NewRelation("Vulnerability.Artifact", "models.Artifact"),
+			Namespace: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Vulnerability.Artifact.Namespace", "models.Namespace"),
+			},
 			Repository: struct {
 				field.RelationField
 				Namespace struct {
@@ -272,6 +281,12 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 		RelationField: field.NewRelation("Tags", "models.Tag"),
 	}
 
+	_artifact.Namespace = artifactBelongsToNamespace{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Namespace", "models.Namespace"),
+	}
+
 	_artifact.Repository = artifactBelongsToRepository{
 		db: db.Session(&gorm.Session{}),
 
@@ -309,6 +324,7 @@ type artifact struct {
 	UpdatedAt       field.Int64
 	DeletedAt       field.Uint64
 	ID              field.Int64
+	NamespaceID     field.Int64
 	RepositoryID    field.Int64
 	Digest          field.String
 	Size            field.Int64
@@ -327,6 +343,8 @@ type artifact struct {
 	Sbom artifactHasOneSbom
 
 	Tags artifactHasManyTags
+
+	Namespace artifactBelongsToNamespace
 
 	Repository artifactBelongsToRepository
 
@@ -355,6 +373,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.UpdatedAt = field.NewInt64(table, "updated_at")
 	a.DeletedAt = field.NewUint64(table, "deleted_at")
 	a.ID = field.NewInt64(table, "id")
+	a.NamespaceID = field.NewInt64(table, "namespace_id")
 	a.RepositoryID = field.NewInt64(table, "repository_id")
 	a.Digest = field.NewString(table, "digest")
 	a.Size = field.NewInt64(table, "size")
@@ -392,11 +411,12 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 24)
+	a.fieldMap = make(map[string]field.Expr, 26)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
 	a.fieldMap["id"] = a.ID
+	a.fieldMap["namespace_id"] = a.NamespaceID
 	a.fieldMap["repository_id"] = a.RepositoryID
 	a.fieldMap["digest"] = a.Digest
 	a.fieldMap["size"] = a.Size
@@ -430,6 +450,9 @@ type artifactHasOneVulnerability struct {
 
 	Artifact struct {
 		field.RelationField
+		Namespace struct {
+			field.RelationField
+		}
 		Repository struct {
 			field.RelationField
 			Namespace struct {
@@ -691,6 +714,77 @@ func (a artifactHasManyTagsTx) Clear() error {
 }
 
 func (a artifactHasManyTagsTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type artifactBelongsToNamespace struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a artifactBelongsToNamespace) Where(conds ...field.Expr) *artifactBelongsToNamespace {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a artifactBelongsToNamespace) WithContext(ctx context.Context) *artifactBelongsToNamespace {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a artifactBelongsToNamespace) Session(session *gorm.Session) *artifactBelongsToNamespace {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a artifactBelongsToNamespace) Model(m *models.Artifact) *artifactBelongsToNamespaceTx {
+	return &artifactBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+type artifactBelongsToNamespaceTx struct{ tx *gorm.Association }
+
+func (a artifactBelongsToNamespaceTx) Find() (result *models.Namespace, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a artifactBelongsToNamespaceTx) Append(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a artifactBelongsToNamespaceTx) Replace(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a artifactBelongsToNamespaceTx) Delete(values ...*models.Namespace) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a artifactBelongsToNamespaceTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a artifactBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
 }
 

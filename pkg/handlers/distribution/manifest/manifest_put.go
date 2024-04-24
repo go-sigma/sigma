@@ -152,6 +152,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 
 	artifactObj := &models.Artifact{
+		NamespaceID:  namespaceObj.ID,
 		RepositoryID: repositoryObj.ID,
 		Digest:       refs.Digest.String(),
 		Size:         size,

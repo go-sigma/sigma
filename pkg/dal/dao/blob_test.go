@@ -34,10 +34,8 @@ import (
 
 func TestBlobServiceFactory(t *testing.T) {
 	f := dao.NewBlobServiceFactory()
-	blobService := f.New()
-	assert.NotNil(t, blobService)
-	blobService = f.New(query.Q)
-	assert.NotNil(t, blobService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }
 
 func TestBlobService(t *testing.T) {
