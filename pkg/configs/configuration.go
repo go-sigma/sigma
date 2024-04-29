@@ -148,9 +148,19 @@ type ConfigurationWorkQueue struct {
 	Inmemory ConfigurationWorkQueueInmemmory `yaml:"inmemory"`
 }
 
+// ConfigurationLockerDatabase ...
+type ConfigurationLockerDatabase struct {
+	Path string `yaml:"path"`
+}
+
+// ConfigurationLockerRedis ...
+type ConfigurationLockerRedis struct{}
+
 // ConfigurationLocker ...
 type ConfigurationLocker struct {
-	Type enums.LockerType `yaml:"type"`
+	Type     enums.LockerType            `yaml:"type"`
+	Database ConfigurationLockerDatabase `yaml:"database"`
+	Redis    ConfigurationLockerRedis    `yaml:"redis"`
 }
 
 // ConfigurationNamespace ...

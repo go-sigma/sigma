@@ -16,34 +16,77 @@ package database
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
-	"math/rand" // nolint: gosec
+	"os"
+	"strings"
+	"sync"
 	"time"
 
+	badger "github.com/dgraph-io/badger/v4"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-type lockerDatabase struct {
-	lockerServiceFactory dao.LockerServiceFactory
+type logger struct{}
+
+// Errorf is the error log
+func (l logger) Errorf(msg string, opts ...interface{}) {
+	log.Error().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
+// Warningf is the warning log
+func (l logger) Warningf(msg string, opts ...interface{}) {
+	log.Warn().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
+}
+
+// Infof is the info log
+func (l logger) Infof(msg string, opts ...interface{}) {
+	log.Info().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
+}
+
+// Debugf is the debug log
+func (l logger) Debugf(msg string, opts ...interface{}) {
+	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
+}
+
+type lockerDatabase struct {
+	db *badger.DB
+}
+
+var initOnce sync.Once
+
+var db *badger.DB
+
 func New(config configs.Configuration) (definition.Locker, error) {
+	initOnce.Do(func() {
+		var err error
+		dir := config.Locker.Database.Path
+		if dir == "" {
+			dir, err = os.MkdirTemp("", "locker")
+			if err != nil {
+				panic("make temp dir for badger failed")
+			}
+		}
+		db, err = badger.Open(badger.DefaultOptions(dir).WithLogger(&logger{}))
+		if err != nil {
+			panic(fmt.Errorf("open badger database failed: %v", err))
+		}
+	})
 	return &lockerDatabase{
-		lockerServiceFactory: dao.NewLockerServiceFactory(),
+		db: db,
 	}, nil
 }
 
 type lock struct {
-	key, value           string
-	expire               time.Duration
-	lockerServiceFactory dao.LockerServiceFactory
+	db         *badger.DB
+	key, value string
+	expire     time.Duration
 }
 
 // Lock ...
@@ -53,30 +96,64 @@ func (l lockerDatabase) Acquire(ctx context.Context, key string, expire, waitTim
 	}
 	ddlCtx, cancel := context.WithTimeout(ctx, waitTimeout)
 	defer cancel()
-	ticker := time.NewTicker(time.Duration(500) * time.Millisecond)
+	ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
 	defer func() {
 		ticker.Stop()
 	}()
+	var err error
 	for {
 		select {
 		case <-ddlCtx.Done():
+			if err != nil {
+				log.Error().Err(err).Msg("Acquire lock failed")
+			}
 			return nil, ddlCtx.Err()
 		case <-ticker.C:
 		}
-		val := fmt.Sprintf("%d-%d", rand.Int(), time.Now().Nanosecond()) // nolint: gosec
-		err := query.Q.Transaction(func(tx *query.Query) error {
-			lockerService := l.lockerServiceFactory.New(tx)
-			return lockerService.Create(ctx, key, val, time.Now().Add(expire).UnixMilli())
-		})
+		value := fmt.Sprintf("%s-%d", uuid.NewString(), time.Now().Nanosecond()) // nolint: gosec
+		txn := l.db.NewTransaction(true)
+		var res *badger.Item
+		res, err = txn.Get([]byte(key))
+		if err == badger.ErrKeyNotFound {
+			err = txn.Set([]byte(key), utils.MustMarshal(models.Locker{Key: key, Value: value,
+				Expire: time.Now().Add(expire).UnixMilli()}))
+			if err != nil {
+				continue
+			}
+		} else {
+			var val []byte
+			val, err = res.ValueCopy(nil)
+			if err != nil {
+				continue
+			}
+			var v models.Locker
+			err = json.Unmarshal(val, &v)
+			if err != nil {
+				continue
+			}
+			if v.Expire > time.Now().UnixMilli() {
+				continue
+			} else {
+				err = txn.Delete([]byte(key))
+				if err != nil {
+					continue
+				}
+				err = txn.Set([]byte(key), utils.MustMarshal(models.Locker{Key: key, Value: value,
+					Expire: time.Now().Add(expire).UnixMilli()}))
+				if err != nil {
+					continue
+				}
+			}
+		}
+		err = txn.Commit()
 		if err != nil {
-			log.Error().Err(err).Msg("Create locker failed, wait for retry")
 			continue
 		}
 		return &lock{
-			key:                  key,
-			value:                val,
-			expire:               expire,
-			lockerServiceFactory: l.lockerServiceFactory,
+			db:     l.db,
+			key:    key,
+			value:  value,
+			expire: expire,
 		}, nil
 	}
 }
@@ -89,7 +166,7 @@ func (l lockerDatabase) AcquireWithRenew(ctx context.Context, key string, expire
 	}
 
 	go func() {
-		ticker := time.NewTicker(time.Duration(500) * time.Millisecond)
+		ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
 		defer func() {
 			ticker.Stop()
 		}()
@@ -122,31 +199,110 @@ func (l lock) Renew(ctx context.Context, ttls ...time.Duration) error {
 	if expire < definition.MinLockExpire {
 		return definition.ErrLockTooShort
 	}
-	err := query.Q.Transaction(func(tx *query.Query) error {
-		lockerService := l.lockerServiceFactory.New(tx)
-		return lockerService.Renew(ctx, l.key, l.value, time.Now().Add(expire).UnixMilli())
-	})
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) ||
-			errors.Is(err, definition.ErrLockAlreadyExpired) {
-			log.Error().Err(err).Msg("Locker already expired")
-			return definition.ErrLockAlreadyExpired
+
+	ddlCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
+	defer func() {
+		ticker.Stop()
+	}()
+
+	var err error
+	for {
+		select {
+		case <-ddlCtx.Done():
+			if err != nil {
+				return err
+			}
+			return ddlCtx.Err()
+		case <-ticker.C:
 		}
-		if errors.Is(err, definition.ErrLockNotHeld) {
-			log.Error().Err(err).Msg("Locker not held")
+		txn := l.db.NewTransaction(true)
+		var val []byte
+		val, err = getByKey(txn, l.key)
+		if err != nil {
+			continue
+		}
+		var v models.Locker
+		err = json.Unmarshal(val, &v)
+		if err != nil {
+			continue
+		}
+		if v.Value != l.value {
 			return definition.ErrLockNotHeld
 		}
-		log.Error().Err(err).Msg("Renew locker failed")
-		return fmt.Errorf("Renew locker failed")
+		if v.Expire < time.Now().UnixMilli() {
+			return definition.ErrLockAlreadyExpired
+		}
+		err = txn.Set([]byte(l.key), utils.MustMarshal(models.Locker{Key: l.key, Value: l.value,
+			Expire: time.Now().Add(expire).UnixMilli()}))
+		if err != nil {
+			continue
+		}
+		break
 	}
+
 	return nil
 }
 
 // Unlock ...
 func (l *lock) Unlock(ctx context.Context) error {
-	err := query.Q.Transaction(func(tx *query.Query) error {
-		lockerService := l.lockerServiceFactory.New(tx)
-		return lockerService.Delete(ctx, l.key, l.value)
-	})
-	return err
+	ddlCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	ticker := time.NewTicker(time.Duration(100) * time.Millisecond)
+	defer func() {
+		ticker.Stop()
+	}()
+
+	var err error
+	for {
+		select {
+		case <-ddlCtx.Done():
+			if err != nil {
+				return err
+			}
+			return ddlCtx.Err()
+		case <-ticker.C:
+		}
+		txn := l.db.NewTransaction(true)
+		var val []byte
+		val, err = getByKey(txn, l.key)
+		if err != nil {
+			continue
+		}
+		var v models.Locker
+		err = json.Unmarshal(val, &v)
+		if err != nil {
+			continue
+		}
+		if v.Value != l.value {
+			return definition.ErrLockNotHeld
+		}
+		err = txn.Delete([]byte(l.key))
+		if err != nil {
+			continue
+		}
+		err = txn.Commit()
+		if err != nil {
+			return err
+		}
+		break
+	}
+
+	return nil
+}
+
+func getByKey(txn *badger.Txn, key string) ([]byte, error) {
+	if txn == nil {
+		return nil, fmt.Errorf("txn is nil")
+	}
+	item, err := txn.Get([]byte(key))
+	if err != nil {
+		return nil, err
+	}
+	val, err := item.ValueCopy(nil)
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
 }

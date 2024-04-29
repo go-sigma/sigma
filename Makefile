@@ -45,7 +45,7 @@ build: ## Build sigma and put the output binary in ./bin
 	@CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
 
 build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
+	@CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 clean: ## Remove build related file
 	rm -fr ./bin

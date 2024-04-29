@@ -63,4 +63,7 @@ func defaultSettings() {
 	if configuration.Cache.Ttl == 0 {
 		configuration.Cache.Ttl = time.Second * 30
 	}
+	if configuration.Locker.Type == enums.LockerTypeDatabase && configuration.Locker.Database.Path == "" {
+		configuration.Locker.Database.Path = "/var/lib/sigma/badger"
+	}
 }

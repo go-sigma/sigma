@@ -17,6 +17,8 @@ package database_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -25,22 +27,22 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker/database"
-	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestDatabaseAcquire(t *testing.T) {
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+	logger.SetLevel("debug")
 
-	config := configs.Configuration{}
+	p, _ := os.MkdirTemp("", "badger")
+	config := configs.Configuration{
+		Locker: configs.ConfigurationLocker{
+			Database: configs.ConfigurationLockerDatabase{
+				Path: p,
+			},
+		},
+	}
+	defer os.RemoveAll(p) // nolint: errcheck
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
@@ -59,6 +61,9 @@ func TestDatabaseAcquire(t *testing.T) {
 			defer wg.Done()
 			l, err := c.Acquire(ctx, key, time.Second*1, time.Second*3)
 			assert.Equal(t, true, err == nil || errors.Is(err, context.DeadlineExceeded))
+			if !(err == nil || errors.Is(err, context.DeadlineExceeded)) {
+				fmt.Println(err)
+			}
 			if l != nil {
 				<-time.After(time.Millisecond * 100)
 				defer l.Unlock(ctx) // nolint: errcheck
@@ -71,16 +76,17 @@ func TestDatabaseAcquire(t *testing.T) {
 }
 
 func TestDatabaseAcquireWithRenew(t *testing.T) {
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+	logger.SetLevel("debug")
 
-	config := configs.Configuration{}
+	p, _ := os.MkdirTemp("", "badger")
+	config := configs.Configuration{
+		Locker: configs.ConfigurationLocker{
+			Database: configs.ConfigurationLockerDatabase{
+				Path: p,
+			},
+		},
+	}
+	defer os.RemoveAll(p) // nolint: errcheck
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
