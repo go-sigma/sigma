@@ -67,6 +67,9 @@ func (h *handler) Post(c echo.Context) error {
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := h.userServiceFactory.New(tx)
+		if userObj.Role == enums.UserRoleAdmin {
+			userObj.NamespaceLimit = 0
+		}
 		err = userService.Create(ctx, &userObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create user failed")

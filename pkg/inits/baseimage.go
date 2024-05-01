@@ -41,7 +41,7 @@ func init() {
 	afterInit["baseimage"] = initBaseimage
 }
 
-const baseImageDir = "/baseimages"
+const baseImageDir = "./bin"
 
 func initBaseimage(config configs.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
