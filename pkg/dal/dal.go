@@ -69,13 +69,9 @@ func Initialize(config configs.Configuration) error {
 		return err
 	}
 
-	locker, err := locker.New(config)
-	if err != nil {
-		return err
-	}
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	defer ctxCancel()
-	err = locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
+	err = locker.Locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
 	if err != nil {
 		return err
 	}

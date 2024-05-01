@@ -31,11 +31,15 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestAuth(t *testing.T) {
 	logger.SetLevel("debug")
+
+	err := locker.Initialize(configs.Configuration{})
+	assert.NoError(t, err)
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
 
@@ -54,7 +58,7 @@ func TestAuth(t *testing.T) {
 	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
 	assert.True(t, added)
 
-	_, err := namespaceMemberService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	_, err = namespaceMemberService.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	assert.NoError(t, err)
 	err = dal.AuthEnforcer.LoadPolicy()
 	assert.NoError(t, err)

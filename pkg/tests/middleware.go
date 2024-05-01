@@ -21,6 +21,8 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -60,6 +62,11 @@ func Initialize(t *testing.T) error {
 	typ := viper.GetString("ci.database.type")
 	if typ == "" {
 		typ = enums.DatabaseSqlite3.String()
+	}
+
+	err := locker.Initialize(configs.Configuration{})
+	if err != nil {
+		return err
 	}
 
 	factory, ok := ciDatabaseFactories[typ]

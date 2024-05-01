@@ -64,13 +64,13 @@ func Shutdown() {
 		return runAtShutdown[i].index < runAtShutdown[j].index
 	})
 
-	ctx, ctxCancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	gCtx, gCtxCancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 
 	waitGroupDone := make(chan struct{})
 	go func() {
 		for _, item := range runAtShutdown {
 			select {
-			case <-ctx.Done():
+			case <-gCtx.Done():
 				return
 			default:
 			}
@@ -81,10 +81,10 @@ func Shutdown() {
 					waitGroup.Done()
 					err := recover()
 					if err != nil {
-						log.Error().Msgf("Panic during shuting down %s", name)
+						log.Error().Msgf("Panic during shutting down %s", name)
 					}
 				}()
-				log.Info().Str("name", name).Msg("Shuting down")
+				log.Info().Str("name", name).Msg("Shutting down")
 				f()
 			}(item.name, item.f)
 			waitGroup.Wait()
@@ -93,9 +93,9 @@ func Shutdown() {
 	}()
 
 	select {
-	case <-ctx.Done():
-		log.Error().Msg("Timeout shuting down")
+	case <-gCtx.Done():
+		log.Error().Msg("Timeout shutting down")
 	case <-waitGroupDone:
 	}
-	ctxCancel()
+	gCtxCancel()
 }

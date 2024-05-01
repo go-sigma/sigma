@@ -67,20 +67,14 @@ type builderRunner struct {
 }
 
 func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
-	locker, err := locker.New(r.config)
-	if err != nil {
-		log.Error().Err(err).Msg("New locker failed")
-		return
-	}
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(log.Logger.WithContext(ctx))
 	defer ctxCancel()
-	err = locker.AcquireWithRenew(ctx, consts.LockerCronjobBuilder, time.Second*3, time.Second*5)
+	err := locker.Locker.AcquireWithRenew(ctx, consts.LockerCronjobBuilder, time.Second*3, time.Second*5)
 	if err != nil {
 		log.Error().Err(err).Msg("Cronjob builder get locker failed")
 		return
 	}
 
-	ctx = log.Logger.WithContext(ctx)
 	builderService := r.builderServiceFactory.New()
 	builderObjs, err := builderService.GetByNextTrigger(ctx, time.Now(), cronjob.MaxJob)
 	if err != nil {
