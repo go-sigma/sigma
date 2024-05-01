@@ -22,17 +22,19 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
+// Locker ...
+var Locker definition.Locker
+
 // New ...
-func New(config configs.Configuration) (definition.Locker, error) {
+func Initialize(config configs.Configuration) error {
 	var err error
-	var lock definition.Locker
 	switch config.Locker.Type {
 	case enums.LockerTypeDatabase:
-		lock, err = database.New(config)
+		Locker, err = database.New(config)
 	case enums.LockerTypeRedis:
-		lock, err = redis.New(config)
+		Locker, err = redis.New(config)
 	default:
-		lock, err = database.New(config)
+		Locker, err = database.New(config)
 	}
-	return lock, err
+	return err
 }

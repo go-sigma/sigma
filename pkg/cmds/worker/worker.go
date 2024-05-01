@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -77,6 +78,8 @@ func Worker() error {
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
 	}
+
+	graceful.Shutdown()
 
 	return nil
 }

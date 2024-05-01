@@ -30,6 +30,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/middlewares"
@@ -102,6 +103,8 @@ func Serve() error {
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
 	}
+
+	graceful.Shutdown()
 
 	return nil
 }

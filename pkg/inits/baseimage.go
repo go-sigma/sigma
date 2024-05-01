@@ -52,13 +52,9 @@ func initBaseimage(config configs.Configuration) error {
 		log.Info().Msg("Baseimage not found, skip push image")
 		return nil
 	}
-	locker, err := locker.New(config)
-	if err != nil {
-		return err
-	}
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	defer ctxCancel()
-	err = locker.AcquireWithRenew(ctx, consts.LockerBaseimage, time.Second*3, time.Second*5)
+	err := locker.Locker.AcquireWithRenew(ctx, consts.LockerBaseimage, time.Second*3, time.Second*5)
 	if err != nil {
 		return err
 	}
