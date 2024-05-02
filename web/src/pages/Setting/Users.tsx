@@ -395,49 +395,53 @@ export default function ({ localServer }: { localServer: string }) {
                       )
                     }
                   </p>
-
-                  <label htmlFor="namespace_count_limit" className="text-sm font-medium text-gray-700 flex flex-row items-center">
-                    <div>
-                      Namespace count limit
-                    </div>
-                    <Tooltip content="0 means no limit">
-                      <div className="flex flex-row cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                        </svg>
-                      </div>
-                    </Tooltip>
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <input
-                      type="number"
-                      id="namespace_count_limit"
-                      name="namespace_count_limit"
-                      placeholder="0 means no limit"
-                      className={(namespaceCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                      value={namespaceCountLimit}
-                      onChange={e => setNamespaceCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                    />
-                    {
-                      namespaceCountLimitValid ? null : (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                          </svg>
+                  {
+                    role === "User" ? (
+                      <>
+                        <label htmlFor="namespace_count_limit" className="text-sm font-medium text-gray-700 flex flex-row items-center">
+                          <div>
+                            Namespace count limit
+                          </div>
+                          <Tooltip content="0 means no limit">
+                            <div className="flex flex-row cursor-pointer">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                              </svg>
+                            </div>
+                          </Tooltip>
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            type="number"
+                            id="namespace_count_limit"
+                            name="namespace_count_limit"
+                            placeholder="0 means no limit"
+                            className={(namespaceCountLimitValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={namespaceCountLimit}
+                            onChange={e => setNamespaceCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                          />
+                          {
+                            namespaceCountLimitValid ? null : (
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                </svg>
+                              </div>
+                            )
+                          }
                         </div>
-                      )
-                    }
-                  </div>
-                  <p className="mt-1 text-xs text-red-600">
-                    {
-                      namespaceCountLimitValid ? null : (
-                        <span>
-                          Not a valid namespace count limit, should be non-negative integer.
-                        </span>
-                      )
-                    }
-                  </p>
-
+                        <p className="mt-1 text-xs text-red-600">
+                          {
+                            namespaceCountLimitValid ? null : (
+                              <span>
+                                Not a valid namespace count limit, should be non-negative integer.
+                              </span>
+                            )
+                          }
+                        </p>
+                      </>
+                    ) : null
+                  }
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                     Role
                   </label>

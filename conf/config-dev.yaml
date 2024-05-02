@@ -55,7 +55,8 @@ workqueue:
 locker:
   # the locker type available: redis, database
   type: database
-  database: {}
+  database:
+    path: ./locker
   redis: {}
 
 namespace:

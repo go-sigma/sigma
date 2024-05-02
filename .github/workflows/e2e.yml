@@ -14,6 +14,14 @@ jobs:
     name: e2e-test
     runs-on: ubuntu-22.04
     steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+        shell: bash
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
@@ -52,3 +60,4 @@ jobs:
           ./e2e/push.sh
           curl https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
           ./k6 run e2e/sc.js
+          docker logs sigma

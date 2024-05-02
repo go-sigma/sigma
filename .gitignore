@@ -202,3 +202,4 @@ pkg/**/*.html
 web/.yarn/
 docs/.yarn/
 coverage.txt
+locker/
