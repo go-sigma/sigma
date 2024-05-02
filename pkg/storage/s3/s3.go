@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -267,25 +268,46 @@ func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error)
 
 // UploadPart uploads a part of an object.
 func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumber int64, body io.Reader) (string, error) {
-	_, err := a.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
-		Bucket: aws.String(a.bucket),
-		Key:    aws.String(a.sanitizePath(path)),
-		Body:   body,
-	})
+	file, err := os.CreateTemp("", "s3")
 	if err != nil {
 		return "", err
 	}
-	resp, err := a.client.UploadPartCopyWithContext(ctx, &s3.UploadPartCopyInput{
+	_, err = io.Copy(file, body)
+	if err != nil {
+		return "", err
+	}
+	err = file.Sync()
+	if err != nil {
+		return "", err
+	}
+	err = file.Close()
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			log.Error().Err(err).Str("File", file.Name()).Msg("Remove upload temp file failed")
+		}
+	}()
+
+	fd, err := os.Open(file.Name())
+	if err != nil {
+		return "", err
+	}
+	defer fd.Close() // nolint: errcheck
+
+	resp, err := a.client.UploadPartWithContext(ctx, &s3.UploadPartInput{
 		Bucket:     aws.String(a.bucket),
 		Key:        aws.String(a.sanitizePath(path)),
 		UploadId:   aws.String(uploadID),
 		PartNumber: aws.Int64(partNumber),
-		CopySource: aws.String(a.bucket + "/" + a.sanitizePath(path)),
+		Body:       fd,
 	})
 	if err != nil {
 		return "", err
 	}
-	return aws.StringValue(resp.CopyPartResult.ETag), nil
+	return aws.StringValue(resp.ETag), nil
 }
 
 // CommitUpload commits an upload.
