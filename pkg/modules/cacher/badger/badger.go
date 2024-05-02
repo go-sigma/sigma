@@ -12,75 +12,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inmemory
+package badger
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/dgraph-io/badger/v4"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 )
 
 type cacher[T any] struct {
-	config  configs.Configuration
-	cache   *lru.TwoQueueCache[string, T]
+	db      *badger.DB
 	prefix  string
 	fetcher definition.Fetcher[T]
+	config  configs.Configuration
 }
 
 // New returns a new Cacher.
 func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
-	cache, err := lru.New2Q[string, T](config.Cache.Inmemory.Size)
-	if err != nil {
-		return nil, err
-	}
 	return &cacher[T]{
-		config:  config,
-		cache:   cache,
+		db:      rBadger.Client,
 		prefix:  prefix,
 		fetcher: fetcher,
+		config:  config,
 	}, nil
 }
 
 // Set sets the value of given key if it is new to the cache.
 // Param val should not be nil.
-func (c *cacher[T]) Set(ctx context.Context, key string, val T, _ ...time.Duration) error {
-	c.cache.Add(definition.GenKey(c.config, c.prefix, key), val)
-	return nil
+func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Duration) error {
+	content, err := json.Marshal(val)
+	if err != nil {
+		return fmt.Errorf("marshal value failed: %w", err)
+	}
+	var ttl = c.config.Cache.Badger.Ttl
+	if len(ttls) > 0 {
+		ttl = ttls[0]
+	}
+	return c.db.Update(func(txn *badger.Txn) error {
+		e := badger.NewEntry([]byte(key), content).WithTTL(ttl)
+		return txn.SetEntry(e)
+	})
 }
 
 // Get tries to fetch a value corresponding to the given key from the cache.
 // If error occurs during the first time fetching, it will be cached until the
 // sequential fetching triggered by the refresh goroutine succeed.
 func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
-	result, ok := c.cache.Get(definition.GenKey(c.config, c.prefix, key))
-	if !ok {
-		if c.fetcher == nil {
-			return result, definition.ErrNotFound
-		}
-		result, err := c.fetcher(key)
+	var val T
+	var result []byte
+	// var val []byte
+	err := c.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(definition.GenKey(c.config, c.prefix, key)))
 		if err != nil {
-			return result, err
+			return err
 		}
-		err = c.Set(ctx, key, result)
+		result, err = item.ValueCopy(nil)
 		if err != nil {
-			return result, fmt.Errorf("Set value failed: %w", err)
+			return err
 		}
-		return result, nil
-	}
-	err := c.Set(ctx, key, result)
+		return nil
+	})
 	if err != nil {
-		return result, fmt.Errorf("Set value failed: %w", err)
+		if errors.Is(err, badger.ErrKeyNotFound) {
+			if c.fetcher == nil {
+				return val, definition.ErrNotFound
+			}
+			val, err = c.fetcher(key)
+			if err != nil {
+				return val, err
+			}
+			err = c.Set(ctx, key, val)
+			if err != nil {
+				return val, err
+			}
+			return val, nil
+		}
+		return val, fmt.Errorf("get value failed: %w", err)
 	}
-	return result, nil
+	err = json.Unmarshal(result, &val)
+	if err != nil {
+		return val, fmt.Errorf("unmarshal value failed: %w", err)
+	}
+	return val, nil
 }
 
 // Del deletes the value corresponding to the given key from the cache.
 func (c *cacher[T]) Del(ctx context.Context, key string) error {
-	c.cache.Remove(definition.GenKey(c.config, c.prefix, key))
-	return nil
+	return c.db.Update(func(txn *badger.Txn) error {
+		return txn.Delete([]byte(definition.GenKey(c.config, c.prefix, key)))
+	})
 }

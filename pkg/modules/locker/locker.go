@@ -16,7 +16,7 @@ package locker
 
 import (
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/locker/database"
+	"github.com/go-sigma/sigma/pkg/modules/locker/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/modules/locker/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -29,12 +29,12 @@ var Locker definition.Locker
 func Initialize(config configs.Configuration) error {
 	var err error
 	switch config.Locker.Type {
-	case enums.LockerTypeDatabase:
-		Locker, err = database.New(config)
+	case enums.LockerTypeBadger:
+		Locker, err = badger.New(config)
 	case enums.LockerTypeRedis:
 		Locker, err = redis.New(config)
 	default:
-		Locker, err = database.New(config)
+		Locker, err = badger.New(config)
 	}
 	return err
 }

@@ -16,7 +16,7 @@ package cacher
 
 import (
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/database"
+	"github.com/go-sigma/sigma/pkg/modules/cacher/badger"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/inmemory"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/redis"
@@ -34,11 +34,10 @@ func New[T any](prefix string, fetcher definition.Fetcher[T]) (definition.Cacher
 		cacher, err = redis.New[T](config, prefix, fetcher)
 	case enums.CacherTypeInmemory:
 		cacher, err = inmemory.New[T](config, prefix, fetcher)
-	case enums.CacherTypeDatabase:
-		cacher, err = database.New[T](config, prefix, fetcher)
+	case enums.CacherTypeBadger:
+		cacher, err = badger.New[T](config, prefix, fetcher)
 	default:
-		cacher, err = database.New[T](config, prefix, fetcher)
-		// return nil, fmt.Errorf("Cacher %s not support", config.Cache.Type)
+		cacher, err = badger.New[T](config, prefix, fetcher)
 	}
 	return cacher, err
 }

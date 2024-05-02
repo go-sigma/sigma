@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package database_test
+package badger_test
 
 import (
 	"context"
@@ -27,8 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker/database"
+	"github.com/go-sigma/sigma/pkg/modules/locker/badger"
 )
 
 func TestDatabaseAcquire(t *testing.T) {
@@ -36,10 +37,8 @@ func TestDatabaseAcquire(t *testing.T) {
 
 	p, _ := os.MkdirTemp("", "badger")
 	config := configs.Configuration{
-		Locker: configs.ConfigurationLocker{
-			Database: configs.ConfigurationLockerDatabase{
-				Path: p,
-			},
+		Badger: configs.ConfigurationBadger{
+			Path: p,
 		},
 	}
 	defer os.RemoveAll(p) // nolint: errcheck
@@ -47,7 +46,9 @@ func TestDatabaseAcquire(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	c, err := database.New(config)
+	assert.NoError(t, rBadger.Initialize(ctx, config))
+
+	c, err := badger.New(config)
 	assert.NoError(t, err)
 
 	const key = "test-redis-lock"
@@ -80,10 +81,8 @@ func TestDatabaseAcquireWithRenew(t *testing.T) {
 
 	p, _ := os.MkdirTemp("", "badger")
 	config := configs.Configuration{
-		Locker: configs.ConfigurationLocker{
-			Database: configs.ConfigurationLockerDatabase{
-				Path: p,
-			},
+		Badger: configs.ConfigurationBadger{
+			Path: p,
 		},
 	}
 	defer os.RemoveAll(p) // nolint: errcheck
@@ -91,7 +90,9 @@ func TestDatabaseAcquireWithRenew(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	c, err := database.New(config)
+	assert.NoError(t, rBadger.Initialize(ctx, config))
+
+	c, err := badger.New(config)
 	assert.NoError(t, err)
 
 	const key = "test-redis-lock"

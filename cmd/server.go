@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/cmds/server"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
@@ -44,6 +47,12 @@ var serverCmd = &cobra.Command{
 		}
 
 		config := ptr.To(configs.GetConfiguration())
+
+		err = badger.Initialize(context.Background(), config)
+		if err != nil {
+			log.Error().Err(err).Msg("Initialize badger with error")
+			return
+		}
 
 		err = locker.Initialize(config)
 		if err != nil {

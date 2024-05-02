@@ -28,6 +28,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -37,6 +38,8 @@ import (
 
 func TestAuth(t *testing.T) {
 	logger.SetLevel("debug")
+
+	assert.NoError(t, badger.Initialize(context.Background(), configs.Configuration{}))
 
 	err := locker.Initialize(configs.Configuration{})
 	assert.NoError(t, err)

@@ -74,7 +74,7 @@ type RedisType string
 // CacherType x ENUM(
 // inmemory,
 // redis,
-// database,
+// badger,
 // )
 type CacherType string
 
@@ -88,7 +88,7 @@ type WorkQueueType string
 
 // LockerType x ENUM(
 // redis,
-// database,
+// badger,
 // )
 type LockerType string
 

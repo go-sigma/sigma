@@ -54,11 +54,11 @@ func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Dur
 	if err != nil {
 		return fmt.Errorf("marshal value failed: %w", err)
 	}
-	var ttl = c.config.Cache.Ttl
+	var ttl = c.config.Cache.Redis.Ttl
 	if len(ttls) > 0 {
 		ttl = ttls[0]
 	}
-	return c.redisCli.Set(ctx, c.key(key), content, ttl).Err()
+	return c.redisCli.Set(ctx, definition.GenKey(c.config, c.prefix, key), content, ttl).Err()
 }
 
 // Get tries to fetch a value corresponding to the given key from the cache.
@@ -66,7 +66,7 @@ func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Dur
 // sequential fetching triggered by the refresh goroutine succeed.
 func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 	var result T
-	content, err := c.redisCli.Get(ctx, c.key(key)).Result()
+	content, err := c.redisCli.Get(ctx, definition.GenKey(c.config, c.prefix, key)).Result()
 	if err != nil {
 		if err == redis.Nil {
 			if c.fetcher == nil {
@@ -94,9 +94,5 @@ func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 
 // Del deletes the value corresponding to the given key from the cache.
 func (c *cacher[T]) Del(ctx context.Context, key string) error {
-	return c.redisCli.Del(ctx, c.key(key)).Err()
-}
-
-func (c *cacher[T]) key(key string) string {
-	return fmt.Sprintf("%s:%s", c.prefix, key)
+	return c.redisCli.Del(ctx, definition.GenKey(c.config, c.prefix, key)).Err()
 }

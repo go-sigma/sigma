@@ -15,13 +15,16 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
@@ -64,7 +67,17 @@ func Initialize(t *testing.T) error {
 		typ = enums.DatabaseSqlite3.String()
 	}
 
-	err := locker.Initialize(configs.Configuration{})
+	p, _ := os.MkdirTemp("", "badger")
+	err := badger.Initialize(context.Background(), configs.Configuration{
+		Badger: configs.ConfigurationBadger{
+			Path: p,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = locker.Initialize(configs.Configuration{})
 	if err != nil {
 		return err
 	}

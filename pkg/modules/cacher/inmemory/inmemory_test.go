@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -32,9 +31,9 @@ func fetcher1(key string) (string, error) {
 func TestNew(t *testing.T) {
 	config := configs.Configuration{
 		Cache: configs.ConfigurationCache{
-			Ttl: time.Second * 3,
 			Inmemory: configs.ConfigurationCacheInmemory{
-				Size: 1000,
+				Prefix: "sigma-cache",
+				Size:   1000,
 			},
 		},
 	}
@@ -66,15 +65,6 @@ func TestNew(t *testing.T) {
 	}
 
 	res, err = cacher.Get(ctx, "m-test")
-	assert.NoError(t, err)
-	assert.Equal(t, "new-val", res)
-
-	err = cacher.Set(ctx, "expire-key", "expire-val", time.Second)
-	assert.NoError(t, err)
-
-	time.Sleep(time.Second * 3)
-
-	res, err = cacher.Get(ctx, "expire-key")
 	assert.NoError(t, err)
 	assert.Equal(t, "new-val", res)
 }
