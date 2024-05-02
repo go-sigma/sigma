@@ -45,8 +45,7 @@ import (
 
 func TestPostNamespace(t *testing.T) {
 	logger.SetLevel("debug")
-	e := echo.New()
-	validators.Initialize(e)
+
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
@@ -55,6 +54,9 @@ func TestPostNamespace(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
+
+	e := echo.New()
+	validators.Initialize(e)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -169,8 +171,8 @@ func TestPostNamespace(t *testing.T) {
 
 // TestPostNamespaceCreateFailed1 get name failed
 func TestPostNamespaceCreateFailed1(t *testing.T) {
-	e := echo.New()
-	validators.Initialize(e)
+	logger.SetLevel("debug")
+
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())
 	defer func() {
@@ -179,6 +181,9 @@ func TestPostNamespaceCreateFailed1(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
+
+	e := echo.New()
+	validators.Initialize(e)
 
 	userServiceFactory := dao.NewUserServiceFactory()
 	userService := userServiceFactory.New()
