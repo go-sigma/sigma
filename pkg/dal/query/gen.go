@@ -25,7 +25,6 @@ var (
 	BlobUpload                    *blobUpload
 	Builder                       *builder
 	BuilderRunner                 *builderRunner
-	Cache                         *cache
 	CasbinRule                    *casbinRule
 	CodeRepository                *codeRepository
 	CodeRepositoryBranch          *codeRepositoryBranch
@@ -67,7 +66,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	BlobUpload = &Q.BlobUpload
 	Builder = &Q.Builder
 	BuilderRunner = &Q.BuilderRunner
-	Cache = &Q.Cache
 	CasbinRule = &Q.CasbinRule
 	CodeRepository = &Q.CodeRepository
 	CodeRepositoryBranch = &Q.CodeRepositoryBranch
@@ -110,7 +108,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		BlobUpload:                    newBlobUpload(db, opts...),
 		Builder:                       newBuilder(db, opts...),
 		BuilderRunner:                 newBuilderRunner(db, opts...),
-		Cache:                         newCache(db, opts...),
 		CasbinRule:                    newCasbinRule(db, opts...),
 		CodeRepository:                newCodeRepository(db, opts...),
 		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
@@ -154,7 +151,6 @@ type Query struct {
 	BlobUpload                    blobUpload
 	Builder                       builder
 	BuilderRunner                 builderRunner
-	Cache                         cache
 	CasbinRule                    casbinRule
 	CodeRepository                codeRepository
 	CodeRepositoryBranch          codeRepositoryBranch
@@ -199,7 +195,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		BlobUpload:                    q.BlobUpload.clone(db),
 		Builder:                       q.Builder.clone(db),
 		BuilderRunner:                 q.BuilderRunner.clone(db),
-		Cache:                         q.Cache.clone(db),
 		CasbinRule:                    q.CasbinRule.clone(db),
 		CodeRepository:                q.CodeRepository.clone(db),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
@@ -251,7 +246,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		BlobUpload:                    q.BlobUpload.replaceDB(db),
 		Builder:                       q.Builder.replaceDB(db),
 		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
-		Cache:                         q.Cache.replaceDB(db),
 		CasbinRule:                    q.CasbinRule.replaceDB(db),
 		CodeRepository:                q.CodeRepository.replaceDB(db),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
@@ -293,7 +287,6 @@ type queryCtx struct {
 	BlobUpload                    *blobUploadDo
 	Builder                       *builderDo
 	BuilderRunner                 *builderRunnerDo
-	Cache                         *cacheDo
 	CasbinRule                    *casbinRuleDo
 	CodeRepository                *codeRepositoryDo
 	CodeRepositoryBranch          *codeRepositoryBranchDo
@@ -335,7 +328,6 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		BlobUpload:                    q.BlobUpload.WithContext(ctx),
 		Builder:                       q.Builder.WithContext(ctx),
 		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
-		Cache:                         q.Cache.WithContext(ctx),
 		CasbinRule:                    q.CasbinRule.WithContext(ctx),
 		CodeRepository:                q.CodeRepository.WithContext(ctx),
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),

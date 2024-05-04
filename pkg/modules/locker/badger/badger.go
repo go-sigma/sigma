@@ -12,74 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package database
+package badger
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"strings"
-	"sync"
 	"time"
 
-	badger "github.com/dgraph-io/badger/v4"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-type logger struct{}
-
-// Errorf is the error log
-func (l logger) Errorf(msg string, opts ...interface{}) {
-	log.Error().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
-}
-
-// Warningf is the warning log
-func (l logger) Warningf(msg string, opts ...interface{}) {
-	log.Warn().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
-}
-
-// Infof is the info log
-func (l logger) Infof(msg string, opts ...interface{}) {
-	log.Info().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
-}
-
-// Debugf is the debug log
-func (l logger) Debugf(msg string, opts ...interface{}) {
-	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
-}
-
 type lockerDatabase struct {
 	db *badger.DB
 }
 
-var initOnce sync.Once
-
-var db *badger.DB
-
 func New(config configs.Configuration) (definition.Locker, error) {
-	initOnce.Do(func() {
-		var err error
-		dir := config.Locker.Database.Path
-		if dir == "" {
-			dir, err = os.MkdirTemp("", "locker")
-			if err != nil {
-				panic("make temp dir for badger failed")
-			}
-		}
-		db, err = badger.Open(badger.DefaultOptions(dir).WithLogger(&logger{}))
-		if err != nil {
-			panic(fmt.Errorf("open badger database failed: %v", err))
-		}
-	})
 	return &lockerDatabase{
-		db: db,
+		db: rBadger.Client,
 	}, nil
 }
 

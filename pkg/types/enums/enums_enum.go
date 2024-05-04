@@ -661,8 +661,8 @@ const (
 	CacherTypeInmemory CacherType = "inmemory"
 	// CacherTypeRedis is a CacherType of type redis.
 	CacherTypeRedis CacherType = "redis"
-	// CacherTypeDatabase is a CacherType of type database.
-	CacherTypeDatabase CacherType = "database"
+	// CacherTypeBadger is a CacherType of type badger.
+	CacherTypeBadger CacherType = "badger"
 )
 
 var ErrInvalidCacherType = errors.New("not a valid CacherType")
@@ -682,7 +682,7 @@ func (x CacherType) IsValid() bool {
 var _CacherTypeValue = map[string]CacherType{
 	"inmemory": CacherTypeInmemory,
 	"redis":    CacherTypeRedis,
-	"database": CacherTypeDatabase,
+	"badger":   CacherTypeBadger,
 }
 
 // ParseCacherType attempts to convert a string to a CacherType.
@@ -1279,8 +1279,8 @@ func (x GcTarget) Value() (driver.Value, error) {
 const (
 	// LockerTypeRedis is a LockerType of type redis.
 	LockerTypeRedis LockerType = "redis"
-	// LockerTypeDatabase is a LockerType of type database.
-	LockerTypeDatabase LockerType = "database"
+	// LockerTypeBadger is a LockerType of type badger.
+	LockerTypeBadger LockerType = "badger"
 )
 
 var ErrInvalidLockerType = errors.New("not a valid LockerType")
@@ -1298,8 +1298,8 @@ func (x LockerType) IsValid() bool {
 }
 
 var _LockerTypeValue = map[string]LockerType{
-	"redis":    LockerTypeRedis,
-	"database": LockerTypeDatabase,
+	"redis":  LockerTypeRedis,
+	"badger": LockerTypeBadger,
 }
 
 // ParseLockerType attempts to convert a string to a LockerType.

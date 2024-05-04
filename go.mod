@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.22.0
+go 1.22.2
 
 require (
 	code.gitea.io/sdk/gitea v0.18.0
@@ -11,7 +11,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/anchore/syft v1.3.0
 	github.com/aquasecurity/trivy v0.50.4
-	github.com/aws/aws-sdk-go v1.51.32
+	github.com/aws/aws-sdk-go v1.52.1
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/casbin/casbin/v2 v2.88.0
 	github.com/casbin/gorm-adapter/v3 v3.24.0

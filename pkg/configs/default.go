@@ -15,6 +15,7 @@
 package configs
 
 import (
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -45,9 +46,6 @@ func defaultSettings() {
 	if configuration.Namespace.Visibility.String() == "" {
 		configuration.Namespace.Visibility = enums.VisibilityPrivate
 	}
-	if configuration.Cache.Ttl == 0 {
-		configuration.Cache.Ttl = 72 * time.Hour
-	}
 	if configuration.Daemon.Builder.Kubernetes.Namespace == "" {
 		configuration.Daemon.Builder.Kubernetes.Namespace = "default"
 	}
@@ -57,13 +55,37 @@ func defaultSettings() {
 	if configuration.WorkQueue.Inmemory.Concurrency == 0 {
 		configuration.WorkQueue.Inmemory.Concurrency = 1024
 	}
-	if configuration.Cache.Inmemory.Size == 0 {
+
+	// for cache
+	if configuration.Cache.Type == enums.CacherTypeInmemory && configuration.Cache.Inmemory.Size == 0 {
 		configuration.Cache.Inmemory.Size = 10240
 	}
-	if configuration.Cache.Ttl == 0 {
-		configuration.Cache.Ttl = time.Second * 30
+	if configuration.Cache.Type == enums.CacherTypeInmemory && len(strings.TrimSpace(configuration.Cache.Inmemory.Prefix)) == 0 {
+		configuration.Cache.Inmemory.Prefix = "sigma-cache"
 	}
-	if configuration.Locker.Type == enums.LockerTypeDatabase && configuration.Locker.Database.Path == "" {
-		configuration.Locker.Database.Path = "/var/lib/sigma/badger"
+	if configuration.Cache.Type == enums.CacherTypeRedis && configuration.Cache.Redis.Ttl == 0 {
+		configuration.Cache.Redis.Ttl = time.Hour * 72
+	}
+	if configuration.Cache.Type == enums.CacherTypeRedis && len(strings.TrimSpace(configuration.Cache.Redis.Prefix)) == 0 {
+		configuration.Cache.Redis.Prefix = "sigma-cache"
+	}
+	if configuration.Cache.Type == enums.CacherTypeBadger && configuration.Cache.Badger.Ttl == 0 {
+		configuration.Cache.Badger.Ttl = time.Hour * 72
+	}
+	if configuration.Cache.Type == enums.CacherTypeBadger && len(strings.TrimSpace(configuration.Cache.Badger.Prefix)) == 0 {
+		configuration.Cache.Badger.Prefix = "sigma-cache"
+	}
+
+	// for badger
+	if configuration.Badger.Enabled && len(strings.TrimSpace(configuration.Badger.Path)) == 0 {
+		configuration.Badger.Path = "/var/lib/sigma/badger/"
+	}
+
+	// for locker
+	if configuration.Locker.Type == enums.LockerTypeBadger && strings.TrimSpace(configuration.Locker.Badger.Prefix) == "" {
+		configuration.Locker.Badger.Prefix = "sigma-locker"
+	}
+	if configuration.Locker.Type == enums.LockerTypeRedis && strings.TrimSpace(configuration.Locker.Redis.Prefix) == "" {
+		configuration.Locker.Redis.Prefix = "sigma-locker"
 	}
 }

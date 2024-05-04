@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/go-sigma/sigma/pkg/configs"
 )
 
 var (
@@ -44,4 +46,8 @@ type Cacher[T any] interface {
 // CacherFactory ...
 type CacherFactory[T any] interface {
 	New(prefix string, fetcher Fetcher[T]) (Cacher[T], error)
+}
+
+func GenKey(config configs.Configuration, prefix, key string) string {
+	return fmt.Sprintf("%s:%s:%s", config.Cache.Badger.Prefix, prefix, key)
 }

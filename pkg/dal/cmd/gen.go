@@ -51,7 +51,6 @@ func main() {
 		models.BuilderRunner{},
 		models.WorkQueue{},
 		models.Locker{},
-		models.Cache{},
 		models.Setting{},
 		models.DaemonGcTagRule{},
 		models.DaemonGcTagRunner{},
@@ -68,7 +67,6 @@ func main() {
 		models.NamespaceMember{},
 	)
 
-	g.ApplyInterface(func(models.CacheQuery) {}, models.Cache{})
 	g.ApplyInterface(func(models.ArtifactSizeByNamespaceOrRepository) {}, models.Artifact{})
 	g.ApplyInterface(func(models.ArtifactAssociated) {}, models.Artifact{})
 	g.ApplyInterface(func(models.BlobAssociateWithArtifact) {}, models.Blob{})
