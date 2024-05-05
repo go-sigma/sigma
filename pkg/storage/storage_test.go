@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 type dummyFactory struct{}
@@ -37,35 +37,37 @@ func (dummyFactoryError) New(_ configs.Configuration) (StorageDriver, error) {
 }
 
 func TestRegisterDriverFactory(t *testing.T) {
-	driverFactories = make(map[string]Factory)
+	driverFactories = make(map[enums.StorageType]Factory)
 
-	err := RegisterDriverFactory("dummy", &dummyFactory{})
+	err := RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
 	assert.NoError(t, err)
 
-	err = RegisterDriverFactory("dummy", &dummyFactory{})
+	err = RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
 	assert.Error(t, err)
 }
 
 func TestInitialize(t *testing.T) {
-	driverFactories = make(map[string]Factory)
+	driverFactories = make(map[enums.StorageType]Factory)
 
-	err := RegisterDriverFactory("dummy", &dummyFactory{})
+	err := RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
 	assert.NoError(t, err)
 
-	viper.SetDefault("storage.type", "dummy")
-	err = Initialize(configs.Configuration{})
+	err = Initialize(configs.Configuration{
+		Storage: configs.ConfigurationStorage{
+			Type: enums.StorageTypeDummy,
+		},
+	})
 	assert.NoError(t, err)
 
-	viper.SetDefault("storage.type", "fake")
-	err = Initialize(configs.Configuration{})
+	err = Initialize(configs.Configuration{
+		Storage: configs.ConfigurationStorage{
+			Type: "fake",
+		},
+	})
 	assert.Error(t, err)
 
 	err = RegisterDriverFactory("dummy-error", &dummyFactoryError{})
 	assert.NoError(t, err)
-
-	viper.SetDefault("storage.type", "dummy-error")
-	err = Initialize(configs.Configuration{})
-	assert.Error(t, err)
 }
 
 func TestSanitizePath(t *testing.T) {

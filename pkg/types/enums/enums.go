@@ -254,6 +254,8 @@ type BuilderSource string
 // s3,
 // filesystem,
 // cos,
+// oss,
+// dummy,
 // )
 type StorageType string
 

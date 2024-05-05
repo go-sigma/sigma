@@ -24,23 +24,30 @@ database:
     sslmode: disable
 
 redis:
-  # redis type available: none, external
+  # redis type available: none, external. Following all of redis config just use reference here.
   # none: means never use redis
   # external: means use the specific redis instance
   type: external
   url: redis://:sigma@localhost:6379/0
 
+badger:
+  # badger is used to implement lock and cache in a single-node mode.
+  enabled: true
+  path: ./badger/
+
 cache:
-  # the cache type available is: redis, inmemory, database
-  type: redis
-  ttl: 72h
-  # please attention in multi
+  # the cache type available is: redis, inmemory, badger
+  # please attention in multi-node mode, you should use redis
+  type: badger
   inmemory:
+    prefix: sigma-cache
     size: 10240
   redis:
-  database:
-    size: 10240
-    threshold: 0.2
+    prefix: sigma-cache
+    ttl: 72h
+  badger:
+    prefix: sigma-cache
+    ttl: 72h
 
 workqueue:
   # the workqueue type available: redis, kafka, database, inmemory
@@ -53,11 +60,12 @@ workqueue:
     concurrency: 1024
 
 locker:
-  # the locker type available: redis, database
-  type: database
-  database:
-    path: ./locker
-  redis: {}
+  # the locker type available: redis, badger
+  type: badger
+  badger:
+    prefix: sigma-locker
+  redis:
+    prefix: sigma-locker
 
 namespace:
   # push image to registry, if namespace not exist, it will be created automatically

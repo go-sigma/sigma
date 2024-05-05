@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"reflect"
 	"strings"
 
 	gonanoid "github.com/matoous/go-nanoid"
@@ -30,11 +29,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func init() {
-	utils.PanicIf(storage.RegisterDriverFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(storage.RegisterDriverFactory(enums.StorageTypeCos, &factory{}))
 }
 
 type factory struct{}
