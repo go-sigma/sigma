@@ -16,7 +16,6 @@ package inmemory
 
 import (
 	"context"
-	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -31,10 +30,11 @@ var packs = make(map[enums.Daemon]chan *models.WorkQueue, 10)
 
 // NewWorkQueueConsumer ...
 func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
-	for topic, c := range topicHandlers {
+	for topic := range topicHandlers {
 		packs[topic] = make(chan *models.WorkQueue, config.WorkQueue.Inmemory.Concurrency)
+	}
+	for topic, c := range topicHandlers {
 		go func(consumer definition.Consumer, topic enums.Daemon) {
-			time.Sleep(time.Second * 3)
 			handler := &consumerHandler{
 				processingSemaphore: make(chan struct{}, consumer.Concurrency),
 				consumer:            consumer,
