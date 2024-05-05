@@ -21,9 +21,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/spf13/viper"
-
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 const (
@@ -80,11 +79,11 @@ type Factory interface {
 	New(config configs.Configuration) (StorageDriver, error)
 }
 
-var driverFactories = make(map[string]Factory)
+var driverFactories = make(map[enums.StorageType]Factory)
 
 // RegisterDriverFactory registers a storage factory driver by name.
 // If RegisterDriverFactory is called twice with the same name or if driver is nil, it panics.
-func RegisterDriverFactory(name string, factory Factory) error {
+func RegisterDriverFactory(name enums.StorageType, factory Factory) error {
 	if _, ok := driverFactories[name]; ok {
 		return fmt.Errorf("driver %q already registered", name)
 	}
@@ -115,10 +114,9 @@ func (s *storageDriverFactory) New() StorageDriver {
 
 // Initialize initializes the storage driver
 func Initialize(config configs.Configuration) error {
-	typ := viper.GetString("storage.type")
-	factory, ok := driverFactories[typ]
+	factory, ok := driverFactories[config.Storage.Type]
 	if !ok {
-		return fmt.Errorf("driver %q not registered", typ)
+		return fmt.Errorf("driver %q not registered", config.Storage.Type)
 	}
 	var err error
 	Driver, err = factory.New(config)

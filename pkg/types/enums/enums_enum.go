@@ -2342,6 +2342,10 @@ const (
 	StorageTypeFilesystem StorageType = "filesystem"
 	// StorageTypeCos is a StorageType of type cos.
 	StorageTypeCos StorageType = "cos"
+	// StorageTypeOss is a StorageType of type oss.
+	StorageTypeOss StorageType = "oss"
+	// StorageTypeDummy is a StorageType of type dummy.
+	StorageTypeDummy StorageType = "dummy"
 )
 
 var ErrInvalidStorageType = errors.New("not a valid StorageType")
@@ -2362,6 +2366,8 @@ var _StorageTypeValue = map[string]StorageType{
 	"s3":         StorageTypeS3,
 	"filesystem": StorageTypeFilesystem,
 	"cos":        StorageTypeCos,
+	"oss":        StorageTypeOss,
+	"dummy":      StorageTypeDummy,
 }
 
 // ParseStorageType attempts to convert a string to a StorageType.

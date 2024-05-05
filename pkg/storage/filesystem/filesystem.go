@@ -21,7 +21,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/rs/zerolog/log"
@@ -29,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -38,7 +38,7 @@ type fs struct {
 }
 
 func init() {
-	utils.PanicIf(storage.RegisterDriverFactory(path.Base(reflect.TypeOf(factory{}).PkgPath()), &factory{}))
+	utils.PanicIf(storage.RegisterDriverFactory(enums.StorageTypeFilesystem, &factory{}))
 }
 
 type factory struct{}
