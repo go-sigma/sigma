@@ -1,4 +1,115 @@
 
+<a name="v1.3.0-rc.1"></a>
+## [v1.3.0-rc.1](https://github.com/go-sigma/sigma/compare/v1.2.0...v1.3.0-rc.1) (2024-05-05)
+
+### Features
+
+* Update config ([#364](https://github.com/go-sigma/sigma/issues/364))
+* Reimplement cache with badger ([#362](https://github.com/go-sigma/sigma/issues/362))
+* Update UploadPart impl ([#361](https://github.com/go-sigma/sigma/issues/361))
+* No limit on the number of ns that the admin user can create ([#360](https://github.com/go-sigma/sigma/issues/360))
+* Change the locker initialize ([#359](https://github.com/go-sigma/sigma/issues/359))
+* Reimplement lock with badger ([#358](https://github.com/go-sigma/sigma/issues/358))
+* Change distribution user get func ([#356](https://github.com/go-sigma/sigma/issues/356))
+* Add test params ([#354](https://github.com/go-sigma/sigma/issues/354))
+* Add codeql ([#353](https://github.com/go-sigma/sigma/issues/353))
+* Reimplement lock ([#352](https://github.com/go-sigma/sigma/issues/352))
+* Support disbale oauth2 and anonymous login ([#350](https://github.com/go-sigma/sigma/issues/350))
+* Support disable push base image after server started ([#347](https://github.com/go-sigma/sigma/issues/347))
+* Add workqueue inmemory implement ([#345](https://github.com/go-sigma/sigma/issues/345))
+* Update blob cacher ([#342](https://github.com/go-sigma/sigma/issues/342))
+* Copy dockerfile and builder image after server started ([#341](https://github.com/go-sigma/sigma/issues/341))
+* Add builder and dockerfile to sigma ([#340](https://github.com/go-sigma/sigma/issues/340))
+
+### Bug Fixes
+
+* Fix workq concurrency map ([#363](https://github.com/go-sigma/sigma/issues/363))
+* Fix gc ([#349](https://github.com/go-sigma/sigma/issues/349))
+
+### Docs
+
+* Add zh readme ([#338](https://github.com/go-sigma/sigma/issues/338))
+
+### Upgrade
+
+* Upgrade docker ([#348](https://github.com/go-sigma/sigma/issues/348))
+* Upgrade podman ([#346](https://github.com/go-sigma/sigma/issues/346))
+
+### Unit Tests
+
+* Update unit test ([#357](https://github.com/go-sigma/sigma/issues/357))
+* Update test ci config ([#355](https://github.com/go-sigma/sigma/issues/355))
+* Add unit test for blob gc ([#351](https://github.com/go-sigma/sigma/issues/351))
+* Update dao test ([#344](https://github.com/go-sigma/sigma/issues/344))
+* Add unit test for gc artifact ([#339](https://github.com/go-sigma/sigma/issues/339))
+
+
+<a name="v1.2.0"></a>
+## [v1.2.0](https://github.com/go-sigma/sigma/compare/v1.2.0-rc.1...v1.2.0) (2024-03-11)
+
+### Features
+
+* Rename artifact_artifacts sub artifact field ([#337](https://github.com/go-sigma/sigma/issues/337))
+
+### Bug Fixes
+
+* Fix gc artifact for multi-arch manifest ([#336](https://github.com/go-sigma/sigma/issues/336))
+
+
+<a name="v1.2.0-rc.1"></a>
+## [v1.2.0-rc.1](https://github.com/go-sigma/sigma/compare/v1.1.0...v1.2.0-rc.1) (2024-03-11)
+
+### Features
+
+* Change time field type to int64 ([#332](https://github.com/go-sigma/sigma/issues/332))
+* Add log field for sql caller ([#329](https://github.com/go-sigma/sigma/issues/329))
+* Support gc trigger webhook ([#323](https://github.com/go-sigma/sigma/issues/323))
+* Update trivy command ([#320](https://github.com/go-sigma/sigma/issues/320))
+* Support webhook in admin ([#319](https://github.com/go-sigma/sigma/issues/319))
+* Skip etag for the api ([#318](https://github.com/go-sigma/sigma/issues/318))
+* Change pprof path ([#316](https://github.com/go-sigma/sigma/issues/316))
+* Update pprof config ([#315](https://github.com/go-sigma/sigma/issues/315))
+* Add etag ([#313](https://github.com/go-sigma/sigma/issues/313))
+* Add metrics ([#312](https://github.com/go-sigma/sigma/issues/312))
+* Move builder helper func ([#308](https://github.com/go-sigma/sigma/issues/308))
+* Always check remote proxy server ([#307](https://github.com/go-sigma/sigma/issues/307))
+* Add webhook log detail info ([#304](https://github.com/go-sigma/sigma/issues/304))
+* Support webhook ([#303](https://github.com/go-sigma/sigma/issues/303))
+* Support delete tag on page ([#301](https://github.com/go-sigma/sigma/issues/301))
+* Check permission in pages ([#300](https://github.com/go-sigma/sigma/issues/300))
+* Add role field for namespace api ([#299](https://github.com/go-sigma/sigma/issues/299))
+* Add support oss ([#298](https://github.com/go-sigma/sigma/issues/298))
+* Add podman for builder ([#297](https://github.com/go-sigma/sigma/issues/297))
+
+### Bug Fixes
+
+* Fix gc ([#334](https://github.com/go-sigma/sigma/issues/334))
+* Fix login with incorrect username or password ([#330](https://github.com/go-sigma/sigma/issues/330))
+* Fix audit resource_type field ([#328](https://github.com/go-sigma/sigma/issues/328))
+* Fix member policy field ([#326](https://github.com/go-sigma/sigma/issues/326))
+* Fix user create or update failed ([#325](https://github.com/go-sigma/sigma/issues/325))
+* Fix list namespace auth ([#314](https://github.com/go-sigma/sigma/issues/314))
+
+### Docs
+
+* Add wechat ([#327](https://github.com/go-sigma/sigma/issues/327))
+* Update readme ([#317](https://github.com/go-sigma/sigma/issues/317))
+* Update readme ([#296](https://github.com/go-sigma/sigma/issues/296))
+
+### Upgrade
+
+* Upgrade docker and minio ([#295](https://github.com/go-sigma/sigma/issues/295))
+* Upgrade runc for avoid cve ([#294](https://github.com/go-sigma/sigma/issues/294))
+
+### CI
+
+* Update ci config ([#335](https://github.com/go-sigma/sigma/issues/335))
+* Add errors test case ([#322](https://github.com/go-sigma/sigma/issues/322))
+* Update codecov config ([#321](https://github.com/go-sigma/sigma/issues/321))
+* Add docker hub ([#311](https://github.com/go-sigma/sigma/issues/311))
+* Update ci ([#302](https://github.com/go-sigma/sigma/issues/302))
+
+
 <a name="v1.1.0"></a>
 ## [v1.1.0](https://github.com/go-sigma/sigma/compare/v1.0.0...v1.1.0) (2024-02-04)
 
@@ -20,6 +131,7 @@
 
 ### Docs
 
+* Update readme ([#292](https://github.com/go-sigma/sigma/issues/292))
 * Add apptainer docs ([#282](https://github.com/go-sigma/sigma/issues/282))
 
 ### Upgrade
