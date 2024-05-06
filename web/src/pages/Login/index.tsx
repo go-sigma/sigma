@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
+import SigmaSvg from "../../components/svg/sigma";
 import Notification from "../../components/Notification";
 import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "../../interfaces";
 
@@ -119,7 +120,10 @@ export default function Login({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+          <div className="w-40 mx-auto">
+            <SigmaSvg />
+          </div>
+          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12 mt-6">
             <div className="space-y-6" >
               <div>
                 <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">

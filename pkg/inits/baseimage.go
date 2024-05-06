@@ -131,8 +131,7 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", authorization, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:%s", utils.TrimHTTP(config.HTTP.InternalEndpoint), name, version)) // nolint: gosec
-	fmt.Println(cmd.String())
+	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", authorization, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:latest", utils.TrimHTTP(config.HTTP.InternalEndpoint), name)) // nolint: gosec
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

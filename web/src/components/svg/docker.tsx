@@ -16,7 +16,7 @@
 
 export default function () {
 	return (
-		<svg version="1.1" fill="#8052FD" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+		<svg version="1.1" fill="#8052FD" xmlns="http://www.w3.org/2000/svg"
 			x="0px"
 			y="0px"
 			width="25"
@@ -37,6 +37,5 @@ export default function () {
 	 M236.8,204.1h-44.2v44.2h44.2V204.1L236.8,204.1z M183.7,204.1h-44.2v44.2h44.2V204.1L183.7,204.1z M130.6,204.1H86.3v44.2h44.2
 	V204.1L130.6,204.1z"/>
 		</svg>
-
 	);
 }
