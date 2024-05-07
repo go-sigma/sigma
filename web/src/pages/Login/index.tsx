@@ -162,6 +162,11 @@ export default function Login({ localServer }: { localServer: string }) {
                     onChange={(e) => {
                       setPassword(e.target.value);
                     }}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        login(username, password);
+                      }
+                    }}
                   />
                 </div>
                 {/* <div className="h-1">
