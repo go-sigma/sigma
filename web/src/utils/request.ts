@@ -17,7 +17,9 @@
 import axios from 'axios';
 import { NavigateFunction } from 'react-router-dom';
 
-export const setupAxiosInterceptor = (navigate: NavigateFunction, location: any) => {
+export const setupAxiosInterceptor = (navigate: NavigateFunction) => {
+  axios.interceptors.response.clear()
+  axios.interceptors.request.clear();
   axios.interceptors.response.use(response => {
     return response;
   }, error => {
@@ -37,7 +39,7 @@ export const setupAxiosInterceptor = (navigate: NavigateFunction, location: any)
     const token = localStorage.getItem('token');
     if (config.headers.Authorization === undefined || config.headers.Authorization === null) {
       if (token === null) {
-        if (!config.url.endsWith("/api/v1/users/login") && location.pathname != "/login") {
+        if (!config.url.endsWith("/api/v1/users/login") && location.hash != "#/login") {
           navigate('/login');
           return Promise.reject(new Error('request has been banned by axios interceptor'));
         }
