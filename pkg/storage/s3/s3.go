@@ -16,19 +16,16 @@ package s3
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -40,8 +37,7 @@ import (
 )
 
 type awss3 struct {
-	client        *s3.S3
-	uploader      *s3manager.Uploader
+	client        *s3.Client
 	rootDirectory string
 	bucket        string
 }
@@ -54,21 +50,26 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Endpoint:         aws.String(config.Storage.S3.Endpoint),
-		Region:           aws.String(config.Storage.S3.Region),
-		S3ForcePathStyle: aws.Bool(config.Storage.S3.ForcePathStyle),
-		Credentials:      credentials.NewStaticCredentials(config.Storage.S3.Ak, config.Storage.S3.Sk, ""),
-	})
+func (f factory) New(cfg configs.Configuration) (storage.StorageDriver, error) {
+	c, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(cfg.Storage.S3.Region),
+		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+			return aws.Credentials{
+				AccessKeyID:     cfg.Storage.S3.Ak,
+				SecretAccessKey: cfg.Storage.S3.Sk,
+			}, nil
+		})),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new session with aws config: %v", err)
+		return nil, fmt.Errorf("new s3 config failed: %v", err)
 	}
 	return &awss3{
-		client:        s3.New(sess),
-		uploader:      s3manager.NewUploader(sess),
-		bucket:        config.Storage.S3.Bucket,
-		rootDirectory: strings.TrimPrefix(config.Storage.RootDirectory, "/"),
+		client: s3.NewFromConfig(c, func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(cfg.Storage.S3.Endpoint)
+			o.UsePathStyle = cfg.Storage.S3.ForcePathStyle
+		}),
+		bucket:        cfg.Storage.S3.Bucket,
+		rootDirectory: strings.TrimPrefix(cfg.Storage.RootDirectory, "/"),
 	}, nil
 }
 
@@ -81,7 +82,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	srcPath = a.sanitizePath(srcPath)
 	dstPath = a.sanitizePath(dstPath)
 
-	srcFile, err := a.client.HeadObject(&s3.HeadObjectInput{
+	srcFile, err := a.client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(srcPath),
 	})
@@ -91,7 +92,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	srcSize := ptr.To(srcFile.ContentLength)
 
 	if srcSize <= storage.MultipartCopyThresholdSize {
-		_, err := a.client.CopyObject(&s3.CopyObjectInput{
+		_, err := a.client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(a.bucket),
 			Key:        aws.String(dstPath),
 			CopySource: aws.String(path.Join(a.bucket, srcPath)),
@@ -102,7 +103,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		return nil
 	}
 
-	createResp, err := a.client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
+	createResp, err := a.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(dstPath),
 	})
@@ -111,31 +112,31 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	}
 
 	numParts := (srcSize + storage.MultipartCopyChunkSize - 1) / storage.MultipartCopyChunkSize
-	completedParts := make([]*s3.CompletedPart, numParts)
+	completedParts := make([]types.CompletedPart, numParts)
 	errChan := make(chan error, numParts)
 	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
-		i := int64(i)
+		i := int32(i)
 		go func() {
 			limiter <- struct{}{}
 			firstByte := i * storage.MultipartCopyChunkSize
-			lastByte := firstByte + storage.MultipartCopyChunkSize - 1
+			lastByte := int64(firstByte + storage.MultipartCopyChunkSize - 1)
 			if lastByte >= srcSize {
 				lastByte = srcSize - 1
 			}
-			uploadResp, err := a.client.UploadPartCopy(&s3.UploadPartCopyInput{
+			uploadResp, err := a.client.UploadPartCopy(ctx, &s3.UploadPartCopyInput{
 				Bucket:          aws.String(a.bucket),
 				CopySource:      aws.String(path.Join(a.bucket, srcPath)),
 				Key:             aws.String(dstPath),
-				PartNumber:      aws.Int64(i + 1),
+				PartNumber:      aws.Int32(i + 1),
 				UploadId:        createResp.UploadId,
 				CopySourceRange: aws.String(fmt.Sprintf("bytes=%d-%d", firstByte, lastByte)),
 			})
 			if err == nil {
-				completedParts[i] = &s3.CompletedPart{
+				completedParts[i] = types.CompletedPart{
 					ETag:       uploadResp.CopyPartResult.ETag,
-					PartNumber: aws.Int64(i + 1),
+					PartNumber: aws.Int32(i + 1),
 				}
 			}
 			errChan <- err
@@ -150,11 +151,11 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		}
 	}
 
-	_, err = a.client.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
+	_, err = a.client.CompleteMultipartUpload(ctx, &s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
 		Key:             aws.String(dstPath),
 		UploadId:        createResp.UploadId,
-		MultipartUpload: &s3.CompletedMultipartUpload{Parts: completedParts},
+		MultipartUpload: &types.CompletedMultipartUpload{Parts: completedParts},
 	})
 	return err
 }
@@ -163,42 +164,31 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 func (a *awss3) Delete(ctx context.Context, path string) error {
 	path = storage.SanitizePath(a.rootDirectory, path)
 
-	s3Objects := make([]*s3.ObjectIdentifier, 0, storage.MaxPaginationKeys)
-	listObjectsInput := &s3.ListObjectsV2Input{
-		Bucket: aws.String(a.bucket),
-		Prefix: aws.String(path),
-	}
+	paginator := s3.NewListObjectsV2Paginator(a.client, &s3.ListObjectsV2Input{
+		Bucket:  aws.String(a.bucket),
+		Prefix:  aws.String(path),
+		MaxKeys: aws.Int32(storage.MaxPaginationKeys),
+	})
 
-	for {
-		// list all the objects
-		resp, err := a.client.ListObjectsV2(listObjectsInput)
-
-		// resp.Contents can only be empty on the first call
-		// if there were no more results to return after the first call, resp.IsTruncated would have been false
-		// and the loop would exit without recalling ListObjects
+	var s3Objects = make([]types.ObjectIdentifier, 0, storage.MaxPaginationKeys)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(context.TODO())
 		if err != nil {
-			return fmt.Errorf("failed to list objects: %w", err)
+			return err
 		}
-
-		for _, key := range resp.Contents {
+		for _, key := range output.Contents {
 			// Skip if we encounter a key that is not a subpath (so that deleting "/a" does not delete "/ab").
 			if len(*key.Key) > len(path) && (*key.Key)[len(path)] != '/' {
 				continue
 			}
-			s3Objects = append(s3Objects, &s3.ObjectIdentifier{
+			s3Objects = append(s3Objects, types.ObjectIdentifier{
 				Key: key.Key,
 			})
 		}
-
-		// Delete objects only if the list is not empty, otherwise S3 API returns a cryptic error
 		if len(s3Objects) > 0 {
-			// NOTE: according to AWS docs https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html
-			// by default the response returns up to 1,000 key names. The response _might_ contain fewer keys but it will never contain more.
-			// 10000 keys is coincidentally (?) also the max number of keys that can be deleted in a single Delete operation, so we'll just smack
-			// Delete here straight away and reset the object slice when successful.
-			resp, err := a.client.DeleteObjects(&s3.DeleteObjectsInput{
+			resp, err := a.client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 				Bucket: aws.String(a.bucket),
-				Delete: &s3.Delete{
+				Delete: &types.Delete{
 					Objects: s3Objects,
 					Quiet:   aws.Bool(false),
 				},
@@ -206,31 +196,18 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 			if err != nil {
 				return err
 			}
-
 			if len(resp.Errors) > 0 {
 				// NOTE: AWS SDK s3.Error does not implement error interface which
 				// is pretty intensely sad, so we have to do away with this for now.
-				errs := make([]error, 0, len(resp.Errors))
-				for _, err := range resp.Errors {
-					errs = append(errs, errors.New(err.String()))
-				}
-				return fmt.Errorf("failed to delete objects: %w", errs[0])
+				errs := make([]types.Error, 0, len(resp.Errors))
+				// for _, err := range resp.Errors {
+				errs = append(errs, resp.Errors...)
+				// }
+				err := errs[0]
+				return fmt.Errorf("failed to delete objects: %s, code: %s", ptr.To(err.Message), ptr.To(err.Code))
 			}
 		}
-		// NOTE: we don't want to reallocate
-		// the slice so we simply "reset" it
 		s3Objects = s3Objects[:0]
-
-		// resp.Contents must have at least one element or we would have returned not found
-		if len(resp.Contents) > 0 {
-			listObjectsInput.StartAfter = resp.Contents[len(resp.Contents)-1].Key
-		}
-
-		// from the s3 api docs, IsTruncated "specifies whether (true) or not (false) all of the results were returned"
-		// if everything has been returned, break
-		if resp.IsTruncated == nil || !*resp.IsTruncated {
-			break
-		}
 	}
 
 	return nil
@@ -238,17 +215,11 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 
 // Reader returns a reader for the given path.
 func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) {
-	resp, err := a.client.GetObject(&s3.GetObjectInput{
+	resp, err := a.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == s3.ErrCodeNoSuchKey {
-				return nil, os.ErrNotExist
-			}
-			return nil, awsErr
-		}
 		return nil, err
 	}
 	return resp.Body, err
@@ -256,14 +227,14 @@ func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) 
 
 // CreateUploadID creates a new upload ID.
 func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error) {
-	resp, err := a.client.CreateMultipartUploadWithContext(ctx, &s3.CreateMultipartUploadInput{
+	resp, err := a.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
 	})
 	if err != nil {
 		return "", err
 	}
-	return aws.StringValue(resp.UploadId), nil
+	return ptr.To(resp.UploadId), nil
 }
 
 // UploadPart uploads a part of an object.
@@ -297,40 +268,40 @@ func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumbe
 	}
 	defer fd.Close() // nolint: errcheck
 
-	resp, err := a.client.UploadPartWithContext(ctx, &s3.UploadPartInput{
+	resp, err := a.client.UploadPart(ctx, &s3.UploadPartInput{
 		Bucket:     aws.String(a.bucket),
 		Key:        aws.String(a.sanitizePath(path)),
 		UploadId:   aws.String(uploadID),
-		PartNumber: aws.Int64(partNumber),
+		PartNumber: aws.Int32(int32(partNumber)),
 		Body:       fd,
 	})
 	if err != nil {
 		return "", err
 	}
-	return aws.StringValue(resp.ETag), nil
+	return ptr.To(resp.ETag), nil
 }
 
 // CommitUpload commits an upload.
 func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts []string) error {
-	completedParts := make([]*s3.CompletedPart, len(parts))
+	completedParts := make([]types.CompletedPart, len(parts))
 	for i, part := range parts {
-		completedParts[i] = &s3.CompletedPart{
+		completedParts[i] = types.CompletedPart{
 			ETag:       aws.String(part),
-			PartNumber: aws.Int64(int64(i + 1)),
+			PartNumber: aws.Int32(int32(i + 1)),
 		}
 	}
-	_, err := a.client.CompleteMultipartUploadWithContext(ctx, &s3.CompleteMultipartUploadInput{
+	_, err := a.client.CompleteMultipartUpload(ctx, &s3.CompleteMultipartUploadInput{
 		Bucket:          aws.String(a.bucket),
 		Key:             aws.String(a.sanitizePath(path)),
 		UploadId:        aws.String(uploadID),
-		MultipartUpload: &s3.CompletedMultipartUpload{Parts: completedParts},
+		MultipartUpload: &types.CompletedMultipartUpload{Parts: completedParts},
 	})
 	return err
 }
 
 // AbortUpload aborts an upload.
 func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) error {
-	_, err := a.client.AbortMultipartUploadWithContext(ctx, &s3.AbortMultipartUploadInput{
+	_, err := a.client.AbortMultipartUpload(ctx, &s3.AbortMultipartUploadInput{
 		Bucket:   aws.String(a.bucket),
 		Key:      aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		UploadId: aws.String(uploadID),
@@ -340,7 +311,7 @@ func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) e
 
 // Upload uploads a file to the given path.
 func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
-	_, err := a.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+	_, err := a.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		Body:   body,
@@ -350,9 +321,12 @@ func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 
 // Redirect get a temporary link
 func (a *awss3) Redirect(ctx context.Context, path string) (string, error) {
-	req, _ := a.client.GetObjectRequest(&s3.GetObjectInput{
+	req, err := s3.NewPresignClient(a.client).PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
-	})
-	return req.Presign(consts.ObsPresignMaxTtl)
+	}, s3.WithPresignExpires(consts.ObsPresignMaxTtl))
+	if err != nil {
+		return "", err
+	}
+	return req.URL, nil
 }

@@ -19,17 +19,16 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v4"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
 
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func init() {
@@ -128,25 +127,24 @@ func checkStorage(config Configuration) error {
 	}
 }
 
-func checkStorageS3(config Configuration) error {
-	endpoint := config.Storage.S3.Endpoint
-	region := config.Storage.S3.Region
-	ak := config.Storage.S3.Ak
-	sk := config.Storage.S3.Sk
-	bucket := config.Storage.S3.Bucket
-	forcePathStyle := config.Storage.S3.ForcePathStyle
-
-	sess, err := session.NewSession(&aws.Config{
-		Endpoint:         aws.String(endpoint),
-		Region:           aws.String(region),
-		S3ForcePathStyle: aws.Bool(forcePathStyle),
-		Credentials:      credentials.NewStaticCredentials(ak, sk, ""),
-	})
+func checkStorageS3(cfg Configuration) error {
+	c, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(cfg.Storage.S3.Region),
+		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+			return aws.Credentials{
+				AccessKeyID:     cfg.Storage.S3.Ak,
+				SecretAccessKey: cfg.Storage.S3.Sk,
+			}, nil
+		})),
+	)
 	if err != nil {
-		return fmt.Errorf("failed to create new session with aws config: %v", err)
+		return err
 	}
-	s3Cli := s3.New(sess)
-	_, err = s3Cli.HeadBucket(&s3.HeadBucketInput{Bucket: aws.String(bucket)})
+	s3Cli := s3.NewFromConfig(c, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(cfg.Storage.S3.Endpoint)
+		o.UsePathStyle = cfg.Storage.S3.ForcePathStyle
+	})
+	_, err = s3Cli.HeadBucket(context.Background(), &s3.HeadBucketInput{Bucket: aws.String(cfg.Storage.S3.Bucket)})
 	if err != nil {
 		return fmt.Errorf("s3.HeadBucket error: %v", err)
 	}
