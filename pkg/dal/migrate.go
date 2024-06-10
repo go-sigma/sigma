@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/rs/zerolog/log"
 
@@ -87,7 +87,7 @@ func migrateSqlite() error {
 	if err != nil {
 		return fmt.Errorf("get raw db instance failed")
 	}
-	migrateDriver, err := sqlite3.WithInstance(rawDB, &sqlite3.Config{})
+	migrateDriver, err := sqlite.WithInstance(rawDB, &sqlite.Config{})
 	if err != nil {
 		return fmt.Errorf("get migrate driver failed")
 	}

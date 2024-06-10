@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.22.2-bookworm
+ARG GOLANG_VERSION=1.22.4-bookworm
 ARG NODE_VERSION=20-alpine3.19
 ARG ALPINE_VERSION=3.19
 ARG DEBIAN_VERSION=bookworm-slim
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 FROM alpine:${ALPINE_VERSION} as syft
 
 ARG USE_MIRROR=false
-ARG SYFT_VERSION=1.0.1
+ARG SYFT_VERSION=1.5.0
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
@@ -35,7 +35,7 @@ FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
-ARG TRIVY_VERSION=0.50.4
+ARG TRIVY_VERSION=0.52.0
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
@@ -89,16 +89,7 @@ RUN set -eux && \
     wget \
     xz-utils \
 	&& \
-	rm -rf /var/lib/apt/lists/* && \
-  case "${BUILDARCH}" in \
-		amd64) export ZIGARCH='x86_64' ;; \
-		arm64) export ZIGARCH='aarch64' ;; \
-	esac; \
-  wget -O zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz https://ziglang.org/download/"${ZIG_VERSION}"/zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz && \
-  tar xf zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz && \
-  mv ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}"/zig /usr/local/bin && \
-  mv ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}"/lib /usr/local/bin && \
-  rm -rf ./zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}" zig-linux-"${ZIGARCH}"-"${ZIG_VERSION}".tar.xz
+	rm -rf /var/lib/apt/lists/*
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
@@ -108,15 +99,7 @@ WORKDIR /go/src/github.com/go-sigma/sigma
 ARG TARGETOS TARGETARCH
 
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-  # case "${TARGETARCH}" in \
-	# 	amd64) export CC="zig cc -target x86_64-linux-musl" ;; \
-	# 	arm64) export CC="zig cc -target aarch64-linux-musl" ;; \
-	# esac; \
-  # case "${TARGETARCH}" in \
-	# 	amd64) export CXX="zig c++ -target x86_64-linux-musl" ;; \
-	# 	arm64) export CXX="zig c++ -target aarch64-linux-musl" ;; \
-	# esac; \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH CC="${CC}" CXX="${CXX}" make build
+  GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 
 FROM debian:${DEBIAN_VERSION}
 

@@ -1,11 +1,11 @@
-ARG GOLANG_VERSION=1.22.2-alpine3.19
+ARG GOLANG_VERSION=1.22.4-alpine3.19
 ARG BUILDKIT_VERSION=v0.13.2-rootless
 ARG ALPINE_VERSION=3.19
 
 FROM alpine:${ALPINE_VERSION} as cosign
 
 ARG USE_MIRROR=false
-ARG COSIGN_VERSION=v2.2.2
+ARG COSIGN_VERSION=v2.2.4
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
@@ -20,8 +20,7 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses build-base git openssl && \
-  apk add --no-cache zig --repository=https://mirrors.aliyun.com/alpine/edge/community
+  apk add --no-cache make bash ncurses build-base git openssl
 
 COPY . /go/src/github.com/go-sigma/sigma
 WORKDIR /go/src/github.com/go-sigma/sigma
@@ -29,15 +28,7 @@ WORKDIR /go/src/github.com/go-sigma/sigma
 ARG TARGETOS TARGETARCH
 
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-  case "${TARGETARCH}" in \
-		amd64) export CC="zig cc -target x86_64-linux-musl" ;; \
-		arm64) export CC="zig cc -target aarch64-linux-musl" ;; \
-	esac; \
-  case "${TARGETARCH}" in \
-		amd64) export CXX="zig c++ -target x86_64-linux-musl" ;; \
-		arm64) export CXX="zig c++ -target aarch64-linux-musl" ;; \
-	esac; \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH CC="${CC}" CXX="${CXX}" make build-builder
+  GOOS=$TARGETOS GOARCH=$TARGETARCH make build-builder
 
 FROM moby/buildkit:${BUILDKIT_VERSION}
 

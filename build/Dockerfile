@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.22.2-alpine3.19
+ARG GOLANG_VERSION=1.22.4-alpine3.19
 ARG NODE_VERSION=20-alpine3.19
 ARG ALPINE_VERSION=3.19
 
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && y
 
 FROM alpine:${ALPINE_VERSION} as syft
 
-ARG SYFT_VERSION=1.0.1
+ARG SYFT_VERSION=1.5.0
 ARG TARGETOS TARGETARCH
 ARG USE_MIRROR=false
 
@@ -34,7 +34,7 @@ FROM alpine:${ALPINE_VERSION} as trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
-ARG TRIVY_VERSION=0.50.4
+ARG TRIVY_VERSION=0.52.0
 ARG TARGETOS TARGETARCH
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -75,8 +75,7 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses build-base git openssl linux-headers && \
-  apk add --no-cache zig --repository=https://mirrors.aliyun.com/alpine/edge/community
+  apk add --no-cache make bash ncurses build-base git openssl linux-headers
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
@@ -86,15 +85,7 @@ WORKDIR /go/src/github.com/go-sigma/sigma
 ARG TARGETOS TARGETARCH
 
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-  # case "${TARGETARCH}" in \
-	# 	amd64) export CC="zig cc -target x86_64-linux-musl" ;; \
-	# 	arm64) export CC="zig cc -target aarch64-linux-musl" ;; \
-	# esac; \
-  # case "${TARGETARCH}" in \
-	# 	amd64) export CXX="zig c++ -target x86_64-linux-musl" ;; \
-	# 	arm64) export CXX="zig c++ -target aarch64-linux-musl" ;; \
-	# esac; \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH CC="${CC}" CXX="${CXX}" make build
+  GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 
 FROM alpine:${ALPINE_VERSION}
 
