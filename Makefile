@@ -78,7 +78,7 @@ endif
 	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
 
 ## Docker:
-docker-build: #docker-build-builder-local dockerfile-local ## Use the dockerfile to build the sigma image
+docker-build: docker-build-builder-local dockerfile-local ## Use the dockerfile to build the sigma image
 	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 docker-build-builder: ## Use the dockerfile to build the sigma-builder image
