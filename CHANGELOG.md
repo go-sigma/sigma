@@ -1,4 +1,20 @@
 
+<a name="v1.3.0"></a>
+## [v1.3.0](https://github.com/go-sigma/sigma/compare/v1.3.0-rc.1...v1.3.0) (2024-06-11)
+
+### Features
+
+* Push image to tcr ([#371](https://github.com/go-sigma/sigma/issues/371))
+* Push image to acr ([#370](https://github.com/go-sigma/sigma/issues/370))
+* Upgrade aws s3 v2 ([#369](https://github.com/go-sigma/sigma/issues/369))
+* Login on enter key down ([#367](https://github.com/go-sigma/sigma/issues/367))
+* Add icon on login page ([#366](https://github.com/go-sigma/sigma/issues/366))
+
+### Docs
+
+* Update changelog ([#365](https://github.com/go-sigma/sigma/issues/365))
+
+
 <a name="v1.3.0-rc.1"></a>
 ## [v1.3.0-rc.1](https://github.com/go-sigma/sigma/compare/v1.2.0...v1.3.0-rc.1) (2024-05-05)
 
