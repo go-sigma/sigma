@@ -7,14 +7,14 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
-Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实现了 [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0) 的协议，除了支持 docker 客户端以外，还支持其他类型的各种客户端，例如 [oras](https://github.com/oras-project/oras)，[apptainer](https://github.com/apptainer/apptainer)，[helm](https://github.com/helm/helm), [nerdctl](https://github.com/containerd/nerdctl) 等。在部署层面上完全可以做到 all-in-one 的部署，启动单个容器即可将整体的镜像仓库的所有服务启动起来，在搞可用层面也可以将各个模块分别单独灵活部署。
+Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实现了 [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0) 的协议，除了支持 docker 客户端以外，还支持其他类型的各种客户端，例如 [oras](https://github.com/oras-project/oras)，[apptainer](https://github.com/apptainer/apptainer)，[helm](https://github.com/helm/helm), [nerdctl](https://github.com/containerd/nerdctl) 等。在部署层面上完全可以做到 all-in-one 的部署，启动单个容器即可将整体的镜像仓库的所有服务启动起来，在高可用层面也可以将各个模块分别单独部署。
 
 ## 快速开始
 
 你可以用以下的一个简单的命令来运行起来 Sigma 镜像仓库:
 
 ``` bash
-docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
+docker run --name sigma -p 3000:3000 --rm ccr.ccs.tencentyun.com/go-sigma/sigma:nightly-alpine
 ```
 
 默认的用户名密码是: sigma/Admin@123, 如果你想在启动的时候初始化其他的用户名密码, 请根据[这里](https://docs.sigma.tosone.cn/docs/configuration)的配置说明来修改配置文件。
