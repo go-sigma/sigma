@@ -173,11 +173,7 @@ func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConf
 	if err != nil {
 		return err
 	}
-	err = i.Start(ctx, builderConfig)
-	if err != nil {
-		return err
-	}
-	return nil
+	return i.Start(ctx, builderConfig)
 }
 
 // LogStream get the real time log stream

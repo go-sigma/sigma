@@ -91,6 +91,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	}
 	_, err = i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("%s-%d-%d", consts.AppName, builderConfig.BuilderID, builderConfig.RunnerID),
 			Labels: map[string]string{
 				"oci-image-builder": consts.AppName,
 				"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
@@ -105,6 +106,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 					Env:     envs,
 				},
 			},
+			RestartPolicy: corev1.RestartPolicyNever,
 		},
 	}, metav1.CreateOptions{})
 	if err != nil {
@@ -115,15 +117,36 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
-	return nil
+	podName := fmt.Sprintf("%s-%d-%d", consts.AppName, builderID, runnerID)
+	return i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).
+		Delete(ctx, podName, metav1.DeleteOptions{})
 }
 
 // Restart wrap stop and start
 func (i instance) Restart(ctx context.Context, builderConfig builder.BuilderConfig) error {
-	return nil
+	podName := fmt.Sprintf("%s-%d-%d", consts.AppName, builderConfig.BuilderID, builderConfig.RunnerID)
+	err := i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Delete(ctx, podName, metav1.DeleteOptions{
+		PropagationPolicy: ptr.Of(metav1.DeletePropagationForeground),
+	})
+	if err != nil {
+		return err
+	}
+	return i.Start(ctx, builderConfig)
 }
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writer io.Writer) error {
+	podName := fmt.Sprintf("%s-%d-%d", consts.AppName, builderID, runnerID)
+	reader, err := i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).
+		GetLogs(podName, &corev1.PodLogOptions{
+			Follow: true,
+		}).Stream(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return err
+	}
 	return nil
 }
