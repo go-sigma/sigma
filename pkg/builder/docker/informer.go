@@ -38,21 +38,20 @@ func (i *instance) informer(ctx context.Context) {
 		eventsOpt := events.ListOptions{
 			Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
 		}
-		events, errs := i.client.Events(ctx, eventsOpt)
+		evts, errs := i.client.Events(ctx, eventsOpt)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case event := <-events:
-				switch event.Type { // nolint: gocritic
-				case "container":
-					log.Debug().Str("type", string(event.Type)).Str("action", string(event.Action)).Msg("Got a new docker event")
-
-					switch event.Action {
-					case "start":
-						container, err := i.client.ContainerInspect(ctx, event.Actor.ID)
+			case evt := <-evts:
+				switch evt.Type { // nolint: gocritic
+				case events.ContainerEventType:
+					log.Debug().Str("type", string(evt.Type)).Str("action", string(evt.Action)).Msg("Got a new docker event")
+					switch evt.Action {
+					case events.ActionStart:
+						container, err := i.client.ContainerInspect(ctx, evt.Actor.ID)
 						if err != nil {
-							log.Error().Err(err).Str("id", event.Actor.ID).Msg("Inspect container failed")
+							log.Error().Err(err).Str("id", evt.Actor.ID).Msg("Inspect container failed")
 							continue
 						}
 						if container.Config != nil && container.Config.Labels != nil {
@@ -67,7 +66,7 @@ func (i *instance) informer(ctx context.Context) {
 							(container.ContainerJSONBase.State.Running ||
 								container.ContainerJSONBase.State.Status == "running" || // TODO: we should test all case
 								container.ContainerJSONBase.State.Status == "exited") {
-							log.Info().Str("id", event.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container started")
+							log.Info().Str("id", evt.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container started")
 							builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name)
 							if err != nil {
 								log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
@@ -78,12 +77,12 @@ func (i *instance) informer(ctx context.Context) {
 								if err != nil {
 									log.Error().Err(err).Str("id", id).Msg("Get container log failed")
 								}
-							}(event.Actor.ID)
+							}(evt.Actor.ID)
 						}
-					case "die":
-						container, err := i.client.ContainerInspect(ctx, event.Actor.ID)
+					case events.ActionDie:
+						container, err := i.client.ContainerInspect(ctx, evt.Actor.ID)
 						if err != nil {
-							log.Error().Err(err).Str("id", event.Actor.ID).Msg("Inspect container failed")
+							log.Error().Err(err).Str("id", evt.Actor.ID).Msg("Inspect container failed")
 							continue
 						}
 						if container.Config != nil && container.Config.Labels != nil && container.ContainerJSONBase != nil {
@@ -101,14 +100,14 @@ func (i *instance) informer(ctx context.Context) {
 							continue
 						}
 
-						if !i.controlled.Contains(event.Actor.ID) {
-							err := i.logStore(ctx, event.Actor.ID, builderID, runnerID)
+						if !i.controlled.Contains(evt.Actor.ID) {
+							err := i.logStore(ctx, evt.Actor.ID, builderID, runnerID)
 							if err != nil {
-								log.Error().Err(err).Str("id", event.Actor.ID).Msg("Get container log failed")
+								log.Error().Err(err).Str("id", evt.Actor.ID).Msg("Get container log failed")
 							}
 						}
 
-						i.controlled.Remove(event.Actor.ID)
+						i.controlled.Remove(evt.Actor.ID)
 
 						builderService := i.builderServiceFactory.New()
 						updates := make(map[string]any, 1)
@@ -118,7 +117,7 @@ func (i *instance) informer(ctx context.Context) {
 									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
 									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 								}
-								log.Info().Str("id", event.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container succeed")
+								log.Info().Str("id", evt.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container succeed")
 							} else {
 								updates = map[string]any{
 									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
@@ -134,8 +133,8 @@ func (i *instance) informer(ctx context.Context) {
 						if err != nil {
 							log.Error().Err(err).Msg("Update runner failed")
 						}
-					case "destroy":
-						i.controlled.Remove(event.Actor.ID)
+					case events.ActionDestroy:
+						i.controlled.Remove(evt.Actor.ID)
 					}
 				}
 			case err := <-errs:
