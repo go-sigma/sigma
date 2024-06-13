@@ -69,13 +69,13 @@ RUN set -eux && \
   DISABLE_CGO=1 make bin/skopeo."${TARGETOS}"."${TARGETARCH}" && \
   cp bin/skopeo."${TARGETOS}"."${TARGETARCH}" /tmp/skopeo
 
-FROM golang:${GOLANG_VERSION} as builder
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
 ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses build-base git openssl linux-headers
+  apk add --no-cache make bash ncurses git openssl
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist

@@ -74,20 +74,16 @@ RUN set -eux && \
   DISABLE_CGO=1 make bin/skopeo."${TARGETOS}"."${TARGETARCH}" && \
   cp bin/skopeo."${TARGETOS}"."${TARGETARCH}" /tmp/skopeo
 
-FROM golang:${GOLANG_VERSION} as builder
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
 
 ARG USE_MIRROR=false
-ARG ZIG_VERSION=0.11.0
 ARG BUILDARCH
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list.d/debian.sources; fi && \
   apt-get update && \
 	apt-get install -y --no-install-recommends \
-		build-essential \
 		git \
-    wget \
-    xz-utils \
 	&& \
 	rm -rf /var/lib/apt/lists/*
 
