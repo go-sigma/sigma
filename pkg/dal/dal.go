@@ -28,7 +28,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
@@ -62,11 +61,6 @@ func Initialize(config configs.Configuration) error {
 		query.SetDefault(DB.Debug())
 	} else {
 		query.SetDefault(DB)
-	}
-
-	err = DB.AutoMigrate(&models.Locker{})
-	if err != nil {
-		return err
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
