@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 type cacher[T any] struct {
@@ -35,6 +36,9 @@ type cacher[T any] struct {
 
 // New returns a new Cacher.
 func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+	if config.Redis.Type != enums.RedisTypeExternal {
+		return nil, fmt.Errorf("cacher: please check redis configuration, it should be external")
+	}
 	redisOpt, err := redis.ParseURL(config.Redis.Url)
 	if err != nil {
 		return nil, err

@@ -34,6 +34,9 @@ type producer struct {
 
 // NewWorkQueueProducer ...
 func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
+	if config.Redis.Type != enums.RedisTypeExternal {
+		return nil, fmt.Errorf("work queue: please check redis configuration, it should be external")
+	}
 	redisOpt, err := asynq.ParseRedisURI(config.Redis.Url)
 	if err != nil {
 		return nil, fmt.Errorf("asynq.ParseRedisURI error: %v", err)
