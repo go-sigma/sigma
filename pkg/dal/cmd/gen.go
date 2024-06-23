@@ -50,7 +50,6 @@ func main() {
 		models.Builder{},
 		models.BuilderRunner{},
 		models.WorkQueue{},
-		models.Locker{},
 		models.Setting{},
 		models.DaemonGcTagRule{},
 		models.DaemonGcTagRunner{},
