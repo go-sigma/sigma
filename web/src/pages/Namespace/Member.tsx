@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-import Toast from 'react-hot-toast';
 import axios from "axios";
-import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { Combobox, Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import {
+  Combobox, ComboboxButton, ComboboxInput, ComboboxOption,
+  ComboboxOptions, Dialog, DialogPanel, DialogTitle, Listbox,
+  ListboxButton, ListboxOption, ListboxOptions, Menu, MenuItem,
+  MenuItems, Transition, TransitionChild
+} from "@headlessui/react";
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -267,9 +272,9 @@ export default function Member({ localServer }: { localServer: string }) {
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
-      <Transition.Root show={createUserNamespaceModal} as={Fragment}>
+      <Transition show={createUserNamespaceModal} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={setCreateUserNamespaceModal}>
-          <Transition.Child
+          <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0"
@@ -279,10 +284,10 @@ export default function Member({ localServer }: { localServer: string }) {
             leaveTo="opacity-0"
           >
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
+          </TransitionChild>
           <div className="fixed inset-0 z-10 overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="ease-out duration-300"
                 enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -291,13 +296,13 @@ export default function Member({ localServer }: { localServer: string }) {
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <Dialog.Title
+                <DialogPanel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
+                  <DialogTitle
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
                   >
                     Add member
-                  </Dialog.Title>
+                  </DialogTitle>
                   <div className="flex flex-col gap-0 mt-4">
                     <div className="grid grid-cols-6 gap-4">
                       <div className="col-span-2 flex flex-row">
@@ -316,7 +321,7 @@ export default function Member({ localServer }: { localServer: string }) {
                           }}>
                           <div className="relative mt-1">
                             <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                              <Combobox.Input
+                              <ComboboxInput
                                 id="namespace"
                                 className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
                                 displayValue={(user: IUserItem) => user.username}
@@ -324,12 +329,12 @@ export default function Member({ localServer }: { localServer: string }) {
                                   setUserSearch(event.target.value);
                                 }}
                               />
-                              <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                              <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                                 <ChevronUpDownIcon
                                   className="h-5 w-5 text-gray-400"
                                   aria-hidden="true"
                                 />
-                              </Combobox.Button>
+                              </ComboboxButton>
                             </div>
                             <Transition
                               as={Fragment}
@@ -338,7 +343,7 @@ export default function Member({ localServer }: { localServer: string }) {
                               leaveTo="opacity-0"
                               afterLeave={() => setUserSearch('')}
                             >
-                              <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
+                              <ComboboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
                                 {
                                   userList?.length === 0 ? (
                                     <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
@@ -346,22 +351,22 @@ export default function Member({ localServer }: { localServer: string }) {
                                     </div>
                                   ) : (
                                     userList?.map(user => (
-                                      <Combobox.Option
+                                      <ComboboxOption
                                         key={user.id}
-                                        className={({ active }) =>
-                                          `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                          }`
-                                        }
+                                        className={`relative cursor-pointer select-none`}
                                         value={user}
                                       >
-                                        <span className={`block truncate font-normal`}>
-                                          {user.username}
-                                        </span>
-                                      </Combobox.Option>
+                                        {({ focus, selected }) => (
+                                          <span className={`block truncate font-normal py-2 px-4 ${focus ? 'bg-gray-200 text-gray-800' : 'text-gray-900'}`}
+                                          >
+                                            {user.username}
+                                          </span>
+                                        )}
+                                      </ComboboxOption>
                                     ))
                                   )
                                 }
-                              </Combobox.Options>
+                              </ComboboxOptions>
                             </Transition>
                           </div>
                         </Combobox>
@@ -398,7 +403,7 @@ export default function Member({ localServer }: { localServer: string }) {
                             setAddNamespaceRoleRole(source);
                           }}>
                           <div className="relative w-full">
-                            <Listbox.Button
+                            <ListboxButton
                               className={() => {
                                 let cursor = ''
                                 if ((searchParams.get('code_repository_stick') || '') === 'true') {
@@ -416,41 +421,37 @@ export default function Member({ localServer }: { localServer: string }) {
                                   aria-hidden="true"
                                 />
                               </span>
-                            </Listbox.Button>
-                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                              <Transition
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                {
-                                  namespaceRoles.map(source => (
-                                    <Listbox.Option key={source.name} value={source.name} className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                      }`
-                                    }>
-                                      {({ selected }) => (
-                                        <>
-                                          <span
-                                            className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                              }`}
-                                          >
-                                            {source.name}
-                                          </span>
-                                          {
-                                            selected ? (
-                                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                              </span>
-                                            ) : null
-                                          }
-                                        </>
-                                      )}
-                                    </Listbox.Option>
-                                  ))
-                                }
-                              </Transition>
-                            </Listbox.Options>
+                            </ListboxButton>
+                            <ListboxOptions
+                              className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10"
+                            >
+                              {
+                                namespaceRoles.map(source => (
+                                  <ListboxOption key={source.name} value={source.name} className={({ active }) =>
+                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
+                                    }`
+                                  }>
+                                    {({ selected }) => (
+                                      <>
+                                        <span
+                                          className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                            }`}
+                                        >
+                                          {source.name}
+                                        </span>
+                                        {
+                                          selected ? (
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
+                                              <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                            </span>
+                                          ) : null
+                                        }
+                                      </>
+                                    )}
+                                  </ListboxOption>
+                                ))
+                              }
+                            </ListboxOptions>
                           </div>
                         </Listbox>
                       </div>
@@ -472,12 +473,12 @@ export default function Member({ localServer }: { localServer: string }) {
                       </button>
                     </div>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                </DialogPanel>
+              </TransitionChild>
             </div>
           </div>
         </Dialog>
-      </Transition.Root>
+      </Transition>
     </Fragment >
   );
 }
@@ -559,8 +560,8 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-              <Menu.Item>
+            <MenuItems className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
+              <MenuItem>
                 {({ active }) => (
                   <div
                     className={
@@ -572,8 +573,8 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                     Update
                   </div>
                 )}
-              </Menu.Item>
-              <Menu.Item>
+              </MenuItem>
+              <MenuItem>
                 {({ active }) => (
                   <div
                     className={
@@ -584,15 +585,15 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                     Delete
                   </div>
                 )}
-              </Menu.Item>
-            </Menu.Items>
+              </MenuItem>
+            </MenuItems>
           </Transition>
         </Menu>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition.Root show={updateUserNamespaceModal} as={Fragment}>
+        <Transition show={updateUserNamespaceModal} as={Fragment}>
           <Dialog as="div" className="relative z-10" onClose={setUpdateUserNamespaceModal}>
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0"
@@ -602,10 +603,10 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
               leaveTo="opacity-0"
             >
               <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
+            </TransitionChild>
             <div className="fixed inset-0 z-10 overflow-y-auto">
               <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <Transition.Child
+                <TransitionChild
                   as={Fragment}
                   enter="ease-out duration-300"
                   enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -614,13 +615,13 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                   leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                   leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
-                  <Dialog.Panel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                    <Dialog.Title
+                  <DialogPanel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
+                    <DialogTitle
                       as="h3"
                       className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
                     >
                       Update member
-                    </Dialog.Title>
+                    </DialogTitle>
                     <div className="flex flex-col gap-0 mt-4">
                       {/* <div className="grid grid-cols-6 gap-4">
                         <div className="col-span-2 flex flex-row">
@@ -721,7 +722,7 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                               setAddNamespaceRoleRole(source);
                             }}>
                             <div className="relative w-full">
-                              <Listbox.Button
+                              <ListboxButton
                                 className={() => {
                                   let cursor = 'cursor-pointer '
                                   return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm min-w-[200px]"
@@ -734,41 +735,36 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                                     aria-hidden="true"
                                   />
                                 </span>
-                              </Listbox.Button>
-                              <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                                <Transition
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                >
-                                  {
-                                    namespaceRoles.map(source => (
-                                      <Listbox.Option key={source.name} value={source.name} className={({ active }) =>
-                                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                        }`
-                                      }>
-                                        {({ selected }) => (
-                                          <>
-                                            <span
-                                              className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                                }`}
-                                            >
-                                              {source.name}
-                                            </span>
-                                            {
-                                              selected ? (
-                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                                  <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                </span>
-                                              ) : null
-                                            }
-                                          </>
-                                        )}
-                                      </Listbox.Option>
-                                    ))
-                                  }
-                                </Transition>
-                              </Listbox.Options>
+                              </ListboxButton>
+                              <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
+
+                                {
+                                  namespaceRoles.map(source => (
+                                    <ListboxOption key={source.name} value={source.name} className={({ active }) =>
+                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
+                                      }`
+                                    }>
+                                      {({ selected }) => (
+                                        <>
+                                          <span
+                                            className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                              }`}
+                                          >
+                                            {source.name}
+                                          </span>
+                                          {
+                                            selected ? (
+                                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
+                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                              </span>
+                                            ) : null
+                                          }
+                                        </>
+                                      )}
+                                    </ListboxOption>
+                                  ))
+                                }
+                              </ListboxOptions>
                             </div>
                           </Listbox>
                         </div>
@@ -790,12 +786,12 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
                         </button>
                       </div>
                     </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+                  </DialogPanel>
+                </TransitionChild>
               </div>
             </div>
           </Dialog>
-        </Transition.Root>
+        </Transition>
       </td>
     </tr>
   )
