@@ -60,14 +60,23 @@ func Serve(serverConfig ServerConfig) error {
 	e.HidePort = true
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			log.Debug().
-				Str("method", c.Request().Method).
-				Str("path", c.Request().URL.Path).
-				Str("query", c.Request().URL.RawQuery).
-				// Interface("req-header", c.Request().Header).
-				// Interface("resp-header", c.Response().Header()).
-				// Int("status", c.Response().Status).
-				Msg("Request debugger")
+			if c.Request().URL.Path == "/healthz" ||
+				c.Request().URL.Path == "/metrics" {
+				log.Trace().
+					Str("method", c.Request().Method).
+					Str("path", c.Request().URL.Path).
+					Str("query", c.Request().URL.RawQuery).
+					Msg("Request debugger")
+			} else {
+				log.Debug().
+					Str("method", c.Request().Method).
+					Str("path", c.Request().URL.Path).
+					Str("query", c.Request().URL.RawQuery).
+					// Interface("req-header", c.Request().Header).
+					// Interface("resp-header", c.Response().Header()).
+					// Int("status", c.Response().Status).
+					Msg("Request debugger")
+			}
 			reqPath := c.Request().URL.Path
 			if strings.HasPrefix(reqPath, "/assets/") {
 				if strings.HasSuffix(c.Request().URL.Path, ".js") ||
