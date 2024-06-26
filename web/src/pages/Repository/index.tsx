@@ -18,13 +18,13 @@ import "./index.css";
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { Dialog, DialogPanel, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition, TransitionChild } from "@headlessui/react";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { useDebounce } from "react-use";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useDebounce } from "react-use";
+import { Dialog, DialogPanel, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition, TransitionChild } from "@headlessui/react";
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -38,6 +38,7 @@ import Toast from "../../components/Notification";
 import calcUnit from "../../utils/calcUnit";
 import { IHTTPError, INamespaceItem, IOrder, IRepositoryItem, IRepositoryList, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
+import TableItemDropdown from "../../components/Menu/TableItemDropdown";
 
 export default function ({ localServer }: { localServer: string }) {
   const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
@@ -661,58 +662,23 @@ function TableItem({ localServer, index, user, namespace, repository, setRefresh
         {dayjs.utc(repository.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="pr-3 whitespace-nowrap">
-        <Menu as="div" className="relative flex-none" onClick={e => {
-          e.stopPropagation();
-        }}>
-          <MenuButton className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-            <span className="sr-only">Open options</span>
-            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-          </MenuButton>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <MenuItems className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-              <MenuItem>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-100' : '') +
-                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer ' : ' cursor-not-allowed ') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                    }
-                    onClick={e => {
-                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setUpdateRepositoryModal(true);
-                    }}
-                  >
-                    Update
-                  </div>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-50' : '') +
-                      (((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
-                    }
-                    onClick={e => {
-                      ((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))) && setDeleteRepositoryModal(true);
-                    }}
-                  >
-                    Delete
-                  </div>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+        <TableItemDropdown index={index}
+          items={
+            [
+              {
+                name: "Update",
+                disable: !((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))),
+                onClick: () => { setUpdateRepositoryModal(true) },
+              },
+              {
+                name: "Delete",
+                disable: !((user.role == UserRole.Admin || user.role == UserRole.Root || (namespace.role != undefined && (namespace.role == NamespaceRole.Admin || namespace.role == NamespaceRole.Manager)))),
+                warn: true,
+                onClick: () => { setDeleteRepositoryModal(true) },
+              },
+            ]
+          }
+        />
       </td>
       <td>
         <Transition show={updateRepositoryModal} as={Fragment}>

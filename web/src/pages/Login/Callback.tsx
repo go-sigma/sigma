@@ -16,12 +16,12 @@
 
 import "./index.css";
 
-import { IHTTPError, IUserLoginResponse, IUserSelf } from "../../interfaces";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
+import { IHTTPError, IUserLoginResponse, IUserSelf } from "../../interfaces";
 import Toast from "../../components/Notification";
-import axios from "axios";
 
 export default function ({ localServer }: { localServer: string }) {
   const { provider } = useParams<{ provider: string }>();

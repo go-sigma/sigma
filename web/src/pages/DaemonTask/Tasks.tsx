@@ -29,7 +29,6 @@ import { Tooltip } from 'flowbite';
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
-import Settings from "../../Settings";
 import {
   IGcArtifactRule,
   IGcArtifactRunnerItem,
