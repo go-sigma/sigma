@@ -20,6 +20,7 @@
     "@tailwindcss/typography": "^0.5.13",
     "axios": "^1.7.2",
     "bytemd": "^1.21.0",
+    "clsx": "^2.1.1",
     "cron-parser": "^4.9.0",
     "csstype": "^3.1.3",
     "dayjs": "^1.11.11",
@@ -56,5 +57,5 @@
     "typescript": "^5.4.5",
     "vite": "^5.2.13"
   },
-  "packageManager": "yarn@4.2.1"
+  "packageManager": "yarn@4.3.1"
 }

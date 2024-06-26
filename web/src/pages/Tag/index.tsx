@@ -17,7 +17,7 @@
 import axios from "axios";
 import dayjs from 'dayjs';
 import humanFormat from "human-format";
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Dialog, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Fragment, useEffect, useState } from "react";
@@ -289,9 +289,9 @@ export default function Tag({ localServer }: { localServer: string }) {
                             <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
                           </div>
                           <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                            <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                            <DialogTitle as="h3" className="text-base font-semibold leading-6 text-gray-900">
                               Delete tag
-                            </Dialog.Title>
+                            </DialogTitle>
                             <div className="mt-2">
                               <p className="text-sm text-gray-500">
                                 Are you sure you want to delete the tag <span className="text-black font-medium">{deleteTagModalTag.name}</span>
@@ -372,10 +372,10 @@ export default function Tag({ localServer }: { localServer: string }) {
                           <Menu as="div" className="relative flex-none" onClick={e => {
                             e.stopPropagation();
                           }}>
-                            <Menu.Button className="mx-auto my-auto block p-1 text-gray-500 hover:text-gray-900 margin">
+                            <MenuButton className="mx-auto my-auto block p-1 text-gray-500 hover:text-gray-900 margin">
                               <span className="sr-only">Open options</span>
                               <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                            </Menu.Button>
+                            </MenuButton>
                             <Transition
                               as={Fragment}
                               enter="transition ease-out duration-100"
@@ -385,8 +385,8 @@ export default function Tag({ localServer }: { localServer: string }) {
                               leaveFrom="transform opacity-100 scale-100"
                               leaveTo="transform opacity-0 scale-95"
                             >
-                              <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                                <Menu.Item>
+                              <MenuItems className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
+                                <MenuItem>
                                   {({ active }) => (
                                     <div
                                       className={
@@ -402,8 +402,8 @@ export default function Tag({ localServer }: { localServer: string }) {
                                       Delete
                                     </div>
                                   )}
-                                </Menu.Item>
-                              </Menu.Items>
+                                </MenuItem>
+                              </MenuItems>
                             </Transition>
                           </Menu>
                         </div>
