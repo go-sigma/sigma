@@ -1,9 +1,9 @@
-ARG GOLANG_VERSION=1.22.4-bookworm
+ARG GOLANG_VERSION=1.22.5-bookworm
 ARG NODE_VERSION=20-alpine3.19
 ARG ALPINE_VERSION=3.19
 ARG DEBIAN_VERSION=bookworm-slim
 
-FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} as web-builder
+FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS web-builder
 
 ARG USE_MIRROR=false
 
@@ -17,7 +17,7 @@ WORKDIR /web
 
 RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && yarn install --immutable && yarn build
 
-FROM alpine:${ALPINE_VERSION} as syft
+FROM alpine:${ALPINE_VERSION} AS syft
 
 ARG USE_MIRROR=false
 ARG SYFT_VERSION=1.5.0
@@ -31,7 +31,7 @@ RUN set -eux && \
   mv syft /usr/local/bin/syft && \
   rm syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz
 
-FROM alpine:${ALPINE_VERSION} as trivy
+FROM alpine:${ALPINE_VERSION} AS trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
@@ -54,10 +54,10 @@ RUN set -eux && \
   if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress; fi && \
   trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as skopeo
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS skopeo
 
 ARG USE_MIRROR=false
-ARG SKOPEO_VERSION=1.15.0
+ARG SKOPEO_VERSION=1.15.1
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
@@ -74,7 +74,7 @@ RUN set -eux && \
   DISABLE_CGO=1 make bin/skopeo."${TARGETOS}"."${TARGETARCH}" && \
   cp bin/skopeo."${TARGETOS}"."${TARGETARCH}" /tmp/skopeo
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder
 
 ARG USE_MIRROR=false
 ARG BUILDARCH
