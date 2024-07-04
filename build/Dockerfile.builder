@@ -1,8 +1,8 @@
-ARG GOLANG_VERSION=1.22.4-alpine3.19
+ARG GOLANG_VERSION=1.22.5-alpine3.19
 ARG BUILDKIT_VERSION=v0.13.2-rootless
 ARG ALPINE_VERSION=3.19
 
-FROM alpine:${ALPINE_VERSION} as cosign
+FROM alpine:${ALPINE_VERSION} AS cosign
 
 ARG USE_MIRROR=false
 ARG COSIGN_VERSION=v2.2.4
@@ -14,7 +14,7 @@ RUN set -eux && \
   wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}" && \
   chmod +x /tmp/cosign
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} as builder
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder
 
 ARG USE_MIRROR=false
 
