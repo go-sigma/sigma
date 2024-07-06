@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 
@@ -39,7 +38,6 @@ func TestBlobServiceFactory(t *testing.T) {
 }
 
 func TestBlobService(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())

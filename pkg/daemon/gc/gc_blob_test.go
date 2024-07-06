@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -37,7 +36,6 @@ import (
 )
 
 func TestGcBlobNormal(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 	assert.NoError(t, tests.Initialize(t))
 	assert.NoError(t, tests.DB.Init())

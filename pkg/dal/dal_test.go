@@ -21,10 +21,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/jackc/pgx/v4"
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -35,8 +33,6 @@ import (
 
 func TestInitialize(t *testing.T) {
 	logger.SetLevel("debug")
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
 
@@ -110,12 +106,9 @@ func TestInitialize(t *testing.T) {
 }
 
 func TestInitialize1(t *testing.T) {
-	viper.SetDefault("log.level", "debug")
 	logger.SetLevel("debug")
 
 	dbPath := fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	err := dal.Initialize(configs.Configuration{
 		Database: configs.ConfigurationDatabase{
