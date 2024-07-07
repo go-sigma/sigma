@@ -37,9 +37,10 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/users/login [post]
-//	@Failure	500	{object}	xerrors.ErrCode
-//	@Failure	401	{object}	xerrors.ErrCode
-//	@Success	200	{object}	types.PostUserLoginResponse
+//	@Param		message	body		types.PostUserLoginRequest	true	"User login object"
+//	@Failure	500		{object}	xerrors.ErrCode
+//	@Failure	401		{object}	xerrors.ErrCode
+//	@Success	200		{object}	types.PostUserLoginResponse
 func (h *handler) Login(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 

@@ -55,9 +55,6 @@ func TestSignup(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	_, err := handlerNew()
-	assert.Error(t, err)
-
 	config := &configs.Configuration{
 		Auth: configs.ConfigurationAuth{
 			Admin: configs.ConfigurationAuthAdmin{

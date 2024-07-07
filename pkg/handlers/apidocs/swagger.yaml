@@ -1046,6 +1046,22 @@ definitions:
         example: 21911
         type: integer
     type: object
+  types.PostUserLoginRequest:
+    properties:
+      password:
+        example: Admin@123
+        maxLength: 20
+        minLength: 5
+        type: string
+      username:
+        example: sigma
+        maxLength: 20
+        minLength: 2
+        type: string
+    required:
+    - password
+    - username
+    type: object
   types.PostUserLoginResponse:
     properties:
       email:
@@ -4725,6 +4741,13 @@ paths:
     post:
       consumes:
       - application/json
+      parameters:
+      - description: User login object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostUserLoginRequest'
       produces:
       - application/json
       responses:
