@@ -26,7 +26,6 @@ import (
 	"github.com/labstack/echo/v4"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -78,8 +77,8 @@ func (h *handler) Callback(c echo.Context) error {
 	switch req.Provider {
 	case enums.ProviderGithub:
 		conf = &oauth2.Config{
-			ClientID:     viper.GetString("auth.oauth2.github.clientId"),
-			ClientSecret: viper.GetString("auth.oauth2.github.clientSecret"),
+			ClientID:     h.config.Auth.Oauth2.Github.ClientID,
+			ClientSecret: h.config.Auth.Oauth2.Github.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://github.com/login/oauth/authorize",
 				TokenURL: "https://github.com/login/oauth/access_token",
@@ -87,8 +86,8 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	case enums.ProviderGitlab:
 		conf = &oauth2.Config{
-			ClientID:     viper.GetString("auth.oauth2.gitlab.clientId"),
-			ClientSecret: viper.GetString("auth.oauth2.gitlab.clientSecret"),
+			ClientID:     h.config.Auth.Oauth2.Gitlab.ClientID,
+			ClientSecret: h.config.Auth.Oauth2.Gitlab.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
@@ -99,8 +98,8 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	case enums.ProviderGitea:
 		conf = &oauth2.Config{
-			ClientID:     viper.GetString("auth.oauth2.gitea.clientId"),
-			ClientSecret: viper.GetString("auth.oauth2.gitea.clientSecret"),
+			ClientID:     h.config.Auth.Oauth2.Gitea.ClientID,
+			ClientSecret: h.config.Auth.Oauth2.Gitea.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
@@ -270,13 +269,13 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	}
 
-	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

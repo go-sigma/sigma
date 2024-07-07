@@ -95,7 +95,7 @@ jobs:
         run: |
           CI_DATABASE_TYPE=sqlite3 go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss" | grep -v "pkg/modules/locker/definition/mocks" | grep -v "pkg/signing/definition/mocks"`
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit-test-sqlite3
@@ -184,7 +184,7 @@ jobs:
         run: |
           CI_DATABASE_TYPE=postgresql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss" | grep -v "pkg/modules/locker/definition/mocks" | grep -v "pkg/signing/definition/mocks"`
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit-test-postgresql
@@ -274,7 +274,7 @@ jobs:
         run: |
           CI_DATABASE_TYPE=mysql go test -parallel 1 -failfast -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -timeout 30m -v -coverprofile=coverage.txt -covermode=atomic `go list ./... | grep -v "pkg/tests" | grep -v "pkg/dal/query" | grep -v "pkg/dal/cmd" | grep -v "pkg/types/enums" | grep -v "pkg/handlers/apidocs" | grep -v "pkg/utils/token/mocks" | grep -v "pkg/utils/password/mocks" | grep -v "pkg/handlers/distribution/clients/mocks" | grep -v "pkg/storage/cos" | grep -v "pkg/storage/oss" | grep -v "pkg/modules/locker/definition/mocks" | grep -v "pkg/signing/definition/mocks"`
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit-test-mysql

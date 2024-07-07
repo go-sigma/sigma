@@ -20,7 +20,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -51,7 +50,7 @@ func (h *handler) Token(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))
+	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -59,7 +58,7 @@ func (h *handler) Token(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, types.PostUserTokenResponse{
 		Token:     token,
-		ExpiresIn: int(viper.GetDuration("auth.jwt.ttl").Seconds()),
+		ExpiresIn: int(h.config.Auth.Jwt.Ttl.Seconds()),
 		IssuedAt:  time.Now().Format(time.RFC3339),
 	})
 }

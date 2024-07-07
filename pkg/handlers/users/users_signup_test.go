@@ -23,9 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -45,6 +43,7 @@ import (
 
 func TestSignup(t *testing.T) {
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))
@@ -55,9 +54,6 @@ func TestSignup(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	viper.Reset()
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	_, err := handlerNew()
 	assert.Error(t, err)
@@ -141,9 +137,6 @@ func TestSignupMockToken1(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
-
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
 	assert.NoError(t, err)
 
@@ -177,9 +170,6 @@ func TestSignupMockToken2(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
-
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
 	assert.NoError(t, err)
 
@@ -219,10 +209,6 @@ func TestSignupMockToken3(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
 	assert.NoError(t, err)
 
@@ -256,10 +242,6 @@ func TestSignupMockPassword(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{passwordService: passwordMock})
 	assert.NoError(t, err)
 
@@ -273,8 +255,8 @@ func TestSignupMockPassword(t *testing.T) {
 }
 
 func TestSignupMockDAO(t *testing.T) {
-	viper.Reset()
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -287,8 +269,6 @@ func TestSignupMockDAO(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	err := inits.Initialize(configs.Configuration{
 		Auth: configs.ConfigurationAuth{
@@ -320,7 +300,6 @@ func TestSignupMockDAO(t *testing.T) {
 		return daoMockUserService
 	}).Times(1)
 
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{userServiceFactory: daoMockUserServiceFactory})
 	assert.NoError(t, err)
 

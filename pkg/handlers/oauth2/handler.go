@@ -100,9 +100,9 @@ func (f factory) Initialize(e *echo.Echo) error {
 	oauth2Mapper := viper.GetStringMap("auth.oauth2")
 	var skipAuths = make([]string, 0, len(oauth2Mapper))
 	for key := range oauth2Mapper {
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", key))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", key))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", key))
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(key)))
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(key)))
+		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(key)))
 	}
 	oauth2Group.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
 		Skipper: func(c echo.Context) bool {

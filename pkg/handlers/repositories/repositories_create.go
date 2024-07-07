@@ -21,7 +21,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -104,8 +103,8 @@ func (h *handler) CreateRepository(c echo.Context) error {
 	}
 	repositoryService := h.repositoryServiceFactory.New()
 	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{
-		AutoCreate: viper.GetBool("namespace.autoCreate"),
-		Visibility: enums.MustParseVisibility(viper.GetString("namespace.visibility")),
+		AutoCreate: h.config.Namespace.AutoCreate,
+		Visibility: h.config.Namespace.Visibility,
 		UserID:     user.ID,
 	})
 	if err != nil {

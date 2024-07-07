@@ -20,7 +20,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	pwdvalidate "github.com/wagslane/go-password-validator"
 
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -71,13 +70,13 @@ func (h *handler) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	refreshToken, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user.ID, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

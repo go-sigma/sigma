@@ -21,6 +21,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -45,6 +46,7 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
+	config                   *configs.Configuration
 	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
@@ -55,6 +57,7 @@ type handler struct {
 }
 
 type inject struct {
+	config                   *configs.Configuration
 	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
@@ -66,46 +69,44 @@ type inject struct {
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(injects ...inject) Handler {
-	authServiceFactory := auth.NewAuthServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	tagServiceFactory := dao.NewTagServiceFactory()
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	builderServiceFactory := dao.NewBuilderServiceFactory()
+	h := &handler{}
+
+	h.config = configs.GetConfiguration()
+	h.authServiceFactory = auth.NewAuthServiceFactory()
+	h.auditServiceFactory = dao.NewAuditServiceFactory()
+	h.namespaceServiceFactory = dao.NewNamespaceServiceFactory()
+	h.repositoryServiceFactory = dao.NewRepositoryServiceFactory()
+	h.tagServiceFactory = dao.NewTagServiceFactory()
+	h.artifactServiceFactory = dao.NewArtifactServiceFactory()
+	h.builderServiceFactory = dao.NewBuilderServiceFactory()
 	if len(injects) > 0 {
 		ij := injects[0]
+		if ij.config != nil {
+			h.config = ij.config
+		}
 		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
+			h.authServiceFactory = ij.authServiceFactory
 		}
 		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
+			h.auditServiceFactory = ij.auditServiceFactory
 		}
 		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
+			h.namespaceServiceFactory = ij.namespaceServiceFactory
 		}
 		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
+			h.repositoryServiceFactory = ij.repositoryServiceFactory
 		}
 		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
+			h.tagServiceFactory = ij.tagServiceFactory
 		}
 		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
+			h.artifactServiceFactory = ij.artifactServiceFactory
 		}
 		if ij.builderServiceFactory != nil {
-			builderServiceFactory = ij.builderServiceFactory
+			h.builderServiceFactory = ij.builderServiceFactory
 		}
 	}
-	return &handler{
-		authServiceFactory:       authServiceFactory,
-		auditServiceFactory:      auditServiceFactory,
-		namespaceServiceFactory:  namespaceServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		tagServiceFactory:        tagServiceFactory,
-		artifactServiceFactory:   artifactServiceFactory,
-		builderServiceFactory:    builderServiceFactory,
-	}
+	return h
 }
 
 type factory struct{}

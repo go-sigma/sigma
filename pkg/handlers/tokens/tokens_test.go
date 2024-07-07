@@ -19,9 +19,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -69,7 +67,6 @@ func TestToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 
@@ -104,8 +101,8 @@ func TestToken(t *testing.T) {
 }
 
 func TestTokenMockDAO(t *testing.T) {
-	viper.Reset()
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -118,8 +115,6 @@ func TestTokenMockDAO(t *testing.T) {
 		assert.NoError(t, conn.Close())
 		assert.NoError(t, tests.DB.DeInit())
 	}()
-
-	viper.SetDefault("redis.url", "redis://"+miniredis.RunT(t).Addr())
 
 	config := &configs.Configuration{
 		Auth: configs.ConfigurationAuth{
@@ -140,7 +135,6 @@ func TestTokenMockDAO(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)
 

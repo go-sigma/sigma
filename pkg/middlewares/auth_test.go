@@ -22,9 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -45,8 +43,25 @@ const (
 )
 
 func Test_genWwwAuthenticate(t *testing.T) {
-	viper.SetDefault("auth.token.realm", "http://localhost:8080/user/token")
-	viper.SetDefault("auth.token.service", "XImager-dev")
+	logger.SetLevel("debug")
+
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+			Token: configs.ConfigurationAuthToken{
+				Realm:   "http://localhost:8080/user/token",
+				Service: "sigma-dev",
+			},
+		},
+	}
+	configs.SetConfiguration(config)
 
 	type args struct {
 		host   string
@@ -63,7 +78,7 @@ func Test_genWwwAuthenticate(t *testing.T) {
 				host:   "localhost:8080",
 				schema: "http",
 			},
-			want: "Bearer realm=\"http://localhost:8080/user/token\",service=\"XImager-dev\"",
+			want: "Bearer realm=\"http://localhost:8080/user/token\",service=\"sigma-dev\"",
 		},
 	}
 	for _, tt := range tests {
@@ -77,6 +92,7 @@ func Test_genWwwAuthenticate(t *testing.T) {
 
 func TestAuthWithConfig(t *testing.T) {
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))
@@ -98,11 +114,6 @@ func TestAuthWithConfig(t *testing.T) {
 		},
 	}))
 
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
-
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
 	hDS := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
@@ -123,7 +134,7 @@ func TestAuthWithConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
-	tokenService, err := token.NewTokenService(viper.GetString("auth.jwt.privateKey"))
+	tokenService, err := token.NewTokenService(privateKeyString)
 	assert.NoError(t, err)
 
 	userServiceFactory := dao.NewUserServiceFactory()
@@ -162,7 +173,26 @@ func TestAuthWithConfigSkipper(t *testing.T) {
 }
 
 func TestAuthWithConfigPrivateKey(t *testing.T) {
-	viper.SetDefault("auth.jwt.privateKey", privateKeyStringInvalid)
+	logger.SetLevel("debug")
+
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyStringInvalid,
+			},
+			Token: configs.ConfigurationAuthToken{
+				Realm:   "http://localhost:8080/user/token",
+				Service: "sigma-dev",
+			},
+		},
+	}
+	configs.SetConfiguration(config)
+
 	mr := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
@@ -183,7 +213,26 @@ func TestAuthWithConfigPrivateKey(t *testing.T) {
 }
 
 func TestAuthWithConfigInvalidBasicAuth(t *testing.T) {
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
+	logger.SetLevel("debug")
+
+	config := &configs.Configuration{
+		Auth: configs.ConfigurationAuth{
+			Admin: configs.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
+			},
+			Jwt: configs.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
+			},
+			Token: configs.ConfigurationAuthToken{
+				Realm:   "http://localhost:8080/user/token",
+				Service: "sigma-dev",
+			},
+		},
+	}
+	configs.SetConfiguration(config)
+
 	mr := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
