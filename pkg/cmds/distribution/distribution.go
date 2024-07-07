@@ -26,7 +26,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -79,10 +78,27 @@ func Serve() error {
 	}
 
 	go func() {
-		log.Info().Str("addr", viper.GetString("http.server")).Msg("Server listening")
-		err = e.Start(viper.GetString("http.server"))
-		if err != http.ErrServerClosed {
-			log.Fatal().Err(err).Msg("Listening on interface failed")
+		log.Info().Str("addr", consts.DistributionPort).Msg("Server listening")
+		if config.HTTP.TLS.Enabled {
+			crtBytes, err := os.ReadFile(config.HTTP.TLS.Certificate)
+			if err != nil {
+				log.Fatal().Err(err).Str("certificate", config.HTTP.TLS.Certificate).Msgf("Read certificate failed")
+				return
+			}
+			keyBytes, err := os.ReadFile(config.HTTP.TLS.Key)
+			if err != nil {
+				log.Fatal().Err(err).Str("key", config.HTTP.TLS.Key).Msgf("Read key failed")
+				return
+			}
+			err = e.StartTLS(consts.DistributionPort, crtBytes, keyBytes)
+			if err != http.ErrServerClosed {
+				log.Fatal().Err(err).Msg("Listening on interface failed")
+			}
+		} else {
+			err = e.Start(consts.DistributionPort)
+			if err != http.ErrServerClosed {
+				log.Fatal().Err(err).Msg("Listening on interface failed")
+			}
 		}
 	}()
 

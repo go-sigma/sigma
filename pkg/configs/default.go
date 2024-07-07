@@ -18,19 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func defaultSettings() {
-	viper.SetDefault("auth.jwt.type", "RS256")            // the jwt token type
-	viper.SetDefault("auth.jwt.ttl", time.Hour)           // the jwt token ttl
-	viper.SetDefault("auth.jwt.refreshTtl", time.Hour*24) // the refresh token ttl
-
-	viper.SetDefault("server.endpoint", "http://127.0.0.1:3000")
-	viper.SetDefault("server.internalEndpoint", "http://127.0.0.1:3000")
-
 	if configuration.HTTP.Endpoint == "" {
 		configuration.HTTP.Endpoint = "http://127.0.0.1:3000"
 	}

@@ -133,6 +133,8 @@ const (
 	ServerPort = "0.0.0.0:3000"
 	// WorkerPort worker port
 	WorkerPort = "0.0.0.0:3001"
+	// DistributionPort distribution port
+	DistributionPort = "0.0.0.0:3002"
 )
 
 const (
