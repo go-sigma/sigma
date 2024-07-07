@@ -270,13 +270,13 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	}
 
-	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.ttl"))
+	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user3rdPartyObj.User.ID, viper.GetDuration("auth.jwt.refreshTtl"))
+	token, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

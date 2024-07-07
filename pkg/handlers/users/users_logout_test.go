@@ -22,9 +22,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -54,10 +52,6 @@ func TestLogout(t *testing.T) {
 		return "test", "id", nil
 	}).AnyTimes()
 
-	miniRedis := miniredis.RunT(t)
-	viper.SetDefault("redis.url", "redis://"+miniRedis.Addr())
-
-	viper.SetDefault("auth.jwt.privateKey", privateKeyString)
 	userHandler, err := handlerNew(inject{tokenService: tokenMock})
 	assert.NoError(t, err)
 
