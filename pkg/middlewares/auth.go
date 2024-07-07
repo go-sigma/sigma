@@ -22,9 +22,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/utils/password"
@@ -50,8 +50,8 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			privateKey := viper.GetString("auth.jwt.privateKey")
-			tokenService, err := token.NewTokenService(privateKey)
+			cfg := configs.GetConfiguration()
+			tokenService, err := token.NewTokenService(cfg.Auth.Jwt.PrivateKey)
 			if err != nil {
 				log.Error().Err(err).Msg("Create token service failed")
 				if config.DS {
@@ -163,18 +163,14 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 }
 
 func genWwwAuthenticate(host, schema string) string {
-	if viper.GetString("server.domain") != "" {
-		host = viper.GetString("server.domain")
-	}
+	cfg := configs.GetConfiguration()
 	realm := fmt.Sprintf("%s://%s%s/tokens", schema, host, consts.APIV1)
-	rRealm := viper.GetString("auth.token.realm")
-	if rRealm != "" {
-		realm = rRealm
+	if cfg.Auth.Token.Realm != "" {
+		realm = cfg.Auth.Token.Realm
 	}
 	service := consts.AppName
-	rService := viper.GetString("auth.token.service")
-	if rService != "" {
-		service = rService
+	if cfg.Auth.Token.Service != "" {
+		service = cfg.Auth.Token.Service
 	}
 	return fmt.Sprintf("Bearer realm=\"%s\",service=\"%s\"", realm, service)
 }
