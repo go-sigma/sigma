@@ -4599,6 +4599,17 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "User login object",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.PostUserLoginRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7117,6 +7128,27 @@ const docTemplate = `{
                 "id": {
                     "type": "integer",
                     "example": 21911
+                }
+            }
+        },
+        "types.PostUserLoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 5,
+                    "example": "Admin@123"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 2,
+                    "example": "sigma"
                 }
             }
         },

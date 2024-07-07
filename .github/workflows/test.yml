@@ -64,7 +64,7 @@ jobs:
           ./scripts/run_minio.sh
           sleep 5
       - name: Download cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /home/runner/.cache/go-build
           key: ${{ runner.os }}-go-test-sqlite3-${{ github.sha }}

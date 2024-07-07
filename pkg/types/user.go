@@ -64,6 +64,12 @@ type UserItem struct {
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
+// PostUserLoginRequest ...
+type PostUserLoginRequest struct {
+	Username string `json:"username" validate:"required,is_valid_username,min=2,max=20" example:"sigma"`
+	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"Admin@123"`
+}
+
 // PostUserLoginResponse ...
 type PostUserLoginResponse struct {
 	RefreshToken string `json:"refresh_token"`
