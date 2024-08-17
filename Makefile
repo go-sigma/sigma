@@ -68,7 +68,7 @@ ifeq ($(shell test -e ./Dockerfile && echo -n yes),yes)
 endif
 
 lint-go: ## Use golintci-lint on your project
-	@golangci-lint run --deadline=10m --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
+	@golangci-lint run --timeout=10m --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)

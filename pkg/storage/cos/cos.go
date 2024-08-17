@@ -16,6 +16,7 @@ package cos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -176,7 +177,7 @@ func (t *tencentcos) Delete(ctx context.Context, path string) error {
 			if len(resp.DeletedObjects) != len(objects) {
 				errs := make([]error, 0, len(resp.Errors))
 				for _, err := range resp.Errors {
-					errs = append(errs, fmt.Errorf(err.Message))
+					errs = append(errs, errors.New(err.Message))
 				}
 				return fmt.Errorf("Delete objects failed: %+v", errs)
 			}

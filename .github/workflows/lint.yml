@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.22"]
+        go: ["1.23"]
         node: ["20"]
     steps:
       - name: Checkout branch
@@ -42,8 +42,8 @@ jobs:
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.55.2
-          args: --deadline=30m --verbose --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
+          version: v1.60.1
+          args: --timeout=30m --verbose --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
           skip-pkg-cache: true
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0

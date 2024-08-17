@@ -113,7 +113,7 @@ jobs:
           outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
   image-build-alpine-trivydb:
     name: image-build-alpine-trivydb
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-4core-8g
     steps:
       - name: Delete huge unnecessary folders, and clean apt cache
         run: |
@@ -311,7 +311,7 @@ jobs:
           outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
   image-build-debian-trivydb:
     name: image-build-debian-trivydb
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-4core-8g
     steps:
       - name: Delete huge unnecessary folders, and clean apt cache
         run: |
