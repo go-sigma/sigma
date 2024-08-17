@@ -20,8 +20,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/zerolog/log"
@@ -35,7 +35,7 @@ import (
 
 func (i *instance) informer(ctx context.Context) {
 	go func(ctx context.Context) {
-		eventsOpt := types.EventsOptions{
+		eventsOpt := events.ListOptions{
 			Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
 		}
 		events, errs := i.client.Events(ctx, eventsOpt)

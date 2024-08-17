@@ -120,8 +120,8 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		i := int32(i)
 		go func() {
 			limiter <- struct{}{}
-			firstByte := i * storage.MultipartCopyChunkSize
-			lastByte := int64(firstByte + storage.MultipartCopyChunkSize - 1)
+			firstByte := int64(i) * storage.MultipartCopyChunkSize
+			lastByte := firstByte + storage.MultipartCopyChunkSize - 1
 			if lastByte >= srcSize {
 				lastByte = srcSize - 1
 			}
