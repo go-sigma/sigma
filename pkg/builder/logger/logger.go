@@ -42,13 +42,17 @@ var DriverFactories = make(map[string]Factory)
 func Initialize() error {
 	typ := "database"
 	factory, ok := DriverFactories[typ]
+
 	if !ok {
 		return fmt.Errorf("builder logger driver %q not registered", typ)
 	}
+
 	var err error
 	Driver, err = factory.New()
+
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

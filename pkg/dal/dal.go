@@ -43,6 +43,7 @@ var (
 func Initialize(config configs.Configuration) error {
 	var err error
 	var dsn string
+
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
 		dsn, err = connectMysql(config)
@@ -53,6 +54,7 @@ func Initialize(config configs.Configuration) error {
 	default:
 		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
+
 	if err != nil {
 		return err
 	}

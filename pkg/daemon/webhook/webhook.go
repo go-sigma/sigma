@@ -196,7 +196,8 @@ func (w webhook) send(ctx context.Context, payload types.DaemonWebhookPayload) e
 		webhookLogObj.RespBody = respBody
 		err = webhookService.CreateLog(ctx, webhookLogObj)
 		if err != nil {
-			log.Error().Err(err).Msg("Create webhook log failed") // must be database something wrong, webhook has been sent, so we can ignore this error
+			// must be database something wrong, webhook has been sent, so we can ignore this error
+			log.Error().Err(err).Msg("Create webhook log failed")
 			continue
 		}
 	}

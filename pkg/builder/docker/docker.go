@@ -62,7 +62,9 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	go i.informer(context.Background())
+
 	return i, nil
 }
 
@@ -98,9 +100,11 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		NetworkMode: container.NetworkMode(i.config.Daemon.Builder.Docker.Network),
 	}
 	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
+
 	if err != nil {
 		return fmt.Errorf("Create container failed: %v", err)
 	}
+
 	err = i.client.ContainerStart(ctx, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID), container.StartOptions{})
 	if err != nil {
 		return fmt.Errorf("Start container failed: %v", err)
@@ -126,34 +130,42 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 	var err error
 	defer func() {
 		status := enums.BuildStatusStopped
+
 		if err != nil {
 			if !(strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")) {
 				status = enums.BuildStatusFailed
 			}
 		}
+
 		builderService := i.builderServiceFactory.New()
 		err := builderService.UpdateRunner(ctx, builderID, runnerID, map[string]any{
 			query.BuilderRunner.Status.ColumnName().String():  status,
 			query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 		})
+
 		if err != nil {
 			log.Error().Err(err).Msg("Update runner status failed")
 		}
 	}()
+
 	err = i.client.ContainerKill(ctx, builder.GenContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
 		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
 			log.Info().Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
 			return nil
 		}
+
 		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Kill container failed")
+
 		return fmt.Errorf("Kill container failed: %v", err)
 	}
+
 	err = i.client.ContainerRemove(ctx, builder.GenContainerID(builderID, runnerID), container.RemoveOptions{})
 	if err != nil {
 		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Remove container failed")
 		return fmt.Errorf("Remove container failed: %v", err)
 	}
+
 	for j := 0; j < retryMax; j++ {
 		_, err = i.client.ContainerInspect(ctx, builder.GenContainerID(builderID, runnerID))
 		if err != nil {
@@ -162,8 +174,10 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 			}
 			return fmt.Errorf("Inspect container with error: %v", err)
 		}
+
 		<-time.After(retryDuration)
 	}
+
 	return nil
 }
 

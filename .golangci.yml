@@ -1,7 +1,10 @@
+run:
+  go: "1.23"
+
 linters:
   enable:
     - cyclop
-    - exportloopref
+    - copyloopvar
     - gocritic
     - gosec
     - ineffassign
@@ -12,6 +15,13 @@ linters:
     - goimports
     - whitespace
     - gci
+    - misspell
+    - bidichk
+    - unparam
+    - unused
+    - varnamelen
+    - whitespace
+    - asciicheck
 
 linters-settings:
   whitespace:
@@ -27,3 +37,6 @@ linters-settings:
       - default
       - prefix(github.com/go-sigma/sigma)
       - dot
+  varnamelen:
+    max-distance: 6
+    min-name-length: 1

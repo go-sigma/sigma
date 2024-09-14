@@ -98,7 +98,6 @@ func (t *tencentcos) Move(ctx context.Context, srcPath, dstPath string) (err err
 	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
-		i := i
 		go func() {
 			limiter <- struct{}{}
 			firstByte := i * storage.MultipartCopyChunkSize
@@ -211,8 +210,9 @@ func (t *tencentcos) CreateUploadID(ctx context.Context, path string) (string, e
 }
 
 // UploadPart WritePart writes a part of a multipart upload.
-func (t *tencentcos) UploadPart(ctx context.Context, rPath, uploadID string, partNumber int64, body io.Reader) (string, error) {
-	partPath := path.Join(storage.SanitizePath(t.rootDirectory, consts.BlobUploadParts), rPath, fmt.Sprintf("%s-%s", uploadID, gonanoid.MustGenerate(consts.Alphanum, 6)))
+func (t *tencentcos) UploadPart(ctx context.Context, rPath, uploadID string, partNumber int32, body io.Reader) (string, error) {
+	partPath := path.Join(storage.SanitizePath(t.rootDirectory, consts.BlobUploadParts),
+		rPath, fmt.Sprintf("%s-%s", uploadID, gonanoid.MustGenerate(consts.Alphanum, 6)))
 	_, err := t.client.Object.Put(ctx, partPath, body, nil)
 	if err != nil {
 		return "", fmt.Errorf("Upload part failed: %v", err)

@@ -241,6 +241,7 @@ func (s *tagService) ListByDtPagination(ctx context.Context, repository string, 
 // ListTag lists the tags by the specified request.
 func (s *tagService) ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
 	var mTypes []driver.Valuer
+
 	if len(types) > 0 {
 		for _, t := range types {
 			mTypes = append(mTypes, t)

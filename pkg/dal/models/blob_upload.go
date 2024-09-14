@@ -24,7 +24,7 @@ type BlobUpload struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        int64                 `gorm:"primaryKey"`
 
-	PartNumber int
+	PartNumber int32
 	UploadID   string
 	Etag       string
 	Repository string
