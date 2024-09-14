@@ -154,6 +154,7 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 	}
 	if builderObj.Source == enums.BuilderSourceCodeRepository {
 		buildConfig.Builder.ScmCredentialType = builderObj.ScmCredentialType
+
 		switch ptr.To(builderObj.ScmCredentialType) {
 		case enums.ScmCredentialTypeSsh:
 			buildConfig.Builder.ScmSshKey = builderObj.ScmSshKey
@@ -168,12 +169,15 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 		case enums.ScmCredentialTypeUsername:
 			buildConfig.Builder.ScmUsername = builderObj.ScmUsername
 			buildConfig.Builder.ScmPassword = builderObj.ScmPassword
+
 			if builderObj.CodeRepository != nil {
 				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl)
 			}
 		}
+
 		buildConfig.Builder.ScmProvider = (*enums.ScmProvider)(&builderObj.CodeRepository.User3rdParty.Provider) // TODO: change type
 	}
+
 	if payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart {
 		err = builder.Driver.Start(ctx, buildConfig)
 		if err != nil {
@@ -181,5 +185,6 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 			return fmt.Errorf("Start or restart builder failed: %v", err)
 		}
 	}
+
 	return nil
 }

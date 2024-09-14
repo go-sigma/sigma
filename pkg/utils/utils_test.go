@@ -102,7 +102,8 @@ func TestBindValidate(t *testing.T) {
 	err := BindValidate(c, &user)
 	assert.NoError(t, err)
 
-	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"","password":"123498712311Aa!","email":"test@xx.com"}`))
+	req = httptest.NewRequest(http.MethodPost, "/",
+		bytes.NewBufferString(`{"username":"","password":"123498712311Aa!","email":"test@xx.com"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)

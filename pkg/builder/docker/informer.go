@@ -47,6 +47,7 @@ func (i *instance) informer(ctx context.Context) {
 				switch event.Type { // nolint: gocritic
 				case "container":
 					log.Debug().Str("type", string(event.Type)).Str("action", string(event.Action)).Msg("Got a new docker event")
+
 					switch event.Action {
 					case "start":
 						container, err := i.client.ContainerInspect(ctx, event.Actor.ID)

@@ -17,7 +17,7 @@ package redis
 import (
 	"context"
 	"fmt"
-	"math/rand" // nolint: gosec
+	"math/rand/v2" // nolint: gosec
 	"time"
 
 	"github.com/redis/go-redis/v9"

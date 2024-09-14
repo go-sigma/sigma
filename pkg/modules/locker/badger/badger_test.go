@@ -58,6 +58,7 @@ func TestDatabaseAcquire(t *testing.T) {
 	var cnt uint64 = 0
 	for i := uint64(0); i < concurrency; i++ {
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
 			l, err := c.Acquire(ctx, key, time.Second*1, time.Second*3)

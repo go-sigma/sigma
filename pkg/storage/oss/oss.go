@@ -110,7 +110,6 @@ func (a *alioss) Move(ctx context.Context, srcPath string, dstPath string) error
 	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
-		i := i
 		go func() {
 			limiter <- struct{}{}
 			firstByte := int64(i) * storage.MultipartCopyChunkSize
@@ -142,6 +141,7 @@ func (a *alioss) Move(ctx context.Context, srcPath string, dstPath string) error
 // Delete recursively deletes all objects stored at "path" and its subpaths.
 func (a *alioss) Delete(ctx context.Context, path string) error {
 	objects := make([]string, 0, storage.MaxPaginationKeys)
+
 	for {
 		result, err := a.client.ListObjectsV2(oss.MaxKeys(storage.MaxPaginationKeys),
 			oss.Prefix(storage.SanitizePath(a.rootDirectory, path)))
@@ -193,7 +193,7 @@ func (a *alioss) CreateUploadID(ctx context.Context, path string) (string, error
 }
 
 // WritePart writes a part of a multipart upload.
-func (a *alioss) UploadPart(ctx context.Context, path, uploadID string, partNumber int64, body io.Reader) (string, error) {
+func (a *alioss) UploadPart(ctx context.Context, path, uploadID string, partNumber int32, body io.Reader) (string, error) {
 	file, err := os.CreateTemp("", "alioss")
 	if err != nil {
 		return "", err

@@ -144,7 +144,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	}
 	if length != 0 {
 		counterReader := counter.NewCounter(c.Request().Body)
-		etag, err := storage.Driver.UploadPart(ctx, srcPath, uploadObj.UploadID, int64(uploadObj.PartNumber+1), counterReader)
+		etag, err := storage.Driver.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 		if err != nil {
 			log.Error().Err(err).Msg("Upload part failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

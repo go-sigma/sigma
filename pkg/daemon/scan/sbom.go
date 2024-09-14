@@ -180,7 +180,9 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 
 	log.Info().Str("artifactDigest", artifact.Digest).Msg("Success sbom artifact")
 
-	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusSuccess, Message: "", Raw: compressed, Result: reportBytes}
+	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom,
+		Status:  enums.TaskCommonStatusSuccess,
+		Message: "", Raw: compressed, Result: reportBytes}
 
 	return nil
 }

@@ -104,7 +104,7 @@ gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
 
 swagen: ## Generate swagger from code comments
-# go install github.com/swaggo/swag/cmd/swag@latest
+	# go install github.com/swaggo/swag/cmd/swag@latest
 	@swag fmt
 	@swag init --output pkg/handlers/apidocs
 

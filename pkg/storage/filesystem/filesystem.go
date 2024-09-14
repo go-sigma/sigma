@@ -114,7 +114,7 @@ func (f *fs) CreateUploadID(ctx context.Context, _ string) (string, error) {
 }
 
 // WritePart writes a part of a multipart upload.
-func (f *fs) UploadPart(ctx context.Context, _, uploadID string, partNumber int64, body io.Reader) (string, error) {
+func (f *fs) UploadPart(ctx context.Context, _, uploadID string, _ int32, body io.Reader) (string, error) {
 	eTag := gonanoid.MustGenerate(consts.Alphanum, 32)
 	fp, err := os.OpenFile(storage.SanitizePath(f.rootDirectory, path.Join(consts.BlobUploadParts, uploadID, eTag)), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

@@ -59,7 +59,7 @@ type StorageDriver interface {
 	CreateUploadID(ctx context.Context, path string) (string, error)
 
 	// WritePart writes a part of a multipart upload.
-	UploadPart(ctx context.Context, path, uploadID string, partNumber int64, body io.Reader) (string, error)
+	UploadPart(ctx context.Context, path, uploadID string, partNumber int32, body io.Reader) (string, error)
 
 	// CommitUpload commits a multipart upload.
 	CommitUpload(ctx context.Context, path string, uploadID string, parts []string) error

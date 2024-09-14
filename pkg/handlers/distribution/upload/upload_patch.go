@@ -104,7 +104,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	counterReader := counter.NewCounter(c.Request().Body)
 
 	path := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
-	etag, err := storage.Driver.UploadPart(ctx, path, uploadObj.UploadID, int64(uploadObj.PartNumber+1), counterReader)
+	etag, err := storage.Driver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload part failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

@@ -117,7 +117,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	limiter := make(chan struct{}, storage.MultipartCopyMaxConcurrency)
 
 	for i := range completedParts {
-		i := int32(i)
+		i := int32(i) // nolint: gosec
 		go func() {
 			limiter <- struct{}{}
 			firstByte := int64(i) * storage.MultipartCopyChunkSize
@@ -238,7 +238,7 @@ func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error)
 }
 
 // UploadPart uploads a part of an object.
-func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumber int64, body io.Reader) (string, error) {
+func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumber int32, body io.Reader) (string, error) {
 	file, err := os.CreateTemp("", "s3")
 	if err != nil {
 		return "", err
@@ -272,7 +272,7 @@ func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumbe
 		Bucket:     aws.String(a.bucket),
 		Key:        aws.String(a.sanitizePath(path)),
 		UploadId:   aws.String(uploadID),
-		PartNumber: aws.Int32(int32(partNumber)),
+		PartNumber: aws.Int32(partNumber),
 		Body:       fd,
 	})
 	if err != nil {
@@ -287,7 +287,7 @@ func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts [
 	for i, part := range parts {
 		completedParts[i] = types.CompletedPart{
 			ETag:       aws.String(part),
-			PartNumber: aws.Int32(int32(i + 1)),
+			PartNumber: aws.Int32(int32(i + 1)), // nolint: gosec
 		}
 	}
 	_, err := a.client.CompleteMultipartUpload(ctx, &s3.CompleteMultipartUploadInput{

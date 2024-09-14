@@ -93,7 +93,8 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 		codeRepositoryObj, err := codeRepositoryService.Get(ctx, ptr.To(req.CodeRepositoryID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id not found")
+				log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).
+					Msg("Get code repository by id not found")
 				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get code repository by id(%d) not found: %v", ptr.To(req.CodeRepositoryID), err)))
 			}
 			log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id failed")
