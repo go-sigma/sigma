@@ -14,7 +14,7 @@ Sigma is an image registry that is extremely easy to deploy and maintain, and it
 Now you can use this command to run a simple server:
 
 ``` bash
-docker run --name sigma -p 3000:3000 --rm ccr.ccs.tencentyun.com/go-sigma/sigma:nightly-alpine
+docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
 The default username and password is: sigma/Admin@123, if you want to modify the default password, please refer to the instructions provided [here](https://docs.sigma.tosone.cn/docs/configuration).

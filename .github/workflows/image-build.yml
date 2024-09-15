@@ -43,13 +43,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -94,7 +87,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
@@ -142,13 +134,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -193,7 +178,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
@@ -245,13 +229,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -296,7 +273,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
@@ -346,13 +322,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -397,7 +366,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
