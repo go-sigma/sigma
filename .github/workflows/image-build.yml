@@ -72,7 +72,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -163,7 +163,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -258,7 +258,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -286,7 +286,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.debian
+          file: build/debian.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -351,7 +351,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -379,7 +379,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.debian
+          file: build/debian.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
