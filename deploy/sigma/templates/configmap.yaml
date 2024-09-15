@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s-configmap" .Chart.Name }}
-  namespace: {{ .Release.Namespace | quote }}
+  name: "{{ printf "%s-config" .Chart.Name }}"
+  namespace: "{{ .Release.Namespace }}"
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
 data:
-  {{- if eq .Values.middleware.type "internal" }}
   config.yaml: |-
     log:
       level: debug
@@ -15,11 +14,19 @@ data:
       sqlite3:
         path: {{ .Chart.Name }}.db
       mysql:
-        host: {{ .Release.Name }}-mysql
+        {{- if .Values.mysql.enabled }}
+        host: {{ printf "%s-mysql-headless" (include "common.names.fullname" .) }}
         port: {{ .Values.mysql.primary.service.ports.mysql }}
         user: {{ .Values.mysql.auth.username }}
         password: {{ .Values.mysql.auth.password }}
         dbname: sigma
+        {{- else }}
+        host: {{ .Values.external.mysql.host }}
+        port: {{ .Values.external.mysql.port }}
+        user: {{ .Values.external.mysql.username }}
+        password: {{ .Values.external.mysql.password }}
+        dbname: {{ .Values.external.mysql.database }}
+        {{- end }}
       postgresql:
         host:  {{ .Release.Name }}-postgresql
         port: 5432
@@ -28,6 +35,7 @@ data:
         dbname: sigma
         sslmode: disable
     redis:
+      type: external
       url: redis://:{{ .Values.redis.auth.password }}@{{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis }}/0
     http:
       server: 0.0.0.0:{{.Values.service.server.port}}
@@ -39,25 +47,36 @@ data:
         # At 02:00 on Saturday
         cron: 0 2 * * 6
     storage:
-      rootdirectory: ./storage
+      rootDirectory: ./storage
       type: s3
       filesystem:
         path: /
       s3:
-        ak: {{ .Values.minio.accessKey }}
-        sk: {{ .Values.minio.secretKey }}
-        endpoint: http://{{ .Release.Name }}-minio:{{ .Values.minio.service.port }}
-        region: cn-north-1
-        {{- range .Values.minio.buckets }}
+        {{- if .Values.minio.enabled }}
+        ak: {{ .Values.minio.auth.rootUser | quote }}
+        sk: {{ .Values.minio.auth.rootPassword | quote }}
+        endpoint: {{ printf "http://%s-minio-headless" (include "common.names.fullname" .)  }}:{{ .Values.minio.service.ports.api }}
+        {{- range .Values.minio.provisioning.buckets }}
+        region: {{ .region | quote }}
         bucket: {{ .name | quote }}
-        {{end}}
+        {{- end }}
         forcePathStyle: true
+        {{- else }}
+        ak: {{ .Values.external.minio.ak | quote }}
+        sk: {{ .Values.external.minio.sk | quote }}
+        endpoint: {{ .Values.external.minio.endpoint | quote }}
+        region: {{ .Values.external.minio.region | quote }}
+        bucket: {{ .Values.external.minio.bucket | quote }}
+        forcePathStyle: {{ .Values.external.minio.pathStyle | default false }}
+        {{- end }}
     proxy:
       enabled: true
       endpoint: https://registry-1.docker.io
       tlsVerify: true
       username: ""
       password: ""
+    workqueue:
+      type: redis
     auth:
       user:
         password: ""
@@ -74,7 +93,3 @@ data:
         ttl: 1h
         refreshTtl: 24h
         privateKey: {{ genPrivateKey "rsa" | b64enc }}
-  {{- else if eq .Values.middleware.type "external" }}
-  sigma.yaml: |-
-    {{ .Values.config | toYaml | nindent 4 }}
-  {{- end }}

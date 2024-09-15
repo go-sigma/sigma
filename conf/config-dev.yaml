@@ -128,7 +128,7 @@ proxy:
 # daemon task config
 daemon:
   builder:
-    enabled: true
+    enabled: false
     image: docker.io/tosone/sigma-builder:latest
     type: docker
     docker:

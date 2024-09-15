@@ -15,6 +15,7 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -32,20 +33,23 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sigma
           args:
             - worker
+            - --config=/etc/sigma/config.yaml
           ports:
             - name: http
               containerPort: {{ .Values.service.worker.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.server.port }}
+              path: /healthz
+              port: {{ .Values.service.worker.port }}
           readinessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.server.port }}
+              path: /healthz
+              port: {{ .Values.service.worker.port }}
           volumeMounts:
             - name: "config"
               mountPath: "/etc/sigma/config.yaml"
@@ -56,7 +60,7 @@ spec:
       volumes:
         - name: "config"
           configMap:
-            name: {{ printf "%s-configmap" .Chart.Name }}
+            name: {{ printf "%s-config" .Chart.Name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

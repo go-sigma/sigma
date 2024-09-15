@@ -72,7 +72,7 @@ func Serve() error {
 	}
 
 	handlers.InitializeDistribution(e)
-	err := storage.Initialize(configs.Configuration{})
+	err := storage.Initialize(config)
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,7 @@ spec:
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
+        rollme: {{ randAlphaNum 5 | quote }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
@@ -32,21 +33,24 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sigma
           args:
             - server
-            - without-distribution
-            - without-worker
+            - --without-distribution
+            - --without-worker
+            - --config=/etc/sigma/config.yaml
           ports:
             - name: http
               containerPort: {{ .Values.service.server.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: {{ .Values.service.server.port }}
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: {{ .Values.service.server.port }}
           volumeMounts:
             - name: "config"
@@ -58,7 +62,7 @@ spec:
       volumes:
         - name: "config"
           configMap:
-            name: {{ printf "%s-configmap" .Chart.Name }}
+            name: {{ printf "%s-config" .Chart.Name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

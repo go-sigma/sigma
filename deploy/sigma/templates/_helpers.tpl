@@ -58,7 +58,6 @@ app.kubernetes.io/name: {{ template "sigma.distribution" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-
 {{/*
 Selector labels
 */}}
