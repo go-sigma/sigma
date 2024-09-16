@@ -43,7 +43,7 @@ func (postgresqlFactory) New() CIDatabase {
 }
 
 type postgresqlCIDatabase struct {
-	dbname string
+	database string
 }
 
 var _ CIDatabase = &postgresqlCIDatabase{}
@@ -55,9 +55,9 @@ func (d *postgresqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-	d.dbname = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
+	d.database = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
 
-	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.dbname))
+	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.database))
 	if err != nil {
 		return err
 	}
@@ -72,9 +72,9 @@ func (d *postgresqlCIDatabase) Init() error {
 			Postgresql: configs.ConfigurationDatabasePostgresql{
 				Host:     "127.0.0.1",
 				Port:     5432,
-				User:     "sigma",
+				Username: "sigma",
 				Password: "sigma",
-				DBName:   d.dbname,
+				Database: d.database,
 				SslMode:  "disable",
 			},
 		},
@@ -88,7 +88,7 @@ func (d *postgresqlCIDatabase) Init() error {
 // DeInit remove the database or database file for ci tests
 func (d *postgresqlCIDatabase) DeInit() error {
 	// For unknown reason, postgresql does not allow to drop the database
-	log.Debug().Str("database", d.dbname).Msg("postgresql does not allow to drop the database, skipping")
+	log.Debug().Str("database", d.database).Msg("postgresql does not allow to drop the database, skipping")
 
 	// ctx := context.Background()
 	// conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")

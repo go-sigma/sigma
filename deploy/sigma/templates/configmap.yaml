@@ -17,23 +17,23 @@ data:
         {{- if .Values.mysql.enabled }}
         host: {{ printf "%s-mysql-headless" (include "common.names.fullname" .) }}
         port: {{ .Values.mysql.primary.service.ports.mysql }}
-        user: {{ .Values.mysql.auth.username }}
+        username: {{ .Values.mysql.auth.username }}
         password: {{ .Values.mysql.auth.password }}
-        dbname: sigma
+        database: sigma
         {{- else }}
         host: {{ .Values.external.mysql.host }}
         port: {{ .Values.external.mysql.port }}
-        user: {{ .Values.external.mysql.username }}
+        username: {{ .Values.external.mysql.username }}
         password: {{ .Values.external.mysql.password }}
-        dbname: {{ .Values.external.mysql.database }}
+        database: {{ .Values.external.mysql.database }}
         {{- end }}
       postgresql:
         host:  {{ .Release.Name }}-postgresql
         port: 5432
-        user: sigma
+        username: sigma
         password: sigma
-        dbname: sigma
-        sslmode: disable
+        database: sigma
+        sslMode: disable
     redis:
       type: external
       url: redis://:{{ .Values.redis.auth.password }}@{{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis }}/0

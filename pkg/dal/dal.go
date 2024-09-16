@@ -102,9 +102,9 @@ func Initialize(config configs.Configuration) error {
 func connectMysql(config configs.Configuration) (string, error) {
 	host := config.Database.Mysql.Host
 	port := config.Database.Mysql.Port
-	user := config.Database.Mysql.User
+	user := config.Database.Mysql.Username
 	password := config.Database.Mysql.Password
-	dbname := config.Database.Mysql.DBName
+	dbname := config.Database.Mysql.Database
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC", user, password, host, port, dbname)
 	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
@@ -127,9 +127,9 @@ func connectMysql(config configs.Configuration) (string, error) {
 func connectPostgres(config configs.Configuration) (string, error) {
 	host := config.Database.Postgresql.Host
 	port := config.Database.Postgresql.Port
-	user := config.Database.Postgresql.User
+	user := config.Database.Postgresql.Username
 	password := config.Database.Postgresql.Password
-	dbname := config.Database.Postgresql.DBName
+	dbname := config.Database.Postgresql.Database
 	sslmode := config.Database.Postgresql.SslMode
 
 	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)

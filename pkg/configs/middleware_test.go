@@ -47,9 +47,9 @@ func TestCheckDatabase(t *testing.T) {
 		Mysql: ConfigurationDatabaseMysql{
 			Host:     "127.0.0.1",
 			Port:     3306,
-			User:     "sigma",
+			Username: "sigma",
 			Password: "sigma",
-			DBName:   "sigma",
+			Database: "sigma",
 		},
 	}})
 	assert.NoError(t, err)
@@ -65,9 +65,9 @@ func TestCheckMysql(t *testing.T) {
 			Mysql: ConfigurationDatabaseMysql{
 				Host:     "127.0.0.1",
 				Port:     3306,
-				User:     "sigma",
+				Username: "sigma",
 				Password: "sigma",
-				DBName:   "sigma",
+				Database: "sigma",
 			},
 		},
 	}
@@ -88,9 +88,9 @@ func TestCheckPostgresql(t *testing.T) {
 			Postgresql: ConfigurationDatabasePostgresql{
 				Host:     "localhost",
 				Port:     5432,
-				User:     "sigma",
+				Username: "sigma",
 				Password: "sigma",
-				DBName:   "sigma",
+				Database: "sigma",
 			},
 		},
 	}
