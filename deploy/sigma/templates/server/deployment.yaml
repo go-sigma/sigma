@@ -6,7 +6,7 @@ metadata:
     {{- include "sigma.server.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.autoscaling.replicaCount.server }}
   {{- end }}
   selector:
     matchLabels:
@@ -31,8 +31,8 @@ spec:
         - name: {{ printf "%s-server" .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command:
             - sigma
           args:
@@ -53,16 +53,25 @@ spec:
               path: /healthz
               port: {{ .Values.service.server.port }}
           volumeMounts:
-            - name: "config"
+            - name: config
               mountPath: "/etc/sigma/config.yaml"
               subPath: "config.yaml"
               readOnly: true
+            # - name: trivy
+            #   mountPath: "/opt/trivy-tmp"
+              # TODO: image volumes not support subPath
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: "config"
+        - name: config
           configMap:
             name: {{ printf "%s-config" .Chart.Name }}
+        {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
+        - name: trivy
+          image:
+            reference: "{{ .Values.image.registry }}/{{ .Values.image.trivyRepository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            pullPolicy: {{ .Values.image.pullPolicy | quote }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

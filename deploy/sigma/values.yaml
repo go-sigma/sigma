@@ -1,9 +1,10 @@
-replicaCount: 1
-
 image:
-  repository: ghcr.io/go-sigma/sigma
-  pullPolicy: IfNotPresent
+  registry: ghcr.io
+  repository: go-sigma/sigma
+  trivyRepository:  go-sigma/sigma-trivy
+  webRepository:  go-sigma/sigma-web
   tag: latest
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: []
 nameOverride: ""
@@ -32,29 +33,28 @@ service:
     port: 3001
   distribution:
     port: 3002
+  web:
+    port: 80
 
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations: {}
   hosts:
-    - host: "example.local"
+    - host: "test.sigma.io"
       paths:
-        - path: /server
+        - name: server
+          path: /api/v1/
           pathType: Prefix
-          svcName: server
-          svcPort: 3000
-        - path: /worker
+          port: 3000
+        - name: distribution
+          path: /v2/
           pathType: Prefix
-          svcName: server
-          svcPort: 3001
-        - path: /distribution
+          port: 3002
+        - name: web
+          path: /
           pathType: Prefix
-          svcName: server
-          svcPort: 3000
+          port: 80
 
   tls: []
   #  - secretName: chart-example-tls
@@ -76,6 +76,11 @@ resources:
 
 autoscaling:
   enabled: false
+  replicaCount:
+    server: 2
+    web: 2
+    distribution: 2
+    worker: 2
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
@@ -169,6 +174,7 @@ external:
 
 redis:
   enabled: true
+  architecture: standalone
   auth:
     enabled: true
     password: "sigma"
@@ -207,6 +213,7 @@ minio:
       seconds: 600
 mysql:
   enabled: true
+  architecture: standalone
   auth:
     rootPassword: "sigma"
     createDatabase: true
