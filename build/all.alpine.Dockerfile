@@ -34,7 +34,7 @@ FROM alpine:${ALPINE_VERSION} AS trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
-ARG TRIVY_VERSION=0.54.1
+ARG TRIVY_VERSION=0.55.1
 ARG TARGETOS TARGETARCH
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
