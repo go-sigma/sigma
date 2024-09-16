@@ -74,13 +74,10 @@ func checkDatabase(config Configuration) error {
 }
 
 func checkMysql(config Configuration) error {
-	host := config.Database.Mysql.Host
-	port := config.Database.Mysql.Port
-	user := config.Database.Mysql.User
-	password := config.Database.Mysql.Password
-	dbname := config.Database.Mysql.DBName
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbname) // TODO: query values
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		config.Database.Mysql.Username, config.Database.Mysql.Password,
+		config.Database.Mysql.Host, config.Database.Mysql.Port,
+		config.Database.Mysql.Database) // TODO: query values
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("sql.Open error: %v", err)
@@ -97,14 +94,11 @@ func checkMysql(config Configuration) error {
 }
 
 func checkPostgresql(config Configuration) error {
-	host := config.Database.Postgresql.Host
-	port := config.Database.Postgresql.Port
-	user := config.Database.Postgresql.User
-	password := config.Database.Postgresql.Password
-	dbname := config.Database.Postgresql.DBName
-
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname))
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		config.Database.Postgresql.Username, config.Database.Postgresql.Password,
+		config.Database.Postgresql.Host, config.Database.Postgresql.Port,
+		config.Database.Postgresql.Database))
 	if err != nil {
 		return fmt.Errorf("pgx.Connect error: %v", err)
 	}

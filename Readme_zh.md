@@ -14,7 +14,7 @@ Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实�
 你可以用以下的一个简单的命令来运行起来 Sigma 镜像仓库:
 
 ``` bash
-docker run --name sigma -p 3000:3000 --rm ccr.ccs.tencentyun.com/go-sigma/sigma:nightly-alpine
+docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
 默认的用户名密码是: sigma/Admin@123, 如果你想在启动的时候初始化其他的用户名密码, 请根据[这里](https://docs.sigma.tosone.cn/docs/configuration)的配置说明来修改配置文件。

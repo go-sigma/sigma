@@ -1,15 +1,7 @@
-{{/*
-Expand the name of the chart.
-*/}}
 {{- define "sigma.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
 {{- define "sigma.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
@@ -23,16 +15,9 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
 {{- define "sigma.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
-
-{{/*
-Common labels
-*/}}
 
 {{- define "sigma.labels" -}}
 helm.sh/chart: {{ include "sigma.chart" . }}
@@ -58,10 +43,11 @@ app.kubernetes.io/name: {{ template "sigma.distribution" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
+{{- define "sigma.web.labels" -}}
+app.kubernetes.io/name: {{ template "sigma.web" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
 
-{{/*
-Selector labels
-*/}}
 {{- define "sigma.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "sigma.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
@@ -77,4 +63,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "sigma.distribution" -}}
   {{- printf "%s-distribution" (include "common.names.fullname" .) -}}
+{{- end -}}
+
+{{- define "sigma.web" -}}
+  {{- printf "%s-web" (include "common.names.fullname" .) -}}
 {{- end -}}

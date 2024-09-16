@@ -1,10 +1,8 @@
-{{- if .Values.ingress.enabled -}}
-{{- $fullName := include "sigma.fullname" . -}}
-{{- $releaseName := .Release.Name -}}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ include "sigma.fullname" . }}
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -35,10 +33,15 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ $releaseName }}-{{ .svcName }}
-{{/*                name: {{- printf "%s-%s" $releaseName .svcName -}}*/}}
+                {{- if (eq .name "server") }}
+                name: {{ include "sigma.server" $ }}
+                {{- else if (eq .name "web") }}
+                name: {{ include "sigma.web" $ }}
+                {{- else }}
+                name: {{ include "sigma.distribution" $ }}
+                {{- end }}
                 port:
-                  number: {{ .svcPort }}
+                  number: {{ .port }}
         {{- end }}
   {{- end }}
 {{- end }}

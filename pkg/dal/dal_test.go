@@ -67,9 +67,9 @@ func TestInitialize(t *testing.T) {
 			Mysql: configs.ConfigurationDatabaseMysql{
 				Host:     "127.0.0.1",
 				Port:     3306,
-				User:     "root",
+				Username: "root",
 				Password: "sigma",
-				DBName:   dbname,
+				Database: dbname,
 			},
 		},
 	})
@@ -95,9 +95,9 @@ func TestInitialize(t *testing.T) {
 			Postgresql: configs.ConfigurationDatabasePostgresql{
 				Host:     "localhost",
 				Port:     5432,
-				User:     "sigma",
+				Username: "sigma",
 				Password: "sigma",
-				DBName:   dbname,
+				Database: dbname,
 				SslMode:  "disable",
 			},
 		},

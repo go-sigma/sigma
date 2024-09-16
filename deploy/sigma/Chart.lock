@@ -1,12 +1,15 @@
 dependencies:
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 17.10.2
+  version: 20.1.3
 - name: minio
-  repository: https://helm.min.io/
-  version: 8.0.10
+  repository: https://charts.bitnami.com/bitnami
+  version: 14.7.8
 - name: mysql
   repository: https://charts.bitnami.com/bitnami
-  version: 9.9.0
-digest: sha256:3173f61e9109067c183f9dddfc1fdcef97b4638ef686829b6ca948d89853d838
-generated: "2023-05-12T20:04:13.410483+08:00"
+  version: 11.1.16
+- name: nginx-ingress-controller
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.4.1
+digest: sha256:3005974d69259acb9d9bf3b0a02e441839a75a3b2e7ef959aa821b8dccce4b41
+generated: "2024-09-15T23:21:07.628195+08:00"

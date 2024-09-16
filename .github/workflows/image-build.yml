@@ -43,13 +43,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -79,7 +72,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -94,7 +87,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           tags: |
             type=ref,event=pr
             type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
@@ -106,7 +98,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile
+          file: build/all.alpine.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -142,13 +134,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -178,7 +163,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -193,7 +178,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
@@ -207,7 +191,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile
+          file: build/all.alpine.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -245,13 +229,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -281,7 +258,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -296,7 +273,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
@@ -310,7 +286,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.debian
+          file: build/all.debian.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -346,13 +322,6 @@ jobs:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to tencent tcr
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ github.event_name != 'pull_request' }}
@@ -382,7 +351,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.builder
+          file: build/builder.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
           tags: docker.io/sigma/sigma-builder:latest
@@ -397,7 +366,6 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/tosone/sigma
-            ccr.ccs.tencentyun.com/go-sigma/sigma
           flavor: |
             latest=false
           tags: |
@@ -411,7 +379,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: build/Dockerfile.debian
+          file: build/all.debian.Dockerfile
           platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -48,5 +48,10 @@ jobs:
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: ./build/Dockerfile
+          dockerfile: ./build/all.alpine.Dockerfile
           ignore: DL3018,DL3003,SC2155
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./build/all.debian.Dockerfile
+          ignore: DL3018,DL3003,SC2155,DL4006,SC2046,DL3008

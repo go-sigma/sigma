@@ -1,34 +1,25 @@
 apiVersion: v2
 name: sigma
-description: A Helm chart for Kubernetes
-
-# A chart can be either an 'application' or a 'library' chart.
-#
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-#
-# Library charts provide useful utilities or functions for the chart developer. They're included as
-# a dependency of application charts to inject those utilities and functions into the rendering
-# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+description: Sigma is a painless self-hosted all in one OCI artifact manager service.
 type: application
-
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
 version: 0.1.0
+appVersion: "1.3.0"
+icon: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iYSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTAgMTkwIj4KICA8Y2lyY2xlIGN4PSI5NSIgY3k9Ijk1IiByPSI5NSIgc3R5bGU9ImZpbGw6ICNmOTlkMWM7Ii8+CiAgPGNpcmNsZSBjeD0iOTUiIGN5PSI5NSIgcj0iODUiIHN0eWxlPSJmaWxsOiAjY2Q0YjI3OyIvPgogIDxjaXJjbGUgY3g9Ijk1IiBjeT0iOTUiIHI9Ijc1IiBzdHlsZT0iZmlsbDogIzVjMmUwZTsiLz4KICA8cGF0aCBkPSJtNzEuMzIsMTI1Ljg4di01LjI4bDIzLjUyLTI5LjA5djQuOTlsLTIyLjU2LTMxLjU4di0zLjM2aDcuMDFsMjEuNiwzMC4yNC0yMy43MSwyOS45NS0yLjUtMy41NWgzOS41NWwtNS4yOCw0LjgsMy42NS0xNy4yOGg1Ljc2bC0uNzcsMjAuMTZoLTQ2LjI3Wm0zNi02NC4zMmw1LjI4LDQuOGgtMzcuMDV2LTQuOGg0MC40MWwuNzcsMTcuMDloLTUuNzZsLTMuNjUtMTcuMDlaIiBzdHlsZT0iZmlsbDogI2Y5OWQxYzsiLz4KPC9zdmc+
 
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
-appVersion: "1.16.0"
 dependencies:
   - name: redis
-    version: 17.10.2
+    version: 20.1.3
     repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
   - name: minio
-    version: 8.0.10
-    repository: https://helm.min.io/
-  - name: mysql
-    version: 9.9.0
+    version: 14.7.8
     repository: https://charts.bitnami.com/bitnami
+    condition: minio.enabled
+  - name: mysql
+    version: 11.1.16
+    repository: https://charts.bitnami.com/bitnami
+    condition: mysql.enabled
+  - name: nginx-ingress-controller
+    version: 11.4.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: nginx-ingress-controller.enabled

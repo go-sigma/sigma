@@ -41,7 +41,7 @@ func (mysqlFactory) New() CIDatabase {
 }
 
 type mysqlCIDatabase struct {
-	dbname string
+	database string
 }
 
 var _ CIDatabase = &mysqlCIDatabase{}
@@ -53,8 +53,8 @@ func (d *mysqlCIDatabase) Init() error {
 		return err
 	}
 
-	d.dbname = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
-	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.dbname))
+	d.database = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.database))
 	if err != nil {
 		return err
 	}
@@ -69,9 +69,9 @@ func (d *mysqlCIDatabase) Init() error {
 			Mysql: configs.ConfigurationDatabaseMysql{
 				Host:     "127.0.0.1",
 				Port:     3306,
-				User:     "root",
+				Username: "root",
 				Password: "sigma",
-				DBName:   d.dbname,
+				Database: d.database,
 			},
 		},
 	})
@@ -87,7 +87,7 @@ func (d *mysqlCIDatabase) DeInit() error {
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", d.dbname))
+	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", d.database))
 	if err != nil {
 		return err
 	}

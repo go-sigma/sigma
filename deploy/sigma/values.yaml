@@ -1,14 +1,10 @@
-# Default values for sigma.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-replicaCount: 1
-
 image:
-  repository: ghcr.io/go-sigma/sigma
-  pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: nightly-alpine
+  registry: ghcr.io
+  repository: go-sigma/sigma
+  trivyRepository:  go-sigma/sigma-trivy
+  webRepository:  go-sigma/sigma-web
+  tag: latest
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: []
 nameOverride: ""
@@ -36,33 +32,29 @@ service:
   worker:
     port: 3001
   distribution:
-    port: 3000
-
-
-
+    port: 3002
+  web:
+    port: 80
 
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations: {}
   hosts:
-    - host: "example.local"
+    - host: "test.sigma.io"
       paths:
-        - path: /server
+        - name: server
+          path: /api/v1/
           pathType: Prefix
-          svcName: server
-          svcPort: 3000
-        - path: /worker
+          port: 3000
+        - name: distribution
+          path: /v2/
           pathType: Prefix
-          svcName: server
-          svcPort: 3001
-        - path: /distribution
+          port: 3002
+        - name: web
+          path: /
           pathType: Prefix
-          svcName: server
-          svcPort: 3000
+          port: 80
 
   tls: []
   #  - secretName: chart-example-tls
@@ -84,6 +76,11 @@ resources:
 
 autoscaling:
   enabled: false
+  replicaCount:
+    server: 2
+    web: 2
+    distribution: 2
+    worker: 2
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
@@ -95,31 +92,14 @@ tolerations: []
 
 affinity: {}
 
-middleware:
-  type: internal
-
 config:
   log:
     level: debug
   database:
-    # The database type to use. Supported types are: sqlite3, mysql, postgresql    # The database type to use. Supported types are: sqlite3, mysql, postgresqll
+    # The database type to use. Supported types are: sqlite3, mysql, postgresql
     type: ""
     # sqlite3, mysql, postgresql
     sqlite3:  {}
-      #path: sigma.db
-    mysql:  {}
-      #host: localhost
-      #port: 3306
-      #user: sigma
-      #password: sigma
-      #dbname: sigma
-    postgresql: {}
-      #host: localhost
-      #port: 5432
-      #user: sigma
-      #password: sigma
-      #dbname: sigma
-      #sslmode: disable
   redis:
     url: ""
     #ex: redis://:sigma@localhost:6789/0
@@ -131,13 +111,6 @@ config:
     type: s3
     filesystem:
       path: /
-    s3: {}
-      #ak: sigma
-      #sk: sigma-sigma
-      #endpoint: http://127.0.0.1:32000
-      #region: cn-north-1
-      #bucket: sigma
-      #forcePathStyle: true
   # Notice: the tag never update after the first pulled from remote registry, unless you delete the image and pull again.
   proxy:
     enabled: true
@@ -162,8 +135,25 @@ config:
       refreshTtl: 24h
       privateKey: ""
 
+external:
+  redis: {}
+  minio:
+    ak: sigma
+    sk: sigma
+    endpoint: http://127.0.0.1:32000
+    region: cn-north-1
+    bucket: sigma
+    pathStyle: true
+  mysql:
+    host: localhost
+    port: 3306
+    user: root
+    password: password
+    database: sigma
+
 redis:
-  enabled: true # 是否启用Redis部署
+  enabled: true
+  architecture: standalone
   auth:
     enabled: true
     password: "sigma"
@@ -174,21 +164,35 @@ redis:
         redis: 6379
   replica:
     replicaCount: 1
-
 minio:
-  enabled: true # 是否启用MinIO部署
-  accessKey: "sigma"
-  secretKey: "sigma-sigma"
+  enabled: true
+  replicas: 4
+  resources: {}
+  mode: distributed
+  statefulset:
+    replicaCount: 4
+    drivesPerNode: 4
+  auth:
+    rootUser: root-sigma
+    rootPassword: root-sigma
   service:
     type: ClusterIP
-    port: 9000
-  buckets:
-    - name: sigma
-      policy: none
-      purge: false
-
+    ports:
+      api: 9000
+      console: 9001
+  provisioning:
+    enabled: true
+    resources: {}
+    buckets:
+      - name: sigma
+        region: cn-north-1
+        withLock: false
+    cleanupAfterFinished:
+      enabled: true
+      seconds: 600
 mysql:
-  enabled: true # 是否启用MySQL部署
+  enabled: true
+  architecture: standalone
   auth:
     rootPassword: "sigma"
     createDatabase: true
@@ -200,3 +204,9 @@ mysql:
       type: ClusterIP
       ports:
         mysql: 3306
+nginx-ingress-controller:
+  enabled: true
+  service:
+    type: ClusterIP
+  defaultBackend:
+    enabled: false

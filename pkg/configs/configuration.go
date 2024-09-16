@@ -73,19 +73,19 @@ type ConfigurationDatabaseSqlite3 struct {
 type ConfigurationDatabaseMysql struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
+	Username string `yaml:"username"`
 	Password string `yaml:"password"`
-	DBName   string `yaml:"dbname"`
+	Database string `yaml:"database"`
 }
 
 // ConfigurationDatabase ...
 type ConfigurationDatabasePostgresql struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
+	Username string `yaml:"username"`
 	Password string `yaml:"password"`
-	DBName   string `yaml:"dbname"`
-	SslMode  string `yaml:"sslmode"`
+	Database string `yaml:"database"`
+	SslMode  string `yaml:"sslMode"`
 }
 
 // ConfigurationDatabase ...

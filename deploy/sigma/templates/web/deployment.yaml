@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sigma.worker" . }}
+  name: {{ include "sigma.web" . }}
   labels:
-    {{- include "sigma.worker.labels" . | nindent 4 }}
+    {{- include "sigma.web.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.autoscaling.replicaCount.worker }}
+  replicas: {{ .Values.autoscaling.replicaCount.web }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "sigma.worker.labels" . | nindent 6 }}
+      {{- include "sigma.web.labels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +19,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "sigma.worker.labels" . | nindent 8 }}
+        {{- include "sigma.web.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -28,28 +28,23 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ printf "%s-worker" .Chart.Name }}
+        - name: {{ include "sigma.web" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.webRepository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - sigma
-          args:
-            - worker
-            - --config=/etc/sigma/config.yaml
           ports:
             - name: http
-              containerPort: {{ .Values.service.worker.port }}
+              containerPort: {{ .Values.service.web.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: {{ .Values.service.worker.port }}
+              path: /
+              port: {{ .Values.service.web.port }}
           readinessProbe:
             httpGet:
-              path: /healthz
-              port: {{ .Values.service.worker.port }}
+              path: /
+              port: {{ .Values.service.web.port }}
           volumeMounts:
             - name: "config"
               mountPath: "/etc/sigma/config.yaml"
