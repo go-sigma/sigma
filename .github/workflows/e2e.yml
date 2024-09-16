@@ -31,6 +31,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+          cache: false
       - name: Build latest skopeo
         run: |
           git clone --depth 1 --branch v1.15.0 https://github.com/containers/skopeo.git
@@ -49,7 +50,7 @@ jobs:
 
           docker buildx create --use
           make docker-build-builder-local dockerfile-local
-          docker buildx build -f build/Dockerfile --build-arg WITH_TRIVY_DB=true --platform linux/amd64 --progress plain --output type=docker,dest=- -t sigma:latest . | docker load
+          docker buildx build -f build/all.alpine.Dockerfile --build-arg WITH_TRIVY_DB=true --platform linux/amd64 --progress plain --output type=docker,dest=- -t sigma:latest . | docker load
       - name: Run sigma
         run: |
           docker run --name sigma -v /var/run/docker.sock:/var/run/docker.sock -d -p 3000:3000 sigma:latest
