@@ -17,7 +17,7 @@ package main
 import "github.com/go-sigma/sigma/cmd"
 
 //	@title		sigma
-//	@version	1.0
+//	@version	1.3.0
 
 //	@contact.name	sigma
 //	@contact.url	https://github.com/go-sigma/sigma

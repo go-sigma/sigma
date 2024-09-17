@@ -40,11 +40,11 @@
     "xterm": "^5.3.0",
     "xterm-addon-attach": "^0.9.0",
     "xterm-addon-fit": "^0.8.0",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",
-    "@types/react": "^18.3.5",
+    "@types/react": "^18.3.6",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.7.0",
     "autoprefixer": "^10.4.20",
@@ -54,7 +54,7 @@
     "tailwindcss": "^3.4.11",
     "terser": "^5.32.0",
     "typescript": "^5.6.2",
-    "vite": "^5.4.5"
+    "vite": "^5.4.6"
   },
   "packageManager": "yarn@4.3.1"
 }
