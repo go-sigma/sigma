@@ -39,7 +39,7 @@ RUN set -eux && \
   mv syft /usr/local/bin/syft && \
   rm syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz
 
-RUN useradd -rm -d /home/sigma -s /bin/sh -u 1001 sigma
+RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma
 
 USER sigma
 
