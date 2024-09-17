@@ -13,8 +13,9 @@ spec:
       {{- include "sigma.server.labels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -22,11 +23,11 @@ spec:
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        rollme: {{ randAlphaNum 5 | quote }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "sigma.fullname" . | quote }}
       containers:
         - name: {{ printf "%s-server" .Chart.Name }}
           securityContext:

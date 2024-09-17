@@ -1,3 +1,8 @@
+## @param commonLabels Labels to add to all deployed objects
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+commonAnnotations: {}
+
 image:
   registry: ghcr.io
   repository: go-sigma/sigma
@@ -61,8 +66,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources:
-  {}
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -91,6 +95,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+serviceAccount:
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  automountServiceAccountToken: false
 
 config:
   log:

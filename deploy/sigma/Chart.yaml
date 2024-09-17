@@ -19,3 +19,6 @@ dependencies:
     version: 11.1.16
     repository: https://charts.bitnami.com/bitnami
     condition: mysql.enabled
+  - name: common
+    version: 2.23.0
+    repository: https://charts.bitnami.com/bitnami
