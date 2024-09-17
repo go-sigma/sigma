@@ -8,8 +8,5 @@ dependencies:
 - name: mysql
   repository: https://charts.bitnami.com/bitnami
   version: 11.1.16
-- name: nginx-ingress-controller
-  repository: https://charts.bitnami.com/bitnami
-  version: 11.4.1
-digest: sha256:3005974d69259acb9d9bf3b0a02e441839a75a3b2e7ef959aa821b8dccce4b41
-generated: "2024-09-15T23:21:07.628195+08:00"
+digest: sha256:c9150c78d68a1fe55f7f0ba70b03e6e949cdccb6b71dd0ea8fa835537fdab32f
+generated: "2024-09-17T03:30:37.546585+08:00"

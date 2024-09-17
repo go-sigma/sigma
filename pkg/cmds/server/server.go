@@ -72,9 +72,6 @@ func Serve(serverConfig ServerConfig) error {
 					Str("method", c.Request().Method).
 					Str("path", c.Request().URL.Path).
 					Str("query", c.Request().URL.RawQuery).
-					// Interface("req-header", c.Request().Header).
-					// Interface("resp-header", c.Response().Header()).
-					// Int("status", c.Response().Status).
 					Msg("Request debugger")
 			}
 			reqPath := c.Request().URL.Path
