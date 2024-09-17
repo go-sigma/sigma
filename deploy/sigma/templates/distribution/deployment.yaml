@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "sigma.distribution" . }}
+  namespace: "{{ .Release.Namespace }}"
   labels:
     {{- include "sigma.distribution.labels" . | nindent 4 }}
 spec:

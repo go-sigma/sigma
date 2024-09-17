@@ -21,6 +21,7 @@ import (
 	"path"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -46,11 +47,13 @@ var _ builder.Factory = factory{}
 
 // New returns a new filesystem storage driver
 func (f factory) New(config configs.Configuration) (builder.Builder, error) {
-	i := &instance{}
+	i := &instance{
+		config: config,
+	}
 
 	var err error
 	var restConfig *restclient.Config
-	if config.Daemon.Builder.Kubernetes.Kubeconfig != nil {
+	if strings.TrimSpace(ptr.To(config.Daemon.Builder.Kubernetes.Kubeconfig)) != "" {
 		cfg := clientcmdapi.NewConfig()
 		err := yaml.Unmarshal([]byte(ptr.To(config.Daemon.Builder.Kubernetes.Kubeconfig)), &cfg)
 		if err != nil {
@@ -62,7 +65,7 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 			return nil, fmt.Errorf("Get k8s rest config failed: %v", err)
 		}
 	} else {
-		restConfig, err = clientcmd.BuildConfigFromFlags("", "")
+		restConfig, err = restclient.InClusterConfig()
 		if err != nil {
 			return nil, fmt.Errorf("Get k8s client in cluster failed: %v", err)
 		}

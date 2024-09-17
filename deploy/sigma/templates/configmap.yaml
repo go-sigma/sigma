@@ -41,6 +41,13 @@ data:
       server: 0.0.0.0:{{.Values.service.server.port}}
       worker: 0.0.0.0:{{.Values.service.worker.port}}
     daemon:
+      builder:
+        enabled: {{ .Values.config.daemon.builder.enabled }}
+        image: "{{ .Values.image.registry }}/{{ .Values.config.daemon.builder.image.repository }}:{{ .Values.config.daemon.builder.image.tag | default .Chart.AppVersion }}"
+        type: {{ .Values.config.daemon.builder.type | quote }}
+        kubernetes:
+          kubeconfig: ""
+          namespace: {{ .Values.config.daemon.builder.kubernetes.namespace | quote }}
       gc:
         # if blob not associate with artifact
         retention: 72h

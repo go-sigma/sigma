@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "sigma.web" . }}
+  namespace: "{{ .Release.Namespace }}"
   labels:
     {{- include "sigma.web.labels" . | nindent 4 }}
 spec:
