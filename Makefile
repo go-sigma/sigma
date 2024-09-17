@@ -28,7 +28,7 @@ GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git
 GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)' -trimpath
 
 GOOS             ?= linux
-GOARCH           ?= amd64
+GOARCH           ?= arm64
 CC               ?=
 CXX              ?=
 
@@ -42,53 +42,39 @@ all: build build-builder
 
 ## Build:
 build: ## Build sigma and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
 
 build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
 
 clean: ## Remove build related file
-	rm -fr ./bin
-	rm -f ./junit-report.xml checkstyle-report.xml ./coverage.xml ./profile.cov yamllint-checkstyle.xml
+	rm -fr ./bin/sigma ./bin/sigma-builder ./bin/*.tar.gz ./bin/*.tar
 
 vendor: ## Copy of all packages needed to support builds and tests in the vendor directory
 	@$(GOCMD) mod tidy && $(GOCMD) mod vendor
 
 ## Lint:
-lint: lint-go lint-dockerfile lint-yaml ## Run all available linters
+lint: lint-go lint-dockerfile ## Run all available linters
 
 .PHONY: lint-dockerfile
 lint-dockerfile: ## Lint your Dockerfile
-# If dockerfile is present we lint it.
-ifeq ($(shell test -e ./Dockerfile && echo -n yes),yes)
-	$(eval CONFIG_OPTION = $(shell [ -e $(shell pwd)/.hadolint.yaml ] && echo "-v $(shell pwd)/.hadolint.yaml:/root/.config/hadolint.yaml" || echo "" ))
-	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--format checkstyle" || echo "" ))
-	$(eval OUTPUT_FILE = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "| tee /dev/tty > checkstyle-report.xml" || echo "" ))
-	docker run --rm -i $(CONFIG_OPTION) hadolint/hadolint hadolint $(OUTPUT_OPTIONS) - < ./Dockerfile $(OUTPUT_FILE)
-endif
+	@hadolint $(shell find build -name "*Dockerfile")
 
 lint-go: ## Use golintci-lint on your project
 	@golangci-lint run --timeout=10m --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
 
-lint-yaml: ## Use yamllint on the yaml file of your projects
-ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/thomaspoignant/yamllint-checkstyle
-	$(eval OUTPUT_OPTIONS = | tee /dev/tty | yamllint-checkstyle > yamllint-checkstyle.xml)
-endif
-	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
-
 ## Docker:
 docker-build: docker-build-builder-local dockerfile-local ## Use the dockerfile to build the sigma image
-	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/all.alpine.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
+	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/all.alpine.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 docker-build-builder: ## Use the dockerfile to build the sigma-builder image
-	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
+	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 docker-build-builder-local: ## Use the dockerfile to build the sigma-builder image and save to local tarball file
-	docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.$(VERSION).tar .
+	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.$(VERSION).tar .
 
 dockerfile-local: ## Use skopeo to copy dockerfile to local tarball file
-	skopeo copy -a docker://docker/dockerfile:1.8.1 oci-archive:bin/dockerfile.1.8.1.tar
+	@skopeo copy -a docker://docker/dockerfile:1.8.1 oci-archive:bin/dockerfile.1.8.1.tar
 
 .PHONY: docker-build-web
 docker-build-web: ## Build the web image
@@ -97,6 +83,10 @@ docker-build-web: ## Build the web image
 .PHONY: docker-build-trivy
 docker-build-trivy: ## Build the trivy image
 	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/trivy.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-trivy:latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
+
+.PHONY: docker-build-local
+docker-build-local: build ## Build the local sigma image
+	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/local.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,compression=zstd,compression-level=12,force-compression=true .
 
 ## Misc:
 migration-create: ## Create a new migration file
