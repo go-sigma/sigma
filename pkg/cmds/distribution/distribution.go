@@ -46,15 +46,24 @@ func Serve() error {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if c.Request().URL.Path == "/healthz" ||
+				c.Request().URL.Path == "/metrics" {
+				log.Trace().
+					Str("method", c.Request().Method).
+					Str("path", c.Request().URL.Path).
+					Str("query", c.Request().URL.RawQuery).
+					Msg("Request debugger")
+			} else {
+				log.Debug().
+					Str("method", c.Request().Method).
+					Str("path", c.Request().URL.Path).
+					Str("query", c.Request().URL.RawQuery).
+					Interface("req-header", c.Request().Header).
+					Interface("resp-header", c.Response().Header()).
+					Int("status", c.Response().Status).
+					Msg("Request debugger")
+			}
 			n := next(c)
-			log.Debug().
-				Str("method", c.Request().Method).
-				Str("path", c.Request().URL.Path).
-				Str("query", c.Request().URL.RawQuery).
-				Interface("req-header", c.Request().Header).
-				Interface("resp-header", c.Response().Header()).
-				Int("status", c.Response().Status).
-				Msg("Request debugger")
 			return n
 		}
 	}))
