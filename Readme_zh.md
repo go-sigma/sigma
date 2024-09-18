@@ -48,7 +48,3 @@ docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 - [Distribution](https://distribution.github.io/distribution/)
 - [Harbor](https://goharbor.io/)
 - [zot](https://zotregistry.io/)
-
-## Contact me
-
-<img alt="wechat" src="./assets/wechat.jpg" style="height: 300px !important;width: 300px !important;" />
