@@ -140,7 +140,7 @@ daemon:
       network: sigma
     kubernetes:
       kubeconfig:
-      namespace: default
+      namespace: sigma-builder
     podman:
       uri: unix:///run/podman/podman.sock
 

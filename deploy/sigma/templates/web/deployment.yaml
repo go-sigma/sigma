@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "sigma.web" . }}
+  namespace: "{{ .Release.Namespace }}"
   labels:
     {{- include "sigma.web.labels" . | nindent 4 }}
 spec:

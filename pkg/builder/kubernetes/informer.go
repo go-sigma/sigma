@@ -49,4 +49,7 @@ func (i *instance) informer(_ context.Context) {
 	if err != nil {
 		log.Error().Err(err).Msg("Informer add event handler failed")
 	}
+
+	var stopChan = make(chan struct{})
+	podInformer.Run(stopChan)
 }
