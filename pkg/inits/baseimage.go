@@ -41,7 +41,7 @@ func init() {
 	afterInit["baseimage"] = initBaseimage
 }
 
-const baseImageDir = "./bin"
+const baseImageDir = "/baseimages/"
 
 func initBaseimage(config configs.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
@@ -111,7 +111,6 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 		versionsVal = string(versions.Val)
 	}
 	var sets = mapset.NewSet(strings.Split(versionsVal, ",")...)
-	fmt.Println(versionsVal == "", versionsVal != "" && sets.ContainsOne(version), !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))))
 	if !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))) {
 		return nil
 	}
@@ -127,11 +126,11 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 	if err != nil {
 		return err
 	}
-	authorization, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
+	autoToken, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", authorization, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:latest", utils.TrimHTTP(config.HTTP.InternalEndpoint), name)) // nolint: gosec
+	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", autoToken, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:latest", utils.TrimHTTP(config.HTTP.InternalEndpoint), name)) // nolint: gosec
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

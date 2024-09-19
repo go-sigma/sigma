@@ -52,6 +52,10 @@ ingress:
           path: /api/v1/
           pathType: Prefix
           port: 3000
+        - name: server
+          path: /swagger/
+          pathType: Prefix
+          port: 3000
         - name: distribution
           path: /v2/
           pathType: Prefix

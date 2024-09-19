@@ -33,7 +33,7 @@ func Initialize(config configs.Configuration) error {
 	return nil
 }
 
-// AfterInitialize ...
+// AfterInitialize after server started, runs all registered functions
 func AfterInitialize(config configs.Configuration) error {
 	for _, init := range afterInit {
 		err := init(config)

@@ -133,11 +133,15 @@ func Serve(serverConfig ServerConfig) error {
 		if err != nil {
 			return err
 		}
-		err = workq.Initialize(config)
+	}
+
+	if !serverConfig.WithoutWorker || !serverConfig.WithoutDistribution {
+		err := workq.Initialize(config)
 		if err != nil {
 			return err
 		}
 	}
+
 	if !serverConfig.WithoutWeb {
 		web.RegisterHandlers(e)
 	}
