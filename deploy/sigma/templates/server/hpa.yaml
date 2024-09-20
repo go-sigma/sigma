@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "sigma.server" . }}
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ include "sigma.server" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.server.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "sigma.server" . }}
+    name: {{ include "sigma.server" . | quote }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

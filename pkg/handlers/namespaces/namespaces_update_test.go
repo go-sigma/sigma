@@ -95,7 +95,6 @@ func TestPutNamespace(t *testing.T) {
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
-	fmt.Println(rec.Body.String())
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"size_limit":101}`))
@@ -107,7 +106,6 @@ func TestPutNamespace(t *testing.T) {
 	c.SetParamValues(strconv.FormatInt(resultID, 10))
 	err = namespaceHandler.PutNamespace(c)
 	assert.NoError(t, err)
-	fmt.Println(rec.Body.String())
 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodPut, "/", bytes.NewBufferString(`{"visibility":"test"}`))

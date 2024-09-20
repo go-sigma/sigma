@@ -11,7 +11,7 @@ ARG TARGETOS TARGETARCH
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
-  wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}" && \
+  wget --progress=dot:giga -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}" && \
   chmod +x /tmp/cosign
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder

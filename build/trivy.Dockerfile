@@ -4,7 +4,7 @@ FROM alpine:${ALPINE_VERSION} AS trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
-ARG TRIVY_VERSION=0.55.1
+ARG TRIVY_VERSION=0.55.2
 ARG TARGETOS TARGETARCH
 
 RUN set -eux && \
@@ -15,7 +15,7 @@ RUN set -eux && \
 		arm64) export TRIVYARCH='ARM64' ;; \
 	esac; \
   export TRIVYOS=$(echo "${TARGETOS}" | awk '{print toupper(substr($0, 1, 1)) substr($0, 2)}') && \
-  wget -q -O trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz https://github.com/aquasecurity/trivy/releases/download/v"${TRIVY_VERSION}"/trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
+  wget --progress=dot:giga -O trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz https://github.com/aquasecurity/trivy/releases/download/v"${TRIVY_VERSION}"/trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   tar -xzf trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mv trivy /usr/local/bin/trivy && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
@@ -25,5 +25,4 @@ RUN set -eux && \
 
 FROM scratch
 
-COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
-COPY --from=trivy /opt/trivy/ /opt/trivy/
+COPY --from=trivy /opt/trivy/ /

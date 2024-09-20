@@ -31,8 +31,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -80,8 +80,13 @@ func Serve() error {
 		pprof.Register(e, consts.PprofPath)
 	}
 
+	err := workq.Initialize(config)
+	if err != nil {
+		return err
+	}
+
 	handlers.InitializeDistribution(e)
-	err := storage.Initialize(config)
+	err = storage.Initialize(config)
 	if err != nil {
 		return err
 	}
@@ -110,12 +115,6 @@ func Serve() error {
 			}
 		}
 	}()
-
-	<-time.After(time.Second * 3)
-	err = inits.AfterInitialize(config)
-	if err != nil {
-		log.Error().Err(err).Msg("init something after server initialized")
-	}
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	// Use a buffered channel to avoid missing signals as recommended for signal.Notify

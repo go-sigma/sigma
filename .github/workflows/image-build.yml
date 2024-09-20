@@ -105,7 +105,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          outputs: oci-mediatypes=true,force-compression=true,type=image
   image-build-alpine-trivydb:
     name: image-build-alpine-trivydb
     runs-on: ubuntu-22.04
@@ -198,7 +198,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          outputs: oci-mediatypes=true,force-compression=true,type=image
           build-args: |
             WITH_TRIVY_DB=true
   image-build-debian:
@@ -293,7 +293,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          outputs: oci-mediatypes=true,force-compression=true,type=image
   image-build-debian-trivydb:
     name: image-build-debian-trivydb
     runs-on: ubuntu-22.04
@@ -386,6 +386,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false
-          outputs: oci-mediatypes=true,compression=zstd,compression-level=19,force-compression=true,type=image
+          outputs: oci-mediatypes=true,force-compression=true,type=image
           build-args: |
             WITH_TRIVY_DB=true
