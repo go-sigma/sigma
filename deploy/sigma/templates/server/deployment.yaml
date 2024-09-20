@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "sigma.server" . }}
-  namespace: "{{ .Release.Namespace }}"
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.server.labels" . | nindent 4 }}
 spec:
@@ -33,7 +33,7 @@ spec:
         - name: {{ printf "%s-server" .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command:
             - sigma
@@ -56,22 +56,23 @@ spec:
               port: {{ .Values.service.server.port }}
           volumeMounts:
             - name: config
-              mountPath: "/etc/sigma/config.yaml"
-              subPath: "config.yaml"
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
               readOnly: true
-            # - name: trivy
-            #   mountPath: "/opt/trivy-tmp"
-              # TODO: image volumes not support subPath
+            {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
+            - name: trivy
+              mountPath: /opt/trivy
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: config
           configMap:
-            name: {{ printf "%s-config" .Chart.Name }}
+            name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
         {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
         - name: trivy
           image:
-            reference: "{{ .Values.image.registry }}/{{ .Values.image.trivyRepository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            reference: "{{ .Values.image.registry }}/{{ .Values.image.trivy.repository }}:{{ .Values.image.trivy.tag }}"
             pullPolicy: {{ .Values.image.pullPolicy | quote }}
         {{- end }}
       {{- with .Values.nodeSelector }}

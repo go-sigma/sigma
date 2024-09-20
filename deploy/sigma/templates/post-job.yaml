@@ -1,0 +1,51 @@
+{{- if .Values.config.daemon.builder.image.push }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-post-job" ( include "sigma.fullname" . ) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.postJob.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sigma.postJob.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: check-distribution
+          image: {{ printf "%s:%s" .Values.busybox.repository .Values.busybox.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - 'until nc -z {{ include "sigma.distribution" . }} 80; do echo waiting for {{ include "sigma.distribution" . }}; sleep 3; done;'
+      containers:
+        - name: push-images
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sigma
+          args:
+            - worker
+            - --config=/etc/sigma/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources: {}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
+{{- end }}

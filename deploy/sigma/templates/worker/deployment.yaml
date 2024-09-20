@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sigma.worker" . }}
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ include "sigma.worker" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.worker.labels" . | nindent 4 }}
 spec:
@@ -30,11 +30,11 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "sigma.fullname" . | quote }}
       containers:
-        - name: {{ printf "%s-worker" .Chart.Name }}
+        - name: {{ include "sigma.worker" . | quote }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command:
             - sigma
           args:
@@ -53,16 +53,26 @@ spec:
               path: /healthz
               port: {{ .Values.service.worker.port }}
           volumeMounts:
-            - name: "config"
-              mountPath: "/etc/sigma/config.yaml"
-              subPath: "config.yaml"
+            - name: config
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
               readOnly: true
+            {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
+            - name: trivy
+              mountPath: /opt/trivy
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: "config"
+        - name: config
           configMap:
-            name: {{ printf "%s-config" .Chart.Name }}
+            name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
+        {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
+        - name: trivy
+          image:
+            reference: "{{ .Values.image.registry }}/{{ .Values.image.trivy.repository }}:{{ .Values.image.trivy.tag }}"
+            pullPolicy: {{ .Values.image.pullPolicy | quote }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

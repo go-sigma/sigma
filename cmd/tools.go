@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inits
+package cmd
 
 import (
 	"bytes"
@@ -27,29 +27,84 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
-func init() {
-	afterInit["baseimage"] = initBaseimage
+// toolsCmd represents the tools command
+var toolsCmd = &cobra.Command{
+	Use:   "tools",
+	Short: "Tools for sigma",
 }
 
-const baseImageDir = "./bin"
+var toolsForPushBuilderImageCmd = &cobra.Command{
+	Use:   "push-builder-image",
+	Short: "Push builder image to distribution",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		initConfig()
+		logger.SetLevel(viper.GetString("log.level"))
+	},
+	Run: func(_ *cobra.Command, _ []string) {
+		err := configs.Initialize()
+		if err != nil {
+			log.Error().Err(err).Msg("initialize configs with error")
+			return
+		}
+
+		config := ptr.To(configs.GetConfiguration())
+
+		err = badger.Initialize(context.Background(), config)
+		if err != nil {
+			log.Error().Err(err).Msg("initialize badger with error")
+			return
+		}
+
+		err = locker.Initialize(config)
+		if err != nil {
+			log.Error().Err(err).Msg("initialize locker with error")
+			return
+		}
+
+		err = dal.Initialize(config)
+		if err != nil {
+			log.Error().Err(err).Msg("initialize database with error")
+			return
+		}
+
+		err = initBaseimage(config)
+		if err != nil {
+			log.Error().Err(err).Msg("push builder image with error")
+			return
+		}
+	},
+}
+
+func init() {
+	toolsForPushBuilderImageCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
+
+	toolsCmd.AddCommand(toolsForPushBuilderImageCmd)
+	rootCmd.AddCommand(toolsCmd)
+}
 
 func initBaseimage(config configs.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
 		return nil
 	}
-	dir := strings.TrimPrefix(baseImageDir, "./")
+	dir := strings.TrimPrefix(consts.BuilderImagePath, "./")
 	if !utils.IsDir(dir) {
-		log.Info().Msg("Baseimage not found, skip push image")
+		log.Info().Msg("builder image not found, skip push image")
 		return nil
 	}
 	ctx, ctxCancel := context.WithCancel(context.Background())
@@ -111,7 +166,6 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 		versionsVal = string(versions.Val)
 	}
 	var sets = mapset.NewSet(strings.Split(versionsVal, ",")...)
-	fmt.Println(versionsVal == "", versionsVal != "" && sets.ContainsOne(version), !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))))
 	if !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))) {
 		return nil
 	}
@@ -127,11 +181,11 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 	if err != nil {
 		return err
 	}
-	authorization, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
+	autoToken, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", authorization, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:latest", utils.TrimHTTP(config.HTTP.InternalEndpoint), name)) // nolint: gosec
+	cmd := exec.Command("skopeo", "--insecure-policy", "copy", "--dest-registry-token", autoToken, "--dest-tls-verify=false", "-a", fmt.Sprintf("oci-archive:%s", path), fmt.Sprintf("docker://%s/library/%s:latest", utils.TrimHTTP(config.HTTP.InternalEndpoint), name)) // nolint: gosec
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
