@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sigma.web" . }}
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ include "sigma.web" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.web.labels" . | nindent 4 }}
 spec:
@@ -29,11 +29,11 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ include "sigma.web" . }}
+        - name: {{ include "sigma.web" . | quote }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.registry }}/{{ .Values.image.webRepository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.web.repository .Values.image.web.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.service.web.port }}
@@ -47,16 +47,16 @@ spec:
               path: /
               port: {{ .Values.service.web.port }}
           volumeMounts:
-            - name: "config"
-              mountPath: "/etc/sigma/config.yaml"
-              subPath: "config.yaml"
+            - name: config
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
               readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: "config"
+        - name: config
           configMap:
-            name: {{ printf "%s-config" .Chart.Name }}
+            name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

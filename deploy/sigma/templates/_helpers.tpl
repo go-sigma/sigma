@@ -48,6 +48,11 @@ app.kubernetes.io/name: {{ template "sigma.web" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
+{{- define "sigma.postJob.labels" -}}
+app.kubernetes.io/name: {{ template "sigma.postJob" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
 {{- define "sigma.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "sigma.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
@@ -67,4 +72,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "sigma.web" -}}
   {{- printf "%s-web" (include "common.names.fullname" .) -}}
+{{- end -}}
+
+{{- define "sigma.postJob" -}}
+  {{- printf "%s-post-job" (include "common.names.fullname" .) -}}
 {{- end -}}

@@ -19,23 +19,9 @@ import "github.com/go-sigma/sigma/pkg/configs"
 // inits inits for something before server started
 var inits = make(map[string]func(configs.Configuration) error)
 
-// afterInit init for something after server started
-var afterInit = make(map[string]func(configs.Configuration) error)
-
 // Initialize runs all registered inits.
 func Initialize(config configs.Configuration) error {
 	for _, init := range inits {
-		err := init(config)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// AfterInitialize ...
-func AfterInitialize(config configs.Configuration) error {
-	for _, init := range afterInit {
 		err := init(config)
 		if err != nil {
 			return err

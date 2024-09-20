@@ -5,10 +5,21 @@ commonAnnotations: {}
 
 image:
   registry: ghcr.io
+  ## main image contain all of the sigma logic
   repository: go-sigma/sigma
-  trivyRepository:  go-sigma/sigma-trivy
-  webRepository:  go-sigma/sigma-web
   tag: latest
+  ## trivy image contain the trivy db from https://github.com/aquasecurity/trivy-db and https://github.com/aquasecurity/trivy-java-db
+  trivy:
+    repository: go-sigma/sigma-trivy
+    tag: latest
+  ## web image contain a static server nginx serve for fontend files
+  web:
+    repository: go-sigma/sigma-web
+    tag: latest
+  ## busybox image used in init-container
+  busybox:
+    repository: busybox
+    tag: 1.36.1-musl
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -50,6 +61,10 @@ ingress:
       paths:
         - name: server
           path: /api/v1/
+          pathType: Prefix
+          port: 3000
+        - name: server
+          path: /swagger/
           pathType: Prefix
           port: 3000
         - name: distribution
@@ -125,6 +140,8 @@ config:
     builder:
       enabled: true
       image:
+        ## @param config.daemon.builder.image.push enable the job that push builder image
+        push: true
         repository: tosone/sigma-builder
         tag: latest
       type: kubernetes
