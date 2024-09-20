@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "{{ printf "%s-config" .Chart.Name }}"
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
 data:
@@ -38,12 +38,13 @@ data:
       type: external
       url: redis://:{{ .Values.redis.auth.password }}@{{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis }}/0
     http:
+      internalEndpoint: {{ include "sigma.distribution" . }}:{{ .Values.service.distribution.port }}
       server: 0.0.0.0:{{.Values.service.server.port}}
       worker: 0.0.0.0:{{.Values.service.worker.port}}
     daemon:
       builder:
         enabled: {{ .Values.config.daemon.builder.enabled }}
-        image: "{{ .Values.image.registry }}/{{ .Values.config.daemon.builder.image.repository }}:{{ .Values.config.daemon.builder.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.registry }}/{{ .Values.config.daemon.builder.image.repository }}:{{ .Values.config.daemon.builder.image.tag }}"
         type: {{ .Values.config.daemon.builder.type | quote }}
         kubernetes:
           kubeconfig: ""
@@ -77,7 +78,7 @@ data:
         forcePathStyle: {{ .Values.external.minio.pathStyle | default false }}
         {{- end }}
     proxy:
-      enabled: true
+      enabled: false
       endpoint: https://registry-1.docker.io
       tlsVerify: true
       username: ""
@@ -85,14 +86,11 @@ data:
     workqueue:
       type: redis
     auth:
-      user:
-        password: ""
-      internalUser:
-        username: internal-sigma
-        password: internal-sigma
+      anonymous:
+        enabled: true
       admin:
-        username: sigma
-        password: {{ randAlphaNum 8 | b64enc | trunc 8 }}
+        username: "sigma"
+        password: "Admin@123"
       token:
         realm: ""
         service: ""

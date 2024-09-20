@@ -2,8 +2,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "sigma.fullname" . }}
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ include "sigma.fullname" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -12,7 +12,7 @@ metadata:
   {{- end }}
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
   {{- end }}
   {{- if .Values.ingress.tls }}
   tls:
@@ -21,7 +21,7 @@ spec:
         {{- range .hosts }}
         - {{ . | quote }}
         {{- end }}
-      secretName: {{ .secretName }}
+      secretName: {{ .secretName | quote }}
     {{- end }}
   {{- end }}
   rules:
@@ -30,16 +30,16 @@ spec:
       http:
         paths:
         {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType | quote }}
             backend:
               service:
                 {{- if (eq .name "server") }}
-                name: {{ include "sigma.server" $ }}
+                name: {{ include "sigma.server" $ | quote }}
                 {{- else if (eq .name "web") }}
-                name: {{ include "sigma.web" $ }}
+                name: {{ include "sigma.web" $ | quote }}
                 {{- else }}
-                name: {{ include "sigma.distribution" $ }}
+                name: {{ include "sigma.distribution" $ | quote }}
                 {{- end }}
                 port:
                   number: {{ .port }}

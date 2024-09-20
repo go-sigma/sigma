@@ -70,6 +70,8 @@ const (
 	ObsPresignMaxTtl = time.Minute * 30
 	// PprofPath ...
 	PprofPath = "/__debug/pprof"
+	// BuilderImagePath ...
+	BuilderImagePath = "/baseimages/"
 )
 
 const (

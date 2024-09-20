@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sigma.server" . }}
-  namespace: "{{ .Release.Namespace }}"
+  name: {{ include "sigma.server" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.server.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.service.type | quote }}
   ports:
     - port: {{ .Values.service.server.port }}
       targetPort: http
