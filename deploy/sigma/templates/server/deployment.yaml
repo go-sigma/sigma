@@ -59,10 +59,10 @@ spec:
               mountPath: /etc/sigma/config.yaml
               subPath: config.yaml
               readOnly: true
-            {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
-            - name: trivy
-              mountPath: /opt/trivy
-            {{- end }}
+            # {{- if semverCompare ">= 1.31" .Capabilities.KubeVersion.Version }}
+            # - name: trivy
+            #   mountPath: /opt/trivy
+            # {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

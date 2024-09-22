@@ -34,18 +34,6 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION}
 
-ARG USE_MIRROR=false
-
-RUN set -eux && \
-  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache curl
-
-RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma
-
-USER sigma
-
-WORKDIR /home/sigma
-
 COPY --from=fetcher /tmp/skopeo /usr/local/bin/skopeo
 COPY --from=fetcher /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=fetcher /usr/local/bin/trivy /usr/local/bin/trivy
@@ -56,5 +44,12 @@ COPY ./bin/sigma /usr/local/bin/sigma
 
 VOLUME /var/lib/sigma
 VOLUME /etc/sigma
+
+RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
+  chown -R 1001:1001 /opt/trivy/
+
+WORKDIR /home/sigma
+
+USER sigma
 
 CMD ["sigma", "server"]

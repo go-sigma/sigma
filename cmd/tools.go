@@ -50,17 +50,17 @@ var toolsCmd = &cobra.Command{
 }
 
 var toolsForPushBuilderImageCmd = &cobra.Command{
-	Use:   "push-builder-image",
-	Short: "Push builder image to distribution",
+	Use:   "push-builder-images",
+	Short: "Push builder images to distribution",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		initConfig()
 		logger.SetLevel(viper.GetString("log.level"))
 	},
-	Run: func(_ *cobra.Command, _ []string) {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		err := configs.Initialize()
 		if err != nil {
 			log.Error().Err(err).Msg("initialize configs with error")
-			return
+			return err
 		}
 
 		config := ptr.To(configs.GetConfiguration())
@@ -68,26 +68,28 @@ var toolsForPushBuilderImageCmd = &cobra.Command{
 		err = badger.Initialize(context.Background(), config)
 		if err != nil {
 			log.Error().Err(err).Msg("initialize badger with error")
-			return
+			return err
 		}
 
 		err = locker.Initialize(config)
 		if err != nil {
 			log.Error().Err(err).Msg("initialize locker with error")
-			return
+			return err
 		}
 
 		err = dal.Initialize(config)
 		if err != nil {
 			log.Error().Err(err).Msg("initialize database with error")
-			return
+			return err
 		}
 
 		err = initBaseimage(config)
 		if err != nil {
 			log.Error().Err(err).Msg("push builder image with error")
-			return
+			return err
 		}
+
+		return nil
 	},
 }
 
