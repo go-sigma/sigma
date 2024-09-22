@@ -38,7 +38,7 @@ data:
       type: external
       url: redis://:{{ .Values.redis.auth.password }}@{{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis }}/0
     http:
-      internalEndpoint: {{ include "sigma.distribution" . }}:{{ .Values.service.distribution.port }}
+      internalEndpoint: http://{{ include "sigma.distribution" . }}:{{ .Values.service.distribution.port }}
       server: 0.0.0.0:{{.Values.service.server.port}}
       worker: 0.0.0.0:{{.Values.service.worker.port}}
     daemon:

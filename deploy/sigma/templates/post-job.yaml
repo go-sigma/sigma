@@ -6,13 +6,15 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "sigma.postJob.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
-  backoffLimit: 6
+  backoffLimit: 1
   template:
     metadata:
-      annotations:
-        rollme: {{ randAlphaNum 5 | quote }}
       {{- with .Values.podAnnotations }}
+      annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -23,20 +25,29 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: check-distribution
-          image: {{ printf "%s:%s" .Values.busybox.repository .Values.busybox.tag | quote }}
+          image: {{ printf "%s:%s" .Values.image.osShell.repository .Values.image.osShell.tag | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - /bin/sh
-            - -c
-            - 'until nc -z {{ include "sigma.distribution" . }} 80; do echo waiting for {{ include "sigma.distribution" . }}; sleep 3; done;'
+            - "/bin/bash"
+            - "-c"
+            - |-
+              set -e;
+              echo "Waiting for sigma distribution";
+              wait-for-port \
+                --host={{ include "sigma.distribution" . }} \
+                --state=inuse \
+                --timeout=120 \
+                {{ .Values.service.distribution.port }};
+              echo "sigma distribution is available";
       containers:
-        - name: push-images
+        - name: push-builder-images
           image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - sigma
           args:
-            - worker
+            - tools
+            - push-builder-images
             - --config=/etc/sigma/config.yaml
           volumeMounts:
             - name: config

@@ -124,4 +124,13 @@ COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/s
 VOLUME /var/lib/sigma
 VOLUME /etc/sigma
 
+RUN adduser --disabled-password -h /home/sigma -s /bin/bash -u 1001 sigma && \
+  chown -R 1001:1001 /opt/trivy && \
+  mkdir -p /var/lib/sigma && \
+  chown -R 1001:1001 /var/lib/sigma
+
+WORKDIR /home/sigma
+
+USER sigma
+
 CMD ["sigma", "server"]

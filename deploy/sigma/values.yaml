@@ -16,10 +16,10 @@ image:
   web:
     repository: go-sigma/sigma-web
     tag: latest
-  ## busybox image used in init-container
-  busybox:
-    repository: busybox
-    tag: 1.36.1-musl
+  ## osShell image used in init-container
+  osShell:
+    repository: bitnami/os-shell
+    tag: 12-debian-12-r30
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
