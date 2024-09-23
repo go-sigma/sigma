@@ -37,6 +37,27 @@ var TopicHandlers = make(map[enums.Daemon]definition.Consumer)
 // ProducerClient ...
 var ProducerClient definition.WorkQueueProducer
 
+// InitProducer ...
+func InitProducer(config configs.Configuration) error {
+	var err error
+	switch config.WorkQueue.Type {
+	case enums.WorkQueueTypeDatabase:
+		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeKafka:
+		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeRedis:
+		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
+	case enums.WorkQueueTypeInmemory:
+		ProducerClient, err = inmemory.NewWorkQueueProducer(config, TopicHandlers)
+	default:
+		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Initialize ...
 func Initialize(config configs.Configuration) error {
 	var err error

@@ -43,61 +43,69 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
+func init() {
+	toolsCmd.AddCommand(
+		toolsMiddlewareCheckerCmd(),
+		toolsForPushBuilderImageCmd(),
+	)
+
+	rootCmd.AddCommand(toolsCmd)
+}
+
 // toolsCmd represents the tools command
 var toolsCmd = &cobra.Command{
 	Use:   "tools",
 	Short: "Tools for sigma",
 }
 
-var toolsForPushBuilderImageCmd = &cobra.Command{
-	Use:   "push-builder-images",
-	Short: "Push builder images to distribution",
-	PersistentPreRun: func(_ *cobra.Command, _ []string) {
-		initConfig()
-		logger.SetLevel(viper.GetString("log.level"))
-	},
-	RunE: func(_ *cobra.Command, _ []string) error {
-		err := configs.Initialize()
-		if err != nil {
-			log.Error().Err(err).Msg("initialize configs with error")
-			return err
-		}
+func toolsForPushBuilderImageCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "push-builder-images",
+		Short: "Push builder images to distribution",
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			initConfig()
+			logger.SetLevel(viper.GetString("log.level"))
+		},
+		RunE: func(_ *cobra.Command, _ []string) error {
+			err := configs.Initialize()
+			if err != nil {
+				log.Error().Err(err).Msg("initialize configs with error")
+				return err
+			}
 
-		config := ptr.To(configs.GetConfiguration())
+			config := ptr.To(configs.GetConfiguration())
 
-		err = badger.Initialize(context.Background(), config)
-		if err != nil {
-			log.Error().Err(err).Msg("initialize badger with error")
-			return err
-		}
+			err = badger.Initialize(context.Background(), config)
+			if err != nil {
+				log.Error().Err(err).Msg("initialize badger with error")
+				return err
+			}
 
-		err = locker.Initialize(config)
-		if err != nil {
-			log.Error().Err(err).Msg("initialize locker with error")
-			return err
-		}
+			err = locker.Initialize(config)
+			if err != nil {
+				log.Error().Err(err).Msg("initialize locker with error")
+				return err
+			}
 
-		err = dal.Initialize(config)
-		if err != nil {
-			log.Error().Err(err).Msg("initialize database with error")
-			return err
-		}
+			err = dal.Initialize(config)
+			if err != nil {
+				log.Error().Err(err).Msg("initialize database with error")
+				return err
+			}
 
-		err = initBaseimage(config)
-		if err != nil {
-			log.Error().Err(err).Msg("push builder image with error")
-			return err
-		}
+			err = initBaseimage(config)
+			if err != nil {
+				log.Error().Err(err).Msg("push builder image with error")
+				return err
+			}
 
-		return nil
-	},
-}
+			return nil
+		},
+	}
 
-func init() {
-	toolsForPushBuilderImageCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
+	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
 
-	toolsCmd.AddCommand(toolsForPushBuilderImageCmd)
-	rootCmd.AddCommand(toolsCmd)
+	return cmd
 }
 
 func initBaseimage(config configs.Configuration) error {
@@ -215,4 +223,49 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 		return err
 	}
 	return nil
+}
+
+func toolsMiddlewareCheckerCmd() *cobra.Command {
+	var waitTimeout time.Duration
+	cmd := &cobra.Command{
+		Use:   "middleware-checker",
+		Short: "Check all of middleware status all ready",
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			initConfig()
+			logger.SetLevel(viper.GetString("log.level"))
+		},
+		RunE: func(_ *cobra.Command, _ []string) error {
+			err := configs.Initialize()
+			if err != nil {
+				log.Error().Err(err).Msg("initialize configs with error")
+				return err
+			}
+
+			if waitTimeout == 0 {
+				waitTimeout = time.Second * 120
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), waitTimeout)
+			defer cancel()
+
+			for {
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("middleware checker timeout, not all of middleware ready")
+				case <-time.After(time.Second * 3):
+					err = configs.CheckMiddleware()
+					if err != nil {
+						log.Error().Err(err).Msg("check middleware with error")
+					} else {
+						return nil
+					}
+				}
+			}
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
+	cmd.PersistentFlags().DurationVar(&waitTimeout, "wait-timeout", time.Second*120, "wait middleware timeout")
+
+	return cmd
 }
