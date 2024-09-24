@@ -28,6 +28,20 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: check-middlewares
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |-
+              set -e;
+              echo "Waiting for sigma middlewares to be ready...";
+              sigma \
+                tools \
+                middleware-checker;
+              echo "sigma middlewares are all ready";
       containers:
         - name: {{ printf "%s-distribution" ( include "sigma.fullname" . ) | quote }}
           securityContext:

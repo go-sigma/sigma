@@ -16,7 +16,6 @@ package cmd
 
 import (
 	"os"
-	"path"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -24,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/consts"
 
 	_ "github.com/go-sigma/sigma/cmd/imports"
 )
@@ -55,16 +55,13 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		pwd, err := os.Getwd()
-		cobra.CheckErr(err)
 		viper.AddConfigPath("/etc/sigma")
-		viper.AddConfigPath("$HOME/.sigma")
-		viper.AddConfigPath(path.Join(pwd, "conf"))
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("config.yaml")
 	}
 
 	viper.AutomaticEnv()
+	viper.SetEnvPrefix(consts.AppName)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	cobra.CheckErr(viper.ReadInConfig())

@@ -80,7 +80,7 @@ func Serve() error {
 		pprof.Register(e, consts.PprofPath)
 	}
 
-	err := workq.Initialize(config)
+	err := workq.InitProducer(config)
 	if err != nil {
 		return err
 	}

@@ -24,12 +24,16 @@ var checkers []checker
 func Initialize() error {
 	defaultSettings()
 
+	return nil
+}
+
+// CheckMiddleware ...
+func CheckMiddleware() error {
 	for _, checker := range checkers {
 		err := checker(ptr.To(configuration))
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

@@ -62,7 +62,7 @@ func decorator(runner func(context.Context, *models.Artifact, chan decoratorArti
 			for status := range statusChan {
 				switch status.Daemon {
 				case enums.DaemonVulnerability:
-					err = artifactService.UpdateVulnerability(ctx, id,
+					err = artifactService.UpdateVulnerability(context.Background(), id,
 						map[string]any{
 							query.ArtifactVulnerability.Raw.ColumnName().String():     status.Raw,
 							query.ArtifactVulnerability.Result.ColumnName().String():  status.Result,
@@ -73,7 +73,7 @@ func decorator(runner func(context.Context, *models.Artifact, chan decoratorArti
 						},
 					)
 				case enums.DaemonSbom:
-					err = artifactService.UpdateSbom(ctx,
+					err = artifactService.UpdateSbom(context.Background(),
 						id,
 						map[string]any{
 							query.ArtifactSbom.Raw.ColumnName().String():     status.Raw,

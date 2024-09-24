@@ -46,7 +46,9 @@ VOLUME /var/lib/sigma
 VOLUME /etc/sigma
 
 RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
-  chown -R 1001:1001 /opt/trivy/
+  chown -R 1001:1001 /opt/trivy && \
+  mkdir -p /var/lib/sigma && \
+  chown -R 1001:1001 /var/lib/sigma
 
 WORKDIR /home/sigma
 

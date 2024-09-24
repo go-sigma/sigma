@@ -33,7 +33,8 @@ func TestInitialize(t *testing.T) {
 	checkers = make([]checker, 0)
 	err := Initialize()
 	assert.NoError(t, err)
+
 	checkers = append(checkers, noErrChecker, errChecker)
-	err = Initialize()
+	err = CheckMiddleware()
 	assert.Error(t, err)
 }
