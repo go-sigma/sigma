@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v4"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/types/enums"
 
@@ -55,6 +56,7 @@ func checkRedis(config Configuration) error {
 	if err != nil {
 		return fmt.Errorf("redis.Close error: %v", err)
 	}
+	log.Info().Msg("redis check passed")
 	return nil
 }
 
@@ -90,6 +92,7 @@ func checkMysql(config Configuration) error {
 	if err != nil {
 		return fmt.Errorf("db.Close error: %v", err)
 	}
+	log.Info().Msg("mysql check passed")
 	return nil
 }
 
@@ -106,6 +109,7 @@ func checkPostgresql(config Configuration) error {
 	if err != nil {
 		return fmt.Errorf("conn.Close error: %v", err)
 	}
+	log.Info().Msg("postgresql check passed")
 	return nil
 }
 
@@ -142,5 +146,6 @@ func checkStorageS3(cfg Configuration) error {
 	if err != nil {
 		return fmt.Errorf("s3.HeadBucket error: %v", err)
 	}
+	log.Info().Msg("s3 obs check passed")
 	return nil
 }

@@ -10,7 +10,7 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
-  backoffLimit: 1
+  backoffLimit: 6
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -24,6 +24,14 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
+        - name: check-middlewares
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sigma
+          args:
+            - tools
+            - middleware-checker
         - name: check-distribution
           image: {{ printf "%s:%s" .Values.image.osShell.repository .Values.image.osShell.tag | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -39,6 +47,21 @@ spec:
                 --timeout=120 \
                 {{ .Values.service.distribution.port }};
               echo "sigma distribution is available";
+        - name: check-server
+          image: {{ printf "%s:%s" .Values.image.osShell.repository .Values.image.osShell.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |-
+              set -e;
+              echo "Waiting for sigma server";
+              wait-for-port \
+                --host={{ include "sigma.server" . }} \
+                --state=inuse \
+                --timeout=120 \
+                {{ .Values.service.server.port }};
+              echo "sigma server is available";
       containers:
         - name: push-builder-images
           image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}

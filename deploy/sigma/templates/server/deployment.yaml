@@ -34,15 +34,10 @@ spec:
           image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - "/bin/bash"
-            - "-c"
-            - |-
-              set -e;
-              echo "Waiting for sigma middlewares to be ready...";
-              sigma \
-                tools \
-                middleware-checker;
-              echo "sigma middlewares are all ready";
+            - sigma
+          args:
+            - tools
+            - middleware-checker
       containers:
         - name: {{ printf "%s-server" .Chart.Name }}
           securityContext:
