@@ -30,7 +30,7 @@ RUN set -eux && \
   mv syft /usr/local/bin/syft && \
   rm syft_"${SYFT_VERSION}"_"${TARGETOS}"_"${TARGETARCH}".tar.gz && \
   mkdir -p /opt/trivy/ && \
-  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress --db-repository="tosone/trivy-db:2"
 
 FROM alpine:${ALPINE_VERSION}
 

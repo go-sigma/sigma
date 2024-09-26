@@ -51,8 +51,8 @@ RUN set -eux && \
   mv trivy /usr/local/bin/trivy && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mkdir -p /opt/trivy/ && \
-  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress; fi && \
-  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
+  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress --db-repository="tosone/trivy-java-db:1"; fi && \
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress --db-repository="tosone/trivy-db:2"
 
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS skopeo
 
