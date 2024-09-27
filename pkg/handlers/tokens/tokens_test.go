@@ -21,7 +21,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -63,9 +62,6 @@ func TestToken(t *testing.T) {
 	}
 	configs.SetConfiguration(config)
 	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)
@@ -131,9 +127,6 @@ func TestTokenMockDAO(t *testing.T) {
 	configs.SetConfiguration(config)
 
 	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
 	userHandler, err := handlerNew()
 	assert.NoError(t, err)

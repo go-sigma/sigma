@@ -15,18 +15,20 @@
 package token
 
 import (
+	"fmt"
 	"path"
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -37,60 +39,29 @@ type Handler interface {
 }
 
 type handler struct {
-	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
-	userServiceFactory dao.UserServiceFactory
+	dig.In
+
+	Config          configs.Configuration
+	TokenService    token.TokenService
+	PasswordService password.Password
 }
 
 var _ Handler = &handler{}
 
-type inject struct {
-	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
-	userServiceFactory dao.UserServiceFactory
-}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handler, error) {
-	var tokenService token.TokenService
-	passwordService := password.New()
-	userServiceFactory := dao.NewUserServiceFactory()
-	config := configs.GetConfiguration()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.tokenService != nil {
-			tokenService = ij.tokenService
-		}
-		if ij.passwordService != nil {
-			passwordService = ij.passwordService
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-		if ij.config != nil {
-			config = ij.config
-		}
-	} else {
-		var err error
-		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
-		if err != nil {
-			return nil, err
-		}
+func handlerNew(c *dig.Container) (Handler, error) {
+	var h *handler
+	err := c.Invoke(func(handler handler) { h = ptr.Of(handler) })
+	if err != nil {
+		return nil, fmt.Errorf("failed to build handler: %v", err)
 	}
-	return &handler{
-		config:             config,
-		tokenService:       tokenService,
-		passwordService:    passwordService,
-		userServiceFactory: userServiceFactory,
-	}, nil
+	return h, nil
 }
 
 type factory struct{}
 
-func (f factory) Initialize(e *echo.Echo) error {
-	userHandler, err := handlerNew()
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
+	userHandler, err := handlerNew(c)
 	if err != nil {
 		return err
 	}

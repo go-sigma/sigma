@@ -19,9 +19,15 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -36,8 +42,23 @@ func Initialize(e *echo.Echo) error {
 
 	validators.Initialize(e)
 
+	c := dig.New()
+
+	c.Provide(func() configs.Configuration {
+		return ptr.To(configs.GetConfiguration())
+	})
+	c.Provide(func() dao.UserServiceFactory {
+		return dao.NewUserServiceFactory()
+	})
+	c.Provide(func() password.Password {
+		return password.New()
+	})
+	c.Provide(func(config configs.Configuration) (token.TokenService, error) {
+		return token.NewTokenService(config.Auth.Jwt.PrivateKey)
+	})
+
 	for name, factory := range routerFactories {
-		if err := factory.Initialize(e); err != nil {
+		if err := factory.Initialize(e, c); err != nil {
 			return fmt.Errorf("failed to initialize router factory %q: %v", name, err)
 		}
 	}
@@ -47,7 +68,7 @@ func Initialize(e *echo.Echo) error {
 
 // Factory is the interface for the storage router factory
 type Factory interface {
-	Initialize(e *echo.Echo) error
+	Initialize(e *echo.Echo, c *dig.Container) error
 }
 
 var routerFactories = make(map[string]Factory)

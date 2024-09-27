@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -68,7 +69,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(c *dig.Container) Handler {
 	h := &handler{}
 
 	h.config = configs.GetConfiguration()
@@ -79,43 +80,43 @@ func handlerNew(injects ...inject) Handler {
 	h.tagServiceFactory = dao.NewTagServiceFactory()
 	h.artifactServiceFactory = dao.NewArtifactServiceFactory()
 	h.builderServiceFactory = dao.NewBuilderServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			h.config = ij.config
-		}
-		if ij.authServiceFactory != nil {
-			h.authServiceFactory = ij.authServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			h.auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			h.namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			h.repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			h.tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			h.artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.builderServiceFactory != nil {
-			h.builderServiceFactory = ij.builderServiceFactory
-		}
-	}
+	// if len(injects) > 0 {
+	// 	ij := injects[0]
+	// 	if ij.config != nil {
+	// 		h.config = ij.config
+	// 	}
+	// 	if ij.authServiceFactory != nil {
+	// 		h.authServiceFactory = ij.authServiceFactory
+	// 	}
+	// 	if ij.auditServiceFactory != nil {
+	// 		h.auditServiceFactory = ij.auditServiceFactory
+	// 	}
+	// 	if ij.namespaceServiceFactory != nil {
+	// 		h.namespaceServiceFactory = ij.namespaceServiceFactory
+	// 	}
+	// 	if ij.repositoryServiceFactory != nil {
+	// 		h.repositoryServiceFactory = ij.repositoryServiceFactory
+	// 	}
+	// 	if ij.tagServiceFactory != nil {
+	// 		h.tagServiceFactory = ij.tagServiceFactory
+	// 	}
+	// 	if ij.artifactServiceFactory != nil {
+	// 		h.artifactServiceFactory = ij.artifactServiceFactory
+	// 	}
+	// 	if ij.builderServiceFactory != nil {
+	// 		h.builderServiceFactory = ij.builderServiceFactory
+	// 	}
+	// }
 	return h
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	repositoryHandler := handlerNew()
+	repositoryHandler := handlerNew(c)
 
 	repositoryGroup.GET("/", repositoryHandler.ListRepositories)
 	repositoryGroup.POST("/", repositoryHandler.CreateRepository)

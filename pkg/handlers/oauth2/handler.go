@@ -23,6 +23,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -90,7 +91,7 @@ func handlerNew(injects ...inject) (Handler, error) {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
 	repositoryHandler, err := handlerNew()
 	if err != nil {
