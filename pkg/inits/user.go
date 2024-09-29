@@ -19,12 +19,14 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -33,27 +35,29 @@ func init() {
 	inits["user"] = initUser
 }
 
-func initUser(config configs.Configuration) error {
+func initUser(digCon *dig.Container) error {
 	ctx := log.Logger.WithContext(context.Background())
 
-	passwordService := password.New()
-	userServiceFactory := dao.NewUserServiceFactory()
-	userService := userServiceFactory.New()
-	userCount, err := userService.Count(ctx)
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+	pwdSvc := utils.MustGetObjFromDigCon[password.Service](digCon)
+	userSvcFactory := utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon)
+
+	userSvc := userSvcFactory.New()
+	userCount, err := userSvc.Count(ctx)
 	if err != nil {
 		return err
 	}
 	if userCount > 0 {
 		return nil
 	}
-	err = userService.Create(ctx, &models.User{
+	err = userSvc.Create(ctx, &models.User{
 		Username: consts.UserInternal,
 		Role:     enums.UserRoleRoot,
 	})
 	if err != nil {
 		return err
 	}
-	err = userService.Create(ctx, &models.User{
+	err = userSvc.Create(ctx, &models.User{
 		Username: consts.UserAnonymous,
 		Role:     enums.UserRoleAnonymous,
 	})
@@ -69,7 +73,7 @@ func initUser(config configs.Configuration) error {
 	if adminUserUsername == "" {
 		return fmt.Errorf("the admin user username is not set")
 	}
-	adminUserPasswordHashed, err := passwordService.Hash(adminUserPassword)
+	adminUserPasswordHashed, err := pwdSvc.Hash(adminUserPassword)
 	if err != nil {
 		return err
 	}
@@ -80,7 +84,7 @@ func initUser(config configs.Configuration) error {
 		Email:    ptr.Of(adminUserEmail),
 		Role:     enums.UserRoleRoot,
 	}
-	err = userService.Create(ctx, adminUser)
+	err = userSvc.Create(ctx, adminUser)
 	if err != nil {
 		return err
 	}

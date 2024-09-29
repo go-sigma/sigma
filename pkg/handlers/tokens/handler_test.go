@@ -19,13 +19,15 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -46,38 +48,61 @@ func TestFactory(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
+		}
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func() password.Service {
+		return password.New()
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func(config configs.Configuration) (token.Service, error) {
+		return token.New(config.Auth.Jwt.PrivateKey)
+	})
+	assert.NoError(t, err)
 
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
+	assert.NoError(t, inits.Initialize(digCon))
 
-	assert.NoError(t, factory{}.Initialize(e))
+	assert.NoError(t, factory{}.Initialize(e, digCon))
 }
 
 func TestFactoryFailed(t *testing.T) {
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	c := dig.New()
+	err := c.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString + "1",
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString + "1",
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-	assert.Error(t, factory{}.Initialize(echo.New()))
+		}
+	})
+	assert.NoError(t, err)
+	err = c.Provide(func() password.Service {
+		return password.New()
+	})
+	assert.NoError(t, err)
+	err = c.Provide(func(config configs.Configuration) (token.Service, error) {
+		return token.New(config.Auth.Jwt.PrivateKey)
+	})
+	assert.NoError(t, err)
+
+	assert.Error(t, factory{}.Initialize(echo.New(), c))
 }

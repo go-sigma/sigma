@@ -42,7 +42,7 @@ func TestRedisAcquire(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	err := redis.Initialize(ctx, config)
+	err := redis.New(ctx, config)
 	assert.NoError(t, err)
 
 	c, err := New(config)
@@ -82,7 +82,7 @@ func TestRedisAcquireWithRenew(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	err := redis.Initialize(ctx, config)
+	err := redis.New(ctx, config)
 	assert.NoError(t, err)
 
 	c, err := New(config)

@@ -12,22 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inits
-
-import (
-	"go.uber.org/dig"
-)
-
-// inits inits for something before server started
-var inits = make(map[string]func(*dig.Container) error)
-
-// Initialize runs all registered inits.
-func Initialize(digCon *dig.Container) error {
-	for _, init := range inits {
-		err := init(digCon)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+package cmd

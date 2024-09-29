@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -57,30 +58,30 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(c *dig.Container) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	authServiceFactory := auth.NewAuthServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-	}
+	// if len(injects) > 0 {
+	// 	ij := injects[0]
+	// 	if ij.repositoryServiceFactory != nil {
+	// 		repositoryServiceFactory = ij.repositoryServiceFactory
+	// 	}
+	// 	if ij.artifactServiceFactory != nil {
+	// 		artifactServiceFactory = ij.artifactServiceFactory
+	// 	}
+	// 	if ij.tagServiceFactory != nil {
+	// 		tagServiceFactory = ij.tagServiceFactory
+	// 	}
+	// 	if ij.namespaceServiceFactory != nil {
+	// 		namespaceServiceFactory = ij.namespaceServiceFactory
+	// 	}
+	// 	if ij.authServiceFactory != nil {
+	// 		authServiceFactory = ij.authServiceFactory
+	// 	}
+	// }
 	return &handler{
 		authServiceFactory:       authServiceFactory,
 		namespaceServiceFactory:  namespaceServiceFactory,
@@ -92,10 +93,10 @@ func handlerNew(injects ...inject) Handler {
 
 type factory struct{}
 
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	tagHandler := handlerNew()
+	tagHandler := handlerNew(c)
 
 	tagGroup.GET("/", tagHandler.ListTag)
 	tagGroup.GET("/:id", tagHandler.GetTag)

@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -51,7 +52,7 @@ func handlerNew(_ ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	handler := handlerNew()
 
 	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))

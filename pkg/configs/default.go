@@ -68,6 +68,9 @@ func defaultSettings() {
 	}
 
 	// for badger
+	if (configuration.Cache.Type == enums.CacherTypeBadger || configuration.Locker.Type == enums.LockerTypeBadger) && !configuration.Badger.Enabled {
+		configuration.Badger.Enabled = true
+	}
 	if configuration.Badger.Enabled && len(strings.TrimSpace(configuration.Badger.Path)) == 0 {
 		configuration.Badger.Path = "/var/lib/sigma/badger/"
 	}

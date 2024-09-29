@@ -11,6 +11,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/anchore/syft v1.12.2
 	github.com/aquasecurity/trivy v0.55.2
+	github.com/avast/retry-go/v4 v4.6.0
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.0

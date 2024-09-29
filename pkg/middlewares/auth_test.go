@@ -134,7 +134,7 @@ func TestAuthWithConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
-	tokenService, err := token.NewTokenService(privateKeyString)
+	tokenService, err := token.New(privateKeyString)
 	assert.NoError(t, err)
 
 	userServiceFactory := dao.NewUserServiceFactory()

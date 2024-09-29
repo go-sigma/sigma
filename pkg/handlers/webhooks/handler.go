@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -75,30 +76,30 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the webhook handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(c *dig.Container) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	authServiceFactory := auth.NewAuthServiceFactory()
 	producerClient := workq.ProducerClient
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.webhookServiceFactory != nil {
-			webhookServiceFactory = ij.webhookServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.producerClient != nil {
-			producerClient = ij.producerClient
-		}
-	}
+	// if len(injects) > 0 {
+	// 	ij := injects[0]
+	// 	if ij.namespaceServiceFactory != nil {
+	// 		namespaceServiceFactory = ij.namespaceServiceFactory
+	// 	}
+	// 	if ij.webhookServiceFactory != nil {
+	// 		webhookServiceFactory = ij.webhookServiceFactory
+	// 	}
+	// 	if ij.auditServiceFactory != nil {
+	// 		auditServiceFactory = ij.auditServiceFactory
+	// 	}
+	// 	if ij.authServiceFactory != nil {
+	// 		authServiceFactory = ij.authServiceFactory
+	// 	}
+	// 	if ij.producerClient != nil {
+	// 		producerClient = ij.producerClient
+	// 	}
+	// }
 	return &handler{
 		authServiceFactory:      authServiceFactory,
 		namespaceServiceFactory: namespaceServiceFactory,
@@ -111,10 +112,10 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	webhookGroup := e.Group(consts.APIV1+"/webhooks", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	webhookHandler := handlerNew()
+	webhookHandler := handlerNew(c)
 	webhookGroup.POST("/", webhookHandler.PostWebhook)
 	webhookGroup.PUT("/:webhook_id", webhookHandler.PutWebhook)
 	webhookGroup.GET("/", webhookHandler.ListWebhook)

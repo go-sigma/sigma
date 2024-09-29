@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -35,6 +36,7 @@ const (
 
 func TestInitializeSkipAuth(t *testing.T) {
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	validators.Initialize(e)
 	assert.NoError(t, tests.Initialize(t))
@@ -46,25 +48,31 @@ func TestInitializeSkipAuth(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	assert.NoError(t, inits.Initialize(configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}))
+		}
+	})
+	assert.NoError(t, err)
+
+	assert.NoError(t, inits.Initialize(digCon))
 
 	assert.NoError(t, Initialize(e))
 }
 
 type factoryOk struct{}
 
-func (f *factoryOk) Initialize(e *echo.Echo) error {
+func (f *factoryOk) Initialize(*echo.Echo, *dig.Container) error {
 	return nil
 }
 
@@ -78,7 +86,7 @@ func TestInitializeOK(t *testing.T) {
 
 type factoryErr struct{}
 
-func (f *factoryErr) Initialize(e *echo.Echo) error {
+func (f *factoryErr) Initialize(*echo.Echo, *dig.Container) error {
 	return errors.New("error")
 }
 

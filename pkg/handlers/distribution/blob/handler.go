@@ -135,7 +135,7 @@ func init() {
 }
 
 func (h *handler) newBlobCacher(c echo.Context) (definition.Cacher[*models.Blob], error) {
-	return cacher.New(consts.CacherBlob, func(key string) (*models.Blob, error) {
+	return cacher.New(nil, consts.CacherBlob, func(key string) (*models.Blob, error) {
 		ctx := log.Logger.WithContext(c.Request().Context())
 
 		dgest, err := digest.Parse(key)

@@ -33,6 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -323,7 +324,7 @@ func (h *handler) tryGetUser(c echo.Context) (*models.User, error) {
 			return nil, xerrors.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Verify password failed: %v", err))
 		}
 	case strings.HasPrefix(authorization, "Bearer"):
-		tokenService, err := token.NewTokenService(h.config.Auth.Jwt.PrivateKey)
+		tokenService, err := token.New(inits.DigCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Create token service failed")
 			return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create token service failed: %v", err))

@@ -15,29 +15,32 @@
 package cacher
 
 import (
+	"go.uber.org/dig"
+
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/badger"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/inmemory"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // New ...
-func New[T any](prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+func New[T any](digCon *dig.Container, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+
 	var err error
 	var cacher definition.Cacher[T]
-	config := ptr.To(configs.GetConfiguration())
 	switch config.Cache.Type {
 	case enums.CacherTypeRedis:
-		cacher, err = redis.New[T](config, prefix, fetcher)
+		cacher, err = redis.New(digCon, prefix, fetcher)
 	case enums.CacherTypeInmemory:
-		cacher, err = inmemory.New[T](config, prefix, fetcher)
+		cacher, err = inmemory.New(digCon, prefix, fetcher)
 	case enums.CacherTypeBadger:
-		cacher, err = badger.New[T](config, prefix, fetcher)
+		cacher, err = badger.New(digCon, prefix, fetcher)
 	default:
-		cacher, err = badger.New[T](config, prefix, fetcher)
+		cacher, err = badger.New(digCon, prefix, fetcher)
 	}
 	return cacher, err
 }

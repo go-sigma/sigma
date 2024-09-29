@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -110,7 +111,7 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	codeRepositoryHandler := handlerNew()
 
 	config := configs.GetConfiguration()

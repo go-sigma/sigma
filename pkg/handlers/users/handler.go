@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 	"golang.org/x/exp/slices"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -65,8 +66,8 @@ type Handler interface {
 
 type handler struct {
 	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
+	tokenService       token.Service
+	passwordService    password.Service
 	userServiceFactory dao.UserServiceFactory
 }
 
@@ -74,38 +75,38 @@ var _ Handler = &handler{}
 
 type inject struct {
 	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
+	tokenService       token.Service
+	passwordService    password.Service
 	userServiceFactory dao.UserServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handler, error) {
-	var tokenService token.TokenService
+func handlerNew(c *dig.Container) (Handler, error) {
+	var tokenService token.Service
 	passwordService := password.New()
 	userServiceFactory := dao.NewUserServiceFactory()
 	config := configs.GetConfiguration()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.tokenService != nil {
-			tokenService = ij.tokenService
-		}
-		if ij.passwordService != nil {
-			passwordService = ij.passwordService
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-		if ij.config != nil {
-			config = ij.config
-		}
-	} else {
-		var err error
-		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if len(injects) > 0 {
+	// 	ij := injects[0]
+	// 	if ij.tokenService != nil {
+	// 		tokenService = ij.tokenService
+	// 	}
+	// 	if ij.passwordService != nil {
+	// 		passwordService = ij.passwordService
+	// 	}
+	// 	if ij.userServiceFactory != nil {
+	// 		userServiceFactory = ij.userServiceFactory
+	// 	}
+	// 	if ij.config != nil {
+	// 		config = ij.config
+	// 	}
+	// } else {
+	// 	var err error
+	// 	tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 	return &handler{
 		config:             config,
 		tokenService:       tokenService,
@@ -118,9 +119,9 @@ type factory struct{}
 
 var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	userGroup := e.Group(consts.APIV1 + "/users")
-	userHandler, err := handlerNew()
+	userHandler, err := handlerNew(c)
 	if err != nil {
 		return err
 	}

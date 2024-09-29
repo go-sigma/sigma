@@ -22,10 +22,11 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 type cacher[T any] struct {
@@ -36,12 +37,12 @@ type cacher[T any] struct {
 }
 
 // New returns a new Cacher.
-func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+func New[T any](digCon *dig.Container, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
 	return &cacher[T]{
-		db:      rBadger.Client,
+		db:      utils.MustGetObjFromDigCon[*badger.DB](digCon),
 		prefix:  prefix,
 		fetcher: fetcher,
-		config:  config,
+		config:  utils.MustGetObjFromDigCon[configs.Configuration](digCon),
 	}, nil
 }
 
@@ -68,7 +69,6 @@ func (c *cacher[T]) Set(ctx context.Context, key string, val T, ttls ...time.Dur
 func (c *cacher[T]) Get(ctx context.Context, key string) (T, error) {
 	var val T
 	var result []byte
-	// var val []byte
 	err := c.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(definition.GenKey(c.config, c.prefix, key)))
 		if err != nil {

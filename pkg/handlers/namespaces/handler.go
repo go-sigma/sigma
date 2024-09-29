@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -84,7 +85,7 @@ type inject struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(c *dig.Container) Handler {
 	authServiceFactory := auth.NewAuthServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
@@ -93,33 +94,33 @@ func handlerNew(injects ...inject) Handler {
 	tagServiceFactory := dao.NewTagServiceFactory()
 	artifactServiceFactory := dao.NewArtifactServiceFactory()
 	producerClient := workq.ProducerClient
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.namespaceMemberServiceFactory != nil {
-			namespaceMemberServiceFactory = ij.namespaceMemberServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.producerClient != nil {
-			producerClient = ij.producerClient
-		}
-	}
+	// if len(injects) > 0 {
+	// 	ij := injects[0]
+	// 	if ij.authServiceFactory != nil {
+	// 		authServiceFactory = ij.authServiceFactory
+	// 	}
+	// 	if ij.auditServiceFactory != nil {
+	// 		auditServiceFactory = ij.auditServiceFactory
+	// 	}
+	// 	if ij.namespaceServiceFactory != nil {
+	// 		namespaceServiceFactory = ij.namespaceServiceFactory
+	// 	}
+	// 	if ij.namespaceMemberServiceFactory != nil {
+	// 		namespaceMemberServiceFactory = ij.namespaceMemberServiceFactory
+	// 	}
+	// 	if ij.repositoryServiceFactory != nil {
+	// 		repositoryServiceFactory = ij.repositoryServiceFactory
+	// 	}
+	// 	if ij.tagServiceFactory != nil {
+	// 		tagServiceFactory = ij.tagServiceFactory
+	// 	}
+	// 	if ij.artifactServiceFactory != nil {
+	// 		artifactServiceFactory = ij.artifactServiceFactory
+	// 	}
+	// 	if ij.producerClient != nil {
+	// 		producerClient = ij.producerClient
+	// 	}
+	// }
 	return &handler{
 		authServiceFactory:            authServiceFactory,
 		auditServiceFactory:           auditServiceFactory,
@@ -136,10 +137,10 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
 	namespaceGroup := e.Group(consts.APIV1+"/namespaces", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	namespaceHandler := handlerNew()
+	namespaceHandler := handlerNew(c)
 
 	namespaceGroup.GET("/", namespaceHandler.ListNamespaces)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)

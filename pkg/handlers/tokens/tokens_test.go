@@ -21,7 +21,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -30,7 +30,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -49,25 +51,34 @@ func TestToken(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
+		}
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func() password.Service {
+		return password.New()
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func(config configs.Configuration) (token.Service, error) {
+		return token.New(config.Auth.Jwt.PrivateKey)
+	})
+	assert.NoError(t, err)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	assert.NoError(t, inits.Initialize(digCon))
 
-	userHandler, err := handlerNew()
+	userHandler, err := handlerNew(digCon)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -116,26 +127,34 @@ func TestTokenMockDAO(t *testing.T) {
 		assert.NoError(t, tests.DB.DeInit())
 	}()
 
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
+		}
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func() password.Service {
+		return password.New()
+	})
+	assert.NoError(t, err)
+	err = digCon.Provide(func(config configs.Configuration) (token.Service, error) {
+		return token.New(config.Auth.Jwt.PrivateKey)
+	})
+	assert.NoError(t, err)
 
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
+	assert.NoError(t, inits.Initialize(digCon))
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userHandler, err := handlerNew()
+	userHandler, err := handlerNew(digCon)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
