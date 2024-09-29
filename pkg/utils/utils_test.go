@@ -22,6 +22,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -556,6 +557,47 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetUserFromCtxForDs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOnceWithErr(t *testing.T) {
+	type args struct {
+		once *sync.Once
+		fn   func() error
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				once: &sync.Once{},
+				fn: func() error {
+					fmt.Println("do something")
+					return nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "panic",
+			args: args{
+				once: &sync.Once{},
+				fn: func() error {
+					panic("panic something")
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := OnceWithErr(tt.args.once, tt.args.fn); (err != nil) != tt.wantErr {
+				t.Errorf("OnceWithErr() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

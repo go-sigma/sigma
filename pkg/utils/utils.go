@@ -21,6 +21,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
@@ -224,4 +225,20 @@ func GetUserFromCtxForDs(c echo.Context) (*models.User, bool, error) {
 		return nil, true, xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 	}
 	return user, false, nil
+}
+
+// OnceWithErr ...
+func OnceWithErr(once *sync.Once, fn func() error) error {
+	var errChan = make(chan error, 1)
+	defer close(errChan)
+	once.Do(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errChan <- fmt.Errorf("%v", r)
+			}
+		}()
+		err := fn()
+		errChan <- err
+	})
+	return <-errChan
 }
