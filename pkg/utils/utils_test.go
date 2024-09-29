@@ -30,7 +30,9 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -601,4 +603,35 @@ func TestOnceWithErr(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetObjFromDigCon(t *testing.T) {
+	var digCon = dig.New()
+
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Log: configs.ConfigurationLog{Level: enums.LogLevelFatal},
+		}
+	})
+	assert.NoError(t, err)
+
+	result, err := GetObjFromDigCon[configs.Configuration](digCon)
+	assert.NoError(t, err)
+
+	assert.Equal(t, enums.LogLevelFatal, result.Log.Level)
+}
+
+func TestMustGetObjFromDigCon(t *testing.T) {
+	var digCon = dig.New()
+
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Log: configs.ConfigurationLog{Level: enums.LogLevelFatal},
+		}
+	})
+	assert.NoError(t, err)
+
+	result := MustGetObjFromDigCon[configs.Configuration](digCon)
+
+	assert.Equal(t, enums.LogLevelFatal, result.Log.Level)
 }

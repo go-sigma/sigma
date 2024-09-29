@@ -27,6 +27,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
@@ -241,4 +242,25 @@ func OnceWithErr(once *sync.Once, fn func() error) error {
 		errChan <- err
 	})
 	return <-errChan
+}
+
+// GetObjFromDigCon ...
+func GetObjFromDigCon[T any](digCon *dig.Container) (T, error) {
+	var result T
+	err := digCon.Invoke(func(v T) {
+		result = v
+	})
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// MustGetObjFromDigCon ...
+func MustGetObjFromDigCon[T any](digCon *dig.Container) T {
+	result, err := GetObjFromDigCon[T](digCon)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
