@@ -18,11 +18,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//go:generate mockgen -destination=mocks/password.go -package=mocks github.com/go-sigma/sigma/pkg/utils/password Password
+//go:generate mockgen -destination=mocks/password.go -package=mocks github.com/go-sigma/sigma/pkg/utils/password Service
 
-// Password is an interface for password hashing
-// nolint: revive
-type Password interface {
+// Service is an interface for password hashing
+type Service interface {
 	// Hash returns a hashed password
 	Hash(pwd string) (string, error)
 	// Verify compares a password with a hashed password
@@ -39,7 +38,7 @@ const (
 )
 
 // New returns a new password instance
-func New(costs ...int) Password {
+func New(costs ...int) Service {
 	var cost = DefaultCost
 	if len(costs) > 0 {
 		cost = costs[0]
