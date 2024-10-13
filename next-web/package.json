@@ -10,24 +10,26 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
+    "@nextui-org/react": "^2.4.8",
     "bytemd": "^1.21.0",
-    "dayjs": "^1.11.11",
-    "flowbite": "^2.3.0",
-    "flowbite-react": "^0.9.0",
-    "monaco-editor": "^0.48.0",
-    "next": "14.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "dayjs": "^1.11.13",
+    "flowbite": "^2.5.2",
+    "flowbite-react": "^0.10.2",
+    "framer-motion": "^11.11.8",
+    "monaco-editor": "^0.52.0",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.10",
-    "@types/react": "^18.3.1",
+    "@types/node": "*",
+    "@types/bun": "*",
+    "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.3",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.5"
-  },
-  "packageManager": "yarn@4.2.1"
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.15",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
+  }
 }

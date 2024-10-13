@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import 'xterm/css/xterm.css';
+import '@xterm/xterm/css/xterm.css';
 
 import axios from "axios";
-import { AttachAddon } from 'xterm-addon-attach';
-import { FitAddon } from "xterm-addon-fit";
+import { AttachAddon } from '@xterm/addon-attach';
+import { FitAddon } from "@xterm/addon-fit";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Terminal } from "xterm";
+import { Terminal } from "@xterm/xterm";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

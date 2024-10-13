@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import * as monaco from 'monaco-editor';
+// import * as monaco from 'monaco-editor';
 import _ from 'lodash';
 import axios from "axios";
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import Editor, { loader } from '@monaco-editor/react';
+// import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+// import Editor, { loader } from '@monaco-editor/react';
+import CodeMirror from '@uiw/react-codemirror';
+import { StreamLanguage } from '@codemirror/language';
+import { dockerFile as dockerfileModel } from '@codemirror/legacy-modes/mode/dockerfile';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Combobox, Listbox, Transition } from '@headlessui/react';
 import { Fragment, useEffect, useState } from 'react';
@@ -31,13 +34,13 @@ import Settings from '../../Settings';
 import Toast from "../../components/Notification";
 import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '../../interfaces';
 
-self.MonacoEnvironment = {
-  getWorker() {
-    return new editorWorker();
-  },
-};
+// self.MonacoEnvironment = {
+//   getWorker() {
+//     return new editorWorker();
+//   },
+// };
 
-loader.config({ monaco });
+// loader.config({ monaco });
 
 const supportPlatforms = [
   { id: 1, name: 'linux/amd64' },
@@ -1456,7 +1459,8 @@ export default function ({ localServer }: { localServer: string }) {
                         Dockerfile
                       </label>
                       <div className="mt-2 flex flex-row items-center">
-                        <Editor
+                      <CodeMirror value={"FROM alpine:latest"} height="200px" extensions={[StreamLanguage.define(dockerfileModel)]} />
+                        {/* <Editor
                           theme="vs-dark"
                           height="40vh"
                           defaultLanguage="dockerfile"
@@ -1476,7 +1480,7 @@ export default function ({ localServer }: { localServer: string }) {
                             },
                             contextmenu: false,
                           }}
-                        />
+                        /> */}
                       </div>
                     </div>
                   </div>
