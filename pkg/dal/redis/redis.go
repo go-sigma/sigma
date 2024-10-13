@@ -27,23 +27,22 @@ import (
 // Client ...
 var Client redis.UniversalClient
 
-// Initialize init redis
-func Initialize(ctx context.Context, config configs.Configuration) error {
+// New new redis instance
+func New(config configs.Configuration) (redis.UniversalClient, error) {
 	if config.Redis.Type == enums.RedisTypeNone {
-		return nil
+		return nil, nil
 	}
 	redisOpt, err := redis.ParseURL(config.Redis.Url)
 	if err != nil {
-		return fmt.Errorf("redis.ParseURL error: %v", err)
+		return nil, fmt.Errorf("redis.ParseURL error: %v", err)
 	}
 	redisCli := redis.NewClient(redisOpt)
-	res, err := redisCli.Ping(ctx).Result()
+	res, err := redisCli.Ping(context.Background()).Result()
 	if err != nil {
-		return fmt.Errorf("redis ping error: %v", err)
+		return nil, fmt.Errorf("redis ping error: %v", err)
 	}
 	if res != "PONG" {
-		return fmt.Errorf("redis ping should got PONG, real: %s", res)
+		return nil, fmt.Errorf("redis ping should got PONG, real: %s", res)
 	}
-	Client = redisCli
-	return nil
+	return redisCli, nil
 }
