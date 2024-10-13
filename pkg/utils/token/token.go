@@ -18,22 +18,25 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-//go:generate mockgen -destination=mocks/token.go -package=mocks github.com/go-sigma/sigma/pkg/utils/token TokenService
+//go:generate mockgen -destination=mocks/token.go -package=mocks github.com/go-sigma/sigma/pkg/utils/token Service
 
 const (
-	expireKey = consts.AppName + ":expire:jwt:%s"
 	expireVal = "1"
 )
 
@@ -54,8 +57,8 @@ func (j JWTClaims) Valid() error {
 	return nil
 }
 
-// TokenService is the interface for token service.
-type TokenService interface {
+// Service is the interface for token service.
+type Service interface {
 	// New creates a new token.
 	New(id int64, expire time.Duration) (string, error)
 	// Validate validates the token.
@@ -70,9 +73,10 @@ type tokenService struct {
 	cacheCli   definition.Cacher[string]
 }
 
-// NewTokenService creates a new token service.
-func NewTokenService(privateKeyString string) (TokenService, error) {
-	privateKeyBytes, err := base64.StdEncoding.DecodeString(privateKeyString)
+// New creates a new token service.
+func New(digCon *dig.Container) (Service, error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+	privateKeyBytes, err := base64.StdEncoding.DecodeString(config.Auth.Jwt.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +85,9 @@ func NewTokenService(privateKeyString string) (TokenService, error) {
 		return nil, err
 	}
 	publicKey := &privateKey.PublicKey
-	cacheCli, err := cacher.New[string](consts.AppName+":expire:jwt", nil)
+	cacheCli, err := cacher.New[string](digCon, consts.AppName+":expire:jwt", nil)
 	if err != nil {
-		return nil, fmt.Errorf("New cacher failed: %v", err)
+		return nil, fmt.Errorf("new cacher failed: %v", err)
 	}
 	return &tokenService{
 		privateKey: privateKey,
@@ -135,7 +139,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, int6
 	}
 
 	val, err := s.cacheCli.Get(ctx, id)
-	if err != nil && err != definition.ErrNotFound {
+	if err != nil && !errors.Is(err, definition.ErrNotFound) {
 		return "", 0, err
 	}
 	if val == expireVal {
