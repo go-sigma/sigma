@@ -15,9 +15,7 @@
 package badger
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/dgraph-io/badger/v4"
@@ -48,21 +46,12 @@ func (l logger) Debugf(msg string, opts ...interface{}) {
 	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
-var Client *badger.DB
-
-// Initialize init redis
-func Initialize(ctx context.Context, config configs.Configuration) error {
-	var err error
-	dir := config.Badger.Path
-	if dir == "" {
-		dir, err = os.MkdirTemp("", "locker")
-		if err != nil {
-			panic("make temp dir for badger failed")
-		}
-	}
-	Client, err = badger.Open(badger.DefaultOptions(dir).WithLogger(&logger{}))
+// New new badger instance
+func New(config configs.Configuration) (*badger.DB, error) {
+	client, err := badger.Open(badger.DefaultOptions(config.Badger.Path).WithLogger(&logger{}).
+		WithLoggingLevel(badger.DEBUG))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return client, nil
 }

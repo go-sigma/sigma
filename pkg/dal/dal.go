@@ -21,7 +21,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"go.uber.org/dig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,8 +30,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 var (
@@ -40,9 +41,11 @@ var (
 )
 
 // Initialize initializes the database connection
-func Initialize(config configs.Configuration) error {
+func Initialize(digCon *dig.Container) error {
 	var err error
 	var dsn string
+
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
@@ -58,8 +61,8 @@ func Initialize(config configs.Configuration) error {
 	if err != nil {
 		return err
 	}
-	logLevel := viper.GetString("log.level")
-	if logLevel == "debug" {
+
+	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
 		query.SetDefault(DB.Debug())
 	} else {
 		query.SetDefault(DB)
@@ -67,7 +70,9 @@ func Initialize(config configs.Configuration) error {
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	defer ctxCancel()
-	err = locker.Locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
+
+	locker := utils.MustGetObjFromDigCon[definition.Locker](digCon)
+	err = locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
 	if err != nil {
 		return err
 	}
@@ -96,20 +101,21 @@ func Initialize(config configs.Configuration) error {
 		return err
 	}
 
+	err = initDigContainer(digCon)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func connectMysql(config configs.Configuration) (string, error) {
-	host := config.Database.Mysql.Host
-	port := config.Database.Mysql.Port
-	user := config.Database.Mysql.Username
-	password := config.Database.Mysql.Password
-	dbname := config.Database.Mysql.Database
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC",
+		config.Database.Mysql.Username, config.Database.Mysql.Password,
+		config.Database.Mysql.Host, config.Database.Mysql.Port, config.Database.Mysql.Database)
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC", user, password, host, port, dbname)
-	log.Debug().Str("dsn", dsn).Msg("Connect to mysql database")
-
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	var err error
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -118,22 +124,18 @@ func connectMysql(config configs.Configuration) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	db = db.WithContext(log.Logger.WithContext(context.Background()))
-	DB = db
+	DB = DB.WithContext(log.Logger.WithContext(context.Background()))
 
 	return dsn, nil
 }
 
 func connectPostgres(config configs.Configuration) (string, error) {
-	host := config.Database.Postgresql.Host
-	port := config.Database.Postgresql.Port
-	user := config.Database.Postgresql.Username
-	password := config.Database.Postgresql.Password
-	dbname := config.Database.Postgresql.Database
-	sslmode := config.Database.Postgresql.SslMode
-
-	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbname, password, sslmode)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	dsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=%s", config.Database.Postgresql.Username,
+		config.Database.Postgresql.Password, config.Database.Postgresql.Host,
+		config.Database.Postgresql.Port, config.Database.Postgresql.Database,
+		config.Database.Postgresql.SslMode)
+	var err error
+	DB, err = gorm.Open(postgres.Open("postgresql://"+dsn), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -142,18 +144,15 @@ func connectPostgres(config configs.Configuration) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	db = db.WithContext(log.Logger.WithContext(context.Background()))
-	DB = db
-
-	return fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname), nil
+	DB = DB.WithContext(log.Logger.WithContext(context.Background()))
+	return dsn, nil
 }
 
 func connectSqlite3(config configs.Configuration) error {
 	dbname := config.Database.Sqlite3.Path
 
-	// +"?_busy_timeout=10000&_journal_mode=wal&mode=rwc&cache=shared"
-	// &_locking_mode=EXCLUSIVE
-	db, err := gorm.Open(sqlite.Open("file:"+dbname+"?_busy_timeout=30000"), &gorm.Config{
+	var err error
+	DB, err = gorm.Open(sqlite.Open("file:"+dbname+"?_busy_timeout=30000"), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -162,9 +161,9 @@ func connectSqlite3(config configs.Configuration) error {
 	if err != nil {
 		return err
 	}
-	db = db.WithContext(log.Logger.WithContext(context.Background()))
+	DB = DB.WithContext(log.Logger.WithContext(context.Background()))
 
-	rawDB, err := db.DB()
+	rawDB, err := DB.DB()
 	if err != nil {
 		return err
 	}
@@ -172,8 +171,6 @@ func connectSqlite3(config configs.Configuration) error {
 	rawDB.SetMaxIdleConns(3)
 	rawDB.SetConnMaxIdleTime(time.Hour)
 	rawDB.SetConnMaxLifetime(time.Hour)
-
-	DB = db
 
 	return nil
 }

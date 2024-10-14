@@ -62,10 +62,9 @@ workqueue:
 locker:
   # the locker type available: redis, badger
   type: badger
-  badger:
-    prefix: sigma-locker
-  redis:
-    prefix: sigma-locker
+  prefix: sigma-locker
+  badger: {}
+  redis: {}
 
 namespace:
   # push image to registry, if namespace not exist, it will be created automatically
