@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package badger_test
+package badger
 
 import (
 	"context"
@@ -24,93 +24,105 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker/badger"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-func TestDatabaseAcquire(t *testing.T) {
+func TestNew(t *testing.T) {
 	logger.SetLevel("debug")
 
-	p, _ := os.MkdirTemp("", "badger")
-	config := configs.Configuration{
-		Badger: configs.ConfigurationBadger{
-			Path: p,
+	tests := []struct {
+		name      string
+		newDigCon func(*testing.T) *dig.Container
+		wantErr   bool
+	}{
+		{
+			name: "normal",
+			newDigCon: func(t *testing.T) *dig.Container {
+				badgerDir, err := os.MkdirTemp("", "badger")
+				require.NoError(t, err)
+
+				digCon := dig.New()
+				err = digCon.Provide(func() configs.Configuration {
+					return configs.Configuration{
+						Locker: configs.ConfigurationLocker{
+							Type:   enums.LockerTypeBadger,
+							Prefix: "sigma-locker",
+						},
+						Badger: configs.ConfigurationBadger{
+							Enabled: true,
+							Path:    badgerDir,
+						},
+					}
+				})
+				require.NoError(t, err)
+
+				err = digCon.Provide(badger.New)
+				require.NoError(t, err)
+
+				return digCon
+			},
+			wantErr: false,
 		},
 	}
-	defer os.RemoveAll(p) // nolint: errcheck
-
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-
-	assert.NoError(t, rBadger.Initialize(ctx, config))
-
-	c, err := badger.New(config)
-	assert.NoError(t, err)
-
-	const key = "test-redis-lock"
-	var concurrency uint64 = 500
-
-	var wg sync.WaitGroup
-	var cnt uint64 = 0
-	for i := uint64(0); i < concurrency; i++ {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-			l, err := c.Acquire(ctx, key, time.Second*1, time.Second*3)
-			assert.Equal(t, true, err == nil || errors.Is(err, context.DeadlineExceeded))
-			if !(err == nil || errors.Is(err, context.DeadlineExceeded)) {
-				fmt.Println(err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			locker, err := New(tt.newDigCon(t))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if l != nil {
-				<-time.After(time.Millisecond * 100)
-				defer l.Unlock(ctx) // nolint: errcheck
-				atomic.AddUint64(&cnt, 1)
+
+			ctx := context.Background()
+
+			{
+				const key = "test-redis-lock"
+				var concurrency uint64 = 500
+				var wg sync.WaitGroup
+				var cnt uint64 = 0
+				for i := uint64(0); i < concurrency; i++ {
+					wg.Add(1)
+					go func() {
+						defer wg.Done()
+						l, err := locker.Acquire(ctx, key, time.Second*1, time.Second*3)
+						require.Equal(t, true, err == nil || errors.Is(err, context.DeadlineExceeded))
+						if !(err == nil || errors.Is(err, context.DeadlineExceeded)) {
+							require.NoError(t, fmt.Errorf("acquire lock failed"))
+						}
+						if l != nil {
+							<-time.After(time.Millisecond * 100)
+							err = l.Unlock(ctx)
+							require.NoError(t, err)
+							atomic.AddUint64(&cnt, 1)
+						}
+					}()
+				}
+				wg.Wait()
+				require.True(t, true, concurrency > cnt && cnt > 1)
 			}
-		}()
-	}
-	wg.Wait()
-	assert.True(t, true, concurrency > cnt && cnt > 1)
-}
-
-func TestDatabaseAcquireWithRenew(t *testing.T) {
-	logger.SetLevel("debug")
-
-	p, _ := os.MkdirTemp("", "badger")
-	config := configs.Configuration{
-		Badger: configs.ConfigurationBadger{
-			Path: p,
-		},
-	}
-	defer os.RemoveAll(p) // nolint: errcheck
-
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-
-	assert.NoError(t, rBadger.Initialize(ctx, config))
-
-	c, err := badger.New(config)
-	assert.NoError(t, err)
-
-	const key = "test-redis-lock"
-	var concurrency uint64 = 500
-
-	var wg sync.WaitGroup
-	var cnt uint64 = 0
-	for i := uint64(0); i < concurrency; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			err := c.AcquireWithRenew(ctx, key, time.Second*1, time.Second*3)
-			if errors.Is(err, context.DeadlineExceeded) {
-				atomic.AddUint64(&cnt, 1)
+			{
+				const key = "test-redis-lock"
+				var concurrency uint64 = 500
+				var wg sync.WaitGroup
+				var cnt uint64 = 0
+				for i := uint64(0); i < concurrency; i++ {
+					wg.Add(1)
+					go func() {
+						defer wg.Done()
+						err := locker.AcquireWithRenew(ctx, key, time.Second*1, time.Second*3)
+						if errors.Is(err, context.DeadlineExceeded) {
+							atomic.AddUint64(&cnt, 1)
+						}
+					}()
+				}
+				wg.Wait()
+				require.Equal(t, true, cnt >= 1)
 			}
-		}()
+		})
 	}
-	wg.Wait()
-	assert.Equal(t, true, cnt >= 1)
 }

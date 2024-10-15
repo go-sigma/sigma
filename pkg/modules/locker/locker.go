@@ -15,26 +15,31 @@
 package locker
 
 import (
+	"go.uber.org/dig"
+
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/locker/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/modules/locker/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Locker ...
 var Locker definition.Locker
 
 // New ...
-func Initialize(config configs.Configuration) error {
+func Initialize(digCon *dig.Container) (definition.Locker, error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+
 	var err error
 	switch config.Locker.Type {
 	case enums.LockerTypeBadger:
-		Locker, err = badger.New(config)
+		Locker, err = badger.New(digCon)
 	case enums.LockerTypeRedis:
-		Locker, err = redis.New(config)
+		Locker, err = redis.New(digCon)
 	default:
-		Locker, err = badger.New(config)
+		Locker, err = badger.New(digCon)
 	}
-	return err
+	return Locker, err
 }

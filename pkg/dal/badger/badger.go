@@ -48,8 +48,9 @@ func (l logger) Debugf(msg string, opts ...interface{}) {
 
 // New new badger instance
 func New(config configs.Configuration) (*badger.DB, error) {
-	client, err := badger.Open(badger.DefaultOptions(config.Badger.Path).WithLogger(&logger{}).
-		WithLoggingLevel(badger.DEBUG))
+	client, err := badger.Open(
+		badger.DefaultOptions(config.Badger.Path).
+			WithLogger(&logger{}))
 	if err != nil {
 		return nil, err
 	}

@@ -22,11 +22,10 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/configs"
-	rds "github.com/go-sigma/sigma/pkg/dal/redis"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
-	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 var (
@@ -38,12 +37,10 @@ type lockerRedis struct {
 	redisCli redis.UniversalClient
 }
 
-func New(config configs.Configuration) (definition.Locker, error) {
-	if config.Redis.Type != enums.RedisTypeExternal {
-		return nil, fmt.Errorf("redislock: please check redis configuration, it should be external")
-	}
+// New ...
+func New(digCon *dig.Container) (definition.Locker, error) {
 	return &lockerRedis{
-		redisCli: rds.Client,
+		redisCli: utils.MustGetObjFromDigCon[redis.UniversalClient](digCon),
 	}, nil
 }
 

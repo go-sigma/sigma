@@ -23,9 +23,8 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/configs"
-	rBadger "github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -35,9 +34,10 @@ type lockerDatabase struct {
 	db *badger.DB
 }
 
-func New(config configs.Configuration) (definition.Locker, error) {
+// New ...
+func New(digCon *dig.Container) (definition.Locker, error) {
 	return &lockerDatabase{
-		db: rBadger.Client,
+		db: utils.MustGetObjFromDigCon[*badger.DB](digCon),
 	}, nil
 }
 
