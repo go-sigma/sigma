@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -63,22 +64,25 @@ func (d *mysqlCIDatabase) Init() error {
 		return err
 	}
 
-	err = dal.Initialize(configs.Configuration{
-		Database: configs.ConfigurationDatabase{
-			Type: enums.DatabaseMysql,
-			Mysql: configs.ConfigurationDatabaseMysql{
-				Host:     "127.0.0.1",
-				Port:     3306,
-				Username: "root",
-				Password: "sigma",
-				Database: d.database,
+	digCon := dig.New()
+	err = digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Database: configs.ConfigurationDatabase{
+				Type: enums.DatabaseMysql,
+				Mysql: configs.ConfigurationDatabaseMysql{
+					Host:     "127.0.0.1",
+					Port:     3306,
+					Username: "root",
+					Password: "sigma",
+					Database: d.database,
+				},
 			},
-		},
+		}
 	})
 	if err != nil {
 		return err
 	}
-	return nil
+	return dal.Initialize(digCon)
 }
 
 // DeInit remove the database or database file for ci tests

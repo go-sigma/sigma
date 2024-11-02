@@ -17,8 +17,10 @@ package tests
 import (
 	"fmt"
 	"os"
+	"strings"
 
-	gonanoid "github.com/matoous/go-nanoid"
+	"github.com/google/uuid"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -48,19 +50,22 @@ var _ CIDatabase = &sqlite3CIDatabase{}
 
 // Init sets the default values for the database configuration in ci tests
 func (d *sqlite3CIDatabase) Init() error {
-	d.path = fmt.Sprintf("%s.db", gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6))
-	err := dal.Initialize(configs.Configuration{
-		Database: configs.ConfigurationDatabase{
-			Type: enums.DatabaseSqlite3,
-			Sqlite3: configs.ConfigurationDatabaseSqlite3{
-				Path: d.path,
+	d.path = fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""))
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Database: configs.ConfigurationDatabase{
+				Type: enums.DatabaseSqlite3,
+				Sqlite3: configs.ConfigurationDatabaseSqlite3{
+					Path: d.path,
+				},
 			},
-		},
+		}
 	})
 	if err != nil {
 		return err
 	}
-	return nil
+	return dal.Initialize(digCon)
 }
 
 // DeInit remove the database or database file for ci tests

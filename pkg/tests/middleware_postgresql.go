@@ -17,10 +17,12 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
-	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -55,7 +57,7 @@ func (d *postgresqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-	d.database = gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyz", 6)
+	d.database = strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")
 
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.database))
 	if err != nil {
@@ -66,23 +68,26 @@ func (d *postgresqlCIDatabase) Init() error {
 		return err
 	}
 
-	err = dal.Initialize(configs.Configuration{
-		Database: configs.ConfigurationDatabase{
-			Type: enums.DatabasePostgresql,
-			Postgresql: configs.ConfigurationDatabasePostgresql{
-				Host:     "127.0.0.1",
-				Port:     5432,
-				Username: "sigma",
-				Password: "sigma",
-				Database: d.database,
-				SslMode:  "disable",
+	digCon := dig.New()
+	err = digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Database: configs.ConfigurationDatabase{
+				Type: enums.DatabasePostgresql,
+				Postgresql: configs.ConfigurationDatabasePostgresql{
+					Host:     "127.0.0.1",
+					Port:     5432,
+					Username: "sigma",
+					Password: "sigma",
+					Database: d.database,
+					SslMode:  "disable",
+				},
 			},
-		},
+		}
 	})
 	if err != nil {
 		return err
 	}
-	return nil
+	return dal.Initialize(digCon)
 }
 
 // DeInit remove the database or database file for ci tests

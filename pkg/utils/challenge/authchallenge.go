@@ -158,7 +158,7 @@ func ResponseChallenges(resp *http.Response) []Challenge {
 }
 
 func parseAuthHeader(header http.Header) []Challenge {
-	challenges := []Challenge{}
+	var challenges []Challenge
 	for _, h := range header[http.CanonicalHeaderKey("WWW-Authenticate")] {
 		v, p := parseValueAndParams(h)
 		if v != "" {

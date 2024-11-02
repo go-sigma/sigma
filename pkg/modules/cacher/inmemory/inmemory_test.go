@@ -20,8 +20,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func fetcher1(key string) (string, error) {
@@ -29,15 +32,21 @@ func fetcher1(key string) (string, error) {
 }
 
 func TestNew(t *testing.T) {
-	config := configs.Configuration{
-		Cache: configs.ConfigurationCache{
-			Inmemory: configs.ConfigurationCacheInmemory{
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Cache: configs.ConfigurationCache{
+				Type:   enums.CacherTypeInmemory,
 				Prefix: "sigma-cache",
-				Size:   1000,
+				Inmemory: configs.ConfigurationCacheInmemory{
+					Size: 1000,
+				},
 			},
-		},
-	}
-	cacher, err := New(config, "test", fetcher1)
+		}
+	})
+	require.NoError(t, err)
+
+	cacher, err := New(digCon, "test", fetcher1)
 	assert.NoError(t, err)
 	assert.NotNil(t, cacher)
 

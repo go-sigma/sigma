@@ -39,14 +39,13 @@ cache:
   # the cache type available is: redis, inmemory, badger
   # please attention in multi-node mode, you should use redis
   type: badger
+  # cache key prefix
+  prefix: sigma-cache
   inmemory:
-    prefix: sigma-cache
     size: 10240
   redis:
-    prefix: sigma-cache
     ttl: 72h
   badger:
-    prefix: sigma-cache
     ttl: 72h
 
 workqueue:

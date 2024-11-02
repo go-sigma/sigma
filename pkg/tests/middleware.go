@@ -15,17 +15,19 @@
 package tests
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -67,20 +69,31 @@ func Initialize(t *testing.T) error {
 		typ = enums.DatabaseSqlite3.String()
 	}
 
-	p, _ := os.MkdirTemp("", "badger")
-	err := badger.Initialize(context.Background(), configs.Configuration{
-		Badger: configs.ConfigurationBadger{
-			Path: p,
-		},
-	})
-	if err != nil {
-		return err
-	}
+	badgerDir, err := os.MkdirTemp("", "badger")
+	require.NoError(t, err)
 
-	err = locker.Initialize(configs.Configuration{})
-	if err != nil {
-		return err
-	}
+	digCon := dig.New()
+	err = digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Locker: configs.ConfigurationLocker{
+				Type:   enums.LockerTypeBadger,
+				Prefix: "sigma-locker",
+			},
+			Badger: configs.ConfigurationBadger{
+				Enabled: true,
+				Path:    badgerDir,
+			},
+		}
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(badger.New)
+	require.NoError(t, err)
+
+	err = digCon.Provide(func() (definition.Locker, error) {
+		return locker.Initialize(digCon)
+	})
+	require.NoError(t, err)
 
 	factory, ok := ciDatabaseFactories[typ]
 	if !ok {

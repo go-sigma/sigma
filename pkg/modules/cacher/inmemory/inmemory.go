@@ -20,9 +20,11 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 type cacher[T any] struct {
@@ -33,7 +35,8 @@ type cacher[T any] struct {
 }
 
 // New returns a new Cacher.
-func New[T any](config configs.Configuration, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+func New[T any](digCon *dig.Container, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	cache, err := lru.New2Q[string, T](config.Cache.Inmemory.Size)
 	if err != nil {
 		return nil, err

@@ -49,5 +49,5 @@ type CacherFactory[T any] interface {
 }
 
 func GenKey(config configs.Configuration, prefix, key string) string {
-	return fmt.Sprintf("%s:%s:%s", config.Cache.Badger.Prefix, prefix, key)
+	return fmt.Sprintf("%s:%s:%s", config.Cache.Prefix, prefix, key)
 }
