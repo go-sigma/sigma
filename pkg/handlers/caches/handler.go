@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -36,23 +37,22 @@ type Handler interface {
 	DeleteCache(c echo.Context) error
 }
 
-var _ Handler = &handler{}
-
 type handler struct {
+	digCon *dig.Container
 }
 
-type inject struct{}
-
 // handlerNew creates a new instance of the builder handlers
-func handlerNew(_ ...inject) Handler {
-	return &handler{}
+func handlerNew(c *dig.Container) Handler {
+	return &handler{
+		digCon: c,
+	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
-	handler := handlerNew()
+func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
+	handler := handlerNew(c)
 
 	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 

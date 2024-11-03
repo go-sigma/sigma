@@ -19,17 +19,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"go.uber.org/dig"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	handler := handlerNew(inject{})
-	assert.NotNil(t, handler)
-
 	f := factory{}
-	err := f.Initialize(echo.New())
+	err := f.Initialize(echo.New(), dig.New())
 	assert.NoError(t, err)
 }
