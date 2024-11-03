@@ -43,6 +43,9 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Setup redis
+        run: |
+          docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
       - name: Setup golang
         uses: actions/setup-go@v5
         with:
@@ -132,6 +135,9 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Setup redis
+        run: |
+          docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
       - name: Setup golang
         uses: actions/setup-go@v5
         with:
@@ -222,6 +228,9 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Setup redis
+        run: |
+          docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
       - name: Setup golang
         uses: actions/setup-go@v5
         with:
