@@ -16,40 +16,37 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal/badger"
+	"github.com/go-sigma/sigma/pkg/dal/redis"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-// CIDatabase is the interface for the database in ci tests
-type CIDatabase interface {
-	// Init initializes the database or database file for ci tests
-	Init() error
-	// DeInit remove the database or database file for ci tests
-	DeInit() error
+// ciDatabase is the interface for the database in ci tests
+type ciDatabase interface {
+	// Initialize initializes the database or database file for ci tests
+	Initialize(*dig.Container) error
+	// DeInitialize remove the database or database file for ci tests
+	DeInitialize() error
 	// GetName get database name
 	GetName() enums.Database
 }
 
-type Factory interface {
-	New() CIDatabase
+type factory interface {
+	New() ciDatabase
 }
 
-var ciDatabaseFactories = make(map[string]Factory)
+var ciDatabaseFactories = make(map[string]factory)
 
-// RegisterCIDatabaseFactory registers a storage factory driver by name.
-// If RegisterCIDatabaseFactory is called twice with the same name or if driver is nil, it panics.
-func RegisterCIDatabaseFactory(name string, factory Factory) error {
+// registerCIDatabaseFactory registers a storage factory driver by name.
+// If registerCIDatabaseFactory is called twice with the same name or if driver is nil, it panics.
+func registerCIDatabaseFactory(name string, factory factory) error {
 	if _, ok := ciDatabaseFactories[name]; ok {
 		return fmt.Errorf("ci database %q already registered", name)
 	}
@@ -57,10 +54,12 @@ func RegisterCIDatabaseFactory(name string, factory Factory) error {
 	return nil
 }
 
-// DB is the database for ci tests
-var DB CIDatabase
+// Instance ...
+type Instance struct {
+	database ciDatabase
+}
 
-func Initialize(t *testing.T) error {
+func Initialize(t *testing.T, digCon *dig.Container) (*Instance, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
@@ -69,37 +68,36 @@ func Initialize(t *testing.T) error {
 		typ = enums.DatabaseSqlite3.String()
 	}
 
-	badgerDir, err := os.MkdirTemp("", "badger")
-	require.NoError(t, err)
-
-	digCon := dig.New()
-	err = digCon.Provide(func() configs.Configuration {
-		return configs.Configuration{
-			Locker: configs.ConfigurationLocker{
-				Type:   enums.LockerTypeBadger,
-				Prefix: "sigma-locker",
-			},
-			Badger: configs.ConfigurationBadger{
-				Enabled: true,
-				Path:    badgerDir,
-			},
-		}
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(badger.New)
-	require.NoError(t, err)
+	err := digCon.Provide(redis.New)
+	if err != nil {
+		return nil, fmt.Errorf("initialize redis failed: %v", err)
+	}
 
 	err = digCon.Provide(func() (definition.Locker, error) {
 		return locker.Initialize(digCon)
 	})
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("initialize locker failed: %v", err)
+	}
 
 	factory, ok := ciDatabaseFactories[typ]
 	if !ok {
-		return fmt.Errorf("ci database %q not registered", typ)
+		return nil, fmt.Errorf("ci database %q not registered", typ)
 	}
-	DB = factory.New()
 
-	return nil
+	database := factory.New()
+
+	err = database.Initialize(digCon)
+	if err != nil {
+		return nil, fmt.Errorf("init ci database %q failed: %w", typ, err)
+	}
+
+	return &Instance{
+		database: database,
+	}, nil
+}
+
+// DeInit ...
+func (i *Instance) DeInitialize() error {
+	return i.database.DeInitialize()
 }

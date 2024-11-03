@@ -43,7 +43,7 @@ func checkRedis(config Configuration) error {
 	if config.Redis.Type != enums.RedisTypeExternal {
 		return fmt.Errorf("Unknown redis type: %s", config.Redis.Type)
 	}
-	redisOpt, err := redis.ParseURL(config.Redis.Url)
+	redisOpt, err := redis.ParseURL(config.Redis.URL)
 	if err != nil {
 		return fmt.Errorf("redis.ParseURL error: %v", err)
 	}

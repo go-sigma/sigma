@@ -51,32 +51,26 @@ func defaultSettings() {
 	if configuration.Cache.Type == enums.CacherTypeInmemory && configuration.Cache.Inmemory.Size == 0 {
 		configuration.Cache.Inmemory.Size = 10240
 	}
-	if configuration.Cache.Type == enums.CacherTypeInmemory && len(strings.TrimSpace(configuration.Cache.Inmemory.Prefix)) == 0 {
-		configuration.Cache.Inmemory.Prefix = "sigma-cache"
+	if len(strings.TrimSpace(configuration.Cache.Prefix)) == 0 {
+		configuration.Cache.Prefix = "sigma-cache"
 	}
 	if configuration.Cache.Type == enums.CacherTypeRedis && configuration.Cache.Redis.Ttl == 0 {
 		configuration.Cache.Redis.Ttl = time.Hour * 72
 	}
-	if configuration.Cache.Type == enums.CacherTypeRedis && len(strings.TrimSpace(configuration.Cache.Redis.Prefix)) == 0 {
-		configuration.Cache.Redis.Prefix = "sigma-cache"
-	}
 	if configuration.Cache.Type == enums.CacherTypeBadger && configuration.Cache.Badger.Ttl == 0 {
 		configuration.Cache.Badger.Ttl = time.Hour * 72
 	}
-	if configuration.Cache.Type == enums.CacherTypeBadger && len(strings.TrimSpace(configuration.Cache.Badger.Prefix)) == 0 {
-		configuration.Cache.Badger.Prefix = "sigma-cache"
-	}
 
 	// for badger
+	if (configuration.Cache.Type == enums.CacherTypeBadger || configuration.Locker.Type == enums.LockerTypeBadger) && !configuration.Badger.Enabled {
+		configuration.Badger.Enabled = true
+	}
 	if configuration.Badger.Enabled && len(strings.TrimSpace(configuration.Badger.Path)) == 0 {
 		configuration.Badger.Path = "/var/lib/sigma/badger/"
 	}
 
 	// for locker
-	if configuration.Locker.Type == enums.LockerTypeBadger && strings.TrimSpace(configuration.Locker.Badger.Prefix) == "" {
-		configuration.Locker.Badger.Prefix = "sigma-locker"
-	}
-	if configuration.Locker.Type == enums.LockerTypeRedis && strings.TrimSpace(configuration.Locker.Redis.Prefix) == "" {
-		configuration.Locker.Redis.Prefix = "sigma-locker"
+	if strings.TrimSpace(configuration.Locker.Prefix) == "" {
+		configuration.Locker.Prefix = "sigma-locker"
 	}
 }

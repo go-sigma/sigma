@@ -14,15 +14,17 @@
 
 package inits
 
-import "github.com/go-sigma/sigma/pkg/configs"
+import (
+	"go.uber.org/dig"
+)
 
 // inits inits for something before server started
-var inits = make(map[string]func(configs.Configuration) error)
+var inits = make(map[string]func(*dig.Container) error)
 
 // Initialize runs all registered inits.
-func Initialize(config configs.Configuration) error {
+func Initialize(digCon *dig.Container) error {
 	for _, init := range inits {
-		err := init(config)
+		err := init(digCon)
 		if err != nil {
 			return err
 		}

@@ -99,7 +99,7 @@ type ConfigurationDatabase struct {
 // ConfigurationRedis ...
 type ConfigurationRedis struct {
 	Type enums.RedisType `yaml:"type"`
-	Url  string          `yaml:"url"`
+	URL  string          `yaml:"url"`
 }
 
 // ConfigurationBadger ...
@@ -110,25 +110,23 @@ type ConfigurationBadger struct {
 
 // ConfigurationCacheRedis ...
 type ConfigurationCacheRedis struct {
-	Prefix string        `yaml:"prefix"`
-	Ttl    time.Duration `yaml:"ttl"`
+	Ttl time.Duration `yaml:"ttl"`
 }
 
 // ConfigurationCacheBadger ...
 type ConfigurationCacheBadger struct {
-	Prefix string        `yaml:"prefix"`
-	Ttl    time.Duration `yaml:"ttl"`
+	Ttl time.Duration `yaml:"ttl"`
 }
 
 // ConfigurationCacheInmemory ...
 type ConfigurationCacheInmemory struct {
-	Prefix string `yaml:"prefix"`
-	Size   int    `yaml:"size"`
+	Size int `yaml:"size"`
 }
 
 // ConfigurationCache ...
 type ConfigurationCache struct {
 	Type     enums.CacherType           `yaml:"type"`
+	Prefix   string                     `yaml:"prefix"`
 	Redis    ConfigurationCacheRedis    `yaml:"redis"`
 	Inmemory ConfigurationCacheInmemory `yaml:"inmemory"`
 	Badger   ConfigurationCacheBadger   `yaml:"badger"`
@@ -158,20 +156,17 @@ type ConfigurationWorkQueue struct {
 }
 
 // ConfigurationLockerBadger ...
-type ConfigurationLockerBadger struct {
-	Prefix string `yaml:"prefix"`
-}
+type ConfigurationLockerBadger struct{}
 
 // ConfigurationLockerRedis ...
-type ConfigurationLockerRedis struct {
-	Prefix string `yaml:"prefix"`
-}
+type ConfigurationLockerRedis struct{}
 
 // ConfigurationLocker ...
 type ConfigurationLocker struct {
 	Type   enums.LockerType          `yaml:"type"`
 	Badger ConfigurationLockerBadger `yaml:"badger"`
 	Redis  ConfigurationLockerRedis  `yaml:"redis"`
+	Prefix string                    `yaml:"prefix"`
 }
 
 // ConfigurationNamespace ...

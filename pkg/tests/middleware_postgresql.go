@@ -17,9 +17,7 @@ package tests
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
@@ -27,10 +25,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func init() {
-	err := RegisterCIDatabaseFactory("postgresql", &postgresqlFactory{})
+	err := registerCIDatabaseFactory("postgresql", &postgresqlFactory{})
 	if err != nil {
 		panic(err)
 	}
@@ -38,9 +37,9 @@ func init() {
 
 type postgresqlFactory struct{}
 
-var _ Factory = &postgresqlFactory{}
+var _ factory = &postgresqlFactory{}
 
-func (postgresqlFactory) New() CIDatabase {
+func (postgresqlFactory) New() ciDatabase {
 	return &postgresqlCIDatabase{}
 }
 
@@ -48,17 +47,16 @@ type postgresqlCIDatabase struct {
 	database string
 }
 
-var _ CIDatabase = &postgresqlCIDatabase{}
+var _ ciDatabase = &postgresqlCIDatabase{}
 
-// Init sets the default values for the database configuration in ci tests
-func (d *postgresqlCIDatabase) Init() error {
+// Initialize sets the default values for the database configuration in ci tests
+func (d *postgresqlCIDatabase) Initialize(digCon *dig.Container) error {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, "postgres://sigma:sigma@localhost:5432/?sslmode=disable")
 	if err != nil {
 		return err
 	}
-	d.database = strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")
-
+	d.database = utils.MustGetObjFromDigCon[configs.Configuration](digCon).Database.Postgresql.Database
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\"", d.database))
 	if err != nil {
 		return err
@@ -67,31 +65,11 @@ func (d *postgresqlCIDatabase) Init() error {
 	if err != nil {
 		return err
 	}
-
-	digCon := dig.New()
-	err = digCon.Provide(func() configs.Configuration {
-		return configs.Configuration{
-			Database: configs.ConfigurationDatabase{
-				Type: enums.DatabasePostgresql,
-				Postgresql: configs.ConfigurationDatabasePostgresql{
-					Host:     "127.0.0.1",
-					Port:     5432,
-					Username: "sigma",
-					Password: "sigma",
-					Database: d.database,
-					SslMode:  "disable",
-				},
-			},
-		}
-	})
-	if err != nil {
-		return err
-	}
 	return dal.Initialize(digCon)
 }
 
-// DeInit remove the database or database file for ci tests
-func (d *postgresqlCIDatabase) DeInit() error {
+// DeInitialize remove the database or database file for ci tests
+func (d *postgresqlCIDatabase) DeInitialize() error {
 	// For unknown reason, postgresql does not allow to drop the database
 	log.Debug().Str("database", d.database).Msg("postgresql does not allow to drop the database, skipping")
 

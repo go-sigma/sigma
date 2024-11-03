@@ -31,10 +31,10 @@ func TestCheckRedis(t *testing.T) {
 	assert.Error(t, err)
 
 	miniRedis := miniredis.RunT(t)
-	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, Url: "redis://" + miniRedis.Addr()}})
+	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, URL: "redis://" + miniRedis.Addr()}})
 	assert.NoError(t, err)
 
-	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, Url: "redis://127.0.0.1:1100"}})
+	err = checkRedis(Configuration{Redis: ConfigurationRedis{Type: enums.RedisTypeExternal, URL: "redis://127.0.0.1:1100"}})
 	assert.Error(t, err)
 }
 

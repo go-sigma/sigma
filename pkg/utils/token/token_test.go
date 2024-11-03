@@ -54,7 +54,7 @@ func TestNew(t *testing.T) {
 					return configs.Configuration{
 						Redis: configs.ConfigurationRedis{
 							Type: enums.RedisTypeExternal,
-							Url:  "redis:////" + miniRedis.Addr(),
+							URL:  "redis:////" + miniRedis.Addr(),
 						},
 						Cache: configs.ConfigurationCache{
 							Type: enums.CacherTypeRedis,
@@ -80,7 +80,7 @@ func TestNew(t *testing.T) {
 					return configs.Configuration{
 						Redis: configs.ConfigurationRedis{
 							Type: enums.RedisTypeExternal,
-							Url:  "redis://" + miniRedis.Addr(),
+							URL:  "redis://" + miniRedis.Addr(),
 						},
 						Cache: configs.ConfigurationCache{
 							Type: enums.CacherTypeRedis,
@@ -106,7 +106,7 @@ func TestNew(t *testing.T) {
 					return configs.Configuration{
 						Redis: configs.ConfigurationRedis{
 							Type: enums.RedisTypeExternal,
-							Url:  "redis://" + miniRedis.Addr(),
+							URL:  "redis://" + miniRedis.Addr(),
 						},
 						Cache: configs.ConfigurationCache{
 							Type: enums.CacherTypeRedis,
@@ -132,7 +132,7 @@ func TestNew(t *testing.T) {
 					return configs.Configuration{
 						Redis: configs.ConfigurationRedis{
 							Type: enums.RedisTypeExternal,
-							Url:  "redis://" + miniRedis.Addr(),
+							URL:  "redis://" + miniRedis.Addr(),
 						},
 						Cache: configs.ConfigurationCache{
 							Type: enums.CacherTypeRedis,

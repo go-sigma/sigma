@@ -21,19 +21,20 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sigstore/cosign/v2/pkg/cosign"
+	"go.uber.org/dig"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func init() {
 	inits["signing"] = signing
 }
 
-func signing(_ configs.Configuration) error {
+func signing(digCon *dig.Container) error {
 	keyBytes, err := cosign.GenerateKeyPair(nil)
 	if err != nil {
 		log.Error().Err(err).Msg("Generate key failed")
@@ -42,16 +43,16 @@ func signing(_ configs.Configuration) error {
 
 	ctx := log.Logger.WithContext(context.Background())
 
-	settingServiceFactory := dao.NewSettingServiceFactory()
-	settingService := settingServiceFactory.New()
-	_, err = settingService.Get(ctx, consts.SettingSignPrivateKey)
+	settingSvcFactory := utils.MustGetObjFromDigCon[dao.SettingServiceFactory](digCon)
+	settingSvc := settingSvcFactory.New()
+	_, err = settingSvc.Get(ctx, consts.SettingSignPrivateKey)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get signing key failed")
 			return err
 		} else {
 			err = query.Q.Transaction(func(tx *query.Query) error {
-				settingService := settingServiceFactory.New(tx)
+				settingService := settingSvcFactory.New(tx)
 				err = settingService.Create(ctx, consts.SettingSignPrivateKey, keyBytes.PrivateBytes)
 				if err != nil {
 					return err

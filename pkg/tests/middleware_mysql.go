@@ -27,7 +27,7 @@ import (
 )
 
 func init() {
-	err := RegisterCIDatabaseFactory("mysql", &mysqlFactory{})
+	err := registerCIDatabaseFactory("mysql", &mysqlFactory{})
 	if err != nil {
 		panic(err)
 	}
@@ -35,9 +35,9 @@ func init() {
 
 type mysqlFactory struct{}
 
-var _ Factory = &mysqlFactory{}
+var _ factory = &mysqlFactory{}
 
-func (mysqlFactory) New() CIDatabase {
+func (mysqlFactory) New() ciDatabase {
 	return &mysqlCIDatabase{}
 }
 
@@ -45,10 +45,10 @@ type mysqlCIDatabase struct {
 	database string
 }
 
-var _ CIDatabase = &mysqlCIDatabase{}
+var _ ciDatabase = &mysqlCIDatabase{}
 
-// Init sets the default values for the database configuration in ci tests
-func (d *mysqlCIDatabase) Init() error {
+// Initialize sets the default values for the database configuration in ci tests
+func (d *mysqlCIDatabase) Initialize(digCon *dig.Container) error {
 	db, err := sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	if err != nil {
 		return err
@@ -64,7 +64,6 @@ func (d *mysqlCIDatabase) Init() error {
 		return err
 	}
 
-	digCon := dig.New()
 	err = digCon.Provide(func() configs.Configuration {
 		return configs.Configuration{
 			Database: configs.ConfigurationDatabase{
@@ -85,8 +84,8 @@ func (d *mysqlCIDatabase) Init() error {
 	return dal.Initialize(digCon)
 }
 
-// DeInit remove the database or database file for ci tests
-func (d *mysqlCIDatabase) DeInit() error {
+// DeInitialize remove the database or database file for ci tests
+func (d *mysqlCIDatabase) DeInitialize() error {
 	db, err := sql.Open("mysql", "root:sigma@tcp(127.0.0.1:3306)/")
 	if err != nil {
 		return err

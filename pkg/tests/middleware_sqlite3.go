@@ -15,20 +15,18 @@
 package tests
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
-	"github.com/google/uuid"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 func init() {
-	err := RegisterCIDatabaseFactory("sqlite3", &sqlite3Factory{})
+	err := registerCIDatabaseFactory("sqlite3", &sqlite3Factory{})
 	if err != nil {
 		panic(err)
 	}
@@ -36,9 +34,9 @@ func init() {
 
 type sqlite3Factory struct{}
 
-var _ Factory = &sqlite3Factory{}
+var _ factory = &sqlite3Factory{}
 
-func (sqlite3Factory) New() CIDatabase {
+func (sqlite3Factory) New() ciDatabase {
 	return &sqlite3CIDatabase{}
 }
 
@@ -46,30 +44,16 @@ type sqlite3CIDatabase struct {
 	path string
 }
 
-var _ CIDatabase = &sqlite3CIDatabase{}
+var _ ciDatabase = &sqlite3CIDatabase{}
 
-// Init sets the default values for the database configuration in ci tests
-func (d *sqlite3CIDatabase) Init() error {
-	d.path = fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""))
-	digCon := dig.New()
-	err := digCon.Provide(func() configs.Configuration {
-		return configs.Configuration{
-			Database: configs.ConfigurationDatabase{
-				Type: enums.DatabaseSqlite3,
-				Sqlite3: configs.ConfigurationDatabaseSqlite3{
-					Path: d.path,
-				},
-			},
-		}
-	})
-	if err != nil {
-		return err
-	}
+// Initialize sets the default values for the database configuration in ci tests
+func (d *sqlite3CIDatabase) Initialize(digCon *dig.Container) error {
+	d.path = utils.MustGetObjFromDigCon[configs.Configuration](digCon).Database.Sqlite3.Path
 	return dal.Initialize(digCon)
 }
 
-// DeInit remove the database or database file for ci tests
-func (d *sqlite3CIDatabase) DeInit() error {
+// DeInitialize remove the database or database file for ci tests
+func (d *sqlite3CIDatabase) DeInitialize() error {
 	err := os.Remove(d.path)
 	if err != nil {
 		return err
