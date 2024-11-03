@@ -32,7 +32,7 @@ func New(config configs.Configuration) (redis.UniversalClient, error) {
 	if config.Redis.Type == enums.RedisTypeNone {
 		return nil, nil
 	}
-	redisOpt, err := redis.ParseURL(config.Redis.Url)
+	redisOpt, err := redis.ParseURL(config.Redis.URL)
 	if err != nil {
 		return nil, fmt.Errorf("redis.ParseURL error: %v", err)
 	}

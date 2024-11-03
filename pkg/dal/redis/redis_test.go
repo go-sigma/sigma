@@ -28,7 +28,7 @@ func TestRedis(t *testing.T) {
 	client, err := New(configs.Configuration{
 		Redis: configs.ConfigurationRedis{
 			Type: enums.RedisTypeNone,
-			Url:  "",
+			URL:  "",
 		},
 	})
 	assert.NoError(t, err)
@@ -37,7 +37,7 @@ func TestRedis(t *testing.T) {
 	client, err = New(configs.Configuration{
 		Redis: configs.ConfigurationRedis{
 			Type: enums.RedisTypeExternal,
-			Url:  miniredis.RunT(t).Addr(),
+			URL:  miniredis.RunT(t).Addr(),
 		},
 	})
 	assert.Error(t, err)
@@ -46,7 +46,7 @@ func TestRedis(t *testing.T) {
 	client, err = New(configs.Configuration{
 		Redis: configs.ConfigurationRedis{
 			Type: enums.RedisTypeExternal,
-			Url:  "redis://" + miniredis.RunT(t).Addr(),
+			URL:  "redis://" + miniredis.RunT(t).Addr(),
 		},
 	})
 	assert.NoError(t, err)

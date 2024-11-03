@@ -32,7 +32,7 @@ func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.
 	if config.Redis.Type != enums.RedisTypeExternal {
 		return fmt.Errorf("work queue: please check redis configuration, it should be external")
 	}
-	redisOpt, err := asynq.ParseRedisURI(config.Redis.Url)
+	redisOpt, err := asynq.ParseRedisURI(config.Redis.URL)
 	if err != nil {
 		return fmt.Errorf("asynq.ParseRedisURI error: %v", err)
 	}

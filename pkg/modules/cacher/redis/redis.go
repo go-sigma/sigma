@@ -42,7 +42,7 @@ func New[T any](digCon *dig.Container, prefix string, fetcher definition.Fetcher
 	if config.Redis.Type != enums.RedisTypeExternal {
 		return nil, fmt.Errorf("cacher: please check redis configuration, it should be external")
 	}
-	redisOpt, err := redis.ParseURL(config.Redis.Url)
+	redisOpt, err := redis.ParseURL(config.Redis.URL)
 	if err != nil {
 		return nil, err
 	}

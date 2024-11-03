@@ -109,6 +109,15 @@ func Initialize(digCon *dig.Container) error {
 	return nil
 }
 
+// DeInitialize ...
+func DeInitialize() error {
+	conn, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get raw db instance failed: %v", err)
+	}
+	return conn.Close()
+}
+
 func connectMysql(config configs.Configuration) (string, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC",
 		config.Database.Mysql.Username, config.Database.Mysql.Password,

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -34,9 +35,8 @@ func SetLevel(levelStr string) {
 		level = zerolog.InfoLevel
 	}
 
-	var timeFormat = "2006-01-02 15:04:05" // change it to 'time.DataTime' om go 1.20
 	zerolog.SetGlobalLevel(level)
-	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: timeFormat, FormatCaller: func(i interface{}) string {
+	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime, FormatCaller: func(i interface{}) string {
 		var c string
 		if cc, ok := i.(string); ok {
 			c = cc

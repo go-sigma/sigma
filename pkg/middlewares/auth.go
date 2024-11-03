@@ -22,11 +22,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -39,6 +41,8 @@ type AuthConfig struct {
 	Skipper middleware.Skipper
 	// DS is distribution service or not.
 	DS bool
+	// DigCon is the dig container
+	DigCon *dig.Container
 }
 
 // AuthWithConfig returns a middleware which authenticates requests.
@@ -50,8 +54,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			cfg := configs.GetConfiguration()
-			tokenService, err := token.NewTokenService(cfg.Auth.Jwt.PrivateKey)
+			tokenService, err := token.New(config.DigCon)
 			if err != nil {
 				log.Error().Err(err).Msg("Create token service failed")
 				if config.DS {
@@ -67,8 +70,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			var uid int64
 			var jti = uuid.New().String()
 
-			userServiceFactory := dao.NewUserServiceFactory()
-			userService := userServiceFactory.New()
+			userService := utils.MustGetObjFromDigCon[dao.UserServiceFactory](config.DigCon).New()
 
 			switch {
 			case strings.HasPrefix(authorization, "Basic"):
@@ -89,7 +91,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				user, err := userService.GetByUsername(ctx, username)
 				if err != nil {
 					log.Error().Err(err).Msg("Get user by username failed")
-					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
@@ -101,7 +103,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				verify := passwordService.Verify(pwd, ptr.To(user.Password))
 				if !verify {
 					log.Error().Err(err).Msg("Verify password failed")
-					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
@@ -111,7 +113,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				jti, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 				if err != nil {
 					log.Error().Err(err).Msg("Validate token failed")
-					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
@@ -120,7 +122,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 			default:
 				uri := c.Request().URL.Path
 				if strings.HasPrefix(uri, "/v2") || uri == "/api/v1/users/self" {
-					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
@@ -129,7 +131,7 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 				userObj, err := userService.GetByUsername(ctx, consts.UserAnonymous)
 				if err != nil {
 					log.Error().Err(err).Msg("Get anonymous user failed")
-					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(req.Host, c.Scheme()))
+					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if config.DS {
 						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
 					}
@@ -162,15 +164,15 @@ func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
 	}
 }
 
-func genWwwAuthenticate(host, schema string) string {
-	cfg := configs.GetConfiguration()
+func genWwwAuthenticate(digCon *dig.Container, host, schema string) string {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	realm := fmt.Sprintf("%s://%s%s/tokens", schema, host, consts.APIV1)
-	if cfg.Auth.Token.Realm != "" {
-		realm = cfg.Auth.Token.Realm
+	if config.Auth.Token.Realm != "" {
+		realm = config.Auth.Token.Realm
 	}
 	service := consts.AppName
-	if cfg.Auth.Token.Service != "" {
-		service = cfg.Auth.Token.Service
+	if config.Auth.Token.Service != "" {
+		service = config.Auth.Token.Service
 	}
 	return fmt.Sprintf("Bearer realm=\"%s\",service=\"%s\"", realm, service)
 }

@@ -17,13 +17,19 @@ package middlewares
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
@@ -32,36 +38,40 @@ import (
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 const (
-	privateKeyString        = "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlDWFFJQkFBS0JnUUN2bmwyeU1hRmR0NTJFOFhIN2tFdkVIbnBtelpWbFBTOWFrZTJ5TmQrNm13VXBlaVQ5CnVqVkZwTmJ2RkFna002TUd3dll5N1hkV1FwNTBaOXVVS0d1UlJEZSt4QXQvbklObVZCcVJwU3VnYzhPOVdMNzQKU294UldJSjFVcWJ3NnYvaFU3K1dSMFlORU1ubVlodzJDNXZPQ3c3UlIrQnJET2h5aEtuKzJ3MWRDUUlEQVFBQgpBb0dBSGtjY2VsTnFNY0V0YkRWQVpKSE5Ma1BlOEloelFHQWJJTzlWM3NyQkJ1Z2hMTFI5V2kxWGIrbHFrUStRCkU4Vy9UclFnUkVtQ3NLR050aDROMG01aGxRR3dBS0tsYUhLOWxzYUtPVDBpV0lwYk1HSm1rMWJQZEV5RTRlL1QKcjN2bUMwU0NaZGJOZElkL1FuMzlkY2hZY2I3MGtBaW5kNFlHQXYvNU45UXdSZ0VDUVFEa2JlcnU4bTRRdXhOagpmTysyTUJmL1NoaUtUbHdYZlNXYURvcW9tTE14MG9BeHpwVkU2RzdZMStJd0xYSXd6VEswUXdIUTdDWEl4ZmkvCi9pRyt6T3BCQWtFQXhOQ3ZhSHJhZklpWjVmZVFESlR6T0kzS3B4WDNSWFlaTytDTHlLeHlic0tZQklTSm9Db0YKVkw4K0diRGZJMU9adm5lTXZEcEE3WFhEQkt3TXFHMXd5UUpCQU9BMGRzUWpWUjY4ejdIMW5iNmZnOTVCbHNhaApWTWlGUUJQdXMrLzVPT0RzOElCeWVKWlM0UUdiRzFvWU1SMXZPcFl0c3FtaUx3L2FLR1loaEhPbTQwRUNRRWhLCmZxTlp2TGJSVmZYcUlMYitYdmYrM05qU2NLaks0Q25tS0hIbEpZTVpaczBDQWFzYXhDcUV0RUtyZk1wMUFwdTcKUGE1RmwyT2hSYWlKcVh5VDlrRUNRUUNYdXlrdWR3eXdudEhHL3d2SmVoeWFSYkxGczd5UG1SbUVEL0FHcEY0QgpKcFZrZFJNQVJpa1g1OE84OWF6WXQyT3pkTGNlTWQ3WWlJRGd4UVhBSEcyagotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo="
-	privateKeyStringInvalid = "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlDWFFJQkFBS0JnUUN2bmwyeU1hRmR0NTJFOFhIN2tFdkVIbnBtelpWbFBTOWFrZTJ5TmQrNm13VXBlaVQ5CnVqVkZwTmJ2RkFna002TUd3dll5N1hkV1FwNTBaOXVVS0d1UlJEZSt4QXQvbklObVZCcVJwU3VnYzhPOVdMNzQKU294UldJSjFVcWJ3NnYvaFU3K1dSMFlORU1ubVlodzJDNXZPQ3c3UlIrQnJET2h5aEtuKzJ3MWRDUUlEQVFBQgpBb0dBSGtjY2VsTnFNY0V0YkRWQVpKSE5Ma1BlOEloelFHQWJJTzlWM3NyQkJ1Z2hMTFI5V2kxWGIrbHFrUStRCkU4Vy9UclFnUkVtQ3NLR050aDROMG01aGxRR3dBS0tsYUhLOWxzYUtPVDBpV0lwYk1HSm1rMWJQZEV5RTRlL1QKcjN2bUMwU0NaZGJOZElkL1FuMzlkY2hZY2I3MGtBaW5kNFlHQXYvNU45UXdSZ0VDUVFEa2JlcnU4bTRRdXhOagpmTysyTUJmL1NoaUtUbHdYZlNXYURvcW9tTE14MG9BeHpwVkU2RzdZMStJd0xYSXd6VEswUXdIUTdDWEl4ZmkvCi9pRyt6T3BCQWtFQXhOQ3ZhSHJhZklpWjVmZVFESlR6T0kzS3B4WDNSWFlaTytDTHlLeHlic0tZQklTSm9Db0YKVkw4K0diRGZJMU9adm5lTXZEcEE3WFhEQkt3TXFHMXd5UUpCQU9BMGRzUWpWUjY4ejdIMW5iNmZnOTVCbHNhaApWTWlGUUJQdXMrLzVPT0RzOElCeWVKWlM0UUdiRzFvWU1SMXZPcFl0c3FtaUx3L2FLR1loaEhPbTQwRUNRRWhLCmZxTlp2TGJSVmZYcUlMYitYdmYrM05qU2NLaks0Q25tS0hIbEpZTVpaczBDQWFzYXhDcUV0RUtyZk1wMUFwdTcKUGE1RmwyT2hSYWlKcVh5VDlrRUNRUUNYdXlrdWR3eXdudEhHL3d2SmVoeWFSYkxGczd5UG1SbUVEL0FHcEY0QgpKcFZrZFJNQVJpa1g1OE84OWF6WXQyT3pkTGNlTWQ3WWlJRGd4UVhBSEcyagotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo"
+	privateKeyString = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUNkZ0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQW1Bd2dnSmNBZ0VBQW9HQkFNYmFUZTlsSitBZnQwcWUKMUc5UTF2NWhZLzhFendWZGtXY3FETXlQN2YxVzBwTmxQT1JiSUhqbnp1LytldDlRM1NXcTlWNmF3QkN6M28vSgpZaUF5KzBMYmQ1NmJVcU9aWUxsSTlER1hBd2xrZGR4RWdhNG1CeW8zMmhsblRsak5Kdnc2ckJuYlMrbDIvQzl2CnRWSllpZXlVbExEa2crMExjQTVBZWtYcXlFTTNBZ01CQUFFQ2dZQjJBWjgyYmlWWHovcUtBZSszajVYR3FDMGIKYmRNZE1BWFYzeEp4WXdpc3l4VnoreVJEc0FCNVA3ZUNuTloyS0JyVSs3dFpSU1N0eE5CVExBTmJjR1hDbmpXdQo2ZzFnd0k1bXRQOGFRVzdmUmRETkVlV1NLN0Z6M3BlV2F4UnFzcGpRRXZlcXo5dFZsVnBUbE1ZaDNBcnJWUU9uCm9rWWgzSVJLZitRS0g3MkNJUUpCQVBrMUt6cVNnTWZlRXBtUEEvM3NRb2Q5YmQwTlFpeG05SUFjYUwvWTV1YzYKSEJ3R1pMSmhUdTN1Tmd1aEsvUWJ4NlFvbXNSN2E5cS94WEMydGprMUZtMENRUURNUmNtQXZSMnlvYksvZUhURApQQnR0clFnTFZtRXIrRStGS25ubDNlOHQ5eTNScVh6RCsyUnNrUjFJb2QwR1JYNzFwRi9PNXFUdGo1Mi9yN0liCmhzbXpBa0VBZytvTUZ2WWo2eWgzU2dlMVFqMUV2am03NVE0Mm9CQmpqa2o3ZmNvUCtBZi9oeW92TldsakFYbGQKN0d3Rk96TlZTMlVlLzdDaFYrcTVWYit4MTdodFJRSkFRcmVrYWF6YTcwWUsyS2lpRWtZbWV6cmhmcnAyd0dLNApyampDV1lhVUlRSXpiK0FZaFBZdHhadmI0YVlrUjNFWlYyZVpkejB6cnZlU1FWSkVMT05vS3dKQUJUWElEVStWCjVvcDdIb2FRSlBXOUYyYkY5cE9kTGlBdzFMeC9kTGJ5TnNhaHZLNEkxZDdtZVZIcFhENDZ0ekF0ZW1Gck1qbisKRlNkQkl5YWNNYndza3c9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
 )
 
-func Test_genWwwAuthenticate(t *testing.T) {
+func TestGenWwwAuthenticate(t *testing.T) {
 	logger.SetLevel("debug")
 
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@tosone.cn",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
+				Token: configs.ConfigurationAuthToken{
+					Realm:   "http://localhost:8080/user/token",
+					Service: "sigma-dev",
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-			Token: configs.ConfigurationAuthToken{
-				Realm:   "http://localhost:8080/user/token",
-				Service: "sigma-dev",
-			},
-		},
-	}
-	configs.SetConfiguration(config)
+		}
+	})
+	require.NoError(t, err)
 
 	type args struct {
 		host   string
@@ -83,7 +93,7 @@ func Test_genWwwAuthenticate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := genWwwAuthenticate(tt.args.host, tt.args.schema); got != tt.want {
+			if got := genWwwAuthenticate(digCon, tt.args.host, tt.args.schema); got != tt.want {
 				t.Errorf("genWwwAuthenticate() = %v, want %v", got, tt.want)
 			}
 		})
@@ -93,162 +103,283 @@ func Test_genWwwAuthenticate(t *testing.T) {
 func TestAuthWithConfig(t *testing.T) {
 	logger.SetLevel("debug")
 
-	e := echo.New()
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+	tests := []struct {
+		name          string
+		genDigCon     func(*testing.T) *dig.Container
+		genAuthConfig func(*testing.T, *dig.Container) AuthConfig
+		afterCheck    func(*testing.T, *dig.Container, echo.MiddlewareFunc)
+		afterEach     func(*testing.T, *dig.Container)
+	}{
+		{
+			name: "normal",
+			genDigCon: func(t *testing.T) *dig.Container {
+				digCon := dig.New()
 
-	assert.NoError(t, inits.Initialize(configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+				err := digCon.Provide(func() configs.Configuration {
+					return configs.Configuration{
+						Auth: configs.ConfigurationAuth{
+							Admin: configs.ConfigurationAuthAdmin{
+								Username: "sigma",
+								Password: "sigma",
+								Email:    "sigma@gmail.com",
+							},
+							Jwt: configs.ConfigurationAuthJwt{
+								PrivateKey: privateKeyString,
+							},
+						},
+						Locker: configs.ConfigurationLocker{
+							Type:   enums.LockerTypeRedis,
+							Prefix: "sigma-locker",
+							Redis:  configs.ConfigurationLockerRedis{},
+						},
+						Redis: configs.ConfigurationRedis{
+							Type: enums.RedisTypeExternal,
+							URL:  "redis://:sigma@localhost:6379/0",
+						},
+						Cache: configs.ConfigurationCache{
+							Type:   enums.CacherTypeRedis,
+							Prefix: "sigma-cache",
+							Redis: configs.ConfigurationCacheRedis{
+								Ttl: time.Hour * 24 * 7,
+							},
+						},
+						Database: configs.ConfigurationDatabase{
+							Type: enums.DatabaseSqlite3,
+							Sqlite3: configs.ConfigurationDatabaseSqlite3{
+								Path: fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")),
+							},
+							Mysql: configs.ConfigurationDatabaseMysql{
+								Host:     "127.0.0.1",
+								Port:     3306,
+								Username: "root",
+								Password: "sigma",
+								Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+							},
+							Postgresql: configs.ConfigurationDatabasePostgresql{
+								Host:     "127.0.0.1",
+								Port:     5432,
+								Username: "sigma",
+								Password: "sigma",
+								Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+								SslMode:  "disable",
+							},
+						},
+					}
+				})
+				require.NoError(t, err)
+
+				err = digCon.Provide(func() password.Service {
+					return password.New()
+				})
+				require.NoError(t, err)
+
+				testInstance, err := tests.Initialize(t, digCon)
+				require.NoError(t, err)
+
+				err = digCon.Provide(func() *tests.Instance {
+					return testInstance
+				})
+				require.NoError(t, err)
+
+				return digCon
+			},
+			genAuthConfig: func(t *testing.T, c *dig.Container) AuthConfig {
+				return AuthConfig{
+					DigCon: c,
+				}
+			},
+			afterCheck: func(t *testing.T, digCon *dig.Container, middleware echo.MiddlewareFunc) {
+				handlerFunc := middleware(func(c echo.Context) error {
+					return c.String(http.StatusOK, "OK")
+				})
+
+				err := inits.Initialize(digCon)
+				require.NoError(t, err)
+
+				{ // bad password
+					req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					req.SetBasicAuth("sigma", "bad_password")
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err := handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusUnauthorized, rec.Code)
+				}
+
+				{ // correct password
+					req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					req.SetBasicAuth("sigma", "sigma")
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err := handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusOK, rec.Code)
+				}
+
+				{ // use bearer auth
+					ctx := log.Logger.WithContext(context.Background())
+					userService := utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon).New()
+					userObj := &models.User{Username: "new-user", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+					err = userService.Create(ctx, userObj)
+					require.NoError(t, err)
+
+					tokenService, err := token.New(digCon)
+					require.NoError(t, err)
+					tokenStr, err := tokenService.New(userObj.ID, time.Hour)
+					require.NoError(t, err)
+
+					req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					req.Header.Set(echo.HeaderAuthorization, "Bearer "+tokenStr)
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err = handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusOK, rec.Code)
+				}
+			},
+			afterEach: func(t *testing.T, c *dig.Container) {
+				require.NoError(t, dal.DeInitialize())
+				require.NoError(t, utils.MustGetObjFromDigCon[*tests.Instance](c).DeInitialize())
 			},
 		},
-	}))
+		{
+			name: "skip_auth_check",
+			genDigCon: func(t *testing.T) *dig.Container {
+				digCon := dig.New()
 
-	hDS := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
+				err := digCon.Provide(func() configs.Configuration {
+					return configs.Configuration{
+						Auth: configs.ConfigurationAuth{
+							Admin: configs.ConfigurationAuthAdmin{
+								Username: "sigma",
+								Password: "sigma",
+								Email:    "sigma@gmail.com",
+							},
+							Jwt: configs.ConfigurationAuthJwt{
+								PrivateKey: privateKeyString,
+							},
+						},
+						Locker: configs.ConfigurationLocker{
+							Type:   enums.LockerTypeRedis,
+							Prefix: "sigma-locker",
+							Redis:  configs.ConfigurationLockerRedis{},
+						},
+						Redis: configs.ConfigurationRedis{
+							Type: enums.RedisTypeExternal,
+							URL:  "redis://:sigma@localhost:6379/0",
+						},
+						Cache: configs.ConfigurationCache{
+							Type:   enums.CacherTypeRedis,
+							Prefix: "sigma-cache",
+							Redis: configs.ConfigurationCacheRedis{
+								Ttl: time.Hour * 24 * 7,
+							},
+						},
+						Database: configs.ConfigurationDatabase{
+							Type: enums.DatabaseSqlite3,
+							Sqlite3: configs.ConfigurationDatabaseSqlite3{
+								Path: fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")),
+							},
+							Mysql: configs.ConfigurationDatabaseMysql{
+								Host:     "127.0.0.1",
+								Port:     3306,
+								Username: "root",
+								Password: "sigma",
+								Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+							},
+							Postgresql: configs.ConfigurationDatabasePostgresql{
+								Host:     "127.0.0.1",
+								Port:     5432,
+								Username: "sigma",
+								Password: "sigma",
+								Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+								SslMode:  "disable",
+							},
+						},
+					}
+				})
+				require.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("sigma", "sigma1")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	err := hDS(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+				err = digCon.Provide(func() password.Service {
+					return password.New()
+				})
+				require.NoError(t, err)
 
-	req.SetBasicAuth("sigma", "sigma")
-	rec1 := httptest.NewRecorder()
-	c = e.NewContext(req, rec1)
-	err = hDS(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec1.Code)
+				testInstance, err := tests.Initialize(t, digCon)
+				require.NoError(t, err)
 
-	tokenService, err := token.NewTokenService(privateKeyString)
-	assert.NoError(t, err)
+				err = digCon.Provide(func() *tests.Instance {
+					return testInstance
+				})
+				require.NoError(t, err)
 
-	userServiceFactory := dao.NewUserServiceFactory()
-	userService := userServiceFactory.New()
-	ctx := context.Background()
-	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	err = userService.Create(ctx, userObj)
-	assert.NoError(t, err)
+				return digCon
+			},
+			genAuthConfig: func(t *testing.T, c *dig.Container) AuthConfig {
+				return AuthConfig{
+					DigCon: c,
+					Skipper: func(c echo.Context) bool {
+						fmt.Println(c.Request().URL.Path == "/skip", c.Request().URL.Path, "/skip")
+						return c.Request().URL.Path == "/skip"
+					},
+				}
+			},
+			afterCheck: func(t *testing.T, digCon *dig.Container, middleware echo.MiddlewareFunc) {
+				handlerFunc := middleware(func(c echo.Context) error {
+					return c.String(http.StatusOK, "OK")
+				})
 
-	token, err := tokenService.New(userObj.ID, time.Hour)
-	assert.NoError(t, err)
-	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)
-	rec2 := httptest.NewRecorder()
-	c = e.NewContext(req, rec2)
-	err = hDS(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec2.Code)
-}
+				err := inits.Initialize(digCon)
+				require.NoError(t, err)
 
-func TestAuthWithConfigSkipper(t *testing.T) {
-	var config = AuthConfig{
-		Skipper: func(c echo.Context) bool {
-			return c.Request().URL.Path == "/skip"
+				{ // skip check
+					req := httptest.NewRequest(http.MethodPost, "/skip", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err := handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusOK, rec.Code)
+				}
+
+				{ // correct password
+					req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					req.SetBasicAuth("sigma", "sigma")
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err := handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusOK, rec.Code)
+				}
+
+				{ // login with anonymous
+					req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewBufferString(`{}`))
+					req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+					rec := httptest.NewRecorder()
+					c := e.NewContext(req, rec)
+					err := handlerFunc(c)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusOK, rec.Code)
+				}
+			},
+			afterEach: func(t *testing.T, c *dig.Container) {
+				require.NoError(t, dal.DeInitialize())
+				require.NoError(t, utils.MustGetObjFromDigCon[*tests.Instance](c).DeInitialize())
+			},
 		},
 	}
-	mr := AuthWithConfig(config)(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	req := httptest.NewRequest(http.MethodGet, "/skip", nil)
-	rec := httptest.NewRecorder()
-	e := echo.New()
-	c := e.NewContext(req, rec)
-	err := mr(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-}
-
-func TestAuthWithConfigPrivateKey(t *testing.T) {
-	logger.SetLevel("debug")
-
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyStringInvalid,
-			},
-			Token: configs.ConfigurationAuthToken{
-				Realm:   "http://localhost:8080/user/token",
-				Service: "sigma-dev",
-			},
-		},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			digCon := tt.genDigCon(t)
+			defer tt.afterEach(t, digCon)
+			middleware := AuthWithConfig(tt.genAuthConfig(t, digCon))
+			if tt.afterCheck != nil {
+				tt.afterCheck(t, digCon, middleware)
+			}
+		})
 	}
-	configs.SetConfiguration(config)
-
-	mr := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
-	e := echo.New()
-	c := e.NewContext(req, rec)
-	err := mr(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-
-	mr1 := AuthWithConfig(AuthConfig{DS: true})(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	err = mr1(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-}
-
-func TestAuthWithConfigInvalidBasicAuth(t *testing.T) {
-	logger.SetLevel("debug")
-
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-			Token: configs.ConfigurationAuthToken{
-				Realm:   "http://localhost:8080/user/token",
-				Service: "sigma-dev",
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-
-	mr := AuthWithConfig(AuthConfig{})(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderAuthorization, "Basic dGVzdA===")
-	rec := httptest.NewRecorder()
-	e := echo.New()
-	c := e.NewContext(req, rec)
-	err := mr(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, rec.Code)
-
-	mr1 := AuthWithConfig(AuthConfig{DS: true})(func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	err = mr1(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 }

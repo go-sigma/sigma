@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 						},
 						Redis: configs.ConfigurationRedis{
 							Type: enums.RedisTypeExternal,
-							Url:  "redis://" + miniredis.RunT(t).Addr(),
+							URL:  "redis://" + miniredis.RunT(t).Addr(),
 						},
 					}
 				})
