@@ -16,16 +16,25 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -35,36 +44,83 @@ const (
 
 func TestInitializeSkipAuth(t *testing.T) {
 	logger.SetLevel("debug")
+
 	e := echo.New()
 	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
+
+	badgerDir, err := os.MkdirTemp("", "badger")
+	require.NoError(t, err)
+
+	digCon := dig.New()
+	err = digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Admin: configs.ConfigurationAuthAdmin{
+					Username: "sigma",
+					Password: "sigma",
+					Email:    "sigma@gmail.com",
+				},
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
+			},
+			Database: configs.ConfigurationDatabase{
+				Type: enums.DatabaseSqlite3,
+				Sqlite3: configs.ConfigurationDatabaseSqlite3{
+					Path: fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")),
+				},
+				Mysql: configs.ConfigurationDatabaseMysql{
+					Host:     "127.0.0.1",
+					Port:     3306,
+					Username: "root",
+					Password: "sigma",
+					Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+				},
+				Postgresql: configs.ConfigurationDatabasePostgresql{
+					Host:     "127.0.0.1",
+					Port:     5432,
+					Username: "sigma",
+					Password: "sigma",
+					Database: strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", ""),
+					SslMode:  "disable",
+				},
+			},
+			Locker: configs.ConfigurationLocker{
+				Type:   enums.LockerTypeBadger,
+				Badger: configs.ConfigurationLockerBadger{},
+				Prefix: "sigma-locker",
+			},
+			Badger: configs.ConfigurationBadger{
+				Enabled: true,
+				Path:    badgerDir,
+			},
+		}
+	})
+	assert.NoError(t, err)
+
+	err = digCon.Provide(func() password.Service {
+		return password.New()
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(badger.New)
+	require.NoError(t, err)
+
+	tests, err := tests.Initialize(t, digCon)
+	require.NoError(t, err)
 	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
+		require.NoError(t, dal.DeInitialize())
+		require.NoError(t, tests.DeInitialize())
 	}()
 
-	assert.NoError(t, inits.Initialize(configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}))
+	assert.NoError(t, inits.Initialize(digCon))
 
-	assert.NoError(t, Initialize(e))
+	assert.NoError(t, Initialize(e, digCon))
 }
 
 type factoryOk struct{}
 
-func (f *factoryOk) Initialize(e *echo.Echo) error {
+func (f *factoryOk) Initialize(*echo.Echo, *dig.Container) error {
 	return nil
 }
 
@@ -72,13 +128,13 @@ func TestInitializeOK(t *testing.T) {
 	routerFactories = make(map[string]Factory)
 	err := RegisterRouterFactory("ok", &factoryOk{})
 	assert.NoError(t, err)
-	err = Initialize(echo.New())
+	err = Initialize(echo.New(), dig.New())
 	assert.NoError(t, err)
 }
 
 type factoryErr struct{}
 
-func (f *factoryErr) Initialize(e *echo.Echo) error {
+func (f *factoryErr) Initialize(*echo.Echo, *dig.Container) error {
 	return errors.New("error")
 }
 
@@ -86,7 +142,7 @@ func TestInitializeErr(t *testing.T) {
 	routerFactories = make(map[string]Factory)
 	err := RegisterRouterFactory("err", &factoryErr{})
 	assert.NoError(t, err)
-	err = Initialize(echo.New())
+	err = Initialize(echo.New(), dig.New())
 	assert.Error(t, err)
 }
 
