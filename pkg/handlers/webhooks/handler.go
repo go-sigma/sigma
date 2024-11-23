@@ -19,13 +19,13 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -61,60 +61,29 @@ type handler struct {
 	namespaceServiceFactory dao.NamespaceServiceFactory
 	webhookServiceFactory   dao.WebhookServiceFactory
 	auditServiceFactory     dao.AuditServiceFactory
-
-	producerClient definition.WorkQueueProducer
-}
-
-type inject struct {
-	authServiceFactory      auth.AuthServiceFactory
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	webhookServiceFactory   dao.WebhookServiceFactory
-	auditServiceFactory     dao.AuditServiceFactory
-
-	producerClient definition.WorkQueueProducer
+	producerClient          definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the webhook handlers
-func handlerNew(injects ...inject) Handler {
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	webhookServiceFactory := dao.NewWebhookServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	authServiceFactory := auth.NewAuthServiceFactory()
-	producerClient := workq.ProducerClient
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.webhookServiceFactory != nil {
-			webhookServiceFactory = ij.webhookServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.producerClient != nil {
-			producerClient = ij.producerClient
-		}
-	}
+func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		authServiceFactory:      authServiceFactory,
-		namespaceServiceFactory: namespaceServiceFactory,
-		webhookServiceFactory:   webhookServiceFactory,
-		auditServiceFactory:     auditServiceFactory,
-		producerClient:          producerClient,
+		authServiceFactory:      utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
+		namespaceServiceFactory: utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		webhookServiceFactory:   utils.MustGetObjFromDigCon[dao.WebhookServiceFactory](digCon),
+		auditServiceFactory:     utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
+		producerClient:          utils.MustGetObjFromDigCon[definition.WorkQueueProducer](digCon),
 	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+
 	webhookGroup := e.Group(consts.APIV1+"/webhooks", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	webhookHandler := handlerNew()
+	webhookHandler := handlerNew(digCon)
 	webhookGroup.POST("/", webhookHandler.PostWebhook)
 	webhookGroup.PUT("/:webhook_id", webhookHandler.PutWebhook)
 	webhookGroup.GET("/", webhookHandler.ListWebhook)

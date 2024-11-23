@@ -17,32 +17,50 @@ package webhooks
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 	"go.uber.org/mock/gomock"
 
-	authmocks "github.com/go-sigma/sigma/pkg/auth/mocks"
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/auth"
+	mocksAuth "github.com/go-sigma/sigma/pkg/auth/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	mocksDao "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	daoMockNamespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
-	daoMockWebhookServiceFactory := daomock.NewMockWebhookServiceFactory(ctrl)
-	daoMockAuditServiceFactory := daomock.NewMockAuditServiceFactory(ctrl)
-	daoMockAuthServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
-
-	handler := handlerNew(inject{
-		namespaceServiceFactory: daoMockNamespaceServiceFactory,
-		webhookServiceFactory:   daoMockWebhookServiceFactory,
-		auditServiceFactory:     daoMockAuditServiceFactory,
-		authServiceFactory:      daoMockAuthServiceFactory,
+	digCon := dig.New()
+	err := digCon.Provide(func() dao.NamespaceServiceFactory {
+		return mocksDao.NewMockNamespaceServiceFactory(ctrl)
 	})
-	assert.NotNil(t, handler)
+	require.NoError(t, err)
 
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	err = digCon.Provide(func() dao.WebhookServiceFactory {
+		return mocksDao.NewMockWebhookServiceFactory(ctrl)
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(func() dao.AuditServiceFactory {
+		return mocksDao.NewMockAuditServiceFactory(ctrl)
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(func() auth.AuthServiceFactory {
+		return mocksAuth.NewMockAuthServiceFactory(ctrl)
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(func() definition.WorkQueueProducer {
+		return nil
+	})
+	require.NoError(t, err)
+
+	err = digCon.Provide(tests.NewEcho)
+	require.NoError(t, err)
+
+	require.NoError(t, factory{}.Initialize(digCon))
 }

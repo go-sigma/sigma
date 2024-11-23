@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
@@ -44,19 +45,18 @@ var _ Handler = &handler{}
 
 type handler struct{}
 
-type inject struct{}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(_ *dig.Container) Handler {
 	return &handler{}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	validatorGroup := e.Group(consts.APIV1+"/validators", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	repositoryHandler := handlerNew()
+	repositoryHandler := handlerNew(digCon)
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)
 	validatorGroup.POST("/password", repositoryHandler.GetPassword)

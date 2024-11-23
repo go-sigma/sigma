@@ -120,7 +120,7 @@ func TestInitializeSkipAuth(t *testing.T) {
 
 type factoryOk struct{}
 
-func (f *factoryOk) Initialize(*echo.Echo, *dig.Container) error {
+func (f *factoryOk) Initialize(*dig.Container) error {
 	return nil
 }
 
@@ -134,7 +134,7 @@ func TestInitializeOK(t *testing.T) {
 
 type factoryErr struct{}
 
-func (f *factoryErr) Initialize(*echo.Echo, *dig.Container) error {
+func (f *factoryErr) Initialize(*dig.Container) error {
 	return errors.New("error")
 }
 
