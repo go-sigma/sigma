@@ -21,45 +21,36 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"go.uber.org/mock/gomock"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 func TestGetConfig(t *testing.T) {
-	e := echo.New()
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	systemHandler := handlerNew(inject{
-		config: &configs.Configuration{
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() *configs.Configuration {
+		return &configs.Configuration{
 			Auth: configs.ConfigurationAuth{
 				Anonymous: configs.ConfigurationAuthAnonymous{
 					Enabled: true,
 				},
 			},
-		},
-	})
+		}
+	}))
+
+	e := tests.NewEcho()
+	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
+
+	handler := handlerNew(digCon)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	err := systemHandler.GetConfig(c)
+	err := handler.GetConfig(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	response := rec.Body.Bytes()

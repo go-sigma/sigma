@@ -17,24 +17,16 @@ package systems
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	handler := handlerNew(inject{})
-	assert.NotNil(t, handler)
-
-	config := &configs.Configuration{}
-	configs.SetConfiguration(config)
-
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() *configs.Configuration { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }

@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -42,34 +43,23 @@ type handler struct {
 	config *configs.Configuration
 }
 
-type inject struct {
-	config *configs.Configuration
-}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
-	config := configs.GetConfiguration()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			config = ij.config
-		}
-	}
+func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		config: config,
+		config: utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
 	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
-	systemGroup := e.Group(consts.APIV1 + "/systems")
-
-	repositoryHandler := handlerNew()
-	systemGroup.GET("/endpoint", repositoryHandler.GetEndpoint)
-	systemGroup.GET("/version", repositoryHandler.GetVersion)
-	systemGroup.GET("/config", repositoryHandler.GetConfig)
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	group := e.Group(consts.APIV1 + "/systems")
+	handler := handlerNew(digCon)
+	group.GET("/endpoint", handler.GetEndpoint)
+	group.GET("/version", handler.GetVersion)
+	group.GET("/config", handler.GetConfig)
 	return nil
 }
 
