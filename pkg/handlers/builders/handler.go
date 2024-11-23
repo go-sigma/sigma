@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -60,18 +61,8 @@ type handler struct {
 	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 }
 
-type inject struct {
-	namespaceServiceFactory      dao.NamespaceServiceFactory
-	repositoryServiceFactory     dao.RepositoryServiceFactory
-	webhookServiceFactory        dao.WebhookServiceFactory
-	auditServiceFactory          dao.AuditServiceFactory
-	builderServiceFactory        dao.BuilderServiceFactory
-	userServiceFactory           dao.UserServiceFactory
-	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
-}
-
 // handlerNew creates a new instance of the builder handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(digCon *dig.Container) Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	webhookServiceFactory := dao.NewWebhookServiceFactory()
@@ -79,30 +70,6 @@ func handlerNew(injects ...inject) Handler {
 	builderServiceFactory := dao.NewBuilderServiceFactory()
 	userServiceFactory := dao.NewUserServiceFactory()
 	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.webhookServiceFactory != nil {
-			webhookServiceFactory = ij.webhookServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.builderServiceFactory != nil {
-			builderServiceFactory = ij.builderServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-		if ij.codeRepositoryServiceFactory != nil {
-			codeRepositoryServiceFactory = ij.codeRepositoryServiceFactory
-		}
-	}
 	return &handler{
 		namespaceServiceFactory:      namespaceServiceFactory,
 		repositoryServiceFactory:     repositoryServiceFactory,
@@ -117,8 +84,9 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
-	handler := handlerNew()
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	handler := handlerNew(digCon)
 
 	config := configs.GetConfiguration()
 	if config.Daemon.Builder.Enabled {

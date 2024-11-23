@@ -17,31 +17,19 @@ package tag
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockNamespaceService := daomock.NewMockNamespaceServiceFactory(ctrl)
-	daoMockRepositoryService := daomock.NewMockRepositoryServiceFactory(ctrl)
-	daoMockTagService := daomock.NewMockTagServiceFactory(ctrl)
-	daoMockArtifactService := daomock.NewMockArtifactServiceFactory(ctrl)
-
-	handler := handlerNew(inject{
-		namespaceServiceFactory:  daoMockNamespaceService,
-		repositoryServiceFactory: daoMockRepositoryService,
-		artifactServiceFactory:   daoMockArtifactService,
-		tagServiceFactory:        daoMockTagService,
-	})
-	assert.NotNil(t, handler)
-
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.RepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.TagServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.ArtifactServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }

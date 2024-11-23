@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -59,44 +60,14 @@ type handler struct {
 	builderServiceFactory        dao.BuilderServiceFactory
 }
 
-type inject struct {
-	namespaceServiceFactory      dao.NamespaceServiceFactory
-	repositoryServiceFactory     dao.RepositoryServiceFactory
-	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
-	userServiceFactory           dao.UserServiceFactory
-	auditServiceFactory          dao.AuditServiceFactory
-	builderServiceFactory        dao.BuilderServiceFactory
-}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew() Handler {
 	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
 	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
 	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
 	userServiceFactory := dao.NewUserServiceFactory()
 	auditServiceFactory := dao.NewAuditServiceFactory()
 	builderServiceFactory := dao.NewBuilderServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.codeRepositoryServiceFactory != nil {
-			codeRepositoryServiceFactory = ij.codeRepositoryServiceFactory
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.builderServiceFactory != nil {
-			builderServiceFactory = ij.builderServiceFactory
-		}
-	}
 	return &handler{
 		namespaceServiceFactory:      namespaceServiceFactory,
 		repositoryServiceFactory:     repositoryServiceFactory,
@@ -110,7 +81,8 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	codeRepositoryHandler := handlerNew()
 
 	config := configs.GetConfiguration()

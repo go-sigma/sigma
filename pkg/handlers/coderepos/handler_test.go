@@ -17,35 +17,21 @@ package coderepos
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
-	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
-	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
-	daoMockBuilderServiceFactory := daomocks.NewMockBuilderServiceFactory(ctrl)
-	daoMockUserServiceFactory := daomocks.NewMockUserServiceFactory(ctrl)
-	daoMockCodeRepositoryServiceFactory := daomocks.NewMockCodeRepositoryServiceFactory(ctrl)
-
-	handler := handlerNew(inject{
-		namespaceServiceFactory:      daoMockNamespaceServiceFactory,
-		repositoryServiceFactory:     daoMockRepositoryServiceFactory,
-		auditServiceFactory:          daoMockAuditServiceFactory,
-		builderServiceFactory:        daoMockBuilderServiceFactory,
-		userServiceFactory:           daoMockUserServiceFactory,
-		codeRepositoryServiceFactory: daoMockCodeRepositoryServiceFactory,
-	})
-	assert.NotNil(t, handler)
-
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.RepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.AuditServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.BuilderServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.UserServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.CodeRepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }

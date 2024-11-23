@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -108,25 +109,10 @@ type handler struct {
 	producerClient definition.WorkQueueProducer
 }
 
-type inject struct {
-	daemonServiceFactory dao.DaemonServiceFactory
-
-	producerClient definition.WorkQueueProducer
-}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
+func handlerNew(digCon *dig.Container) Handler {
 	daemonServiceFactory := dao.NewDaemonServiceFactory()
 	producerClient := workq.ProducerClient
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.daemonServiceFactory != nil {
-			daemonServiceFactory = ij.daemonServiceFactory
-		}
-		if ij.producerClient != nil {
-			producerClient = ij.producerClient
-		}
-	}
 	return &handler{
 		daemonServiceFactory: daemonServiceFactory,
 		producerClient:       producerClient,
@@ -136,10 +122,11 @@ func handlerNew(injects ...inject) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	daemonGroup := e.Group(consts.APIV1+"/daemons", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	daemonHandler := handlerNew()
+	daemonHandler := handlerNew(digCon)
 
 	daemonGroup.PUT("/gc-repository/:namespace_id/", daemonHandler.UpdateGcRepositoryRule)
 	daemonGroup.GET("/gc-repository/:namespace_id/", daemonHandler.GetGcRepositoryRule)

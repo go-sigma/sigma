@@ -51,8 +51,9 @@ func handlerNew(c *dig.Container) Handler {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo, c *dig.Container) error {
-	handler := handlerNew(c)
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	handler := handlerNew(digCon)
 
 	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
