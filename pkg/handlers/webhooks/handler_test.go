@@ -19,48 +19,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
-	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/auth"
-	mocksAuth "github.com/go-sigma/sigma/pkg/auth/mocks"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	mocksDao "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
 	digCon := dig.New()
-	err := digCon.Provide(func() dao.NamespaceServiceFactory {
-		return mocksDao.NewMockNamespaceServiceFactory(ctrl)
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(func() dao.WebhookServiceFactory {
-		return mocksDao.NewMockWebhookServiceFactory(ctrl)
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(func() dao.AuditServiceFactory {
-		return mocksDao.NewMockAuditServiceFactory(ctrl)
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(func() auth.AuthServiceFactory {
-		return mocksAuth.NewMockAuthServiceFactory(ctrl)
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(func() definition.WorkQueueProducer {
-		return nil
-	})
-	require.NoError(t, err)
-
-	err = digCon.Provide(tests.NewEcho)
-	require.NoError(t, err)
-
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.WebhookServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.AuditServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() definition.WorkQueueProducer { return nil }))
+	require.NoError(t, digCon.Provide(func() auth.AuthServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
 	require.NoError(t, factory{}.Initialize(digCon))
 }

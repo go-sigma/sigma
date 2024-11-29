@@ -17,31 +17,41 @@ package artifact
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
-	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
-	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
-	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
-
-	handler := handlerNew(inject{
-		tagServiceFactory:        daoMockTagServiceFactory,
-		artifactServiceFactory:   daoMockArtifactServiceFactory,
-		namespaceServiceFactory:  daoMockNamespaceServiceFactory,
-		repositoryServiceFactory: daoMockRepositoryServiceFactory,
-	})
-	assert.NotNil(t, handler)
-
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.RepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.ArtifactServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.TagServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }
+
+// func TestFactory(t *testing.T) {
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+
+// 	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
+// 	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
+// 	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
+// 	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
+
+// 	handler := handlerNew(inject{
+// 		tagServiceFactory:        daoMockTagServiceFactory,
+// 		artifactServiceFactory:   daoMockArtifactServiceFactory,
+// 		namespaceServiceFactory:  daoMockNamespaceServiceFactory,
+// 		repositoryServiceFactory: daoMockRepositoryServiceFactory,
+// 	})
+// 	assert.NotNil(t, handler)
+
+// 	f := factory{}
+// 	err := f.Initialize(echo.New())
+// 	assert.NoError(t, err)
+// }

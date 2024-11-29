@@ -19,14 +19,13 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -37,60 +36,25 @@ type Handler interface {
 }
 
 type handler struct {
-	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
-	userServiceFactory dao.UserServiceFactory
+	config       *configs.Configuration
+	tokenService token.Service
 }
 
 var _ Handler = &handler{}
 
-type inject struct {
-	config             *configs.Configuration
-	tokenService       token.TokenService
-	passwordService    password.Password
-	userServiceFactory dao.UserServiceFactory
-}
-
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handler, error) {
-	var tokenService token.TokenService
-	passwordService := password.New()
-	userServiceFactory := dao.NewUserServiceFactory()
-	config := configs.GetConfiguration()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.tokenService != nil {
-			tokenService = ij.tokenService
-		}
-		if ij.passwordService != nil {
-			passwordService = ij.passwordService
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-		if ij.config != nil {
-			config = ij.config
-		}
-	} else {
-		var err error
-		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
-		if err != nil {
-			return nil, err
-		}
-	}
+func handlerNew(digCon *dig.Container) (Handler, error) {
 	return &handler{
-		config:             config,
-		tokenService:       tokenService,
-		passwordService:    passwordService,
-		userServiceFactory: userServiceFactory,
+		config:       utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
+		tokenService: utils.MustGetObjFromDigCon[token.Service](digCon),
 	}, nil
 }
 
 type factory struct{}
 
-func (f factory) Initialize(e *echo.Echo) error {
-	userHandler, err := handlerNew()
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	userHandler, err := handlerNew(digCon)
 	if err != nil {
 		return err
 	}

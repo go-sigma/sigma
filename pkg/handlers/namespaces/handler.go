@@ -19,13 +19,13 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -67,79 +67,31 @@ type handler struct {
 	repositoryServiceFactory      dao.RepositoryServiceFactory
 	tagServiceFactory             dao.TagServiceFactory
 	artifactServiceFactory        dao.ArtifactServiceFactory
-
-	producerClient definition.WorkQueueProducer
-}
-
-type inject struct {
-	authServiceFactory            auth.AuthServiceFactory
-	auditServiceFactory           dao.AuditServiceFactory
-	namespaceServiceFactory       dao.NamespaceServiceFactory
-	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
-	repositoryServiceFactory      dao.RepositoryServiceFactory
-	tagServiceFactory             dao.TagServiceFactory
-	artifactServiceFactory        dao.ArtifactServiceFactory
-
-	producerClient definition.WorkQueueProducer
+	producerClient                definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
-	authServiceFactory := auth.NewAuthServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	namespaceMemberServiceFactory := dao.NewNamespaceMemberServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	tagServiceFactory := dao.NewTagServiceFactory()
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	producerClient := workq.ProducerClient
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.namespaceMemberServiceFactory != nil {
-			namespaceMemberServiceFactory = ij.namespaceMemberServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.producerClient != nil {
-			producerClient = ij.producerClient
-		}
-	}
+func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		authServiceFactory:            authServiceFactory,
-		auditServiceFactory:           auditServiceFactory,
-		namespaceServiceFactory:       namespaceServiceFactory,
-		namespaceMemberServiceFactory: namespaceMemberServiceFactory,
-		repositoryServiceFactory:      repositoryServiceFactory,
-		tagServiceFactory:             tagServiceFactory,
-		artifactServiceFactory:        artifactServiceFactory,
-
-		producerClient: producerClient,
+		authServiceFactory:            utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
+		auditServiceFactory:           utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
+		namespaceServiceFactory:       utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		namespaceMemberServiceFactory: utils.MustGetObjFromDigCon[dao.NamespaceMemberServiceFactory](digCon),
+		repositoryServiceFactory:      utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
+		tagServiceFactory:             utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
+		artifactServiceFactory:        utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
+		producerClient:                utils.MustGetObjFromDigCon[definition.WorkQueueProducer](digCon),
 	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	namespaceGroup := e.Group(consts.APIV1+"/namespaces", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	namespaceHandler := handlerNew()
+	namespaceHandler := handlerNew(digCon)
 
 	namespaceGroup.GET("/", namespaceHandler.ListNamespaces)
 	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)

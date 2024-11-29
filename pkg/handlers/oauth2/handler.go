@@ -22,6 +22,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
 	"golang.org/x/exp/slices"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -47,39 +48,15 @@ var _ Handler = &handler{}
 
 type handler struct {
 	config             *configs.Configuration
-	tokenService       token.TokenService
-	userServiceFactory dao.UserServiceFactory
-}
-
-type inject struct {
-	config             *configs.Configuration
-	tokenService       token.TokenService
+	tokenService       token.Service
 	userServiceFactory dao.UserServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) (Handler, error) {
-	var tokenService token.TokenService
+func handlerNew(digCon *dig.Container) (Handler, error) {
+	var tokenService token.Service
 	userServiceFactory := dao.NewUserServiceFactory()
 	config := configs.GetConfiguration()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			config = ij.config
-		}
-		if ij.tokenService != nil {
-			tokenService = ij.tokenService
-		}
-		if ij.userServiceFactory != nil {
-			userServiceFactory = ij.userServiceFactory
-		}
-	} else {
-		var err error
-		tokenService, err = token.NewTokenService(config.Auth.Jwt.PrivateKey)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return &handler{
 		config:             config,
 		tokenService:       tokenService,
@@ -90,9 +67,10 @@ func handlerNew(injects ...inject) (Handler, error) {
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
-	repositoryHandler, err := handlerNew()
+	repositoryHandler, err := handlerNew(digCon)
 	if err != nil {
 		return err
 	}

@@ -61,20 +61,14 @@ type handler struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew() Handler {
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
-	userServiceFactory := dao.NewUserServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	builderServiceFactory := dao.NewBuilderServiceFactory()
+func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		namespaceServiceFactory:      namespaceServiceFactory,
-		repositoryServiceFactory:     repositoryServiceFactory,
-		codeRepositoryServiceFactory: codeRepositoryServiceFactory,
-		userServiceFactory:           userServiceFactory,
-		auditServiceFactory:          auditServiceFactory,
-		builderServiceFactory:        builderServiceFactory,
+		namespaceServiceFactory:      utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		repositoryServiceFactory:     utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
+		codeRepositoryServiceFactory: utils.MustGetObjFromDigCon[dao.CodeRepositoryServiceFactory](digCon),
+		userServiceFactory:           utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon),
+		auditServiceFactory:          utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
+		builderServiceFactory:        utils.MustGetObjFromDigCon[dao.BuilderServiceFactory](digCon),
 	}
 }
 
@@ -83,7 +77,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	codeRepositoryHandler := handlerNew()
+	codeRepositoryHandler := handlerNew(digCon)
 
 	config := configs.GetConfiguration()
 	if config.Daemon.Builder.Enabled {

@@ -63,21 +63,14 @@ type handler struct {
 
 // handlerNew creates a new instance of the builder handlers
 func handlerNew(digCon *dig.Container) Handler {
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	webhookServiceFactory := dao.NewWebhookServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	builderServiceFactory := dao.NewBuilderServiceFactory()
-	userServiceFactory := dao.NewUserServiceFactory()
-	codeRepositoryServiceFactory := dao.NewCodeRepositoryServiceFactory()
 	return &handler{
-		namespaceServiceFactory:      namespaceServiceFactory,
-		repositoryServiceFactory:     repositoryServiceFactory,
-		webhookServiceFactory:        webhookServiceFactory,
-		auditServiceFactory:          auditServiceFactory,
-		builderServiceFactory:        builderServiceFactory,
-		userServiceFactory:           userServiceFactory,
-		codeRepositoryServiceFactory: codeRepositoryServiceFactory,
+		namespaceServiceFactory:      utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		repositoryServiceFactory:     utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
+		webhookServiceFactory:        utils.MustGetObjFromDigCon[dao.WebhookServiceFactory](digCon),
+		auditServiceFactory:          utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
+		builderServiceFactory:        utils.MustGetObjFromDigCon[dao.BuilderServiceFactory](digCon),
+		userServiceFactory:           utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon),
+		codeRepositoryServiceFactory: utils.MustGetObjFromDigCon[dao.CodeRepositoryServiceFactory](digCon),
 	}
 }
 

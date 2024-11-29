@@ -17,16 +17,12 @@ package token
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/inits"
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
 const (
@@ -34,50 +30,9 @@ const (
 )
 
 func TestFactory(t *testing.T) {
-	logger.SetLevel("debug")
-	e := echo.New()
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
-
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
-
-	assert.NoError(t, factory{}.Initialize(e))
-}
-
-func TestFactoryFailed(t *testing.T) {
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString + "1",
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-	assert.Error(t, factory{}.Initialize(echo.New()))
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() *configs.Configuration { return nil }))
+	require.NoError(t, digCon.Provide(func() token.Service { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }

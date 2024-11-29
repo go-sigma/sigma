@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -41,53 +42,28 @@ var _ Handler = &handler{}
 
 type handler struct {
 	namespaceServiceFactory  dao.NamespaceServiceFactory
+	repositoryServiceFactory dao.RepositoryServiceFactory
 	artifactServiceFactory   dao.ArtifactServiceFactory
 	tagServiceFactory        dao.TagServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-}
-
-type inject struct {
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	tagServiceFactory := dao.NewTagServiceFactory()
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-	}
+func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		namespaceServiceFactory:  namespaceServiceFactory,
-		tagServiceFactory:        tagServiceFactory,
-		artifactServiceFactory:   artifactServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
+		namespaceServiceFactory:  utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		repositoryServiceFactory: utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
+		tagServiceFactory:        utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
+		artifactServiceFactory:   utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
 	}
 }
 
 type factory struct{}
 
 // Initialize initializes the namespace handlers
-func (f factory) Initialize(e *echo.Echo) error {
+func (f factory) Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	artifactGroup := e.Group(consts.APIV1+"/namespaces/:namespace/artifacts", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	artifactHandler := handlerNew()
+	artifactHandler := handlerNew(digCon)
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
 	artifactGroup.GET("/:digest", artifactHandler.GetArtifact)
 	artifactGroup.DELETE("/:digest", artifactHandler.DeleteArtifact)

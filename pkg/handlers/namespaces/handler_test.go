@@ -17,38 +17,25 @@ package namespaces
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
-	authmocks "github.com/go-sigma/sigma/pkg/auth/mocks"
-	daomocks "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestFactory(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockAuthServiceFactory := authmocks.NewMockAuthServiceFactory(ctrl)
-	daoMockAuditServiceFactory := daomocks.NewMockAuditServiceFactory(ctrl)
-	daoMockNamespaceServiceFactory := daomocks.NewMockNamespaceServiceFactory(ctrl)
-	daoMockNamespaceMemberServiceFactory := daomocks.NewMockNamespaceMemberServiceFactory(ctrl)
-	daoMockRepositoryServiceFactory := daomocks.NewMockRepositoryServiceFactory(ctrl)
-	daoMockArtifactServiceFactory := daomocks.NewMockArtifactServiceFactory(ctrl)
-	daoMockTagServiceFactory := daomocks.NewMockTagServiceFactory(ctrl)
-
-	handler := handlerNew(inject{
-		authServiceFactory:            daoMockAuthServiceFactory,
-		auditServiceFactory:           daoMockAuditServiceFactory,
-		namespaceServiceFactory:       daoMockNamespaceServiceFactory,
-		namespaceMemberServiceFactory: daoMockNamespaceMemberServiceFactory,
-		repositoryServiceFactory:      daoMockRepositoryServiceFactory,
-		artifactServiceFactory:        daoMockArtifactServiceFactory,
-		tagServiceFactory:             daoMockTagServiceFactory,
-	})
-	assert.NotNil(t, handler)
-
-	f := factory{}
-	err := f.Initialize(echo.New())
-	assert.NoError(t, err)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.RepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.AuditServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() auth.AuthServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.TagServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.NamespaceMemberServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.ArtifactServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() definition.WorkQueueProducer { return nil }))
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, factory{}.Initialize(digCon))
 }

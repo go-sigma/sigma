@@ -58,18 +58,17 @@ type handler struct {
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(c *dig.Container) Handler {
-	h := &handler{}
-
-	h.config = configs.GetConfiguration()
-	h.authServiceFactory = auth.NewAuthServiceFactory()
-	h.auditServiceFactory = dao.NewAuditServiceFactory()
-	h.namespaceServiceFactory = dao.NewNamespaceServiceFactory()
-	h.repositoryServiceFactory = dao.NewRepositoryServiceFactory()
-	h.tagServiceFactory = dao.NewTagServiceFactory()
-	h.artifactServiceFactory = dao.NewArtifactServiceFactory()
-	h.builderServiceFactory = dao.NewBuilderServiceFactory()
-	return h
+func handlerNew(digCon *dig.Container) Handler {
+	return &handler{
+		config:                   utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
+		authServiceFactory:       utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
+		auditServiceFactory:      utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
+		namespaceServiceFactory:  utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
+		repositoryServiceFactory: utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
+		tagServiceFactory:        utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
+		artifactServiceFactory:   utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
+		builderServiceFactory:    utils.MustGetObjFromDigCon[dao.BuilderServiceFactory](digCon),
+	}
 }
 
 type factory struct{}

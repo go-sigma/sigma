@@ -18,132 +18,66 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
+	"go.uber.org/dig"
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/utils/token"
+	mockToken "github.com/go-sigma/sigma/pkg/utils/token/mocks"
 )
 
 func TestToken(t *testing.T) {
 	logger.SetLevel("debug")
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
-
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
-			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userHandler, err := handlerNew()
-	assert.NoError(t, err)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	err = userHandler.Token(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
-
-	userObj := &models.User{Username: "test-token", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-
-	req = httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("sigma", "sigma")
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	c.Set(consts.ContextUser, userObj)
-	err = userHandler.Token(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, c.Response().Status)
-
-	req = httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.SetBasicAuth("sigma", "sigma")
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	err = userHandler.Token(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
-}
-
-func TestTokenMockDAO(t *testing.T) {
-	logger.SetLevel("debug")
-
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	validators.Initialize(e)
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
-
-	config := &configs.Configuration{
-		Auth: configs.ConfigurationAuth{
-			Admin: configs.ConfigurationAuthAdmin{
-				Username: "sigma",
-				Password: "sigma",
-				Email:    "sigma@gmail.com",
+	digCon := dig.New()
+	err := digCon.Provide(func() *configs.Configuration {
+		return &configs.Configuration{
+			Auth: configs.ConfigurationAuth{
+				Jwt: configs.ConfigurationAuthJwt{
+					PrivateKey: privateKeyString,
+				},
 			},
-			Jwt: configs.ConfigurationAuthJwt{
-				PrivateKey: privateKeyString,
-			},
-		},
-	}
-	configs.SetConfiguration(config)
+		}
+	})
+	require.NoError(t, err)
 
-	assert.NoError(t, inits.Initialize(ptr.To(configs.GetConfiguration())))
+	tokenStr := "mock-token-string"
+	err = digCon.Provide(func() token.Service {
+		tokenSvc := mockToken.NewMockService(ctrl)
+		tokenSvc.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(id int64, expire time.Duration) (string, error) {
+			return tokenStr, nil
+		})
+		return tokenSvc
+	})
+	require.NoError(t, err)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	e := tests.NewEcho()
 
-	userHandler, err := handlerNew()
-	assert.NoError(t, err)
+	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
+
+	handler, err := handlerNew(digCon)
+	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.SetBasicAuth("sigma", "sigma")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	err = userHandler.Token(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
+	c.Set(consts.ContextUser, &models.User{ID: 1, Username: "test"})
+	err = handler.Token(c)
+	require.NoError(t, err)
+	require.NotNil(t, rec.Body)
+	require.Equal(t, tokenStr, gjson.Get(rec.Body.String(), "token").String())
 }
