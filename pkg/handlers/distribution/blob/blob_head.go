@@ -58,13 +58,13 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -83,7 +83,7 @@ func (h *handler) HeadBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
 	}
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
-	cacher, err := h.blobCacher(c)
+	cacher, err := h.BlobCacher(c)
 	if err != nil {
 		log.Error().Err(err).Msg("New blob cacher failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)

@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -36,30 +37,26 @@ type Handler interface {
 }
 
 type handler struct {
-	config       *configs.Configuration
-	tokenService token.Service
+	dig.In
+
+	Config       configs.Configuration
+	TokenService token.Service
 }
 
 var _ Handler = &handler{}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(digCon *dig.Container) (Handler, error) {
-	return &handler{
-		config:       utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
-		tokenService: utils.MustGetObjFromDigCon[token.Service](digCon),
-	}, nil
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
 
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	userHandler, err := handlerNew(digCon)
-	if err != nil {
-		return err
-	}
+	handler := handlerNew(digCon)
 	tokenGroup := e.Group(consts.APIV1, middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-	tokenGroup.GET("/tokens", userHandler.Token)
+	tokenGroup.GET("/tokens", handler.Token)
 	return nil
 }
 

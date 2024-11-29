@@ -44,7 +44,7 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	builderService := h.builderServiceFactory.New()
+	builderService := h.BuilderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -75,7 +75,7 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderService := h.builderServiceFactory.New(tx)
+		builderService := h.BuilderServiceFactory.New(tx)
 		runnerObj = &models.BuilderRunner{
 			BuilderID: req.BuilderID,
 			RawTag:    runnerObj.RawTag,

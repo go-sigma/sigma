@@ -69,14 +69,14 @@ func (h *handler) List(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
 	}
 
-	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	ownerObjs, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List all owners failed")

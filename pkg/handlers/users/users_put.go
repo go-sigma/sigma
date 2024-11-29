@@ -50,7 +50,7 @@ func (h *handler) Put(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	userObj, err := userService.Get(ctx, req.UserID)
 	if err != nil {
 		log.Error().Err(err).Int64("id", req.UserID).Msg("Get user failed")
@@ -68,7 +68,7 @@ func (h *handler) Put(c echo.Context) error {
 		updates[query.User.Status.ColumnName().String()] = req.Status
 	}
 	if req.Password != nil {
-		pwdHash, err := h.passwordService.Hash(ptr.To(req.Password))
+		pwdHash, err := h.PasswordService.Hash(ptr.To(req.Password))
 		if err != nil {
 			log.Error().Err(err).Msg("Hash password failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Hash password failed: %v", err))
@@ -79,7 +79,7 @@ func (h *handler) Put(c echo.Context) error {
 		updates[query.User.NamespaceLimit.ColumnName().String()] = req.NamespaceLimit
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.UpdateByID(ctx, userObj.ID, updates)
 		if err != nil {
 			log.Error().Err(err).Msg("Update user failed")

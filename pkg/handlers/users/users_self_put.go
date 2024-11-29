@@ -58,7 +58,7 @@ func (h *handler) SelfPut(c echo.Context) error {
 		updates[query.User.Email.ColumnName().String()] = ptr.To(req.Email)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.UpdateByID(ctx, userObj.ID, updates)
 		if err != nil {
 			log.Error().Err(err).Msg("Update user failed")

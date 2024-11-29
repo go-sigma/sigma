@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -65,22 +66,19 @@ type Handler interface {
 }
 
 type handler struct {
-	config             *configs.Configuration
-	tokenService       token.Service
-	passwordService    password.Service
-	userServiceFactory dao.UserServiceFactory
+	dig.In
+
+	Config             configs.Configuration
+	TokenService       token.Service
+	PasswordService    password.Service
+	UserServiceFactory dao.UserServiceFactory
 }
 
 var _ Handler = &handler{}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(digCon *dig.Container) (Handler, error) {
-	return &handler{
-		config:             utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
-		tokenService:       utils.MustGetObjFromDigCon[token.Service](digCon),
-		passwordService:    utils.MustGetObjFromDigCon[password.Service](digCon),
-		userServiceFactory: utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon),
-	}, nil
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
@@ -90,10 +88,7 @@ var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", 
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	userGroup := e.Group(consts.APIV1 + "/users")
-	userHandler, err := handlerNew(digCon)
-	if err != nil {
-		return err
-	}
+	handler := handlerNew(digCon)
 	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
 		Skipper: func(c echo.Context) bool {
 			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
@@ -101,22 +96,22 @@ func (f factory) Initialize(digCon *dig.Container) error {
 		},
 	}))
 
-	userGroup.GET("/", userHandler.List)
-	userGroup.POST("/", userHandler.Post)
-	userGroup.PUT("/:id", userHandler.Put)
-	userGroup.POST("/login", userHandler.Login)
-	userGroup.POST("/logout", userHandler.Logout)
-	userGroup.GET("/signup", userHandler.Signup)
-	userGroup.GET("/create", userHandler.Signup)
+	userGroup.GET("/", handler.List)
+	userGroup.POST("/", handler.Post)
+	userGroup.PUT("/:id", handler.Put)
+	userGroup.POST("/login", handler.Login)
+	userGroup.POST("/logout", handler.Logout)
+	userGroup.GET("/signup", handler.Signup)
+	userGroup.GET("/create", handler.Signup)
 
-	userGroup.GET("/self", userHandler.SelfGet)
-	userGroup.PUT("/self", userHandler.SelfPut)
-	userGroup.PUT("/self/reset-password", userHandler.SelfResetPassword)
+	userGroup.GET("/self", handler.SelfGet)
+	userGroup.PUT("/self", handler.SelfPut)
+	userGroup.PUT("/self/reset-password", handler.SelfResetPassword)
 
-	userGroup.GET("/recover-password", userHandler.RecoverPassword)
-	userGroup.PUT("/recover-password-reset/:code", userHandler.RecoverPasswordReset)
+	userGroup.GET("/recover-password", handler.RecoverPassword)
+	userGroup.PUT("/recover-password-reset/:code", handler.RecoverPasswordReset)
 
-	userGroup.PUT("/:id/reset-password", userHandler.ResetPassword)
+	userGroup.PUT("/:id/reset-password", handler.ResetPassword)
 
 	return nil
 }

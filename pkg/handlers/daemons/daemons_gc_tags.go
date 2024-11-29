@@ -65,7 +65,7 @@ func (h *handler) UpdateGcTagRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -94,7 +94,7 @@ func (h *handler) UpdateGcTagRule(c echo.Context) error {
 		updates[query.DaemonGcTagRule.RetentionPattern.ColumnName().String()] = ptr.To(req.RetentionPattern)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		daemonService := h.daemonServiceFactory.New(tx)
+		daemonService := h.DaemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
 				NamespaceID:         namespaceID,
@@ -116,7 +116,7 @@ func (h *handler) UpdateGcTagRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc tag rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc tag rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRule,
@@ -164,7 +164,7 @@ func (h *handler) GetGcTagRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -216,7 +216,7 @@ func (h *handler) GetGcTagLatestRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -288,7 +288,7 @@ func (h *handler) CreateGcTagRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -315,7 +315,7 @@ func (h *handler) CreateGcTagRunner(c echo.Context) error {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcTag.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcTag.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRule,
@@ -368,7 +368,7 @@ func (h *handler) ListGcTagRunners(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -436,7 +436,7 @@ func (h *handler) GetGcTagRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	runnerObj, err := daemonService.GetGcTagRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -503,7 +503,7 @@ func (h *handler) ListGcTagRecords(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcTagRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Int64("RuleID", req.RunnerID).Msgf("List gc tag records failed")
@@ -551,7 +551,7 @@ func (h *handler) GetGcTagRecord(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

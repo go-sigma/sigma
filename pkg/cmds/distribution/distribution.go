@@ -26,6 +26,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -85,7 +86,7 @@ func Serve() error {
 		return err
 	}
 
-	handlers.InitializeDistribution(e)
+	handlers.InitializeDistribution(e, dig.New())
 	err = storage.Initialize(config)
 	if err != nil {
 		return err

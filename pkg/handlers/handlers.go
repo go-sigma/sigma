@@ -27,8 +27,12 @@ import (
 )
 
 // InitializeDistribution ...
-func InitializeDistribution(e *echo.Echo) {
-	e.Any("/v2/*", distribution.All, middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
+func InitializeDistribution(e *echo.Echo, digCon *dig.Container) {
+	e.Any("/v2/*", func() echo.HandlerFunc {
+		return func(c echo.Context) error {
+			return distribution.All(c, digCon)
+		}
+	}(), middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
 }
 
 // Initialize ...

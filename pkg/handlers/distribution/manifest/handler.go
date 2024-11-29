@@ -19,12 +19,14 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the distribution manifest handlers
@@ -44,84 +46,31 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
-}
+	dig.In
 
-type inject struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
+	Config                   configs.Configuration
+	AuthServiceFactory       auth.AuthServiceFactory
+	AuditServiceFactory      dao.AuditServiceFactory
+	NamespaceServiceFactory  dao.NamespaceServiceFactory
+	RepositoryServiceFactory dao.RepositoryServiceFactory
+	TagServiceFactory        dao.TagServiceFactory
+	ArtifactServiceFactory   dao.ArtifactServiceFactory
+	BlobServiceFactory       dao.BlobServiceFactory
 }
 
 // New creates a new instance of the distribution manifest handlers
-func handlerNew(injects ...inject) Handler {
-	config := configs.GetConfiguration()
-	authServiceFactory := auth.NewAuthServiceFactory()
-	auditServiceFactory := dao.NewAuditServiceFactory()
-	namespaceServiceFactory := dao.NewNamespaceServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	tagServiceFactory := dao.NewTagServiceFactory()
-	artifactServiceFactory := dao.NewArtifactServiceFactory()
-	blobServiceFactory := dao.NewBlobServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			config = ij.config
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.artifactServiceFactory != nil {
-			artifactServiceFactory = ij.artifactServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-		if ij.blobServiceFactory != nil {
-			blobServiceFactory = ij.blobServiceFactory
-		}
-	}
-	return &handler{
-		config:                   config,
-		authServiceFactory:       authServiceFactory,
-		auditServiceFactory:      auditServiceFactory,
-		namespaceServiceFactory:  namespaceServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		artifactServiceFactory:   artifactServiceFactory,
-		tagServiceFactory:        tagServiceFactory,
-		blobServiceFactory:       blobServiceFactory,
-	}
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
 
 // Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c echo.Context) error {
+func (f factory) Initialize(c echo.Context, digCon *dig.Container) error {
 	method := c.Request().Method
 	uri := c.Request().RequestURI
 	urix := uri[:strings.LastIndex(uri, "/")]
-	manifestHandler := handlerNew()
+	manifestHandler := handlerNew(digCon)
 	if strings.HasSuffix(urix, "/manifests") {
 		switch method {
 		case http.MethodGet:

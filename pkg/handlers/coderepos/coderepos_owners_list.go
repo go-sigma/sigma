@@ -61,7 +61,7 @@ func (h *handler) ListOwners(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	codeRepositoryOwnerObjs, total, err := codeRepositoryService.ListOwnerWithoutPagination(ctx, user.ID, req.Provider, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("List code repository owners failed")

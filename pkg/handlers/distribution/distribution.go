@@ -22,6 +22,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 )
@@ -32,11 +33,11 @@ var (
 )
 
 // All handles the all request
-func All(c echo.Context) error {
+func All(c echo.Context, digCon *dig.Container) error {
 	c.Response().Header().Set(consts.APIVersionKey, consts.APIVersionValue)
 
 	for index, factory := range routerFactories {
-		err := factory.Value.Initialize(c)
+		err := factory.Value.Initialize(c, digCon)
 		if err != nil {
 			if errors.Is(err, ErrNext) {
 				continue
@@ -52,7 +53,7 @@ func All(c echo.Context) error {
 
 // Factory is the interface for the storage router factory
 type Factory interface {
-	Initialize(ctx echo.Context) error
+	Initialize(echo.Context, *dig.Container) error
 }
 
 type Item struct {

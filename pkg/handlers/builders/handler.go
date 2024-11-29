@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the builder handlers
@@ -52,26 +53,20 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	namespaceServiceFactory      dao.NamespaceServiceFactory
-	repositoryServiceFactory     dao.RepositoryServiceFactory
-	webhookServiceFactory        dao.WebhookServiceFactory
-	auditServiceFactory          dao.AuditServiceFactory
-	builderServiceFactory        dao.BuilderServiceFactory
-	userServiceFactory           dao.UserServiceFactory
-	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
+	dig.In
+
+	NamespaceServiceFactory      dao.NamespaceServiceFactory
+	RepositoryServiceFactory     dao.RepositoryServiceFactory
+	WebhookServiceFactory        dao.WebhookServiceFactory
+	AuditServiceFactory          dao.AuditServiceFactory
+	BuilderServiceFactory        dao.BuilderServiceFactory
+	UserServiceFactory           dao.UserServiceFactory
+	CodeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
 }
 
 // handlerNew creates a new instance of the builder handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		namespaceServiceFactory:      utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		repositoryServiceFactory:     utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
-		webhookServiceFactory:        utils.MustGetObjFromDigCon[dao.WebhookServiceFactory](digCon),
-		auditServiceFactory:          utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
-		builderServiceFactory:        utils.MustGetObjFromDigCon[dao.BuilderServiceFactory](digCon),
-		userServiceFactory:           utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon),
-		codeRepositoryServiceFactory: utils.MustGetObjFromDigCon[dao.CodeRepositoryServiceFactory](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

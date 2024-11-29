@@ -19,28 +19,24 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/auth"
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/tests"
 )
 
-func TestHandlerNew(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	daoMockBlobService := daomock.NewMockBlobServiceFactory(ctrl)
-
-	handler := handlerNew(inject{blobServiceFactory: daoMockBlobService})
-	assert.NotNil(t, handler)
-
-	req := httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := echo.New().NewContext(req, rec)
-	f := &factory{}
-	err := f.Initialize(c)
-	assert.ErrorIs(t, err, distribution.ErrNext)
+func TestFactory(t *testing.T) {
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() configs.Configuration { return configs.Configuration{} }))
+	require.NoError(t, digCon.Provide(func() auth.AuthServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.AuditServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.NamespaceServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.RepositoryServiceFactory { return nil }))
+	require.NoError(t, digCon.Provide(func() dao.BlobServiceFactory { return nil }))
+	c := tests.NewEcho().NewContext(httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil), httptest.NewRecorder())
+	require.Equal(t, distribution.ErrNext, factory{}.Initialize(c, digCon))
 }

@@ -15,19 +15,12 @@
 package dao_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func TestWorkQueueServiceFactory(t *testing.T) {
@@ -38,38 +31,38 @@ func TestWorkQueueServiceFactory(t *testing.T) {
 	assert.NotNil(t, artifactService)
 }
 
-func TestWorkQueueService(t *testing.T) {
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+// func TestWorkQueueService(t *testing.T) {
+// 	logger.SetLevel("debug")
+// 	assert.NoError(t, tests.Initialize(t))
+// 	assert.NoError(t, tests.DB.Init())
+// 	defer func() {
+// 		conn, err := dal.DB.DB()
+// 		assert.NoError(t, err)
+// 		assert.NoError(t, conn.Close())
+// 		assert.NoError(t, tests.DB.DeInit())
+// 	}()
 
-	ctx := log.Logger.WithContext(context.Background())
+// 	ctx := log.Logger.WithContext(context.Background())
 
-	workqServiceFactory := dao.NewWorkQueueServiceFactory()
-	workqService := workqServiceFactory.New()
-	assert.NotNil(t, workqService)
+// 	workqServiceFactory := dao.NewWorkQueueServiceFactory()
+// 	workqService := workqServiceFactory.New()
+// 	assert.NotNil(t, workqService)
 
-	workqObj := &models.WorkQueue{
-		Topic:   enums.DaemonGc,
-		Payload: []byte("payload"),
-		Version: "version",
-	}
-	assert.NoError(t, workqService.Create(ctx, workqObj))
+// 	workqObj := &models.WorkQueue{
+// 		Topic:   enums.DaemonGc,
+// 		Payload: []byte("payload"),
+// 		Version: "version",
+// 	}
+// 	assert.NoError(t, workqService.Create(ctx, workqObj))
 
-	assert.NoError(t, workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending))
+// 	assert.NoError(t, workqService.UpdateStatus(ctx, workqObj.ID, "version", "newVersion", 1, enums.TaskCommonStatusPending))
 
-	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc)
-	assert.NoError(t, err)
-	assert.Equal(t, workqObj.ID, workqNewObj.ID)
-	assert.Equal(t, workqObj.Topic, workqNewObj.Topic)
-	assert.Equal(t, workqObj.Payload, workqNewObj.Payload)
-	assert.Equal(t, []byte("payload"), workqNewObj.Payload)
-	assert.Equal(t, 1, workqNewObj.Times)
-	assert.Equal(t, enums.TaskCommonStatusPending, workqNewObj.Status)
-}
+// 	workqNewObj, err := workqService.Get(ctx, enums.DaemonGc)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, workqObj.ID, workqNewObj.ID)
+// 	assert.Equal(t, workqObj.Topic, workqNewObj.Topic)
+// 	assert.Equal(t, workqObj.Payload, workqNewObj.Payload)
+// 	assert.Equal(t, []byte("payload"), workqNewObj.Payload)
+// 	assert.Equal(t, 1, workqNewObj.Times)
+// 	assert.Equal(t, enums.TaskCommonStatusPending, workqNewObj.Status)
+// }

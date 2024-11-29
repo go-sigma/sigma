@@ -73,7 +73,7 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), req.RepositoryID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Repository(ptr.To(user), req.RepositoryID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
@@ -87,7 +87,7 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -98,7 +98,7 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -113,7 +113,7 @@ func (h *handler) ListTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
 	}
 
-	tagService := h.tagServiceFactory.New()
+	tagService := h.TagServiceFactory.New()
 	tags, total, err := tagService.ListTag(ctx, repositoryObj.ID, req.Name, req.Type, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List tag from db failed")

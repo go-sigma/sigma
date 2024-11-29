@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the artifact handlers
@@ -41,20 +42,17 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
+	dig.In
+
+	NamespaceServiceFactory  dao.NamespaceServiceFactory
+	RepositoryServiceFactory dao.RepositoryServiceFactory
+	ArtifactServiceFactory   dao.ArtifactServiceFactory
+	TagServiceFactory        dao.TagServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		namespaceServiceFactory:  utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		repositoryServiceFactory: utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
-		tagServiceFactory:        utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
-		artifactServiceFactory:   utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

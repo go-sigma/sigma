@@ -74,13 +74,13 @@ func (h *handler) PutManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -118,11 +118,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 
 	refs := h.parseRef(ref)
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj := &models.Repository{Name: repository}
 	err = repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{
-		AutoCreate: h.config.Namespace.AutoCreate,
-		Visibility: h.config.Namespace.Visibility,
+		AutoCreate: h.Config.Namespace.AutoCreate,
+		Visibility: h.Config.Namespace.Visibility,
 		UserID:     user.ID,
 	})
 	if err != nil {
@@ -168,7 +168,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	}
 	artifactObj.ReferrerID = referrerID
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	tryFindArtifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -229,7 +229,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
 func (h *handler) putManifestManifest(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, manifest distribution.Manifest, descriptor distribution.Descriptor) error {
-	blobService := h.blobServiceFactory.New()
+	blobService := h.BlobServiceFactory.New()
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Find blobs failed")
@@ -239,7 +239,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 	artifactObj.Blobs = blobObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		artifactService := h.artifactServiceFactory.New(tx)
+		artifactService := h.ArtifactServiceFactory.New(tx)
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
@@ -250,7 +250,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 			return xerrors.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
-			tagService := h.tagServiceFactory.New(tx)
+			tagService := h.TagServiceFactory.New(tx)
 			err = tagService.Create(ctx, &models.Tag{
 				RepositoryID: repositoryObj.ID,
 				ArtifactID:   artifactObj.ID,
@@ -327,7 +327,7 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
 func (h *handler) putManifestIndex(ctx context.Context, user *models.User, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs Refs, _ distribution.Manifest, _ distribution.Descriptor) error {
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repositoryObj.Name).Strs("digests", digests).Msg("Get artifacts failed")
@@ -337,7 +337,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 	artifactObj.ArtifactSubs = artifactObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		artifactService := h.artifactServiceFactory.New(tx)
+		artifactService := h.ArtifactServiceFactory.New(tx)
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
@@ -348,7 +348,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 			return xerrors.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
-			tagService := h.tagServiceFactory.New(tx)
+			tagService := h.TagServiceFactory.New(tx)
 			err = tagService.Create(ctx, &models.Tag{
 				RepositoryID: repositoryObj.ID,
 				ArtifactID:   artifactObj.ID,
@@ -385,7 +385,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 }
 
 func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *models.Artifact) {
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	err := artifactService.CreateSbom(ctx, &models.ArtifactSbom{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
@@ -406,7 +406,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 }
 
 func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact) {
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	err := artifactService.CreateVulnerability(ctx, &models.ArtifactVulnerability{
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
@@ -470,7 +470,7 @@ func (h *handler) getArtifactReferrer(ctx context.Context, repository string, ma
 	if err != nil {
 		return nil, err
 	}
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		return nil, err
@@ -502,7 +502,7 @@ func (h *handler) getArtifactReferrer(ctx context.Context, repository string, ma
 		return nil, nil
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, digest)
 	if err != nil {
 		return nil, err

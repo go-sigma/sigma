@@ -69,13 +69,13 @@ func (h *handler) PatchUpload(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -88,7 +88,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
 	}
 
-	blobUploadService := h.blobUploadServiceFactory.New()
+	blobUploadService := h.BlobUploadServiceFactory.New()
 	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")

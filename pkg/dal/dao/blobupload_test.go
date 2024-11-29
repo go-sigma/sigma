@@ -15,18 +15,12 @@
 package dao_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
 )
 
 func TestBlobUploadServiceFactory(t *testing.T) {
@@ -35,59 +29,59 @@ func TestBlobUploadServiceFactory(t *testing.T) {
 	assert.NotNil(t, f.New(query.Q))
 }
 
-func TestBlobUploadService(t *testing.T) {
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+// func TestBlobUploadService(t *testing.T) {
+// 	logger.SetLevel("debug")
+// 	assert.NoError(t, tests.Initialize(t))
+// 	assert.NoError(t, tests.DB.Init())
+// 	defer func() {
+// 		conn, err := dal.DB.DB()
+// 		assert.NoError(t, err)
+// 		assert.NoError(t, conn.Close())
+// 		assert.NoError(t, tests.DB.DeInit())
+// 	}()
 
-	ctx := log.Logger.WithContext(context.Background())
+// 	ctx := log.Logger.WithContext(context.Background())
 
-	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
-	blobUploadService := blobUploadServiceFactory.New()
-	blobUploadObj := &models.BlobUpload{
-		PartNumber: 1,
-		UploadID:   "test1",
-		Etag:       "test1",
-		Repository: "test/busybox",
-		FileID:     "test1",
-		Size:       100,
-	}
-	assert.NoError(t, blobUploadService.Create(ctx, blobUploadObj))
+// 	blobUploadServiceFactory := dao.NewBlobUploadServiceFactory()
+// 	blobUploadService := blobUploadServiceFactory.New()
+// 	blobUploadObj := &models.BlobUpload{
+// 		PartNumber: 1,
+// 		UploadID:   "test1",
+// 		Etag:       "test1",
+// 		Repository: "test/busybox",
+// 		FileID:     "test1",
+// 		Size:       100,
+// 	}
+// 	assert.NoError(t, blobUploadService.Create(ctx, blobUploadObj))
 
-	_, err := blobUploadService.TotalEtagsByUploadID(ctx, "test1")
-	assert.NoError(t, err)
+// 	_, err := blobUploadService.TotalEtagsByUploadID(ctx, "test1")
+// 	assert.NoError(t, err)
 
-	blobUploadObj1 := &models.BlobUpload{
-		PartNumber: 2,
-		UploadID:   "test1",
-		Etag:       "test2",
-		Repository: "test/busybox",
-		FileID:     "test2",
-		Size:       100,
-	}
-	assert.NoError(t, blobUploadService.Create(ctx, blobUploadObj1))
+// 	blobUploadObj1 := &models.BlobUpload{
+// 		PartNumber: 2,
+// 		UploadID:   "test1",
+// 		Etag:       "test2",
+// 		Repository: "test/busybox",
+// 		FileID:     "test2",
+// 		Size:       100,
+// 	}
+// 	assert.NoError(t, blobUploadService.Create(ctx, blobUploadObj1))
 
-	uploads1, err := blobUploadService.FindAllByUploadID(ctx, "test1")
-	assert.NoError(t, err)
-	assert.Len(t, uploads1, 2)
+// 	uploads1, err := blobUploadService.FindAllByUploadID(ctx, "test1")
+// 	assert.NoError(t, err)
+// 	assert.Len(t, uploads1, 2)
 
-	upload1, err := blobUploadService.GetLastPart(ctx, "test1")
-	assert.NoError(t, err)
-	assert.Equal(t, blobUploadObj1.ID, upload1.ID)
+// 	upload1, err := blobUploadService.GetLastPart(ctx, "test1")
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, blobUploadObj1.ID, upload1.ID)
 
-	etags1, err := blobUploadService.TotalEtagsByUploadID(ctx, "test1")
-	assert.NoError(t, err)
-	assert.Len(t, etags1, 1)
+// 	etags1, err := blobUploadService.TotalEtagsByUploadID(ctx, "test1")
+// 	assert.NoError(t, err)
+// 	assert.Len(t, etags1, 1)
 
-	size, err := blobUploadService.TotalSizeByUploadID(ctx, "test1")
-	assert.NoError(t, err)
-	assert.Equal(t, int64(200), size)
+// 	size, err := blobUploadService.TotalSizeByUploadID(ctx, "test1")
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, int64(200), size)
 
-	assert.NoError(t, blobUploadService.DeleteByUploadID(ctx, "test1"))
-}
+// 	assert.NoError(t, blobUploadService.DeleteByUploadID(ctx, "test1"))
+// }

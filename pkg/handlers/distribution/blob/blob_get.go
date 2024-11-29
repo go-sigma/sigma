@@ -67,13 +67,13 @@ func (h *handler) GetBlob(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -92,12 +92,12 @@ func (h *handler) GetBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
 	}
 
-	blobService := h.blobServiceFactory.New()
+	blobService := h.BlobServiceFactory.New()
 	blob, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && h.config.Proxy.Enabled {
+		if errors.Is(err, gorm.ErrRecordNotFound) && h.Config.Proxy.Enabled {
 			f := clients.NewClientsFactory()
-			cli, err := f.New(ptr.To(h.config))
+			cli, err := f.New(h.Config)
 			if err != nil {
 				log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
 				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
@@ -144,7 +144,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", blob.Size))
 
-	if h.config.Storage.Redirect && h.config.Storage.Type != enums.StorageTypeFilesystem {
+	if h.Config.Storage.Redirect && h.Config.Storage.Type != enums.StorageTypeFilesystem {
 		redirectUrl, err := storage.Driver.Redirect(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 		if err != nil {
 			log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob redirect url failed")

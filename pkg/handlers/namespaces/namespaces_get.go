@@ -66,7 +66,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,7 +77,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	authService := h.authServiceFactory.New()
+	authService := h.AuthServiceFactory.New()
 	authChecked, err := authService.Namespace(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -97,14 +97,14 @@ func (h *handler) GetNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user namespace role failed: %v", err))
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count repository failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	tagService := h.tagServiceFactory.New()
+	tagService := h.TagServiceFactory.New()
 	tagMapCount, err := tagService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count tag failed")

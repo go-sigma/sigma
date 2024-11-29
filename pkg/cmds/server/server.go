@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"hash"
 	"hash/crc32"
 	"net/http"
@@ -30,6 +31,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -53,7 +55,7 @@ type ServerConfig struct {
 }
 
 // Serve starts the server
-func Serve(serverConfig ServerConfig) error {
+func Serve(digCon *dig.Container) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -124,8 +126,14 @@ func Serve(serverConfig ServerConfig) error {
 	e.Use(middlewares.RedirectRepository(config))
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
+	var serverConfig ServerConfig
+	err := digCon.Invoke(func(config ServerConfig) { serverConfig = config })
+	if err != nil {
+		return fmt.Errorf("failed to invoke server config: %v", err)
+	}
+
 	if !serverConfig.WithoutDistribution {
-		handlers.InitializeDistribution(e)
+		handlers.InitializeDistribution(e, digCon)
 	}
 	if !serverConfig.WithoutWorker {
 		err := builder.Initialize(config)
@@ -145,7 +153,7 @@ func Serve(serverConfig ServerConfig) error {
 		web.RegisterHandlers(e)
 	}
 
-	err := handlers.Initialize(e)
+	err = handlers.Initialize(e, digCon)
 	if err != nil {
 		return err
 	}

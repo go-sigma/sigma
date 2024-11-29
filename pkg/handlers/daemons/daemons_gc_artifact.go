@@ -65,7 +65,7 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc artifact rule failed")
@@ -88,7 +88,7 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 		updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		daemonService := h.daemonServiceFactory.New(tx)
+		daemonService := h.DaemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
 				NamespaceID:     namespaceID,
@@ -108,7 +108,7 @@ func (h *handler) UpdateGcArtifactRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc artifact rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRule,
@@ -156,7 +156,7 @@ func (h *handler) GetGcArtifactRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -206,7 +206,7 @@ func (h *handler) GetGcArtifactLatestRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -278,7 +278,7 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -305,7 +305,7 @@ func (h *handler) CreateGcArtifactRunner(c echo.Context) error {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
@@ -357,7 +357,7 @@ func (h *handler) ListGcArtifactRunners(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -425,7 +425,7 @@ func (h *handler) GetGcArtifactRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	runnerObj, err := daemonService.GetGcArtifactRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -492,7 +492,7 @@ func (h *handler) ListGcArtifactRecords(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcArtifactRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc artifact records failed")
@@ -540,7 +540,7 @@ func (h *handler) GetGcArtifactRecord(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

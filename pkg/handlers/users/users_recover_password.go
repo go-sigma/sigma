@@ -43,7 +43,7 @@ func (h *handler) RecoverPassword(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user, err := userService.GetByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -69,7 +69,7 @@ func (h *handler) RecoverPassword(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.CreateRecoverCode(ctx, &models.UserRecoverCode{
 			UserID: user.ID,
 			Code:   uuid.NewString(),

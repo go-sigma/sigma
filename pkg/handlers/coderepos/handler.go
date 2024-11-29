@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the system handlers
@@ -52,24 +53,19 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	namespaceServiceFactory      dao.NamespaceServiceFactory
-	repositoryServiceFactory     dao.RepositoryServiceFactory
-	codeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
-	userServiceFactory           dao.UserServiceFactory
-	auditServiceFactory          dao.AuditServiceFactory
-	builderServiceFactory        dao.BuilderServiceFactory
+	dig.In
+
+	NamespaceServiceFactory      dao.NamespaceServiceFactory
+	RepositoryServiceFactory     dao.RepositoryServiceFactory
+	CodeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
+	UserServiceFactory           dao.UserServiceFactory
+	AuditServiceFactory          dao.AuditServiceFactory
+	BuilderServiceFactory        dao.BuilderServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		namespaceServiceFactory:      utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		repositoryServiceFactory:     utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
-		codeRepositoryServiceFactory: utils.MustGetObjFromDigCon[dao.CodeRepositoryServiceFactory](digCon),
-		userServiceFactory:           utils.MustGetObjFromDigCon[dao.UserServiceFactory](digCon),
-		auditServiceFactory:          utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
-		builderServiceFactory:        utils.MustGetObjFromDigCon[dao.BuilderServiceFactory](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

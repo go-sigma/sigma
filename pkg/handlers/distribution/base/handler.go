@@ -19,12 +19,14 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the distribution handlers
@@ -40,63 +42,34 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-}
+	dig.In
 
-type inject struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
+	Config                   configs.Configuration
+	AuthServiceFactory       auth.AuthServiceFactory
+	TagServiceFactory        dao.TagServiceFactory
+	RepositoryServiceFactory dao.RepositoryServiceFactory
 }
 
 // New creates a new instance of the distribution handlers
-func handlerNew(injects ...inject) Handler {
-	config := configs.GetConfiguration()
-	authServiceFactory := auth.NewAuthServiceFactory()
-	tagServiceFactory := dao.NewTagServiceFactory()
-	repositoryServiceFactory := dao.NewRepositoryServiceFactory()
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			config = ij.config
-		}
-		if ij.authServiceFactory != nil {
-			authServiceFactory = ij.authServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.tagServiceFactory != nil {
-			tagServiceFactory = ij.tagServiceFactory
-		}
-	}
-	return &handler{
-		config:                   config,
-		authServiceFactory:       authServiceFactory,
-		repositoryServiceFactory: repositoryServiceFactory,
-		tagServiceFactory:        tagServiceFactory,
-	}
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
 
 // Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c echo.Context) error {
+func (f factory) Initialize(c echo.Context, digCon *dig.Container) error {
 	method := c.Request().Method
 	uri := c.Request().RequestURI
-	baseHandler := handlerNew()
+	handler := handlerNew(digCon)
 	if method == http.MethodGet {
 		switch {
 		case uri == "/v2/":
-			return baseHandler.GetHealthy(c)
+			return handler.GetHealthy(c)
 		case uri == "/v2/_catalog":
-			return baseHandler.ListRepositories(c)
+			return handler.ListRepositories(c)
 		case strings.HasSuffix(uri, "/tags/list") && strings.HasPrefix(uri, "/v2/"):
-			return baseHandler.ListTags(c)
+			return handler.ListTags(c)
 		}
 	}
 	return distribution.ErrNext

@@ -52,7 +52,7 @@ func (h *handler) Login(c echo.Context) error {
 		return nil
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	err = userService.UpdateByID(ctx, user.ID, map[string]any{
 		query.User.LastLogin.ColumnName().String(): time.Now().UnixMilli(),
 	})
@@ -61,13 +61,13 @@ func (h *handler) Login(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
-	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
+	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
+	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

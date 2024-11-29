@@ -22,7 +22,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/handlers/distribution/clients"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // fallbackProxy cannot found the manifest, proxy to the origin registry
@@ -34,7 +33,7 @@ func (h *handler) fallbackProxy(c echo.Context) (int, http.Header, []byte, error
 	headers.Add(echo.HeaderAccept, "application/vnd.oci.image.index.v1+json")
 
 	f := clients.NewClientsFactory()
-	cli, err := f.New(ptr.To(h.config)) // TODO: config param
+	cli, err := f.New(h.Config) // TODO: config param
 	if err != nil {
 		return 0, nil, nil, err
 	}

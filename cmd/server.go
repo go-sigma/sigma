@@ -15,8 +15,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -24,11 +22,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/cmds/server"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // serverCmd represents the server command
@@ -46,37 +41,37 @@ var serverCmd = &cobra.Command{
 			return
 		}
 
-		config := ptr.To(configs.GetConfiguration())
-
-		err = badger.Initialize(context.Background(), config)
+		err = inits.NewDigContainer()
 		if err != nil {
-			log.Error().Err(err).Msg("Initialize badger with error")
+			log.Error().Err(err).Msg("new dig container failed")
 			return
 		}
 
-		err = locker.Initialize(config)
+		err = inits.DigCon.Provide(func() server.ServerConfig {
+			return server.ServerConfig{
+				WithoutDistribution: withoutDistribution,
+				WithoutWorker:       withoutWorker,
+				WithoutWeb:          withoutWeb,
+			}
+		})
 		if err != nil {
-			log.Error().Err(err).Msg("Initialize locker with error")
+			log.Error().Err(err).Msg("dig container provide server config with error")
 			return
 		}
 
-		err = dal.Initialize(config)
+		err = dal.Initialize(inits.DigCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
 			return
 		}
 
-		err = inits.Initialize(config)
+		err = inits.Initialize(inits.DigCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize inits with error")
 			return
 		}
 
-		err = server.Serve(server.ServerConfig{
-			WithoutDistribution: withoutDistribution,
-			WithoutWorker:       withoutWorker,
-			WithoutWeb:          withoutWeb,
-		})
+		err = server.Serve(inits.DigCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Serve with error")
 			return

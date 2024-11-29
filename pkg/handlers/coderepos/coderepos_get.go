@@ -65,8 +65,8 @@ func (h *handler) Get(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	codeRepositoryService := h.codeRepositoryServiceFactory.New()
-	userService := h.userServiceFactory.New()
+	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")

@@ -56,7 +56,7 @@ func (h *handler) Logout(c echo.Context) error {
 		if t == "" {
 			continue
 		}
-		id, _, err := h.tokenService.Validate(ctx, t)
+		id, _, err := h.TokenService.Validate(ctx, t)
 		if err != nil {
 			if errors.Is(err, token.ErrRevoked) || errors.Is(err, jwt.ErrTokenExpired) {
 				continue
@@ -81,7 +81,7 @@ func (h *handler) Logout(c echo.Context) error {
 			break
 		}
 
-		err = h.tokenService.Revoke(ctx, id)
+		err = h.TokenService.Revoke(ctx, id)
 		if err != nil {
 			log.Error().Err(err).Msg("Revoke token failed")
 			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())

@@ -47,7 +47,7 @@ func (h *handler) RecoverPasswordReset(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	userObj, err := userService.GetByRecoverCode(ctx, req.Code)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,13 +59,13 @@ func (h *handler) RecoverPasswordReset(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.DeleteRecoverCode(ctx, userObj.ID)
 		if err != nil {
 			log.Error().Err(err).Str("code", req.Code).Msg("Delete recover code failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete recover code failed: %v", err))
 		}
-		pwdHash, err := h.passwordService.Hash(req.Password)
+		pwdHash, err := h.PasswordService.Hash(req.Password)
 		if err != nil {
 			log.Error().Err(err).Msg("Hash password failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(err.Error())

@@ -66,7 +66,7 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.ID, enums.AuthManage)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), req.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")
@@ -80,7 +80,7 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -92,13 +92,13 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceService := h.namespaceServiceFactory.New(tx)
+		namespaceService := h.NamespaceServiceFactory.New(tx)
 		err = namespaceService.DeleteByID(ctx, req.ID)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%d) find failed: %v", req.ID, err))
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  ptr.Of(req.ID),
@@ -110,7 +110,7 @@ func (h *handler) DeleteNamespace(c echo.Context) error {
 			log.Error().Err(err).Msg("Create audit for delete namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for delete namespace failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.WebhookActionDelete,
 			ResourceType: enums.WebhookResourceTypeNamespace,

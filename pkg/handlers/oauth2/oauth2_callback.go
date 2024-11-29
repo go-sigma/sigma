@@ -33,6 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -77,8 +78,8 @@ func (h *handler) Callback(c echo.Context) error {
 	switch req.Provider {
 	case enums.ProviderGithub:
 		conf = &oauth2.Config{
-			ClientID:     h.config.Auth.Oauth2.Github.ClientID,
-			ClientSecret: h.config.Auth.Oauth2.Github.ClientSecret,
+			ClientID:     h.Config.Auth.Oauth2.Github.ClientID,
+			ClientSecret: h.Config.Auth.Oauth2.Github.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://github.com/login/oauth/authorize",
 				TokenURL: "https://github.com/login/oauth/access_token",
@@ -86,20 +87,20 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	case enums.ProviderGitlab:
 		conf = &oauth2.Config{
-			ClientID:     h.config.Auth.Oauth2.Gitlab.ClientID,
-			ClientSecret: h.config.Auth.Oauth2.Gitlab.ClientSecret,
+			ClientID:     h.Config.Auth.Oauth2.Gitlab.ClientID,
+			ClientSecret: h.Config.Auth.Oauth2.Gitlab.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
 			},
 			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
-				h.config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(req.Endpoint)),
+				h.Config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(req.Endpoint)),
 			Scopes: []string{"api", "read_api", "read_user", "read_repository"},
 		}
 	case enums.ProviderGitea:
 		conf = &oauth2.Config{
-			ClientID:     h.config.Auth.Oauth2.Gitea.ClientID,
-			ClientSecret: h.config.Auth.Oauth2.Gitea.ClientSecret,
+			ClientID:     h.Config.Auth.Oauth2.Gitea.ClientID,
+			ClientSecret: h.Config.Auth.Oauth2.Gitea.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
@@ -162,7 +163,7 @@ func (h *handler) Callback(c echo.Context) error {
 
 	var userExist = true
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObj, err := userService.GetUser3rdPartyByAccountID(ctx, req.Provider, userInfo.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -269,13 +270,13 @@ func (h *handler) Callback(c echo.Context) error {
 		}
 	}
 
-	refreshToken, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.Ttl)
+	refreshToken, err := h.TokenService.New(user3rdPartyObj.User.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user3rdPartyObj.User.ID, h.config.Auth.Jwt.RefreshTtl)
+	token, err := h.TokenService.New(user3rdPartyObj.User.ID, h.Config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -297,7 +298,7 @@ func (h *handler) tryGetUser(c echo.Context) (*models.User, error) {
 
 	var uid int64
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 
 	switch {
 	case strings.HasPrefix(authorization, "Basic"):
@@ -323,7 +324,7 @@ func (h *handler) tryGetUser(c echo.Context) (*models.User, error) {
 			return nil, xerrors.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Verify password failed: %v", err))
 		}
 	case strings.HasPrefix(authorization, "Bearer"):
-		tokenService, err := token.NewTokenService(h.config.Auth.Jwt.PrivateKey)
+		tokenService, err := token.New(inits.DigCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Create token service failed")
 			return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create token service failed: %v", err))

@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the tag handlers
@@ -42,22 +43,18 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	authServiceFactory       auth.AuthServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	tagServiceFactory        dao.TagServiceFactory
-	artifactServiceFactory   dao.ArtifactServiceFactory
+	dig.In
+
+	AuthServiceFactory       auth.AuthServiceFactory
+	NamespaceServiceFactory  dao.NamespaceServiceFactory
+	RepositoryServiceFactory dao.RepositoryServiceFactory
+	TagServiceFactory        dao.TagServiceFactory
+	ArtifactServiceFactory   dao.ArtifactServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		authServiceFactory:       utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
-		namespaceServiceFactory:  utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		repositoryServiceFactory: utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
-		tagServiceFactory:        utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
-		artifactServiceFactory:   utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
@@ -66,11 +63,11 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
-	tagHandler := handlerNew(digCon)
+	handler := handlerNew(digCon)
 
-	tagGroup.GET("/", tagHandler.ListTag)
-	tagGroup.GET("/:id", tagHandler.GetTag)
-	tagGroup.DELETE("/:id", tagHandler.DeleteTag)
+	tagGroup.GET("/", handler.ListTag)
+	tagGroup.GET("/:id", handler.GetTag)
+	tagGroup.DELETE("/:id", handler.DeleteTag)
 
 	return nil
 }

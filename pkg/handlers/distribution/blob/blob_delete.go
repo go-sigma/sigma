@@ -57,13 +57,13 @@ func (h *handler) DeleteBlob(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), namespaceObj.ID, enums.AuthManage)
+	authChecked, err := h.AuthServiceFactory.New().Repository(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -82,7 +82,7 @@ func (h *handler) DeleteBlob(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
 	}
 
-	blobService := h.blobServiceFactory.New()
+	blobService := h.BlobServiceFactory.New()
 	blobObj, err := blobService.FindByDigest(ctx, dgest.String())
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {

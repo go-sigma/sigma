@@ -67,7 +67,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	_, err = namespaceService.GetByName(ctx, req.Name)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,19 +96,19 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		namespaceObj.TagLimit = ptr.To(req.TagLimit)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceService := h.namespaceServiceFactory.New(tx)
+		namespaceService := h.NamespaceServiceFactory.New(tx)
 		err = namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create namespace failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
 		}
-		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		namespaceMemberService := h.NamespaceMemberServiceFactory.New(tx)
 		_, err = namespaceMemberService.AddNamespaceMember(ctx, user.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
 		if err != nil {
 			log.Error().Err(err).Msg("Add namespace member failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  ptr.Of(namespaceObj.ID),
@@ -120,7 +120,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 			log.Error().Err(err).Msg("Create audit failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  ptr.Of(namespaceObj.ID),
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeNamespace,

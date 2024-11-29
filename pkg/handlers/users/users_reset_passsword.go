@@ -43,13 +43,13 @@ func (h *handler) ResetPassword(c echo.Context) error {
 		log.Error().Err(err).Msg("Validate password failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
-	pwdHash, err := h.passwordService.Hash(req.Password)
+	pwdHash, err := h.PasswordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
 		return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.UpdateByID(ctx, req.ID, map[string]any{
 			query.User.Password.ColumnName().String(): pwdHash,
 		})

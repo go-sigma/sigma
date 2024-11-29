@@ -23,6 +23,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/auth"
@@ -52,77 +53,36 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
-	blobCacher               func(c echo.Context) (definition.Cacher[*models.Blob], error)
-}
+	dig.In
 
-type inject struct {
-	config                   *configs.Configuration
-	authServiceFactory       auth.AuthServiceFactory
-	auditServiceFactory      dao.AuditServiceFactory
-	namespaceServiceFactory  dao.NamespaceServiceFactory
-	repositoryServiceFactory dao.RepositoryServiceFactory
-	blobServiceFactory       dao.BlobServiceFactory
-	blobCacher               func(c echo.Context) (definition.Cacher[*models.Blob], error)
+	Config                   configs.Configuration
+	AuthServiceFactory       auth.AuthServiceFactory
+	AuditServiceFactory      dao.AuditServiceFactory
+	NamespaceServiceFactory  dao.NamespaceServiceFactory
+	RepositoryServiceFactory dao.RepositoryServiceFactory
+	BlobServiceFactory       dao.BlobServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution blob handlers
-func handlerNew(injects ...inject) Handler {
-	h := &handler{}
-
-	h.config = configs.GetConfiguration()
-	h.authServiceFactory = auth.NewAuthServiceFactory()
-	h.auditServiceFactory = dao.NewAuditServiceFactory()
-	h.namespaceServiceFactory = dao.NewNamespaceServiceFactory()
-	h.repositoryServiceFactory = dao.NewRepositoryServiceFactory()
-	h.blobServiceFactory = dao.NewBlobServiceFactory()
-	h.blobCacher = h.newBlobCacher
-	if len(injects) > 0 {
-		ij := injects[0]
-		if ij.config != nil {
-			h.config = ij.config
-		}
-		if ij.authServiceFactory != nil {
-			h.authServiceFactory = ij.authServiceFactory
-		}
-		if ij.auditServiceFactory != nil {
-			h.auditServiceFactory = ij.auditServiceFactory
-		}
-		if ij.namespaceServiceFactory != nil {
-			h.namespaceServiceFactory = ij.namespaceServiceFactory
-		}
-		if ij.repositoryServiceFactory != nil {
-			h.repositoryServiceFactory = ij.repositoryServiceFactory
-		}
-		if ij.blobServiceFactory != nil {
-			h.blobServiceFactory = ij.blobServiceFactory
-		}
-		if ij.blobCacher != nil {
-			h.blobCacher = ij.blobCacher
-		}
-	}
-	return h
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
 
 // Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c echo.Context) error {
+func (f factory) Initialize(c echo.Context, digCon *dig.Container) error {
 	method := c.Request().Method
 	uri := c.Request().RequestURI
 	urix := uri[:strings.LastIndex(uri, "/")]
-	blobHandler := handlerNew()
+	handler := handlerNew(digCon)
+
 	if strings.HasSuffix(urix, "/blobs") {
 		switch method {
 		case http.MethodGet:
-			return blobHandler.GetBlob(c)
+			return handler.GetBlob(c)
 		case http.MethodHead:
-			return blobHandler.HeadBlob(c)
+			return handler.HeadBlob(c)
 		default:
 			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 		}
@@ -134,8 +94,8 @@ func init() {
 	utils.PanicIf(distribution.RegisterRouterFactory(&factory{}, 3))
 }
 
-func (h *handler) newBlobCacher(c echo.Context) (definition.Cacher[*models.Blob], error) {
-	return cacher.New(consts.CacherBlob, func(key string) (*models.Blob, error) {
+func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], error) {
+	return cacher.New(nil, consts.CacherBlob, func(key string) (*models.Blob, error) {
 		ctx := log.Logger.WithContext(c.Request().Context())
 
 		dgest, err := digest.Parse(key)
@@ -143,16 +103,16 @@ func (h *handler) newBlobCacher(c echo.Context) (definition.Cacher[*models.Blob]
 			log.Error().Err(err).Str("digest", key).Msg("Parse digest failed")
 			return nil, xerrors.DSErrCodeUnknown
 		}
-		blobService := h.blobServiceFactory.New()
+		blobService := h.BlobServiceFactory.New()
 		blob, err := blobService.FindByDigest(ctx, dgest.String())
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if !h.config.Proxy.Enabled {
+				if !h.Config.Proxy.Enabled {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Blob not found")
 					return nil, xerrors.DSErrCodeBlobUnknown
 				}
 				f := clients.NewClientsFactory()
-				cli, err := f.New(ptr.To(h.config))
+				cli, err := f.New(h.Config)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
 					return nil, xerrors.DSErrCodeUnknown

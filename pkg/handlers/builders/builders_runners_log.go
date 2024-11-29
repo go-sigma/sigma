@@ -46,7 +46,7 @@ func (h *handler) GetRunnerLog(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	builderService := h.builderServiceFactory.New()
+	builderService := h.BuilderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")

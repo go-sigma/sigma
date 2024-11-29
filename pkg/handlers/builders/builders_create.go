@@ -78,7 +78,7 @@ func (h *handler) CreateBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -89,7 +89,7 @@ func (h *handler) CreateBuilder(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Repository find failed")
 	}
 
-	builderService := h.builderServiceFactory.New()
+	builderService := h.BuilderServiceFactory.New()
 	_, err = builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
@@ -141,7 +141,7 @@ func (h *handler) CreateBuilder(c echo.Context) error {
 		BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
 	}
 	if builderObj.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
-		codeRepositoryService := h.codeRepositoryServiceFactory.New()
+		codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 		codeRepositoryObj, err := codeRepositoryService.Get(ctx, ptr.To(req.CodeRepositoryID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -168,13 +168,13 @@ func (h *handler) CreateBuilder(c echo.Context) error {
 		}
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderService := h.builderServiceFactory.New(tx)
+		builderService := h.BuilderServiceFactory.New(tx)
 		err = builderService.Create(ctx, builderObj)
 		if err != nil {
 			log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Create builder for repository failed")
 			return xerrors.HTTPErrCodeInternalError.Detail("Create builder for repository failed")
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  ptr.Of(repositoryObj.NamespaceID),

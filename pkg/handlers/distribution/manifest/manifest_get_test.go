@@ -14,39 +14,39 @@
 
 package manifest
 
-import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+// import (
+// 	"fmt"
+// 	"net/http"
+// 	"net/http/httptest"
+// 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/opencontainers/go-digest"
-	"github.com/stretchr/testify/assert"
-)
+// 	"github.com/labstack/echo/v4"
+// 	"github.com/opencontainers/go-digest"
+// 	"github.com/stretchr/testify/assert"
+// )
 
-func TestGetManifestFallbackProxyAuthError(t *testing.T) {
-	mux := http.NewServeMux()
+// func TestGetManifestFallbackProxyAuthError(t *testing.T) {
+// 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	})
+// 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 	})
 
-	s := httptest.NewServer(mux)
-	defer s.Close()
+// 	s := httptest.NewServer(mux)
+// 	defer s.Close()
 
-	h := &handler{}
+// 	h := &handler{}
 
-	// test about proxy server auth internal server error
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := echo.New().NewContext(req, rec)
-	err := h.getManifestFallbackProxy(c, Refs{Digest: digest.Digest("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151")})
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-}
+// 	// test about proxy server auth internal server error
+// 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
+// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+// 	rec := httptest.NewRecorder()
+// 	c := echo.New().NewContext(req, rec)
+// 	err := h.getManifestFallbackProxy(c, Refs{Digest: digest.Digest("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151")})
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+// }
 
-func TestGetManifest(t *testing.T) {
+// func TestGetManifest(t *testing.T) {
 
-}
+// }

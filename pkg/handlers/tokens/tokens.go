@@ -50,7 +50,7 @@ func (h *handler) Token(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
+	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
@@ -58,7 +58,7 @@ func (h *handler) Token(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, types.PostUserTokenResponse{
 		Token:     token,
-		ExpiresIn: int(h.config.Auth.Jwt.Ttl.Seconds()),
+		ExpiresIn: int(h.Config.Auth.Jwt.Ttl.Seconds()),
 		IssuedAt:  time.Now().Format(time.RFC3339),
 	})
 }

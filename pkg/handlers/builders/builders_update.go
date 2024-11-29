@@ -89,7 +89,7 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 		query.Builder.BuildkitPlatforms.ColumnName().String():          utils.StringsJoin(req.BuildkitPlatforms, ","),
 	}
 	if req.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
-		codeRepositoryService := h.codeRepositoryServiceFactory.New()
+		codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 		codeRepositoryObj, err := codeRepositoryService.Get(ctx, ptr.To(req.CodeRepositoryID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -117,7 +117,7 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 		}
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderService := h.builderServiceFactory.New(tx)
+		builderService := h.BuilderServiceFactory.New(tx)
 		err = builderService.Update(ctx, req.BuilderID, updates)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {

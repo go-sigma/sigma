@@ -52,7 +52,7 @@ func (h *handler) Providers(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObjs, err := userService.ListUser3rdParty(ctx, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List providers failed")

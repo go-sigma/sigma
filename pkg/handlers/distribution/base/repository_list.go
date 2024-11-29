@@ -54,7 +54,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	lastFound := false
 	var lastID int64 = 0
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	var last = c.QueryParam("last")
 	if last != "" {
 		tagObj, err := repositoryService.GetByName(ctx, last)

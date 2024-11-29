@@ -63,7 +63,7 @@ func (h *handler) User3rdParty(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

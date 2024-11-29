@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -47,21 +48,16 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config             *configs.Configuration
-	tokenService       token.Service
-	userServiceFactory dao.UserServiceFactory
+	dig.In
+
+	Config             configs.Configuration
+	TokenService       token.Service
+	UserServiceFactory dao.UserServiceFactory
 }
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(digCon *dig.Container) (Handler, error) {
-	var tokenService token.Service
-	userServiceFactory := dao.NewUserServiceFactory()
-	config := configs.GetConfiguration()
-	return &handler{
-		config:             config,
-		tokenService:       tokenService,
-		userServiceFactory: userServiceFactory,
-	}, nil
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}
@@ -70,11 +66,7 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
-	repositoryHandler, err := handlerNew(digCon)
-	if err != nil {
-		return err
-	}
-
+	handler := handlerNew(digCon)
 	oauth2Mapper := viper.GetStringMap("auth.oauth2")
 	var skipAuths = make([]string, 0, len(oauth2Mapper))
 	for key := range oauth2Mapper {
@@ -88,9 +80,9 @@ func (f factory) Initialize(digCon *dig.Container) error {
 			return slices.Contains(skipAuths, authStr)
 		},
 	}))
-	oauth2Group.GET("/:provider/callback", repositoryHandler.Callback)
-	oauth2Group.GET("/:provider/client_id", repositoryHandler.ClientID)
-	oauth2Group.GET("/:provider/redirect_callback", repositoryHandler.RedirectCallback)
+	oauth2Group.GET("/:provider/callback", handler.Callback)
+	oauth2Group.GET("/:provider/client_id", handler.ClientID)
+	oauth2Group.GET("/:provider/redirect_callback", handler.RedirectCallback)
 	return nil
 }
 

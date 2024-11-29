@@ -57,7 +57,7 @@ func (h *handler) ListRunners(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
-	builderService := h.builderServiceFactory.New()
+	builderService := h.BuilderServiceFactory.New()
 	_, err = builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")

@@ -67,7 +67,7 @@ func (h *handler) Resync(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -82,7 +82,7 @@ func (h *handler) Resync(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, fmt.Sprintf("Code repository(%s) status already is syncing", req.Provider.String()))
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
+		userService := h.UserServiceFactory.New(tx)
 		err = userService.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
 			query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now().UnixMilli(),
 			query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    enums.TaskCommonStatusDoing,

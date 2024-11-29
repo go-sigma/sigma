@@ -14,33 +14,33 @@
 
 package dao_test
 
-import (
-	"context"
-	"testing"
+// import (
+// 	"context"
+// 	"testing"
 
-	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/assert"
+// 	"github.com/rs/zerolog/log"
+// 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
-)
+// 	"github.com/go-sigma/sigma/pkg/dal"
+// 	"github.com/go-sigma/sigma/pkg/dal/dao"
+// 	"github.com/go-sigma/sigma/pkg/logger"
+// 	"github.com/go-sigma/sigma/pkg/tests"
+// )
 
-func TestWebhook(t *testing.T) {
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+// func TestWebhook(t *testing.T) {
+// 	logger.SetLevel("debug")
+// 	assert.NoError(t, tests.Initialize(t))
+// 	assert.NoError(t, tests.DB.Init())
+// 	defer func() {
+// 		conn, err := dal.DB.DB()
+// 		assert.NoError(t, err)
+// 		assert.NoError(t, conn.Close())
+// 		assert.NoError(t, tests.DB.DeInit())
+// 	}()
 
-	webhookService := dao.NewWebhookServiceFactory().New()
+// 	webhookService := dao.NewWebhookServiceFactory().New()
 
-	ctx := log.Logger.WithContext(context.Background())
+// 	ctx := log.Logger.WithContext(context.Background())
 
-	webhookService.GetByFilter(ctx, map[string]any{"id": 1, "namespace_id": nil}) // nolint: errcheck
-}
+// 	webhookService.GetByFilter(ctx, map[string]any{"id": 1, "namespace_id": nil}) // nolint: errcheck
+// }

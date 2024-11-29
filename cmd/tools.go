@@ -29,17 +29,17 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
@@ -66,40 +66,30 @@ func toolsForPushBuilderImageCmd() *cobra.Command {
 			initConfig()
 			logger.SetLevel(viper.GetString("log.level"))
 		},
-		RunE: func(_ *cobra.Command, _ []string) error {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := configs.Initialize()
 			if err != nil {
 				log.Error().Err(err).Msg("initialize configs with error")
-				return err
+				return
 			}
 
-			config := ptr.To(configs.GetConfiguration())
-
-			err = badger.Initialize(context.Background(), config)
+			err = inits.NewDigContainer()
 			if err != nil {
-				log.Error().Err(err).Msg("initialize badger with error")
-				return err
+				log.Error().Err(err).Msg("new dig container failed")
+				return
 			}
 
-			err = locker.Initialize(config)
-			if err != nil {
-				log.Error().Err(err).Msg("initialize locker with error")
-				return err
-			}
-
-			err = dal.Initialize(config)
+			err = dal.Initialize(inits.DigCon)
 			if err != nil {
 				log.Error().Err(err).Msg("initialize database with error")
-				return err
+				return
 			}
 
-			err = initBaseimage(config)
+			err = initBaseimage(inits.DigCon)
 			if err != nil {
 				log.Error().Err(err).Msg("push builder image with error")
-				return err
+				return
 			}
-
-			return nil
 		},
 	}
 
@@ -108,7 +98,8 @@ func toolsForPushBuilderImageCmd() *cobra.Command {
 	return cmd
 }
 
-func initBaseimage(config configs.Configuration) error {
+func initBaseimage(digCon *dig.Container) error {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	if !config.Daemon.Builder.Enabled {
 		return nil
 	}
@@ -137,7 +128,7 @@ func initBaseimage(config configs.Configuration) error {
 				version = strings.TrimPrefix(d, "builder.")
 			}
 			if version != "" {
-				err := pushImage(config, path, name, version)
+				err := pushImage(digCon, path, name, version)
 				if err != nil {
 					return err
 				}
@@ -151,7 +142,7 @@ func initBaseimage(config configs.Configuration) error {
 	return nil
 }
 
-func pushImage(config configs.Configuration, path, name, version string) error {
+func pushImage(digCon *dig.Container, path, name, version string) error {
 	ctx := log.Logger.WithContext(context.Background())
 
 	userService := dao.NewUserServiceFactory().New()
@@ -187,10 +178,11 @@ func pushImage(config configs.Configuration, path, name, version string) error {
 	if err != nil {
 		return err
 	}
-	tokenService, err := token.NewTokenService(config.Auth.Jwt.PrivateKey)
+	tokenService, err := token.New(digCon)
 	if err != nil {
 		return err
 	}
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	autoToken, err := tokenService.New(userObj.ID, config.Auth.Jwt.Ttl)
 	if err != nil {
 		return err

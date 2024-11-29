@@ -51,7 +51,7 @@ func (h *handler) GetBranch(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	branchObj, err := codeRepositoryService.GetBranchByName(ctx, req.ID, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Get branch by id failed")

@@ -39,7 +39,7 @@ func (h *handler) GetArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, req.Repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -50,7 +50,7 @@ func (h *handler) GetArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, req.Digest)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

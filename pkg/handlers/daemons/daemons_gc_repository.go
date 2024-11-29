@@ -65,7 +65,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc repository rule failed")
@@ -88,7 +88,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 		updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		daemonService := h.daemonServiceFactory.New(tx)
+		daemonService := h.DaemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
 				NamespaceID:     namespaceID,
@@ -108,7 +108,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc repository rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRule,
@@ -156,7 +156,7 @@ func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -206,7 +206,7 @@ func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -278,7 +278,7 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -305,7 +305,7 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
@@ -358,7 +358,7 @@ func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -426,7 +426,7 @@ func (h *handler) GetGcRepositoryRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	runnerObj, err := daemonService.GetGcRepositoryRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -493,7 +493,7 @@ func (h *handler) ListGcRepositoryRecords(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcRepositoryRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc repository records failed")
@@ -541,7 +541,7 @@ func (h *handler) GetGcRepositoryRecord(c echo.Context) error {
 	if req.NamespaceID != 0 {
 		namespaceID = ptr.Of(req.NamespaceID)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -54,7 +54,7 @@ func (h *handler) List(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 
 	var exceptUsername = []string{consts.UserInternal, consts.UserAnonymous}
 	userObjs, total, err := userService.ListWithoutUsername(ctx, exceptUsername, req.WithoutAdmin, req.Name, req.Pagination, req.Sortable)

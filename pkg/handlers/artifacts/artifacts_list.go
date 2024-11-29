@@ -38,7 +38,7 @@ func (h *handler) ListArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObjs, err := artifactService.ListArtifact(ctx, req)
 	if err != nil {
 		log.Error().Err(err).Msg("List artifact from db failed")

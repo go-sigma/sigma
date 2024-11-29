@@ -16,6 +16,9 @@ package utils
 
 import (
 	"bytes"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,6 +33,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -634,4 +638,43 @@ func TestMustGetObjFromDigCon(t *testing.T) {
 	result := MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	assert.Equal(t, enums.LogLevelFatal, result.Log.Level)
+}
+
+func TestGenRsaPriKey(t *testing.T) {
+	type args struct {
+		length int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		eval    func(*testing.T, string)
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{length: 1024},
+			eval: func(t *testing.T, s string) {
+				pemBytes, err := base64.StdEncoding.DecodeString(s)
+				require.NoError(t, err)
+				block, _ := pem.Decode(pemBytes)
+				require.False(t, block == nil || block.Type != "RSA PRIVATE KEY")
+				privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+				require.NoError(t, err)
+				require.Equal(t, 1024, privateKey.N.BitLen())
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GenRsaPriKey(tt.args.length)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenRsaPriKey() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.eval != nil {
+				tt.eval(t, got)
+			}
+		})
+	}
 }

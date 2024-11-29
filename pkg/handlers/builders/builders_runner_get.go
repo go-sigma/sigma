@@ -57,7 +57,7 @@ func (h *handler) GetRunner(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	builderService := h.builderServiceFactory.New()
+	builderService := h.BuilderServiceFactory.New()
 	runnerObj, err := builderService.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

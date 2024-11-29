@@ -67,7 +67,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthAdmin)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthAdmin)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.NamespaceID).Msg("Namespace not found")
@@ -81,7 +81,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -98,7 +98,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "User already have role in namespace")
 	}
 
-	namespaceMemberService := h.namespaceMemberServiceFactory.New()
+	namespaceMemberService := h.NamespaceMemberServiceFactory.New()
 	roleCount, err := namespaceMemberService.CountNamespaceMember(ctx, req.UserID, req.NamespaceID)
 	if err != nil {
 		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("Count namespace role failed")
@@ -111,12 +111,12 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 
 	var namespaceMemberObj *models.NamespaceMember
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		namespaceMemberService := h.NamespaceMemberServiceFactory.New(tx)
 		namespaceMemberObj, err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace role for user failed: %v", err))
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  ptr.Of(namespaceObj.ID),

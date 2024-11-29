@@ -64,7 +64,7 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	namespaceMemberService := h.namespaceMemberServiceFactory.New()
+	namespaceMemberService := h.NamespaceMemberServiceFactory.New()
 	namespaceMemberObj, err := namespaceMemberService.GetNamespaceMember(ctx, req.NamespaceID, user.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

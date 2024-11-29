@@ -25,9 +25,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the gc handlers
@@ -104,19 +104,15 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	daemonServiceFactory dao.DaemonServiceFactory
+	dig.In
 
-	producerClient definition.WorkQueueProducer
+	DaemonServiceFactory dao.DaemonServiceFactory
+	ProducerClient       definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
-	daemonServiceFactory := dao.NewDaemonServiceFactory()
-	producerClient := workq.ProducerClient
-	return &handler{
-		daemonServiceFactory: daemonServiceFactory,
-		producerClient:       producerClient,
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

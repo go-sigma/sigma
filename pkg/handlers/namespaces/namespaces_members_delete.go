@@ -67,7 +67,7 @@ func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObj, err := namespaceService.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -79,12 +79,12 @@ func (h *handler) DeleteNamespaceMember(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		namespaceMemberService := h.namespaceMemberServiceFactory.New(tx)
+		namespaceMemberService := h.NamespaceMemberServiceFactory.New(tx)
 		err = namespaceMemberService.DeleteNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj))
 		if err != nil {
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete namespace role for user failed: %v", err))
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  ptr.Of(namespaceObj.ID),

@@ -60,13 +60,13 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -85,7 +85,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -99,7 +99,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 	refs := h.parseRef(ref)
 
 	if refs.Tag != "" {
-		tagService := h.tagServiceFactory.New()
+		tagService := h.TagServiceFactory.New()
 		_, err = tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -117,7 +117,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		return c.NoContent(http.StatusAccepted)
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObj, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -128,13 +128,13 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		tagService := h.tagServiceFactory.New(tx)
+		tagService := h.TagServiceFactory.New(tx)
 		err = tagService.DeleteByArtifactID(ctx, artifactObj.ID)
 		if err != nil {
 			log.Error().Err(err).Int64("ArtifactID", artifactObj.ID).Msg("Delete tag by artifact id failed")
 			return xerrors.DSErrCodeUnknown
 		}
-		artifactService := h.artifactServiceFactory.New(tx)
+		artifactService := h.ArtifactServiceFactory.New(tx)
 		err = artifactService.DeleteByID(ctx, artifactObj.ID)
 		if err != nil {
 			log.Error().Err(err).Int64("ArtifactID", artifactObj.ID).Msg("Delete artifact by id failed")

@@ -48,14 +48,14 @@ func (h *handler) GetReferrer(c echo.Context) error {
 	}
 	result.SchemaVersion = 2
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetReferrers(ctx, repositoryObj.ID, ref, strings.Split(artifactType, ","))
 	if err != nil {
 		log.Error().Err(err).Msg("Get referrers failed")

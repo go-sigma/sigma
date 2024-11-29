@@ -15,7 +15,12 @@
 package utils
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"os"
@@ -263,4 +268,22 @@ func MustGetObjFromDigCon[T any](digCon *dig.Container) T {
 		panic(err)
 	}
 	return result
+}
+
+// GenRsaPriKey ...
+func GenRsaPriKey(length int) (string, error) {
+	if length != 1024 && length != 2048 && length != 4096 {
+		return "", fmt.Errorf("rsa length is not allow")
+	}
+	privateKey, err := rsa.GenerateKey(rand.Reader, length)
+	if err != nil {
+		return "", fmt.Errorf("generate rsa private key failed")
+	}
+
+	privateKeyPEM := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	}
+
+	return base64.StdEncoding.EncodeToString(pem.EncodeToMemory(privateKeyPEM)), nil
 }

@@ -50,7 +50,7 @@ func (h *handler) ListBranches(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	codeRepositoryService := h.codeRepositoryServiceFactory.New()
+	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	branchObjs, total, err := codeRepositoryService.ListBranchesWithoutPagination(ctx, req.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List branches failed")

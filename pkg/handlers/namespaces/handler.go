@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the namespace handlers
@@ -60,28 +61,21 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	authServiceFactory            auth.AuthServiceFactory
-	auditServiceFactory           dao.AuditServiceFactory
-	namespaceServiceFactory       dao.NamespaceServiceFactory
-	namespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
-	repositoryServiceFactory      dao.RepositoryServiceFactory
-	tagServiceFactory             dao.TagServiceFactory
-	artifactServiceFactory        dao.ArtifactServiceFactory
-	producerClient                definition.WorkQueueProducer
+	dig.In
+
+	AuthServiceFactory            auth.AuthServiceFactory
+	AuditServiceFactory           dao.AuditServiceFactory
+	NamespaceServiceFactory       dao.NamespaceServiceFactory
+	NamespaceMemberServiceFactory dao.NamespaceMemberServiceFactory
+	RepositoryServiceFactory      dao.RepositoryServiceFactory
+	TagServiceFactory             dao.TagServiceFactory
+	ArtifactServiceFactory        dao.ArtifactServiceFactory
+	ProducerClient                definition.WorkQueueProducer
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		authServiceFactory:            utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
-		auditServiceFactory:           utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
-		namespaceServiceFactory:       utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		namespaceMemberServiceFactory: utils.MustGetObjFromDigCon[dao.NamespaceMemberServiceFactory](digCon),
-		repositoryServiceFactory:      utils.MustGetObjFromDigCon[dao.RepositoryServiceFactory](digCon),
-		tagServiceFactory:             utils.MustGetObjFromDigCon[dao.TagServiceFactory](digCon),
-		artifactServiceFactory:        utils.MustGetObjFromDigCon[dao.ArtifactServiceFactory](digCon),
-		producerClient:                utils.MustGetObjFromDigCon[definition.WorkQueueProducer](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

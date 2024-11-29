@@ -69,7 +69,7 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
-	namespaceService := h.namespaceServiceFactory.New()
+	namespaceService := h.NamespaceServiceFactory.New()
 	namespaceObjs, total, err := namespaceService.ListNamespaceWithAuth(ctx, user.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace failed")
@@ -78,7 +78,7 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 
 	var namespaceIDs = make([]int64, 0, len(namespaceObjs))
 
-	authService := h.authServiceFactory.New()
+	authService := h.AuthServiceFactory.New()
 	namespacesRole, err := authService.NamespacesRole(ptr.To(user), namespaceIDs)
 	if err != nil {
 		log.Error().Err(err).Msg("Get namespaces role failed")

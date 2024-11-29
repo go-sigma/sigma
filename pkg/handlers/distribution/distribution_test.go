@@ -22,11 +22,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/dig"
 )
 
 type factoryOk struct{}
 
-func (f *factoryOk) Initialize(_ echo.Context) error {
+func (f *factoryOk) Initialize(_ echo.Context, _ *dig.Container) error {
 	return nil
 }
 
@@ -38,13 +39,13 @@ func TestInitializeOK(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	err = All(c)
+	err = All(c, dig.New())
 	assert.NoError(t, err)
 }
 
 type factoryErr struct{}
 
-func (f *factoryErr) Initialize(_ echo.Context) error {
+func (f *factoryErr) Initialize(_ echo.Context, _ *dig.Container) error {
 	return errors.New("error")
 }
 
@@ -56,7 +57,7 @@ func TestInitializeErr(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	err = All(c)
+	err = All(c, dig.New())
 	assert.Error(t, err)
 }
 
@@ -70,13 +71,13 @@ func TestInitializeDup(t *testing.T) {
 
 type factoryContinue1 struct{}
 
-func (f *factoryContinue1) Initialize(_ echo.Context) error {
+func (f *factoryContinue1) Initialize(_ echo.Context, _ *dig.Container) error {
 	return ErrNext
 }
 
 type factoryContinue2 struct{}
 
-func (f *factoryContinue2) Initialize(_ echo.Context) error {
+func (f *factoryContinue2) Initialize(_ echo.Context, _ *dig.Container) error {
 	return ErrNext
 }
 
@@ -91,7 +92,7 @@ func TestInitializeContinue(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	err = All(c)
+	err = All(c, dig.New())
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 }

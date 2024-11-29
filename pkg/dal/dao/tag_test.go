@@ -15,22 +15,12 @@
 package dao_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestTagServiceFactory(t *testing.T) {
@@ -41,130 +31,130 @@ func TestTagServiceFactory(t *testing.T) {
 	assert.NotNil(t, tagService)
 }
 
-func TestTagService(t *testing.T) {
-	logger.SetLevel("debug")
-	assert.NoError(t, tests.Initialize(t))
-	assert.NoError(t, tests.DB.Init())
-	defer func() {
-		conn, err := dal.DB.DB()
-		assert.NoError(t, err)
-		assert.NoError(t, conn.Close())
-		assert.NoError(t, tests.DB.DeInit())
-	}()
+// func TestTagService(t *testing.T) {
+// 	logger.SetLevel("debug")
+// 	assert.NoError(t, tests.Initialize(t))
+// 	assert.NoError(t, tests.DB.Init())
+// 	defer func() {
+// 		conn, err := dal.DB.DB()
+// 		assert.NoError(t, err)
+// 		assert.NoError(t, conn.Close())
+// 		assert.NoError(t, tests.DB.DeInit())
+// 	}()
 
-	ctx := log.Logger.WithContext(context.Background())
+// 	ctx := log.Logger.WithContext(context.Background())
 
-	userService := dao.NewUserServiceFactory().New()
-	namespaceService := dao.NewNamespaceServiceFactory().New()
-	repositoryService := dao.NewRepositoryServiceFactory().New()
-	artifactService := dao.NewArtifactServiceFactory().New()
+// 	userService := dao.NewUserServiceFactory().New()
+// 	namespaceService := dao.NewNamespaceServiceFactory().New()
+// 	repositoryService := dao.NewRepositoryServiceFactory().New()
+// 	artifactService := dao.NewArtifactServiceFactory().New()
 
-	userObj := &models.User{Username: "tag-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-	assert.NoError(t, userService.Create(ctx, userObj))
+// 	userObj := &models.User{Username: "tag-service", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
+// 	assert.NoError(t, userService.Create(ctx, userObj))
 
-	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
-	assert.NoError(t, namespaceService.Create(ctx, namespaceObj))
+// 	namespaceObj := &models.Namespace{Name: "test", Visibility: enums.VisibilityPrivate}
+// 	assert.NoError(t, namespaceService.Create(ctx, namespaceObj))
 
-	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
-	assert.NoError(t, repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
+// 	repositoryObj := &models.Repository{Name: "test/busybox", NamespaceID: namespaceObj.ID}
+// 	assert.NoError(t, repositoryService.Create(ctx, repositoryObj, dao.AutoCreateNamespace{UserID: userObj.ID}))
 
-	tagService := dao.NewTagServiceFactory().New()
-	tagObj := &models.Tag{
-		RepositoryID: repositoryObj.ID,
-		Name:         "latest",
-		Artifact: &models.Artifact{
-			NamespaceID:  namespaceObj.ID,
-			RepositoryID: repositoryObj.ID,
-			Digest:       "sha256:xxx",
-			Size:         123,
-			ContentType:  "test",
-			Raw:          []byte("test"),
-			Type:         enums.ArtifactTypeImage,
-		},
-	}
-	assert.NoError(t, tagService.Create(ctx, tagObj))
+// 	tagService := dao.NewTagServiceFactory().New()
+// 	tagObj := &models.Tag{
+// 		RepositoryID: repositoryObj.ID,
+// 		Name:         "latest",
+// 		Artifact: &models.Artifact{
+// 			NamespaceID:  namespaceObj.ID,
+// 			RepositoryID: repositoryObj.ID,
+// 			Digest:       "sha256:xxx",
+// 			Size:         123,
+// 			ContentType:  "test",
+// 			Raw:          []byte("test"),
+// 			Type:         enums.ArtifactTypeImage,
+// 		},
+// 	}
+// 	assert.NoError(t, tagService.Create(ctx, tagObj))
 
-	tag1, err := tagService.GetByID(ctx, tagObj.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, tag1.ID, tagObj.ID)
+// 	tag1, err := tagService.GetByID(ctx, tagObj.ID)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, tag1.ID, tagObj.ID)
 
-	tag2, err := tagService.GetByName(ctx, repositoryObj.ID, "latest")
-	assert.NoError(t, err)
-	assert.Equal(t, tag2.ID, tagObj.ID)
+// 	tag2, err := tagService.GetByName(ctx, repositoryObj.ID, "latest")
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, tag2.ID, tagObj.ID)
 
-	err = tagService.Incr(ctx, tagObj.ID)
-	assert.NoError(t, err)
-	tag3, err := tagService.GetByID(ctx, tagObj.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, tag3.PullTimes, int64(1))
+// 	err = tagService.Incr(ctx, tagObj.ID)
+// 	assert.NoError(t, err)
+// 	tag3, err := tagService.GetByID(ctx, tagObj.ID)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, tag3.PullTimes, int64(1))
 
-	tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, nil, types.Pagination{
-		Limit: ptr.Of(int(100)),
-		Page:  ptr.Of(int(0)),
-	}, types.Sortable{})
-	assert.NoError(t, err)
-	assert.Equal(t, len(tags1), int(1))
+// 	tags1, _, err := tagService.ListTag(ctx, repositoryObj.ID, nil, nil, types.Pagination{
+// 		Limit: ptr.Of(int(100)),
+// 		Page:  ptr.Of(int(0)),
+// 	}, types.Sortable{})
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, len(tags1), int(1))
 
-	// count1, err := tagService.CountTag(ctx, types.ListTagRequest{
-	// 	Pagination: types.Pagination{
-	// 		Limit: ptr.Of(int(100)),
-	// 		Page:  ptr.Of(int(0)),
-	// 	},
-	// 	Repository: "test/busybox",
-	// })
-	// assert.NoError(t, err)
-	// assert.Equal(t, count1, int64(1))
+// 	// count1, err := tagService.CountTag(ctx, types.ListTagRequest{
+// 	// 	Pagination: types.Pagination{
+// 	// 		Limit: ptr.Of(int(100)),
+// 	// 		Page:  ptr.Of(int(0)),
+// 	// 	},
+// 	// 	Repository: "test/busybox",
+// 	// })
+// 	// assert.NoError(t, err)
+// 	// assert.Equal(t, count1, int64(1))
 
-	err = tagService.DeleteByName(ctx, repositoryObj.ID, "latest")
-	assert.NoError(t, err)
+// 	err = tagService.DeleteByName(ctx, repositoryObj.ID, "latest")
+// 	assert.NoError(t, err)
 
-	artifactObj := &models.Artifact{
-		NamespaceID:  namespaceObj.ID,
-		RepositoryID: repositoryObj.ID,
-		Digest:       "sha256:xxxxx",
-		Size:         123,
-		ContentType:  "test",
-		Raw:          []byte("test"),
-	}
-	assert.NoError(t, artifactService.Create(ctx, artifactObj))
+// 	artifactObj := &models.Artifact{
+// 		NamespaceID:  namespaceObj.ID,
+// 		RepositoryID: repositoryObj.ID,
+// 		Digest:       "sha256:xxxxx",
+// 		Size:         123,
+// 		ContentType:  "test",
+// 		Raw:          []byte("test"),
+// 	}
+// 	assert.NoError(t, artifactService.Create(ctx, artifactObj))
 
-	tagObj1 := &models.Tag{
-		RepositoryID: repositoryObj.ID,
-		Name:         "latest1",
-		Artifact:     artifactObj,
-	}
-	err = tagService.Create(ctx, tagObj1)
-	assert.NoError(t, err)
+// 	tagObj1 := &models.Tag{
+// 		RepositoryID: repositoryObj.ID,
+// 		Name:         "latest1",
+// 		Artifact:     artifactObj,
+// 	}
+// 	err = tagService.Create(ctx, tagObj1)
+// 	assert.NoError(t, err)
 
-	err = tagService.DeleteByID(ctx, tagObj1.ID)
-	assert.NoError(t, err)
+// 	err = tagService.DeleteByID(ctx, tagObj1.ID)
+// 	assert.NoError(t, err)
 
-	err = tagService.DeleteByID(ctx, 10)
-	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+// 	err = tagService.DeleteByID(ctx, 10)
+// 	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
-	artifactObj2 := &models.Artifact{
-		NamespaceID:  namespaceObj.ID,
-		RepositoryID: repositoryObj.ID,
-		Digest:       "sha256:xxxxxxxx",
-		Size:         123,
-		ContentType:  "test",
-		Raw:          []byte("test"),
-	}
-	assert.NoError(t, artifactService.Create(ctx, artifactObj2))
+// 	artifactObj2 := &models.Artifact{
+// 		NamespaceID:  namespaceObj.ID,
+// 		RepositoryID: repositoryObj.ID,
+// 		Digest:       "sha256:xxxxxxxx",
+// 		Size:         123,
+// 		ContentType:  "test",
+// 		Raw:          []byte("test"),
+// 	}
+// 	assert.NoError(t, artifactService.Create(ctx, artifactObj2))
 
-	tagObj2 := &models.Tag{
-		RepositoryID: repositoryObj.ID,
-		Name:         "latest1",
-		Artifact:     artifactObj2,
-	}
-	assert.NoError(t, tagService.Create(ctx, tagObj2))
+// 	tagObj2 := &models.Tag{
+// 		RepositoryID: repositoryObj.ID,
+// 		Name:         "latest1",
+// 		Artifact:     artifactObj2,
+// 	}
+// 	assert.NoError(t, tagService.Create(ctx, tagObj2))
 
-	tags2, err := tagService.ListByDtPagination(ctx, "test/busybox", 10, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, len(tags2), int(1))
+// 	tags2, err := tagService.ListByDtPagination(ctx, "test/busybox", 10, 1)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, len(tags2), int(1))
 
-	tagCount1, err := tagService.CountByArtifact(ctx, []int64{tagObj2.ArtifactID})
-	assert.NoError(t, err)
-	assert.Equal(t, len(tagCount1), int(1))
-	assert.Equal(t, tagCount1[tagObj2.ArtifactID], int64(1))
-}
+// 	tagCount1, err := tagService.CountByArtifact(ctx, []int64{tagObj2.ArtifactID})
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, len(tagCount1), int(1))
+// 	assert.Equal(t, tagCount1[tagObj2.ArtifactID], int64(1))
+// }

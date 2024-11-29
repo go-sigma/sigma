@@ -65,7 +65,7 @@ func (h *handler) ListTags(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 	repository := strings.TrimSuffix(strings.TrimPrefix(uri, "/v2/"), "/tags/list")
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -76,7 +76,7 @@ func (h *handler) ListTags(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Repository(ptr.To(user), repositoryObj.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Repository(ptr.To(user), repositoryObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -92,7 +92,7 @@ func (h *handler) ListTags(c echo.Context) error {
 	var lastFound bool
 	var lastID int64 = 0
 
-	tagService := h.tagServiceFactory.New()
+	tagService := h.TagServiceFactory.New()
 	var last = c.QueryParam("last")
 	if last != "" {
 		tagObj, err := tagService.GetByName(ctx, repositoryObj.ID, last)

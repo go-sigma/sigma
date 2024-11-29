@@ -48,15 +48,15 @@ func (h *handler) ClientID(c echo.Context) error {
 	switch req.Provider {
 	case enums.ProviderGithub:
 		return c.JSON(http.StatusOK, types.Oauth2ClientIDResponse{
-			ClientID: h.config.Auth.Oauth2.Github.ClientID,
+			ClientID: h.Config.Auth.Oauth2.Github.ClientID,
 		})
 	case enums.ProviderGitlab:
 		return c.JSON(http.StatusOK, types.Oauth2ClientIDResponse{
-			ClientID: h.config.Auth.Oauth2.Gitlab.ClientID,
+			ClientID: h.Config.Auth.Oauth2.Gitlab.ClientID,
 		})
 	case enums.ProviderGitea:
 		return c.JSON(http.StatusOK, types.Oauth2ClientIDResponse{
-			ClientID: h.config.Auth.Oauth2.Gitea.ClientID,
+			ClientID: h.Config.Auth.Oauth2.Gitea.ClientID,
 		})
 	default:
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("invalid provider %s", req.Provider))

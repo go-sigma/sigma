@@ -35,7 +35,7 @@ func (h *handler) DeleteArtifact(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	err = artifactService.DeleteByDigest(ctx, req.Repository, req.Digest)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

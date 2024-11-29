@@ -57,13 +57,13 @@ func (h *handler) GetManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
 	}
-	namespaceObj, err := h.namespaceServiceFactory.New().GetByName(ctx, namespace)
+	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
 	}
 
-	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
@@ -82,7 +82,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
 	}
 
-	repositoryService := h.repositoryServiceFactory.New()
+	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,16 +96,16 @@ func (h *handler) GetManifest(c echo.Context) error {
 	var refs = h.parseRef(ref)
 
 	if refs.Tag != "" {
-		tagService := h.tagServiceFactory.New()
+		tagService := h.TagServiceFactory.New()
 		tag, err := tagService.GetByName(ctx, repositoryObj.ID, ref)
 		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) && h.config.Proxy.Enabled {
+			if errors.Is(err, gorm.ErrRecordNotFound) && h.Config.Proxy.Enabled {
 				return h.getManifestFallbackProxy(c, refs)
 			}
 			log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 			return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 		}
-		if h.config.Proxy.Enabled { // we also check the manifest in remote proxy server
+		if h.Config.Proxy.Enabled { // we also check the manifest in remote proxy server
 			err = h.getManifestFallbackProxy(c, refs)
 			if err != nil {
 				log.Error().Err(err).Msg("Additional check remote proxy server failed")
@@ -120,16 +120,16 @@ func (h *handler) GetManifest(c echo.Context) error {
 		refs.Digest = digest.Digest(tag.Artifact.Digest)
 	}
 
-	artifactService := h.artifactServiceFactory.New()
+	artifactService := h.ArtifactServiceFactory.New()
 	artifact, err := artifactService.GetByDigest(ctx, repositoryObj.ID, refs.Digest.String())
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && h.config.Proxy.Enabled {
+		if errors.Is(err, gorm.ErrRecordNotFound) && h.Config.Proxy.Enabled {
 			return h.getManifestFallbackProxy(c, refs)
 		}
 		log.Error().Err(err).Str("ref", ref).Msg("Get artifact failed")
 		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestUnknown)
 	}
-	if h.config.Proxy.Enabled { // we also check the manifest in remote proxy server
+	if h.Config.Proxy.Enabled { // we also check the manifest in remote proxy server
 		err = h.getManifestFallbackProxy(c, refs)
 		if err != nil {
 			log.Error().Err(err).Msg("Additional check remote proxy server failed")

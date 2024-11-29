@@ -67,7 +67,7 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc tag rule failed")
@@ -90,7 +90,7 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 		updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		daemonService := h.daemonServiceFactory.New(tx)
+		daemonService := h.DaemonServiceFactory.New(tx)
 		if ruleObj == nil { // rule not found, we need create the rule
 			err = daemonService.CreateGcBlobRule(ctx, &models.DaemonGcBlobRule{
 				CronEnabled:     req.CronEnabled,
@@ -109,7 +109,7 @@ func (h *handler) UpdateGcBlobRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc blob rule failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc blob rule failed: %v", err))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRule,
 			Payload:      utils.MustMarshal(req),
@@ -153,7 +153,7 @@ func (h *handler) GetGcBlobRule(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -203,7 +203,7 @@ func (h *handler) GetGcBlobLatestRunner(c echo.Context) error {
 		log.Error().Msg("NamespaceID should always be 0 in action GetGcBlobLatestRunner")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -282,7 +282,7 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -311,7 +311,7 @@ func (h *handler) CreateGcBlobRunner(c echo.Context) error {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcBlob.String())
 			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()))
 		}
-		err = h.producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 			Payload:      utils.MustMarshal(req),
@@ -359,7 +359,7 @@ func (h *handler) ListGcBlobRunners(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -427,7 +427,7 @@ func (h *handler) GetGcBlobRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	runnerObj, err := daemonService.GetGcBlobRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -490,7 +490,7 @@ func (h *handler) ListGcBlobRecords(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcBlobRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Int64("RuleID", req.RunnerID).Msgf("List gc blob records failed")
@@ -534,7 +534,7 @@ func (h *handler) GetGcBlobRecord(c echo.Context) error {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
-	daemonService := h.daemonServiceFactory.New()
+	daemonService := h.DaemonServiceFactory.New()
 	ruleObj, err := daemonService.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

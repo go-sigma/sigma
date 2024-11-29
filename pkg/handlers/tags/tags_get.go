@@ -67,7 +67,7 @@ func (h *handler) GetTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	authChecked, err := h.authServiceFactory.New().Tag(ptr.To(user), req.ID, enums.AuthRead)
+	authChecked, err := h.AuthServiceFactory.New().Tag(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
@@ -81,7 +81,7 @@ func (h *handler) GetTag(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
-	tagService := h.tagServiceFactory.New()
+	tagService := h.TagServiceFactory.New()
 	tag, err := tagService.GetByID(ctx, req.ID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

@@ -56,8 +56,8 @@ func (h *handler) SelfResetPassword(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userService := h.userServiceFactory.New(tx)
-		pwdHash, err := h.passwordService.Hash(req.Password)
+		userService := h.UserServiceFactory.New(tx)
+		pwdHash, err := h.PasswordService.Hash(req.Password)
 		if err != nil {
 			log.Error().Err(err).Msg("Hash password failed")
 			return xerrors.HTTPErrCodeInternalError.Detail(err.Error())

@@ -46,13 +46,13 @@ func (h *handler) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	pwdHash, err := h.passwordService.Hash(req.Password)
+	pwdHash, err := h.PasswordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	userService := h.userServiceFactory.New()
+	userService := h.UserServiceFactory.New()
 	_, err = userService.GetByUsername(ctx, req.Username)
 	if err == nil {
 		log.Error().Msg("Username already exists")
@@ -70,13 +70,13 @@ func (h *handler) Signup(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	refreshToken, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.Ttl)
+	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.tokenService.New(user.ID, h.config.Auth.Jwt.RefreshTtl)
+	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
