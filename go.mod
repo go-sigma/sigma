@@ -23,8 +23,8 @@ require (
 	github.com/dgraph-io/badger/v4 v4.5.0
 	github.com/distribution/distribution/v3 v3.0.0-rc.1
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli v27.3.1+incompatible
-	github.com/docker/docker v27.3.1+incompatible
+	github.com/docker/cli v27.4.0-rc.2+incompatible
+	github.com/docker/docker v27.4.0-rc.2+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
 	github.com/glebarez/sqlite v1.11.0
@@ -47,7 +47,7 @@ require (
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/mholt/archiver/v3 v3.5.1
-	github.com/moby/buildkit v0.17.1
+	github.com/moby/buildkit v0.18.0
 	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20240926185104-8376368dd8aa
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
@@ -159,13 +159,13 @@ require (
 	github.com/cloudflare/circl v1.3.8 // indirect
 	github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78 // indirect
 	github.com/containerd/cgroups/v3 v3.0.3 // indirect
-	github.com/containerd/containerd v1.7.23 // indirect
+	github.com/containerd/containerd v1.7.24 // indirect
 	github.com/containerd/errdefs v0.3.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect
-	github.com/containerd/typeurl/v2 v2.2.0 // indirect
+	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/containers/buildah v1.38.0 // indirect
 	github.com/containers/common v0.61.0 // indirect
 	github.com/containers/image/v5 v5.33.0 // indirect

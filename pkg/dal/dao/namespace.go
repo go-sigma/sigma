@@ -61,19 +61,19 @@ type namespaceService struct {
 	tx *query.Query
 }
 
-// NamespaceServiceFactory is the interface that provides the namespace service factory methods.
+// NamespaceServiceFactory is the interface that provides the namespace service factory methods
 type NamespaceServiceFactory interface {
 	New(txs ...*query.Query) NamespaceService
 }
 
 type namespaceServiceFactory struct{}
 
-// NewNamespaceServiceFactory creates a new namespace service factory.
+// NewNamespaceServiceFactory creates a new namespace service factory
 func NewNamespaceServiceFactory() NamespaceServiceFactory {
 	return &namespaceServiceFactory{}
 }
 
-// New creates a new namespace service.
+// New creates a new namespace service
 func (s *namespaceServiceFactory) New(txs ...*query.Query) NamespaceService {
 	tx := query.Q
 	if len(txs) > 0 {

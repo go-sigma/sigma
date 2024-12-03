@@ -33,7 +33,7 @@ import (
 //go:generate mockgen -destination=mocks/artifact.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao ArtifactService
 //go:generate mockgen -destination=mocks/artifact_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao ArtifactServiceFactory
 
-// ArtifactService is the interface that provides the artifact service methods.
+// ArtifactService is the interface that provides the artifact service methods
 type ArtifactService interface {
 	// Create create a new artifact if conflict do nothing.
 	Create(ctx context.Context, artifact *models.Artifact) error
@@ -91,18 +91,19 @@ type artifactService struct {
 	tx *query.Query
 }
 
-// ArtifactServiceFactory is the interface that provides the artifact service factory methods.
+// ArtifactServiceFactory is the interface that provides the artifact service factory methods
 type ArtifactServiceFactory interface {
 	New(txs ...*query.Query) ArtifactService
 }
 
 type artifactServiceFactory struct{}
 
-// NewArtifactServiceFactory creates a new artifact service factory.
+// NewArtifactServiceFactory creates a new artifact service factory
 func NewArtifactServiceFactory() ArtifactServiceFactory {
 	return &artifactServiceFactory{}
 }
 
+// New creates a new artifact service
 func (s *artifactServiceFactory) New(txs ...*query.Query) ArtifactService {
 	tx := query.Q
 	if len(txs) > 0 {

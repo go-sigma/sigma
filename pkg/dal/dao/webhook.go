@@ -59,19 +59,19 @@ type webhookService struct {
 	tx *query.Query
 }
 
-// WebhookServiceFactory is the interface that provides the webhook service factory methods.
+// WebhookServiceFactory is the interface that provides the webhook service factory methods
 type WebhookServiceFactory interface {
 	New(txs ...*query.Query) WebhookService
 }
 
 type webhookServiceFactory struct{}
 
-// NewWebhookServiceFactory creates a new webhook service factory.
+// NewWebhookServiceFactory creates a new webhook service factory
 func NewWebhookServiceFactory() WebhookServiceFactory {
 	return &webhookServiceFactory{}
 }
 
-// New ...
+// New creates a new webhook service
 func (s *webhookServiceFactory) New(txs ...*query.Query) WebhookService {
 	tx := query.Q
 	if len(txs) > 0 {

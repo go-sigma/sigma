@@ -77,18 +77,19 @@ type tagService struct {
 	tx *query.Query
 }
 
-// TagServiceFactory is the interface that provides the tag service factory methods.
+// TagServiceFactory is the interface that provides the tag service factory methods
 type TagServiceFactory interface {
 	New(txs ...*query.Query) TagService
 }
 
 type tagServiceFactory struct{}
 
-// NewTagServiceFactory creates a new tag service factory.
+// NewTagServiceFactory creates a new tag service factory
 func NewTagServiceFactory() TagServiceFactory {
 	return &tagServiceFactory{}
 }
 
+// New creates a new tag service
 func (s *tagServiceFactory) New(txs ...*query.Query) TagService {
 	tx := query.Q
 	if len(txs) > 0 {

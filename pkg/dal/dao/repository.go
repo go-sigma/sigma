@@ -37,7 +37,7 @@ import (
 //go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryService
 //go:generate mockgen -destination=mocks/repository_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryServiceFactory
 
-// RepositoryService is the interface that provides the repository service methods.
+// RepositoryService is the interface that provides the repository service methods
 type RepositoryService interface {
 	// Create saves the repository.
 	Create(ctx context.Context, repositoryObj *models.Repository, autoCreateNamespace AutoCreateNamespace) error
@@ -71,19 +71,19 @@ type repositoryService struct {
 	tx *query.Query
 }
 
-// RepositoryServiceFactory is the interface that provides the repository service factory methods.
+// RepositoryServiceFactory is the interface that provides the repository service factory methods
 type RepositoryServiceFactory interface {
 	New(txs ...*query.Query) RepositoryService
 }
 
 type repositoryServiceFactory struct{}
 
-// NewRepositoryServiceFactory creates a new repository service factory.
+// NewRepositoryServiceFactory creates a new repository service factory
 func NewRepositoryServiceFactory() RepositoryServiceFactory {
 	return &repositoryServiceFactory{}
 }
 
-// New creates a new repository service.
+// New creates a new repository service
 func (s *repositoryServiceFactory) New(txs ...*query.Query) RepositoryService {
 	tx := query.Q
 	if len(txs) > 0 {

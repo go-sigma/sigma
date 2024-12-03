@@ -25,10 +25,8 @@ import (
 
 func TestTagServiceFactory(t *testing.T) {
 	f := dao.NewTagServiceFactory()
-	tagService := f.New()
-	assert.NotNil(t, tagService)
-	tagService = f.New(query.Q)
-	assert.NotNil(t, tagService)
+	assert.NotNil(t, f.New())
+	assert.NotNil(t, f.New(query.Q))
 }
 
 // func TestTagService(t *testing.T) {

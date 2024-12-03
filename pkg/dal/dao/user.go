@@ -31,7 +31,7 @@ import (
 //go:generate mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
 //go:generate mockgen -destination=mocks/user_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserServiceFactory
 
-// UserService is the interface that provides the user service methods.
+// UserService is the interface that provides the user service methods
 type UserService interface {
 	// Get get user by id.
 	Get(ctx context.Context, id int64) (*models.User, error)
@@ -77,19 +77,19 @@ type userService struct {
 	tx *query.Query
 }
 
-// UserServiceFactory is the interface that provides the user service factory methods.
+// UserServiceFactory is the interface that provides the user service factory methods
 type UserServiceFactory interface {
 	New(txs ...*query.Query) UserService
 }
 
 type userServiceFactory struct{}
 
-// NewUserServiceFactory creates a new user service factory.
+// NewUserServiceFactory creates a new user service factory
 func NewUserServiceFactory() UserServiceFactory {
 	return &userServiceFactory{}
 }
 
-// New creates a new user service.
+// New creates a new user service
 func (s *userServiceFactory) New(txs ...*query.Query) UserService {
 	tx := query.Q
 	if len(txs) > 0 {

@@ -46,19 +46,19 @@ type blobUploadService struct {
 	tx *query.Query
 }
 
-// BlobUploadServiceFactory is the interface for the blob upload service factory.
+// BlobUploadServiceFactory is the interface for the blob upload service factory
 type BlobUploadServiceFactory interface {
 	New(txs ...*query.Query) BlobUploadService
 }
 
 type blobUploadServiceFactory struct{}
 
-// NewBlobUploadServiceFactory creates a new blob upload service factory.
+// NewBlobUploadServiceFactory creates a new blob upload service factory
 func NewBlobUploadServiceFactory() BlobUploadServiceFactory {
 	return &blobUploadServiceFactory{}
 }
 
-// New creates a new blob upload service.
+// New creates a new blob upload service
 func (s *blobUploadServiceFactory) New(txs ...*query.Query) BlobUploadService {
 	tx := query.Q
 	if len(txs) > 0 {
