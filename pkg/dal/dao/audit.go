@@ -25,7 +25,7 @@ import (
 //go:generate mockgen -destination=mocks/audit.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuditService
 //go:generate mockgen -destination=mocks/audit_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuditServiceFactory
 
-// AuditService is the interface that provides methods to operate on Audit model
+// AuditService is the interface that provides methods to operate on audit model
 type AuditService interface {
 	// Create creates a new Audit record in the database
 	Create(ctx context.Context, audit *models.Audit) error
@@ -37,18 +37,19 @@ type auditService struct {
 	tx *query.Query
 }
 
-// AuditServiceFactory is the interface that provides the audit service factory methods.
+// AuditServiceFactory is the interface that provides the audit service factory methods
 type AuditServiceFactory interface {
 	New(txs ...*query.Query) AuditService
 }
 
 type auditServiceFactory struct{}
 
-// NewAuditServiceFactory creates a new audit service factory.
+// NewAuditServiceFactory creates a new audit service factory
 func NewAuditServiceFactory() AuditServiceFactory {
 	return &auditServiceFactory{}
 }
 
+// New creates a new audit service
 func (s *auditServiceFactory) New(txs ...*query.Query) AuditService {
 	tx := query.Q
 	if len(txs) > 0 {
@@ -59,7 +60,7 @@ func (s *auditServiceFactory) New(txs ...*query.Query) AuditService {
 	}
 }
 
-// Create create a new artifact if conflict do nothing.
+// Create create a new artifact if conflict do nothing
 func (s *auditService) Create(ctx context.Context, audit *models.Audit) error {
 	return s.tx.Audit.WithContext(ctx).Create(audit)
 }

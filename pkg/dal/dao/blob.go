@@ -54,19 +54,19 @@ type blobService struct {
 	tx *query.Query
 }
 
-// BlobServiceFactory is the interface that provides the blob service factory methods.
+// BlobServiceFactory is the interface that provides the blob service factory methods
 type BlobServiceFactory interface {
 	New(txs ...*query.Query) BlobService
 }
 
 type blobServiceFactory struct{}
 
-// NewBlobServiceFactory creates a new blob service factory.
+// NewBlobServiceFactory creates a new blob service factory
 func NewBlobServiceFactory() BlobServiceFactory {
 	return &blobServiceFactory{}
 }
 
-// New creates a new blob service.
+// New creates a new blob service
 func (s *blobServiceFactory) New(txs ...*query.Query) BlobService {
 	tx := query.Q
 	if len(txs) > 0 {

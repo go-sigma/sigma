@@ -42,18 +42,19 @@ type settingService struct {
 	tx *query.Query
 }
 
-// SettingServiceFactory is the interface that provides the setting service factory methods.
+// SettingServiceFactory is the interface that provides the setting service factory methods
 type SettingServiceFactory interface {
 	New(txs ...*query.Query) SettingService
 }
 
 type settingServiceFactory struct{}
 
-// NewSettingServiceFactory creates a new setting service factory.
+// NewSettingServiceFactory creates a new setting service factory
 func NewSettingServiceFactory() SettingServiceFactory {
 	return &settingServiceFactory{}
 }
 
+// New creates a new setting service
 func (s *settingServiceFactory) New(txs ...*query.Query) SettingService {
 	tx := query.Q
 	if len(txs) > 0 {

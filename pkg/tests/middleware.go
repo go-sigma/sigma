@@ -92,9 +92,7 @@ func Initialize(t *testing.T, digCon *dig.Container) (*Instance, error) {
 		return nil, fmt.Errorf("init ci database %q failed: %w", typ, err)
 	}
 
-	return &Instance{
-		database: database,
-	}, nil
+	return &Instance{database: database}, nil
 }
 
 // DeInit ...

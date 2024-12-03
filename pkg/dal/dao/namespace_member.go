@@ -53,19 +53,19 @@ type namespaceMemberService struct {
 	tx *query.Query
 }
 
-// NamespaceMemberServiceFactory is the interface that provides the namespace member service factory methods.
+// NamespaceMemberServiceFactory is the interface that provides the namespace member service factory methods
 type NamespaceMemberServiceFactory interface {
 	New(txs ...*query.Query) NamespaceMemberService
 }
 
 type namespaceMemberServiceFactory struct{}
 
-// NewNamespaceMemberServiceFactory creates a new namespace member service factory.
+// NewNamespaceMemberServiceFactory creates a new namespace member service factory
 func NewNamespaceMemberServiceFactory() NamespaceMemberServiceFactory {
 	return &namespaceMemberServiceFactory{}
 }
 
-// New creates a new namespace member service.
+// New creates a new namespace member service
 func (s *namespaceMemberServiceFactory) New(txs ...*query.Query) NamespaceMemberService {
 	tx := query.Q
 	if len(txs) > 0 {

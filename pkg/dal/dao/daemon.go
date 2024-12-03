@@ -130,19 +130,19 @@ type daemonService struct {
 	tx *query.Query
 }
 
-// DaemonServiceFactory is the interface that provides the daemon service factory methods.
+// DaemonServiceFactory is the interface that provides the daemon service factory methods
 type DaemonServiceFactory interface {
 	New(txs ...*query.Query) DaemonService
 }
 
 type daemonServiceFactory struct{}
 
-// NewDaemonServiceFactory creates a new audit service factory.
+// NewDaemonServiceFactory creates a new daemon service factory
 func NewDaemonServiceFactory() DaemonServiceFactory {
 	return &daemonServiceFactory{}
 }
 
-// New ...
+// New creates a new daemon service
 func (s *daemonServiceFactory) New(txs ...*query.Query) DaemonService {
 	tx := query.Q
 	if len(txs) > 0 {

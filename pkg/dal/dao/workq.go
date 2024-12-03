@@ -41,18 +41,19 @@ type workQueueService struct {
 	tx *query.Query
 }
 
-// WorkQueueServiceFactory is the interface that provides the work queue service factory methods.
+// WorkQueueServiceFactory is the interface that provides the work queue service factory methods
 type WorkQueueServiceFactory interface {
 	New(txs ...*query.Query) WorkQueueService
 }
 
 type workQueueServiceFactory struct{}
 
-// NewWorkQueueServiceFactory creates a new work queue service factory.
+// NewWorkQueueServiceFactory creates a new work queue service factory
 func NewWorkQueueServiceFactory() WorkQueueServiceFactory {
 	return &workQueueServiceFactory{}
 }
 
+// New creates a new work queue service
 func (s *workQueueServiceFactory) New(txs ...*query.Query) WorkQueueService {
 	tx := query.Q
 	if len(txs) > 0 {

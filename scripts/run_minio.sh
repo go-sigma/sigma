@@ -13,5 +13,5 @@ DOCKER=${DOCKER:-docker}
   --health-interval 10s \
   --health-timeout 5s \
   --health-retries 10 \
-  quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z \
+  quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z \
   sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'

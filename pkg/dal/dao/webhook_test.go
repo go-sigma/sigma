@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,33 +14,58 @@
 
 package dao_test
 
-// import (
-// 	"context"
-// 	"testing"
+import (
+	"context"
+	"testing"
 
-// 	"github.com/rs/zerolog/log"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
 
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/dao"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/tests"
-// )
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
+)
 
-// func TestWebhook(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, tests.Initialize(t))
-// 	assert.NoError(t, tests.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, tests.DB.DeInit())
-// 	}()
+func TestWebhookServiceFactory(t *testing.T) {
+	f := dao.NewWebhookServiceFactory()
+	require.NotNil(t, f.New())
+	require.NotNil(t, f.New(query.Q))
+}
 
-// 	webhookService := dao.NewWebhookServiceFactory().New()
+func TestWebhookService(t *testing.T) {
+	logger.SetLevel("debug")
 
-// 	ctx := log.Logger.WithContext(context.Background())
+	digCon := initDal(t)
+	require.NotNil(t, digCon)
 
-// 	webhookService.GetByFilter(ctx, map[string]any{"id": 1, "namespace_id": nil}) // nolint: errcheck
-// }
+	ctx := log.Logger.WithContext(context.Background())
+
+	webhookService := dao.NewWebhookServiceFactory().New()
+	nsSvc := dao.NewNamespaceServiceFactory().New()
+
+	nsObj := &models.Namespace{Name: "test"}
+	err := nsSvc.Create(ctx, nsObj)
+	require.NoError(t, err)
+
+	webhookObj := &models.Webhook{NamespaceID: &nsObj.ID, URL: "http://test.com", SslVerify: false}
+	err = webhookService.Create(ctx, webhookObj)
+	require.NoError(t, err)
+
+	{
+		result, err := webhookService.GetByFilter(ctx, map[string]any{
+			query.Webhook.ID.ColumnName().String(): webhookObj.ID,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(result))
+		require.Equal(t, webhookObj.ID, result[0].ID)
+	}
+
+	{
+		result, err := webhookService.GetByFilter(ctx, map[string]any{
+			query.Webhook.ID.ColumnName().String(): 9999,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(result))
+	}
+}

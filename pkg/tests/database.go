@@ -12,19 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao_test
+package tests
 
 import (
-	"testing"
+	"go.uber.org/dig"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/dal"
 )
 
-func TestBuilderServiceFactory(t *testing.T) {
-	f := dao.NewBuilderServiceFactory()
-	require.NotNil(t, f.New())
-	require.NotNil(t, f.New(query.Q))
+func DatabaseInit(digCon *dig.Container) {
+	dal.Initialize(digCon)
 }

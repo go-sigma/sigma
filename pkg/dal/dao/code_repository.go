@@ -30,7 +30,7 @@ import (
 //go:generate mockgen -destination=mocks/code_repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao CodeRepositoryService
 //go:generate mockgen -destination=mocks/code_repository_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao CodeRepositoryServiceFactory
 
-// CodeRepositoryService is the interface that provides the code repository service methods.
+// CodeRepositoryService is the interface that provides the code repository service methods
 type CodeRepositoryService interface {
 	// Create creates new code repository record in the database
 	CreateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
@@ -70,7 +70,7 @@ type codeRepositoryService struct {
 	tx *query.Query
 }
 
-// CodeRepositoryServiceFactory is the interface that provides the code repository service factory methods.
+// CodeRepositoryServiceFactory is the interface that provides the code repository service factory methods
 type CodeRepositoryServiceFactory interface {
 	New(txs ...*query.Query) CodeRepositoryService
 }
@@ -82,6 +82,7 @@ func NewCodeRepositoryServiceFactory() CodeRepositoryServiceFactory {
 	return &codeRepositoryServiceFactory{}
 }
 
+// New creates a new code repository service
 func (s *codeRepositoryServiceFactory) New(txs ...*query.Query) CodeRepositoryService {
 	tx := query.Q
 	if len(txs) > 0 {

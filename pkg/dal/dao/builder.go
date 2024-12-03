@@ -61,18 +61,19 @@ type builderService struct {
 	tx *query.Query
 }
 
-// BuilderServiceFactory is the interface that provides the builder service factory methods.
+// BuilderServiceFactory is the interface that provides the builder service factory methods
 type BuilderServiceFactory interface {
 	New(txs ...*query.Query) BuilderService
 }
 
 type builderServiceFactory struct{}
 
-// NewBuilderServiceFactory creates a new builder service factory.
+// NewBuilderServiceFactory creates a new builder service factory
 func NewBuilderServiceFactory() BuilderServiceFactory {
 	return &builderServiceFactory{}
 }
 
+// New creates a new builder service
 func (s *builderServiceFactory) New(txs ...*query.Query) BuilderService {
 	tx := query.Q
 	if len(txs) > 0 {
