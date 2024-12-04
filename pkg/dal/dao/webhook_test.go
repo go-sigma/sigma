@@ -14,6 +14,21 @@
 
 package dao_test
 
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+)
+
+func TestWebhookServiceFactory(t *testing.T) {
+	f := dao.NewWebhookServiceFactory()
+	require.NotNil(t, f.New())
+	require.NotNil(t, f.New(query.Q))
+}
+
 // import (
 // 	"context"
 // 	"testing"

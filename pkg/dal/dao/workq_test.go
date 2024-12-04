@@ -17,7 +17,7 @@ package dao_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -25,10 +25,8 @@ import (
 
 func TestWorkQueueServiceFactory(t *testing.T) {
 	f := dao.NewWorkQueueServiceFactory()
-	artifactService := f.New()
-	assert.NotNil(t, artifactService)
-	artifactService = f.New(query.Q)
-	assert.NotNil(t, artifactService)
+	require.NotNil(t, f.New())
+	require.NotNil(t, f.New(query.Q))
 }
 
 // func TestWorkQueueService(t *testing.T) {
