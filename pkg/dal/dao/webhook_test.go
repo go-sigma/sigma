@@ -18,9 +18,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/tests"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestWebhookServiceFactory(t *testing.T) {
@@ -29,6 +38,22 @@ func TestWebhookServiceFactory(t *testing.T) {
 	require.NotNil(t, f.New(query.Q))
 }
 
+func TestWebhookService(t *testing.T) {
+	logger.SetLevel("debug")
+
+	config, err := tests.GetConfig()
+	require.NoError(t, err)
+
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() configs.Configuration { return ptr.To(config) }))
+	require.NoError(t, digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }))
+	require.NoError(t, digCon.Provide(badger.New))
+	require.NoError(t, dal.Initialize(digCon))
+
+	// webhookService := dao.NewWebhookServiceFactory().New()
+}
+
+// SIGMA_DATABASE_TYPE=mysql SIGMA_DATABASE_MYSQL_HOST=127.0.0.1 SIGMA_DATABASE_MYSQL_PORT=3306 SIGMA_DATABASE_MYSQL_USERNAME=root SIGMA_DATABASE_MYSQL_PASSWORD=sigma SIGMA_DATABASE_MYSQL_DATABASE=sigma go test -v -run TestWebhookService . -tags viper_bind_struct
 // import (
 // 	"context"
 // 	"testing"

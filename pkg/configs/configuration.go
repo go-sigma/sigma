@@ -27,15 +27,10 @@ func GetConfiguration() *Configuration {
 	return configuration
 }
 
-// SetConfiguration ...
-func SetConfiguration(c *Configuration) {
-	configuration = c
-}
-
 // Configuration ...
 type Configuration struct {
 	Log       ConfigurationLog       `yaml:"log"`
-	Database  ConfigurationDatabase  `yaml:"database"`
+	Database  ConfigurationDatabase  `yaml:"database" mapstructure:"DATABASE"`
 	Deploy    enums.Deploy           `yaml:"deploy"`
 	Redis     ConfigurationRedis     `yaml:"redis"`
 	Badger    ConfigurationBadger    `yaml:"badger"`
@@ -90,7 +85,7 @@ type ConfigurationDatabasePostgresql struct {
 
 // ConfigurationDatabase ...
 type ConfigurationDatabase struct {
-	Type       enums.Database                  `yaml:"type"`
+	Type       enums.Database                  `yaml:"type" mapstructure:"TYPE"`
 	Sqlite3    ConfigurationDatabaseSqlite3    `yaml:"sqlite3"`
 	Mysql      ConfigurationDatabaseMysql      `yaml:"mysql"`
 	Postgresql ConfigurationDatabasePostgresql `yaml:"postgresql"`

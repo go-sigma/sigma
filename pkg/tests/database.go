@@ -14,12 +14,11 @@
 
 package tests
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/go-sigma/sigma/pkg/dal"
+	"go.uber.org/dig"
+)
 
-// NewEcho ...
-func NewEcho() *echo.Echo {
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	return e
+func DatabaseInit(digCon *dig.Container) {
+	dal.Initialize(digCon)
 }
