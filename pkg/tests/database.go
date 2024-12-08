@@ -15,8 +15,9 @@
 package tests
 
 import (
-	"github.com/go-sigma/sigma/pkg/dal"
 	"go.uber.org/dig"
+
+	"github.com/go-sigma/sigma/pkg/dal"
 )
 
 func DatabaseInit(digCon *dig.Container) {

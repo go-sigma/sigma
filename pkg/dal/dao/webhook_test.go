@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
 package dao_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal"
-	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
-	"github.com/go-sigma/sigma/pkg/tests"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestWebhookServiceFactory(t *testing.T) {
@@ -41,46 +36,36 @@ func TestWebhookServiceFactory(t *testing.T) {
 func TestWebhookService(t *testing.T) {
 	logger.SetLevel("debug")
 
-	config, err := tests.GetConfig()
+	digCon := initDal(t)
+	require.NotNil(t, digCon)
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	webhookService := dao.NewWebhookServiceFactory().New()
+	nsSvc := dao.NewNamespaceServiceFactory().New()
+
+	nsObj := &models.Namespace{Name: "test"}
+	err := nsSvc.Create(ctx, nsObj)
 	require.NoError(t, err)
 
-	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() configs.Configuration { return ptr.To(config) }))
-	require.NoError(t, digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }))
-	require.NoError(t, digCon.Provide(badger.New))
-	require.NoError(t, dal.Initialize(digCon))
+	webhookObj := &models.Webhook{NamespaceID: &nsObj.ID, URL: "http://test.com", SslVerify: false}
+	err = webhookService.Create(ctx, webhookObj)
+	require.NoError(t, err)
 
-	// webhookService := dao.NewWebhookServiceFactory().New()
+	{
+		result, err := webhookService.GetByFilter(ctx, map[string]any{
+			query.Webhook.ID.ColumnName().String(): webhookObj.ID,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(result))
+		require.Equal(t, webhookObj.ID, result[0].ID)
+	}
+
+	{
+		result, err := webhookService.GetByFilter(ctx, map[string]any{
+			query.Webhook.ID.ColumnName().String(): 9999,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(result))
+	}
 }
-
-// SIGMA_DATABASE_TYPE=mysql SIGMA_DATABASE_MYSQL_HOST=127.0.0.1 SIGMA_DATABASE_MYSQL_PORT=3306 SIGMA_DATABASE_MYSQL_USERNAME=root SIGMA_DATABASE_MYSQL_PASSWORD=sigma SIGMA_DATABASE_MYSQL_DATABASE=sigma go test -v -run TestWebhookService . -tags viper_bind_struct
-// import (
-// 	"context"
-// 	"testing"
-
-// 	"github.com/rs/zerolog/log"
-// 	"github.com/stretchr/testify/assert"
-
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/dao"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/tests"
-// )
-
-// func TestWebhook(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, tests.Initialize(t))
-// 	assert.NoError(t, tests.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, tests.DB.DeInit())
-// 	}()
-
-// 	webhookService := dao.NewWebhookServiceFactory().New()
-
-// 	ctx := log.Logger.WithContext(context.Background())
-
-// 	webhookService.GetByFilter(ctx, map[string]any{"id": 1, "namespace_id": nil}) // nolint: errcheck
-// }

@@ -67,6 +67,7 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	github.com/wagslane/go-password-validator v0.3.0
 	github.com/xanzy/go-gitlab v0.111.0
+	github.com/xo/dburl v0.23.2
 	go.uber.org/dig v1.18.0
 	go.uber.org/mock v0.5.0
 	golang.org/x/crypto v0.29.0
