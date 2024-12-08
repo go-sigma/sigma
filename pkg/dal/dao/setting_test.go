@@ -15,12 +15,15 @@
 package dao_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
 )
 
 func TestSettingServiceFactory(t *testing.T) {
@@ -29,38 +32,31 @@ func TestSettingServiceFactory(t *testing.T) {
 	require.NotNil(t, f.New(query.Q))
 }
 
-// func TestSettingService(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, tests.Initialize(t))
-// 	assert.NoError(t, tests.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, tests.DB.DeInit())
-// 	}()
+func TestSettingService(t *testing.T) {
+	logger.SetLevel("debug")
 
-// 	ctx := log.Logger.WithContext(context.Background())
+	digCon := initDal(t)
+	require.NotNil(t, digCon)
 
-// 	settingServiceFactory := dao.NewSettingServiceFactory()
-// 	settingService := settingServiceFactory.New()
-// 	assert.NotNil(t, settingService)
+	ctx := log.Logger.WithContext(context.Background())
 
-// 	assert.NoError(t, settingService.Create(ctx, "key", []byte("val")))
+	settingSvc := dao.NewSettingServiceFactory().New()
 
-// 	settingObj, err := settingService.Get(ctx, "key")
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, settingObj)
-// 	assert.Equal(t, "key", settingObj.Key)
-// 	assert.Equal(t, []byte("val"), settingObj.Val)
+	require.NoError(t, settingSvc.Create(ctx, "key", []byte("val")))
 
-// 	assert.NoError(t, settingService.Update(ctx, "key", []byte("new")))
+	settingObj, err := settingSvc.Get(ctx, "key")
+	require.NoError(t, err)
+	require.NotNil(t, settingObj)
+	require.Equal(t, "key", settingObj.Key)
+	require.Equal(t, []byte("val"), settingObj.Val)
 
-// 	settingObj, err = settingService.Get(ctx, "key")
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, settingObj)
-// 	assert.Equal(t, "key", settingObj.Key)
-// 	assert.Equal(t, []byte("new"), settingObj.Val)
+	require.NoError(t, settingSvc.Update(ctx, "key", []byte("new")))
 
-// 	assert.NoError(t, settingService.Delete(ctx, "key"))
-// }
+	settingObj, err = settingSvc.Get(ctx, "key")
+	require.NoError(t, err)
+	require.NotNil(t, settingObj)
+	require.Equal(t, "key", settingObj.Key)
+	require.Equal(t, []byte("new"), settingObj.Val)
+
+	require.NoError(t, settingSvc.Delete(ctx, "key"))
+}

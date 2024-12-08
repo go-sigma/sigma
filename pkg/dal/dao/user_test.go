@@ -15,18 +15,43 @@
 package dao_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func TestUserServiceFactory(t *testing.T) {
 	f := dao.NewUserServiceFactory()
 	require.NotNil(t, f.New())
 	require.NotNil(t, f.New(query.Q))
+}
+
+func TestUserService(t *testing.T) {
+	logger.SetLevel("debug")
+
+	digCon := initDal(t)
+	require.NotNil(t, digCon)
+
+	ctx := log.Logger.WithContext(context.Background())
+
+	userSvc := dao.NewUserServiceFactory().New()
+
+	require.NoError(t, userSvc.Create(ctx, &models.User{Username: "test-case", Password: ptr.Of("test-case"), Email: ptr.Of("email")}))
+
+	testUser, err := userSvc.GetByUsername(ctx, "test-case")
+	require.NoError(t, err)
+	require.Equal(t, ptr.To(testUser.Password), "test-case")
+	total, err := userSvc.Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, total, int64(1))
 }
 
 // func TestUserGetByUsername(t *testing.T) {
