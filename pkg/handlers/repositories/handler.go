@@ -47,7 +47,7 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config                   *configs.Configuration
+	config                   configs.Configuration
 	authServiceFactory       auth.AuthServiceFactory
 	auditServiceFactory      dao.AuditServiceFactory
 	namespaceServiceFactory  dao.NamespaceServiceFactory
@@ -60,7 +60,7 @@ type handler struct {
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		config:                   utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
+		config:                   utils.MustGetObjFromDigCon[configs.Configuration](digCon),
 		authServiceFactory:       utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
 		auditServiceFactory:      utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
 		namespaceServiceFactory:  utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),

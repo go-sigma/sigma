@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -31,8 +31,8 @@ func TestRedis(t *testing.T) {
 			URL:  "",
 		},
 	})
-	assert.NoError(t, err)
-	assert.Nil(t, client)
+	require.NoError(t, err)
+	require.Nil(t, client)
 
 	client, err = New(configs.Configuration{
 		Redis: configs.ConfigurationRedis{
@@ -40,8 +40,8 @@ func TestRedis(t *testing.T) {
 			URL:  miniredis.RunT(t).Addr(),
 		},
 	})
-	assert.Error(t, err)
-	assert.Nil(t, client)
+	require.Error(t, err)
+	require.Nil(t, client)
 
 	client, err = New(configs.Configuration{
 		Redis: configs.ConfigurationRedis{
@@ -49,6 +49,6 @@ func TestRedis(t *testing.T) {
 			URL:  "redis://" + miniredis.RunT(t).Addr(),
 		},
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+	require.NoError(t, err)
+	require.NotNil(t, client)
 }
