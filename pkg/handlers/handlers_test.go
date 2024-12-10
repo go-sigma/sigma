@@ -23,7 +23,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
 
@@ -45,7 +44,7 @@ const (
 func TestInitializeSkipAuth(t *testing.T) {
 	logger.SetLevel("debug")
 
-	e := echo.New()
+	e := tests.NewEcho()
 	validators.Initialize(e)
 
 	badgerDir, err := os.MkdirTemp("", "badger")
@@ -96,15 +95,15 @@ func TestInitializeSkipAuth(t *testing.T) {
 			},
 		}
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = digCon.Provide(func() password.Service {
 		return password.New()
 	})
 	require.NoError(t, err)
 
-	err = digCon.Provide(badger.New)
-	require.NoError(t, err)
+	require.NoError(t, digCon.Provide(badger.New))
+	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
 
 	tests, err := tests.Initialize(t, digCon)
 	require.NoError(t, err)
@@ -113,9 +112,9 @@ func TestInitializeSkipAuth(t *testing.T) {
 		require.NoError(t, tests.DeInitialize())
 	}()
 
-	assert.NoError(t, inits.Initialize(digCon))
+	require.NoError(t, inits.Initialize(digCon))
 
-	assert.NoError(t, Initialize(e, digCon))
+	require.NoError(t, Initialize(digCon))
 }
 
 type factoryOk struct{}
@@ -126,10 +125,10 @@ func (f *factoryOk) Initialize(*dig.Container) error {
 
 func TestInitializeOK(t *testing.T) {
 	routerFactories = make(map[string]Factory)
-	err := RegisterRouterFactory("ok", &factoryOk{})
-	assert.NoError(t, err)
-	err = Initialize(echo.New(), dig.New())
-	assert.NoError(t, err)
+	require.NoError(t, RegisterRouterFactory("ok", &factoryOk{}))
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, Initialize(digCon))
 }
 
 type factoryErr struct{}
@@ -140,16 +139,14 @@ func (f *factoryErr) Initialize(*dig.Container) error {
 
 func TestInitializeErr(t *testing.T) {
 	routerFactories = make(map[string]Factory)
-	err := RegisterRouterFactory("err", &factoryErr{})
-	assert.NoError(t, err)
-	err = Initialize(echo.New(), dig.New())
-	assert.Error(t, err)
+	require.NoError(t, RegisterRouterFactory("err", &factoryErr{}))
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.Error(t, Initialize(digCon))
 }
 
 func TestInitializeDup(t *testing.T) {
 	routerFactories = make(map[string]Factory)
-	err := RegisterRouterFactory("err", &factoryErr{})
-	assert.NoError(t, err)
-	err = RegisterRouterFactory("err", &factoryErr{})
-	assert.Error(t, err)
+	require.NoError(t, RegisterRouterFactory("err", &factoryErr{}))
+	require.Error(t, RegisterRouterFactory("err", &factoryErr{}))
 }

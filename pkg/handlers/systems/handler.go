@@ -40,13 +40,13 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	config *configs.Configuration
+	config configs.Configuration
 }
 
 // handlerNew creates a new instance of the distribution handlers
 func handlerNew(digCon *dig.Container) Handler {
 	return &handler{
-		config: utils.MustGetObjFromDigCon[*configs.Configuration](digCon),
+		config: utils.MustGetObjFromDigCon[configs.Configuration](digCon),
 	}
 }
 

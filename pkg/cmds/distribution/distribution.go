@@ -86,7 +86,7 @@ func Serve() error {
 		return err
 	}
 
-	handlers.InitializeDistribution(e, dig.New())
+	handlers.InitializeDistribution(dig.New())
 	err = storage.Initialize(config)
 	if err != nil {
 		return err

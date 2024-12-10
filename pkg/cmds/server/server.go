@@ -33,6 +33,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -40,6 +41,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/handlers"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -132,8 +134,26 @@ func Serve(digCon *dig.Container) error {
 		return fmt.Errorf("failed to invoke server config: %v", err)
 	}
 
+	err = digCon.Provide(func() *echo.Echo { return e })
+	if err != nil {
+		return fmt.Errorf("failed to provide echo: %v", err)
+	}
+
+	err = digCon.Provide(func() auth.AuthServiceFactory {
+		return auth.NewAuthServiceFactory()
+	})
+	if err != nil {
+		return fmt.Errorf("failed to provide auth service factory: %v", err)
+	}
+	err = digCon.Provide(func() definition.WorkQueueProducer {
+		return workq.ProducerClient
+	})
+	if err != nil {
+		return fmt.Errorf("failed to provide work queue producer: %v", err)
+	}
+
 	if !serverConfig.WithoutDistribution {
-		handlers.InitializeDistribution(e, digCon)
+		handlers.InitializeDistribution(digCon)
 	}
 	if !serverConfig.WithoutWorker {
 		err := builder.Initialize(config)
@@ -153,7 +173,7 @@ func Serve(digCon *dig.Container) error {
 		web.RegisterHandlers(e)
 	}
 
-	err = handlers.Initialize(e, digCon)
+	err = handlers.Initialize(digCon)
 	if err != nil {
 		return err
 	}

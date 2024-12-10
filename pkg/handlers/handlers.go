@@ -23,11 +23,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/middlewares"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 // InitializeDistribution ...
-func InitializeDistribution(e *echo.Echo, digCon *dig.Container) {
+func InitializeDistribution(digCon *dig.Container) {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	e.Any("/v2/*", func() echo.HandlerFunc {
 		return func(c echo.Context) error {
 			return distribution.All(c, digCon)
@@ -36,9 +38,9 @@ func InitializeDistribution(e *echo.Echo, digCon *dig.Container) {
 }
 
 // Initialize ...
-func Initialize(e *echo.Echo, c *dig.Container) error {
+func Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
-
 	validators.Initialize(e)
 
 	// c := dig.New()
@@ -57,7 +59,7 @@ func Initialize(e *echo.Echo, c *dig.Container) error {
 	// })
 
 	for name, factory := range routerFactories {
-		if err := factory.Initialize(c); err != nil {
+		if err := factory.Initialize(digCon); err != nil {
 			return fmt.Errorf("failed to initialize router factory %q: %v", name, err)
 		}
 	}
