@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
 
@@ -44,13 +43,13 @@ const (
 func TestInitializeSkipAuth(t *testing.T) {
 	logger.SetLevel("debug")
 
-	e := tests.NewEcho()
-	validators.Initialize(e)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, validators.Initialize(digCon))
 
 	badgerDir, err := os.MkdirTemp("", "badger")
 	require.NoError(t, err)
 
-	digCon := dig.New()
 	err = digCon.Provide(func() configs.Configuration {
 		return configs.Configuration{
 			Auth: configs.ConfigurationAuth{
@@ -103,7 +102,6 @@ func TestInitializeSkipAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, digCon.Provide(badger.New))
-	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
 
 	tests, err := tests.Initialize(t, digCon)
 	require.NoError(t, err)

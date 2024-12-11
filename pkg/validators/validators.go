@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,9 +25,11 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/robfig/cron/v3"
 	pwdvalidate "github.com/wagslane/go-password-validator"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 const (
@@ -53,31 +55,88 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 // Initialize initializes the validator
-func Initialize(e *echo.Echo) {
-	validate := validator.New()
-	register(validate)
-	e.Validator = &CustomValidator{validator: validate}
+func Initialize(digCon *dig.Container) error {
+	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	validator, err := newValidator()
+	if err != nil {
+		return err
+	}
+	e.Validator = &CustomValidator{validator: validator}
+	return nil
 }
 
-// register registers the validators
-func register(v *validator.Validate) {
-	v.RegisterValidation("is_valid_namespace_role", ValidateRetentionPattern)       // nolint:errcheck
-	v.RegisterValidation("is_valid_retention_pattern", ValidateRetentionPattern)    // nolint:errcheck
-	v.RegisterValidation("is_valid_retention_rule_type", ValidateRetentionRuleType) // nolint:errcheck
-	v.RegisterValidation("is_valid_cron_rule", ValidateCronRule)                    // nolint:errcheck
-	v.RegisterValidation("is_valid_user_role", ValidateUserRole)                    // nolint:errcheck
-	v.RegisterValidation("is_valid_user_status", ValidateUserStatue)                // nolint:errcheck
-	v.RegisterValidation("is_valid_email", ValidateEmail)                           // nolint:errcheck
-	v.RegisterValidation("is_valid_username", ValidateUsername)                     // nolint:errcheck
-	v.RegisterValidation("is_valid_password", ValidatePassword)                     // nolint:errcheck
-	v.RegisterValidation("is_valid_namespace", ValidateNamespace)                   // nolint:errcheck
-	v.RegisterValidation("is_valid_repository", ValidateRepository)                 // nolint:errcheck
-	v.RegisterValidation("is_valid_digest", ValidateDigest)                         // nolint:errcheck
-	v.RegisterValidation("is_valid_tag", ValidateTag)                               // nolint:errcheck
-	v.RegisterValidation("is_valid_visibility", ValidateVisibility)                 // nolint:errcheck
-	v.RegisterValidation("is_valid_provider", ValidateProvider)                     // nolint:errcheck
-	v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType) // nolint:errcheck
-	v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)            // nolint:errcheck
+// newValidator new validator
+func newValidator() (*validator.Validate, error) {
+	v := validator.New()
+	err := v.RegisterValidation("is_valid_namespace_role", ValidateRetentionPattern)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_retention_pattern", ValidateRetentionPattern)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_retention_rule_type", ValidateRetentionRuleType)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_cron_rule", ValidateCronRule)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_user_role", ValidateUserRole)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_user_status", ValidateUserStatue)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_email", ValidateEmail)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_username", ValidateUsername)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_password", ValidatePassword)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_namespace", ValidateNamespace)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_repository", ValidateRepository)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_digest", ValidateDigest)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_tag", ValidateTag)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_visibility", ValidateVisibility)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_provider", ValidateProvider)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
 
 // ValidateNamespaceRole ...
