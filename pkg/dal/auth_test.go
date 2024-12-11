@@ -14,6 +14,29 @@
 
 package dal_test
 
+import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
+
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/dal/badger"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/types/enums"
+)
+
 // import (
 // 	"context"
 // 	"fmt"
@@ -35,6 +58,56 @@ package dal_test
 // 	"github.com/go-sigma/sigma/pkg/modules/locker"
 // 	"github.com/go-sigma/sigma/pkg/types/enums"
 // )
+
+func TestAuth(t *testing.T) {
+	logger.SetLevel("debug")
+
+	badgerDir, err := os.MkdirTemp("", "badger")
+	require.NoError(t, err)
+
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() configs.Configuration {
+		return configs.Configuration{
+			Database: configs.ConfigurationDatabase{
+				Type: enums.DatabaseSqlite3,
+				Sqlite3: configs.ConfigurationDatabaseSqlite3{
+					Path: fmt.Sprintf("%s.db", strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")),
+				},
+			},
+			Locker: configs.ConfigurationLocker{
+				Type:   enums.LockerTypeBadger,
+				Badger: configs.ConfigurationLockerBadger{},
+				Prefix: "sigma-locker",
+			},
+			Badger: configs.ConfigurationBadger{
+				Enabled: true,
+				Path:    badgerDir,
+			},
+		}
+	}))
+
+	require.NoError(t, digCon.Provide(badger.New))
+	require.NoError(t, digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }))
+	require.NoError(t, dal.Initialize(digCon))
+
+	ctx := log.Logger.WithContext(context.Background())
+	nsMemberSvc := dao.NewNamespaceMemberServiceFactory().New()
+
+	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
+	require.True(t, added)
+
+	_, err = nsMemberSvc.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
+	require.NoError(t, err)
+	err = dal.AuthEnforcer.LoadPolicy()
+	require.NoError(t, err)
+
+	passed, err := dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
+	require.NoError(t, err)
+	require.True(t, passed)
+	passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
+	require.NoError(t, err)
+	require.True(t, passed)
+}
 
 // func TestAuth(t *testing.T) {
 // 	logger.SetLevel("debug")

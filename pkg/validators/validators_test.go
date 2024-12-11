@@ -17,10 +17,12 @@ package validators
 import (
 	"testing"
 
-	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -37,12 +39,12 @@ func TestValidateOCIPlatforms(t *testing.T) {
 		{"test-3", []enums.OciPlatform{"linux/amd64", "linux/arm641"}, false},
 	}
 
-	validate := validator.New()
-	register(validate)
+	validator, err := newValidator()
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			err := validate.Struct(test)
+			err := validator.Struct(test)
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}
@@ -64,13 +66,12 @@ func TestValidateRepository(t *testing.T) {
 		{"%invalid:repo:latest$", false},
 	}
 
-	validate := validator.New()
-	register(validate)
+	validator, err := newValidator()
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			err := validate.Struct(test)
-
+			err := validator.Struct(test)
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}
@@ -90,13 +91,12 @@ func TestValidateDigest(t *testing.T) {
 		{"invalid-digest", false},
 	}
 
-	validate := validator.New()
-	register(validate)
+	validator, err := newValidator()
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Digest, func(t *testing.T) {
-			err := validate.Struct(test)
-
+			err := validator.Struct(test)
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}
@@ -117,13 +117,12 @@ func TestValidateNamespace(t *testing.T) {
 		{"my-namespace-my-namespace-my-namespace-my-namespace", false},
 	}
 
-	validate := validator.New()
-	register(validate)
+	validator, err := newValidator()
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Namespace, func(t *testing.T) {
-			err := validate.Struct(test)
-
+			err := validator.Struct(test)
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}
@@ -141,13 +140,12 @@ func TestValidateTag(t *testing.T) {
 		{"valid.tag", true},
 	}
 
-	validate := validator.New()
-	register(validate)
+	validator, err := newValidator()
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Tag, func(t *testing.T) {
-			err := validate.Struct(test)
-
+			err := validator.Struct(test)
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}
@@ -156,13 +154,16 @@ func TestValidateTag(t *testing.T) {
 }
 
 func TestInitialize(t *testing.T) {
-	e := echo.New()
-	Initialize(e)
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(tests.NewEcho))
+	require.NoError(t, Initialize(digCon))
 }
 
 func TestValidate(t *testing.T) {
-	e := echo.New()
-	Initialize(e)
+	digCon := dig.New()
+	e := tests.NewEcho()
+	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
+	require.NoError(t, Initialize(digCon))
 
 	type Test struct {
 		Name     string `json:"name" validate:"required"`
@@ -177,7 +178,6 @@ func TestValidate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			err := e.Validator.Validate(test)
-
 			if !assert.Equal(t, test.Expected, err == nil) {
 				t.Fatalf("expected %v but got %v", test.Expected, err == nil)
 			}

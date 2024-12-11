@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2024 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package utils_test
 
 import (
 	"bytes"
@@ -41,6 +41,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -52,17 +53,17 @@ func TestPanicIf(t *testing.T) {
 			t.Errorf("The code did not panic")
 		}
 	}()
-	PanicIf(fmt.Errorf("test panic"))
+	utils.PanicIf(fmt.Errorf("test panic"))
 }
 
 func TestGetContentLength(t *testing.T) {
-	_, err := GetContentLength(nil)
+	_, err := utils.GetContentLength(nil)
 	assert.Error(t, err)
 	req, err := http.NewRequest(http.MethodGet, "http://localhost", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	length, err := GetContentLength(req)
+	length, err := utils.GetContentLength(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +71,7 @@ func TestGetContentLength(t *testing.T) {
 		t.Errorf("expected 0, got %d", length)
 	}
 	req.Header.Set("Content-Length", "123")
-	length, err = GetContentLength(req)
+	length, err = utils.GetContentLength(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +79,7 @@ func TestGetContentLength(t *testing.T) {
 		t.Errorf("expected 123, got %d", length)
 	}
 	req.Header.Set("Content-Length", "abc")
-	_, err = GetContentLength(req)
+	_, err = utils.GetContentLength(req)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 	}
@@ -87,13 +88,17 @@ func TestGetContentLength(t *testing.T) {
 func TestGenPathByDigest(t *testing.T) {
 	dgest, err := digest.Parse("sha256:08e7660f72aaa312f2ad1e13bc35afd988fa476052fd83296e0702e31ea00141")
 	assert.NoError(t, err)
-	path := GenPathByDigest(dgest)
+	path := utils.GenPathByDigest(dgest)
 	assert.Equal(t, "sha256/08/e7/660f72aaa312f2ad1e13bc35afd988fa476052fd83296e0702e31ea00141", path)
 }
 
 func TestBindValidate(t *testing.T) {
+	digCon := dig.New()
 	e := echo.New()
-	validators.Initialize(e)
+	e.HideBanner = true
+	e.HidePort = true
+	require.NoError(t, digCon.Provide(func() *echo.Echo { return e }))
+	require.NoError(t, validators.Initialize(digCon))
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"test","password":"123498712311Aa!","email":"test@xx.com"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -106,7 +111,7 @@ func TestBindValidate(t *testing.T) {
 		Email    string `json:"email" validate:"required,email"`
 	}
 	var user User
-	err := BindValidate(c, &user)
+	err := utils.BindValidate(c, &user)
 	assert.NoError(t, err)
 
 	req = httptest.NewRequest(http.MethodPost, "/",
@@ -115,17 +120,17 @@ func TestBindValidate(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 
-	err = BindValidate(c, &user)
+	err = utils.BindValidate(c, &user)
 	assert.Error(t, err)
 }
 
 func TestInject(t *testing.T) {
 	var a = 1
 	var b = 2
-	err := Inject(&a, nil)
+	err := utils.Inject(&a, nil)
 	assert.Equal(t, 1, a)
 	assert.NoError(t, err)
-	err = Inject(&a, &b)
+	err = utils.Inject(&a, &b)
 	assert.Equal(t, 2, a)
 	assert.NoError(t, err)
 }
@@ -168,7 +173,7 @@ func TestNormalizePagination(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NormalizePagination(tt.args.in); !reflect.DeepEqual(got, tt.want) {
+			if got := utils.NormalizePagination(tt.args.in); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NormalizePagination() = %v, want %v", got, tt.want)
 			}
 		})
@@ -215,7 +220,7 @@ func TestTrimHTTP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := TrimHTTP(tt.args.in); got != tt.want {
+			if got := utils.TrimHTTP(tt.args.in); got != tt.want {
 				t.Errorf("TrimHTTP() = %v, want %v", got, tt.want)
 			}
 		})
@@ -225,27 +230,27 @@ func TestTrimHTTP(t *testing.T) {
 func TestIsDir(t *testing.T) {
 	convey.Convey("Check if given path is a directory", t, func() {
 		convey.Convey("Pass a file name", func() {
-			convey.So(IsDir("file.go"), convey.ShouldEqual, false)
+			convey.So(utils.IsDir("file.go"), convey.ShouldEqual, false)
 		})
 		convey.Convey("Pass a directory name", func() {
-			convey.So(IsDir("ptr"), convey.ShouldEqual, true)
+			convey.So(utils.IsDir("ptr"), convey.ShouldEqual, true)
 		})
 		convey.Convey("Pass a invalid path", func() {
-			convey.So(IsDir("foo"), convey.ShouldEqual, false)
+			convey.So(utils.IsDir("foo"), convey.ShouldEqual, false)
 		})
 	})
 }
 
 func TestIsFile(t *testing.T) {
-	if !IsFile("utils.go") {
+	if !utils.IsFile("utils.go") {
 		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", true, false)
 	}
 
-	if IsFile("ptr") {
+	if utils.IsFile("ptr") {
 		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", false, true)
 	}
 
-	if IsFile("files.go") {
+	if utils.IsFile("files.go") {
 		t.Errorf("IsExist:\n Expect => %v\n Got => %v\n", false, true)
 	}
 }
@@ -253,13 +258,13 @@ func TestIsFile(t *testing.T) {
 func TestIsExist(t *testing.T) {
 	convey.Convey("Check if file or directory exists", t, func() {
 		convey.Convey("Pass a file name that exists", func() {
-			convey.So(IsExist("utils.go"), convey.ShouldEqual, true)
+			convey.So(utils.IsExist("utils.go"), convey.ShouldEqual, true)
 		})
 		convey.Convey("Pass a directory name that exists", func() {
-			convey.So(IsExist("ptr"), convey.ShouldEqual, true)
+			convey.So(utils.IsExist("ptr"), convey.ShouldEqual, true)
 		})
 		convey.Convey("Pass a directory name that does not exist", func() {
-			convey.So(IsExist(".hg"), convey.ShouldEqual, false)
+			convey.So(utils.IsExist(".hg"), convey.ShouldEqual, false)
 		})
 	})
 }
@@ -325,7 +330,7 @@ func TestDirWithSlash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DirWithSlash(tt.args.id); got != tt.want {
+			if got := utils.DirWithSlash(tt.args.id); got != tt.want {
 				t.Errorf("DirWithSlash() = %v, want %v", got, tt.want)
 			}
 		})
@@ -374,7 +379,7 @@ func TestStringsJoin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := StringsJoin(tt.args.strs, tt.args.sep); got != tt.want {
+			if got := utils.StringsJoin(tt.args.strs, tt.args.sep); got != tt.want {
 				t.Errorf("StringsJoin() = %v, want %v", got, tt.want)
 			}
 		})
@@ -407,7 +412,7 @@ func TestUnwrapJoinedErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := UnwrapJoinedErrors(tt.args.err); got != tt.want {
+			if got := utils.UnwrapJoinedErrors(tt.args.err); got != tt.want {
 				t.Errorf("UnwrapJoinedErrors() = %v, want %v", got, tt.want)
 			}
 		})
@@ -448,7 +453,7 @@ func TestGetUserFromCtx(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+			respBody: string(utils.MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
 		},
 		{
 			name: "err-2",
@@ -460,13 +465,13 @@ func TestGetUserFromCtx(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+			respBody: string(utils.MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			got, gotBool, err := GetUserFromCtx(tt.args(rec).c)
+			got, gotBool, err := utils.GetUserFromCtx(tt.args(rec).c)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetUserFromCtx() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -519,7 +524,7 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
+			respBody: string(utils.MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
 				{
 					Code:    xerrors.DSErrCodeUnauthorized.Code,
 					Message: xerrors.DSErrCodeUnauthorized.Title,
@@ -537,7 +542,7 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
+			respBody: string(utils.MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
 				{
 					Code:    xerrors.DSErrCodeUnauthorized.Code,
 					Message: xerrors.DSErrCodeUnauthorized.Title,
@@ -549,7 +554,7 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			got, gotBool, err := GetUserFromCtxForDs(tt.args(rec).c)
+			got, gotBool, err := utils.GetUserFromCtxForDs(tt.args(rec).c)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetUserFromCtxForDs() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -602,7 +607,7 @@ func TestOnceWithErr(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := OnceWithErr(tt.args.once, tt.args.fn); (err != nil) != tt.wantErr {
+			if err := utils.OnceWithErr(tt.args.once, tt.args.fn); (err != nil) != tt.wantErr {
 				t.Errorf("OnceWithErr() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -619,7 +624,7 @@ func TestGetObjFromDigCon(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	result, err := GetObjFromDigCon[configs.Configuration](digCon)
+	result, err := utils.GetObjFromDigCon[configs.Configuration](digCon)
 	assert.NoError(t, err)
 
 	assert.Equal(t, enums.LogLevelFatal, result.Log.Level)
@@ -635,7 +640,7 @@ func TestMustGetObjFromDigCon(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	result := MustGetObjFromDigCon[configs.Configuration](digCon)
+	result := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	assert.Equal(t, enums.LogLevelFatal, result.Log.Level)
 }
@@ -667,7 +672,7 @@ func TestGenRsaPriKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenRsaPriKey(tt.args.length)
+			got, err := utils.GenRsaPriKey(tt.args.length)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenRsaPriKey() error = %v, wantErr %v", err, tt.wantErr)
 				return
