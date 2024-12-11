@@ -41,22 +41,10 @@ func InitializeDistribution(digCon *dig.Container) {
 func Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	e.Any("/swagger/*", echoSwagger.WrapHandler)
-	validators.Initialize(e)
-
-	// c := dig.New()
-
-	// c.Provide(func() configs.Configuration {
-	// 	return ptr.To(configs.GetConfiguration())
-	// })
-	// c.Provide(func() dao.UserServiceFactory {
-	// 	return dao.NewUserServiceFactory()
-	// })
-	// c.Provide(func() password.Password {
-	// 	return password.New()
-	// })
-	// c.Provide(func(config configs.Configuration) (token.TokenService, error) {
-	// 	return token.NewTokenService(config.Auth.Jwt.PrivateKey)
-	// })
+	err := validators.Initialize(digCon)
+	if err != nil {
+		return fmt.Errorf("failed to initialize validators: %v", err)
+	}
 
 	for name, factory := range routerFactories {
 		if err := factory.Initialize(digCon); err != nil {
