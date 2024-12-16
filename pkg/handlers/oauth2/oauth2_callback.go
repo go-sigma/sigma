@@ -27,13 +27,13 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
+	"go.uber.org/dig"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -324,7 +324,7 @@ func (h *handler) tryGetUser(c echo.Context) (*models.User, error) {
 			return nil, xerrors.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Verify password failed: %v", err))
 		}
 	case strings.HasPrefix(authorization, "Bearer"):
-		tokenService, err := token.New(inits.DigCon)
+		tokenService, err := token.New(dig.New()) // TODO: dig
 		if err != nil {
 			log.Error().Err(err).Msg("Create token service failed")
 			return nil, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create token service failed: %v", err))

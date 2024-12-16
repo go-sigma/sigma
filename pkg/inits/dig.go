@@ -27,34 +27,20 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
-// DigCon is the dependency injection container
-var DigCon = dig.New()
-
 // NewDigContainer ...
-func NewDigContainer() error {
-	for _, e := range []error{
-		// init config
-		DigCon.Provide(func() configs.Configuration {
-			return ptr.To(configs.GetConfiguration())
-		}),
-		// init redis
-		DigCon.Provide(redis.New),
-		// init badger
-		DigCon.Provide(badger.New),
-		// init password
-		DigCon.Provide(password.New),
-		// init token
-		DigCon.Provide(func() (token.Service, error) {
-			return token.New(DigCon)
-		}),
-		// init locker
-		DigCon.Provide(func() (definition.Locker, error) {
-			return locker.Initialize(DigCon)
-		}),
+func NewDigContainer() (*dig.Container, error) {
+	var digCon = dig.New()
+	for _, err := range []error{
+		digCon.Provide(func() configs.Configuration { return ptr.To(configs.GetConfiguration()) }), // init config
+		digCon.Provide(redis.New),    // init redis
+		digCon.Provide(badger.New),   // init badger
+		digCon.Provide(password.New), // init password
+		digCon.Provide(func() (token.Service, error) { return token.New(digCon) }),             // init token
+		digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }), // init locker
 	} {
-		if e != nil {
-			return e
+		if err != nil {
+			return nil, err
 		}
 	}
-	return nil
+	return digCon, nil
 }

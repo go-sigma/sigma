@@ -24,7 +24,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -60,8 +59,8 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	artifactGroup := e.Group(consts.APIV1+"/namespaces/:namespace/artifacts", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 	artifactHandler := handlerNew(digCon)
+	artifactGroup := e.Group(consts.APIV1 + "/namespaces/:namespace/artifacts")
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
 	artifactGroup.GET("/:digest", artifactHandler.GetArtifact)
 	artifactGroup.DELETE("/:digest", artifactHandler.DeleteArtifact)

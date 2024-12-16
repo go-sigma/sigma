@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -52,15 +51,12 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
-
-	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	cacheGroup := echo.Group(consts.APIV1 + "/caches")
 	cacheGroup.POST("/:builder_id", handler.CreateCache)
 	cacheGroup.GET("/:builder_id", handler.GetCache)
 	cacheGroup.DELETE("/:builder_id", handler.DeleteCache)
-
 	return nil
 }
 

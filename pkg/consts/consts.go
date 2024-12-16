@@ -55,7 +55,7 @@ const (
 	// ContextJti represents jti in context
 	ContextJti = "jti"
 	// ContextUser represents user in context
-	ContextUser = "user"
+	ContextUser = "ctx-user"
 	// HotNamespace top hot namespaces
 	HotNamespace = 3
 	// WebhookSecretHeader ...

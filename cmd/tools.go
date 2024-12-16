@@ -67,25 +67,25 @@ func toolsForPushBuilderImageCmd() *cobra.Command {
 			logger.SetLevel(viper.GetString("log.level"))
 		},
 		Run: func(_ *cobra.Command, _ []string) {
-			err := configs.Initialize()
-			if err != nil {
-				log.Error().Err(err).Msg("initialize configs with error")
-				return
-			}
+			// err := configs.Initialize()
+			// if err != nil {
+			// 	log.Error().Err(err).Msg("initialize configs with error")
+			// 	return
+			// }
 
-			err = inits.NewDigContainer()
+			digCon, err := inits.NewDigContainer()
 			if err != nil {
 				log.Error().Err(err).Msg("new dig container failed")
 				return
 			}
 
-			err = dal.Initialize(inits.DigCon)
+			err = dal.Initialize(digCon)
 			if err != nil {
 				log.Error().Err(err).Msg("initialize database with error")
 				return
 			}
 
-			err = initBaseimage(inits.DigCon)
+			err = initBaseimage(digCon)
 			if err != nil {
 				log.Error().Err(err).Msg("push builder image with error")
 				return
@@ -227,11 +227,11 @@ func toolsMiddlewareCheckerCmd() *cobra.Command {
 			logger.SetLevel(viper.GetString("log.level"))
 		},
 		RunE: func(_ *cobra.Command, _ []string) error {
-			err := configs.Initialize()
-			if err != nil {
-				log.Error().Err(err).Msg("initialize configs with error")
-				return err
-			}
+			// err := configs.Initialize()
+			// if err != nil {
+			// 	log.Error().Err(err).Msg("initialize configs with error")
+			// 	return err
+			// }
 
 			if waitTimeout == 0 {
 				waitTimeout = time.Second * 120
@@ -245,7 +245,7 @@ func toolsMiddlewareCheckerCmd() *cobra.Command {
 				case <-ctx.Done():
 					return fmt.Errorf("middleware checker timeout, not all of middleware ready")
 				case <-time.After(time.Second * 3):
-					err = configs.CheckMiddleware()
+					err := configs.CheckMiddleware()
 					if err != nil {
 						log.Error().Err(err).Msg("check middleware with error")
 					} else {

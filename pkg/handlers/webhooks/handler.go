@@ -25,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -79,21 +78,19 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-
-	webhookGroup := e.Group(consts.APIV1+"/webhooks", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-
-	webhookHandler := handlerNew(digCon)
-	webhookGroup.POST("/", webhookHandler.PostWebhook)
-	webhookGroup.PUT("/:webhook_id", webhookHandler.PutWebhook)
-	webhookGroup.GET("/", webhookHandler.ListWebhook)
-	webhookGroup.GET("/:webhook_id", webhookHandler.GetWebhook)
-	webhookGroup.DELETE("/:webhook_id", webhookHandler.DeleteWebhook)
-	webhookGroup.GET("/:webhook_id/logs/", webhookHandler.ListWebhookLogs)
-	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id", webhookHandler.GetWebhookLog)
-	webhookGroup.DELETE("/:webhook_id/logs/:webhook_log_id", webhookHandler.DeleteWebhookLog)
-	webhookGroup.GET("/:webhook_id/ping", webhookHandler.GetWebhookPing)
-	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id/resend", webhookHandler.GetWebhookLogResend)
+	handler := handlerNew(digCon)
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	webhookGroup := echo.Group(consts.APIV1 + "/webhooks")
+	webhookGroup.POST("/", handler.PostWebhook)
+	webhookGroup.PUT("/:webhook_id", handler.PutWebhook)
+	webhookGroup.GET("/", handler.ListWebhook)
+	webhookGroup.GET("/:webhook_id", handler.GetWebhook)
+	webhookGroup.DELETE("/:webhook_id", handler.DeleteWebhook)
+	webhookGroup.GET("/:webhook_id/logs/", handler.ListWebhookLogs)
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id", handler.GetWebhookLog)
+	webhookGroup.DELETE("/:webhook_id/logs/:webhook_log_id", handler.DeleteWebhookLog)
+	webhookGroup.GET("/:webhook_id/ping", handler.GetWebhookPing)
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id/resend", handler.GetWebhookLogResend)
 	return nil
 }
 

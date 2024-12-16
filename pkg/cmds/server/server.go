@@ -16,36 +16,27 @@ package server
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
-	"hash"
-	"hash/crc32"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/cmds"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/utils/serializer"
+	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/web"
 )
 
@@ -58,83 +49,18 @@ type ServerConfig struct {
 
 // Serve starts the server
 func Serve(digCon *dig.Container) error {
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if c.Request().URL.Path == "/healthz" ||
-				c.Request().URL.Path == "/metrics" {
-				log.Trace().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Msg("Request debugger")
-			} else {
-				log.Debug().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Msg("Request debugger")
-			}
-			reqPath := c.Request().URL.Path
-			if strings.HasPrefix(reqPath, "/assets/") {
-				if strings.HasSuffix(c.Request().URL.Path, ".js") ||
-					strings.HasSuffix(c.Request().URL.Path, ".map") ||
-					strings.HasSuffix(c.Request().URL.Path, ".css") ||
-					strings.HasSuffix(c.Request().URL.Path, ".svg") ||
-					strings.HasSuffix(c.Request().URL.Path, ".png") ||
-					strings.HasSuffix(c.Request().URL.Path, ".ttf") ||
-					strings.HasSuffix(c.Request().URL.Path, ".json") ||
-					strings.HasSuffix(c.Request().URL.Path, ".yaml") {
-					c.Response().Header().Add("Cache-Control", "max-age=3600")
-				}
-			}
-			n := next(c)
-			return n
-		}
-	}))
-
-	config := ptr.To(configs.GetConfiguration())
-
-	e.Use(middleware.CORS())
-	e.Use(middlewares.WithEtagConfig(middlewares.EtagConfig{
-		Skipper: func(c echo.Context) bool {
-			reqPath := c.Request().URL.Path
-			if strings.HasPrefix(reqPath, "/api/v1/") {
-				return true
-			}
-			if strings.HasPrefix(reqPath, "/v2/") {
-				return true
-			}
-			return false
-		},
-		Weak: true,
-		HashFn: func(config middlewares.EtagConfig) hash.Hash {
-			if config.Weak {
-				const crcPol = 0xD5828281
-				crc32qTable := crc32.MakeTable(crcPol)
-				return crc32.New(crc32qTable)
-			}
-			return sha256.New()
-		},
-	}))
-	e.Use(echoprometheus.NewMiddleware(consts.AppName))
-	e.GET("/metrics", echoprometheus.NewHandler())
-	e.Use(middlewares.Healthz())
-	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e, consts.PprofPath)
+	echoServer, err := cmds.NewEchoServer(digCon)
+	if err != nil {
+		return fmt.Errorf("failed to new echo server: %v", err)
 	}
-	e.Use(middlewares.RedirectRepository(config))
-	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 
 	var serverConfig ServerConfig
-	err := digCon.Invoke(func(config ServerConfig) { serverConfig = config })
+	err = digCon.Invoke(func(config ServerConfig) { serverConfig = config })
 	if err != nil {
 		return fmt.Errorf("failed to invoke server config: %v", err)
 	}
 
-	err = digCon.Provide(func() *echo.Echo { return e })
+	err = digCon.Provide(func() *echo.Echo { return echoServer })
 	if err != nil {
 		return fmt.Errorf("failed to provide echo: %v", err)
 	}
@@ -151,6 +77,8 @@ func Serve(digCon *dig.Container) error {
 	if err != nil {
 		return fmt.Errorf("failed to provide work queue producer: %v", err)
 	}
+
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	if !serverConfig.WithoutDistribution {
 		handlers.InitializeDistribution(digCon)
@@ -170,7 +98,7 @@ func Serve(digCon *dig.Container) error {
 	}
 
 	if !serverConfig.WithoutWeb {
-		web.RegisterHandlers(e)
+		web.RegisterHandlers(echoServer)
 	}
 
 	err = handlers.Initialize(digCon)
@@ -196,12 +124,12 @@ func Serve(digCon *dig.Container) error {
 				log.Fatal().Err(err).Str("key", config.HTTP.TLS.Key).Msgf("Read key failed")
 				return
 			}
-			err = e.StartTLS(consts.ServerPort, crtBytes, keyBytes)
+			err = echoServer.StartTLS(consts.ServerPort, crtBytes, keyBytes)
 			if err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
 		} else {
-			err = e.Start(consts.ServerPort)
+			err = echoServer.Start(consts.ServerPort)
 			if err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
@@ -215,7 +143,7 @@ func Serve(digCon *dig.Container) error {
 	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = e.Shutdown(ctx)
+	err = echoServer.Shutdown(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
 	}

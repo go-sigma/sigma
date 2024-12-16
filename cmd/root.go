@@ -65,6 +65,5 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	cobra.CheckErr(viper.ReadInConfig())
-
 	cobra.CheckErr(viper.Unmarshal(configs.GetConfiguration()))
 }

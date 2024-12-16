@@ -294,7 +294,7 @@ type RetentionRuleType string
 
 // NamespaceRole x ENUM(
 // Admin="NamespaceAdmin",
-// Manager="NamespaceManager",
+// Manager="namespace_manager",
 // Reader="NamespaceReader",
 // )
 type NamespaceRole string

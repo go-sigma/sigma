@@ -22,13 +22,13 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-sigma/sigma/pkg/builder/logger"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/crypt"
@@ -97,7 +97,7 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	tokenService, err := token.New(inits.DigCon)
+	tokenService, err := token.New(dig.New()) // TODO: dig
 	if err != nil {
 		return nil, err
 	}

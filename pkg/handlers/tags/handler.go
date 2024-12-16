@@ -25,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -61,10 +60,10 @@ type factory struct{}
 
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	tagGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/tags", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
 
 	handler := handlerNew(digCon)
 
+	tagGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/tags")
 	tagGroup.GET("/", handler.ListTag)
 	tagGroup.GET("/:id", handler.GetTag)
 	tagGroup.DELETE("/:id", handler.DeleteTag)

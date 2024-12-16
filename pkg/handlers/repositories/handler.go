@@ -26,7 +26,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -75,17 +74,14 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	repositoryGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
-
-	repositoryHandler := handlerNew(digCon)
-
-	repositoryGroup.GET("/", repositoryHandler.ListRepositories)
-	repositoryGroup.POST("/", repositoryHandler.CreateRepository)
-	repositoryGroup.GET("/:id", repositoryHandler.GetRepository)
-	repositoryGroup.PUT("/:id", repositoryHandler.UpdateRepository)
-	repositoryGroup.DELETE("/:id", repositoryHandler.DeleteRepository)
-
+	handler := handlerNew(digCon)
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	repositoryGroup := echo.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories")
+	repositoryGroup.GET("/", handler.ListRepositories)
+	repositoryGroup.POST("/", handler.CreateRepository)
+	repositoryGroup.GET("/:id", handler.GetRepository)
+	repositoryGroup.PUT("/:id", handler.UpdateRepository)
+	repositoryGroup.DELETE("/:id", handler.DeleteRepository)
 	return nil
 }
 

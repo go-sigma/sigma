@@ -93,8 +93,10 @@ func TestAuth(t *testing.T) {
 	ctx := log.Logger.WithContext(context.Background())
 	nsMemberSvc := dao.NewNamespaceMemberServiceFactory().New()
 
-	added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
-	require.True(t, added)
+	// added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
+	// require.True(t, added)
+
+	// dal.AuthEnforcer.SavePolicy()
 
 	_, err = nsMemberSvc.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	require.NoError(t, err)

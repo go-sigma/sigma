@@ -22,7 +22,6 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/handlers/distribution"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -34,7 +33,7 @@ func InitializeDistribution(digCon *dig.Container) {
 		return func(c echo.Context) error {
 			return distribution.All(c, digCon)
 		}
-	}(), middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
+	}())
 }
 
 // Initialize ...

@@ -28,12 +28,12 @@ import (
 	"github.com/anchore/syft/syft/source"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -75,7 +75,7 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 	if err != nil {
 		return err
 	}
-	tokenService, err := token.New(inits.DigCon)
+	tokenService, err := token.New(dig.New()) // TODO: dig
 	if err != nil {
 		return err
 	}

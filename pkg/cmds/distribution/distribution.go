@@ -16,72 +16,33 @@ package distribution
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo-contrib/pprof"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 
+	"github.com/go-sigma/sigma/pkg/cmds"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/storage"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/utils/serializer"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-func Serve() error {
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
-	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if c.Request().URL.Path == "/healthz" ||
-				c.Request().URL.Path == "/metrics" {
-				log.Trace().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Msg("Request debugger")
-			} else {
-				log.Debug().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Interface("req-header", c.Request().Header).
-					Interface("resp-header", c.Response().Header()).
-					Int("status", c.Response().Status).
-					Msg("Request debugger")
-			}
-			n := next(c)
-			return n
-		}
-	}))
-
-	config := ptr.To(configs.GetConfiguration())
-
-	e.Use(middleware.CORS())
-	e.Use(echoprometheus.NewMiddleware(consts.AppName))
-	e.GET("/metrics", echoprometheus.NewHandler())
-	e.Use(middlewares.Healthz())
-	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
-
-	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e, consts.PprofPath)
+func Serve(digCon *dig.Container) error {
+	echoServer, err := cmds.NewEchoServer(digCon)
+	if err != nil {
+		return fmt.Errorf("failed to new echo server: %v", err)
 	}
 
-	err := workq.InitProducer(config)
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+	err = workq.InitProducer(config)
 	if err != nil {
 		return err
 	}
@@ -97,7 +58,7 @@ func Serve() error {
 		if config.HTTP.TLS.Enabled {
 			crtBytes, err := os.ReadFile(config.HTTP.TLS.Certificate)
 			if err != nil {
-				log.Fatal().Err(err).Str("certificate", config.HTTP.TLS.Certificate).Msgf("Read certificate failed")
+				log.Fatal().Err(err).Str("certificate", config.HTTP.TLS.Certificate).Msgf("Read certificate failed") // TODO: fatal error
 				return
 			}
 			keyBytes, err := os.ReadFile(config.HTTP.TLS.Key)
@@ -105,12 +66,12 @@ func Serve() error {
 				log.Fatal().Err(err).Str("key", config.HTTP.TLS.Key).Msgf("Read key failed")
 				return
 			}
-			err = e.StartTLS(consts.DistributionPort, crtBytes, keyBytes)
+			err = echoServer.StartTLS(consts.DistributionPort, crtBytes, keyBytes)
 			if err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
 		} else {
-			err = e.Start(consts.DistributionPort)
+			err = echoServer.Start(consts.DistributionPort)
 			if err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
@@ -124,7 +85,7 @@ func Serve() error {
 	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = e.Shutdown(ctx)
+	err = echoServer.Shutdown(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
 	}

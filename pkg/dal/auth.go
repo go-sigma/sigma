@@ -36,7 +36,7 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	gormadapter.TurnOffAutoMigrate(db)
+	gormadapter.TurnOffAutoMigrate(db.Debug())
 	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "casbin_rules")
 	if err != nil {
 		return err

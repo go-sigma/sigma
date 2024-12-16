@@ -24,7 +24,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -53,9 +52,9 @@ func handlerNew(digCon *dig.Container) Handler {
 type factory struct{}
 
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
-	tokenGroup := e.Group(consts.APIV1, middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	tokenGroup := echo.Group(consts.APIV1)
 	tokenGroup.GET("/tokens", handler.Token)
 	return nil
 }

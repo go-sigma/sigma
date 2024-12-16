@@ -16,28 +16,26 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo-contrib/pprof"
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/builder"
+	"github.com/go-sigma/sigma/pkg/cmds"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Worker is the worker initialization
-func Worker() error {
+func Worker(digCon *dig.Container) error {
 	config := ptr.To(configs.GetConfiguration())
 	err := builder.Initialize(config)
 	if err != nil {
@@ -49,19 +47,24 @@ func Worker() error {
 		return err
 	}
 
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
-	e.Use(echoprometheus.NewMiddleware(consts.AppName))
-	e.GET("/metrics", echoprometheus.NewHandler())
-	e.Use(middlewares.Healthz())
-	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
-		pprof.Register(e, consts.PprofPath)
+	// e := echo.New()
+	// e.HideBanner = true
+	// e.HidePort = true
+	// e.Use(echoprometheus.NewMiddleware(consts.AppName))
+	// e.GET("/metrics", echoprometheus.NewHandler())
+	// e.Use(middlewares.Healthz())
+	// if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
+	// 	pprof.Register(e, consts.PprofPath)
+	// }
+
+	echoServer, err := cmds.NewEchoServer(digCon)
+	if err != nil {
+		return fmt.Errorf("failed to new echo server: %v", err)
 	}
 
 	go func() {
 		log.Info().Str("addr", consts.WorkerPort).Msg("Server listening")
-		err = e.Start(consts.WorkerPort)
+		err = echoServer.Start(consts.WorkerPort)
 		if err != http.ErrServerClosed {
 			log.Fatal().Err(err).Msg("Listening on interface failed")
 		}
@@ -74,7 +77,7 @@ func Worker() error {
 	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = e.Shutdown(ctx)
+	err = echoServer.Shutdown(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Server shutdown failed")
 	}

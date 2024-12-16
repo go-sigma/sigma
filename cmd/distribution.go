@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/cmds/distribution"
-	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -36,31 +35,31 @@ var distributionCmd = &cobra.Command{
 		logger.SetLevel(viper.GetString("log.level"))
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-		err := configs.Initialize()
-		if err != nil {
-			log.Error().Err(err).Msg("Initialize configs with error")
-			return
-		}
+		// err := configs.Initialize()
+		// if err != nil {
+		// 	log.Error().Err(err).Msg("Initialize configs with error")
+		// 	return
+		// }
 
-		err = inits.NewDigContainer()
+		digCon, err := inits.NewDigContainer()
 		if err != nil {
 			log.Error().Err(err).Msg("new dig container failed")
 			return
 		}
 
-		err = dal.Initialize(inits.DigCon)
+		err = dal.Initialize(digCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize database with error")
 			return
 		}
 
-		err = inits.Initialize(inits.DigCon)
+		err = inits.Initialize(digCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Initialize inits with error")
 			return
 		}
 
-		err = distribution.Serve()
+		err = distribution.Serve(digCon)
 		if err != nil {
 			log.Error().Err(err).Msg("Start distribution with error")
 			return

@@ -25,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -76,8 +75,8 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	codeRepositoryHandler := handlerNew(digCon)
 
 	config := configs.GetConfiguration()
-	if config.Daemon.Builder.Enabled {
-		codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	if config.Daemon.Builder.Enabled { // TODO: use dig
+		codereposGroup := e.Group(consts.APIV1 + "/coderepos")
 		codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
 		codereposGroup.GET("/:provider", codeRepositoryHandler.List)
 		codereposGroup.GET("/:provider/repos/:id", codeRepositoryHandler.Get)

@@ -23,7 +23,6 @@ var checkers []checker
 // Initialize initializes the configs.
 func Initialize() error {
 	defaultSettings()
-
 	return nil
 }
 

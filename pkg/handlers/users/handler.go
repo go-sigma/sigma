@@ -15,20 +15,16 @@
 package users
 
 import (
-	"fmt"
 	"path"
 	"reflect"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
-	"golang.org/x/exp/slices"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -83,18 +79,18 @@ func handlerNew(digCon *dig.Container) Handler {
 
 type factory struct{}
 
-var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
+// var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	userGroup := e.Group(consts.APIV1 + "/users")
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	userGroup := echo.Group(consts.APIV1 + "/users")
 	handler := handlerNew(digCon)
-	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
-		Skipper: func(c echo.Context) bool {
-			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
-			return slices.Contains(skipAuths, authStr)
-		},
-	}))
+	// userGroup.Use(middlewares.AuthnWithConfig(middlewares.Config{
+	// 	Skipper: func(c echo.Context) bool {
+	// 		authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
+	// 		return slices.Contains(skipAuths, authStr)
+	// 	},
+	// }))
 
 	userGroup.GET("/", handler.List)
 	userGroup.POST("/", handler.Post)

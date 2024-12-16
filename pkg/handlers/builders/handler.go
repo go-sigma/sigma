@@ -25,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -76,10 +75,9 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
 
-	config := configs.GetConfiguration()
+	config := configs.GetConfiguration() // TODO: use dig
 	if config.Daemon.Builder.Enabled {
-		builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
-			middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+		builderGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
 		builderGroup.POST("/", handler.CreateBuilder)
 		builderGroup.PUT("/:builder_id", handler.UpdateBuilder)
 		builderGroup.GET("/:builder_id/runners/", handler.ListRunners)

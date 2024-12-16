@@ -15,21 +15,16 @@
 package oauth2
 
 import (
-	"fmt"
 	"path"
 	"reflect"
-	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"go.uber.org/dig"
-	"golang.org/x/exp/slices"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -67,19 +62,19 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
 	handler := handlerNew(digCon)
-	oauth2Mapper := viper.GetStringMap("auth.oauth2")
-	var skipAuths = make([]string, 0, len(oauth2Mapper))
-	for key := range oauth2Mapper {
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(key)))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(key)))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(key)))
-	}
-	oauth2Group.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
-		Skipper: func(c echo.Context) bool {
-			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
-			return slices.Contains(skipAuths, authStr)
-		},
-	}))
+	// oauth2Mapper := viper.GetStringMap("auth.oauth2")
+	// var skipAuths = make([]string, 0, len(oauth2Mapper))
+	// for key := range oauth2Mapper {
+	// 	skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(key)))
+	// 	skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(key)))
+	// 	skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(key)))
+	// }
+	// oauth2Group.Use(middlewares.AuthnWithConfig(middlewares.Config{
+	// 	Skipper: func(c echo.Context) bool {
+	// 		authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
+	// 		return slices.Contains(skipAuths, authStr)
+	// 	},
+	// }))
 	oauth2Group.GET("/:provider/callback", handler.Callback)
 	oauth2Group.GET("/:provider/client_id", handler.ClientID)
 	oauth2Group.GET("/:provider/redirect_callback", handler.RedirectCallback)

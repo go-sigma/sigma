@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -55,7 +54,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	validatorGroup := e.Group(consts.APIV1+"/validators", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	validatorGroup := e.Group(consts.APIV1 + "/validators")
 	repositoryHandler := handlerNew(digCon)
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)
