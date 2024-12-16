@@ -1461,7 +1461,7 @@ const (
 	// NamespaceRoleAdmin is a NamespaceRole of type Admin.
 	NamespaceRoleAdmin NamespaceRole = "NamespaceAdmin"
 	// NamespaceRoleManager is a NamespaceRole of type Manager.
-	NamespaceRoleManager NamespaceRole = "NamespaceManager"
+	NamespaceRoleManager NamespaceRole = "namespace_manager"
 	// NamespaceRoleReader is a NamespaceRole of type Reader.
 	NamespaceRoleReader NamespaceRole = "NamespaceReader"
 )
@@ -1481,9 +1481,9 @@ func (x NamespaceRole) IsValid() bool {
 }
 
 var _NamespaceRoleValue = map[string]NamespaceRole{
-	"NamespaceAdmin":   NamespaceRoleAdmin,
-	"NamespaceManager": NamespaceRoleManager,
-	"NamespaceReader":  NamespaceRoleReader,
+	"NamespaceAdmin":    NamespaceRoleAdmin,
+	"namespace_manager": NamespaceRoleManager,
+	"NamespaceReader":   NamespaceRoleReader,
 }
 
 // ParseNamespaceRole attempts to convert a string to a NamespaceRole.

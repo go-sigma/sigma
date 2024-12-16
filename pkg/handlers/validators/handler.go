@@ -55,7 +55,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	validatorGroup := e.Group(consts.APIV1+"/validators", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	validatorGroup := e.Group(consts.APIV1+"/validators", middlewares.AuthnWithConfig(middlewares.Config{}))
 	repositoryHandler := handlerNew(digCon)
 	validatorGroup.GET("/reference", repositoryHandler.GetReference)
 	validatorGroup.GET("/tag", repositoryHandler.GetTag)

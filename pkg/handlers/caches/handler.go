@@ -55,7 +55,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
 
-	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	cacheGroup := e.Group(consts.APIV1+"/caches", middlewares.AuthnWithConfig(middlewares.Config{}))
 
 	cacheGroup.POST("/:builder_id", handler.CreateCache)
 	cacheGroup.GET("/:builder_id", handler.GetCache)

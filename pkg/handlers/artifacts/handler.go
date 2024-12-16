@@ -60,7 +60,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	artifactGroup := e.Group(consts.APIV1+"/namespaces/:namespace/artifacts", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	artifactGroup := e.Group(consts.APIV1+"/namespaces/:namespace/artifacts", middlewares.AuthnWithConfig(middlewares.Config{}))
 	artifactHandler := handlerNew(digCon)
 	artifactGroup.GET("/", artifactHandler.ListArtifact)
 	artifactGroup.GET("/:digest", artifactHandler.GetArtifact)

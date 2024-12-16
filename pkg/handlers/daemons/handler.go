@@ -120,7 +120,7 @@ type factory struct{}
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	daemonGroup := e.Group(consts.APIV1+"/daemons", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	daemonGroup := e.Group(consts.APIV1+"/daemons", middlewares.AuthnWithConfig(middlewares.Config{}))
 
 	daemonHandler := handlerNew(digCon)
 

@@ -74,7 +74,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(key)))
 		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(key)))
 	}
-	oauth2Group.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
+	oauth2Group.Use(middlewares.AuthnWithConfig(middlewares.Config{
 		Skipper: func(c echo.Context) bool {
 			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
 			return slices.Contains(skipAuths, authStr)

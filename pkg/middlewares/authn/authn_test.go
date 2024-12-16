@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package middlewares
+package authn
 
 import (
 	"bytes"
@@ -106,7 +106,7 @@ func TestAuthWithConfig(t *testing.T) {
 	tests := []struct {
 		name          string
 		genDigCon     func(*testing.T) *dig.Container
-		genAuthConfig func(*testing.T, *dig.Container) AuthConfig
+		genAuthConfig func(*testing.T, *dig.Container) Config
 		afterCheck    func(*testing.T, *dig.Container, echo.MiddlewareFunc)
 		afterEach     func(*testing.T, *dig.Container)
 	}{
@@ -183,8 +183,8 @@ func TestAuthWithConfig(t *testing.T) {
 
 				return digCon
 			},
-			genAuthConfig: func(t *testing.T, c *dig.Container) AuthConfig {
-				return AuthConfig{
+			genAuthConfig: func(t *testing.T, c *dig.Container) Config {
+				return Config{
 					DigCon: c,
 				}
 			},
@@ -318,8 +318,8 @@ func TestAuthWithConfig(t *testing.T) {
 
 				return digCon
 			},
-			genAuthConfig: func(t *testing.T, c *dig.Container) AuthConfig {
-				return AuthConfig{
+			genAuthConfig: func(t *testing.T, c *dig.Container) Config {
+				return Config{
 					DigCon: c,
 					Skipper: func(c echo.Context) bool {
 						fmt.Println(c.Request().URL.Path == "/skip", c.Request().URL.Path, "/skip")
@@ -376,7 +376,7 @@ func TestAuthWithConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			digCon := tt.genDigCon(t)
 			defer tt.afterEach(t, digCon)
-			middleware := AuthWithConfig(tt.genAuthConfig(t, digCon))
+			middleware := AuthnWithConfig(tt.genAuthConfig(t, digCon))
 			if tt.afterCheck != nil {
 				tt.afterCheck(t, digCon, middleware)
 			}

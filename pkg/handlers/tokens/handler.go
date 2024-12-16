@@ -55,7 +55,7 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
-	tokenGroup := e.Group(consts.APIV1, middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	tokenGroup := e.Group(consts.APIV1, middlewares.AuthnWithConfig(middlewares.Config{}))
 	tokenGroup.GET("/tokens", handler.Token)
 	return nil
 }

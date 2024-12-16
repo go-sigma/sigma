@@ -89,7 +89,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	userGroup := e.Group(consts.APIV1 + "/users")
 	handler := handlerNew(digCon)
-	userGroup.Use(middlewares.AuthWithConfig(middlewares.AuthConfig{
+	userGroup.Use(middlewares.AuthnWithConfig(middlewares.Config{
 		Skipper: func(c echo.Context) bool {
 			authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
 			return slices.Contains(skipAuths, authStr)

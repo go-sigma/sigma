@@ -81,7 +81,7 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 
-	webhookGroup := e.Group(consts.APIV1+"/webhooks", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+	webhookGroup := e.Group(consts.APIV1+"/webhooks", middlewares.AuthnWithConfig(middlewares.Config{}))
 
 	webhookHandler := handlerNew(digCon)
 	webhookGroup.POST("/", webhookHandler.PostWebhook)

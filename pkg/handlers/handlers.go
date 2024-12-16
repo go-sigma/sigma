@@ -34,7 +34,7 @@ func InitializeDistribution(digCon *dig.Container) {
 		return func(c echo.Context) error {
 			return distribution.All(c, digCon)
 		}
-	}(), middlewares.AuthWithConfig(middlewares.AuthConfig{DS: true}))
+	}(), middlewares.AuthnWithConfig(middlewares.Config{DS: true}))
 }
 
 // Initialize ...
@@ -45,6 +45,8 @@ func Initialize(digCon *dig.Container) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize validators: %v", err)
 	}
+
+	e.Use(middlewares.AuthnWithConfig())
 
 	for name, factory := range routerFactories {
 		if err := factory.Initialize(digCon); err != nil {

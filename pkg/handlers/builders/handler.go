@@ -79,7 +79,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	config := configs.GetConfiguration()
 	if config.Daemon.Builder.Enabled {
 		builderGroup := e.Group(consts.APIV1+"/namespaces/:namespace_id/repositories/:repository_id/builders",
-			middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+			middlewares.AuthnWithConfig(middlewares.Config{}))
 		builderGroup.POST("/", handler.CreateBuilder)
 		builderGroup.PUT("/:builder_id", handler.UpdateBuilder)
 		builderGroup.GET("/:builder_id/runners/", handler.ListRunners)

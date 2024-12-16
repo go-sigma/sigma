@@ -77,7 +77,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 
 	config := configs.GetConfiguration()
 	if config.Daemon.Builder.Enabled {
-		codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthWithConfig(middlewares.AuthConfig{}))
+		codereposGroup := e.Group(consts.APIV1+"/coderepos", middlewares.AuthnWithConfig(middlewares.Config{}))
 		codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
 		codereposGroup.GET("/:provider", codeRepositoryHandler.List)
 		codereposGroup.GET("/:provider/repos/:id", codeRepositoryHandler.Get)

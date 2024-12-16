@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package middlewares
+package authn
 
 import (
 	"fmt"
@@ -35,8 +35,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
-// AuthConfig is the configuration for the Auth middleware.
-type AuthConfig struct {
+// Config is the configuration for the Auth middleware.
+type Config struct {
 	// Skipper defines a function to skip middleware.
 	Skipper middleware.Skipper
 	// DS is distribution service or not.
@@ -45,8 +45,8 @@ type AuthConfig struct {
 	DigCon *dig.Container
 }
 
-// AuthWithConfig returns a middleware which authenticates requests.
-func AuthWithConfig(config AuthConfig) echo.MiddlewareFunc {
+// AuthnWithConfig returns a middleware which authenticates requests.
+func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if config.Skipper != nil && config.Skipper(c) {
