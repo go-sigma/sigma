@@ -15,8 +15,10 @@
 package dal
 
 import (
+	"crypto/rand"
 	"database/sql"
-	"math/rand"
+	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -28,10 +30,14 @@ import (
 
 // TxnWithRetry ...
 func TxnWithRetry(fc func(tx *query.Query) error, opts ...*sql.TxOptions) error {
-	err := retry.Do(func() error {
+	randInt, err := rand.Int(rand.Reader, big.NewInt(300))
+	if err != nil {
+		return fmt.Errorf("failed to generate random number: %w", err)
+	}
+	err = retry.Do(func() error {
 		return query.Q.Transaction(fc, opts...)
 	}, retry.MaxDelay(time.Second*10), retry.Attempts(6), retry.LastErrorOnly(true),
-		retry.Delay(300*time.Millisecond+time.Duration(rand.Intn(300))*time.Millisecond),
+		retry.Delay(300*time.Millisecond+time.Duration(randInt.Int64())*time.Millisecond),
 		retry.RetryIf(func(err error) bool {
 			if err != nil && strings.Contains(err.Error(), "Deadlock") {
 				log.Debug().Err(err).Msg("transaction deadlock, retry again now")

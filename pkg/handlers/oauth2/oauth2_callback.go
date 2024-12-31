@@ -26,7 +26,7 @@ import (
 	"github.com/labstack/echo/v4"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"go.uber.org/dig"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"

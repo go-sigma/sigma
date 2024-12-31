@@ -16,6 +16,7 @@ package authn
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -42,6 +43,14 @@ type Config struct {
 	// DigCon is the dig container
 	DigCon *dig.Container
 }
+
+// AuthnConfig ...
+type AuthnConfig struct {
+	Skip bool
+}
+
+// AuthMapper ...
+var AuthMapper = make(map[*regexp.Regexp]*AuthnConfig)
 
 // AuthnWithConfig returns a middleware which authenticates requests.
 func AuthnWithConfig(config Config) echo.MiddlewareFunc {

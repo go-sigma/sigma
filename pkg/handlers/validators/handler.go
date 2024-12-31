@@ -23,7 +23,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares/authn"
+	"github.com/go-sigma/sigma/pkg/middlewares/authz"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/echoplus"
 )
 
 // Handler ...
@@ -45,7 +48,7 @@ var _ Handler = &handler{}
 type handler struct{}
 
 // handlerNew creates a new instance of the distribution handlers
-func handlerNew(_ *dig.Container) Handler {
+func handlerNew() Handler {
 	return &handler{}
 }
 
@@ -53,14 +56,14 @@ type factory struct{}
 
 // Initialize initializes the namespace handlers
 func (f factory) Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	validatorGroup := e.Group(consts.APIV1 + "/validators")
-	repositoryHandler := handlerNew(digCon)
-	validatorGroup.GET("/reference", repositoryHandler.GetReference)
-	validatorGroup.GET("/tag", repositoryHandler.GetTag)
-	validatorGroup.POST("/password", repositoryHandler.GetPassword)
-	validatorGroup.POST("/cron", repositoryHandler.ValidateCron)
-	validatorGroup.POST("/regexp", repositoryHandler.ValidateRegexp)
+	handler := handlerNew()
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	plus := echoplus.New(echo.Group(consts.APIV1 + "/validators"))
+	plus.Get("/reference", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.GetReference)
+	plus.Get("/tag", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.GetTag)
+	plus.Post("/password", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.GetPassword)
+	plus.Post("/cron", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.ValidateCron)
+	plus.Post("/regexp", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.ValidateRegexp)
 	return nil
 }
 

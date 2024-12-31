@@ -18,6 +18,7 @@
 package authz
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -40,6 +41,21 @@ type (
 		Enforcer *casbin.SyncedEnforcer
 	}
 )
+
+// AuthzConfig ...
+type AuthzConfig struct {
+	Skip   bool
+	Source []AuthzConfigSource
+}
+
+// AuthzConfigSource ...
+type AuthzConfigSource struct {
+	Name     string `json:"name"`
+	Position string `json:"position"`
+}
+
+// AuthMapper ...
+var AuthMapper = make(map[*regexp.Regexp]*AuthzConfig)
 
 // AuthzWithConfig returns a CasbinAuth middleware with config
 func AuthzWithConfig(config Config) echo.MiddlewareFunc {

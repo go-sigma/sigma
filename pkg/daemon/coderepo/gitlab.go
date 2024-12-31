@@ -20,7 +20,7 @@ import (
 	"strconv"
 
 	"github.com/rs/zerolog/log"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"

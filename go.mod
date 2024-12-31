@@ -69,6 +69,7 @@ require (
 	github.com/wagslane/go-password-validator v0.3.0
 	github.com/xanzy/go-gitlab v0.115.0
 	github.com/xo/dburl v0.23.2
+	gitlab.com/gitlab-org/api/client-go v0.118.0
 	go.uber.org/dig v1.18.0
 	go.uber.org/mock v0.5.0
 	golang.org/x/crypto v0.31.0
@@ -316,7 +317,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
-	github.com/microsoft/go-mssqldb v1.6.0 // indirect
+	github.com/microsoft/go-mssqldb v1.7.2 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/mistifyio/go-zfs/v3 v3.0.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -460,7 +461,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241104194629-dd2ea8efbc28 // indirect
 	google.golang.org/grpc v1.68.0 // indirect
 	google.golang.org/grpc/stats/opentelemetry v0.0.0-20240907200651-3ffb98b2c93a // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	google.golang.org/protobuf v1.36.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -468,9 +469,9 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/datatypes v1.2.0 // indirect
+	gorm.io/datatypes v1.2.5 // indirect
 	gorm.io/driver/sqlite v1.5.5 // indirect
-	gorm.io/driver/sqlserver v1.5.3 // indirect
+	gorm.io/driver/sqlserver v1.5.4 // indirect
 	gorm.io/hints v1.1.2 // indirect
 	helm.sh/helm/v3 v3.16.3 // indirect
 	k8s.io/apiextensions-apiserver v0.31.1 // indirect

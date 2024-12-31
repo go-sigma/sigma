@@ -24,7 +24,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares/authn"
+	"github.com/go-sigma/sigma/pkg/middlewares/authz"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/echoplus"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
@@ -54,8 +57,8 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	handler := handlerNew(digCon)
 	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	tokenGroup := echo.Group(consts.APIV1)
-	tokenGroup.GET("/tokens", handler.Token)
+	plus := echoplus.New(echo.Group(consts.APIV1))
+	plus.Get("/tokens", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Token)
 	return nil
 }
 

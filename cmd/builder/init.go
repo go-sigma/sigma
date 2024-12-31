@@ -142,7 +142,7 @@ func (b Builder) initToken() error {
 	btConfig.Workers.OCI.Snapshotter = "auto"
 	btConfig.Workers.OCI.NoProcessSandbox = true
 	btConfig.Workers.OCI.GC = ptr.Of(true)
-	btConfig.Workers.OCI.GCKeepStorage.Bytes = 10 << 30 // 10GB
+	btConfig.Workers.OCI.GCReservedSpace.Bytes = 10 << 30 // 10GB
 	btConfig.Workers.OCI.MaxParallelism = 4
 	btConfig.Workers.OCI.CNIPoolSize = 16
 	btConfig.Workers.OCI.Rootless = true
