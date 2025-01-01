@@ -390,6 +390,513 @@ func (x Auth) Value() (driver.Value, error) {
 }
 
 const (
+	// AuthActionGet is a AuthAction of type Get.
+	AuthActionGet AuthAction = "Get"
+	// AuthActionList is a AuthAction of type List.
+	AuthActionList AuthAction = "List"
+	// AuthActionPut is a AuthAction of type Put.
+	AuthActionPut AuthAction = "Put"
+	// AuthActionCreate is a AuthAction of type Create.
+	AuthActionCreate AuthAction = "Create"
+	// AuthActionDelete is a AuthAction of type Delete.
+	AuthActionDelete AuthAction = "Delete"
+	// AuthActionPatch is a AuthAction of type Patch.
+	AuthActionPatch AuthAction = "Patch"
+)
+
+var ErrInvalidAuthAction = errors.New("not a valid AuthAction")
+
+// String implements the Stringer interface.
+func (x AuthAction) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthAction) IsValid() bool {
+	_, err := ParseAuthAction(string(x))
+	return err == nil
+}
+
+var _AuthActionValue = map[string]AuthAction{
+	"Get":    AuthActionGet,
+	"List":   AuthActionList,
+	"Put":    AuthActionPut,
+	"Create": AuthActionCreate,
+	"Delete": AuthActionDelete,
+	"Patch":  AuthActionPatch,
+}
+
+// ParseAuthAction attempts to convert a string to a AuthAction.
+func ParseAuthAction(name string) (AuthAction, error) {
+	if x, ok := _AuthActionValue[name]; ok {
+		return x, nil
+	}
+	return AuthAction(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthAction)
+}
+
+// MustParseAuthAction converts a string to a AuthAction, and panics if is not valid.
+func MustParseAuthAction(name string) AuthAction {
+	val, err := ParseAuthAction(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthActionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthAction) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthAction("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthAction(v)
+	case []byte:
+		*x, err = ParseAuthAction(string(v))
+	case AuthAction:
+		*x = v
+	case *AuthAction:
+		if v == nil {
+			return errAuthActionNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthActionNilPtr
+		}
+		*x, err = ParseAuthAction(*v)
+	default:
+		return errors.New("invalid type for AuthAction")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthAction) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuthEffectAllow is a AuthEffect of type Allow.
+	AuthEffectAllow AuthEffect = "Allow"
+	// AuthEffectDeny is a AuthEffect of type Deny.
+	AuthEffectDeny AuthEffect = "Deny"
+)
+
+var ErrInvalidAuthEffect = errors.New("not a valid AuthEffect")
+
+// String implements the Stringer interface.
+func (x AuthEffect) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthEffect) IsValid() bool {
+	_, err := ParseAuthEffect(string(x))
+	return err == nil
+}
+
+var _AuthEffectValue = map[string]AuthEffect{
+	"Allow": AuthEffectAllow,
+	"Deny":  AuthEffectDeny,
+}
+
+// ParseAuthEffect attempts to convert a string to a AuthEffect.
+func ParseAuthEffect(name string) (AuthEffect, error) {
+	if x, ok := _AuthEffectValue[name]; ok {
+		return x, nil
+	}
+	return AuthEffect(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthEffect)
+}
+
+// MustParseAuthEffect converts a string to a AuthEffect, and panics if is not valid.
+func MustParseAuthEffect(name string) AuthEffect {
+	val, err := ParseAuthEffect(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthEffectNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthEffect) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthEffect("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthEffect(v)
+	case []byte:
+		*x, err = ParseAuthEffect(string(v))
+	case AuthEffect:
+		*x = v
+	case *AuthEffect:
+		if v == nil {
+			return errAuthEffectNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthEffectNilPtr
+		}
+		*x, err = ParseAuthEffect(*v)
+	default:
+		return errors.New("invalid type for AuthEffect")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthEffect) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuthPositionParam is a AuthPosition of type param.
+	AuthPositionParam AuthPosition = "param"
+	// AuthPositionJson is a AuthPosition of type json.
+	AuthPositionJson AuthPosition = "json"
+)
+
+var ErrInvalidAuthPosition = errors.New("not a valid AuthPosition")
+
+// String implements the Stringer interface.
+func (x AuthPosition) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthPosition) IsValid() bool {
+	_, err := ParseAuthPosition(string(x))
+	return err == nil
+}
+
+var _AuthPositionValue = map[string]AuthPosition{
+	"param": AuthPositionParam,
+	"json":  AuthPositionJson,
+}
+
+// ParseAuthPosition attempts to convert a string to a AuthPosition.
+func ParseAuthPosition(name string) (AuthPosition, error) {
+	if x, ok := _AuthPositionValue[name]; ok {
+		return x, nil
+	}
+	return AuthPosition(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthPosition)
+}
+
+// MustParseAuthPosition converts a string to a AuthPosition, and panics if is not valid.
+func MustParseAuthPosition(name string) AuthPosition {
+	val, err := ParseAuthPosition(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthPositionNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthPosition) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthPosition("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthPosition(v)
+	case []byte:
+		*x, err = ParseAuthPosition(string(v))
+	case AuthPosition:
+		*x = v
+	case *AuthPosition:
+		if v == nil {
+			return errAuthPositionNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthPositionNilPtr
+		}
+		*x, err = ParseAuthPosition(*v)
+	default:
+		return errors.New("invalid type for AuthPosition")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthPosition) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuthResourceNamespace is a AuthResource of type Namespace.
+	AuthResourceNamespace AuthResource = "Namespace"
+)
+
+var ErrInvalidAuthResource = errors.New("not a valid AuthResource")
+
+// String implements the Stringer interface.
+func (x AuthResource) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthResource) IsValid() bool {
+	_, err := ParseAuthResource(string(x))
+	return err == nil
+}
+
+var _AuthResourceValue = map[string]AuthResource{
+	"Namespace": AuthResourceNamespace,
+}
+
+// ParseAuthResource attempts to convert a string to a AuthResource.
+func ParseAuthResource(name string) (AuthResource, error) {
+	if x, ok := _AuthResourceValue[name]; ok {
+		return x, nil
+	}
+	return AuthResource(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthResource)
+}
+
+// MustParseAuthResource converts a string to a AuthResource, and panics if is not valid.
+func MustParseAuthResource(name string) AuthResource {
+	val, err := ParseAuthResource(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthResourceNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthResource) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthResource("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthResource(v)
+	case []byte:
+		*x, err = ParseAuthResource(string(v))
+	case AuthResource:
+		*x = v
+	case *AuthResource:
+		if v == nil {
+			return errAuthResourceNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthResourceNilPtr
+		}
+		*x, err = ParseAuthResource(*v)
+	default:
+		return errors.New("invalid type for AuthResource")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthResource) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuthRoleNamespaceAdmin is a AuthRole of type NamespaceAdmin.
+	AuthRoleNamespaceAdmin AuthRole = "NamespaceAdmin"
+	// AuthRoleNamespaceMember is a AuthRole of type NamespaceMember.
+	AuthRoleNamespaceMember AuthRole = "NamespaceMember"
+	// AuthRoleNamespaceReader is a AuthRole of type NamespaceReader.
+	AuthRoleNamespaceReader AuthRole = "NamespaceReader"
+)
+
+var ErrInvalidAuthRole = errors.New("not a valid AuthRole")
+
+// String implements the Stringer interface.
+func (x AuthRole) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthRole) IsValid() bool {
+	_, err := ParseAuthRole(string(x))
+	return err == nil
+}
+
+var _AuthRoleValue = map[string]AuthRole{
+	"NamespaceAdmin":  AuthRoleNamespaceAdmin,
+	"NamespaceMember": AuthRoleNamespaceMember,
+	"NamespaceReader": AuthRoleNamespaceReader,
+}
+
+// ParseAuthRole attempts to convert a string to a AuthRole.
+func ParseAuthRole(name string) (AuthRole, error) {
+	if x, ok := _AuthRoleValue[name]; ok {
+		return x, nil
+	}
+	return AuthRole(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthRole)
+}
+
+// MustParseAuthRole converts a string to a AuthRole, and panics if is not valid.
+func MustParseAuthRole(name string) AuthRole {
+	val, err := ParseAuthRole(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthRoleNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthRole) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthRole("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthRole(v)
+	case []byte:
+		*x, err = ParseAuthRole(string(v))
+	case AuthRole:
+		*x = v
+	case *AuthRole:
+		if v == nil {
+			return errAuthRoleNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthRoleNilPtr
+		}
+		*x, err = ParseAuthRole(*v)
+	default:
+		return errors.New("invalid type for AuthRole")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthRole) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
+	// AuthScopeNamespace is a AuthScope of type Namespace.
+	AuthScopeNamespace AuthScope = "Namespace"
+)
+
+var ErrInvalidAuthScope = errors.New("not a valid AuthScope")
+
+// String implements the Stringer interface.
+func (x AuthScope) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x AuthScope) IsValid() bool {
+	_, err := ParseAuthScope(string(x))
+	return err == nil
+}
+
+var _AuthScopeValue = map[string]AuthScope{
+	"Namespace": AuthScopeNamespace,
+}
+
+// ParseAuthScope attempts to convert a string to a AuthScope.
+func ParseAuthScope(name string) (AuthScope, error) {
+	if x, ok := _AuthScopeValue[name]; ok {
+		return x, nil
+	}
+	return AuthScope(""), fmt.Errorf("%s is %w", name, ErrInvalidAuthScope)
+}
+
+// MustParseAuthScope converts a string to a AuthScope, and panics if is not valid.
+func MustParseAuthScope(name string) AuthScope {
+	val, err := ParseAuthScope(name)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+var errAuthScopeNilPtr = errors.New("value pointer is nil") // one per type for package clashes
+
+// Scan implements the Scanner interface.
+func (x *AuthScope) Scan(value interface{}) (err error) {
+	if value == nil {
+		*x = AuthScope("")
+		return
+	}
+
+	// A wider range of scannable types.
+	// driver.Value values at the top of the list for expediency
+	switch v := value.(type) {
+	case string:
+		*x, err = ParseAuthScope(v)
+	case []byte:
+		*x, err = ParseAuthScope(string(v))
+	case AuthScope:
+		*x = v
+	case *AuthScope:
+		if v == nil {
+			return errAuthScopeNilPtr
+		}
+		*x = *v
+	case *string:
+		if v == nil {
+			return errAuthScopeNilPtr
+		}
+		*x, err = ParseAuthScope(*v)
+	default:
+		return errors.New("invalid type for AuthScope")
+	}
+
+	return
+}
+
+// Value implements the driver Valuer interface.
+func (x AuthScope) Value() (driver.Value, error) {
+	return x.String(), nil
+}
+
+const (
 	// BuildStatusSuccess is a BuildStatus of type Success.
 	BuildStatusSuccess BuildStatus = "Success"
 	// BuildStatusFailed is a BuildStatus of type Failed.

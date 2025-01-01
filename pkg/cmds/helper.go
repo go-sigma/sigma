@@ -18,7 +18,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/middlewares"
 	"github.com/go-sigma/sigma/pkg/middlewares/authn"
 	"github.com/go-sigma/sigma/pkg/middlewares/authz"
@@ -98,8 +97,7 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 		Skipper: genSkipper(),
 	}))
 	e.Use(authz.AuthzWithConfig(authz.Config{
-		Skipper:  genSkipper(),
-		Enforcer: dal.AuthEnforcer,
+		Skipper: genSkipper(),
 	}))
 	return e, nil
 }
@@ -114,7 +112,8 @@ func genSkipper() middleware.Skipper {
 		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(oauth2.Field(key).Name)))
 	}
 	return func(c echo.Context) bool {
-		request := c.Request()
-		return slices.Contains(skipAuths, strings.ToLower(fmt.Sprintf("%s:%s", request.Method, request.URL.Path)))
+		requestUri := c.Request().RequestURI
+		requestMethod := c.Request().Method
+		return slices.Contains(skipAuths, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
 	}
 }

@@ -311,3 +311,42 @@ type Auth string
 // Automatic,
 // )
 type OperateType string
+
+// AuthPosition x ENUM(
+// param,
+// json,
+// )
+type AuthPosition string
+
+// AuthEffect x ENUM(
+// Allow,
+// Deny,
+// )
+type AuthEffect string
+
+// AuthRole x ENUM(
+// NamespaceAdmin,
+// NamespaceMember,
+// NamespaceReader,
+// )
+type AuthRole string
+
+// AuthResource x ENUM(
+// Namespace,
+// )
+type AuthResource string
+
+// AuthAction x ENUM(
+// Get,
+// List,
+// Put,
+// Create,
+// Delete,
+// Patch,
+// )
+type AuthAction string
+
+// AuthScope x ENUM(
+// Namespace,
+// )
+type AuthScope string

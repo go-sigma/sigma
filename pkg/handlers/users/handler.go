@@ -25,7 +25,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/middlewares/authn"
+	"github.com/go-sigma/sigma/pkg/middlewares/authz"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/echoplus"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -79,36 +82,24 @@ func handlerNew(digCon *dig.Container) Handler {
 
 type factory struct{}
 
-// var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
-
+// Initialize ...
 func (f factory) Initialize(digCon *dig.Container) error {
-	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	userGroup := echo.Group(consts.APIV1 + "/users")
 	handler := handlerNew(digCon)
-	// userGroup.Use(middlewares.AuthnWithConfig(middlewares.Config{
-	// 	Skipper: func(c echo.Context) bool {
-	// 		authStr := strings.ToLower(fmt.Sprintf("%s:%s", c.Request().Method, c.Request().URL.Path))
-	// 		return slices.Contains(skipAuths, authStr)
-	// 	},
-	// }))
-
-	userGroup.GET("/", handler.List)
-	userGroup.POST("/", handler.Post)
-	userGroup.PUT("/:id", handler.Put)
-	userGroup.POST("/login", handler.Login)
-	userGroup.POST("/logout", handler.Logout)
-	userGroup.GET("/signup", handler.Signup)
-	userGroup.GET("/create", handler.Signup)
-
-	userGroup.GET("/self", handler.SelfGet)
-	userGroup.PUT("/self", handler.SelfPut)
-	userGroup.PUT("/self/reset-password", handler.SelfResetPassword)
-
-	userGroup.GET("/recover-password", handler.RecoverPassword)
-	userGroup.PUT("/recover-password-reset/:code", handler.RecoverPasswordReset)
-
-	userGroup.PUT("/:id/reset-password", handler.ResetPassword)
-
+	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
+	plus := echoplus.New(echo.Group(consts.APIV1 + "/validators"))
+	plus.Get("/", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.List)
+	plus.Post("/", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true, Sources: []authz.AuthzConfigSource{}}, handler.Post)
+	plus.Put("/:id", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Put)
+	plus.Post("/login", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Login)
+	plus.Post("/logout", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Logout)
+	plus.Get("/signup", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.Signup)
+	plus.Get("/create", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Signup)
+	plus.Get("/self", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfGet)
+	plus.Put("/self", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfPut)
+	plus.Put("/self/reset-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfResetPassword)
+	plus.Get("/recover-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.RecoverPassword)
+	plus.Put("/recover-password-reset/:code", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.RecoverPasswordReset)
+	plus.Put("/:id/reset-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.ResetPassword)
 	return nil
 }
 
