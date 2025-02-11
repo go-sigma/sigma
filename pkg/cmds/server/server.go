@@ -32,7 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
-	"github.com/go-sigma/sigma/pkg/handlers"
+	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"

@@ -43,7 +43,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 

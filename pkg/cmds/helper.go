@@ -18,9 +18,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/middlewares"
-	"github.com/go-sigma/sigma/pkg/middlewares/authn"
-	"github.com/go-sigma/sigma/pkg/middlewares/authz"
+	"github.com/go-sigma/sigma/pkg/server/middlewares"
+	"github.com/go-sigma/sigma/pkg/server/middlewares/authn"
+	"github.com/go-sigma/sigma/pkg/server/middlewares/authz"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/serializer"

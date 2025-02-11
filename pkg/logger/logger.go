@@ -36,7 +36,7 @@ func SetLevel(levelStr string) {
 	}
 
 	zerolog.SetGlobalLevel(level)
-	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime, FormatCaller: func(i interface{}) string {
+	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime, FormatCaller: func(i any) string {
 		var c string
 		if cc, ok := i.(string); ok {
 			c = cc
@@ -58,27 +58,27 @@ func SetLevel(levelStr string) {
 type Logger struct{}
 
 // Debug logs a message at Debug level.
-func (l *Logger) Debug(args ...interface{}) {
+func (l *Logger) Debug(args ...any) {
 	log.Debug().Msg(fmt.Sprintf("%v", args...))
 }
 
 // Info logs a message at Info level.
-func (l *Logger) Info(args ...interface{}) {
+func (l *Logger) Info(args ...any) {
 	log.Info().Msg(fmt.Sprintf("%v", args...))
 }
 
 // Warn logs a message at Warning level.
-func (l *Logger) Warn(args ...interface{}) {
+func (l *Logger) Warn(args ...any) {
 	log.Warn().Msg(fmt.Sprintf("%v", args...))
 }
 
 // Error logs a message at Error level.
-func (l *Logger) Error(args ...interface{}) {
+func (l *Logger) Error(args ...any) {
 	log.Error().Msg(fmt.Sprintf("%v", args...))
 }
 
 // Fatal logs a message at Fatal level
 // and process will exit with status set to 1.
-func (l *Logger) Fatal(args ...interface{}) {
+func (l *Logger) Fatal(args ...any) {
 	log.Fatal().Msg(fmt.Sprintf("%v", args...))
 }

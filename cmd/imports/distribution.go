@@ -15,8 +15,8 @@
 package imports
 
 import (
-	_ "github.com/go-sigma/sigma/pkg/handlers/distribution/base"
-	_ "github.com/go-sigma/sigma/pkg/handlers/distribution/blob"
-	_ "github.com/go-sigma/sigma/pkg/handlers/distribution/manifest"
-	_ "github.com/go-sigma/sigma/pkg/handlers/distribution/upload"
+	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/base"
+	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/blob"
+	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/manifest"
+	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/upload"
 )
