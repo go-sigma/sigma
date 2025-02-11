@@ -21,6 +21,7 @@ import (
 type MockBlobService struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockBlobServiceMockRecorder is the mock recorder for MockBlobService.
@@ -41,118 +42,118 @@ func (m *MockBlobService) EXPECT() *MockBlobServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockBlobService) Create(arg0 context.Context, arg1 *models.Blob) error {
+func (m *MockBlobService) Create(ctx context.Context, blob *models.Blob) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, blob)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockBlobServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) Create(ctx, blob any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBlobService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBlobService)(nil).Create), ctx, blob)
 }
 
 // DeleteByID mocks base method.
-func (m *MockBlobService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockBlobService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockBlobServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockBlobService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockBlobService)(nil).DeleteByID), ctx, id)
 }
 
 // Exists mocks base method.
-func (m *MockBlobService) Exists(arg0 context.Context, arg1 string) (bool, error) {
+func (m *MockBlobService) Exists(ctx context.Context, digest string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exists", arg0, arg1)
+	ret := m.ctrl.Call(m, "Exists", ctx, digest)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Exists indicates an expected call of Exists.
-func (mr *MockBlobServiceMockRecorder) Exists(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) Exists(ctx, digest any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockBlobService)(nil).Exists), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockBlobService)(nil).Exists), ctx, digest)
 }
 
 // FindAssociateWithArtifact mocks base method.
-func (m *MockBlobService) FindAssociateWithArtifact(arg0 context.Context, arg1 []int64) ([]int64, error) {
+func (m *MockBlobService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", ctx, ids)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAssociateWithArtifact indicates an expected call of FindAssociateWithArtifact.
-func (mr *MockBlobServiceMockRecorder) FindAssociateWithArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) FindAssociateWithArtifact(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockBlobService)(nil).FindAssociateWithArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockBlobService)(nil).FindAssociateWithArtifact), ctx, ids)
 }
 
 // FindByDigest mocks base method.
-func (m *MockBlobService) FindByDigest(arg0 context.Context, arg1 string) (*models.Blob, error) {
+func (m *MockBlobService) FindByDigest(ctx context.Context, digest string) (*models.Blob, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByDigest", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindByDigest", ctx, digest)
 	ret0, _ := ret[0].(*models.Blob)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByDigest indicates an expected call of FindByDigest.
-func (mr *MockBlobServiceMockRecorder) FindByDigest(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) FindByDigest(ctx, digest any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDigest", reflect.TypeOf((*MockBlobService)(nil).FindByDigest), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDigest", reflect.TypeOf((*MockBlobService)(nil).FindByDigest), ctx, digest)
 }
 
 // FindByDigests mocks base method.
-func (m *MockBlobService) FindByDigests(arg0 context.Context, arg1 []string) ([]*models.Blob, error) {
+func (m *MockBlobService) FindByDigests(ctx context.Context, digests []string) ([]*models.Blob, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByDigests", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindByDigests", ctx, digests)
 	ret0, _ := ret[0].([]*models.Blob)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByDigests indicates an expected call of FindByDigests.
-func (mr *MockBlobServiceMockRecorder) FindByDigests(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) FindByDigests(ctx, digests any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDigests", reflect.TypeOf((*MockBlobService)(nil).FindByDigests), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDigests", reflect.TypeOf((*MockBlobService)(nil).FindByDigests), ctx, digests)
 }
 
 // FindWithLastPull mocks base method.
-func (m *MockBlobService) FindWithLastPull(arg0 context.Context, arg1, arg2, arg3 int64) ([]*models.Blob, error) {
+func (m *MockBlobService) FindWithLastPull(ctx context.Context, before, last, limit int64) ([]*models.Blob, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "FindWithLastPull", ctx, before, last, limit)
 	ret0, _ := ret[0].([]*models.Blob)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindWithLastPull indicates an expected call of FindWithLastPull.
-func (mr *MockBlobServiceMockRecorder) FindWithLastPull(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) FindWithLastPull(ctx, before, last, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockBlobService)(nil).FindWithLastPull), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockBlobService)(nil).FindWithLastPull), ctx, before, last, limit)
 }
 
 // Incr mocks base method.
-func (m *MockBlobService) Incr(arg0 context.Context, arg1 int64) error {
+func (m *MockBlobService) Incr(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
+	ret := m.ctrl.Call(m, "Incr", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Incr indicates an expected call of Incr.
-func (mr *MockBlobServiceMockRecorder) Incr(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobServiceMockRecorder) Incr(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockBlobService)(nil).Incr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockBlobService)(nil).Incr), ctx, id)
 }

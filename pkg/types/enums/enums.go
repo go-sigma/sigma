@@ -338,7 +338,6 @@ type AuthResource string
 
 // AuthAction x ENUM(
 // Get,
-// List,
 // Put,
 // Create,
 // Delete,
@@ -348,5 +347,6 @@ type AuthAction string
 
 // AuthScope x ENUM(
 // Namespace,
+// User,
 // )
 type AuthScope string

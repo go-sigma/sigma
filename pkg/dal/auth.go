@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -36,7 +37,7 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	gormadapter.TurnOffAutoMigrate(db.Debug())
+	gormadapter.TurnOffAutoMigrate(db)
 	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "casbin_rules")
 	if err != nil {
 		return err
@@ -45,6 +46,8 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	AuthEnforcer.StartAutoLoadPolicy(time.Minute * 10)
+	AuthEnforcer.EnableAutoSave(true)
 	AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
 	return nil
 }

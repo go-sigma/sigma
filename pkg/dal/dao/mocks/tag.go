@@ -24,6 +24,7 @@ import (
 type MockTagService struct {
 	ctrl     *gomock.Controller
 	recorder *MockTagServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockTagServiceMockRecorder is the mock recorder for MockTagService.
@@ -44,70 +45,70 @@ func (m *MockTagService) EXPECT() *MockTagServiceMockRecorder {
 }
 
 // CountByArtifact mocks base method.
-func (m *MockTagService) CountByArtifact(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockTagService) CountByArtifact(ctx context.Context, artifactIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByArtifact", ctx, artifactIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByArtifact indicates an expected call of CountByArtifact.
-func (mr *MockTagServiceMockRecorder) CountByArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) CountByArtifact(ctx, artifactIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByArtifact", reflect.TypeOf((*MockTagService)(nil).CountByArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByArtifact", reflect.TypeOf((*MockTagService)(nil).CountByArtifact), ctx, artifactIDs)
 }
 
 // CountByNamespace mocks base method.
-func (m *MockTagService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockTagService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByNamespace", ctx, namespaceIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByNamespace indicates an expected call of CountByNamespace.
-func (mr *MockTagServiceMockRecorder) CountByNamespace(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) CountByNamespace(ctx, namespaceIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockTagService)(nil).CountByNamespace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockTagService)(nil).CountByNamespace), ctx, namespaceIDs)
 }
 
 // CountByRepositories mocks base method.
-func (m *MockTagService) CountByRepositories(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockTagService) CountByRepositories(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByRepositories", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByRepositories", ctx, repositoryIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByRepositories indicates an expected call of CountByRepositories.
-func (mr *MockTagServiceMockRecorder) CountByRepositories(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) CountByRepositories(ctx, repositoryIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepositories", reflect.TypeOf((*MockTagService)(nil).CountByRepositories), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepositories", reflect.TypeOf((*MockTagService)(nil).CountByRepositories), ctx, repositoryIDs)
 }
 
 // CountByRepository mocks base method.
-func (m *MockTagService) CountByRepository(arg0 context.Context, arg1 int64) (int64, error) {
+func (m *MockTagService) CountByRepository(ctx context.Context, repositoryID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByRepository", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByRepository", ctx, repositoryID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByRepository indicates an expected call of CountByRepository.
-func (mr *MockTagServiceMockRecorder) CountByRepository(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) CountByRepository(ctx, repositoryID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockTagService)(nil).CountByRepository), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockTagService)(nil).CountByRepository), ctx, repositoryID)
 }
 
 // Create mocks base method.
-func (m *MockTagService) Create(arg0 context.Context, arg1 *models.Tag, arg2 ...dao.Option) error {
+func (m *MockTagService) Create(ctx context.Context, tag *models.Tag, options ...dao.Option) error {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, tag}
+	for _, a := range options {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Create", varargs...)
@@ -116,148 +117,148 @@ func (m *MockTagService) Create(arg0 context.Context, arg1 *models.Tag, arg2 ...
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockTagServiceMockRecorder) Create(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) Create(ctx, tag any, options ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, tag}, options...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTagService)(nil).Create), varargs...)
 }
 
 // DeleteByArtifactID mocks base method.
-func (m *MockTagService) DeleteByArtifactID(arg0 context.Context, arg1 int64) error {
+func (m *MockTagService) DeleteByArtifactID(ctx context.Context, artifactID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByArtifactID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByArtifactID", ctx, artifactID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByArtifactID indicates an expected call of DeleteByArtifactID.
-func (mr *MockTagServiceMockRecorder) DeleteByArtifactID(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) DeleteByArtifactID(ctx, artifactID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByArtifactID", reflect.TypeOf((*MockTagService)(nil).DeleteByArtifactID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByArtifactID", reflect.TypeOf((*MockTagService)(nil).DeleteByArtifactID), ctx, artifactID)
 }
 
 // DeleteByID mocks base method.
-func (m *MockTagService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockTagService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockTagServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockTagService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockTagService)(nil).DeleteByID), ctx, id)
 }
 
 // DeleteByName mocks base method.
-func (m *MockTagService) DeleteByName(arg0 context.Context, arg1 int64, arg2 string) error {
+func (m *MockTagService) DeleteByName(ctx context.Context, repositoryID int64, tag string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByName", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "DeleteByName", ctx, repositoryID, tag)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByName indicates an expected call of DeleteByName.
-func (mr *MockTagServiceMockRecorder) DeleteByName(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) DeleteByName(ctx, repositoryID, tag any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByName", reflect.TypeOf((*MockTagService)(nil).DeleteByName), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByName", reflect.TypeOf((*MockTagService)(nil).DeleteByName), ctx, repositoryID, tag)
 }
 
 // FindWithDayCursor mocks base method.
-func (m *MockTagService) FindWithDayCursor(arg0 context.Context, arg1 int64, arg2, arg3 int, arg4 int64) ([]*models.Tag, error) {
+func (m *MockTagService) FindWithDayCursor(ctx context.Context, repositoryID int64, day, limit int, last int64) ([]*models.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithDayCursor", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "FindWithDayCursor", ctx, repositoryID, day, limit, last)
 	ret0, _ := ret[0].([]*models.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindWithDayCursor indicates an expected call of FindWithDayCursor.
-func (mr *MockTagServiceMockRecorder) FindWithDayCursor(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) FindWithDayCursor(ctx, repositoryID, day, limit, last any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithDayCursor", reflect.TypeOf((*MockTagService)(nil).FindWithDayCursor), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithDayCursor", reflect.TypeOf((*MockTagService)(nil).FindWithDayCursor), ctx, repositoryID, day, limit, last)
 }
 
 // FindWithQuantityCursor mocks base method.
-func (m *MockTagService) FindWithQuantityCursor(arg0 context.Context, arg1 int64, arg2, arg3 int, arg4 int64) ([]*models.Tag, error) {
+func (m *MockTagService) FindWithQuantityCursor(ctx context.Context, repositoryID int64, quantity, limit int, last int64) ([]*models.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithQuantityCursor", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "FindWithQuantityCursor", ctx, repositoryID, quantity, limit, last)
 	ret0, _ := ret[0].([]*models.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindWithQuantityCursor indicates an expected call of FindWithQuantityCursor.
-func (mr *MockTagServiceMockRecorder) FindWithQuantityCursor(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) FindWithQuantityCursor(ctx, repositoryID, quantity, limit, last any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithQuantityCursor", reflect.TypeOf((*MockTagService)(nil).FindWithQuantityCursor), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithQuantityCursor", reflect.TypeOf((*MockTagService)(nil).FindWithQuantityCursor), ctx, repositoryID, quantity, limit, last)
 }
 
 // GetByArtifactID mocks base method.
-func (m *MockTagService) GetByArtifactID(arg0 context.Context, arg1, arg2 int64) (*models.Tag, error) {
+func (m *MockTagService) GetByArtifactID(ctx context.Context, repositoryID, artifactID int64) (*models.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByArtifactID", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetByArtifactID", ctx, repositoryID, artifactID)
 	ret0, _ := ret[0].(*models.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByArtifactID indicates an expected call of GetByArtifactID.
-func (mr *MockTagServiceMockRecorder) GetByArtifactID(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) GetByArtifactID(ctx, repositoryID, artifactID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByArtifactID", reflect.TypeOf((*MockTagService)(nil).GetByArtifactID), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByArtifactID", reflect.TypeOf((*MockTagService)(nil).GetByArtifactID), ctx, repositoryID, artifactID)
 }
 
 // GetByID mocks base method.
-func (m *MockTagService) GetByID(arg0 context.Context, arg1 int64) (*models.Tag, error) {
+func (m *MockTagService) GetByID(ctx context.Context, tagID int64) (*models.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByID", ctx, tagID)
 	ret0, _ := ret[0].(*models.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockTagServiceMockRecorder) GetByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) GetByID(ctx, tagID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockTagService)(nil).GetByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockTagService)(nil).GetByID), ctx, tagID)
 }
 
 // GetByName mocks base method.
-func (m *MockTagService) GetByName(arg0 context.Context, arg1 int64, arg2 string) (*models.Tag, error) {
+func (m *MockTagService) GetByName(ctx context.Context, repositoryID int64, tag string) (*models.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByName", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetByName", ctx, repositoryID, tag)
 	ret0, _ := ret[0].(*models.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByName indicates an expected call of GetByName.
-func (mr *MockTagServiceMockRecorder) GetByName(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) GetByName(ctx, repositoryID, tag any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockTagService)(nil).GetByName), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockTagService)(nil).GetByName), ctx, repositoryID, tag)
 }
 
 // Incr mocks base method.
-func (m *MockTagService) Incr(arg0 context.Context, arg1 int64) error {
+func (m *MockTagService) Incr(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
+	ret := m.ctrl.Call(m, "Incr", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Incr indicates an expected call of Incr.
-func (mr *MockTagServiceMockRecorder) Incr(arg0, arg1 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) Incr(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockTagService)(nil).Incr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockTagService)(nil).Incr), ctx, id)
 }
 
 // ListByDtPagination mocks base method.
-func (m *MockTagService) ListByDtPagination(arg0 context.Context, arg1 string, arg2 int, arg3 ...int64) ([]*models.Tag, error) {
+func (m *MockTagService) ListByDtPagination(ctx context.Context, repository string, limit int, lastID ...int64) ([]*models.Tag, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, repository, limit}
+	for _, a := range lastID {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListByDtPagination", varargs...)
@@ -267,16 +268,16 @@ func (m *MockTagService) ListByDtPagination(arg0 context.Context, arg1 string, a
 }
 
 // ListByDtPagination indicates an expected call of ListByDtPagination.
-func (mr *MockTagServiceMockRecorder) ListByDtPagination(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) ListByDtPagination(ctx, repository, limit any, lastID ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, repository, limit}, lastID...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByDtPagination", reflect.TypeOf((*MockTagService)(nil).ListByDtPagination), varargs...)
 }
 
 // ListTag mocks base method.
-func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string, arg3 []enums.ArtifactType, arg4 types.Pagination, arg5 types.Sortable) ([]*models.Tag, int64, error) {
+func (m *MockTagService) ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTag", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ListTag", ctx, repositoryID, name, types, pagination, sort)
 	ret0, _ := ret[0].([]*models.Tag)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -284,7 +285,7 @@ func (m *MockTagService) ListTag(arg0 context.Context, arg1 int64, arg2 *string,
 }
 
 // ListTag indicates an expected call of ListTag.
-func (mr *MockTagServiceMockRecorder) ListTag(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) ListTag(ctx, repositoryID, name, types, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), ctx, repositoryID, name, types, pagination, sort)
 }

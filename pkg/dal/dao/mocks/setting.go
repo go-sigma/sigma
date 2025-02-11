@@ -21,6 +21,7 @@ import (
 type MockSettingService struct {
 	ctrl     *gomock.Controller
 	recorder *MockSettingServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockSettingServiceMockRecorder is the mock recorder for MockSettingService.
@@ -41,58 +42,58 @@ func (m *MockSettingService) EXPECT() *MockSettingServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockSettingService) Create(arg0 context.Context, arg1 string, arg2 []byte) error {
+func (m *MockSettingService) Create(ctx context.Context, key string, val []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Create", ctx, key, val)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockSettingServiceMockRecorder) Create(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockSettingServiceMockRecorder) Create(ctx, key, val any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSettingService)(nil).Create), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSettingService)(nil).Create), ctx, key, val)
 }
 
 // Delete mocks base method.
-func (m *MockSettingService) Delete(arg0 context.Context, arg1 string) error {
+func (m *MockSettingService) Delete(ctx context.Context, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, key)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockSettingServiceMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockSettingServiceMockRecorder) Delete(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSettingService)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSettingService)(nil).Delete), ctx, key)
 }
 
 // Get mocks base method.
-func (m *MockSettingService) Get(arg0 context.Context, arg1 string) (*models.Setting, error) {
+func (m *MockSettingService) Get(ctx context.Context, key string) (*models.Setting, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, key)
 	ret0, _ := ret[0].(*models.Setting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockSettingServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockSettingServiceMockRecorder) Get(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSettingService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSettingService)(nil).Get), ctx, key)
 }
 
 // Update mocks base method.
-func (m *MockSettingService) Update(arg0 context.Context, arg1 string, arg2 []byte) error {
+func (m *MockSettingService) Update(ctx context.Context, key string, val []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Update", ctx, key, val)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockSettingServiceMockRecorder) Update(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockSettingServiceMockRecorder) Update(ctx, key, val any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSettingService)(nil).Update), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSettingService)(nil).Update), ctx, key, val)
 }

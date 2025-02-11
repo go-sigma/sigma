@@ -36,8 +36,6 @@ func main() {
 		models.CodeRepositoryOwner{},
 		models.CodeRepositoryCloneCredential{},
 		models.Audit{},
-		models.AuthRule{},
-		models.AuthRole{},
 		models.Namespace{},
 		models.Repository{},
 		models.Artifact{},

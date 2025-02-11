@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `users_idx_status` (`status`),
   KEY `users_idx_role` (`role`),
   KEY `users_idx_last_login` (`last_login`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `user_3rdparty` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `user_3rdparty_unique_with_account_id` UNIQUE (`provider`, `account_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `code_repository_clone_credentials` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `code_repository_owners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `code_repository_owners` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
   CONSTRAINT `code_repository_owners_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `code_repositories` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_3rdparty_id`) REFERENCES `user_3rdparty` (`id`),
   CONSTRAINT `code_repositories_unique_with_name` UNIQUE (`user_3rdparty_id`, `owner_id`, `repository_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `code_repository_branches` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `code_repository_branches` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`code_repository_id`) REFERENCES `code_repositories` (`id`),
   CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `user_recover_codes` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `user_recover_codes_unique_with_use_id` UNIQUE (`user_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `namespaces` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `namespaces` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `namespaces_unique_with_name` UNIQUE (`name`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `audits` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `audits` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `repositories` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `repositories` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `repositories_unique_with_namespace` UNIQUE (`namespace_id`, `name`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `artifacts` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`referrer_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifacts_unique_with_repo` UNIQUE (`repository_id`, `digest`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifact_sbom_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `artifact_vulnerabilities` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `artifact_vulnerability_unique_with_artifact` UNIQUE (`artifact_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `tags_unique_with_repo` UNIQUE (`repository_id`, `name`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `blobs` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `blobs` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `blobs_unique_with_digest` UNIQUE (`digest`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS `blob_uploads` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `blob_uploads_unique_with_upload_id_etag` UNIQUE (`upload_id`, `etag`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `artifact_artifacts` (
   `artifact_id` bigint NOT NULL,
@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS `artifact_artifacts` (
   PRIMARY KEY (`artifact_id`, `artifact_index_id`),
   CONSTRAINT `fk_artifact_artifacts_artifact` FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `fk_artifact_artifacts_artifact_index` FOREIGN KEY (`artifact_index_id`) REFERENCES `artifacts` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   `artifact_id` bigint NOT NULL,
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
   PRIMARY KEY (`artifact_id`, `blob_id`),
   CONSTRAINT `fk_artifact_blobs_artifact` FOREIGN KEY (`artifact_id`) REFERENCES `artifacts` (`id`),
   CONSTRAINT `fk_artifact_blobs_blob` FOREIGN KEY (`blob_id`) REFERENCES `blobs` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -282,7 +282,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -301,7 +301,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_tag_rules` (`id`),
   FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -313,7 +313,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_tag_runners` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -328,7 +328,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`),
   CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -347,7 +347,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_repository_rules` (`id`),
   FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -359,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_repository_runners` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -377,7 +377,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
   KEY `daemon_gc_artifact_rules_idx_created_at` (`created_at`),
   KEY `daemon_gc_artifact_rules_idx_updated_at` (`updated_at`),
   KEY `daemon_gc_artifact_rules_idx_deleted_at` (`deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_artifact_rules` (`id`),
   FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -408,7 +408,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_artifact_runners` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -420,7 +420,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -439,7 +439,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`rule_id`) REFERENCES `daemon_gc_blob_rules` (`id`),
   FOREIGN KEY (`operate_user_id`) REFERENCES `users` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -451,7 +451,7 @@ CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`runner_id`) REFERENCES `daemon_gc_blob_runners` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `casbin_rules` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -463,7 +463,7 @@ CREATE TABLE IF NOT EXISTS `casbin_rules` (
   `v4` varchar(100),
   `v5` varchar(100),
   CONSTRAINT `idx_casbin_rules` UNIQUE (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `namespace_members` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -475,7 +475,7 @@ CREATE TABLE IF NOT EXISTS `namespace_members` (
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `namespace_members_unique_with_user_ns_role` UNIQUE (`user_id`, `namespace_id`, `role`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- ptype type
 -- v0 sub
@@ -522,7 +522,7 @@ CREATE TABLE IF NOT EXISTS `webhooks` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`namespace_id`) REFERENCES `namespaces` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -538,7 +538,7 @@ CREATE TABLE IF NOT EXISTS `webhook_logs` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `builders` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -581,7 +581,7 @@ CREATE TABLE IF NOT EXISTS `builders` (
   FOREIGN KEY (`repository_id`) REFERENCES `repositories` (`id`),
   FOREIGN KEY (`code_repository_id`) REFERENCES `code_repositories` (`id`),
   CONSTRAINT `builders_unique_with_repository` UNIQUE (`repository_id`, `deleted_at`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- TODO: buildx flags
 CREATE TABLE IF NOT EXISTS `builder_runners` (
@@ -603,7 +603,7 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (`builder_id`) REFERENCES `builders` (`id`)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `work_queues` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -615,7 +615,7 @@ CREATE TABLE IF NOT EXISTS `work_queues` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `caches` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -624,9 +624,9 @@ CREATE TABLE IF NOT EXISTS `caches` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE INDEX `idx_created_at` ON `caches` (`created_at`);
+CREATE INDEX `idx_created_at` ON `caches` (`created_at`) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` bigint AUTO_INCREMENT PRIMARY KEY,
@@ -635,5 +635,5 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `created_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `updated_at` bigint NOT NULL DEFAULT (UNIX_TIMESTAMP (CURRENT_TIMESTAMP()) * 1000),
   `deleted_at` bigint NOT NULL DEFAULT 0
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 

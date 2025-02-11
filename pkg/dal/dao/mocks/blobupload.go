@@ -21,6 +21,7 @@ import (
 type MockBlobUploadService struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobUploadServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockBlobUploadServiceMockRecorder is the mock recorder for MockBlobUploadService.
@@ -41,89 +42,89 @@ func (m *MockBlobUploadService) EXPECT() *MockBlobUploadServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockBlobUploadService) Create(arg0 context.Context, arg1 *models.BlobUpload) error {
+func (m *MockBlobUploadService) Create(ctx context.Context, blobUpload *models.BlobUpload) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, blobUpload)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockBlobUploadServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) Create(ctx, blobUpload any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBlobUploadService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBlobUploadService)(nil).Create), ctx, blobUpload)
 }
 
 // DeleteByUploadID mocks base method.
-func (m *MockBlobUploadService) DeleteByUploadID(arg0 context.Context, arg1 string) error {
+func (m *MockBlobUploadService) DeleteByUploadID(ctx context.Context, uploadID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByUploadID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByUploadID", ctx, uploadID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByUploadID indicates an expected call of DeleteByUploadID.
-func (mr *MockBlobUploadServiceMockRecorder) DeleteByUploadID(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) DeleteByUploadID(ctx, uploadID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).DeleteByUploadID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).DeleteByUploadID), ctx, uploadID)
 }
 
 // FindAllByUploadID mocks base method.
-func (m *MockBlobUploadService) FindAllByUploadID(arg0 context.Context, arg1 string) ([]*models.BlobUpload, error) {
+func (m *MockBlobUploadService) FindAllByUploadID(ctx context.Context, uploadID string) ([]*models.BlobUpload, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUploadID", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindAllByUploadID", ctx, uploadID)
 	ret0, _ := ret[0].([]*models.BlobUpload)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAllByUploadID indicates an expected call of FindAllByUploadID.
-func (mr *MockBlobUploadServiceMockRecorder) FindAllByUploadID(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) FindAllByUploadID(ctx, uploadID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).FindAllByUploadID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).FindAllByUploadID), ctx, uploadID)
 }
 
 // GetLastPart mocks base method.
-func (m *MockBlobUploadService) GetLastPart(arg0 context.Context, arg1 string) (*models.BlobUpload, error) {
+func (m *MockBlobUploadService) GetLastPart(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLastPart", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetLastPart", ctx, uploadID)
 	ret0, _ := ret[0].(*models.BlobUpload)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetLastPart indicates an expected call of GetLastPart.
-func (mr *MockBlobUploadServiceMockRecorder) GetLastPart(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) GetLastPart(ctx, uploadID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastPart", reflect.TypeOf((*MockBlobUploadService)(nil).GetLastPart), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastPart", reflect.TypeOf((*MockBlobUploadService)(nil).GetLastPart), ctx, uploadID)
 }
 
 // TotalEtagsByUploadID mocks base method.
-func (m *MockBlobUploadService) TotalEtagsByUploadID(arg0 context.Context, arg1 string) ([]string, error) {
+func (m *MockBlobUploadService) TotalEtagsByUploadID(ctx context.Context, uploadID string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TotalEtagsByUploadID", arg0, arg1)
+	ret := m.ctrl.Call(m, "TotalEtagsByUploadID", ctx, uploadID)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TotalEtagsByUploadID indicates an expected call of TotalEtagsByUploadID.
-func (mr *MockBlobUploadServiceMockRecorder) TotalEtagsByUploadID(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) TotalEtagsByUploadID(ctx, uploadID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalEtagsByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).TotalEtagsByUploadID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalEtagsByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).TotalEtagsByUploadID), ctx, uploadID)
 }
 
 // TotalSizeByUploadID mocks base method.
-func (m *MockBlobUploadService) TotalSizeByUploadID(arg0 context.Context, arg1 string) (int64, error) {
+func (m *MockBlobUploadService) TotalSizeByUploadID(ctx context.Context, uploadID string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TotalSizeByUploadID", arg0, arg1)
+	ret := m.ctrl.Call(m, "TotalSizeByUploadID", ctx, uploadID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TotalSizeByUploadID indicates an expected call of TotalSizeByUploadID.
-func (mr *MockBlobUploadServiceMockRecorder) TotalSizeByUploadID(arg0, arg1 any) *gomock.Call {
+func (mr *MockBlobUploadServiceMockRecorder) TotalSizeByUploadID(ctx, uploadID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSizeByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).TotalSizeByUploadID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSizeByUploadID", reflect.TypeOf((*MockBlobUploadService)(nil).TotalSizeByUploadID), ctx, uploadID)
 }

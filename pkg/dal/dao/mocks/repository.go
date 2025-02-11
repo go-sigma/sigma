@@ -23,6 +23,7 @@ import (
 type MockRepositoryService struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryServiceMockRecorder is the mock recorder for MockRepositoryService.
@@ -43,106 +44,106 @@ func (m *MockRepositoryService) EXPECT() *MockRepositoryServiceMockRecorder {
 }
 
 // CountByNamespace mocks base method.
-func (m *MockRepositoryService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockRepositoryService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByNamespace", ctx, namespaceIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByNamespace indicates an expected call of CountByNamespace.
-func (mr *MockRepositoryServiceMockRecorder) CountByNamespace(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) CountByNamespace(ctx, namespaceIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockRepositoryService)(nil).CountByNamespace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockRepositoryService)(nil).CountByNamespace), ctx, namespaceIDs)
 }
 
 // CountRepository mocks base method.
-func (m *MockRepositoryService) CountRepository(arg0 context.Context, arg1 int64, arg2 *string) (int64, error) {
+func (m *MockRepositoryService) CountRepository(ctx context.Context, namespaceID int64, name *string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountRepository", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CountRepository", ctx, namespaceID, name)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountRepository indicates an expected call of CountRepository.
-func (mr *MockRepositoryServiceMockRecorder) CountRepository(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) CountRepository(ctx, namespaceID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountRepository", reflect.TypeOf((*MockRepositoryService)(nil).CountRepository), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountRepository", reflect.TypeOf((*MockRepositoryService)(nil).CountRepository), ctx, namespaceID, name)
 }
 
 // Create mocks base method.
-func (m *MockRepositoryService) Create(arg0 context.Context, arg1 *models.Repository, arg2 dao.AutoCreateNamespace) error {
+func (m *MockRepositoryService) Create(ctx context.Context, repositoryObj *models.Repository, autoCreateNamespace dao.AutoCreateNamespace) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Create", ctx, repositoryObj, autoCreateNamespace)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockRepositoryServiceMockRecorder) Create(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) Create(ctx, repositoryObj, autoCreateNamespace any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepositoryService)(nil).Create), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepositoryService)(nil).Create), ctx, repositoryObj, autoCreateNamespace)
 }
 
 // DeleteByID mocks base method.
-func (m *MockRepositoryService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockRepositoryService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockRepositoryServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRepositoryService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRepositoryService)(nil).DeleteByID), ctx, id)
 }
 
 // DeleteEmpty mocks base method.
-func (m *MockRepositoryService) DeleteEmpty(arg0 context.Context, arg1 *int64) ([]string, error) {
+func (m *MockRepositoryService) DeleteEmpty(ctx context.Context, namespaceID *int64) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteEmpty", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteEmpty", ctx, namespaceID)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteEmpty indicates an expected call of DeleteEmpty.
-func (mr *MockRepositoryServiceMockRecorder) DeleteEmpty(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) DeleteEmpty(ctx, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmpty", reflect.TypeOf((*MockRepositoryService)(nil).DeleteEmpty), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmpty", reflect.TypeOf((*MockRepositoryService)(nil).DeleteEmpty), ctx, namespaceID)
 }
 
 // FindAll mocks base method.
-func (m *MockRepositoryService) FindAll(arg0 context.Context, arg1, arg2, arg3 int64) ([]*models.Repository, error) {
+func (m *MockRepositoryService) FindAll(ctx context.Context, namespaceID, limit, last int64) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "FindAll", ctx, namespaceID, limit, last)
 	ret0, _ := ret[0].([]*models.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockRepositoryServiceMockRecorder) FindAll(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) FindAll(ctx, namespaceID, limit, last any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockRepositoryService)(nil).FindAll), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockRepositoryService)(nil).FindAll), ctx, namespaceID, limit, last)
 }
 
 // Get mocks base method.
-func (m *MockRepositoryService) Get(arg0 context.Context, arg1 int64) (*models.Repository, error) {
+func (m *MockRepositoryService) Get(ctx context.Context, repositoryID int64) (*models.Repository, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, repositoryID)
 	ret0, _ := ret[0].(*models.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) Get(ctx, repositoryID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepositoryService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepositoryService)(nil).Get), ctx, repositoryID)
 }
 
 // GetByName mocks base method.
@@ -161,10 +162,10 @@ func (mr *MockRepositoryServiceMockRecorder) GetByName(arg0, arg1 any) *gomock.C
 }
 
 // ListByDtPagination mocks base method.
-func (m *MockRepositoryService) ListByDtPagination(arg0 context.Context, arg1 int, arg2 ...int64) ([]*models.Repository, error) {
+func (m *MockRepositoryService) ListByDtPagination(ctx context.Context, limit int, lastID ...int64) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, limit}
+	for _, a := range lastID {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListByDtPagination", varargs...)
@@ -174,16 +175,16 @@ func (m *MockRepositoryService) ListByDtPagination(arg0 context.Context, arg1 in
 }
 
 // ListByDtPagination indicates an expected call of ListByDtPagination.
-func (mr *MockRepositoryServiceMockRecorder) ListByDtPagination(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) ListByDtPagination(ctx, limit any, lastID ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, limit}, lastID...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByDtPagination", reflect.TypeOf((*MockRepositoryService)(nil).ListByDtPagination), varargs...)
 }
 
 // ListRepository mocks base method.
-func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Repository, int64, error) {
+func (m *MockRepositoryService) ListRepository(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRepository", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "ListRepository", ctx, namespaceID, name, pagination, sort)
 	ret0, _ := ret[0].([]*models.Repository)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -191,15 +192,15 @@ func (m *MockRepositoryService) ListRepository(arg0 context.Context, arg1 int64,
 }
 
 // ListRepository indicates an expected call of ListRepository.
-func (mr *MockRepositoryServiceMockRecorder) ListRepository(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) ListRepository(ctx, namespaceID, name, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepository", reflect.TypeOf((*MockRepositoryService)(nil).ListRepository), ctx, namespaceID, name, pagination, sort)
 }
 
 // ListRepositoryWithAuth mocks base method.
-func (m *MockRepositoryService) ListRepositoryWithAuth(arg0 context.Context, arg1, arg2 int64, arg3 *string, arg4 types.Pagination, arg5 types.Sortable) ([]*models.Repository, int64, error) {
+func (m *MockRepositoryService) ListRepositoryWithAuth(ctx context.Context, namespaceID, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Repository, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRepositoryWithAuth", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ListRepositoryWithAuth", ctx, namespaceID, userID, name, pagination, sort)
 	ret0, _ := ret[0].([]*models.Repository)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -207,36 +208,36 @@ func (m *MockRepositoryService) ListRepositoryWithAuth(arg0 context.Context, arg
 }
 
 // ListRepositoryWithAuth indicates an expected call of ListRepositoryWithAuth.
-func (mr *MockRepositoryServiceMockRecorder) ListRepositoryWithAuth(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) ListRepositoryWithAuth(ctx, namespaceID, userID, name, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepositoryWithAuth", reflect.TypeOf((*MockRepositoryService)(nil).ListRepositoryWithAuth), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRepositoryWithAuth", reflect.TypeOf((*MockRepositoryService)(nil).ListRepositoryWithAuth), ctx, namespaceID, userID, name, pagination, sort)
 }
 
 // ListWithScrollable mocks base method.
-func (m *MockRepositoryService) ListWithScrollable(arg0 context.Context, arg1, arg2 int64, arg3 *string, arg4 int, arg5 int64) ([]*models.Repository, error) {
+func (m *MockRepositoryService) ListWithScrollable(ctx context.Context, namespaceID, userID int64, name *string, limit int, lastID int64) ([]*models.Repository, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListWithScrollable", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ListWithScrollable", ctx, namespaceID, userID, name, limit, lastID)
 	ret0, _ := ret[0].([]*models.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListWithScrollable indicates an expected call of ListWithScrollable.
-func (mr *MockRepositoryServiceMockRecorder) ListWithScrollable(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) ListWithScrollable(ctx, namespaceID, userID, name, limit, lastID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithScrollable", reflect.TypeOf((*MockRepositoryService)(nil).ListWithScrollable), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithScrollable", reflect.TypeOf((*MockRepositoryService)(nil).ListWithScrollable), ctx, namespaceID, userID, name, limit, lastID)
 }
 
 // UpdateRepository mocks base method.
-func (m *MockRepositoryService) UpdateRepository(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockRepositoryService) UpdateRepository(ctx context.Context, id int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateRepository", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateRepository", ctx, id, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateRepository indicates an expected call of UpdateRepository.
-func (mr *MockRepositoryServiceMockRecorder) UpdateRepository(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockRepositoryServiceMockRecorder) UpdateRepository(ctx, id, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRepository", reflect.TypeOf((*MockRepositoryService)(nil).UpdateRepository), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRepository", reflect.TypeOf((*MockRepositoryService)(nil).UpdateRepository), ctx, id, updates)
 }

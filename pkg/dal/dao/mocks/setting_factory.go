@@ -21,6 +21,7 @@ import (
 type MockSettingServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockSettingServiceFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockSettingServiceFactoryMockRecorder is the mock recorder for MockSettingServiceFactory.
@@ -41,10 +42,10 @@ func (m *MockSettingServiceFactory) EXPECT() *MockSettingServiceFactoryMockRecor
 }
 
 // New mocks base method.
-func (m *MockSettingServiceFactory) New(arg0 ...*query.Query) dao.SettingService {
+func (m *MockSettingServiceFactory) New(txs ...*query.Query) dao.SettingService {
 	m.ctrl.T.Helper()
 	varargs := []any{}
-	for _, a := range arg0 {
+	for _, a := range txs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "New", varargs...)
@@ -53,7 +54,7 @@ func (m *MockSettingServiceFactory) New(arg0 ...*query.Query) dao.SettingService
 }
 
 // New indicates an expected call of New.
-func (mr *MockSettingServiceFactoryMockRecorder) New(arg0 ...any) *gomock.Call {
+func (mr *MockSettingServiceFactoryMockRecorder) New(txs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSettingServiceFactory)(nil).New), arg0...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSettingServiceFactory)(nil).New), txs...)
 }

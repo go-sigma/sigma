@@ -22,6 +22,7 @@ import (
 type MockWorkQueueService struct {
 	ctrl     *gomock.Controller
 	recorder *MockWorkQueueServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockWorkQueueServiceMockRecorder is the mock recorder for MockWorkQueueService.
@@ -42,44 +43,44 @@ func (m *MockWorkQueueService) EXPECT() *MockWorkQueueServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockWorkQueueService) Create(arg0 context.Context, arg1 *models.WorkQueue) error {
+func (m *MockWorkQueueService) Create(ctx context.Context, workqObj *models.WorkQueue) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, workqObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockWorkQueueServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockWorkQueueServiceMockRecorder) Create(ctx, workqObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockWorkQueueService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockWorkQueueService)(nil).Create), ctx, workqObj)
 }
 
 // Get mocks base method.
-func (m *MockWorkQueueService) Get(arg0 context.Context, arg1 enums.Daemon) (*models.WorkQueue, error) {
+func (m *MockWorkQueueService) Get(ctx context.Context, topic enums.Daemon) (*models.WorkQueue, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, topic)
 	ret0, _ := ret[0].(*models.WorkQueue)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockWorkQueueServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockWorkQueueServiceMockRecorder) Get(ctx, topic any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockWorkQueueService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockWorkQueueService)(nil).Get), ctx, topic)
 }
 
 // UpdateStatus mocks base method.
-func (m *MockWorkQueueService) UpdateStatus(arg0 context.Context, arg1 int64, arg2, arg3 string, arg4 int, arg5 enums.TaskCommonStatus) error {
+func (m *MockWorkQueueService) UpdateStatus(ctx context.Context, id int64, version, newVersion string, times int, status enums.TaskCommonStatus) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "UpdateStatus", ctx, id, version, newVersion, times, status)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockWorkQueueServiceMockRecorder) UpdateStatus(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+func (mr *MockWorkQueueServiceMockRecorder) UpdateStatus(ctx, id, version, newVersion, times, status any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockWorkQueueService)(nil).UpdateStatus), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockWorkQueueService)(nil).UpdateStatus), ctx, id, version, newVersion, times, status)
 }

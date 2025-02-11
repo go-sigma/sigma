@@ -21,6 +21,7 @@ import (
 type MockNamespaceMemberServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockNamespaceMemberServiceFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockNamespaceMemberServiceFactoryMockRecorder is the mock recorder for MockNamespaceMemberServiceFactory.
@@ -41,10 +42,10 @@ func (m *MockNamespaceMemberServiceFactory) EXPECT() *MockNamespaceMemberService
 }
 
 // New mocks base method.
-func (m *MockNamespaceMemberServiceFactory) New(arg0 ...*query.Query) dao.NamespaceMemberService {
+func (m *MockNamespaceMemberServiceFactory) New(txs ...*query.Query) dao.NamespaceMemberService {
 	m.ctrl.T.Helper()
 	varargs := []any{}
-	for _, a := range arg0 {
+	for _, a := range txs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "New", varargs...)
@@ -53,7 +54,7 @@ func (m *MockNamespaceMemberServiceFactory) New(arg0 ...*query.Query) dao.Namesp
 }
 
 // New indicates an expected call of New.
-func (mr *MockNamespaceMemberServiceFactoryMockRecorder) New(arg0 ...any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceFactoryMockRecorder) New(txs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockNamespaceMemberServiceFactory)(nil).New), arg0...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockNamespaceMemberServiceFactory)(nil).New), txs...)
 }

@@ -25,10 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/handlers"
-	"github.com/go-sigma/sigma/pkg/middlewares/authn"
-	"github.com/go-sigma/sigma/pkg/middlewares/authz"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/echoplus"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -86,20 +83,20 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	handler := handlerNew(digCon)
 	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	plus := echoplus.New(echo.Group(consts.APIV1 + "/validators"))
-	plus.Get("/", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.List)
-	plus.Post("/", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true, Sources: []authz.AuthzConfigSource{}}, handler.Post)
-	plus.Put("/:id", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Put)
-	plus.Post("/login", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Login)
-	plus.Post("/logout", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Logout)
-	plus.Get("/signup", &authn.AuthnConfig{Skip: true}, &authz.AuthzConfig{Skip: true}, handler.Signup)
-	plus.Get("/create", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.Signup)
-	plus.Get("/self", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfGet)
-	plus.Put("/self", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfPut)
-	plus.Put("/self/reset-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.SelfResetPassword)
-	plus.Get("/recover-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.RecoverPassword)
-	plus.Put("/recover-password-reset/:code", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.RecoverPasswordReset)
-	plus.Put("/:id/reset-password", &authn.AuthnConfig{Skip: false}, &authz.AuthzConfig{Skip: true}, handler.ResetPassword)
+	group := echo.Group(consts.APIV1 + "/validators")
+	group.GET("/", handler.List)
+	group.POST("/", handler.Post)
+	group.PUT("/:id", handler.Put)
+	group.POST("/login", handler.Login)
+	group.POST("/logout", handler.Logout)
+	group.GET("/signup", handler.Signup)
+	group.GET("/create", handler.Signup)
+	group.GET("/self", handler.SelfGet)
+	group.PUT("/self", handler.SelfPut)
+	group.PUT("/self/reset-password", handler.SelfResetPassword)
+	group.GET("/recover-password", handler.RecoverPassword)
+	group.PUT("/recover-password-reset/:code", handler.RecoverPasswordReset)
+	group.PUT("/:id/reset-password", handler.ResetPassword)
 	return nil
 }
 

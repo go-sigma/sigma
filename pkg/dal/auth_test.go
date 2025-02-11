@@ -91,24 +91,23 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, dal.Initialize(digCon))
 
 	ctx := log.Logger.WithContext(context.Background())
+
 	nsMemberSvc := dao.NewNamespaceMemberServiceFactory().New()
-
-	// added, _ := dal.AuthEnforcer.AddPolicy(enums.NamespaceRoleManager.String(), "library", "DS$*/**$manifests$*", "public", "(GET)|(HEAD)", "allow")
-	// require.True(t, added)
-
-	// dal.AuthEnforcer.SavePolicy()
 
 	_, err = nsMemberSvc.AddNamespaceMember(ctx, 1, models.Namespace{ID: 1, Name: "library"}, enums.NamespaceRoleManager)
 	require.NoError(t, err)
 	err = dal.AuthEnforcer.LoadPolicy()
 	require.NoError(t, err)
 
-	passed, err := dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
+	passed, vals, err := dal.AuthEnforcer.EnforceEx("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
+	fmt.Println(vals)
 	require.NoError(t, err)
 	require.True(t, passed)
 	passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
 	require.NoError(t, err)
 	require.True(t, passed)
+
+	// dal.AuthEnforcer.Enforcer.GetAllRolesByDomain()
 }
 
 // func TestAuth(t *testing.T) {

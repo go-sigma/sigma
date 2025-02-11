@@ -21,6 +21,7 @@ import (
 type MockCodeRepositoryServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockCodeRepositoryServiceFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockCodeRepositoryServiceFactoryMockRecorder is the mock recorder for MockCodeRepositoryServiceFactory.
@@ -41,10 +42,10 @@ func (m *MockCodeRepositoryServiceFactory) EXPECT() *MockCodeRepositoryServiceFa
 }
 
 // New mocks base method.
-func (m *MockCodeRepositoryServiceFactory) New(arg0 ...*query.Query) dao.CodeRepositoryService {
+func (m *MockCodeRepositoryServiceFactory) New(txs ...*query.Query) dao.CodeRepositoryService {
 	m.ctrl.T.Helper()
 	varargs := []any{}
-	for _, a := range arg0 {
+	for _, a := range txs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "New", varargs...)
@@ -53,7 +54,7 @@ func (m *MockCodeRepositoryServiceFactory) New(arg0 ...*query.Query) dao.CodeRep
 }
 
 // New indicates an expected call of New.
-func (mr *MockCodeRepositoryServiceFactoryMockRecorder) New(arg0 ...any) *gomock.Call {
+func (mr *MockCodeRepositoryServiceFactoryMockRecorder) New(txs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockCodeRepositoryServiceFactory)(nil).New), arg0...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockCodeRepositoryServiceFactory)(nil).New), txs...)
 }

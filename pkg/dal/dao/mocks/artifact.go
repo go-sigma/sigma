@@ -22,6 +22,7 @@ import (
 type MockArtifactService struct {
 	ctrl     *gomock.Controller
 	recorder *MockArtifactServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockArtifactServiceMockRecorder is the mock recorder for MockArtifactService.
@@ -42,364 +43,364 @@ func (m *MockArtifactService) EXPECT() *MockArtifactServiceMockRecorder {
 }
 
 // AssociateArtifact mocks base method.
-func (m *MockArtifactService) AssociateArtifact(arg0 context.Context, arg1 *models.Artifact, arg2 []*models.Artifact) error {
+func (m *MockArtifactService) AssociateArtifact(ctx context.Context, artifact *models.Artifact, artifacts []*models.Artifact) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AssociateArtifact", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "AssociateArtifact", ctx, artifact, artifacts)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AssociateArtifact indicates an expected call of AssociateArtifact.
-func (mr *MockArtifactServiceMockRecorder) AssociateArtifact(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) AssociateArtifact(ctx, artifact, artifacts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateArtifact", reflect.TypeOf((*MockArtifactService)(nil).AssociateArtifact), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateArtifact", reflect.TypeOf((*MockArtifactService)(nil).AssociateArtifact), ctx, artifact, artifacts)
 }
 
 // AssociateBlobs mocks base method.
-func (m *MockArtifactService) AssociateBlobs(arg0 context.Context, arg1 *models.Artifact, arg2 []*models.Blob) error {
+func (m *MockArtifactService) AssociateBlobs(ctx context.Context, artifact *models.Artifact, blobs []*models.Blob) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AssociateBlobs", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "AssociateBlobs", ctx, artifact, blobs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AssociateBlobs indicates an expected call of AssociateBlobs.
-func (mr *MockArtifactServiceMockRecorder) AssociateBlobs(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) AssociateBlobs(ctx, artifact, blobs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateBlobs", reflect.TypeOf((*MockArtifactService)(nil).AssociateBlobs), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateBlobs", reflect.TypeOf((*MockArtifactService)(nil).AssociateBlobs), ctx, artifact, blobs)
 }
 
 // CountArtifact mocks base method.
-func (m *MockArtifactService) CountArtifact(arg0 context.Context, arg1 types.ListArtifactRequest) (int64, error) {
+func (m *MockArtifactService) CountArtifact(ctx context.Context, req types.ListArtifactRequest) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountArtifact", ctx, req)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountArtifact indicates an expected call of CountArtifact.
-func (mr *MockArtifactServiceMockRecorder) CountArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) CountArtifact(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountArtifact", reflect.TypeOf((*MockArtifactService)(nil).CountArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountArtifact", reflect.TypeOf((*MockArtifactService)(nil).CountArtifact), ctx, req)
 }
 
 // CountByNamespace mocks base method.
-func (m *MockArtifactService) CountByNamespace(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockArtifactService) CountByNamespace(ctx context.Context, namespaceIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByNamespace", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByNamespace", ctx, namespaceIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByNamespace indicates an expected call of CountByNamespace.
-func (mr *MockArtifactServiceMockRecorder) CountByNamespace(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) CountByNamespace(ctx, namespaceIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockArtifactService)(nil).CountByNamespace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByNamespace", reflect.TypeOf((*MockArtifactService)(nil).CountByNamespace), ctx, namespaceIDs)
 }
 
 // CountByRepository mocks base method.
-func (m *MockArtifactService) CountByRepository(arg0 context.Context, arg1 []int64) (map[int64]int64, error) {
+func (m *MockArtifactService) CountByRepository(ctx context.Context, repositoryIDs []int64) (map[int64]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByRepository", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountByRepository", ctx, repositoryIDs)
 	ret0, _ := ret[0].(map[int64]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByRepository indicates an expected call of CountByRepository.
-func (mr *MockArtifactServiceMockRecorder) CountByRepository(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) CountByRepository(ctx, repositoryIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockArtifactService)(nil).CountByRepository), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByRepository", reflect.TypeOf((*MockArtifactService)(nil).CountByRepository), ctx, repositoryIDs)
 }
 
 // Create mocks base method.
-func (m *MockArtifactService) Create(arg0 context.Context, arg1 *models.Artifact) error {
+func (m *MockArtifactService) Create(ctx context.Context, artifact *models.Artifact) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, artifact)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockArtifactServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) Create(ctx, artifact any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockArtifactService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockArtifactService)(nil).Create), ctx, artifact)
 }
 
 // CreateSbom mocks base method.
-func (m *MockArtifactService) CreateSbom(arg0 context.Context, arg1 *models.ArtifactSbom) error {
+func (m *MockArtifactService) CreateSbom(ctx context.Context, sbom *models.ArtifactSbom) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSbom", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateSbom", ctx, sbom)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateSbom indicates an expected call of CreateSbom.
-func (mr *MockArtifactServiceMockRecorder) CreateSbom(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) CreateSbom(ctx, sbom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSbom", reflect.TypeOf((*MockArtifactService)(nil).CreateSbom), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSbom", reflect.TypeOf((*MockArtifactService)(nil).CreateSbom), ctx, sbom)
 }
 
 // CreateVulnerability mocks base method.
-func (m *MockArtifactService) CreateVulnerability(arg0 context.Context, arg1 *models.ArtifactVulnerability) error {
+func (m *MockArtifactService) CreateVulnerability(ctx context.Context, vulnerability *models.ArtifactVulnerability) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateVulnerability", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateVulnerability", ctx, vulnerability)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateVulnerability indicates an expected call of CreateVulnerability.
-func (mr *MockArtifactServiceMockRecorder) CreateVulnerability(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) CreateVulnerability(ctx, vulnerability any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).CreateVulnerability), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).CreateVulnerability), ctx, vulnerability)
 }
 
 // DeleteByDigest mocks base method.
-func (m *MockArtifactService) DeleteByDigest(arg0 context.Context, arg1, arg2 string) error {
+func (m *MockArtifactService) DeleteByDigest(ctx context.Context, repository, digest string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByDigest", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "DeleteByDigest", ctx, repository, digest)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByDigest indicates an expected call of DeleteByDigest.
-func (mr *MockArtifactServiceMockRecorder) DeleteByDigest(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) DeleteByDigest(ctx, repository, digest any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByDigest", reflect.TypeOf((*MockArtifactService)(nil).DeleteByDigest), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByDigest", reflect.TypeOf((*MockArtifactService)(nil).DeleteByDigest), ctx, repository, digest)
 }
 
 // DeleteByID mocks base method.
-func (m *MockArtifactService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockArtifactService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockArtifactServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockArtifactService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockArtifactService)(nil).DeleteByID), ctx, id)
 }
 
 // DeleteByIDs mocks base method.
-func (m *MockArtifactService) DeleteByIDs(arg0 context.Context, arg1 []int64) error {
+func (m *MockArtifactService) DeleteByIDs(ctx context.Context, ids []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByIDs", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByIDs", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByIDs indicates an expected call of DeleteByIDs.
-func (mr *MockArtifactServiceMockRecorder) DeleteByIDs(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) DeleteByIDs(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByIDs", reflect.TypeOf((*MockArtifactService)(nil).DeleteByIDs), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByIDs", reflect.TypeOf((*MockArtifactService)(nil).DeleteByIDs), ctx, ids)
 }
 
 // FindAssociateWithArtifact mocks base method.
-func (m *MockArtifactService) FindAssociateWithArtifact(arg0 context.Context, arg1 []int64) ([]int64, error) {
+func (m *MockArtifactService) FindAssociateWithArtifact(ctx context.Context, ids []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindAssociateWithArtifact", ctx, ids)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAssociateWithArtifact indicates an expected call of FindAssociateWithArtifact.
-func (mr *MockArtifactServiceMockRecorder) FindAssociateWithArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) FindAssociateWithArtifact(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithArtifact), ctx, ids)
 }
 
 // FindAssociateWithTag mocks base method.
-func (m *MockArtifactService) FindAssociateWithTag(arg0 context.Context, arg1 []int64) ([]int64, error) {
+func (m *MockArtifactService) FindAssociateWithTag(ctx context.Context, ids []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAssociateWithTag", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindAssociateWithTag", ctx, ids)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAssociateWithTag indicates an expected call of FindAssociateWithTag.
-func (mr *MockArtifactServiceMockRecorder) FindAssociateWithTag(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) FindAssociateWithTag(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithTag", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithTag), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAssociateWithTag", reflect.TypeOf((*MockArtifactService)(nil).FindAssociateWithTag), ctx, ids)
 }
 
 // FindWithLastPull mocks base method.
-func (m *MockArtifactService) FindWithLastPull(arg0 context.Context, arg1, arg2, arg3, arg4 int64) ([]*models.Artifact, error) {
+func (m *MockArtifactService) FindWithLastPull(ctx context.Context, repositoryID, before, limit, last int64) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithLastPull", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "FindWithLastPull", ctx, repositoryID, before, limit, last)
 	ret0, _ := ret[0].([]*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindWithLastPull indicates an expected call of FindWithLastPull.
-func (mr *MockArtifactServiceMockRecorder) FindWithLastPull(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) FindWithLastPull(ctx, repositoryID, before, limit, last any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockArtifactService)(nil).FindWithLastPull), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithLastPull", reflect.TypeOf((*MockArtifactService)(nil).FindWithLastPull), ctx, repositoryID, before, limit, last)
 }
 
 // Get mocks base method.
-func (m *MockArtifactService) Get(arg0 context.Context, arg1 int64) (*models.Artifact, error) {
+func (m *MockArtifactService) Get(ctx context.Context, id int64) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockArtifactServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockArtifactService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockArtifactService)(nil).Get), ctx, id)
 }
 
 // GetByDigest mocks base method.
-func (m *MockArtifactService) GetByDigest(arg0 context.Context, arg1 int64, arg2 string) (*models.Artifact, error) {
+func (m *MockArtifactService) GetByDigest(ctx context.Context, repositoryID int64, digest string) (*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByDigest", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetByDigest", ctx, repositoryID, digest)
 	ret0, _ := ret[0].(*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByDigest indicates an expected call of GetByDigest.
-func (mr *MockArtifactServiceMockRecorder) GetByDigest(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) GetByDigest(ctx, repositoryID, digest any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigest", reflect.TypeOf((*MockArtifactService)(nil).GetByDigest), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigest", reflect.TypeOf((*MockArtifactService)(nil).GetByDigest), ctx, repositoryID, digest)
 }
 
 // GetByDigests mocks base method.
-func (m *MockArtifactService) GetByDigests(arg0 context.Context, arg1 string, arg2 []string) ([]*models.Artifact, error) {
+func (m *MockArtifactService) GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByDigests", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetByDigests", ctx, repository, digests)
 	ret0, _ := ret[0].([]*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByDigests indicates an expected call of GetByDigests.
-func (mr *MockArtifactServiceMockRecorder) GetByDigests(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) GetByDigests(ctx, repository, digests any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigests", reflect.TypeOf((*MockArtifactService)(nil).GetByDigests), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigests", reflect.TypeOf((*MockArtifactService)(nil).GetByDigests), ctx, repository, digests)
 }
 
 // GetNamespaceSize mocks base method.
-func (m *MockArtifactService) GetNamespaceSize(arg0 context.Context, arg1 int64) (int64, error) {
+func (m *MockArtifactService) GetNamespaceSize(ctx context.Context, namespaceID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNamespaceSize", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetNamespaceSize", ctx, namespaceID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNamespaceSize indicates an expected call of GetNamespaceSize.
-func (mr *MockArtifactServiceMockRecorder) GetNamespaceSize(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) GetNamespaceSize(ctx, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceSize", reflect.TypeOf((*MockArtifactService)(nil).GetNamespaceSize), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceSize", reflect.TypeOf((*MockArtifactService)(nil).GetNamespaceSize), ctx, namespaceID)
 }
 
 // GetReferrers mocks base method.
-func (m *MockArtifactService) GetReferrers(arg0 context.Context, arg1 int64, arg2 string, arg3 []string) ([]*models.Artifact, error) {
+func (m *MockArtifactService) GetReferrers(ctx context.Context, repositoryID int64, digest string, artifactTypes []string) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReferrers", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetReferrers", ctx, repositoryID, digest, artifactTypes)
 	ret0, _ := ret[0].([]*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetReferrers indicates an expected call of GetReferrers.
-func (mr *MockArtifactServiceMockRecorder) GetReferrers(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) GetReferrers(ctx, repositoryID, digest, artifactTypes any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReferrers", reflect.TypeOf((*MockArtifactService)(nil).GetReferrers), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReferrers", reflect.TypeOf((*MockArtifactService)(nil).GetReferrers), ctx, repositoryID, digest, artifactTypes)
 }
 
 // GetRepositorySize mocks base method.
-func (m *MockArtifactService) GetRepositorySize(arg0 context.Context, arg1 int64) (int64, error) {
+func (m *MockArtifactService) GetRepositorySize(ctx context.Context, repositoryID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRepositorySize", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetRepositorySize", ctx, repositoryID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRepositorySize indicates an expected call of GetRepositorySize.
-func (mr *MockArtifactServiceMockRecorder) GetRepositorySize(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) GetRepositorySize(ctx, repositoryID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRepositorySize", reflect.TypeOf((*MockArtifactService)(nil).GetRepositorySize), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRepositorySize", reflect.TypeOf((*MockArtifactService)(nil).GetRepositorySize), ctx, repositoryID)
 }
 
 // Incr mocks base method.
-func (m *MockArtifactService) Incr(arg0 context.Context, arg1 int64) error {
+func (m *MockArtifactService) Incr(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Incr", arg0, arg1)
+	ret := m.ctrl.Call(m, "Incr", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Incr indicates an expected call of Incr.
-func (mr *MockArtifactServiceMockRecorder) Incr(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) Incr(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockArtifactService)(nil).Incr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockArtifactService)(nil).Incr), ctx, id)
 }
 
 // IsArtifactAssociatedWithArtifact mocks base method.
-func (m *MockArtifactService) IsArtifactAssociatedWithArtifact(arg0 context.Context, arg1 int64) error {
+func (m *MockArtifactService) IsArtifactAssociatedWithArtifact(ctx context.Context, artifactID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsArtifactAssociatedWithArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "IsArtifactAssociatedWithArtifact", ctx, artifactID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IsArtifactAssociatedWithArtifact indicates an expected call of IsArtifactAssociatedWithArtifact.
-func (mr *MockArtifactServiceMockRecorder) IsArtifactAssociatedWithArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) IsArtifactAssociatedWithArtifact(ctx, artifactID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArtifactAssociatedWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).IsArtifactAssociatedWithArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArtifactAssociatedWithArtifact", reflect.TypeOf((*MockArtifactService)(nil).IsArtifactAssociatedWithArtifact), ctx, artifactID)
 }
 
 // ListArtifact mocks base method.
-func (m *MockArtifactService) ListArtifact(arg0 context.Context, arg1 types.ListArtifactRequest) ([]*models.Artifact, error) {
+func (m *MockArtifactService) ListArtifact(ctx context.Context, req types.ListArtifactRequest) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListArtifact", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListArtifact", ctx, req)
 	ret0, _ := ret[0].([]*models.Artifact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListArtifact indicates an expected call of ListArtifact.
-func (mr *MockArtifactServiceMockRecorder) ListArtifact(arg0, arg1 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) ListArtifact(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactService)(nil).ListArtifact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactService)(nil).ListArtifact), ctx, req)
 }
 
 // UpdateSbom mocks base method.
-func (m *MockArtifactService) UpdateSbom(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockArtifactService) UpdateSbom(ctx context.Context, artifactID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSbom", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateSbom", ctx, artifactID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateSbom indicates an expected call of UpdateSbom.
-func (mr *MockArtifactServiceMockRecorder) UpdateSbom(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) UpdateSbom(ctx, artifactID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSbom", reflect.TypeOf((*MockArtifactService)(nil).UpdateSbom), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSbom", reflect.TypeOf((*MockArtifactService)(nil).UpdateSbom), ctx, artifactID, updates)
 }
 
 // UpdateVulnerability mocks base method.
-func (m *MockArtifactService) UpdateVulnerability(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockArtifactService) UpdateVulnerability(ctx context.Context, artifactID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateVulnerability", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateVulnerability", ctx, artifactID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateVulnerability indicates an expected call of UpdateVulnerability.
-func (mr *MockArtifactServiceMockRecorder) UpdateVulnerability(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockArtifactServiceMockRecorder) UpdateVulnerability(ctx, artifactID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).UpdateVulnerability), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVulnerability", reflect.TypeOf((*MockArtifactService)(nil).UpdateVulnerability), ctx, artifactID, updates)
 }

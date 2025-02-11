@@ -22,6 +22,7 @@ import (
 type MockDaemonService struct {
 	ctrl     *gomock.Controller
 	recorder *MockDaemonServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockDaemonServiceMockRecorder is the mock recorder for MockDaemonService.
@@ -42,417 +43,417 @@ func (m *MockDaemonService) EXPECT() *MockDaemonServiceMockRecorder {
 }
 
 // CreateGcArtifactRecords mocks base method.
-func (m *MockDaemonService) CreateGcArtifactRecords(arg0 context.Context, arg1 []*models.DaemonGcArtifactRecord) error {
+func (m *MockDaemonService) CreateGcArtifactRecords(ctx context.Context, records []*models.DaemonGcArtifactRecord) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcArtifactRecords", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcArtifactRecords", ctx, records)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcArtifactRecords indicates an expected call of CreateGcArtifactRecords.
-func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRecords(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRecords(ctx, records any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRecords), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRecords), ctx, records)
 }
 
 // CreateGcArtifactRule mocks base method.
-func (m *MockDaemonService) CreateGcArtifactRule(arg0 context.Context, arg1 *models.DaemonGcArtifactRule) error {
+func (m *MockDaemonService) CreateGcArtifactRule(ctx context.Context, ruleObj *models.DaemonGcArtifactRule) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcArtifactRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcArtifactRule", ctx, ruleObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcArtifactRule indicates an expected call of CreateGcArtifactRule.
-func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRule(ctx, ruleObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRule), ctx, ruleObj)
 }
 
 // CreateGcArtifactRunner mocks base method.
-func (m *MockDaemonService) CreateGcArtifactRunner(arg0 context.Context, arg1 *models.DaemonGcArtifactRunner) error {
+func (m *MockDaemonService) CreateGcArtifactRunner(ctx context.Context, runnerObj *models.DaemonGcArtifactRunner) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcArtifactRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcArtifactRunner", ctx, runnerObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcArtifactRunner indicates an expected call of CreateGcArtifactRunner.
-func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcArtifactRunner(ctx, runnerObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcArtifactRunner), ctx, runnerObj)
 }
 
 // CreateGcBlobRecords mocks base method.
-func (m *MockDaemonService) CreateGcBlobRecords(arg0 context.Context, arg1 []*models.DaemonGcBlobRecord) error {
+func (m *MockDaemonService) CreateGcBlobRecords(ctx context.Context, records []*models.DaemonGcBlobRecord) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcBlobRecords", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcBlobRecords", ctx, records)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcBlobRecords indicates an expected call of CreateGcBlobRecords.
-func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRecords(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRecords(ctx, records any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRecords), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRecords), ctx, records)
 }
 
 // CreateGcBlobRule mocks base method.
-func (m *MockDaemonService) CreateGcBlobRule(arg0 context.Context, arg1 *models.DaemonGcBlobRule) error {
+func (m *MockDaemonService) CreateGcBlobRule(ctx context.Context, ruleObj *models.DaemonGcBlobRule) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcBlobRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcBlobRule", ctx, ruleObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcBlobRule indicates an expected call of CreateGcBlobRule.
-func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRule(ctx, ruleObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRule), ctx, ruleObj)
 }
 
 // CreateGcBlobRunner mocks base method.
-func (m *MockDaemonService) CreateGcBlobRunner(arg0 context.Context, arg1 *models.DaemonGcBlobRunner) error {
+func (m *MockDaemonService) CreateGcBlobRunner(ctx context.Context, runnerObj *models.DaemonGcBlobRunner) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcBlobRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcBlobRunner", ctx, runnerObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcBlobRunner indicates an expected call of CreateGcBlobRunner.
-func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcBlobRunner(ctx, runnerObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcBlobRunner), ctx, runnerObj)
 }
 
 // CreateGcRepositoryRecords mocks base method.
-func (m *MockDaemonService) CreateGcRepositoryRecords(arg0 context.Context, arg1 []*models.DaemonGcRepositoryRecord) error {
+func (m *MockDaemonService) CreateGcRepositoryRecords(ctx context.Context, records []*models.DaemonGcRepositoryRecord) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcRepositoryRecords", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcRepositoryRecords", ctx, records)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcRepositoryRecords indicates an expected call of CreateGcRepositoryRecords.
-func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRecords(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRecords(ctx, records any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRecords), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRecords), ctx, records)
 }
 
 // CreateGcRepositoryRule mocks base method.
-func (m *MockDaemonService) CreateGcRepositoryRule(arg0 context.Context, arg1 *models.DaemonGcRepositoryRule) error {
+func (m *MockDaemonService) CreateGcRepositoryRule(ctx context.Context, ruleObj *models.DaemonGcRepositoryRule) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcRepositoryRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcRepositoryRule", ctx, ruleObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcRepositoryRule indicates an expected call of CreateGcRepositoryRule.
-func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRule(ctx, ruleObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRule), ctx, ruleObj)
 }
 
 // CreateGcRepositoryRunner mocks base method.
-func (m *MockDaemonService) CreateGcRepositoryRunner(arg0 context.Context, arg1 *models.DaemonGcRepositoryRunner) error {
+func (m *MockDaemonService) CreateGcRepositoryRunner(ctx context.Context, runnerObj *models.DaemonGcRepositoryRunner) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcRepositoryRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcRepositoryRunner", ctx, runnerObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcRepositoryRunner indicates an expected call of CreateGcRepositoryRunner.
-func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcRepositoryRunner(ctx, runnerObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcRepositoryRunner), ctx, runnerObj)
 }
 
 // CreateGcTagRecords mocks base method.
-func (m *MockDaemonService) CreateGcTagRecords(arg0 context.Context, arg1 []*models.DaemonGcTagRecord) error {
+func (m *MockDaemonService) CreateGcTagRecords(ctx context.Context, recordObjs []*models.DaemonGcTagRecord) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcTagRecords", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcTagRecords", ctx, recordObjs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcTagRecords indicates an expected call of CreateGcTagRecords.
-func (mr *MockDaemonServiceMockRecorder) CreateGcTagRecords(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcTagRecords(ctx, recordObjs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRecords), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRecords", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRecords), ctx, recordObjs)
 }
 
 // CreateGcTagRule mocks base method.
-func (m *MockDaemonService) CreateGcTagRule(arg0 context.Context, arg1 *models.DaemonGcTagRule) error {
+func (m *MockDaemonService) CreateGcTagRule(ctx context.Context, ruleObj *models.DaemonGcTagRule) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcTagRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcTagRule", ctx, ruleObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcTagRule indicates an expected call of CreateGcTagRule.
-func (mr *MockDaemonServiceMockRecorder) CreateGcTagRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcTagRule(ctx, ruleObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRule), ctx, ruleObj)
 }
 
 // CreateGcTagRunner mocks base method.
-func (m *MockDaemonService) CreateGcTagRunner(arg0 context.Context, arg1 *models.DaemonGcTagRunner) error {
+func (m *MockDaemonService) CreateGcTagRunner(ctx context.Context, runnerObj *models.DaemonGcTagRunner) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGcTagRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateGcTagRunner", ctx, runnerObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateGcTagRunner indicates an expected call of CreateGcTagRunner.
-func (mr *MockDaemonServiceMockRecorder) CreateGcTagRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) CreateGcTagRunner(ctx, runnerObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).CreateGcTagRunner), ctx, runnerObj)
 }
 
 // GetGcArtifactLatestRunner mocks base method.
-func (m *MockDaemonService) GetGcArtifactLatestRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcArtifactRunner, error) {
+func (m *MockDaemonService) GetGcArtifactLatestRunner(ctx context.Context, ruleID int64) (*models.DaemonGcArtifactRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcArtifactLatestRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcArtifactLatestRunner", ctx, ruleID)
 	ret0, _ := ret[0].(*models.DaemonGcArtifactRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcArtifactLatestRunner indicates an expected call of GetGcArtifactLatestRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcArtifactLatestRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcArtifactLatestRunner(ctx, ruleID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactLatestRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactLatestRunner), ctx, ruleID)
 }
 
 // GetGcArtifactRecord mocks base method.
-func (m *MockDaemonService) GetGcArtifactRecord(arg0 context.Context, arg1 int64) (*models.DaemonGcArtifactRecord, error) {
+func (m *MockDaemonService) GetGcArtifactRecord(ctx context.Context, recordID int64) (*models.DaemonGcArtifactRecord, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcArtifactRecord", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcArtifactRecord", ctx, recordID)
 	ret0, _ := ret[0].(*models.DaemonGcArtifactRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcArtifactRecord indicates an expected call of GetGcArtifactRecord.
-func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRecord(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRecord(ctx, recordID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRecord), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRecord), ctx, recordID)
 }
 
 // GetGcArtifactRule mocks base method.
-func (m *MockDaemonService) GetGcArtifactRule(arg0 context.Context, arg1 *int64) (*models.DaemonGcArtifactRule, error) {
+func (m *MockDaemonService) GetGcArtifactRule(ctx context.Context, namespaceID *int64) (*models.DaemonGcArtifactRule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcArtifactRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcArtifactRule", ctx, namespaceID)
 	ret0, _ := ret[0].(*models.DaemonGcArtifactRule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcArtifactRule indicates an expected call of GetGcArtifactRule.
-func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRule(ctx, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRule), ctx, namespaceID)
 }
 
 // GetGcArtifactRunner mocks base method.
-func (m *MockDaemonService) GetGcArtifactRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcArtifactRunner, error) {
+func (m *MockDaemonService) GetGcArtifactRunner(ctx context.Context, runnerID int64) (*models.DaemonGcArtifactRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcArtifactRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcArtifactRunner", ctx, runnerID)
 	ret0, _ := ret[0].(*models.DaemonGcArtifactRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcArtifactRunner indicates an expected call of GetGcArtifactRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcArtifactRunner(ctx, runnerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcArtifactRunner), ctx, runnerID)
 }
 
 // GetGcBlobLatestRunner mocks base method.
-func (m *MockDaemonService) GetGcBlobLatestRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcBlobRunner, error) {
+func (m *MockDaemonService) GetGcBlobLatestRunner(ctx context.Context, ruleID int64) (*models.DaemonGcBlobRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcBlobLatestRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcBlobLatestRunner", ctx, ruleID)
 	ret0, _ := ret[0].(*models.DaemonGcBlobRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcBlobLatestRunner indicates an expected call of GetGcBlobLatestRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcBlobLatestRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcBlobLatestRunner(ctx, ruleID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobLatestRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobLatestRunner), ctx, ruleID)
 }
 
 // GetGcBlobRecord mocks base method.
-func (m *MockDaemonService) GetGcBlobRecord(arg0 context.Context, arg1 int64) (*models.DaemonGcBlobRecord, error) {
+func (m *MockDaemonService) GetGcBlobRecord(ctx context.Context, recordID int64) (*models.DaemonGcBlobRecord, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcBlobRecord", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcBlobRecord", ctx, recordID)
 	ret0, _ := ret[0].(*models.DaemonGcBlobRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcBlobRecord indicates an expected call of GetGcBlobRecord.
-func (mr *MockDaemonServiceMockRecorder) GetGcBlobRecord(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcBlobRecord(ctx, recordID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRecord), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRecord), ctx, recordID)
 }
 
 // GetGcBlobRule mocks base method.
-func (m *MockDaemonService) GetGcBlobRule(arg0 context.Context) (*models.DaemonGcBlobRule, error) {
+func (m *MockDaemonService) GetGcBlobRule(ctx context.Context) (*models.DaemonGcBlobRule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcBlobRule", arg0)
+	ret := m.ctrl.Call(m, "GetGcBlobRule", ctx)
 	ret0, _ := ret[0].(*models.DaemonGcBlobRule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcBlobRule indicates an expected call of GetGcBlobRule.
-func (mr *MockDaemonServiceMockRecorder) GetGcBlobRule(arg0 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcBlobRule(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRule), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRule), ctx)
 }
 
 // GetGcBlobRunner mocks base method.
-func (m *MockDaemonService) GetGcBlobRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcBlobRunner, error) {
+func (m *MockDaemonService) GetGcBlobRunner(ctx context.Context, runnerID int64) (*models.DaemonGcBlobRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcBlobRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcBlobRunner", ctx, runnerID)
 	ret0, _ := ret[0].(*models.DaemonGcBlobRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcBlobRunner indicates an expected call of GetGcBlobRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcBlobRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcBlobRunner(ctx, runnerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcBlobRunner), ctx, runnerID)
 }
 
 // GetGcRepositoryLatestRunner mocks base method.
-func (m *MockDaemonService) GetGcRepositoryLatestRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcRepositoryRunner, error) {
+func (m *MockDaemonService) GetGcRepositoryLatestRunner(ctx context.Context, ruleID int64) (*models.DaemonGcRepositoryRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcRepositoryLatestRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcRepositoryLatestRunner", ctx, ruleID)
 	ret0, _ := ret[0].(*models.DaemonGcRepositoryRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcRepositoryLatestRunner indicates an expected call of GetGcRepositoryLatestRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryLatestRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryLatestRunner(ctx, ruleID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryLatestRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryLatestRunner), ctx, ruleID)
 }
 
 // GetGcRepositoryRecord mocks base method.
-func (m *MockDaemonService) GetGcRepositoryRecord(arg0 context.Context, arg1 int64) (*models.DaemonGcRepositoryRecord, error) {
+func (m *MockDaemonService) GetGcRepositoryRecord(ctx context.Context, recordID int64) (*models.DaemonGcRepositoryRecord, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcRepositoryRecord", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcRepositoryRecord", ctx, recordID)
 	ret0, _ := ret[0].(*models.DaemonGcRepositoryRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcRepositoryRecord indicates an expected call of GetGcRepositoryRecord.
-func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRecord(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRecord(ctx, recordID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRecord), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRecord), ctx, recordID)
 }
 
 // GetGcRepositoryRule mocks base method.
-func (m *MockDaemonService) GetGcRepositoryRule(arg0 context.Context, arg1 *int64) (*models.DaemonGcRepositoryRule, error) {
+func (m *MockDaemonService) GetGcRepositoryRule(ctx context.Context, namespaceID *int64) (*models.DaemonGcRepositoryRule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcRepositoryRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcRepositoryRule", ctx, namespaceID)
 	ret0, _ := ret[0].(*models.DaemonGcRepositoryRule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcRepositoryRule indicates an expected call of GetGcRepositoryRule.
-func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRule(ctx, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRule), ctx, namespaceID)
 }
 
 // GetGcRepositoryRunner mocks base method.
-func (m *MockDaemonService) GetGcRepositoryRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcRepositoryRunner, error) {
+func (m *MockDaemonService) GetGcRepositoryRunner(ctx context.Context, runnerID int64) (*models.DaemonGcRepositoryRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcRepositoryRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcRepositoryRunner", ctx, runnerID)
 	ret0, _ := ret[0].(*models.DaemonGcRepositoryRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcRepositoryRunner indicates an expected call of GetGcRepositoryRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcRepositoryRunner(ctx, runnerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcRepositoryRunner), ctx, runnerID)
 }
 
 // GetGcTagLatestRunner mocks base method.
-func (m *MockDaemonService) GetGcTagLatestRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcTagRunner, error) {
+func (m *MockDaemonService) GetGcTagLatestRunner(ctx context.Context, ruleID int64) (*models.DaemonGcTagRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcTagLatestRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcTagLatestRunner", ctx, ruleID)
 	ret0, _ := ret[0].(*models.DaemonGcTagRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcTagLatestRunner indicates an expected call of GetGcTagLatestRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcTagLatestRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcTagLatestRunner(ctx, ruleID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagLatestRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagLatestRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagLatestRunner), ctx, ruleID)
 }
 
 // GetGcTagRecord mocks base method.
-func (m *MockDaemonService) GetGcTagRecord(arg0 context.Context, arg1 int64) (*models.DaemonGcTagRecord, error) {
+func (m *MockDaemonService) GetGcTagRecord(ctx context.Context, recordID int64) (*models.DaemonGcTagRecord, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcTagRecord", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcTagRecord", ctx, recordID)
 	ret0, _ := ret[0].(*models.DaemonGcTagRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcTagRecord indicates an expected call of GetGcTagRecord.
-func (mr *MockDaemonServiceMockRecorder) GetGcTagRecord(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcTagRecord(ctx, recordID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRecord), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRecord", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRecord), ctx, recordID)
 }
 
 // GetGcTagRule mocks base method.
-func (m *MockDaemonService) GetGcTagRule(arg0 context.Context, arg1 *int64) (*models.DaemonGcTagRule, error) {
+func (m *MockDaemonService) GetGcTagRule(ctx context.Context, namespaceID *int64) (*models.DaemonGcTagRule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcTagRule", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcTagRule", ctx, namespaceID)
 	ret0, _ := ret[0].(*models.DaemonGcTagRule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcTagRule indicates an expected call of GetGcTagRule.
-func (mr *MockDaemonServiceMockRecorder) GetGcTagRule(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcTagRule(ctx, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRule), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRule), ctx, namespaceID)
 }
 
 // GetGcTagRunner mocks base method.
-func (m *MockDaemonService) GetGcTagRunner(arg0 context.Context, arg1 int64) (*models.DaemonGcTagRunner, error) {
+func (m *MockDaemonService) GetGcTagRunner(ctx context.Context, runnerID int64) (*models.DaemonGcTagRunner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGcTagRunner", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetGcTagRunner", ctx, runnerID)
 	ret0, _ := ret[0].(*models.DaemonGcTagRunner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGcTagRunner indicates an expected call of GetGcTagRunner.
-func (mr *MockDaemonServiceMockRecorder) GetGcTagRunner(arg0, arg1 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) GetGcTagRunner(ctx, runnerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRunner), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).GetGcTagRunner), ctx, runnerID)
 }
 
 // ListGcArtifactRecords mocks base method.
-func (m *MockDaemonService) ListGcArtifactRecords(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error) {
+func (m *MockDaemonService) ListGcArtifactRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcArtifactRecords", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcArtifactRecords", ctx, runnerID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcArtifactRecord)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -460,15 +461,15 @@ func (m *MockDaemonService) ListGcArtifactRecords(arg0 context.Context, arg1 int
 }
 
 // ListGcArtifactRecords indicates an expected call of ListGcArtifactRecords.
-func (mr *MockDaemonServiceMockRecorder) ListGcArtifactRecords(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcArtifactRecords(ctx, runnerID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcArtifactRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcArtifactRecords), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcArtifactRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcArtifactRecords), ctx, runnerID, pagination, sort)
 }
 
 // ListGcArtifactRunners mocks base method.
-func (m *MockDaemonService) ListGcArtifactRunners(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error) {
+func (m *MockDaemonService) ListGcArtifactRunners(ctx context.Context, ruleID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcArtifactRunners", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcArtifactRunners", ctx, ruleID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcArtifactRunner)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -476,15 +477,15 @@ func (m *MockDaemonService) ListGcArtifactRunners(arg0 context.Context, arg1 int
 }
 
 // ListGcArtifactRunners indicates an expected call of ListGcArtifactRunners.
-func (mr *MockDaemonServiceMockRecorder) ListGcArtifactRunners(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcArtifactRunners(ctx, ruleID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcArtifactRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcArtifactRunners), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcArtifactRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcArtifactRunners), ctx, ruleID, pagination, sort)
 }
 
 // ListGcBlobRecords mocks base method.
-func (m *MockDaemonService) ListGcBlobRecords(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcBlobRecord, int64, error) {
+func (m *MockDaemonService) ListGcBlobRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRecord, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcBlobRecords", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcBlobRecords", ctx, runnerID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcBlobRecord)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -492,15 +493,15 @@ func (m *MockDaemonService) ListGcBlobRecords(arg0 context.Context, arg1 int64, 
 }
 
 // ListGcBlobRecords indicates an expected call of ListGcBlobRecords.
-func (mr *MockDaemonServiceMockRecorder) ListGcBlobRecords(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcBlobRecords(ctx, runnerID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcBlobRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcBlobRecords), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcBlobRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcBlobRecords), ctx, runnerID, pagination, sort)
 }
 
 // ListGcBlobRunners mocks base method.
-func (m *MockDaemonService) ListGcBlobRunners(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcBlobRunner, int64, error) {
+func (m *MockDaemonService) ListGcBlobRunners(ctx context.Context, ruleID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcBlobRunner, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcBlobRunners", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcBlobRunners", ctx, ruleID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcBlobRunner)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -508,15 +509,15 @@ func (m *MockDaemonService) ListGcBlobRunners(arg0 context.Context, arg1 int64, 
 }
 
 // ListGcBlobRunners indicates an expected call of ListGcBlobRunners.
-func (mr *MockDaemonServiceMockRecorder) ListGcBlobRunners(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcBlobRunners(ctx, ruleID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcBlobRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcBlobRunners), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcBlobRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcBlobRunners), ctx, ruleID, pagination, sort)
 }
 
 // ListGcRepositoryRecords mocks base method.
-func (m *MockDaemonService) ListGcRepositoryRecords(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error) {
+func (m *MockDaemonService) ListGcRepositoryRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcRepositoryRecords", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcRepositoryRecords", ctx, runnerID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcRepositoryRecord)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -524,15 +525,15 @@ func (m *MockDaemonService) ListGcRepositoryRecords(arg0 context.Context, arg1 i
 }
 
 // ListGcRepositoryRecords indicates an expected call of ListGcRepositoryRecords.
-func (mr *MockDaemonServiceMockRecorder) ListGcRepositoryRecords(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcRepositoryRecords(ctx, runnerID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcRepositoryRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcRepositoryRecords), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcRepositoryRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcRepositoryRecords), ctx, runnerID, pagination, sort)
 }
 
 // ListGcRepositoryRunners mocks base method.
-func (m *MockDaemonService) ListGcRepositoryRunners(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error) {
+func (m *MockDaemonService) ListGcRepositoryRunners(ctx context.Context, ruleID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcRepositoryRunners", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcRepositoryRunners", ctx, ruleID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcRepositoryRunner)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -540,15 +541,15 @@ func (m *MockDaemonService) ListGcRepositoryRunners(arg0 context.Context, arg1 i
 }
 
 // ListGcRepositoryRunners indicates an expected call of ListGcRepositoryRunners.
-func (mr *MockDaemonServiceMockRecorder) ListGcRepositoryRunners(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcRepositoryRunners(ctx, ruleID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcRepositoryRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcRepositoryRunners), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcRepositoryRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcRepositoryRunners), ctx, ruleID, pagination, sort)
 }
 
 // ListGcTagRecords mocks base method.
-func (m *MockDaemonService) ListGcTagRecords(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcTagRecord, int64, error) {
+func (m *MockDaemonService) ListGcTagRecords(ctx context.Context, runnerID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcTagRecord, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcTagRecords", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcTagRecords", ctx, runnerID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcTagRecord)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -556,15 +557,15 @@ func (m *MockDaemonService) ListGcTagRecords(arg0 context.Context, arg1 int64, a
 }
 
 // ListGcTagRecords indicates an expected call of ListGcTagRecords.
-func (mr *MockDaemonServiceMockRecorder) ListGcTagRecords(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcTagRecords(ctx, runnerID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcTagRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcTagRecords), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcTagRecords", reflect.TypeOf((*MockDaemonService)(nil).ListGcTagRecords), ctx, runnerID, pagination, sort)
 }
 
 // ListGcTagRunners mocks base method.
-func (m *MockDaemonService) ListGcTagRunners(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.DaemonGcTagRunner, int64, error) {
+func (m *MockDaemonService) ListGcTagRunners(ctx context.Context, ruleID int64, pagination types.Pagination, sort types.Sortable) ([]*models.DaemonGcTagRunner, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGcTagRunners", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListGcTagRunners", ctx, ruleID, pagination, sort)
 	ret0, _ := ret[0].([]*models.DaemonGcTagRunner)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -572,119 +573,119 @@ func (m *MockDaemonService) ListGcTagRunners(arg0 context.Context, arg1 int64, a
 }
 
 // ListGcTagRunners indicates an expected call of ListGcTagRunners.
-func (mr *MockDaemonServiceMockRecorder) ListGcTagRunners(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) ListGcTagRunners(ctx, ruleID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcTagRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcTagRunners), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGcTagRunners", reflect.TypeOf((*MockDaemonService)(nil).ListGcTagRunners), ctx, ruleID, pagination, sort)
 }
 
 // UpdateGcArtifactRule mocks base method.
-func (m *MockDaemonService) UpdateGcArtifactRule(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcArtifactRule(ctx context.Context, ruleID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcArtifactRule", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcArtifactRule", ctx, ruleID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcArtifactRule indicates an expected call of UpdateGcArtifactRule.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcArtifactRule(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcArtifactRule(ctx, ruleID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcArtifactRule), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcArtifactRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcArtifactRule), ctx, ruleID, updates)
 }
 
 // UpdateGcArtifactRunner mocks base method.
-func (m *MockDaemonService) UpdateGcArtifactRunner(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcArtifactRunner(ctx context.Context, runnerID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcArtifactRunner", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcArtifactRunner", ctx, runnerID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcArtifactRunner indicates an expected call of UpdateGcArtifactRunner.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcArtifactRunner(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcArtifactRunner(ctx, runnerID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcArtifactRunner), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcArtifactRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcArtifactRunner), ctx, runnerID, updates)
 }
 
 // UpdateGcBlobRule mocks base method.
-func (m *MockDaemonService) UpdateGcBlobRule(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcBlobRule(ctx context.Context, ruleID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcBlobRule", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcBlobRule", ctx, ruleID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcBlobRule indicates an expected call of UpdateGcBlobRule.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcBlobRule(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcBlobRule(ctx, ruleID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcBlobRule), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcBlobRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcBlobRule), ctx, ruleID, updates)
 }
 
 // UpdateGcBlobRunner mocks base method.
-func (m *MockDaemonService) UpdateGcBlobRunner(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcBlobRunner(ctx context.Context, runnerID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcBlobRunner", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcBlobRunner", ctx, runnerID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcBlobRunner indicates an expected call of UpdateGcBlobRunner.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcBlobRunner(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcBlobRunner(ctx, runnerID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcBlobRunner), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcBlobRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcBlobRunner), ctx, runnerID, updates)
 }
 
 // UpdateGcRepositoryRule mocks base method.
-func (m *MockDaemonService) UpdateGcRepositoryRule(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcRepositoryRule(ctx context.Context, ruleID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcRepositoryRule", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcRepositoryRule", ctx, ruleID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcRepositoryRule indicates an expected call of UpdateGcRepositoryRule.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcRepositoryRule(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcRepositoryRule(ctx, ruleID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcRepositoryRule), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcRepositoryRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcRepositoryRule), ctx, ruleID, updates)
 }
 
 // UpdateGcRepositoryRunner mocks base method.
-func (m *MockDaemonService) UpdateGcRepositoryRunner(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcRepositoryRunner(ctx context.Context, runnerID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcRepositoryRunner", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcRepositoryRunner", ctx, runnerID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcRepositoryRunner indicates an expected call of UpdateGcRepositoryRunner.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcRepositoryRunner(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcRepositoryRunner(ctx, runnerID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcRepositoryRunner), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcRepositoryRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcRepositoryRunner), ctx, runnerID, updates)
 }
 
 // UpdateGcTagRule mocks base method.
-func (m *MockDaemonService) UpdateGcTagRule(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcTagRule(ctx context.Context, ruleID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcTagRule", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcTagRule", ctx, ruleID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcTagRule indicates an expected call of UpdateGcTagRule.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcTagRule(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcTagRule(ctx, ruleID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcTagRule), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcTagRule", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcTagRule), ctx, ruleID, updates)
 }
 
 // UpdateGcTagRunner mocks base method.
-func (m *MockDaemonService) UpdateGcTagRunner(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockDaemonService) UpdateGcTagRunner(ctx context.Context, runnerID int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGcTagRunner", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateGcTagRunner", ctx, runnerID, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGcTagRunner indicates an expected call of UpdateGcTagRunner.
-func (mr *MockDaemonServiceMockRecorder) UpdateGcTagRunner(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockDaemonServiceMockRecorder) UpdateGcTagRunner(ctx, runnerID, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcTagRunner), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGcTagRunner", reflect.TypeOf((*MockDaemonService)(nil).UpdateGcTagRunner), ctx, runnerID, updates)
 }

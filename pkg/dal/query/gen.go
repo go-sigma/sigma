@@ -21,8 +21,6 @@ var (
 	ArtifactSbom                  *artifactSbom
 	ArtifactVulnerability         *artifactVulnerability
 	Audit                         *audit
-	AuthRole                      *authRole
-	AuthRule                      *authRule
 	Blob                          *blob
 	BlobUpload                    *blobUpload
 	Builder                       *builder
@@ -63,8 +61,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ArtifactSbom = &Q.ArtifactSbom
 	ArtifactVulnerability = &Q.ArtifactVulnerability
 	Audit = &Q.Audit
-	AuthRole = &Q.AuthRole
-	AuthRule = &Q.AuthRule
 	Blob = &Q.Blob
 	BlobUpload = &Q.BlobUpload
 	Builder = &Q.Builder
@@ -106,8 +102,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ArtifactSbom:                  newArtifactSbom(db, opts...),
 		ArtifactVulnerability:         newArtifactVulnerability(db, opts...),
 		Audit:                         newAudit(db, opts...),
-		AuthRole:                      newAuthRole(db, opts...),
-		AuthRule:                      newAuthRule(db, opts...),
 		Blob:                          newBlob(db, opts...),
 		BlobUpload:                    newBlobUpload(db, opts...),
 		Builder:                       newBuilder(db, opts...),
@@ -150,8 +144,6 @@ type Query struct {
 	ArtifactSbom                  artifactSbom
 	ArtifactVulnerability         artifactVulnerability
 	Audit                         audit
-	AuthRole                      authRole
-	AuthRule                      authRule
 	Blob                          blob
 	BlobUpload                    blobUpload
 	Builder                       builder
@@ -195,8 +187,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ArtifactSbom:                  q.ArtifactSbom.clone(db),
 		ArtifactVulnerability:         q.ArtifactVulnerability.clone(db),
 		Audit:                         q.Audit.clone(db),
-		AuthRole:                      q.AuthRole.clone(db),
-		AuthRule:                      q.AuthRule.clone(db),
 		Blob:                          q.Blob.clone(db),
 		BlobUpload:                    q.BlobUpload.clone(db),
 		Builder:                       q.Builder.clone(db),
@@ -247,8 +237,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ArtifactSbom:                  q.ArtifactSbom.replaceDB(db),
 		ArtifactVulnerability:         q.ArtifactVulnerability.replaceDB(db),
 		Audit:                         q.Audit.replaceDB(db),
-		AuthRole:                      q.AuthRole.replaceDB(db),
-		AuthRule:                      q.AuthRule.replaceDB(db),
 		Blob:                          q.Blob.replaceDB(db),
 		BlobUpload:                    q.BlobUpload.replaceDB(db),
 		Builder:                       q.Builder.replaceDB(db),
@@ -289,8 +277,6 @@ type queryCtx struct {
 	ArtifactSbom                  *artifactSbomDo
 	ArtifactVulnerability         *artifactVulnerabilityDo
 	Audit                         *auditDo
-	AuthRole                      *authRoleDo
-	AuthRule                      *authRuleDo
 	Blob                          *blobDo
 	BlobUpload                    *blobUploadDo
 	Builder                       *builderDo
@@ -331,8 +317,6 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ArtifactSbom:                  q.ArtifactSbom.WithContext(ctx),
 		ArtifactVulnerability:         q.ArtifactVulnerability.WithContext(ctx),
 		Audit:                         q.Audit.WithContext(ctx),
-		AuthRole:                      q.AuthRole.WithContext(ctx),
-		AuthRule:                      q.AuthRule.WithContext(ctx),
 		Blob:                          q.Blob.WithContext(ctx),
 		BlobUpload:                    q.BlobUpload.WithContext(ctx),
 		Builder:                       q.Builder.WithContext(ctx),

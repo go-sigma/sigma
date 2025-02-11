@@ -24,8 +24,6 @@ func initDigContainer(digCon *dig.Container) error {
 	for _, e := range []error{
 		digCon.Provide(dao.NewArtifactServiceFactory),
 		digCon.Provide(dao.NewAuditServiceFactory),
-		digCon.Provide(dao.NewAuthRuleServiceFactory),
-		digCon.Provide(dao.NewAuthRoleServiceFactory),
 		digCon.Provide(dao.NewBlobServiceFactory),
 		digCon.Provide(dao.NewBlobUploadServiceFactory),
 		digCon.Provide(dao.NewBuilderServiceFactory),

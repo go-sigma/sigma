@@ -21,6 +21,7 @@ import (
 type MockService struct {
 	ctrl     *gomock.Controller
 	recorder *MockServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockServiceMockRecorder is the mock recorder for MockService.
@@ -41,38 +42,38 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // New mocks base method.
-func (m *MockService) New(arg0 int64, arg1 time.Duration) (string, error) {
+func (m *MockService) New(id int64, expire time.Duration) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", arg0, arg1)
+	ret := m.ctrl.Call(m, "New", id, expire)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockServiceMockRecorder) New(arg0, arg1 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) New(id, expire any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockService)(nil).New), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockService)(nil).New), id, expire)
 }
 
 // Revoke mocks base method.
-func (m *MockService) Revoke(arg0 context.Context, arg1 string) error {
+func (m *MockService) Revoke(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", arg0, arg1)
+	ret := m.ctrl.Call(m, "Revoke", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Revoke indicates an expected call of Revoke.
-func (mr *MockServiceMockRecorder) Revoke(arg0, arg1 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) Revoke(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockService)(nil).Revoke), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockService)(nil).Revoke), ctx, id)
 }
 
 // Validate mocks base method.
-func (m *MockService) Validate(arg0 context.Context, arg1 string) (string, int64, error) {
+func (m *MockService) Validate(ctx context.Context, token string) (string, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Validate", arg0, arg1)
+	ret := m.ctrl.Call(m, "Validate", ctx, token)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -80,7 +81,7 @@ func (m *MockService) Validate(arg0 context.Context, arg1 string) (string, int64
 }
 
 // Validate indicates an expected call of Validate.
-func (mr *MockServiceMockRecorder) Validate(arg0, arg1 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) Validate(ctx, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockService)(nil).Validate), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockService)(nil).Validate), ctx, token)
 }

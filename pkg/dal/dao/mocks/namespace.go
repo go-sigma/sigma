@@ -22,6 +22,7 @@ import (
 type MockNamespaceService struct {
 	ctrl     *gomock.Controller
 	recorder *MockNamespaceServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockNamespaceServiceMockRecorder is the mock recorder for MockNamespaceService.
@@ -42,112 +43,112 @@ func (m *MockNamespaceService) EXPECT() *MockNamespaceServiceMockRecorder {
 }
 
 // CountNamespace mocks base method.
-func (m *MockNamespaceService) CountNamespace(arg0 context.Context, arg1 *string) (int64, error) {
+func (m *MockNamespaceService) CountNamespace(ctx context.Context, name *string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountNamespace", arg0, arg1)
+	ret := m.ctrl.Call(m, "CountNamespace", ctx, name)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountNamespace indicates an expected call of CountNamespace.
-func (mr *MockNamespaceServiceMockRecorder) CountNamespace(arg0, arg1 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) CountNamespace(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountNamespace", reflect.TypeOf((*MockNamespaceService)(nil).CountNamespace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountNamespace", reflect.TypeOf((*MockNamespaceService)(nil).CountNamespace), ctx, name)
 }
 
 // Create mocks base method.
-func (m *MockNamespaceService) Create(arg0 context.Context, arg1 *models.Namespace) error {
+func (m *MockNamespaceService) Create(ctx context.Context, namespace *models.Namespace) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, namespace)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockNamespaceServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) Create(ctx, namespace any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNamespaceService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNamespaceService)(nil).Create), ctx, namespace)
 }
 
 // DeleteByID mocks base method.
-func (m *MockNamespaceService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockNamespaceService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockNamespaceServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockNamespaceService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockNamespaceService)(nil).DeleteByID), ctx, id)
 }
 
 // FindAll mocks base method.
-func (m *MockNamespaceService) FindAll(arg0 context.Context) ([]*models.Namespace, error) {
+func (m *MockNamespaceService) FindAll(ctx context.Context) ([]*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll", arg0)
+	ret := m.ctrl.Call(m, "FindAll", ctx)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockNamespaceServiceMockRecorder) FindAll(arg0 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) FindAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockNamespaceService)(nil).FindAll), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockNamespaceService)(nil).FindAll), ctx)
 }
 
 // FindWithCursor mocks base method.
-func (m *MockNamespaceService) FindWithCursor(arg0 context.Context, arg1, arg2 int64) ([]*models.Namespace, error) {
+func (m *MockNamespaceService) FindWithCursor(ctx context.Context, limit, last int64) ([]*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindWithCursor", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "FindWithCursor", ctx, limit, last)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindWithCursor indicates an expected call of FindWithCursor.
-func (mr *MockNamespaceServiceMockRecorder) FindWithCursor(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) FindWithCursor(ctx, limit, last any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithCursor", reflect.TypeOf((*MockNamespaceService)(nil).FindWithCursor), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindWithCursor", reflect.TypeOf((*MockNamespaceService)(nil).FindWithCursor), ctx, limit, last)
 }
 
 // Get mocks base method.
-func (m *MockNamespaceService) Get(arg0 context.Context, arg1 int64) (*models.Namespace, error) {
+func (m *MockNamespaceService) Get(ctx context.Context, id int64) (*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockNamespaceServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNamespaceService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNamespaceService)(nil).Get), ctx, id)
 }
 
 // GetByName mocks base method.
-func (m *MockNamespaceService) GetByName(arg0 context.Context, arg1 string) (*models.Namespace, error) {
+func (m *MockNamespaceService) GetByName(ctx context.Context, name string) (*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByName", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByName", ctx, name)
 	ret0, _ := ret[0].(*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByName indicates an expected call of GetByName.
-func (mr *MockNamespaceServiceMockRecorder) GetByName(arg0, arg1 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) GetByName(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockNamespaceService)(nil).GetByName), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockNamespaceService)(nil).GetByName), ctx, name)
 }
 
 // ListNamespace mocks base method.
-func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 *string, arg2 types.Pagination, arg3 types.Sortable) ([]*models.Namespace, int64, error) {
+func (m *MockNamespaceService) ListNamespace(ctx context.Context, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListNamespace", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListNamespace", ctx, name, pagination, sort)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -155,15 +156,15 @@ func (m *MockNamespaceService) ListNamespace(arg0 context.Context, arg1 *string,
 }
 
 // ListNamespace indicates an expected call of ListNamespace.
-func (mr *MockNamespaceServiceMockRecorder) ListNamespace(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) ListNamespace(ctx, name, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespace", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespace), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespace", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespace), ctx, name, pagination, sort)
 }
 
 // ListNamespaceWithAuth mocks base method.
-func (m *MockNamespaceService) ListNamespaceWithAuth(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.Namespace, int64, error) {
+func (m *MockNamespaceService) ListNamespaceWithAuth(ctx context.Context, userID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.Namespace, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListNamespaceWithAuth", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "ListNamespaceWithAuth", ctx, userID, name, pagination, sort)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -171,35 +172,35 @@ func (m *MockNamespaceService) ListNamespaceWithAuth(arg0 context.Context, arg1 
 }
 
 // ListNamespaceWithAuth indicates an expected call of ListNamespaceWithAuth.
-func (mr *MockNamespaceServiceMockRecorder) ListNamespaceWithAuth(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) ListNamespaceWithAuth(ctx, userID, name, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceWithAuth", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespaceWithAuth), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceWithAuth", reflect.TypeOf((*MockNamespaceService)(nil).ListNamespaceWithAuth), ctx, userID, name, pagination, sort)
 }
 
 // UpdateByID mocks base method.
-func (m *MockNamespaceService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockNamespaceService) UpdateByID(ctx context.Context, id int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateByID", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateByID", ctx, id, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateByID indicates an expected call of UpdateByID.
-func (mr *MockNamespaceServiceMockRecorder) UpdateByID(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) UpdateByID(ctx, id, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockNamespaceService)(nil).UpdateByID), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockNamespaceService)(nil).UpdateByID), ctx, id, updates)
 }
 
 // UpdateQuota mocks base method.
-func (m *MockNamespaceService) UpdateQuota(arg0 context.Context, arg1, arg2 int64) error {
+func (m *MockNamespaceService) UpdateQuota(ctx context.Context, namespaceID, limit int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateQuota", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateQuota", ctx, namespaceID, limit)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateQuota indicates an expected call of UpdateQuota.
-func (mr *MockNamespaceServiceMockRecorder) UpdateQuota(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceServiceMockRecorder) UpdateQuota(ctx, namespaceID, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuota", reflect.TypeOf((*MockNamespaceService)(nil).UpdateQuota), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuota", reflect.TypeOf((*MockNamespaceService)(nil).UpdateQuota), ctx, namespaceID, limit)
 }

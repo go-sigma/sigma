@@ -23,6 +23,7 @@ import (
 type MockNamespaceMemberService struct {
 	ctrl     *gomock.Controller
 	recorder *MockNamespaceMemberServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockNamespaceMemberServiceMockRecorder is the mock recorder for MockNamespaceMemberService.
@@ -43,83 +44,83 @@ func (m *MockNamespaceMemberService) EXPECT() *MockNamespaceMemberServiceMockRec
 }
 
 // AddNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) AddNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) (*models.NamespaceMember, error) {
+func (m *MockNamespaceMemberService) AddNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) (*models.NamespaceMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddNamespaceMember", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "AddNamespaceMember", ctx, userID, namespaceObj, role)
 	ret0, _ := ret[0].(*models.NamespaceMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddNamespaceMember indicates an expected call of AddNamespaceMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) AddNamespaceMember(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) AddNamespaceMember(ctx, userID, namespaceObj, role any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).AddNamespaceMember), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).AddNamespaceMember), ctx, userID, namespaceObj, role)
 }
 
 // CountNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) CountNamespaceMember(arg0 context.Context, arg1, arg2 int64) (int64, error) {
+func (m *MockNamespaceMemberService) CountNamespaceMember(ctx context.Context, userID, namespaceID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountNamespaceMember", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CountNamespaceMember", ctx, userID, namespaceID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountNamespaceMember indicates an expected call of CountNamespaceMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) CountNamespaceMember(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) CountNamespaceMember(ctx, userID, namespaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).CountNamespaceMember), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).CountNamespaceMember), ctx, userID, namespaceID)
 }
 
 // DeleteNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) DeleteNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace) error {
+func (m *MockNamespaceMemberService) DeleteNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteNamespaceMember", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "DeleteNamespaceMember", ctx, userID, namespaceObj)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteNamespaceMember indicates an expected call of DeleteNamespaceMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) DeleteNamespaceMember(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) DeleteNamespaceMember(ctx, userID, namespaceObj any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).DeleteNamespaceMember), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).DeleteNamespaceMember), ctx, userID, namespaceObj)
 }
 
 // GetNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) GetNamespaceMember(arg0 context.Context, arg1, arg2 int64) (*models.NamespaceMember, error) {
+func (m *MockNamespaceMemberService) GetNamespaceMember(ctx context.Context, namespaceID, userID int64) (*models.NamespaceMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNamespaceMember", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetNamespaceMember", ctx, namespaceID, userID)
 	ret0, _ := ret[0].(*models.NamespaceMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNamespaceMember indicates an expected call of GetNamespaceMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespaceMember(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespaceMember(ctx, namespaceID, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespaceMember), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespaceMember), ctx, namespaceID, userID)
 }
 
 // GetNamespacesMember mocks base method.
-func (m *MockNamespaceMemberService) GetNamespacesMember(arg0 context.Context, arg1 []int64, arg2 int64) ([]*models.NamespaceMember, error) {
+func (m *MockNamespaceMemberService) GetNamespacesMember(ctx context.Context, namespaceIDs []int64, userID int64) ([]*models.NamespaceMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNamespacesMember", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetNamespacesMember", ctx, namespaceIDs, userID)
 	ret0, _ := ret[0].([]*models.NamespaceMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNamespacesMember indicates an expected call of GetNamespacesMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespacesMember(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) GetNamespacesMember(ctx, namespaceIDs, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespacesMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespacesMember), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespacesMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).GetNamespacesMember), ctx, namespaceIDs, userID)
 }
 
 // ListNamespaceMembers mocks base method.
-func (m *MockNamespaceMemberService) ListNamespaceMembers(arg0 context.Context, arg1 int64, arg2 *string, arg3 types.Pagination, arg4 types.Sortable) ([]*models.NamespaceMember, int64, error) {
+func (m *MockNamespaceMemberService) ListNamespaceMembers(ctx context.Context, namespaceID int64, name *string, pagination types.Pagination, sort types.Sortable) ([]*models.NamespaceMember, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListNamespaceMembers", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "ListNamespaceMembers", ctx, namespaceID, name, pagination, sort)
 	ret0, _ := ret[0].([]*models.NamespaceMember)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -127,21 +128,21 @@ func (m *MockNamespaceMemberService) ListNamespaceMembers(arg0 context.Context, 
 }
 
 // ListNamespaceMembers indicates an expected call of ListNamespaceMembers.
-func (mr *MockNamespaceMemberServiceMockRecorder) ListNamespaceMembers(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) ListNamespaceMembers(ctx, namespaceID, name, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceMembers", reflect.TypeOf((*MockNamespaceMemberService)(nil).ListNamespaceMembers), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListNamespaceMembers", reflect.TypeOf((*MockNamespaceMemberService)(nil).ListNamespaceMembers), ctx, namespaceID, name, pagination, sort)
 }
 
 // UpdateNamespaceMember mocks base method.
-func (m *MockNamespaceMemberService) UpdateNamespaceMember(arg0 context.Context, arg1 int64, arg2 models.Namespace, arg3 enums.NamespaceRole) error {
+func (m *MockNamespaceMemberService) UpdateNamespaceMember(ctx context.Context, userID int64, namespaceObj models.Namespace, role enums.NamespaceRole) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateNamespaceMember", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "UpdateNamespaceMember", ctx, userID, namespaceObj, role)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateNamespaceMember indicates an expected call of UpdateNamespaceMember.
-func (mr *MockNamespaceMemberServiceMockRecorder) UpdateNamespaceMember(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockNamespaceMemberServiceMockRecorder) UpdateNamespaceMember(ctx, userID, namespaceObj, role any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).UpdateNamespaceMember), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateNamespaceMember", reflect.TypeOf((*MockNamespaceMemberService)(nil).UpdateNamespaceMember), ctx, userID, namespaceObj, role)
 }

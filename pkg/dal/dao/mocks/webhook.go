@@ -22,6 +22,7 @@ import (
 type MockWebhookService struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebhookServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockWebhookServiceMockRecorder is the mock recorder for MockWebhookService.
@@ -42,110 +43,110 @@ func (m *MockWebhookService) EXPECT() *MockWebhookServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockWebhookService) Create(arg0 context.Context, arg1 *models.Webhook) error {
+func (m *MockWebhookService) Create(ctx context.Context, webhook *models.Webhook) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, webhook)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockWebhookServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) Create(ctx, webhook any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockWebhookService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockWebhookService)(nil).Create), ctx, webhook)
 }
 
 // CreateLog mocks base method.
-func (m *MockWebhookService) CreateLog(arg0 context.Context, arg1 *models.WebhookLog) error {
+func (m *MockWebhookService) CreateLog(ctx context.Context, webhookLog *models.WebhookLog) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateLog", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateLog", ctx, webhookLog)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateLog indicates an expected call of CreateLog.
-func (mr *MockWebhookServiceMockRecorder) CreateLog(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) CreateLog(ctx, webhookLog any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLog", reflect.TypeOf((*MockWebhookService)(nil).CreateLog), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLog", reflect.TypeOf((*MockWebhookService)(nil).CreateLog), ctx, webhookLog)
 }
 
 // DeleteByID mocks base method.
-func (m *MockWebhookService) DeleteByID(arg0 context.Context, arg1 int64) error {
+func (m *MockWebhookService) DeleteByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByID indicates an expected call of DeleteByID.
-func (mr *MockWebhookServiceMockRecorder) DeleteByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) DeleteByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockWebhookService)(nil).DeleteByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockWebhookService)(nil).DeleteByID), ctx, id)
 }
 
 // DeleteLogByID mocks base method.
-func (m *MockWebhookService) DeleteLogByID(arg0 context.Context, arg1 int64) error {
+func (m *MockWebhookService) DeleteLogByID(ctx context.Context, webhookLogID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLogByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteLogByID", ctx, webhookLogID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteLogByID indicates an expected call of DeleteLogByID.
-func (mr *MockWebhookServiceMockRecorder) DeleteLogByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) DeleteLogByID(ctx, webhookLogID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLogByID", reflect.TypeOf((*MockWebhookService)(nil).DeleteLogByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLogByID", reflect.TypeOf((*MockWebhookService)(nil).DeleteLogByID), ctx, webhookLogID)
 }
 
 // Get mocks base method.
-func (m *MockWebhookService) Get(arg0 context.Context, arg1 int64) (*models.Webhook, error) {
+func (m *MockWebhookService) Get(ctx context.Context, id int64) (*models.Webhook, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*models.Webhook)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockWebhookServiceMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockWebhookService)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockWebhookService)(nil).Get), ctx, id)
 }
 
 // GetByFilter mocks base method.
-func (m *MockWebhookService) GetByFilter(arg0 context.Context, arg1 map[string]any) ([]*models.Webhook, error) {
+func (m *MockWebhookService) GetByFilter(ctx context.Context, filter map[string]any) ([]*models.Webhook, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByFilter", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByFilter", ctx, filter)
 	ret0, _ := ret[0].([]*models.Webhook)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByFilter indicates an expected call of GetByFilter.
-func (mr *MockWebhookServiceMockRecorder) GetByFilter(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) GetByFilter(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFilter", reflect.TypeOf((*MockWebhookService)(nil).GetByFilter), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFilter", reflect.TypeOf((*MockWebhookService)(nil).GetByFilter), ctx, filter)
 }
 
 // GetLog mocks base method.
-func (m *MockWebhookService) GetLog(arg0 context.Context, arg1 int64) (*models.WebhookLog, error) {
+func (m *MockWebhookService) GetLog(ctx context.Context, webhookLogID int64) (*models.WebhookLog, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLog", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetLog", ctx, webhookLogID)
 	ret0, _ := ret[0].(*models.WebhookLog)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetLog indicates an expected call of GetLog.
-func (mr *MockWebhookServiceMockRecorder) GetLog(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) GetLog(ctx, webhookLogID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLog", reflect.TypeOf((*MockWebhookService)(nil).GetLog), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLog", reflect.TypeOf((*MockWebhookService)(nil).GetLog), ctx, webhookLogID)
 }
 
 // List mocks base method.
-func (m *MockWebhookService) List(arg0 context.Context, arg1 *int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.Webhook, int64, error) {
+func (m *MockWebhookService) List(ctx context.Context, namespaceID *int64, pagination types.Pagination, sort types.Sortable) ([]*models.Webhook, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "List", ctx, namespaceID, pagination, sort)
 	ret0, _ := ret[0].([]*models.Webhook)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -153,15 +154,15 @@ func (m *MockWebhookService) List(arg0 context.Context, arg1 *int64, arg2 types.
 }
 
 // List indicates an expected call of List.
-func (mr *MockWebhookServiceMockRecorder) List(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) List(ctx, namespaceID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockWebhookService)(nil).List), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockWebhookService)(nil).List), ctx, namespaceID, pagination, sort)
 }
 
 // ListLogs mocks base method.
-func (m *MockWebhookService) ListLogs(arg0 context.Context, arg1 int64, arg2 types.Pagination, arg3 types.Sortable) ([]*models.WebhookLog, int64, error) {
+func (m *MockWebhookService) ListLogs(ctx context.Context, webhookID int64, pagination types.Pagination, sort types.Sortable) ([]*models.WebhookLog, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListLogs", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ListLogs", ctx, webhookID, pagination, sort)
 	ret0, _ := ret[0].([]*models.WebhookLog)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -169,21 +170,21 @@ func (m *MockWebhookService) ListLogs(arg0 context.Context, arg1 int64, arg2 typ
 }
 
 // ListLogs indicates an expected call of ListLogs.
-func (mr *MockWebhookServiceMockRecorder) ListLogs(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) ListLogs(ctx, webhookID, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLogs", reflect.TypeOf((*MockWebhookService)(nil).ListLogs), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLogs", reflect.TypeOf((*MockWebhookService)(nil).ListLogs), ctx, webhookID, pagination, sort)
 }
 
 // UpdateByID mocks base method.
-func (m *MockWebhookService) UpdateByID(arg0 context.Context, arg1 int64, arg2 map[string]any) error {
+func (m *MockWebhookService) UpdateByID(ctx context.Context, id int64, updates map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateByID", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "UpdateByID", ctx, id, updates)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateByID indicates an expected call of UpdateByID.
-func (mr *MockWebhookServiceMockRecorder) UpdateByID(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockWebhookServiceMockRecorder) UpdateByID(ctx, id, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockWebhookService)(nil).UpdateByID), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockWebhookService)(nil).UpdateByID), ctx, id, updates)
 }

@@ -21,6 +21,7 @@ import (
 type MockAuditService struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuditServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockAuditServiceMockRecorder is the mock recorder for MockAuditService.
@@ -41,30 +42,30 @@ func (m *MockAuditService) EXPECT() *MockAuditServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockAuditService) Create(arg0 context.Context, arg1 *models.Audit) error {
+func (m *MockAuditService) Create(ctx context.Context, audit *models.Audit) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, audit)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockAuditServiceMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockAuditServiceMockRecorder) Create(ctx, audit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAuditService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAuditService)(nil).Create), ctx, audit)
 }
 
 // HotNamespace mocks base method.
-func (m *MockAuditService) HotNamespace(arg0 context.Context, arg1 int64, arg2 int) ([]*models.Namespace, error) {
+func (m *MockAuditService) HotNamespace(ctx context.Context, userID int64, top int) ([]*models.Namespace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HotNamespace", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "HotNamespace", ctx, userID, top)
 	ret0, _ := ret[0].([]*models.Namespace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // HotNamespace indicates an expected call of HotNamespace.
-func (mr *MockAuditServiceMockRecorder) HotNamespace(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockAuditServiceMockRecorder) HotNamespace(ctx, userID, top any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HotNamespace", reflect.TypeOf((*MockAuditService)(nil).HotNamespace), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HotNamespace", reflect.TypeOf((*MockAuditService)(nil).HotNamespace), ctx, userID, top)
 }

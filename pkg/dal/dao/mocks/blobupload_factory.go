@@ -21,6 +21,7 @@ import (
 type MockBlobUploadServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobUploadServiceFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockBlobUploadServiceFactoryMockRecorder is the mock recorder for MockBlobUploadServiceFactory.
@@ -41,10 +42,10 @@ func (m *MockBlobUploadServiceFactory) EXPECT() *MockBlobUploadServiceFactoryMoc
 }
 
 // New mocks base method.
-func (m *MockBlobUploadServiceFactory) New(arg0 ...*query.Query) dao.BlobUploadService {
+func (m *MockBlobUploadServiceFactory) New(txs ...*query.Query) dao.BlobUploadService {
 	m.ctrl.T.Helper()
 	varargs := []any{}
-	for _, a := range arg0 {
+	for _, a := range txs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "New", varargs...)
@@ -53,7 +54,7 @@ func (m *MockBlobUploadServiceFactory) New(arg0 ...*query.Query) dao.BlobUploadS
 }
 
 // New indicates an expected call of New.
-func (mr *MockBlobUploadServiceFactoryMockRecorder) New(arg0 ...any) *gomock.Call {
+func (mr *MockBlobUploadServiceFactoryMockRecorder) New(txs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockBlobUploadServiceFactory)(nil).New), arg0...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockBlobUploadServiceFactory)(nil).New), txs...)
 }

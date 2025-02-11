@@ -21,6 +21,7 @@ import (
 type MockWebhookServiceFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebhookServiceFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockWebhookServiceFactoryMockRecorder is the mock recorder for MockWebhookServiceFactory.
@@ -41,10 +42,10 @@ func (m *MockWebhookServiceFactory) EXPECT() *MockWebhookServiceFactoryMockRecor
 }
 
 // New mocks base method.
-func (m *MockWebhookServiceFactory) New(arg0 ...*query.Query) dao.WebhookService {
+func (m *MockWebhookServiceFactory) New(txs ...*query.Query) dao.WebhookService {
 	m.ctrl.T.Helper()
 	varargs := []any{}
-	for _, a := range arg0 {
+	for _, a := range txs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "New", varargs...)
@@ -53,7 +54,7 @@ func (m *MockWebhookServiceFactory) New(arg0 ...*query.Query) dao.WebhookService
 }
 
 // New indicates an expected call of New.
-func (mr *MockWebhookServiceFactoryMockRecorder) New(arg0 ...any) *gomock.Call {
+func (mr *MockWebhookServiceFactoryMockRecorder) New(txs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockWebhookServiceFactory)(nil).New), arg0...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockWebhookServiceFactory)(nil).New), txs...)
 }
