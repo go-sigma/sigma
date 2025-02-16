@@ -16,7 +16,6 @@ package authn
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -49,9 +48,6 @@ type AuthnConfig struct {
 	Skip bool
 }
 
-// AuthMapper ...
-var AuthMapper = make(map[*regexp.Regexp]*AuthnConfig)
-
 // AuthnWithConfig returns a middleware which authenticates requests.
 func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -62,17 +58,10 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 			}
 
 			requestUri := c.Request().RequestURI
-			requestMethod := c.Request().Method
 
 			var isDistribution bool
 			if strings.HasPrefix(requestUri, "/v2/") {
 				isDistribution = true
-			}
-
-			echo := utils.MustGetObjFromDigCon[*echo.Echo](config.DigCon)
-			authConfig := authMatch(echo, requestMethod, requestUri)
-			if authConfig == nil || authConfig.Skip {
-				return next(c)
 			}
 
 			tokenService, err := token.New(config.DigCon)
@@ -196,33 +185,4 @@ func genWwwAuthenticate(digCon *dig.Container, host, schema string) string {
 		service = config.Auth.Token.Service
 	}
 	return fmt.Sprintf("Bearer realm=\"%s\",service=\"%s\"", realm, service)
-}
-
-func authMatch(echo *echo.Echo, method, uri string) *AuthnConfig {
-	if strings.HasPrefix(uri, "/api/v1/") {
-		ctx := echo.AcquireContext()
-		defer echo.ReleaseContext(ctx)
-		echo.Router().Find(method, uri, ctx)
-		matchedPath := ctx.Path()
-		if matchedPath == "" {
-			return nil
-		}
-		return authMapperMatcher(uri)
-	} else if strings.HasPrefix(uri, "/v2/") {
-		return authMapperMatcher(uri)
-	}
-	return nil
-}
-
-func authMapperMatcher(uri string) *AuthnConfig {
-	for reg, config := range AuthMapper {
-		if !reg.MatchString(uri) {
-			continue
-		}
-		if config == nil {
-			continue
-		}
-		return config
-	}
-	return nil
 }

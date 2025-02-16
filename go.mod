@@ -1,6 +1,6 @@
 module github.com/go-sigma/sigma
 
-go 1.23.4
+go 1.24.0
 
 require (
 	code.gitea.io/sdk/gitea v0.20.0
@@ -177,6 +177,7 @@ require (
 	github.com/containers/psgo v1.9.0 // indirect
 	github.com/containers/storage v1.56.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.1-0.20231103132048-7d375ecc2b09 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20231217050601-ba74d44ecf5f // indirect
 	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -240,6 +241,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/addlicense v1.1.1 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/certificate-transparency-go v1.2.1 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
@@ -413,6 +415,7 @@ require (
 	github.com/tonistiigi/go-csvvalue v0.0.0-20240710180619-ddb21b71c0b4 // indirect
 	github.com/transparency-dev/merkle v0.0.2 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
+	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vbatts/tar-split v0.11.6 // indirect
@@ -500,8 +503,13 @@ require (
 	tags.cncf.io/container-device-interface v0.8.0 // indirect
 )
 
-replace gorm.io/plugin/soft_delete => github.com/go-sigma/soft_delete v0.0.0-20240610034828-c89bcecb7e29
+replace (
+	github.com/glebarez/go-sqlite => github.com/go-sigma/go-sqlite v0.0.0-20240610040849-04f3543f8179
+	github.com/glebarez/sqlite => github.com/go-sigma/sqlite v0.0.0-20240610040657-11b421fdf449
+	gorm.io/plugin/soft_delete => github.com/go-sigma/soft_delete v0.0.0-20240610034828-c89bcecb7e29
+)
 
-replace github.com/glebarez/go-sqlite => github.com/go-sigma/go-sqlite v0.0.0-20240610040849-04f3543f8179
-
-replace github.com/glebarez/sqlite => github.com/go-sigma/sqlite v0.0.0-20240610040657-11b421fdf449
+tool (
+	github.com/google/addlicense
+	github.com/swaggo/swag/cmd/swag
+)

@@ -488,7 +488,8 @@ CREATE TABLE IF NOT EXISTS `namespace_members` (
 -- v4 method
 -- v5 allow or deny
 INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
-  VALUES ('p', 'admin', '*', '*', '*', '*', 'allow'),
+  VALUES ('p', 'Root', '.*', '*', '*', '*', 'allow'),
+  ('p', 'admin', '*', '*', '*', '*', 'allow'),
   ('p', 'anonymous', '/*', '/v2/', 'public|private', 'GET', 'allow'),
   ('p', 'anonymous', '/*', 'DS$*/**$blobs$*', 'public', 'GET|HEAD', 'allow'),
   ('p', 'anonymous', '/*', 'DS$*/**$manifests$*', 'public', 'GET|HEAD', 'allow'),
@@ -500,7 +501,8 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/', 'public|private', 'GET', 'allow'), -- list repositories
   ('p', 'namespace_reader', '/*', 'API$*/**$namespaces/*/repositories/*', 'public|private', 'GET', 'allow'), -- get repository
   ('p', 'namespace_manager', '*', 'DS$*/**$manifests$*', 'public', 'GET|HEAD', 'allow'),
-  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow');
+  ('p', 'namespace_admin', '/*', '*', 'public', 'GET|HEAD', 'allow'),
+  ('g', '3', 'Root', 'library', '', '', '');
 
 INSERT INTO `namespaces` (`name`, `visibility`)
   VALUES ('library', 'public');

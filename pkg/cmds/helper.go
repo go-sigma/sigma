@@ -21,6 +21,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/middlewares"
 	"github.com/go-sigma/sigma/pkg/server/middlewares/authn"
 	"github.com/go-sigma/sigma/pkg/server/middlewares/authz"
+	"github.com/go-sigma/sigma/pkg/server/middlewares/etag"
+	"github.com/go-sigma/sigma/pkg/server/middlewares/healthz"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/serializer"
@@ -65,7 +67,7 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 		}
 	}))
 	e.Use(middleware.CORS())
-	e.Use(middlewares.WithEtagConfig(middlewares.EtagConfig{
+	e.Use(etag.WithEtagConfig(etag.EtagConfig{
 		Skipper: func(c echo.Context) bool {
 			reqPath := c.Request().URL.Path
 			if strings.HasPrefix(reqPath, "/api/v1/") {
@@ -77,7 +79,7 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 			return false
 		},
 		Weak: true,
-		HashFn: func(config middlewares.EtagConfig) hash.Hash {
+		HashFn: func(config etag.EtagConfig) hash.Hash {
 			if config.Weak {
 				return crc32.New(crc32.MakeTable(0xD5828281))
 			}
@@ -86,7 +88,7 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 	}))
 	e.Use(echoprometheus.NewMiddleware(consts.AppName))
 	e.GET("/metrics", echoprometheus.NewHandler())
-	e.Use(middlewares.Healthz())
+	e.Use(healthz.Healthz())
 	e.JSONSerializer = new(serializer.DefaultJSONSerializer)
 	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	if config.Log.Level == enums.LogLevelDebug || config.Log.Level == enums.LogLevelTrace {
@@ -94,26 +96,50 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 	}
 	e.Use(middlewares.RedirectRepository(config))
 	e.Use(authn.AuthnWithConfig(authn.Config{
+		DigCon:  digCon,
 		Skipper: genSkipper(),
 	}))
 	e.Use(authz.AuthzWithConfig(authz.Config{
-		Skipper: genSkipper(),
+		DigCon:  digCon,
+		Skipper: genAuthzSkipper(),
 	}))
 	return e, nil
 }
 
-var skipAuths = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
+var skipAuthns = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
 
 func genSkipper() middleware.Skipper {
 	var oauth2 = reflect.TypeOf(configs.ConfigurationAuthOauth2{})
 	for key := range oauth2.NumField() {
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(oauth2.Field(key).Name)))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(oauth2.Field(key).Name)))
-		skipAuths = append(skipAuths, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(oauth2.Field(key).Name)))
+		skipAuthns = append(skipAuthns, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(oauth2.Field(key).Name)))
+		skipAuthns = append(skipAuthns, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(oauth2.Field(key).Name)))
+		skipAuthns = append(skipAuthns, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(oauth2.Field(key).Name)))
 	}
 	return func(c echo.Context) bool {
 		requestUri := c.Request().RequestURI
 		requestMethod := c.Request().Method
-		return slices.Contains(skipAuths, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
+		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) {
+			return true
+		}
+		return slices.Contains(skipAuthns, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
+	}
+}
+
+var skipAuthzs = []string{"post:/api/v1/users/login", "get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
+
+func genAuthzSkipper() middleware.Skipper {
+	var oauth2 = reflect.TypeOf(configs.ConfigurationAuthOauth2{})
+	for key := range oauth2.NumField() {
+		skipAuthzs = append(skipAuthzs, fmt.Sprintf("get:/api/v1/oauth2/%s/client_id", strings.ToLower(oauth2.Field(key).Name)))
+		skipAuthzs = append(skipAuthzs, fmt.Sprintf("get:/api/v1/oauth2/%s/callback", strings.ToLower(oauth2.Field(key).Name)))
+		skipAuthzs = append(skipAuthzs, fmt.Sprintf("get:/api/v1/oauth2/%s/redirect_callback", strings.ToLower(oauth2.Field(key).Name)))
+	}
+	return func(c echo.Context) bool {
+		requestUri := c.Request().RequestURI
+		requestMethod := c.Request().Method
+		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) {
+			return true
+		}
+		return slices.Contains(skipAuthzs, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
 	}
 }

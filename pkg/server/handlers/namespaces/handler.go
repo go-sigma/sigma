@@ -87,10 +87,10 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	namespaceHandler := handlerNew(digCon)
 
 	namespaceGroup.GET("/", namespaceHandler.ListNamespaces)
-	namespaceGroup.GET("/:id", namespaceHandler.GetNamespace)
+	namespaceGroup.GET("/:namespace_id", namespaceHandler.GetNamespace)
 	namespaceGroup.POST("/", namespaceHandler.PostNamespace)
-	namespaceGroup.PUT("/:id", namespaceHandler.PutNamespace)
-	namespaceGroup.DELETE("/:id", namespaceHandler.DeleteNamespace)
+	namespaceGroup.PUT("/:namespace_id", namespaceHandler.PutNamespace)
+	namespaceGroup.DELETE("/:namespace_id", namespaceHandler.DeleteNamespace)
 	namespaceGroup.GET("/hot", namespaceHandler.HotNamespace)
 
 	namespaceGroup.GET("/:namespace_id/members/", namespaceHandler.ListNamespaceMembers)

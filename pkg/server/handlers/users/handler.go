@@ -83,7 +83,7 @@ type factory struct{}
 func (f factory) Initialize(digCon *dig.Container) error {
 	handler := handlerNew(digCon)
 	echo := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	group := echo.Group(consts.APIV1 + "/validators")
+	group := echo.Group(consts.APIV1 + "/users")
 	group.GET("/", handler.List)
 	group.POST("/", handler.Post)
 	group.PUT("/:id", handler.Put)
