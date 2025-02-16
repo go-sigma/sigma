@@ -86,13 +86,15 @@ var UserAgent = fmt.Sprintf("sigma/%s (https://github.com/go-sigma/sigma)", vers
 
 const (
 	// AuthModel represents the auth model
-	// policy_effect: it means at least one matched policy rule of allow, and there is no matched policy rule of deny. So in this way, both the allow and deny authorizations are supported, and the deny overrides.
+	// policy_effect: it means at least one matched policy rule of allow,
+	// and there is no matched policy rule of deny.
+	// So in this way, both the allow and deny authorizations are supported, and the deny overrides.
 	AuthModel = `
 	[request_definition]
-	r = sub, ns, url, visibility, method
+	r = sub, ns, url, method
 
 	[policy_definition]
-	p = sub, ns, url, visibility, method, effect
+	p = sub, ns, url, method, effect
 
 	[role_definition]
 	g = _, _, _
@@ -101,8 +103,10 @@ const (
 	e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 	[matchers]
-	m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && urlMatch(r.url, p.url) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin" || r.sub == "root"`
+	m = g(r.sub, p.sub, r.ns) && regexMatch(r.ns, p.ns) && regexMatch(r.method, p.method) && p.effect == "allow"`
 )
+
+// m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin" || r.sub == "root"`
 
 var (
 	// PwdStrength represents the password strength

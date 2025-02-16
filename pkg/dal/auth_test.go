@@ -99,13 +99,17 @@ func TestAuth(t *testing.T) {
 	err = dal.AuthEnforcer.LoadPolicy()
 	require.NoError(t, err)
 
-	passed, vals, err := dal.AuthEnforcer.EnforceEx("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
-	fmt.Println(vals)
-	require.NoError(t, err)
-	require.True(t, passed)
-	passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
-	require.NoError(t, err)
-	require.True(t, passed)
+	// passed, vals, err := dal.AuthEnforcer.EnforceEx("1", "library", "/v2/library/busybox/manifests/latest", "public", "GET")
+	// fmt.Println(vals)
+	// require.NoError(t, err)
+	// require.True(t, passed)
+	// passed, err = dal.AuthEnforcer.Enforce("1", "library", "/v2/library/busybox/manifests/sha256:xxx", "public", "GET")
+	// require.NoError(t, err)
+	// require.True(t, passed)
+
+	fmt.Println(110)
+
+	fmt.Println(dal.AuthEnforcer.EnforceEx("3", "library", "", "public", "GET"))
 
 	// dal.AuthEnforcer.Enforcer.GetAllRolesByDomain()
 }

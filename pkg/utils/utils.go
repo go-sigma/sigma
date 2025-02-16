@@ -41,6 +41,13 @@ import (
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
+// GetFromCtx ...
+func GetFromCtx[T any](ctx echo.Context, key string) (T, bool) {
+	val := ctx.Get(key)
+	v, ok := val.(T)
+	return v, ok
+}
+
 // GetContentLength returns the content length of the request.
 func GetContentLength(req *http.Request) (int64, error) {
 	if req == nil {

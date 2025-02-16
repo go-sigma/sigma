@@ -32,9 +32,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/web"
@@ -125,12 +125,12 @@ func Serve(digCon *dig.Container) error {
 				return
 			}
 			err = echoServer.StartTLS(consts.ServerPort, crtBytes, keyBytes)
-			if err != http.ErrServerClosed {
+			if err != nil && err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
 		} else {
 			err = echoServer.Start(consts.ServerPort)
-			if err != http.ErrServerClosed {
+			if err != nil && err != http.ErrServerClosed {
 				log.Fatal().Err(err).Msg("Listening on interface failed")
 			}
 		}

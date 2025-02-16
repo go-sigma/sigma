@@ -61,17 +61,17 @@ type PostNamespaceResponse struct {
 
 // GetNamespaceRequest represents the request to get a namespace.
 type GetNamespaceRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number"`
+	ID int64 `json:"id" param:"namespace_id" validate:"required,number"`
 }
 
 // DeleteNamespaceRequest represents the request to delete a namespace.
 type DeleteNamespaceRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" example:"1"`
+	ID int64 `json:"id" param:"namespace_id" validate:"required,number" example:"1"`
 }
 
 // UpdateNamespaceRequest represents the request to update a namespace.
 type UpdateNamespaceRequest struct {
-	ID int64 `json:"id" param:"id" validate:"required,number" swaggerignore:"true"`
+	ID int64 `json:"id" param:"namespace_id" validate:"required,number" swaggerignore:"true"`
 
 	SizeLimit       *int64            `json:"size_limit,omitempty" validate:"omitempty,numeric" example:"10000"`
 	RepositoryLimit *int64            `json:"repository_limit" validate:"omitempty,numeric" example:"10000"`

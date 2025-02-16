@@ -119,7 +119,7 @@ func DeInitialize() error {
 }
 
 func connectMysql(config configs.Configuration) (string, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC&multiStatements=true",
 		config.Database.Mysql.Username, config.Database.Mysql.Password,
 		config.Database.Mysql.Host, config.Database.Mysql.Port, config.Database.Mysql.Database)
 

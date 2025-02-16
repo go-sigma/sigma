@@ -46,9 +46,14 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	err = AuthEnforcer.LoadPolicy()
+	if err != nil {
+		return fmt.Errorf("casbin load policy failed: %w", err)
+	}
+	AuthEnforcer.EnableLog(true)
 	AuthEnforcer.StartAutoLoadPolicy(time.Minute * 10)
 	AuthEnforcer.EnableAutoSave(true)
-	AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
+	// AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
 	return nil
 }
 
@@ -102,6 +107,8 @@ func UrlMatchFunc(args ...any) (any, error) {
 		if repository != "" {
 			return pathPattern(fmt.Sprintf("API$%s$%s", repository, strings.TrimPrefix(request, "/api/")), policy)
 		} else {
+			fmt.Println(fmt.Sprintf("API$%s", strings.TrimPrefix(request, "/api/")), policy)
+			fmt.Println(pathPattern(fmt.Sprintf("API$%s", strings.TrimPrefix(request, "/api/")), policy))
 			return pathPattern(fmt.Sprintf("API$%s", strings.TrimPrefix(request, "/api/")), policy)
 		}
 	}
