@@ -47,7 +47,7 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if config.Skipper(c) {
-				log.Debug().Msg("Skipping auth middleware, allowing request")
+				log.Debug().Msg("skipping auth middleware, allowing request")
 				return next(c)
 			}
 
@@ -67,6 +67,7 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 			}
 			// admin or root can be access all of resources
 			if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
+				log.Debug().Msg("skipping auth middleware, allowing admin and root can access all of resources")
 				return next(c)
 			}
 			// anonymous can only access GET request
@@ -107,9 +108,9 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 						if namespace.Visibility == enums.VisibilityPublic && requestMethod == http.MethodGet {
 							return next(c)
 						}
-						fmt.Println(89, user.ID, namespace, requestUri, "public", requestMethod, isDistribution, c.Param("id"))
-						passed, matched, err := dal.AuthEnforcer.Enforcer.EnforceEx(strconv.FormatInt(user.ID, 10), namespace.Name, requestUri, namespace.Visibility, requestMethod)
+						passed, matched, err := dal.AuthEnforcer.Enforcer.EnforceEx(strconv.FormatInt(user.ID, 10), namespace.Name, requestUri, requestMethod)
 						if err != nil {
+							log.Error().Err(err).Msg("casbin auth failed")
 							if isDistribution {
 								return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
 							}

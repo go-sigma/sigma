@@ -15,7 +15,6 @@
 package namespaces
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -26,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
@@ -76,15 +74,6 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
 	}
 
-	var namespaceIDs = make([]int64, 0, len(namespaceObjs))
-
-	authService := h.AuthServiceFactory.New()
-	namespacesRole, err := authService.NamespacesRole(ptr.To(user), namespaceIDs)
-	if err != nil {
-		log.Error().Err(err).Msg("Get namespaces role failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespaces role failed: %v", err))
-	}
-
 	var resp = make([]any, 0, len(namespaceObjs))
 	for _, namespaceObj := range namespaceObjs {
 		resp = append(resp, types.NamespaceItem{
@@ -92,7 +81,6 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 			Name:            namespaceObj.Name,
 			Description:     namespaceObj.Description,
 			Visibility:      namespaceObj.Visibility,
-			Role:            namespacesRole[namespaceObj.ID],
 			Size:            namespaceObj.Size,
 			SizeLimit:       namespaceObj.SizeLimit,
 			RepositoryLimit: namespaceObj.RepositoryLimit,

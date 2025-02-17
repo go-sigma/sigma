@@ -24,8 +24,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/version"
 )
 
-// You can copy & paste this ascii graphic and use it e.g. as mail signature
-// Font: doh   Reflection: no   Adjustment: left   Stretch: no      Width: 280	 Text: sigma
 const banner = `                   iiii
                   i::::i
                    iiii

@@ -15,6 +15,8 @@
 package inits
 
 import (
+	"sync"
+
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -27,20 +29,26 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
+var digCon = dig.New()
+var digConOnce = sync.Once{}
+
 // NewDigContainer ...
 func NewDigContainer() (*dig.Container, error) {
-	var digCon = dig.New()
-	for _, err := range []error{
-		digCon.Provide(func() configs.Configuration { return ptr.To(configs.GetConfiguration()) }), // init config
-		digCon.Provide(redis.New),    // init redis
-		digCon.Provide(badger.New),   // init badger
-		digCon.Provide(password.New), // init password
-		digCon.Provide(func() (token.Service, error) { return token.New(digCon) }),             // init token
-		digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }), // init locker
-	} {
-		if err != nil {
-			return nil, err
+	var err error
+	digConOnce.Do(func() {
+		for _, e := range []error{
+			digCon.Provide(func() configs.Configuration { return ptr.To(configs.GetConfiguration()) }), // init config
+			digCon.Provide(redis.New),    // init redis
+			digCon.Provide(badger.New),   // init badger
+			digCon.Provide(password.New), // init password
+			digCon.Provide(func() (token.Service, error) { return token.New(digCon) }),             // init token
+			digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }), // init locker
+		} {
+			if e != nil {
+				err = e
+				return
+			}
 		}
-	}
-	return digCon, nil
+	})
+	return digCon, err
 }
