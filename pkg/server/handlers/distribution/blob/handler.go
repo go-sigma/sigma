@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
@@ -31,10 +32,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
-	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/xerrors"
@@ -61,6 +62,7 @@ type handler struct {
 	NamespaceServiceFactory  dao.NamespaceServiceFactory
 	RepositoryServiceFactory dao.RepositoryServiceFactory
 	BlobServiceFactory       dao.BlobServiceFactory
+	BadgerDB                 *badger.DB
 }
 
 // handlerNew creates a new instance of the distribution blob handlers
@@ -95,7 +97,20 @@ func init() {
 }
 
 func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], error) {
-	return cacher.New(nil, consts.CacherBlob, func(key string) (*models.Blob, error) {
+	digCon := dig.New()
+	err := digCon.Provide(func() configs.Configuration { return h.Config })
+	if err != nil {
+		log.Error().Err(err).Msg("dig provide failed")
+		return nil, xerrors.DSErrCodeUnknown
+	}
+	err = digCon.Provide(func() *badger.DB {
+		return h.BadgerDB
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("dig provide failed")
+		return nil, xerrors.DSErrCodeUnknown
+	}
+	return cacher.New(digCon, consts.CacherBlob, func(key string) (*models.Blob, error) {
 		ctx := log.Logger.WithContext(c.Request().Context())
 
 		dgest, err := digest.Parse(key)
@@ -108,27 +123,27 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if !h.Config.Proxy.Enabled {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Blob not found")
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("blob not found")
 					return nil, xerrors.DSErrCodeBlobUnknown
 				}
 				f := clients.NewClientsFactory()
 				cli, err := f.New(h.Config)
 				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("new proxy server failed")
 					return nil, xerrors.DSErrCodeUnknown
 				}
 				statusCode, header, _, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
 				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("request proxy server failed")
 					return nil, xerrors.DSErrCodeUnknown
 				}
 				if statusCode != http.StatusOK {
-					log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
+					log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("request proxy server failed")
 					return nil, xerrors.DSErrCodeUnknown
 				}
 				contentLength, err := strconv.ParseInt(header.Get(echo.HeaderContentLength), 10, 64)
 				if err != nil {
-					log.Error().Err(err).Str("digest", dgest.String()).Msg("Parse content length failed")
+					log.Error().Err(err).Str("digest", dgest.String()).Msg("parse content length failed")
 					return nil, xerrors.DSErrCodeUnknown
 				}
 				blob = &models.Blob{
@@ -139,7 +154,7 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 				c.Response().Header().Set("Content-Length", header.Get(echo.HeaderContentLength))
 				return blob, nil
 			}
-			log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
+			log.Error().Err(err).Str("digest", dgest.String()).Msg("check blob exist failed")
 			return nil, xerrors.DSErrCodeBlobUnknown
 		}
 		return blob, nil

@@ -453,7 +453,7 @@ CREATE TABLE IF NOT EXISTS `namespace_members` (
 -- v4 method
 -- v5 allow or deny
 INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
-  VALUES ('p', 'NamespaceReader', '.*', 'DS$*/**$blobs$*', 'GET|HEAD', 'allow', ''), -- get blob
+  VALUES ('p', 'NamespaceReader', '.*', '.*', 'GET|HEAD', 'allow', ''), -- get blob
   ('p', 'NamespaceReader', '.*', 'DS$*/**$manifests$*', 'GET|HEAD', 'allow', ''), -- get manifest
   ('p', 'NamespaceReader', '.*', 'API$*/**$namespaces/*', 'GET', 'allow', ''), -- get namespace
   ('p', 'NamespaceReader', '.*', 'API$*/**$namespaces/*/artifacts/*', 'GET', 'allow', ''), -- get artifact
@@ -462,6 +462,9 @@ INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
   ('p', 'NamespaceReader', '.*', 'API$*/**$namespaces/*/repositories/*', 'GET', 'allow', ''), -- get repository
   ('p', 'NamespaceManager', '.*', '*', 'GET|HEAD', 'allow', ''),
   ('p', 'NamespaceAdmin', '.*', '*', 'GET|HEAD', 'allow', '');
+
+-- INSERT INTO `casbin_rules` (`ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`)
+--   VALUES ('g', '4', 'NamespaceReader', 'test1', '', '', '')
 
 INSERT INTO `namespaces` (`name`, `visibility`)
   VALUES ('library', 'public');

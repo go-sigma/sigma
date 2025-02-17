@@ -103,7 +103,7 @@ const (
 	e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 	[matchers]
-	m = g(r.sub, p.sub, r.ns) && regexMatch(r.ns, p.ns) && regexMatch(r.method, p.method) && p.effect == "allow"`
+	m = g(r.sub, p.sub, r.ns) && regexMatch(r.ns, p.ns) && regexMatch(r.url, p.ns) && regexMatch(r.method, p.method) && p.effect == "allow"`
 )
 
 // m = g(r.sub, p.sub, r.ns) && keyMatch(r.ns, p.ns) && regexMatch(r.visibility, p.visibility) && regexMatch(r.method, p.method) && p.effect == "allow" || r.sub == "admin" || r.sub == "root"`
@@ -141,11 +141,6 @@ const (
 	WorkerPort = "0.0.0.0:3001"
 	// DistributionPort distribution port
 	DistributionPort = "0.0.0.0:3002"
-)
-
-const (
-	// RedisPid ...
-	RedisPid = "/var/run/redis.pid"
 )
 
 const (

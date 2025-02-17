@@ -20,10 +20,12 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/tidwall/gjson"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/inits"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -39,7 +41,7 @@ type decoratorArtifactStatus struct {
 }
 
 // decorator is a decorator for scan task runners
-func decorator(runner func(context.Context, *models.Artifact, chan decoratorArtifactStatus) error) func(context.Context, []byte) error {
+func decorator(runner func(context.Context, *dig.Container, *models.Artifact, chan decoratorArtifactStatus) error) func(context.Context, []byte) error {
 	return func(ctx context.Context, payload []byte) error {
 		ctx = log.Logger.WithContext(ctx)
 
@@ -93,7 +95,12 @@ func decorator(runner func(context.Context, *models.Artifact, chan decoratorArti
 			}
 		}()
 
-		err = runner(ctx, artifact, statusChan)
+		digCon, err := inits.NewDigContainer()
+		if err != nil {
+			return err
+		}
+
+		err = runner(ctx, digCon, artifact, statusChan)
 		if err != nil {
 			return err
 		}

@@ -65,7 +65,7 @@ type reportSbom struct {
 	Architecture string       `json:"architecture"`
 }
 
-func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan decoratorArtifactStatus) error {
+func runnerSbom(ctx context.Context, digCon *dig.Container, artifact *models.Artifact, statusChan chan decoratorArtifactStatus) error {
 	defer close(statusChan)
 	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
 
@@ -75,7 +75,7 @@ func runnerSbom(ctx context.Context, artifact *models.Artifact, statusChan chan 
 	if err != nil {
 		return err
 	}
-	tokenService, err := token.New(dig.New()) // TODO: dig
+	tokenService, err := token.New(digCon)
 	if err != nil {
 		return err
 	}
