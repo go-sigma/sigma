@@ -25,7 +25,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/docker/cli/cli/config/configfile"
 	dockertypes "github.com/docker/cli/cli/config/types"
-	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v6/plumbing/transport"
 	buildkitdconfig "github.com/moby/buildkit/cmd/buildkitd/config"
 	resolverconfig "github.com/moby/buildkit/util/resolver/config"
 	"github.com/rs/zerolog/log"
