@@ -43,12 +43,6 @@ Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 - [x] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image replication.
 
-## Release Schedule
-
-- There will be a major release in the middle and end of each year.
-- A minor release is released at the beginning of each month.
-- There will probably be a bugfix release in the middle of each week.
-
 ## Alternatives
 
 - [Distribution](https://distribution.github.io/distribution/)

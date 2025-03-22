@@ -28,9 +28,9 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v9"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/logger"
