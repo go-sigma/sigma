@@ -58,7 +58,7 @@ func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, i
 
 	event = event.Str("elapsed", time.Since(begin).String())
 
-	logLevel := configs.GetConfiguration().Log.Level
+	logLevel := configs.GetConfig().Log.Level
 	if logLevel == enums.LogLevelDebug || logLevel == enums.LogLevelTrace {
 		for i := 0; i < 15; i++ {
 			_, f, n, ok := runtime.Caller(i)

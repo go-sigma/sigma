@@ -37,7 +37,7 @@ func NewDigContainer() (*dig.Container, error) {
 	var err error
 	digConOnce.Do(func() {
 		for _, e := range []error{
-			digCon.Provide(func() configs.Configuration { return ptr.To(configs.GetConfiguration()) }), // init config
+			digCon.Provide(func() configs.Configuration { return ptr.To(configs.GetConfig()) }), // init config
 			digCon.Provide(redis.New),    // init redis
 			digCon.Provide(badger.New),   // init badger
 			digCon.Provide(password.New), // init password

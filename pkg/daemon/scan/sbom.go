@@ -69,7 +69,7 @@ func runnerSbom(ctx context.Context, digCon *dig.Container, artifact *models.Art
 	defer close(statusChan)
 	statusChan <- decoratorArtifactStatus{Daemon: enums.DaemonSbom, Status: enums.TaskCommonStatusDoing, Message: ""}
 
-	config := ptr.To(configs.GetConfiguration())
+	config := ptr.To(configs.GetConfig())
 	userService := dao.NewUserServiceFactory().New()
 	userObj, err := userService.GetByUsername(ctx, consts.UserInternal)
 	if err != nil {

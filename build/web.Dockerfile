@@ -1,5 +1,5 @@
-ARG NODE_VERSION=20-alpine3.19
-ARG NGINX_VERSION=1.27.1-alpine
+ARG NODE_VERSION=24-alpine3.22
+ARG NGINX_VERSION=1.29.1-alpine
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS web-builder
 
@@ -13,8 +13,9 @@ WORKDIR /web
 
 COPY ./web .
 
-RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && yarn install --immutable && yarn build
+RUN --mount=type=cache,target=/web/node_modules set -eux && \
+  corepack enable && yarn install --immutable && yarn build
 
-FROM nginx:1.27.1-alpine
+FROM nginx:${NGINX_VERSION}
 
 COPY --from=web-builder /web/dist /usr/share/nginx/html

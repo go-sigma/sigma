@@ -3,7 +3,6 @@ ARG ALPINE_VERSION=3.22
 FROM alpine:${ALPINE_VERSION} AS trivy
 
 ARG USE_MIRROR=false
-ARG WITH_TRIVY_DB=false
 ARG TRIVY_VERSION=0.65.0
 ARG TARGETOS TARGETARCH
 
@@ -18,8 +17,11 @@ RUN set -eux && \
   wget --progress=dot:giga -O trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz https://github.com/aquasecurity/trivy/releases/download/v"${TRIVY_VERSION}"/trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   tar -xzf trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mv trivy /usr/local/bin/trivy && \
-  rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz
+  rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
+  mkdir -p /opt/trivy/ && \
+  trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress && \
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
 
-FROM alpine:${ALPINE_VERSION}
+FROM scratch
 
-COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
+COPY --from=trivy /opt/trivy/ /

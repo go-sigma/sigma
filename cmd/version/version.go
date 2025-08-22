@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package version
 
 import (
 	"fmt"
@@ -49,19 +49,18 @@ s::::::::::::::s i::::::i g::::::::::::::::g m::::m   m::::m   m::::ma:::::aaaa:
                                 gggggg`
 
 // versionCmd represents the worker command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Show version of sigma",
-	Run: func(_ *cobra.Command, _ []string) {
-		color.Cyan(banner)
-		fmt.Printf("Version:     %s\n", version.Version)
-		fmt.Printf("GoVersion:   %s\n", runtime.Version())
-		fmt.Printf("Platform:    %s/%s\n", runtime.GOOS, runtime.GOARCH)
-		fmt.Printf("BuildDate:   %s\n", version.BuildDate)
-		fmt.Printf("GitCommit:   %s\n", version.GitHash)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(versionCmd)
+func NewCmdVersion() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Show version of sigma",
+		Run: func(_ *cobra.Command, _ []string) {
+			color.Cyan(banner)
+			fmt.Printf("Version:     %s\n", version.Version)
+			fmt.Printf("GoVersion:   %s\n", runtime.Version())
+			fmt.Printf("Platform:    %s/%s\n", runtime.GOOS, runtime.GOARCH)
+			fmt.Printf("BuildDate:   %s\n", version.BuildDate)
+			fmt.Printf("GitCommit:   %s\n", version.GitHash)
+		},
+	}
+	return cmd
 }
