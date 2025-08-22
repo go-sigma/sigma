@@ -36,43 +36,40 @@ DOCKER_PLATFORMS ?= $(GOOS)/$(GOARCH)
 USE_MIRROR       ?= false
 WITH_TRIVY_DB    ?= false
 
-.PHONY: all test build vendor
-
-all: build build-builder
+.PHONY: all
+all: build
 
 ## Build:
+.PHONY: build
 build: ## Build sigma and put the output binary in ./bin
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
 
-build-builder: ## Build sigma-builder and put the output binary in ./bin
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME)-builder -v ./cmd/builder
-
+.PHONY: clean
 clean: ## Remove build related file
 	rm -fr ./bin/sigma ./bin/sigma-builder ./bin/*.tar.gz ./bin/*.tar
 
+.PHONY: vendor
 vendor: ## Copy of all packages needed to support builds and tests in the vendor directory
 	@$(GOCMD) mod tidy && $(GOCMD) mod vendor
 
 ## Lint:
+.PHONY: lint
 lint: lint-go lint-dockerfile ## Run all available linters
 
 .PHONY: lint-dockerfile
 lint-dockerfile: ## Lint your Dockerfile
 	@hadolint $(shell find build -name "*Dockerfile")
 
+.PHONY: lint-go
 lint-go: ## Use golintci-lint on your project
 	@golangci-lint run --timeout=10m --build-tags "timetzdata,exclude_graphdriver_devicemapper,exclude_graphdriver_btrfs,containers_image_openpgp"
 
 ## Docker:
-docker-build: docker-build-builder-local dockerfile-local ## Use the dockerfile to build the sigma image
+.PHONY: docker-build
+docker-build: ## Use the dockerfile to build the sigma image
 	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/all.alpine.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,force-compression=true .
 
-docker-build-builder: ## Use the dockerfile to build the sigma-builder image
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,force-compression=true .
-
-docker-build-builder-local: ## Use the dockerfile to build the sigma-builder image and save to local tarball file
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/builder.Dockerfile --platform linux/amd64,linux/arm64 --progress plain --output type=oci,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-builder:latest,push=false,oci-mediatypes=true,dest=./bin/builder.$(VERSION).tar .
-
+.PHONY: dockerfile-local
 dockerfile-local: ## Use skopeo to copy dockerfile to local tarball file
 	@skopeo copy -a docker://docker/dockerfile:1.10.0 oci-archive:bin/dockerfile.1.10.0.tar
 
@@ -89,23 +86,29 @@ docker-build-local: build ## Build the local sigma image
 	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/local.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,force-compression=true .
 
 ## Misc:
+.PHONY: migration-create
 migration-create: ## Create a new migration file
 	@migrate create -dir ./pkg/dal/migrations/mysql -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
+.PHONY: sql-format
 sql-format: ## Format all sql files
 	@find ${PWD}/pkg -type f -iname "*.sql" -print | xargs pg_format -s 2 --inplace
 
+.PHONY: changelog
 changelog: ## Generate changelog
 	@docker run -v "${PWD}":/workdir quay.io/git-chglog/git-chglog:latest --next-tag $(VERSION) -o CHANGELOG.md
 
+.PHONY: gormgen
 gormgen: ## Generate gorm model from database
 	@$(GOCMD) run ./pkg/dal/cmd/gen.go
 
+.PHONY: swagen
 swagen: ## Generate swagger from code comments
 	# go install github.com/swaggo/swag/cmd/swag@latest
 	@swag fmt
 	@swag init --output pkg/handlers/apidocs
 
+.PHONY: addlicense
 addlicense: ## Add license to all go files
 	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2024 -c "sigma"
 	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2024 -c "sigma"
@@ -116,6 +119,7 @@ addlicense: ## Add license to all go files
 	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2024 -c "sigma"
 
 ## Kube:
+.PHONY: kube_install
 kube_install: ## Install sigma on k8s using helm
 	@if [ -z $(KUBECONFIG) ]; then \
         KUBECONFIG=$$HOME/.kube/config; \
@@ -129,11 +133,13 @@ kube_install: ## Install sigma on k8s using helm
 	--set minio.secretKey=$(RANDOM_PASSWORD) \
 	--kubeconfig $(KUBECONFIG)
 
+.PHONY: kube_uninstall
 kube_uninstall: ## Uninstall sigma on k8s using helm
 	@KUBECONFIG=$(KUBECONFIG)
 	@helm uninstall $(APPNAME) -n$(NAMESPACE)
 
 ## Help:
+.PHONY: help
 help: ## Show this help.
 	@echo ''
 	@echo 'Usage:'

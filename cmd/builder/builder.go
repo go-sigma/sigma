@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package builder
 
 import (
 	"context"
 	"encoding/base64"
-	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -32,8 +31,8 @@ import (
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cobra"
 
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/signing"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -44,7 +43,6 @@ import (
 
 const (
 	home                    = "/opt"
-	homeSsh                 = ".ssh"
 	homeSigma               = "/opt/sigma"
 	cache                   = "/opt/cache"
 	cacheIn                 = "/opt/cache_in"
@@ -57,40 +55,36 @@ const (
 	compressedCache         = "cache.tgz"
 )
 
-func main() {
-	var level string
-	flag.StringVar(&level, "level", "info", "log level, available: debug, info, error")
-	flag.Parse()
+func NewCmdBuilder() *cobra.Command {
+	return &cobra.Command{
+		Use:   "builder",
+		Short: "Start the sigma builder",
+		Run: func(_ *cobra.Command, _ []string) {
+			checkErr(initialize())
 
-	logLevel, err := enums.ParseLogLevel(level)
-	if err != nil {
-		panic("level is invalid, available: debug, info, error")
+			var builder Builder
+			checkErr(env.Parse(&builder))
+			checkErr(builder.checker())
+			builder.api = NewAPI(builder.Authorization, builder.Endpoint)
+			checkErr(builder.initCache())
+			checkErr(builder.initToken())
+			if builder.Builder.Source == enums.BuilderSourceDockerfile {
+				checkErr(builder.writeDockerfile())
+			} else {
+				checkErr(builder.gitClone())
+			}
+			imageName, err := builder.genTag()
+			checkErr(err)
+			checkErr(builder.build(imageName))
+			checkErr(builder.sign(imageName))
+			checkErr(builder.exportCache())
+		},
 	}
-	logger.SetLevel(logLevel.String())
-
-	checkErr(initialize())
-
-	var builder Builder
-	checkErr(env.Parse(&builder))
-	checkErr(builder.checker())
-	builder.api = NewAPI(builder.Authorization, builder.Endpoint)
-	checkErr(builder.initCache())
-	checkErr(builder.initToken())
-	if builder.Builder.Source == enums.BuilderSourceDockerfile {
-		checkErr(builder.writeDockerfile())
-	} else {
-		checkErr(builder.gitClone())
-	}
-	imageName, err := builder.genTag()
-	checkErr(err)
-	checkErr(builder.build(imageName))
-	checkErr(builder.sign(imageName))
-	checkErr(builder.exportCache())
 }
 
 func checkErr(msg any) {
 	if msg != nil {
-		log.Fatal().Msgf("Something error occurred: %v", msg)
+		log.Fatal().Msgf("something error occurred: %v", msg)
 	}
 }
 

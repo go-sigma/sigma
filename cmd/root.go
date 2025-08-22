@@ -21,29 +21,52 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 
+	"github.com/go-sigma/sigma/cmd/builder"
+	"github.com/go-sigma/sigma/cmd/distribution"
+	"github.com/go-sigma/sigma/cmd/server"
+	"github.com/go-sigma/sigma/cmd/tools"
+	"github.com/go-sigma/sigma/cmd/version"
+	"github.com/go-sigma/sigma/cmd/worker"
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/consts"
-
-	_ "github.com/go-sigma/sigma/cmd/imports"
+	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 var cfgFile string
+var logLevel string
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "sigma",
-	Short: "sigma is an OCI artifact storage and distribution system",
-	Long: `sigma is an OCI artifact storage and distribution system,
+func NewRootCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sigma",
+		Short: "sigma is an OCI artifact storage and distribution system",
+		Long: `sigma is an OCI artifact storage and distribution system,
 which is designed to be a lightweight, easy-to-use, and easy-to-deploy,
 and can be used as a private registry or a public registry.
 sigma is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			initConfig()
+			logger.SetLevel(viper.GetString("log.level"))
+		},
+	}
+	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c",
+		"/etc/sigma/config.yaml", "config file (default is /etc/sigma/config.yaml)")
+	cmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "log level")
+	cmd.AddCommand(server.NewCmdServer())
+	cmd.AddCommand(worker.NewCmdWorker())
+	cmd.AddCommand(version.NewCmdVersion())
+	cmd.AddCommand(tools.NewCmdTools())
+	cmd.AddCommand(distribution.NewCmdDistribution())
+	cmd.AddCommand(builder.NewCmdBuilder())
+	return cmd
 }
 
 // Execute ...
 func Execute() {
-	err := rootCmd.Execute()
+	err := NewRootCmd().Execute()
 	if err != nil {
 		log.Error().Err(err).Msg("Execute root command with error")
 		os.Exit(1)
@@ -52,18 +75,18 @@ func Execute() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.AddConfigPath("/etc/sigma")
-		viper.SetConfigType("yaml")
-		viper.SetConfigName("config.yaml")
+	if strings.TrimSpace(cfgFile) == "" {
+		log.Fatal().Msg("config file not found")
 	}
-
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix(consts.AppName)
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	cobra.CheckErr(viper.ReadInConfig())
-	cobra.CheckErr(viper.Unmarshal(configs.GetConfiguration()))
+	if !utils.IsExist(cfgFile) {
+		log.Fatal().Str("config", cfgFile).Msg("config file not exist")
+	}
+	data, err := os.ReadFile(cfgFile)
+	if err != nil {
+		log.Fatal().Err(err).Msg("read config file failed")
+	}
+	err = yaml.Unmarshal(data, configs.GetConfig())
+	if err != nil {
+		log.Fatal().Err(err).Msg("unmarshal failed")
+	}
 }

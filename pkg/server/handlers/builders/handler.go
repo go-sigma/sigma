@@ -75,7 +75,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	handler := handlerNew(digCon)
 
-	config := configs.GetConfiguration() // TODO: use dig
+	config := configs.GetConfig() // TODO: use dig
 	if config.Daemon.Builder.Enabled {
 		builderGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
 		builderGroup.POST("/", handler.CreateBuilder)

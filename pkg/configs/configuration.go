@@ -22,8 +22,8 @@ import (
 
 var configuration = &Configuration{}
 
-// GetConfiguration ...
-func GetConfiguration() *Configuration {
+// GetConfig ...
+func GetConfig() *Configuration {
 	return configuration
 }
 

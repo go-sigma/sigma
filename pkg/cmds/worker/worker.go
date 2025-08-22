@@ -36,7 +36,7 @@ import (
 
 // Worker is the worker initialization
 func Worker(digCon *dig.Container) error {
-	config := ptr.To(configs.GetConfiguration())
+	config := ptr.To(configs.GetConfig())
 	err := builder.Initialize(config)
 	if err != nil {
 		return err

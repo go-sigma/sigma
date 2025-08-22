@@ -55,7 +55,7 @@ func builderJob() {
 	builderTw = timewheel.NewTimeWheel(context.Background(), cronjob.CronjobIterDuration)
 
 	runner := builderRunner{
-		config:                ptr.To(configs.GetConfiguration()),
+		config:                ptr.To(configs.GetConfig()),
 		builderServiceFactory: dao.NewBuilderServiceFactory(),
 	}
 	builderTw.AddRunner(runner.runner)
