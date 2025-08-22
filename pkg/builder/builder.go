@@ -88,7 +88,7 @@ func Initialize(config configs.Configuration) error {
 
 // BuildEnv ...
 func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
-	config := configs.GetConfiguration()
+	config := configs.GetConfig()
 
 	ctx := log.Logger.WithContext(context.Background())
 

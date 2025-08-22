@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package tools
 
 import (
 	"bytes"
@@ -28,7 +28,6 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"go.uber.org/dig"
 	"gorm.io/gorm"
 
@@ -37,42 +36,29 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/inits"
-	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
-func init() {
-	toolsCmd.AddCommand(
+// toolsCmd represents the tools command
+func NewCmdTools() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tools",
+		Short: "Tools for sigma",
+	}
+	cmd.AddCommand(
 		toolsMiddlewareCheckerCmd(),
 		toolsForPushBuilderImageCmd(),
 	)
-
-	rootCmd.AddCommand(toolsCmd)
-}
-
-// toolsCmd represents the tools command
-var toolsCmd = &cobra.Command{
-	Use:   "tools",
-	Short: "Tools for sigma",
+	return cmd
 }
 
 func toolsForPushBuilderImageCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push-builder-images",
 		Short: "Push builder images to distribution",
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
-			initConfig()
-			logger.SetLevel(viper.GetString("log.level"))
-		},
 		Run: func(_ *cobra.Command, _ []string) {
-			// err := configs.Initialize()
-			// if err != nil {
-			// 	log.Error().Err(err).Msg("initialize configs with error")
-			// 	return
-			// }
-
 			digCon, err := inits.NewDigContainer()
 			if err != nil {
 				log.Error().Err(err).Msg("new dig container failed")
@@ -92,9 +78,6 @@ func toolsForPushBuilderImageCmd() *cobra.Command {
 			}
 		},
 	}
-
-	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
-
 	return cmd
 }
 
@@ -222,17 +205,7 @@ func toolsMiddlewareCheckerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "middleware-checker",
 		Short: "Check all of middleware status all ready",
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
-			initConfig()
-			logger.SetLevel(viper.GetString("log.level"))
-		},
 		RunE: func(_ *cobra.Command, _ []string) error {
-			// err := configs.Initialize()
-			// if err != nil {
-			// 	log.Error().Err(err).Msg("initialize configs with error")
-			// 	return err
-			// }
-
 			if waitTimeout == 0 {
 				waitTimeout = time.Second * 120
 			}
@@ -247,7 +220,7 @@ func toolsMiddlewareCheckerCmd() *cobra.Command {
 				case <-time.After(time.Second * 3):
 					err := configs.CheckMiddleware()
 					if err != nil {
-						log.Error().Err(err).Msg("check middleware with error")
+						log.Error().Err(err).Msg("check middleware failed")
 					} else {
 						return nil
 					}
@@ -256,7 +229,6 @@ func toolsMiddlewareCheckerCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sigma/sigma.yaml)")
 	cmd.PersistentFlags().DurationVar(&waitTimeout, "wait-timeout", time.Second*120, "wait middleware timeout")
 
 	return cmd

@@ -59,13 +59,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -111,13 +111,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -154,13 +154,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -208,13 +208,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -316,7 +316,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -379,7 +379,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -428,7 +428,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -467,7 +467,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -509,7 +509,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -551,19 +551,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -609,19 +609,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -711,19 +711,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -769,19 +769,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -823,19 +823,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -884,19 +884,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -993,19 +993,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1061,19 +1061,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1115,19 +1115,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1173,19 +1173,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1275,19 +1275,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1333,19 +1333,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1387,19 +1387,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1448,19 +1448,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1557,19 +1557,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1625,19 +1625,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1679,19 +1679,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1737,19 +1737,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1839,19 +1839,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1897,19 +1897,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -1951,19 +1951,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2012,19 +2012,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2121,19 +2121,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2189,19 +2189,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2243,19 +2243,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2301,19 +2301,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2403,19 +2403,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2461,19 +2461,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2515,19 +2515,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2576,19 +2576,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2685,19 +2685,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2753,19 +2753,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2827,19 +2827,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2928,7 +2928,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -2970,13 +2970,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3024,13 +3024,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3074,13 +3074,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3122,13 +3122,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3205,7 +3205,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3294,7 +3294,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3336,13 +3336,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3435,7 +3435,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3531,13 +3531,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3586,19 +3586,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3647,13 +3647,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3706,19 +3706,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3762,13 +3762,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3823,19 +3823,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3891,13 +3891,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -3960,13 +3960,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4088,13 +4088,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4149,13 +4149,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4206,13 +4206,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4267,7 +4267,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4309,7 +4309,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4348,7 +4348,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4447,13 +4447,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4543,7 +4543,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4577,7 +4577,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4621,13 +4621,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4668,13 +4668,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4708,7 +4708,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4749,7 +4749,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4790,7 +4790,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4829,7 +4829,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4870,7 +4870,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4909,7 +4909,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -4957,19 +4957,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5058,13 +5058,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5103,19 +5103,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5172,13 +5172,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5215,13 +5215,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5311,13 +5311,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5381,13 +5381,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5431,13 +5431,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5483,13 +5483,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5528,13 +5528,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5598,7 +5598,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -5654,7 +5654,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/xerrors.ErrCode"
+                            "$ref": "#/definitions/errcode.ErrCode"
                         }
                     }
                 }
@@ -8027,7 +8027,7 @@ const docTemplate = `{
                 }
             }
         },
-        "xerrors.ErrCode": {
+        "errcode.ErrCode": {
             "type": "object",
             "properties": {
                 "code": {

@@ -163,7 +163,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 	case enums.DaemonGcRepository:
 		return &gcRepository{
 			ctx:    log.Logger.WithContext(ctx),
-			config: ptr.To(configs.GetConfiguration()),
+			config: ptr.To(configs.GetConfig()),
 
 			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
@@ -187,7 +187,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 	case enums.DaemonGcArtifact:
 		return &gcArtifact{
 			ctx:    log.Logger.WithContext(ctx),
-			config: ptr.To(configs.GetConfiguration()),
+			config: ptr.To(configs.GetConfig()),
 
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
 			repositoryServiceFactory: dao.NewRepositoryServiceFactory(),
@@ -212,7 +212,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 	case enums.DaemonGcTag:
 		return &gcTag{
 			ctx:    log.Logger.WithContext(ctx),
-			config: ptr.To(configs.GetConfiguration()),
+			config: ptr.To(configs.GetConfig()),
 
 			daemonServiceFactory:     dao.NewDaemonServiceFactory(),
 			namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
@@ -240,7 +240,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 	case enums.DaemonGcBlob:
 		runner := &gcBlob{
 			ctx:    log.Logger.WithContext(ctx),
-			config: ptr.To(configs.GetConfiguration()),
+			config: ptr.To(configs.GetConfig()),
 
 			blobServiceFactory:   dao.NewBlobServiceFactory(),
 			daemonServiceFactory: dao.NewDaemonServiceFactory(),

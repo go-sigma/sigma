@@ -31,11 +31,11 @@ func GetConfig() (*configs.Configuration, error) {
 	viper.SetEnvPrefix(consts.AppName)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	err := viper.Unmarshal(configs.GetConfiguration())
+	err := viper.Unmarshal(configs.GetConfig())
 	if err != nil {
 		return nil, err
 	}
-	config := configs.GetConfiguration()
+	config := configs.GetConfig()
 	badgerDir, err := os.MkdirTemp("", "badger")
 	if err != nil {
 		return nil, err
@@ -44,5 +44,5 @@ func GetConfig() (*configs.Configuration, error) {
 	config.Badger.Enabled = true
 	config.Locker.Type = enums.LockerTypeBadger
 
-	return configs.GetConfiguration(), nil
+	return configs.GetConfig(), nil
 }

@@ -74,7 +74,7 @@ func (f factory) Initialize(digCon *dig.Container) error {
 	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
 	codeRepositoryHandler := handlerNew(digCon)
 
-	config := configs.GetConfiguration()
+	config := configs.GetConfig()
 	if config.Daemon.Builder.Enabled { // TODO: use dig
 		codereposGroup := e.Group(consts.APIV1 + "/coderepos")
 		codereposGroup.GET("/providers", codeRepositoryHandler.Providers)
