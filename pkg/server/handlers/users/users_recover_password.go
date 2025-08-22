@@ -26,10 +26,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // RecoverPassword handles the recover user's password
@@ -40,7 +40,7 @@ func (h *handler) RecoverPassword(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	userService := h.UserServiceFactory.New()
@@ -48,24 +48,24 @@ func (h *handler) RecoverPassword(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("username", req.Username).Msg("Username not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "User or email not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "User or email not found")
 		}
 		log.Error().Err(err).Str("username", req.Username).Msg("Username find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Username find failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Username find failed: %v", err))
 	}
 	if ptr.To(user.Email) != req.Email {
 		log.Error().Err(err).Str("username", req.Username).Str("realEmail", ptr.To(user.Email)).Str("email", req.Email).Msg("Email not equal to real")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "User or email not found")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "User or email not found")
 	}
 
 	_, err = userService.GetRecoverCodeByUserID(ctx, user.ID)
 	if err == nil {
 		log.Error().Err(err).Str("username", req.Username).Msg("Recover code already exists")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Recover code already exists")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeConflict, "Recover code already exists")
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Str("username", req.Username).Msg("Get recover code failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get recover code failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get recover code failed: %v", err))
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -76,12 +76,12 @@ func (h *handler) RecoverPassword(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Str("username", req.Username).Msg("Create recover code failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create recover code failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create recover code failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.NoContent(http.StatusCreated)
 }

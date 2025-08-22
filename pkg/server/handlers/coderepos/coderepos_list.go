@@ -24,10 +24,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // List list all of the code repositories
@@ -46,26 +46,26 @@ import (
 //	@Param		owner		query		string	false	"Search code repository with owner"
 //	@Param		provider	path		string	true	"search code repository with provider"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryItem}
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) List(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.ListCodeRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
@@ -73,20 +73,20 @@ func (h *handler) List(c echo.Context) error {
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
 	}
 
 	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	ownerObjs, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List all owners failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
 	}
 
 	codeRepositoryObjs, total, err := codeRepositoryService.ListWithPagination(ctx, user.ID, req.Provider, req.Owner, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List code repositories failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 	resp := make([]any, 0, len(codeRepositoryObjs))
 	for _, codeRepositoryObj := range codeRepositoryObjs {

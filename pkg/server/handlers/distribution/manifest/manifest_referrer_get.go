@@ -24,7 +24,7 @@ import (
 	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-sigma/sigma/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
 // GetReferrer ...
@@ -37,7 +37,7 @@ func (h *handler) GetReferrer(c echo.Context) error {
 	_, err := digest.Parse(ref)
 	if err != nil {
 		log.Error().Err(err).Str("ref", ref).Msg("Digest is invalid")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeDigestInvalid)
 	}
 
 	artifactType := c.QueryParam("artifactType")
@@ -52,14 +52,14 @@ func (h *handler) GetReferrer(c echo.Context) error {
 	repositoryObj, err := repositoryService.GetByName(ctx, repository)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	artifactService := h.ArtifactServiceFactory.New()
 	artifactObjs, err := artifactService.GetReferrers(ctx, repositoryObj.ID, ref, strings.Split(artifactType, ","))
 	if err != nil {
 		log.Error().Err(err).Msg("Get referrers failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if len(artifactObjs) == 0 {
 		return c.JSON(http.StatusOK, result)
@@ -70,7 +70,7 @@ func (h *handler) GetReferrer(c echo.Context) error {
 		err = json.Unmarshal(artifactObj.Raw, &decoded)
 		if err != nil {
 			log.Error().Err(err).Msg("Unmarshal artifact failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		result.Manifests = append(result.Manifests, imgspecv1.Descriptor{
 			MediaType:    decoded.MediaType,

@@ -23,9 +23,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ResetPassword handles the reset request
@@ -36,17 +36,17 @@ func (h *handler) ResetPassword(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
 	if err != nil {
 		log.Error().Err(err).Msg("Validate password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	pwdHash, err := h.PasswordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
-		return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
+		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := h.UserServiceFactory.New(tx)
@@ -55,12 +55,12 @@ func (h *handler) ResetPassword(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Update user failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
+			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.NoContent(http.StatusAccepted)
 }

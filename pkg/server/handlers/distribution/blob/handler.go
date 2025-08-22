@@ -34,11 +34,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
 	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Handler is the interface for the distribution blob handlers
@@ -101,14 +101,14 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 	err := digCon.Provide(func() configs.Configuration { return h.Config })
 	if err != nil {
 		log.Error().Err(err).Msg("dig provide failed")
-		return nil, xerrors.DSErrCodeUnknown
+		return nil, errcode.DSErrCodeUnknown
 	}
 	err = digCon.Provide(func() *badger.DB {
 		return h.BadgerDB
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("dig provide failed")
-		return nil, xerrors.DSErrCodeUnknown
+		return nil, errcode.DSErrCodeUnknown
 	}
 	return cacher.New(digCon, consts.CacherBlob, func(key string) (*models.Blob, error) {
 		ctx := log.Logger.WithContext(c.Request().Context())
@@ -116,7 +116,7 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 		dgest, err := digest.Parse(key)
 		if err != nil {
 			log.Error().Err(err).Str("digest", key).Msg("Parse digest failed")
-			return nil, xerrors.DSErrCodeUnknown
+			return nil, errcode.DSErrCodeUnknown
 		}
 		blobService := h.BlobServiceFactory.New()
 		blob, err := blobService.FindByDigest(ctx, dgest.String())
@@ -124,27 +124,27 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if !h.Config.Proxy.Enabled {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("blob not found")
-					return nil, xerrors.DSErrCodeBlobUnknown
+					return nil, errcode.DSErrCodeBlobUnknown
 				}
 				f := clients.NewClientsFactory()
 				cli, err := f.New(h.Config)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("new proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
+					return nil, errcode.DSErrCodeUnknown
 				}
 				statusCode, header, _, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("request proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
+					return nil, errcode.DSErrCodeUnknown
 				}
 				if statusCode != http.StatusOK {
 					log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("request proxy server failed")
-					return nil, xerrors.DSErrCodeUnknown
+					return nil, errcode.DSErrCodeUnknown
 				}
 				contentLength, err := strconv.ParseInt(header.Get(echo.HeaderContentLength), 10, 64)
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("parse content length failed")
-					return nil, xerrors.DSErrCodeUnknown
+					return nil, errcode.DSErrCodeUnknown
 				}
 				blob = &models.Blob{
 					Digest:      dgest.String(),
@@ -155,7 +155,7 @@ func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], e
 				return blob, nil
 			}
 			log.Error().Err(err).Str("digest", dgest.String()).Msg("check blob exist failed")
-			return nil, xerrors.DSErrCodeBlobUnknown
+			return nil, errcode.DSErrCodeBlobUnknown
 		}
 		return blob, nil
 	})

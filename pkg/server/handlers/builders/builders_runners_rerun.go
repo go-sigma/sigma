@@ -27,10 +27,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetRunnerRerun ...
@@ -41,7 +41,7 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	builderService := h.BuilderServiceFactory.New()
@@ -49,29 +49,29 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id not found: %v", err))
 		}
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
 	if builderObj.ID != req.BuilderID {
 		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
 	runnerObj, err := builderService.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msgf("Builder runner not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Builder runner not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Builder runner not found")
 		}
 		log.Error().Err(err).Msgf("Builder runner find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
 	}
 
 	if runnerObj.Status != enums.BuildStatusSuccess && runnerObj.Status != enums.BuildStatusFailed && runnerObj.Status != enums.BuildStatusStopped {
 		log.Error().Str("status", runnerObj.Status.String()).Msgf("Builder runner status %s not support rerun", runnerObj.Status.String())
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Builder runner status %s not support rerun", runnerObj.Status.String()))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Builder runner status %s not support rerun", runnerObj.Status.String()))
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -84,7 +84,7 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 		err = builderService.CreateRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create builder runner failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
@@ -94,12 +94,12 @@ func (h *handler) GetRunnerRerun(c echo.Context) error {
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.JSON(http.StatusOK, types.RunOrRerunRunnerResponse{
 		RunnerID: runnerObj.ID,

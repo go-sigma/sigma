@@ -19,7 +19,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/go-sigma/sigma/pkg/xerrors"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
 // Resource something that need be health checked
@@ -34,7 +34,7 @@ func Healthz(rs ...Resource) echo.MiddlewareFunc {
 			if c.Request().URL.Path == "/healthz" && c.Request().Method == http.MethodGet {
 				for _, r := range rs {
 					if err := r.HealthCheck(); err != nil {
-						return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+						return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 					}
 				}
 				return c.String(http.StatusOK, "OK")

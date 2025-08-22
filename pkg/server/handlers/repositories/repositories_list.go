@@ -27,11 +27,11 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListRepositories handles the list repositories request
@@ -49,8 +49,8 @@ import (
 //	@Param		method			query		string	false	"Sort method"	Enums(asc, desc)
 //	@Param		name			query		string	false	"Search repository with name"
 //	@Success	200				{object}	types.CommonList{items=[]types.RepositoryItem}
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListRepositories(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -63,7 +63,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 		user, ok = iuser.(*models.User)
 		if !ok {
 			log.Error().Msg("Convert user from header failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 		}
 	}
 
@@ -71,7 +71,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
@@ -80,17 +80,17 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
 		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryService := h.repositoryServiceFactory.New()
 	repositoryObjs, total, err := repositoryService.ListRepositoryWithAuth(ctx, namespaceObj.ID, user.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	var repositoryIDs = make([]int64, 0, len(repositoryObjs))
@@ -101,7 +101,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	builderMap, err := builderService.GetByRepositoryIDs(ctx, repositoryIDs)
 	if err != nil {
 		log.Error().Err(err).Msg("Find builders with repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Find builders with repository failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Find builders with repository failed: %v", err))
 	}
 
 	var resp = make([]any, 0, len(repositoryObjs))

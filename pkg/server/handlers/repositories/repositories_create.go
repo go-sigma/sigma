@@ -26,11 +26,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // CreateRepository handles the create repository request
@@ -44,42 +44,42 @@ import (
 //	@Param		namespace_id	path		number							true	"Namespace id"
 //	@Param		message			body		types.CreateRepositoryRequest	true	"Repository object"
 //	@Success	201				{object}	types.CreateRepositoryResponse
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) CreateRepository(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.CreateRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Resource not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
 		}
 		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Get resource failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api or resource")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api or resource")
 	}
 
 	namespaceService := h.namespaceServiceFactory.New()
@@ -87,10 +87,10 @@ func (h *handler) CreateRepository(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
 		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryObj := &models.Repository{
@@ -109,11 +109,11 @@ func (h *handler) CreateRepository(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Interface("repositoryObj", repositoryObj).Msg("Repository create failed")
-		e, ok := err.(xerrors.ErrCode) // maybe got exceed repository count quota limit error
+		e, ok := err.(errcode.ErrCode) // maybe got exceed repository count quota limit error
 		if ok {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create repository failed: %v", err)))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create repository failed: %v", err)))
 	}
 
 	return c.JSON(http.StatusCreated, types.CreateRepositoryResponse{ID: repositoryObj.ID})

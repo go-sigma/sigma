@@ -25,11 +25,11 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // DeleteTag handles the delete tag request
@@ -44,41 +44,41 @@ import (
 //	@Param		repository_id	path	number	true	"Repository id"
 //	@Param		id				path	number	true	"Tag id"
 //	@Success	204
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) DeleteTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.DeleteTagRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Tag(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
 		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	namespaceService := h.NamespaceServiceFactory.New()
@@ -86,10 +86,10 @@ func (h *handler) DeleteTag(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
 		log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 
 	repositoryService := h.RepositoryServiceFactory.New()
@@ -97,21 +97,21 @@ func (h *handler) DeleteTag(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Repository(%d) not found: %v", req.RepositoryID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Repository(%d) not found: %v", req.RepositoryID, err))
 		}
 		log.Error().Err(err).Int64("RepositoryID", req.RepositoryID).Msg("Repository find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Repository(%d) find failed: %v", req.RepositoryID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Repository(%d) find failed: %v", req.RepositoryID, err))
 	}
 	if repositoryObj.NamespaceID != namespaceObj.ID {
 		log.Error().Interface("RepositoryObj", repositoryObj).Interface("NamespaceObj", namespaceObj).Msg("Repository's namespace ref id not equal namespace id")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound)
 	}
 
 	tagService := h.TagServiceFactory.New()
 	err = tagService.DeleteByID(ctx, req.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Delete tag failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.NoContent(http.StatusNoContent)

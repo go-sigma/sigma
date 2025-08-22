@@ -23,8 +23,8 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Token generate token for docker client
@@ -36,24 +36,24 @@ import (
 //	@Produce	json
 //	@Router		/tokens [get]
 //	@Success	200	{object}	types.PostUserTokenResponse
-//	@Failure	401	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) Token(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.PostUserTokenResponse{

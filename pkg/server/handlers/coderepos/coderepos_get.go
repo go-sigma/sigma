@@ -26,10 +26,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Get get code repository by id
@@ -43,26 +43,26 @@ import (
 //	@Param		provider	path		string	true	"Search code repository with provider"
 //	@Param		id			path		string	true	"Code repository id"
 //	@Success	200			{object}	types.CodeRepositoryItem
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) Get(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.GetCodeRepositoryRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
@@ -70,27 +70,27 @@ func (h *handler) Get(c echo.Context) error {
 	user3rdPartyObj, err := userService.GetUser3rdPartyByProvider(ctx, user.ID, req.Provider)
 	if err != nil {
 		log.Error().Err(err).Str("Provider", req.Provider.String()).Msg("Get user 3rdParty by provider failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
 	}
 
 	ownerObjs, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List all owners failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List all owners failed: %v", err))
 	}
 
 	codeRepositoryObj, err := codeRepositoryService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("provider", req.Provider.String()).Int64("id", req.ID).Msg("Code repository not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Code repository(%d) not found: %s", req.ID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Code repository(%d) not found: %s", req.ID, err))
 		}
 		log.Error().Err(err).Int64("repositoryID", req.ID).Int64("id", req.ID).Msg("Get code repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Code repository(%d) not found: %s", req.ID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Code repository(%d) not found: %s", req.ID, err))
 	}
 	if codeRepositoryObj.User3rdParty.Provider != req.Provider {
 		log.Error().Err(err).Str("provider", req.Provider.String()).Int64("id", req.ID).Msg("Code repository not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Code repository(%d) not found", req.ID))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Code repository(%d) not found", req.ID))
 	}
 
 	return c.JSON(http.StatusOK, types.CodeRepositoryItem{

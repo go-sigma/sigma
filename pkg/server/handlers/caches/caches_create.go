@@ -22,8 +22,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/storage"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // CreateCache handles the create cache request
@@ -37,32 +37,32 @@ import (
 //	@Param		builder_id	path	string	true	"Builder ID"
 //	@Param		file		body	string	true	"Cache file"
 //	@Success	201
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) CreateCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	builderIDStr := c.Param("builder_id")
 	if builderIDStr == "" {
 		log.Error().Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Bind and validate request body failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "Bind and validate request body failed")
 	}
 	builderID, err := strconv.ParseInt(builderIDStr, 10, 64)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	err = storage.Driver.Upload(ctx, h.genPath(builderID), c.Request().Body)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload file failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Upload file failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Upload file failed: %v", err))
 	}
 
 	err = c.Request().Body.Close()
 	if err != nil {
 		log.Error().Err(err).Msg("Close body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Close body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Close body failed: %v", err))
 	}
 
 	return c.NoContent(http.StatusCreated)

@@ -36,9 +36,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetFromCtx ...
@@ -215,12 +215,12 @@ func GetUserFromCtx(c echo.Context) (*models.User, bool, error) {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return nil, true, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return nil, true, errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return nil, true, xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return nil, true, errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	return user, false, nil
 }
@@ -230,12 +230,12 @@ func GetUserFromCtxForDs(c echo.Context) (*models.User, bool, error) {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return nil, true, xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return nil, true, errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return nil, true, xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+		return nil, true, errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 	}
 	return user, false, nil
 }

@@ -23,10 +23,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // DeleteCache handles the delete cache request
@@ -39,8 +39,8 @@ import (
 //	@Router		/caches/{builder_id} [delete]
 //	@Param		builder_id	path	string	true	"Builder ID"
 //	@Success	204
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) DeleteCache(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -48,7 +48,7 @@ func (h *handler) DeleteCache(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	var path = h.genPath(req.BuilderID)
@@ -56,10 +56,10 @@ func (h *handler) DeleteCache(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Error().Err(err).Str("cache", path).Msg("Cache not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Cache not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Cache not found: %v", err))
 		}
 		log.Error().Err(err).Str("cache", path).Msg("Delete cache failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Delete cache failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Delete cache failed: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }

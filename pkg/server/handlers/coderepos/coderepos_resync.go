@@ -29,10 +29,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Resync resync all of the code repositories
@@ -45,26 +45,26 @@ import (
 //	@Router		/coderepos/{provider}/resync [get]
 //	@Param		provider	path	string	true	"Search code repository with scm provider"
 //	@Success	202
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) Resync(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.GetCodeRepositoryResyncRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	userService := h.UserServiceFactory.New()
@@ -72,14 +72,14 @@ func (h *handler) Resync(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("userID", user.ID).Str("provider", req.Provider.String()).Msg("Code repository not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Code repository not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Code repository not found")
 		}
 		log.Error().Err(err).Int64("userID", user.ID).Str("provider", req.Provider.String()).Msg("Code repository find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Code repository find failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Code repository find failed")
 	}
 	if user3rdPartyObj.CrLastUpdateStatus == enums.TaskCommonStatusDoing {
 		log.Error().Str("provider", req.Provider.String()).Msg("Code repository status already is syncing")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, fmt.Sprintf("Code repository(%s) status already is syncing", req.Provider.String()))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeConflict, fmt.Sprintf("Code repository(%s) status already is syncing", req.Provider.String()))
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		userService := h.UserServiceFactory.New(tx)
@@ -89,7 +89,7 @@ func (h *handler) Resync(c echo.Context) error {
 			query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   "",
 		})
 		if err != nil {
-			return xerrors.HTTPErrCodeInternalError.Detail("Update user status failed")
+			return errcode.HTTPErrCodeInternalError.Detail("Update user status failed")
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
 			types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
@@ -99,7 +99,7 @@ func (h *handler) Resync(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.NoContent(http.StatusAccepted)
 }
