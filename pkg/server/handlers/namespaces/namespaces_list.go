@@ -23,9 +23,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListNamespaces handles the list namespace request
@@ -42,7 +42,7 @@ import (
 //	@Param		method	query		string	false	"Sort method"	Enums(asc, desc)
 //	@Param		name	query		string	false	"Search namespace with name"
 //	@Success	200		{object}	types.CommonList{items=[]types.NamespaceItem}
-//	@Failure	500		{object}	xerrors.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) ListNamespaces(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -55,7 +55,7 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 		user, ok = iuser.(*models.User)
 		if !ok {
 			log.Error().Msg("Convert user from header failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
@@ -71,7 +71,7 @@ func (h *handler) ListNamespaces(c echo.Context) error {
 	namespaceObjs, total, err := namespaceService.ListNamespaceWithAuth(ctx, user.ID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	var resp = make([]any, 0, len(namespaceObjs))

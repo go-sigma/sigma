@@ -26,12 +26,12 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // HeadBlob returns the blob's size and digest.
@@ -52,49 +52,49 @@ func (h *handler) HeadBlob(c echo.Context) error {
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))
 	if err != nil {
 		log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeDigestInvalid)
 	}
 	c.Response().Header().Set(consts.ContentDigest, dgest.String())
 	cacher, err := h.BlobCacher(c)
 	if err != nil {
 		log.Error().Err(err).Msg("New blob cacher failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	blobObj, err := cacher.Get(ctx, dgest.String())
 	if err != nil {
-		if err, ok := err.(xerrors.ErrCode); ok {
-			return xerrors.NewDSError(c, err)
+		if err, ok := err.(errcode.ErrCode); ok {
+			return errcode.NewDSError(c, err)
 		}
 		log.Error().Err(err).Msg("Head blob failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", blobObj.Size))

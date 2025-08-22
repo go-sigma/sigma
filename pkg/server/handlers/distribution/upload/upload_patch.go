@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -33,7 +34,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PatchUpload handles the patch upload request
@@ -43,12 +43,12 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	host := c.Request().Host
@@ -63,42 +63,42 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	blobUploadService := h.BlobUploadServiceFactory.New()
 	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
 		log.Error().Err(err).Msg("Get blob upload record failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	counterReader := counter.NewCounter(c.Request().Body)
@@ -107,7 +107,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	etag, err := storage.Driver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload part failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	size := counterReader.Count()
@@ -121,7 +121,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Save blob upload record failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	// Note that the HTTP Range header byte ranges are inclusive and that will be honored, even in non-standard use cases.
 	// See: https://docs.docker.com/registry/spec/api/#pushing-a-layer

@@ -23,9 +23,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListNamespaceMembers handles the list namespace members request
@@ -42,7 +42,7 @@ import (
 //	@Param		method	query		string	false	"Sort method"	Enums(asc, desc)
 //	@Param		name	query		string	false	"Search namespace namespace with name"
 //	@Success	200		{object}	types.CommonList{items=[]types.NamespaceMemberItem}
-//	@Failure	500		{object}	xerrors.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) ListNamespaceMembers(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -50,14 +50,14 @@ func (h *handler) ListNamespaceMembers(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	namespaceMemberService := h.NamespaceMemberServiceFactory.New()
 	namespaceMemberObjs, total, err := namespaceMemberService.ListNamespaceMembers(ctx, req.NamespaceID, req.Name, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List namespace role failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List namespace role failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List namespace role failed: %v", err))
 	}
 
 	var resp = make([]any, 0, len(namespaceMemberObjs))

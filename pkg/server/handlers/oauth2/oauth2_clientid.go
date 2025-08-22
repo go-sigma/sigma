@@ -21,10 +21,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ClientID Get oauth2 provider client id
@@ -37,13 +37,13 @@ import (
 //	@Router		/oauth2/{provider}/client_id [get]
 //	@Param		provider	path		string	true	"oauth2 provider"
 //	@Success	200			{object}	types.Oauth2ClientIDResponse
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) ClientID(c echo.Context) error {
 	var req types.Oauth2ClientIDRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	switch req.Provider {
 	case enums.ProviderGithub:
@@ -59,6 +59,6 @@ func (h *handler) ClientID(c echo.Context) error {
 			ClientID: h.Config.Auth.Oauth2.Gitea.ClientID,
 		})
 	default:
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("invalid provider %s", req.Provider))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("invalid provider %s", req.Provider))
 	}
 }

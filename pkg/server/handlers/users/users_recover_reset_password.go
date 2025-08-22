@@ -26,9 +26,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // RecoverPasswordReset handles the recover user's password reset
@@ -39,12 +39,12 @@ func (h *handler) RecoverPasswordReset(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
 	if err != nil {
 		log.Error().Err(err).Msg("Validate password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	userService := h.UserServiceFactory.New()
@@ -52,10 +52,10 @@ func (h *handler) RecoverPasswordReset(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("code", req.Code).Msg("Recover code not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Recover code not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Recover code not found")
 		}
 		log.Error().Err(err).Str("code", req.Code).Msg("Get recover code failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get recover code failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get recover code failed: %v", err))
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
@@ -63,24 +63,24 @@ func (h *handler) RecoverPasswordReset(c echo.Context) error {
 		err = userService.DeleteRecoverCode(ctx, userObj.ID)
 		if err != nil {
 			log.Error().Err(err).Str("code", req.Code).Msg("Delete recover code failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete recover code failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete recover code failed: %v", err))
 		}
 		pwdHash, err := h.PasswordService.Hash(req.Password)
 		if err != nil {
 			log.Error().Err(err).Msg("Hash password failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
+			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
 		err = userService.UpdateByID(ctx, userObj.ID, map[string]any{
 			query.User.Password.ColumnName().String(): pwdHash,
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Update user failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
+			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.NoContent(http.StatusAccepted)
 }

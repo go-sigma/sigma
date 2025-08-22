@@ -30,10 +30,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 var listTagsReg = regexp.MustCompile(fmt.Sprintf(`^/v2/%s/tags/list$`, reference.NameRegexp.String()))
@@ -50,7 +50,7 @@ func (h *handler) ListTags(c echo.Context) error {
 
 	var uri = c.Request().URL.Path
 	if !listTagsReg.MatchString(uri) {
-		return xerrors.NewDSError(c, xerrors.DSErrCodeNameInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeNameInvalid)
 	}
 
 	var n = 1000
@@ -58,7 +58,7 @@ func (h *handler) ListTags(c echo.Context) error {
 	if nStr != "" {
 		n, err = strconv.Atoi(nStr)
 		if err != nil {
-			return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
+			return errcode.NewDSError(c, errcode.DSErrCodePaginationNumberInvalid)
 		}
 	}
 
@@ -70,23 +70,23 @@ func (h *handler) ListTags(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("repository", repository).Msg("Cannot find repository")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeNameUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeNameUnknown)
 		}
 		log.Error().Err(err).Str("repository", repository).Msg("Get repository failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Repository(ptr.To(user), repositoryObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", repositoryObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	var lastFound bool
@@ -98,7 +98,7 @@ func (h *handler) ListTags(c echo.Context) error {
 		tagObj, err := tagService.GetByName(ctx, repositoryObj.ID, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("get tag by name")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		lastFound = true
 		lastID = tagObj.ID
@@ -111,7 +111,7 @@ func (h *handler) ListTags(c echo.Context) error {
 		tags, err = tagService.ListByDtPagination(ctx, repository, n, lastID)
 	}
 	if err != nil {
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	var names = make([]string, 0, len(tags))
 	for _, tag := range tags {

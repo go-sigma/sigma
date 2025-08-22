@@ -27,11 +27,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PutNamespace handles the put namespace request
@@ -51,33 +51,33 @@ func (h *handler) PutNamespace(c echo.Context) error {
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.UpdateNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), req.ID, enums.AuthAdmin)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Msg("Resource not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
 		}
 		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.ID).Err(err).Msg("Get resource failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	namespaceService := h.NamespaceServiceFactory.New()
@@ -85,15 +85,15 @@ func (h *handler) PutNamespace(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Msg("Find namespace failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	if req.SizeLimit != nil && namespaceObj.SizeLimit > ptr.To(req.SizeLimit) {
 		log.Error().Err(err).Msg("Namespace quota is less than the before limit")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "Namespace quota is less than the before limit")
 	}
 
 	updates := make(map[string]any, 5)
@@ -122,7 +122,7 @@ func (h *handler) PutNamespace(c echo.Context) error {
 			err = namespaceService.UpdateByID(ctx, namespaceObj.ID, updates)
 			if err != nil {
 				log.Error().Err(err).Msg("Update namespace failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace failed: %v", err))
 			}
 			auditService := h.AuditServiceFactory.New(tx)
 			err = auditService.Create(ctx, &models.Audit{
@@ -135,7 +135,7 @@ func (h *handler) PutNamespace(c echo.Context) error {
 			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create audit for update namespace failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for update namespace failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for update namespace failed: %v", err))
 			}
 			err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 				NamespaceID:  ptr.Of(namespaceObj.ID),
@@ -145,16 +145,16 @@ func (h *handler) PutNamespace(c echo.Context) error {
 			}, definition.ProducerOption{Tx: tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 			}
 			return nil
 		})
 		if err != nil {
-			var e xerrors.ErrCode
+			var e errcode.ErrCode
 			if errors.As(err, &e) {
-				return xerrors.NewHTTPError(c, e)
+				return errcode.NewHTTPError(c, e)
 			}
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError)
 		}
 	}
 

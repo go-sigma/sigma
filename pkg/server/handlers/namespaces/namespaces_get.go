@@ -24,10 +24,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetNamespace handles the get namespace request
@@ -40,8 +40,8 @@ import (
 //	@Router		/namespaces/{namespace_id} [get]
 //	@Param		namespace_id	path		number	true	"Namespace id"
 //	@Success	200				{object}	types.NamespaceItem
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -49,7 +49,7 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	namespaceService := h.NamespaceServiceFactory.New()
@@ -57,24 +57,24 @@ func (h *handler) GetNamespace(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace from db failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Msg("Get namespace from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	repositoryService := h.RepositoryServiceFactory.New()
 	repositoryMapCount, err := repositoryService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	tagService := h.TagServiceFactory.New()
 	tagMapCount, err := tagService.CountByNamespace(ctx, []int64{namespaceObj.ID})
 	if err != nil {
 		log.Error().Err(err).Msg("Count tag failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.NamespaceItem{

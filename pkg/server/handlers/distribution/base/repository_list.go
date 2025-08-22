@@ -26,8 +26,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListRepositories handles the list repositories request
@@ -45,7 +45,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	if nStr != "" {
 		n, err = strconv.Atoi(nStr)
 		if err != nil {
-			return xerrors.NewDSError(c, xerrors.DSErrCodePaginationNumberInvalid)
+			return errcode.NewDSError(c, errcode.DSErrCodePaginationNumberInvalid)
 		}
 	}
 
@@ -59,7 +59,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	if last != "" {
 		tagObj, err := repositoryService.GetByName(ctx, last)
 		if err != nil && err != gorm.ErrRecordNotFound {
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		lastFound = true
 		lastID = tagObj.ID
@@ -73,7 +73,7 @@ func (h *handler) ListRepositories(c echo.Context) error {
 	}
 	if err != nil {
 		log.Error().Err(err).Msg("List repository failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	var names = make([]string, 0, len(repositories))
 	for _, repository := range repositories {

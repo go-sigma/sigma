@@ -23,9 +23,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetBranch get branch by name
@@ -40,7 +40,7 @@ import (
 //	@Param		id			path		number	true	"Code repository id"
 //	@Param		name		path		string	true	"Branch name"
 //	@Success	200			{object}	types.CodeRepositoryBranchItem
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) GetBranch(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -48,14 +48,14 @@ func (h *handler) GetBranch(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	branchObj, err := codeRepositoryService.GetBranchByName(ctx, req.ID, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Get branch by id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.CodeRepositoryBranchItem{
 		ID:        branchObj.ID,

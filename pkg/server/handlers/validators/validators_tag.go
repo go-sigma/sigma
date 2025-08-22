@@ -25,9 +25,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetTag handles the validate tag request
@@ -40,30 +40,30 @@ import (
 //	@Router		/validators/tag [get]
 //	@Param		tag	query	string	true	"Reference"
 //	@Success	204
-//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
 func (h *handler) GetTag(c echo.Context) error {
 	var req types.GetValidatorTagRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	t, err := template.New("tag").Funcs(sprig.FuncMap()).Parse(req.Tag)
 	if err != nil {
 		log.Error().Err(err).Str("template", req.Tag).Msg("Parse tag template failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Parse tag template failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Parse tag template failed: %v", err))
 	}
 	var sample = types.BuildTagOption{ScmBranch: "main", ScmTag: "v0.1", ScmRef: "581758eb7d96ae4d113649668fa96acc74d46e7f"}
 	var buffer bytes.Buffer
 	err = t.Execute(&buffer, sample)
 	if err != nil {
 		log.Error().Err(err).Str("template", req.Tag).Msg("Render tag template failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Render tag template failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Render tag template failed: %v", err))
 	}
 	var tag = buffer.String()
 	if !consts.TagRegexp.MatchString(tag) {
 		log.Error().Str("template", req.Tag).Str("tag", tag).Msg("Tag is invalid")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Tag is invalid")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "Tag is invalid")
 	}
 	return c.NoContent(http.StatusNoContent)
 }

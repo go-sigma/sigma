@@ -29,6 +29,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -36,7 +37,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PostUpload creates a new upload.
@@ -59,29 +59,29 @@ func (h *handler) PostUpload(c echo.Context) error {
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	// fileID is the filename that upload to the blob_uploads
@@ -92,7 +92,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 		dgest, err := digest.Parse(c.QueryParam("digest"))
 		if err != nil {
 			log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadInvalid)
+			return errcode.NewDSError(c, errcode.DSErrCodeBlobUploadInvalid)
 		}
 		c.Response().Header().Set(consts.ContentDigest, dgest.String())
 
@@ -102,19 +102,19 @@ func (h *handler) PostUpload(c echo.Context) error {
 		err = storage.Driver.Upload(ctx, srcPath, countReader)
 		if err != nil {
 			log.Error().Err(err).Msg("Upload blob failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUploadInvalid)
+			return errcode.NewDSError(c, errcode.DSErrCodeBlobUploadInvalid)
 		}
 		destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))
 		err = storage.Driver.Move(ctx, srcPath, destPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Move blob failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 
 		err = storage.Driver.Delete(ctx, srcPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete blob upload failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 
 		size := countReader.Count()
@@ -128,14 +128,14 @@ func (h *handler) PostUpload(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Save blob record failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 	}
 
 	uploadID, err := storage.Driver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
 	if err != nil {
 		log.Error().Err(err).Msg("Create blob upload id failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	blobUploadService := h.BlobUploadServiceFactory.New()
@@ -148,7 +148,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Save blob upload record failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	c.Response().Header().Set("Docker-Upload-UUID", uploadID)

@@ -27,11 +27,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // AddNamespaceMember handles the add namespace member request
@@ -44,41 +44,41 @@ import (
 //	@Param		message	body	types.AddNamespaceMemberRequest	true	"Member object"
 //	@security	BasicAuth
 //	@Success	201	{object}	types.AddNamespaceMemberResponse
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) AddNamespaceMember(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.AddNamespaceMemberRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), req.NamespaceID, enums.AuthAdmin)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found", req.NamespaceID))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found", req.NamespaceID))
 		}
 		log.Error().Err(err).Msg("Get namespace failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.NamespaceID))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.NamespaceID))
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", req.NamespaceID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	namespaceService := h.NamespaceServiceFactory.New()
@@ -86,27 +86,27 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Msg("Find namespace failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	roles := dal.AuthEnforcer.GetRolesForUserInDomain(fmt.Sprintf("%d", req.UserID), namespaceObj.Name)
 	if len(roles) > 0 {
 		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("User already have role in namespace")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "User already have role in namespace")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeConflict, "User already have role in namespace")
 	}
 
 	namespaceMemberService := h.NamespaceMemberServiceFactory.New()
 	roleCount, err := namespaceMemberService.CountNamespaceMember(ctx, req.UserID, req.NamespaceID)
 	if err != nil {
 		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("Count namespace role failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Count namespace role failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Count namespace role failed: %v", err))
 	}
 	if roleCount >= consts.MaxNamespaceMember {
 		log.Error().Int64("UserID", req.UserID).Int64("NamespaceID", req.NamespaceID).Msg("Max namespace role quota exceeds")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "Max namespace role quota exceeds")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "Max namespace role quota exceeds")
 	}
 
 	var namespaceMemberObj *models.NamespaceMember
@@ -114,7 +114,7 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		namespaceMemberService := h.NamespaceMemberServiceFactory.New(tx)
 		namespaceMemberObj, err = namespaceMemberService.AddNamespaceMember(ctx, req.UserID, ptr.To(namespaceObj), req.Role)
 		if err != nil {
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace role for user failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace role for user failed: %v", err))
 		}
 		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
@@ -127,16 +127,16 @@ func (h *handler) AddNamespaceMember(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		var e xerrors.ErrCode
+		var e errcode.ErrCode
 		if errors.As(err, &e) {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError)
 	}
 	err = dal.AuthEnforcer.LoadPolicy()
 	if err != nil {

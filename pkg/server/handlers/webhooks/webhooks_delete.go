@@ -27,11 +27,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // DeleteWebhook handles the delete webhook request
@@ -44,27 +44,27 @@ import (
 //	@Router		/webhooks/{id} [delete]
 //	@Param		id	path	string	true	"Webhook id"
 //	@Success	204
-//	@Failure	500	{object}	xerrors.ErrCode
-//	@Failure	401	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
 func (h *handler) DeleteWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.DeleteWebhookRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	webhookService := h.webhookServiceFactory.New()
@@ -72,15 +72,15 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("id", req.ID).Msg("Webhook not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Webhook(%d) not found", req.ID))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Webhook(%d) not found", req.ID))
 		}
 		log.Error().Err(err).Msg("Get webhook failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
 	if webhookOldObj.NamespaceID == nil {
 		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {
 		namespaceID := ptr.To(webhookOldObj.NamespaceID)
@@ -88,14 +88,14 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
 			}
 			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
 		}
 		if !authChecked {
 			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	}
 
@@ -104,7 +104,7 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		err = webhookService.DeleteByID(ctx, req.ID)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete webhook failed")
-			return xerrors.HTTPErrCodeInternalError.Detail("Delete webhook failed")
+			return errcode.HTTPErrCodeInternalError.Detail("Delete webhook failed")
 		}
 		auditService := h.auditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
@@ -117,12 +117,12 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 
 	return c.NoContent(http.StatusNoContent)
