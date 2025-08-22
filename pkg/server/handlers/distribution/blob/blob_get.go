@@ -32,6 +32,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/storage"
@@ -40,7 +41,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/reader"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetBlob returns the blob's size and digest.
@@ -61,35 +61,35 @@ func (h *handler) GetBlob(c echo.Context) error {
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	dgest, err := digest.Parse(strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/"))
 	if err != nil {
 		log.Error().Err(err).Str("digest", c.QueryParam("digest")).Msg("Parse digest failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDigestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeDigestInvalid)
 	}
 
 	blobService := h.BlobServiceFactory.New()
@@ -100,16 +100,16 @@ func (h *handler) GetBlob(c echo.Context) error {
 			cli, err := f.New(h.Config)
 			if err != nil {
 				log.Error().Err(err).Str("digest", dgest.String()).Msg("New proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 			}
 			statusCode, header, bodyReader, err := cli.DoRequest(ctx, c.Request().Method, c.Request().URL.Path, nil)
 			if err != nil {
 				log.Error().Err(err).Str("digest", dgest.String()).Msg("Request proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 			}
 			if statusCode != http.StatusOK {
 				log.Error().Err(err).Str("digest", dgest.String()).Int("statusCode", statusCode).Msg("Request proxy server failed")
-				return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+				return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 			}
 			contentType := header.Get("Content-Type")
 			pipeReader, pipeWriter := io.Pipe()
@@ -139,7 +139,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 			return c.Stream(http.StatusOK, contentType, newBodyReader)
 		}
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 	c.Request().Header.Set(consts.ContentDigest, dgest.String())
 	c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", blob.Size))
@@ -148,7 +148,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 		redirectUrl, err := storage.Driver.Redirect(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 		if err != nil {
 			log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob redirect url failed")
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		return c.Redirect(http.StatusPermanentRedirect, redirectUrl)
 	}
@@ -156,7 +156,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob reader failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	return c.Stream(http.StatusOK, blob.ContentType, reader)

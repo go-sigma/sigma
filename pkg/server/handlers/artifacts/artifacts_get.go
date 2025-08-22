@@ -23,9 +23,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetArtifact handles the get artifact request
@@ -36,7 +36,7 @@ func (h *handler) GetArtifact(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	repositoryService := h.RepositoryServiceFactory.New()
@@ -44,10 +44,10 @@ func (h *handler) GetArtifact(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("repository", req.Repository).Msg("Cannot find repository")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Str("repository", req.Repository).Msg("Get repository failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	artifactService := h.ArtifactServiceFactory.New()
@@ -55,10 +55,10 @@ func (h *handler) GetArtifact(c echo.Context) error {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("Artifact not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Msg("Get artifact failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(200, types.ArtifactItem{

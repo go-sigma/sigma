@@ -23,9 +23,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListBranches list all of the branches
@@ -39,7 +39,7 @@ import (
 //	@Param		provider	path		string	true	"code repository provider"
 //	@Param		id			path		string	true	"code repository id"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryBranchItem}
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) ListBranches(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -47,14 +47,14 @@ func (h *handler) ListBranches(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	branchObjs, total, err := codeRepositoryService.ListBranchesWithoutPagination(ctx, req.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("List branches failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
 	}
 	resp := make([]any, 0, len(branchObjs))
 	for _, branchObj := range branchObjs {

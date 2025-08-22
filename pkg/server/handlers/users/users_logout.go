@@ -23,10 +23,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/token"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Logout handles the logout request
@@ -38,8 +38,8 @@ import (
 //	@Produce	json
 //	@Param		message	body	types.PostUserLogoutRequest	true	"Logout user object"
 //	@Router		/users/logout [post]
-//	@Failure	500	{object}	xerrors.ErrCode
-//	@Failure	401	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
 //	@Success	204
 func (h *handler) Logout(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
@@ -48,7 +48,7 @@ func (h *handler) Logout(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	var ids = sets.New[string]()
@@ -62,7 +62,7 @@ func (h *handler) Logout(c echo.Context) error {
 				continue
 			}
 			log.Error().Err(err).Str("token", t).Msg("Revoke token failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 		}
 		ids.Insert(id)
 	}
@@ -70,7 +70,7 @@ func (h *handler) Logout(c echo.Context) error {
 	jti, ok := c.Get("jti").(string)
 	if !ok || jti == "" {
 		log.Error().Str("jti", jti).Msg("Get jti failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Get jti failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Get jti failed")
 	}
 
 	ids.Insert(jti)
@@ -84,7 +84,7 @@ func (h *handler) Logout(c echo.Context) error {
 		err = h.TokenService.Revoke(ctx, id)
 		if err != nil {
 			log.Error().Err(err).Msg("Revoke token failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 		}
 	}
 

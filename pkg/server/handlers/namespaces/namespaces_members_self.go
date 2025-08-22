@@ -26,9 +26,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetNamespaceMemberSelf handles the get self namespace member info request
@@ -41,27 +41,27 @@ import (
 //	@Router		/namespaces/{namespace_id}/members/self [get]
 //	@Param		namespace_id	path		number	true	"Namespace id"
 //	@Success	200				{object}	types.NamespaceMemberItem
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.GetNamespaceMemberSelfRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	namespaceMemberService := h.NamespaceMemberServiceFactory.New()
@@ -69,10 +69,10 @@ func (h *handler) GetNamespaceMemberSelf(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace role from db not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get namespace role from db not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get namespace role from db not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get namespace role from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace role from db failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace role from db failed: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, types.NamespaceMemberItem{

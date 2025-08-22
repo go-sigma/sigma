@@ -25,11 +25,11 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetTag handles the get tag request
@@ -44,41 +44,41 @@ import (
 //	@Param		repository_id	path		number	false	"Repository id"
 //	@Param		id				path		number	true	"Tag id"
 //	@Success	200				{object}	types.TagItem
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetTag(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.GetTagRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Tag(ptr.To(user), req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", req.NamespaceID, err))
 		}
 		log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Int64("NamespaceID", req.NamespaceID).Msg("Namespace find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", req.NamespaceID, err))
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("RepositoryID", req.ID).Msg("Auth check failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 	}
 
 	tagService := h.TagServiceFactory.New()
@@ -86,10 +86,10 @@ func (h *handler) GetTag(c echo.Context) error {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Error().Err(err).Msg("Tag not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, err.Error())
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, err.Error())
 		}
 		log.Error().Err(err).Msg("Get tag from db failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	var artifacts = make([]types.TagItemArtifact, 0, len(tag.Artifact.ArtifactSubs))

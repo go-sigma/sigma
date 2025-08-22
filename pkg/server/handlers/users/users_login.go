@@ -23,10 +23,10 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Login handles the login request
@@ -38,8 +38,8 @@ import (
 //	@Produce	json
 //	@Router		/users/login [post]
 //	@Param		message	body		types.PostUserLoginRequest	true	"User login object"
-//	@Failure	500		{object}	xerrors.ErrCode
-//	@Failure	401		{object}	xerrors.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
+//	@Failure	401		{object}	errcode.ErrCode
 //	@Success	200		{object}	types.PostUserLoginResponse
 func (h *handler) Login(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
@@ -58,19 +58,19 @@ func (h *handler) Login(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Update user last login failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
 	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.PostUserLoginResponse{

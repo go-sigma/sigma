@@ -36,6 +36,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
@@ -44,7 +45,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/counter"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // maxManifestBodySize ...
@@ -68,52 +68,52 @@ func (h *handler) PutManifest(c echo.Context) error {
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeBlobUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
-			return xerrors.GenDSErrCodeResourceNotFound(err)
+			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
 		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeDenied)
+		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	ref := strings.TrimPrefix(uri[strings.LastIndex(uri, "/"):], "/")
 	if _, err := digest.Parse(ref); err != nil && !consts.TagRegexp.MatchString(ref) {
 		log.Error().Err(err).Str("ref", ref).Msg("Invalid digest or tag")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeTagInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeTagInvalid)
 	}
 
 	if !strings.Contains(repository, "/") {
 		log.Error().Str("repository", repository).Msg("Invalid repository, repository name should have a namespace as prefix")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestWithNamespace)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 
 	countReader := counter.NewCounter(c.Request().Body)
 	bodyBytes, err := io.ReadAll(countReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Read the manifest failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestInvalid)
 	}
 	size := countReader.Count()
 	if size > maxManifestBodySize {
 		log.Error().Int64("size", size).Msg("Manifest size exceeds the limit")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestInvalid)
 	}
 
 	refs := h.parseRef(ref)
@@ -127,11 +127,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 	})
 	if err != nil {
 		log.Error().Err(err).Str("repository", repository).Msg("Create repository failed")
-		e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota limit error
+		e, ok := err.(errcode.ErrCode) // maybe got exceed tag quota limit error
 		if ok {
-			return xerrors.NewDSError(c, e)
+			return errcode.NewDSError(c, e)
 		}
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	refs.Digest = digest.FromBytes(bodyBytes)
@@ -142,7 +142,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	manifest, descriptor, err := distribution.UnmarshalManifest(contentType, bodyBytes)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Unmarshal manifest failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeManifestInvalid)
+		return errcode.NewDSError(c, errcode.DSErrCodeManifestInvalid)
 	}
 	var blobsSize int64
 	var digests = make([]string, 0, len(manifest.References())+1)
@@ -164,7 +164,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	referrerID, err := h.getArtifactReferrer(ctx, repository, manifest)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Get artifact referrer failed")
-		return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	artifactObj.ReferrerID = referrerID
 
@@ -173,7 +173,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Find artifact failed")
-			return ptr.Of(xerrors.DSErrCodeUnknown)
+			return ptr.Of(errcode.DSErrCodeUnknown)
 		}
 	}
 	if tryFindArtifactObj != nil {
@@ -185,11 +185,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 		artifactObj.Type = enums.ArtifactTypeImageIndex
 		err := h.putManifestIndex(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
-			e, ok := err.(xerrors.ErrCode)
+			e, ok := err.(errcode.ErrCode)
 			if ok {
-				return xerrors.NewDSError(c, e)
+				return errcode.NewDSError(c, e)
 			}
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 	} else {
 		for _, reference := range manifest.References() {
@@ -197,12 +197,12 @@ func (h *handler) PutManifest(c echo.Context) error {
 				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)))
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 				}
 				configRaw, err := io.ReadAll(configRawReader)
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 				}
 				artifactObj.ConfigMediaType = ptr.Of(reference.MediaType)
 				artifactObj.ConfigRaw = configRaw
@@ -213,11 +213,11 @@ func (h *handler) PutManifest(c echo.Context) error {
 		artifactObj.Type = h.getArtifactType(descriptor, manifest)
 		err := h.putManifestManifest(ctx, user, digests, repositoryObj, artifactObj, refs, manifest, descriptor)
 		if err != nil {
-			e, ok := err.(xerrors.ErrCode)
+			e, ok := err.(errcode.ErrCode)
 			if ok {
-				return xerrors.NewDSError(c, e)
+				return errcode.NewDSError(c, e)
 			}
-			return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 	}
 
@@ -233,7 +233,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 	blobObjs, err := blobService.FindByDigests(ctx, digests)
 	if err != nil {
 		log.Error().Err(err).Str("digest", refs.Digest.String()).Msg("Find blobs failed")
-		return xerrors.DSErrCodeUnknown
+		return errcode.DSErrCodeUnknown
 	}
 
 	artifactObj.Blobs = blobObjs
@@ -243,11 +243,11 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
-			e, ok := err.(xerrors.ErrCode)
+			e, ok := err.(errcode.ErrCode)
 			if ok {
 				return e
 			}
-			return xerrors.DSErrCodeUnknown
+			return errcode.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
 			tagService := h.TagServiceFactory.New(tx)
@@ -258,11 +258,11 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Create tag failed")
-				e, ok := err.(xerrors.ErrCode) // maybe got exceed tag quota error
+				e, ok := err.(errcode.ErrCode) // maybe got exceed tag quota error
 				if ok {
 					return e
 				}
-				return xerrors.DSErrCodeUnknown
+				return errcode.DSErrCodeUnknown
 			}
 			if workq.ProducerClient != nil { // TODO: init in test
 				err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
@@ -271,7 +271,7 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				}, definition.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-					return xerrors.DSErrCodeUnknown
+					return errcode.DSErrCodeUnknown
 				}
 			}
 		}
@@ -281,17 +281,17 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 			}, definition.ProducerOption{Tx: tx})
 			if err != nil {
 				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
-				return xerrors.DSErrCodeUnknown
+				return errcode.DSErrCodeUnknown
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode)
+		e, ok := err.(errcode.ErrCode)
 		if ok {
 			return e
 		}
-		return xerrors.DSErrCodeUnknown
+		return errcode.DSErrCodeUnknown
 	}
 
 	if needScan(manifest, descriptor) {
@@ -331,7 +331,7 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 	artifactObjs, err := artifactService.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
 		log.Error().Err(err).Str("repository", repositoryObj.Name).Strs("digests", digests).Msg("Get artifacts failed")
-		return xerrors.DSErrCodeUnknown
+		return errcode.DSErrCodeUnknown
 	}
 
 	artifactObj.ArtifactSubs = artifactObjs
@@ -341,11 +341,11 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
 			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Msg("Create artifact failed")
-			e, ok := err.(xerrors.ErrCode)
+			e, ok := err.(errcode.ErrCode)
 			if ok {
 				return e
 			}
-			return xerrors.DSErrCodeUnknown
+			return errcode.DSErrCodeUnknown
 		}
 		if refs.Tag != "" {
 			tagService := h.TagServiceFactory.New(tx)
@@ -356,11 +356,11 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 			}, dao.WithAuditUser(user.ID))
 			if err != nil {
 				log.Error().Err(err).Str("repository", repositoryObj.Name).Str("tag", refs.Tag).Msg("Create tag failed")
-				e, ok := err.(xerrors.ErrCode)
+				e, ok := err.(errcode.ErrCode)
 				if ok {
 					return e
 				}
-				return xerrors.DSErrCodeUnknown
+				return errcode.DSErrCodeUnknown
 			}
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
@@ -369,16 +369,16 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-			return xerrors.DSErrCodeUnknown
+			return errcode.DSErrCodeUnknown
 		}
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode)
+		e, ok := err.(errcode.ErrCode)
 		if ok {
 			return e
 		}
-		return xerrors.DSErrCodeUnknown
+		return errcode.DSErrCodeUnknown
 	}
 
 	return nil

@@ -29,10 +29,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/builder/logger"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetRunnerLog ...
@@ -43,28 +43,28 @@ func (h *handler) GetRunnerLog(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	builderService := h.BuilderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
 	if builderObj.ID != req.BuilderID {
 		log.Error().Int64("builder_id", req.BuilderID).Int64("builder_id", builderObj.ID).Msg("Get builder by id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get builder by id failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, "Get builder by id failed")
 	}
 
 	runnerObj, err := builderService.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msgf("Builder runner not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Builder runner not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Builder runner not found")
 		}
 		log.Error().Err(err).Msgf("Builder runner find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Builder runner find failed: %v", err))
 	}
 
 	websocket.Handler(func(ws *websocket.Conn) {

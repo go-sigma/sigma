@@ -27,11 +27,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // PostNamespace handles the post namespace request
@@ -44,27 +44,27 @@ import (
 //	@Router		/namespaces/ [post]
 //	@Param		message	body		types.PostNamespaceRequest	true	"Namespace object"
 //	@Success	201		{object}	types.PostNamespaceResponse
-//	@Failure	400		{object}	xerrors.ErrCode
-//	@Failure	500		{object}	xerrors.ErrCode
+//	@Failure	400		{object}	errcode.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) PostNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.PostNamespaceRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	namespaceService := h.NamespaceServiceFactory.New()
@@ -72,11 +72,11 @@ func (h *handler) PostNamespace(c echo.Context) error {
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Msg("Get namespace by name failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "Get namespace by name failed")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, "Get namespace by name failed")
 		}
 	}
 	if err == nil {
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, "Namespace already exists")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeConflict, "Namespace already exists")
 	}
 
 	namespaceObj := &models.Namespace{
@@ -100,13 +100,13 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		err = namespaceService.Create(ctx, namespaceObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create namespace failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create namespace failed: %v", err))
 		}
 		namespaceMemberService := h.NamespaceMemberServiceFactory.New(tx)
 		_, err = namespaceMemberService.AddNamespaceMember(ctx, user.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
 		if err != nil {
 			log.Error().Err(err).Msg("Add namespace member failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))
 		}
 		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
@@ -118,7 +118,7 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Create audit failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit failed: %v", err))
 		}
 		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  ptr.Of(namespaceObj.ID),
@@ -128,16 +128,16 @@ func (h *handler) PostNamespace(c echo.Context) error {
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msg("Webhook event produce failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		var e xerrors.ErrCode
+		var e errcode.ErrCode
 		if errors.As(err, &e) {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError)
 	}
 
 	return c.JSON(http.StatusCreated, types.PostNamespaceResponse{ID: namespaceObj.ID})

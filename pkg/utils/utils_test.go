@@ -39,12 +39,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 func TestPanicIf(t *testing.T) {
@@ -453,7 +453,7 @@ func TestGetUserFromCtx(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(utils.MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+			respBody: string(utils.MustMarshal(errcode.HTTPErrCodeUnauthorized)),
 		},
 		{
 			name: "err-2",
@@ -465,7 +465,7 @@ func TestGetUserFromCtx(t *testing.T) {
 			},
 			wantErr:  false,
 			wantBool: true,
-			respBody: string(utils.MustMarshal(xerrors.HTTPErrCodeUnauthorized)),
+			respBody: string(utils.MustMarshal(errcode.HTTPErrCodeUnauthorized)),
 		},
 	}
 	for _, tt := range tests {
@@ -526,9 +526,9 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 			wantBool: true,
 			respBody: string(utils.MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
 				{
-					Code:    xerrors.DSErrCodeUnauthorized.Code,
-					Message: xerrors.DSErrCodeUnauthorized.Title,
-					Detail:  xerrors.DSErrCodeUnauthorized.Description,
+					Code:    errcode.DSErrCodeUnauthorized.Code,
+					Message: errcode.DSErrCodeUnauthorized.Title,
+					Detail:  errcode.DSErrCodeUnauthorized.Description,
 				},
 			}})),
 		},
@@ -544,9 +544,9 @@ func TestGetUserFromCtxForDs(t *testing.T) {
 			wantBool: true,
 			respBody: string(utils.MustMarshal(dtspecv1.ErrorResponse{Errors: []dtspecv1.ErrorInfo{
 				{
-					Code:    xerrors.DSErrCodeUnauthorized.Code,
-					Message: xerrors.DSErrCodeUnauthorized.Title,
-					Detail:  xerrors.DSErrCodeUnauthorized.Description,
+					Code:    errcode.DSErrCodeUnauthorized.Code,
+					Message: errcode.DSErrCodeUnauthorized.Title,
+					Detail:  errcode.DSErrCodeUnauthorized.Description,
 				},
 			}})),
 		},

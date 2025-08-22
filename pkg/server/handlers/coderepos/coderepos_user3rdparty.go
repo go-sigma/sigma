@@ -25,10 +25,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // User3rdParty get user 3rdparty
@@ -41,26 +41,26 @@ import (
 //	@Router		/coderepos/{provider}/user3rdparty [get]
 //	@Param		provider	path		string	true	"Get user 3rdParty with scm provider"
 //	@Success	200			{object}	types.GetCodeRepositoryUser3rdPartyResponse
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) User3rdParty(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.GetCodeRepositoryUser3rdPartyRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	userService := h.UserServiceFactory.New()
@@ -68,10 +68,10 @@ func (h *handler) User3rdParty(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("userID", user.ID).Str("provider", req.Provider.String()).Msg("Code repository not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Code repository not found")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Code repository not found")
 		}
 		log.Error().Err(err).Int64("userID", user.ID).Str("provider", req.Provider.String()).Msg("Code repository find failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, "Code repository find failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, "Code repository find failed")
 	}
 
 	return c.JSON(http.StatusOK, types.GetCodeRepositoryUser3rdPartyResponse{

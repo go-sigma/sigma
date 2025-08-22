@@ -24,10 +24,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Signup handles the user signup
@@ -38,25 +38,25 @@ func (h *handler) Signup(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
 	if err != nil {
 		log.Error().Err(err).Msg("Validate password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	pwdHash, err := h.PasswordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	userService := h.UserServiceFactory.New()
 	_, err = userService.GetByUsername(ctx, req.Username)
 	if err == nil {
 		log.Error().Msg("Username already exists")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeConflict, fmt.Errorf("username already exists").Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeConflict, fmt.Errorf("username already exists").Error())
 	}
 
 	user := &models.User{
@@ -67,19 +67,19 @@ func (h *handler) Signup(c echo.Context) error {
 	err = userService.Create(ctx, user)
 	if err != nil {
 		log.Error().Err(err).Msg("Create user failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	token, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTtl)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, types.PostUserLoginResponse{

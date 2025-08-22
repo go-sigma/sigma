@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 //go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryService
@@ -165,7 +165,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 			}, definition.ProducerOption{Tx: s.tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 			}
 		}
 	}
@@ -200,7 +200,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 			}, definition.ProducerOption{Tx: s.tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 			}
 		}
 		return nil

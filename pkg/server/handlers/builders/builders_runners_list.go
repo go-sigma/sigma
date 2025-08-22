@@ -26,10 +26,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListRunners handles the list builder runners request
@@ -44,8 +44,8 @@ import (
 //	@Param		repository_id	path		string	true	"Repository ID"
 //	@Param		builder_id		path		string	true	"Builder ID"
 //	@Success	200				{object}	types.BuilderItem
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -53,7 +53,7 @@ func (h *handler) ListRunners(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	req.Pagination = utils.NormalizePagination(req.Pagination)
 
@@ -61,12 +61,12 @@ func (h *handler) ListRunners(c echo.Context) error {
 	_, err = builderService.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Int64("id", req.RepositoryID).Msg("Get builder by repository id failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get builder by repository id failed: %v", err))
 	}
 	runnerObjs, total, err := builderService.ListRunners(ctx, req.BuilderID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List builder runners failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List builder runners failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List builder runners failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {

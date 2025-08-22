@@ -28,11 +28,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Config is the configuration for the Auth middleware
@@ -68,9 +68,9 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 			if err != nil {
 				log.Error().Err(err).Msg("Create token service failed")
 				if isDistribution {
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 				}
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 			}
 
 			req := c.Request()
@@ -91,9 +91,9 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 				if !ok {
 					log.Error().Str("Authorization", c.Request().Header.Get("Authorization")).Msg("Basic auth failed")
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Basic auth failed")
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Basic auth failed")
 				}
 
 				userServiceFactory := dao.NewUserServiceFactory()
@@ -103,9 +103,9 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 					log.Error().Err(err).Msg("Get user by username failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Username or password is not correct")
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Username or password is not correct")
 				}
 				uid = user.ID
 
@@ -115,9 +115,9 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 					log.Error().Err(err).Msg("Verify password failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Username or password is not correct")
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Username or password is not correct")
 				}
 			case strings.HasPrefix(authorization, "Bearer"):
 				jti, uid, err = tokenService.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
@@ -125,27 +125,27 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 					log.Error().Err(err).Msg("Validate token failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, err.Error())
 				}
 			default:
 				uri := c.Request().URL.Path
 				if strings.HasPrefix(uri, "/v2") || uri == "/api/v1/users/self" {
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 				}
 				userObj, err := userService.GetByUsername(ctx, consts.UserAnonymous)
 				if err != nil {
 					log.Error().Err(err).Msg("Get anonymous user failed")
 					c.Response().Header().Set("WWW-Authenticate", genWwwAuthenticate(config.DigCon, req.Host, c.Scheme()))
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 				}
 				uid = userObj.ID
 			}
@@ -155,15 +155,15 @@ func AuthnWithConfig(config Config) echo.MiddlewareFunc {
 				if err == gorm.ErrRecordNotFound {
 					log.Error().Err(err).Msg("User not found")
 					if isDistribution {
-						return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+						return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 					}
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, err.Error())
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, err.Error())
 				}
 				log.Error().Err(err).Msg("Get user failed")
 				if isDistribution {
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 				}
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 			}
 
 			c.Set(consts.ContextUser, userObj)

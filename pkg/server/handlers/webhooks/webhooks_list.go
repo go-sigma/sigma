@@ -26,11 +26,11 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListWebhook handles the list webhook request
@@ -47,32 +47,32 @@ import (
 //	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
 //	@Param		namespace_id	query		int64	false	"filter by namespace id"
 //	@Success	200				{object}	types.CommonList{items=[]types.WebhookItem}
-//	@Failure	500				{object}	xerrors.ErrCode
-//	@Failure	401				{object}	xerrors.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
+//	@Failure	401				{object}	errcode.ErrCode
 func (h *handler) ListWebhook(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.ListWebhookRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	if req.NamespaceID == nil {
 		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {
 		namespaceID := ptr.To(req.NamespaceID)
@@ -80,14 +80,14 @@ func (h *handler) ListWebhook(c echo.Context) error {
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
 			}
 			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
 		}
 		if !authChecked {
 			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "No permission with this api")
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	}
 
@@ -95,7 +95,7 @@ func (h *handler) ListWebhook(c echo.Context) error {
 	webhookObjs, total, err := webhookService.List(ctx, req.NamespaceID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List webhook failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, "List webhook failed")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, "List webhook failed")
 	}
 	var resp = make([]any, 0, len(webhookObjs))
 	for _, webhookObj := range webhookObjs {

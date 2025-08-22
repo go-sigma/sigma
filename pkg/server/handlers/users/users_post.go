@@ -24,11 +24,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Post handles the post request
@@ -40,7 +40,7 @@ import (
 //	@Router		/users/ [post]
 //	@Param		message	body	types.PostUserRequest	true	"User object"
 //	@Success	201
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) Post(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -48,13 +48,13 @@ func (h *handler) Post(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	pwdHash, err := h.PasswordService.Hash(req.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("Hash password failed")
-		return xerrors.HTTPErrCodeInternalError.Detail(err.Error())
+		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
 	userObj := models.User{
@@ -73,23 +73,23 @@ func (h *handler) Post(c echo.Context) error {
 		err = userService.Create(ctx, &userObj)
 		if err != nil {
 			log.Error().Err(err).Msg("Create user failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 		}
 		if userObj.Role == enums.UserRoleAdmin {
 			err = userService.AddPlatformMember(ctx, userObj.ID, userObj.Role)
 			if err != nil {
 				log.Error().Err(err).Msg("Add platform role for user failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add platform role for user failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add platform role for user failed: %v", err))
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		e, ok := err.(xerrors.ErrCode)
+		e, ok := err.(errcode.ErrCode)
 		if ok {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Create user failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Create user failed: %v", err))
 	}
 
 	err = dal.AuthEnforcer.LoadPolicy()

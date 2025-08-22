@@ -25,11 +25,11 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // UpdateBuilder handles the update builder request
@@ -45,9 +45,9 @@ import (
 //	@Param		builder_id		path	string						true	"Builder id"
 //	@Param		message			body	types.UpdateBuilderRequest	true	"Builder object"
 //	@Success	201
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) UpdateBuilder(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -55,13 +55,13 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	compressedDockerfile, err := h.CompressDockerfile(req.Dockerfile)
 	if err != nil {
 		log.Error().Err(err).Msg("Dockerfile base64 decode failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Dockerfile base64 decode failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Dockerfile base64 decode failed: %v", err))
 	}
 
 	updates := map[string]any{
@@ -95,10 +95,10 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).
 					Msg("Get code repository by id not found")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get code repository by id(%d) not found: %v", ptr.To(req.CodeRepositoryID), err)))
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get code repository by id(%d) not found: %v", ptr.To(req.CodeRepositoryID), err)))
 			}
 			log.Error().Err(err).Int64("CodeRepositoryID", ptr.To(req.CodeRepositoryID)).Msg("Get code repository by id failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%d) failed: %v", ptr.To(req.CodeRepositoryID), err)))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%d) failed: %v", ptr.To(req.CodeRepositoryID), err)))
 		}
 		cloneCredentialObj, err := codeRepositoryService.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
 		if err != nil {
@@ -122,15 +122,15 @@ func (h *handler) UpdateBuilder(c echo.Context) error {
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("builder_id", req.BuilderID).Msg("Builder id not found")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) not found", req.BuilderID))
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) not found", req.BuilderID))
 			}
 			log.Error().Err(err).Int64("builder_id", req.BuilderID).Msg("Builder find failed")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) find failed: %v", req.BuilderID, err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Builder id(%d) find failed: %v", req.BuilderID, err))
 		}
 		return nil
 	})
 	if err != nil {
-		return xerrors.NewHTTPError(c, err.(xerrors.ErrCode))
+		return errcode.NewHTTPError(c, err.(errcode.ErrCode))
 	}
 	return c.NoContent(http.StatusNoContent)
 }

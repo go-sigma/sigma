@@ -29,9 +29,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // Config defines the config for CasbinAuth middleware
@@ -63,7 +63,7 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 			user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
 			if !ok {
 				log.Error().Msg("get user from header failed")
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 			}
 			// admin or root can be access all of resources
 			if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
@@ -76,9 +76,9 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 			// 		return next(c)
 			// 	} else {
 			// 		if isDistribution {
-			// 			return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+			// 			return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 			// 		}
-			// 		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Authorization failed")
+			// 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Authorization failed")
 			// 	}
 			// }
 
@@ -96,13 +96,13 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 					} else {
 						namespaceID := strings.TrimSpace(c.Param("namespace_id"))
 						if namespaceID == "" {
-							return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Authorization failed")
+							return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Authorization failed")
 						}
 						nsID, _ := strconv.ParseInt(namespaceID, 10, 64)
 						namespace, err := nsSvc.Get(c.Request().Context(), nsID)
 						if err != nil {
 							log.Error().Err(err).Msg("get namespace failed")
-							return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get namespace failed: %v", err))
+							return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get namespace failed: %v", err))
 						}
 						// all of user can get public namespace
 						if namespace.Visibility == enums.VisibilityPublic && requestMethod == http.MethodGet {
@@ -112,22 +112,22 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 						if err != nil {
 							log.Error().Err(err).Msg("casbin auth failed")
 							if isDistribution {
-								return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+								return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 							}
-							return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get scope from database failed: %v", err))
+							return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get scope from database failed: %v", err))
 						}
 						log.Debug().Strs("matched", matched).Bool("result", passed).Msg("matched")
 						if !passed {
 							if isDistribution {
-								return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+								return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 							}
-							return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Authorization failed")
+							return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Authorization failed")
 						}
 						return next(c)
 					}
 				default:
 					log.Error().Msg("url not match any rule")
-					return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Authorization failed")
+					return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Authorization failed")
 				}
 			default:
 				return next(c)
@@ -137,16 +137,16 @@ func AuthzWithConfig(config Config) echo.MiddlewareFunc {
 			passed, matched, err := dal.AuthEnforcer.Enforcer.EnforceEx(strconv.FormatInt(user.ID, 10), "namespace", requestUri, "public", requestMethod)
 			if err != nil {
 				if isDistribution {
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnknown)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 				}
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get scope from database failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("get scope from database failed: %v", err))
 			}
 			log.Debug().Strs("matched", matched).Bool("result", passed).Msg("matched")
 			if !passed {
 				if isDistribution {
-					return xerrors.NewDSError(c, xerrors.DSErrCodeUnauthorized)
+					return errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
 				}
-				return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized, "Authorization failed")
+				return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "Authorization failed")
 			}
 			return next(c)
 		}

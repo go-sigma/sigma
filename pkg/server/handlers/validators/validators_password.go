@@ -23,9 +23,9 @@ import (
 	pwdvalidate "github.com/wagslane/go-password-validator"
 
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // GetPassword handles the validate password request
@@ -38,19 +38,19 @@ import (
 //	@Router		/validators/password [get]
 //	@Param		message	body	types.ValidatePasswordRequest	true	"Validate password object"
 //	@Success	204
-//	@Failure	400	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
 func (h *handler) GetPassword(c echo.Context) error {
 	var req types.ValidatePasswordRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
 	err = pwdvalidate.Validate(req.Password, consts.PwdStrength)
 	if err != nil {
 		log.Error().Err(err).Msg("Password strength is not enough")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Password strength is not enough: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Password strength is not enough: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }

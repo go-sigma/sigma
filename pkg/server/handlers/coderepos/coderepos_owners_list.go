@@ -23,9 +23,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // ListOwner list all of the code repository owner
@@ -39,33 +39,33 @@ import (
 //	@Param		provider	path		string	true	"search code repository with provider"
 //	@Param		name		query		string	false	"search code repository with name"
 //	@Success	200			{object}	types.CommonList{items=[]types.CodeRepositoryOwnerItem}
-//	@Failure	500			{object}	xerrors.ErrCode
+//	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) ListOwners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	var req types.ListCodeRepositoryOwnerRequest
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
 	codeRepositoryService := h.CodeRepositoryServiceFactory.New()
 	codeRepositoryOwnerObjs, total, err := codeRepositoryService.ListOwnerWithoutPagination(ctx, user.ID, req.Provider, req.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("List code repository owners failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 	resp := make([]any, 0, len(codeRepositoryOwnerObjs))
 	for _, codeRepositoryOwnerObj := range codeRepositoryOwnerObjs {

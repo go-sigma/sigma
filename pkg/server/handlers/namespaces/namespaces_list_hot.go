@@ -23,8 +23,8 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // HotNamespace handles the hot namespace request
@@ -36,27 +36,27 @@ import (
 //	@Produce	json
 //	@Router		/namespaces/hot [get]
 //	@Success	200	{object}	types.CommonList{items=[]types.NamespaceItem}
-//	@Failure	500	{object}	xerrors.ErrCode
-//	@Failure	401	{object}	xerrors.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
 func (h *handler) HotNamespace(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
 		log.Error().Msg("Get user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
 		log.Error().Msg("Convert user from header failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeUnauthorized)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
 	auditService := h.AuditServiceFactory.New()
 	namespaceObjs, err := auditService.HotNamespace(ctx, user.ID, consts.HotNamespace) // TODO: remove the namespace that user not have permission
 	if err != nil {
 		log.Error().Err(err).Msg("Get hot namespaces failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, err.Error())
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
 	var resp = make([]any, 0, len(namespaceObjs))

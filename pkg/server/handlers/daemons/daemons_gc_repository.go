@@ -31,11 +31,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-	"github.com/go-sigma/sigma/pkg/xerrors"
 )
 
 // UpdateGcRepositoryRule handles the update gc repository rule request
@@ -49,9 +49,9 @@ import (
 //	@Param		namespace_id	path	int64								true	"Namespace id"
 //	@Param		message			body	types.UpdateGcRepositoryRuleRequest	true	"Gc repository rule object"
 //	@Success	204
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -59,7 +59,7 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -69,11 +69,11 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 	ruleObj, err := daemonService.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
 		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc repository rule is running")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc repository rule is running")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "The gc repository rule is running")
 	}
 	var nextTrigger *int64
 	if req.CronRule != nil {
@@ -99,14 +99,14 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 			})
 			if err != nil {
 				log.Error().Err(err).Msg("Create gc repository rule failed")
-				return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository rule failed: %v", err))
+				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository rule failed: %v", err))
 			}
 			return nil
 		}
 		err = daemonService.UpdateGcRepositoryRule(ctx, ruleObj.ID, updates)
 		if err != nil {
 			log.Error().Err(err).Msg("Update gc repository rule failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
 		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
@@ -116,16 +116,16 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msg("Webhook event produce failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		var e xerrors.ErrCode
+		var e errcode.ErrCode
 		if errors.As(err, &e) {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -140,9 +140,9 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 //	@Router		/daemons/gc-repository/{namespace_id}/ [get]
 //	@Param		namespace_id	path		int64	true	"Namespace id"
 //	@Success	200				{object}	types.GetGcRepositoryRuleResponse
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -150,7 +150,7 @@ func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -161,10 +161,10 @@ func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	var nextTrigger *string
 	if ruleObj.CronNextTrigger != nil {
@@ -190,9 +190,9 @@ func (h *handler) GetGcRepositoryRule(c echo.Context) error {
 //	@Router		/daemons/gc-repository/{namespace_id}/runners/latest [get]
 //	@Param		namespace_id	path		int64	true	"Namespace id"
 //	@Success	200				{object}	types.GcRepositoryRunnerItem
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -200,7 +200,7 @@ func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -211,19 +211,19 @@ func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	runnerObj, err := daemonService.GetGcRepositoryLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	var startedAt, endedAt *string
 	if runnerObj.StartedAt != nil {
@@ -262,9 +262,9 @@ func (h *handler) GetGcRepositoryLatestRunner(c echo.Context) error {
 //	@Param		namespace_id	path	int64									true	"Namespace id"
 //	@Param		message			body	types.CreateGcRepositoryRunnerRequest	true	"Gc repository runner object"
 //	@Success	201
-//	@Failure	400	{object}	xerrors.ErrCode
-//	@Failure	404	{object}	xerrors.ErrCode
-//	@Failure	500	{object}	xerrors.ErrCode
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -272,7 +272,7 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -283,27 +283,27 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	if ruleObj != nil && ruleObj.IsRunning {
 		log.Error().Int64("NamespaceID", ptr.To(namespaceID)).Msg("The gc repository rule is running")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, "The gc repository rule is running")
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "The gc repository rule is running")
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		runnerObj := &models.DaemonGcRepositoryRunner{RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
 		err = daemonService.CreateGcRepositoryRunner(ctx, runnerObj)
 		if err != nil {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
 		}
 		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcRepository,
 			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
 		}
 		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
@@ -313,16 +313,16 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 		}, definition.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msg("Webhook event produce failed")
-			return xerrors.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
 		}
 		return nil
 	})
 	if err != nil {
-		var e xerrors.ErrCode
+		var e errcode.ErrCode
 		if errors.As(err, &e) {
-			return xerrors.NewHTTPError(c, e)
+			return errcode.NewHTTPError(c, e)
 		}
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError)
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError)
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -342,9 +342,9 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 //	@Param		sort			query		string	false	"sort field"
 //	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
 //	@Success	200				{object}	types.CommonList{items=[]types.GcRepositoryRunnerItem}
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -352,7 +352,7 @@ func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -363,15 +363,15 @@ func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("NamespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	runnerObjs, total, err := daemonService.ListGcRepositoryRunners(ctx, ruleObj.ID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Msg("List gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository rule failed: %v", err))
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
@@ -414,9 +414,9 @@ func (h *handler) ListGcRepositoryRunners(c echo.Context) error {
 //	@Param		namespace_id	path		int64	true	"Namespace id"
 //	@Param		runner_id		path		int64	true	"Runner id"
 //	@Success	200				{object}	types.GcRepositoryRunnerItem
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetGcRepositoryRunner(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -424,21 +424,21 @@ func (h *handler) GetGcRepositoryRunner(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	daemonService := h.DaemonServiceFactory.New()
 	runnerObj, err := daemonService.GetGcRepositoryRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository runner not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository runner failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository runner failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository runner failed: %v", err))
 	}
 	if ptr.To(runnerObj.Rule.NamespaceID) != req.NamespaceID {
 		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository runner not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository runner not found: %v", err))
 	}
 	var startedAt, endedAt *string
 	if runnerObj.StartedAt != nil {
@@ -481,9 +481,9 @@ func (h *handler) GetGcRepositoryRunner(c echo.Context) error {
 //	@Param		sort			query		string	false	"sort field"
 //	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
 //	@Success	200				{object}	types.CommonList{items=[]types.GcRepositoryRecordItem}
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListGcRepositoryRecords(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -491,13 +491,13 @@ func (h *handler) ListGcRepositoryRecords(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	daemonService := h.DaemonServiceFactory.New()
 	recordObjs, total, err := daemonService.ListGcRepositoryRecords(ctx, req.RunnerID, req.Pagination, req.Sortable)
 	if err != nil {
 		log.Error().Err(err).Int64("ruleID", req.RunnerID).Msgf("List gc repository records failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository records failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List gc repository records failed: %v", err))
 	}
 	var resp = make([]any, 0, len(recordObjs))
 	for _, recordObj := range recordObjs {
@@ -525,9 +525,9 @@ func (h *handler) ListGcRepositoryRecords(c echo.Context) error {
 //	@Param		runner_id		path		int64	true	"Runner id"
 //	@Param		record_id		path		int64	true	"Record id"
 //	@Success	200				{object}	types.GcRepositoryRecordItem
-//	@Failure	400				{object}	xerrors.ErrCode
-//	@Failure	404				{object}	xerrors.ErrCode
-//	@Failure	500				{object}	xerrors.ErrCode
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetGcRepositoryRecord(c echo.Context) error {
 	ctx := log.Logger.WithContext(c.Request().Context())
 
@@ -535,7 +535,7 @@ func (h *handler) GetGcRepositoryRecord(c echo.Context) error {
 	err := utils.BindValidate(c, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Bind and validate request body failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 	var namespaceID *int64
 	if req.NamespaceID != 0 {
@@ -546,23 +546,23 @@ func (h *handler) GetGcRepositoryRecord(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Msg("Get gc repository rule not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository rule not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository rule failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
 	recordObj, err := daemonService.GetGcRepositoryRecord(ctx, req.RecordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository record not found")
-			return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository record not found: %v", err))
+			return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository record not found: %v", err))
 		}
 		log.Error().Err(err).Msg("Get gc repository record failed")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository record failed: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc repository record failed: %v", err))
 	}
 	if recordObj.Runner.ID != req.RunnerID || recordObj.Runner.Rule.ID != ruleObj.ID {
 		log.Error().Err(err).Int64("namespaceID", req.NamespaceID).Int64("runnerID", req.RunnerID).Msg("Get gc repository record not found")
-		return xerrors.NewHTTPError(c, xerrors.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository record not found: %v", err))
+		return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Get gc repository record not found: %v", err))
 	}
 	return c.JSON(http.StatusOK, types.GcRepositoryRecordItem{
 		ID:         recordObj.ID,
