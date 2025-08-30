@@ -162,11 +162,17 @@ func (d *daemonGcArtifactRunner) fillFieldMap() {
 
 func (d daemonGcArtifactRunner) clone(db *gorm.DB) daemonGcArtifactRunner {
 	d.daemonGcArtifactRunnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Rule.db = db.Session(&gorm.Session{Initialized: true})
+	d.Rule.db.Statement.ConnPool = db.Statement.ConnPool
+	d.OperateUser.db = db.Session(&gorm.Session{Initialized: true})
+	d.OperateUser.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcArtifactRunner) replaceDB(db *gorm.DB) daemonGcArtifactRunner {
 	d.daemonGcArtifactRunnerDo.ReplaceDB(db)
+	d.Rule.db = db.Session(&gorm.Session{})
+	d.OperateUser.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -207,6 +213,11 @@ func (a daemonGcArtifactRunnerBelongsToRule) Model(m *models.DaemonGcArtifactRun
 	return &daemonGcArtifactRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcArtifactRunnerBelongsToRule) Unscoped() *daemonGcArtifactRunnerBelongsToRule {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcArtifactRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
 func (a daemonGcArtifactRunnerBelongsToRuleTx) Find() (result *models.DaemonGcArtifactRule, err error) {
@@ -245,6 +256,11 @@ func (a daemonGcArtifactRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a daemonGcArtifactRunnerBelongsToRuleTx) Unscoped() *daemonGcArtifactRunnerBelongsToRuleTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type daemonGcArtifactRunnerBelongsToOperateUser struct {
 	db *gorm.DB
 
@@ -276,6 +292,11 @@ func (a daemonGcArtifactRunnerBelongsToOperateUser) Session(session *gorm.Sessio
 
 func (a daemonGcArtifactRunnerBelongsToOperateUser) Model(m *models.DaemonGcArtifactRunner) *daemonGcArtifactRunnerBelongsToOperateUserTx {
 	return &daemonGcArtifactRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcArtifactRunnerBelongsToOperateUser) Unscoped() *daemonGcArtifactRunnerBelongsToOperateUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcArtifactRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
@@ -314,6 +335,11 @@ func (a daemonGcArtifactRunnerBelongsToOperateUserTx) Clear() error {
 
 func (a daemonGcArtifactRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcArtifactRunnerBelongsToOperateUserTx) Unscoped() *daemonGcArtifactRunnerBelongsToOperateUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcArtifactRunnerDo struct{ gen.DO }

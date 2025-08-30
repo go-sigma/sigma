@@ -162,11 +162,17 @@ func (d *daemonGcTagRunner) fillFieldMap() {
 
 func (d daemonGcTagRunner) clone(db *gorm.DB) daemonGcTagRunner {
 	d.daemonGcTagRunnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Rule.db = db.Session(&gorm.Session{Initialized: true})
+	d.Rule.db.Statement.ConnPool = db.Statement.ConnPool
+	d.OperateUser.db = db.Session(&gorm.Session{Initialized: true})
+	d.OperateUser.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcTagRunner) replaceDB(db *gorm.DB) daemonGcTagRunner {
 	d.daemonGcTagRunnerDo.ReplaceDB(db)
+	d.Rule.db = db.Session(&gorm.Session{})
+	d.OperateUser.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -207,6 +213,11 @@ func (a daemonGcTagRunnerBelongsToRule) Model(m *models.DaemonGcTagRunner) *daem
 	return &daemonGcTagRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcTagRunnerBelongsToRule) Unscoped() *daemonGcTagRunnerBelongsToRule {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcTagRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
 func (a daemonGcTagRunnerBelongsToRuleTx) Find() (result *models.DaemonGcTagRule, err error) {
@@ -245,6 +256,11 @@ func (a daemonGcTagRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a daemonGcTagRunnerBelongsToRuleTx) Unscoped() *daemonGcTagRunnerBelongsToRuleTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type daemonGcTagRunnerBelongsToOperateUser struct {
 	db *gorm.DB
 
@@ -276,6 +292,11 @@ func (a daemonGcTagRunnerBelongsToOperateUser) Session(session *gorm.Session) *d
 
 func (a daemonGcTagRunnerBelongsToOperateUser) Model(m *models.DaemonGcTagRunner) *daemonGcTagRunnerBelongsToOperateUserTx {
 	return &daemonGcTagRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUser) Unscoped() *daemonGcTagRunnerBelongsToOperateUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcTagRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
@@ -314,6 +335,11 @@ func (a daemonGcTagRunnerBelongsToOperateUserTx) Clear() error {
 
 func (a daemonGcTagRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcTagRunnerBelongsToOperateUserTx) Unscoped() *daemonGcTagRunnerBelongsToOperateUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcTagRunnerDo struct{ gen.DO }

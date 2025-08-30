@@ -117,11 +117,14 @@ func (u *userRecoverCode) fillFieldMap() {
 
 func (u userRecoverCode) clone(db *gorm.DB) userRecoverCode {
 	u.userRecoverCodeDo.ReplaceConnPool(db.Statement.ConnPool)
+	u.User.db = db.Session(&gorm.Session{Initialized: true})
+	u.User.db.Statement.ConnPool = db.Statement.ConnPool
 	return u
 }
 
 func (u userRecoverCode) replaceDB(db *gorm.DB) userRecoverCode {
 	u.userRecoverCodeDo.ReplaceDB(db)
+	u.User.db = db.Session(&gorm.Session{})
 	return u
 }
 
@@ -156,6 +159,11 @@ func (a userRecoverCodeBelongsToUser) Session(session *gorm.Session) *userRecove
 
 func (a userRecoverCodeBelongsToUser) Model(m *models.UserRecoverCode) *userRecoverCodeBelongsToUserTx {
 	return &userRecoverCodeBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a userRecoverCodeBelongsToUser) Unscoped() *userRecoverCodeBelongsToUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type userRecoverCodeBelongsToUserTx struct{ tx *gorm.Association }
@@ -194,6 +202,11 @@ func (a userRecoverCodeBelongsToUserTx) Clear() error {
 
 func (a userRecoverCodeBelongsToUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a userRecoverCodeBelongsToUserTx) Unscoped() *userRecoverCodeBelongsToUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type userRecoverCodeDo struct{ gen.DO }

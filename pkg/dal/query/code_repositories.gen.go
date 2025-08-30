@@ -158,11 +158,17 @@ func (c *codeRepository) fillFieldMap() {
 
 func (c codeRepository) clone(db *gorm.DB) codeRepository {
 	c.codeRepositoryDo.ReplaceConnPool(db.Statement.ConnPool)
+	c.Branches.db = db.Session(&gorm.Session{Initialized: true})
+	c.Branches.db.Statement.ConnPool = db.Statement.ConnPool
+	c.User3rdParty.db = db.Session(&gorm.Session{Initialized: true})
+	c.User3rdParty.db.Statement.ConnPool = db.Statement.ConnPool
 	return c
 }
 
 func (c codeRepository) replaceDB(db *gorm.DB) codeRepository {
 	c.codeRepositoryDo.ReplaceDB(db)
+	c.Branches.db = db.Session(&gorm.Session{})
+	c.User3rdParty.db = db.Session(&gorm.Session{})
 	return c
 }
 
@@ -197,6 +203,11 @@ func (a codeRepositoryHasManyBranches) Session(session *gorm.Session) *codeRepos
 
 func (a codeRepositoryHasManyBranches) Model(m *models.CodeRepository) *codeRepositoryHasManyBranchesTx {
 	return &codeRepositoryHasManyBranchesTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a codeRepositoryHasManyBranches) Unscoped() *codeRepositoryHasManyBranches {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type codeRepositoryHasManyBranchesTx struct{ tx *gorm.Association }
@@ -237,6 +248,11 @@ func (a codeRepositoryHasManyBranchesTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a codeRepositoryHasManyBranchesTx) Unscoped() *codeRepositoryHasManyBranchesTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type codeRepositoryBelongsToUser3rdParty struct {
 	db *gorm.DB
 
@@ -272,6 +288,11 @@ func (a codeRepositoryBelongsToUser3rdParty) Session(session *gorm.Session) *cod
 
 func (a codeRepositoryBelongsToUser3rdParty) Model(m *models.CodeRepository) *codeRepositoryBelongsToUser3rdPartyTx {
 	return &codeRepositoryBelongsToUser3rdPartyTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a codeRepositoryBelongsToUser3rdParty) Unscoped() *codeRepositoryBelongsToUser3rdParty {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type codeRepositoryBelongsToUser3rdPartyTx struct{ tx *gorm.Association }
@@ -310,6 +331,11 @@ func (a codeRepositoryBelongsToUser3rdPartyTx) Clear() error {
 
 func (a codeRepositoryBelongsToUser3rdPartyTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a codeRepositoryBelongsToUser3rdPartyTx) Unscoped() *codeRepositoryBelongsToUser3rdPartyTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type codeRepositoryDo struct{ gen.DO }

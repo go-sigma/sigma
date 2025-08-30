@@ -275,11 +275,17 @@ func (b *builder) fillFieldMap() {
 
 func (b builder) clone(db *gorm.DB) builder {
 	b.builderDo.ReplaceConnPool(db.Statement.ConnPool)
+	b.Repository.db = db.Session(&gorm.Session{Initialized: true})
+	b.Repository.db.Statement.ConnPool = db.Statement.ConnPool
+	b.CodeRepository.db = db.Session(&gorm.Session{Initialized: true})
+	b.CodeRepository.db.Statement.ConnPool = db.Statement.ConnPool
 	return b
 }
 
 func (b builder) replaceDB(db *gorm.DB) builder {
 	b.builderDo.ReplaceDB(db)
+	b.Repository.db = db.Session(&gorm.Session{})
+	b.CodeRepository.db = db.Session(&gorm.Session{})
 	return b
 }
 
@@ -338,6 +344,11 @@ func (a builderBelongsToRepository) Model(m *models.Builder) *builderBelongsToRe
 	return &builderBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a builderBelongsToRepository) Unscoped() *builderBelongsToRepository {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type builderBelongsToRepositoryTx struct{ tx *gorm.Association }
 
 func (a builderBelongsToRepositoryTx) Find() (result *models.Repository, err error) {
@@ -376,6 +387,11 @@ func (a builderBelongsToRepositoryTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a builderBelongsToRepositoryTx) Unscoped() *builderBelongsToRepositoryTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type builderBelongsToCodeRepository struct {
 	db *gorm.DB
 
@@ -407,6 +423,11 @@ func (a builderBelongsToCodeRepository) Session(session *gorm.Session) *builderB
 
 func (a builderBelongsToCodeRepository) Model(m *models.Builder) *builderBelongsToCodeRepositoryTx {
 	return &builderBelongsToCodeRepositoryTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a builderBelongsToCodeRepository) Unscoped() *builderBelongsToCodeRepository {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type builderBelongsToCodeRepositoryTx struct{ tx *gorm.Association }
@@ -445,6 +466,11 @@ func (a builderBelongsToCodeRepositoryTx) Clear() error {
 
 func (a builderBelongsToCodeRepositoryTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a builderBelongsToCodeRepositoryTx) Unscoped() *builderBelongsToCodeRepositoryTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type builderDo struct{ gen.DO }

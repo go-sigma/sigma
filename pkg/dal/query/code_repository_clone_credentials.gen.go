@@ -142,11 +142,14 @@ func (c *codeRepositoryCloneCredential) fillFieldMap() {
 
 func (c codeRepositoryCloneCredential) clone(db *gorm.DB) codeRepositoryCloneCredential {
 	c.codeRepositoryCloneCredentialDo.ReplaceConnPool(db.Statement.ConnPool)
+	c.User3rdParty.db = db.Session(&gorm.Session{Initialized: true})
+	c.User3rdParty.db.Statement.ConnPool = db.Statement.ConnPool
 	return c
 }
 
 func (c codeRepositoryCloneCredential) replaceDB(db *gorm.DB) codeRepositoryCloneCredential {
 	c.codeRepositoryCloneCredentialDo.ReplaceDB(db)
+	c.User3rdParty.db = db.Session(&gorm.Session{})
 	return c
 }
 
@@ -187,6 +190,11 @@ func (a codeRepositoryCloneCredentialBelongsToUser3rdParty) Model(m *models.Code
 	return &codeRepositoryCloneCredentialBelongsToUser3rdPartyTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a codeRepositoryCloneCredentialBelongsToUser3rdParty) Unscoped() *codeRepositoryCloneCredentialBelongsToUser3rdParty {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type codeRepositoryCloneCredentialBelongsToUser3rdPartyTx struct{ tx *gorm.Association }
 
 func (a codeRepositoryCloneCredentialBelongsToUser3rdPartyTx) Find() (result *models.User3rdParty, err error) {
@@ -223,6 +231,11 @@ func (a codeRepositoryCloneCredentialBelongsToUser3rdPartyTx) Clear() error {
 
 func (a codeRepositoryCloneCredentialBelongsToUser3rdPartyTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a codeRepositoryCloneCredentialBelongsToUser3rdPartyTx) Unscoped() *codeRepositoryCloneCredentialBelongsToUser3rdPartyTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type codeRepositoryCloneCredentialDo struct{ gen.DO }

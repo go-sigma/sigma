@@ -143,11 +143,14 @@ func (d *daemonGcRepositoryRecord) fillFieldMap() {
 
 func (d daemonGcRepositoryRecord) clone(db *gorm.DB) daemonGcRepositoryRecord {
 	d.daemonGcRepositoryRecordDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Runner.db = db.Session(&gorm.Session{Initialized: true})
+	d.Runner.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcRepositoryRecord) replaceDB(db *gorm.DB) daemonGcRepositoryRecord {
 	d.daemonGcRepositoryRecordDo.ReplaceDB(db)
+	d.Runner.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -194,6 +197,11 @@ func (a daemonGcRepositoryRecordBelongsToRunner) Model(m *models.DaemonGcReposit
 	return &daemonGcRepositoryRecordBelongsToRunnerTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcRepositoryRecordBelongsToRunner) Unscoped() *daemonGcRepositoryRecordBelongsToRunner {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcRepositoryRecordBelongsToRunnerTx struct{ tx *gorm.Association }
 
 func (a daemonGcRepositoryRecordBelongsToRunnerTx) Find() (result *models.DaemonGcRepositoryRunner, err error) {
@@ -230,6 +238,11 @@ func (a daemonGcRepositoryRecordBelongsToRunnerTx) Clear() error {
 
 func (a daemonGcRepositoryRecordBelongsToRunnerTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcRepositoryRecordBelongsToRunnerTx) Unscoped() *daemonGcRepositoryRecordBelongsToRunnerTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcRepositoryRecordDo struct{ gen.DO }

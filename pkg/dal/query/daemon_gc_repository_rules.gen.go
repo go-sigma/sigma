@@ -133,11 +133,14 @@ func (d *daemonGcRepositoryRule) fillFieldMap() {
 
 func (d daemonGcRepositoryRule) clone(db *gorm.DB) daemonGcRepositoryRule {
 	d.daemonGcRepositoryRuleDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	d.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcRepositoryRule) replaceDB(db *gorm.DB) daemonGcRepositoryRule {
 	d.daemonGcRepositoryRuleDo.ReplaceDB(db)
+	d.Namespace.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -172,6 +175,11 @@ func (a daemonGcRepositoryRuleBelongsToNamespace) Session(session *gorm.Session)
 
 func (a daemonGcRepositoryRuleBelongsToNamespace) Model(m *models.DaemonGcRepositoryRule) *daemonGcRepositoryRuleBelongsToNamespaceTx {
 	return &daemonGcRepositoryRuleBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcRepositoryRuleBelongsToNamespace) Unscoped() *daemonGcRepositoryRuleBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcRepositoryRuleBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -210,6 +218,11 @@ func (a daemonGcRepositoryRuleBelongsToNamespaceTx) Clear() error {
 
 func (a daemonGcRepositoryRuleBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcRepositoryRuleBelongsToNamespaceTx) Unscoped() *daemonGcRepositoryRuleBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcRepositoryRuleDo struct{ gen.DO }
