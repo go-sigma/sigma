@@ -135,11 +135,14 @@ func (d *daemonGcBlobRecord) fillFieldMap() {
 
 func (d daemonGcBlobRecord) clone(db *gorm.DB) daemonGcBlobRecord {
 	d.daemonGcBlobRecordDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Runner.db = db.Session(&gorm.Session{Initialized: true})
+	d.Runner.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcBlobRecord) replaceDB(db *gorm.DB) daemonGcBlobRecord {
 	d.daemonGcBlobRecordDo.ReplaceDB(db)
+	d.Runner.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -183,6 +186,11 @@ func (a daemonGcBlobRecordBelongsToRunner) Model(m *models.DaemonGcBlobRecord) *
 	return &daemonGcBlobRecordBelongsToRunnerTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcBlobRecordBelongsToRunner) Unscoped() *daemonGcBlobRecordBelongsToRunner {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcBlobRecordBelongsToRunnerTx struct{ tx *gorm.Association }
 
 func (a daemonGcBlobRecordBelongsToRunnerTx) Find() (result *models.DaemonGcBlobRunner, err error) {
@@ -219,6 +227,11 @@ func (a daemonGcBlobRecordBelongsToRunnerTx) Clear() error {
 
 func (a daemonGcBlobRecordBelongsToRunnerTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcBlobRecordBelongsToRunnerTx) Unscoped() *daemonGcBlobRecordBelongsToRunnerTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcBlobRecordDo struct{ gen.DO }

@@ -141,11 +141,14 @@ func (u *user3rdParty) fillFieldMap() {
 
 func (u user3rdParty) clone(db *gorm.DB) user3rdParty {
 	u.user3rdPartyDo.ReplaceConnPool(db.Statement.ConnPool)
+	u.User.db = db.Session(&gorm.Session{Initialized: true})
+	u.User.db.Statement.ConnPool = db.Statement.ConnPool
 	return u
 }
 
 func (u user3rdParty) replaceDB(db *gorm.DB) user3rdParty {
 	u.user3rdPartyDo.ReplaceDB(db)
+	u.User.db = db.Session(&gorm.Session{})
 	return u
 }
 
@@ -180,6 +183,11 @@ func (a user3rdPartyBelongsToUser) Session(session *gorm.Session) *user3rdPartyB
 
 func (a user3rdPartyBelongsToUser) Model(m *models.User3rdParty) *user3rdPartyBelongsToUserTx {
 	return &user3rdPartyBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a user3rdPartyBelongsToUser) Unscoped() *user3rdPartyBelongsToUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type user3rdPartyBelongsToUserTx struct{ tx *gorm.Association }
@@ -218,6 +226,11 @@ func (a user3rdPartyBelongsToUserTx) Clear() error {
 
 func (a user3rdPartyBelongsToUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a user3rdPartyBelongsToUserTx) Unscoped() *user3rdPartyBelongsToUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type user3rdPartyDo struct{ gen.DO }

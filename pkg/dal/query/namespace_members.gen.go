@@ -129,11 +129,17 @@ func (n *namespaceMember) fillFieldMap() {
 
 func (n namespaceMember) clone(db *gorm.DB) namespaceMember {
 	n.namespaceMemberDo.ReplaceConnPool(db.Statement.ConnPool)
+	n.User.db = db.Session(&gorm.Session{Initialized: true})
+	n.User.db.Statement.ConnPool = db.Statement.ConnPool
+	n.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	n.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return n
 }
 
 func (n namespaceMember) replaceDB(db *gorm.DB) namespaceMember {
 	n.namespaceMemberDo.ReplaceDB(db)
+	n.User.db = db.Session(&gorm.Session{})
+	n.Namespace.db = db.Session(&gorm.Session{})
 	return n
 }
 
@@ -168,6 +174,11 @@ func (a namespaceMemberBelongsToUser) Session(session *gorm.Session) *namespaceM
 
 func (a namespaceMemberBelongsToUser) Model(m *models.NamespaceMember) *namespaceMemberBelongsToUserTx {
 	return &namespaceMemberBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a namespaceMemberBelongsToUser) Unscoped() *namespaceMemberBelongsToUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type namespaceMemberBelongsToUserTx struct{ tx *gorm.Association }
@@ -208,6 +219,11 @@ func (a namespaceMemberBelongsToUserTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a namespaceMemberBelongsToUserTx) Unscoped() *namespaceMemberBelongsToUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type namespaceMemberBelongsToNamespace struct {
 	db *gorm.DB
 
@@ -239,6 +255,11 @@ func (a namespaceMemberBelongsToNamespace) Session(session *gorm.Session) *names
 
 func (a namespaceMemberBelongsToNamespace) Model(m *models.NamespaceMember) *namespaceMemberBelongsToNamespaceTx {
 	return &namespaceMemberBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a namespaceMemberBelongsToNamespace) Unscoped() *namespaceMemberBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type namespaceMemberBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -277,6 +298,11 @@ func (a namespaceMemberBelongsToNamespaceTx) Clear() error {
 
 func (a namespaceMemberBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a namespaceMemberBelongsToNamespaceTx) Unscoped() *namespaceMemberBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type namespaceMemberDo struct{ gen.DO }

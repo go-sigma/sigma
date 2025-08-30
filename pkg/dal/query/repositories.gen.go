@@ -200,11 +200,17 @@ func (r *repository) fillFieldMap() {
 
 func (r repository) clone(db *gorm.DB) repository {
 	r.repositoryDo.ReplaceConnPool(db.Statement.ConnPool)
+	r.Builder.db = db.Session(&gorm.Session{Initialized: true})
+	r.Builder.db.Statement.ConnPool = db.Statement.ConnPool
+	r.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	r.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return r
 }
 
 func (r repository) replaceDB(db *gorm.DB) repository {
 	r.repositoryDo.ReplaceDB(db)
+	r.Builder.db = db.Session(&gorm.Session{})
+	r.Namespace.db = db.Session(&gorm.Session{})
 	return r
 }
 
@@ -263,6 +269,11 @@ func (a repositoryHasOneBuilder) Model(m *models.Repository) *repositoryHasOneBu
 	return &repositoryHasOneBuilderTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a repositoryHasOneBuilder) Unscoped() *repositoryHasOneBuilder {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type repositoryHasOneBuilderTx struct{ tx *gorm.Association }
 
 func (a repositoryHasOneBuilderTx) Find() (result *models.Builder, err error) {
@@ -301,6 +312,11 @@ func (a repositoryHasOneBuilderTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a repositoryHasOneBuilderTx) Unscoped() *repositoryHasOneBuilderTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type repositoryBelongsToNamespace struct {
 	db *gorm.DB
 
@@ -332,6 +348,11 @@ func (a repositoryBelongsToNamespace) Session(session *gorm.Session) *repository
 
 func (a repositoryBelongsToNamespace) Model(m *models.Repository) *repositoryBelongsToNamespaceTx {
 	return &repositoryBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a repositoryBelongsToNamespace) Unscoped() *repositoryBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type repositoryBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -370,6 +391,11 @@ func (a repositoryBelongsToNamespaceTx) Clear() error {
 
 func (a repositoryBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a repositoryBelongsToNamespaceTx) Unscoped() *repositoryBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type repositoryDo struct{ gen.DO }

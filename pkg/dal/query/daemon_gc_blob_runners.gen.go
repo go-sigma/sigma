@@ -157,11 +157,17 @@ func (d *daemonGcBlobRunner) fillFieldMap() {
 
 func (d daemonGcBlobRunner) clone(db *gorm.DB) daemonGcBlobRunner {
 	d.daemonGcBlobRunnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Rule.db = db.Session(&gorm.Session{Initialized: true})
+	d.Rule.db.Statement.ConnPool = db.Statement.ConnPool
+	d.OperateUser.db = db.Session(&gorm.Session{Initialized: true})
+	d.OperateUser.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcBlobRunner) replaceDB(db *gorm.DB) daemonGcBlobRunner {
 	d.daemonGcBlobRunnerDo.ReplaceDB(db)
+	d.Rule.db = db.Session(&gorm.Session{})
+	d.OperateUser.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -196,6 +202,11 @@ func (a daemonGcBlobRunnerBelongsToRule) Session(session *gorm.Session) *daemonG
 
 func (a daemonGcBlobRunnerBelongsToRule) Model(m *models.DaemonGcBlobRunner) *daemonGcBlobRunnerBelongsToRuleTx {
 	return &daemonGcBlobRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcBlobRunnerBelongsToRule) Unscoped() *daemonGcBlobRunnerBelongsToRule {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcBlobRunnerBelongsToRuleTx struct{ tx *gorm.Association }
@@ -236,6 +247,11 @@ func (a daemonGcBlobRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a daemonGcBlobRunnerBelongsToRuleTx) Unscoped() *daemonGcBlobRunnerBelongsToRuleTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type daemonGcBlobRunnerBelongsToOperateUser struct {
 	db *gorm.DB
 
@@ -267,6 +283,11 @@ func (a daemonGcBlobRunnerBelongsToOperateUser) Session(session *gorm.Session) *
 
 func (a daemonGcBlobRunnerBelongsToOperateUser) Model(m *models.DaemonGcBlobRunner) *daemonGcBlobRunnerBelongsToOperateUserTx {
 	return &daemonGcBlobRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUser) Unscoped() *daemonGcBlobRunnerBelongsToOperateUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcBlobRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
@@ -305,6 +326,11 @@ func (a daemonGcBlobRunnerBelongsToOperateUserTx) Clear() error {
 
 func (a daemonGcBlobRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcBlobRunnerBelongsToOperateUserTx) Unscoped() *daemonGcBlobRunnerBelongsToOperateUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcBlobRunnerDo struct{ gen.DO }

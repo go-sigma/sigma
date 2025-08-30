@@ -435,11 +435,35 @@ func (a *artifact) fillFieldMap() {
 
 func (a artifact) clone(db *gorm.DB) artifact {
 	a.artifactDo.ReplaceConnPool(db.Statement.ConnPool)
+	a.Vulnerability.db = db.Session(&gorm.Session{Initialized: true})
+	a.Vulnerability.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Sbom.db = db.Session(&gorm.Session{Initialized: true})
+	a.Sbom.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Tags.db = db.Session(&gorm.Session{Initialized: true})
+	a.Tags.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	a.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Repository.db = db.Session(&gorm.Session{Initialized: true})
+	a.Repository.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Referrer.db = db.Session(&gorm.Session{Initialized: true})
+	a.Referrer.db.Statement.ConnPool = db.Statement.ConnPool
+	a.ArtifactSubs.db = db.Session(&gorm.Session{Initialized: true})
+	a.ArtifactSubs.db.Statement.ConnPool = db.Statement.ConnPool
+	a.Blobs.db = db.Session(&gorm.Session{Initialized: true})
+	a.Blobs.db.Statement.ConnPool = db.Statement.ConnPool
 	return a
 }
 
 func (a artifact) replaceDB(db *gorm.DB) artifact {
 	a.artifactDo.ReplaceDB(db)
+	a.Vulnerability.db = db.Session(&gorm.Session{})
+	a.Sbom.db = db.Session(&gorm.Session{})
+	a.Tags.db = db.Session(&gorm.Session{})
+	a.Namespace.db = db.Session(&gorm.Session{})
+	a.Repository.db = db.Session(&gorm.Session{})
+	a.Referrer.db = db.Session(&gorm.Session{})
+	a.ArtifactSubs.db = db.Session(&gorm.Session{})
+	a.Blobs.db = db.Session(&gorm.Session{})
 	return a
 }
 
@@ -537,6 +561,11 @@ func (a artifactHasOneVulnerability) Model(m *models.Artifact) *artifactHasOneVu
 	return &artifactHasOneVulnerabilityTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a artifactHasOneVulnerability) Unscoped() *artifactHasOneVulnerability {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type artifactHasOneVulnerabilityTx struct{ tx *gorm.Association }
 
 func (a artifactHasOneVulnerabilityTx) Find() (result *models.ArtifactVulnerability, err error) {
@@ -575,6 +604,11 @@ func (a artifactHasOneVulnerabilityTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactHasOneVulnerabilityTx) Unscoped() *artifactHasOneVulnerabilityTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactHasOneSbom struct {
 	db *gorm.DB
 
@@ -606,6 +640,11 @@ func (a artifactHasOneSbom) Session(session *gorm.Session) *artifactHasOneSbom {
 
 func (a artifactHasOneSbom) Model(m *models.Artifact) *artifactHasOneSbomTx {
 	return &artifactHasOneSbomTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactHasOneSbom) Unscoped() *artifactHasOneSbom {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactHasOneSbomTx struct{ tx *gorm.Association }
@@ -646,6 +685,11 @@ func (a artifactHasOneSbomTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactHasOneSbomTx) Unscoped() *artifactHasOneSbomTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactHasManyTags struct {
 	db *gorm.DB
 
@@ -677,6 +721,11 @@ func (a artifactHasManyTags) Session(session *gorm.Session) *artifactHasManyTags
 
 func (a artifactHasManyTags) Model(m *models.Artifact) *artifactHasManyTagsTx {
 	return &artifactHasManyTagsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactHasManyTags) Unscoped() *artifactHasManyTags {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactHasManyTagsTx struct{ tx *gorm.Association }
@@ -717,6 +766,11 @@ func (a artifactHasManyTagsTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactHasManyTagsTx) Unscoped() *artifactHasManyTagsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactBelongsToNamespace struct {
 	db *gorm.DB
 
@@ -748,6 +802,11 @@ func (a artifactBelongsToNamespace) Session(session *gorm.Session) *artifactBelo
 
 func (a artifactBelongsToNamespace) Model(m *models.Artifact) *artifactBelongsToNamespaceTx {
 	return &artifactBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactBelongsToNamespace) Unscoped() *artifactBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -788,6 +847,11 @@ func (a artifactBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactBelongsToNamespaceTx) Unscoped() *artifactBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactBelongsToRepository struct {
 	db *gorm.DB
 
@@ -819,6 +883,11 @@ func (a artifactBelongsToRepository) Session(session *gorm.Session) *artifactBel
 
 func (a artifactBelongsToRepository) Model(m *models.Artifact) *artifactBelongsToRepositoryTx {
 	return &artifactBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactBelongsToRepository) Unscoped() *artifactBelongsToRepository {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactBelongsToRepositoryTx struct{ tx *gorm.Association }
@@ -859,6 +928,11 @@ func (a artifactBelongsToRepositoryTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactBelongsToRepositoryTx) Unscoped() *artifactBelongsToRepositoryTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactBelongsToReferrer struct {
 	db *gorm.DB
 
@@ -890,6 +964,11 @@ func (a artifactBelongsToReferrer) Session(session *gorm.Session) *artifactBelon
 
 func (a artifactBelongsToReferrer) Model(m *models.Artifact) *artifactBelongsToReferrerTx {
 	return &artifactBelongsToReferrerTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactBelongsToReferrer) Unscoped() *artifactBelongsToReferrer {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactBelongsToReferrerTx struct{ tx *gorm.Association }
@@ -930,6 +1009,11 @@ func (a artifactBelongsToReferrerTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactBelongsToReferrerTx) Unscoped() *artifactBelongsToReferrerTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactManyToManyArtifactSubs struct {
 	db *gorm.DB
 
@@ -961,6 +1045,11 @@ func (a artifactManyToManyArtifactSubs) Session(session *gorm.Session) *artifact
 
 func (a artifactManyToManyArtifactSubs) Model(m *models.Artifact) *artifactManyToManyArtifactSubsTx {
 	return &artifactManyToManyArtifactSubsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactManyToManyArtifactSubs) Unscoped() *artifactManyToManyArtifactSubs {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactManyToManyArtifactSubsTx struct{ tx *gorm.Association }
@@ -1001,6 +1090,11 @@ func (a artifactManyToManyArtifactSubsTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a artifactManyToManyArtifactSubsTx) Unscoped() *artifactManyToManyArtifactSubsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type artifactManyToManyBlobs struct {
 	db *gorm.DB
 
@@ -1032,6 +1126,11 @@ func (a artifactManyToManyBlobs) Session(session *gorm.Session) *artifactManyToM
 
 func (a artifactManyToManyBlobs) Model(m *models.Artifact) *artifactManyToManyBlobsTx {
 	return &artifactManyToManyBlobsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a artifactManyToManyBlobs) Unscoped() *artifactManyToManyBlobs {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type artifactManyToManyBlobsTx struct{ tx *gorm.Association }
@@ -1070,6 +1169,11 @@ func (a artifactManyToManyBlobsTx) Clear() error {
 
 func (a artifactManyToManyBlobsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a artifactManyToManyBlobsTx) Unscoped() *artifactManyToManyBlobsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type artifactDo struct{ gen.DO }

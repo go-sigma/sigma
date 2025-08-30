@@ -293,11 +293,14 @@ func (b *blob) fillFieldMap() {
 
 func (b blob) clone(db *gorm.DB) blob {
 	b.blobDo.ReplaceConnPool(db.Statement.ConnPool)
+	b.Artifacts.db = db.Session(&gorm.Session{Initialized: true})
+	b.Artifacts.db.Statement.ConnPool = db.Statement.ConnPool
 	return b
 }
 
 func (b blob) replaceDB(db *gorm.DB) blob {
 	b.blobDo.ReplaceDB(db)
+	b.Artifacts.db = db.Session(&gorm.Session{})
 	return b
 }
 
@@ -395,6 +398,11 @@ func (a blobManyToManyArtifacts) Model(m *models.Blob) *blobManyToManyArtifactsT
 	return &blobManyToManyArtifactsTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a blobManyToManyArtifacts) Unscoped() *blobManyToManyArtifacts {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type blobManyToManyArtifactsTx struct{ tx *gorm.Association }
 
 func (a blobManyToManyArtifactsTx) Find() (result []*models.Artifact, err error) {
@@ -431,6 +439,11 @@ func (a blobManyToManyArtifactsTx) Clear() error {
 
 func (a blobManyToManyArtifactsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a blobManyToManyArtifactsTx) Unscoped() *blobManyToManyArtifactsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type blobDo struct{ gen.DO }

@@ -157,11 +157,14 @@ func (w *webhook) fillFieldMap() {
 
 func (w webhook) clone(db *gorm.DB) webhook {
 	w.webhookDo.ReplaceConnPool(db.Statement.ConnPool)
+	w.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	w.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return w
 }
 
 func (w webhook) replaceDB(db *gorm.DB) webhook {
 	w.webhookDo.ReplaceDB(db)
+	w.Namespace.db = db.Session(&gorm.Session{})
 	return w
 }
 
@@ -196,6 +199,11 @@ func (a webhookBelongsToNamespace) Session(session *gorm.Session) *webhookBelong
 
 func (a webhookBelongsToNamespace) Model(m *models.Webhook) *webhookBelongsToNamespaceTx {
 	return &webhookBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a webhookBelongsToNamespace) Unscoped() *webhookBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type webhookBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -234,6 +242,11 @@ func (a webhookBelongsToNamespaceTx) Clear() error {
 
 func (a webhookBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a webhookBelongsToNamespaceTx) Unscoped() *webhookBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type webhookDo struct{ gen.DO }

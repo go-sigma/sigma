@@ -300,11 +300,14 @@ func (a *artifactSbom) fillFieldMap() {
 
 func (a artifactSbom) clone(db *gorm.DB) artifactSbom {
 	a.artifactSbomDo.ReplaceConnPool(db.Statement.ConnPool)
+	a.Artifact.db = db.Session(&gorm.Session{Initialized: true})
+	a.Artifact.db.Statement.ConnPool = db.Statement.ConnPool
 	return a
 }
 
 func (a artifactSbom) replaceDB(db *gorm.DB) artifactSbom {
 	a.artifactSbomDo.ReplaceDB(db)
+	a.Artifact.db = db.Session(&gorm.Session{})
 	return a
 }
 
@@ -402,6 +405,11 @@ func (a artifactSbomBelongsToArtifact) Model(m *models.ArtifactSbom) *artifactSb
 	return &artifactSbomBelongsToArtifactTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a artifactSbomBelongsToArtifact) Unscoped() *artifactSbomBelongsToArtifact {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type artifactSbomBelongsToArtifactTx struct{ tx *gorm.Association }
 
 func (a artifactSbomBelongsToArtifactTx) Find() (result *models.Artifact, err error) {
@@ -438,6 +446,11 @@ func (a artifactSbomBelongsToArtifactTx) Clear() error {
 
 func (a artifactSbomBelongsToArtifactTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a artifactSbomBelongsToArtifactTx) Unscoped() *artifactSbomBelongsToArtifactTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type artifactSbomDo struct{ gen.DO }

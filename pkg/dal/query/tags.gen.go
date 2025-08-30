@@ -279,11 +279,17 @@ func (t *tag) fillFieldMap() {
 
 func (t tag) clone(db *gorm.DB) tag {
 	t.tagDo.ReplaceConnPool(db.Statement.ConnPool)
+	t.Repository.db = db.Session(&gorm.Session{Initialized: true})
+	t.Repository.db.Statement.ConnPool = db.Statement.ConnPool
+	t.Artifact.db = db.Session(&gorm.Session{Initialized: true})
+	t.Artifact.db.Statement.ConnPool = db.Statement.ConnPool
 	return t
 }
 
 func (t tag) replaceDB(db *gorm.DB) tag {
 	t.tagDo.ReplaceDB(db)
+	t.Repository.db = db.Session(&gorm.Session{})
+	t.Artifact.db = db.Session(&gorm.Session{})
 	return t
 }
 
@@ -342,6 +348,11 @@ func (a tagBelongsToRepository) Model(m *models.Tag) *tagBelongsToRepositoryTx {
 	return &tagBelongsToRepositoryTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a tagBelongsToRepository) Unscoped() *tagBelongsToRepository {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type tagBelongsToRepositoryTx struct{ tx *gorm.Association }
 
 func (a tagBelongsToRepositoryTx) Find() (result *models.Repository, err error) {
@@ -378,6 +389,11 @@ func (a tagBelongsToRepositoryTx) Clear() error {
 
 func (a tagBelongsToRepositoryTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a tagBelongsToRepositoryTx) Unscoped() *tagBelongsToRepositoryTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type tagBelongsToArtifact struct {
@@ -453,6 +469,11 @@ func (a tagBelongsToArtifact) Model(m *models.Tag) *tagBelongsToArtifactTx {
 	return &tagBelongsToArtifactTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a tagBelongsToArtifact) Unscoped() *tagBelongsToArtifact {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type tagBelongsToArtifactTx struct{ tx *gorm.Association }
 
 func (a tagBelongsToArtifactTx) Find() (result *models.Artifact, err error) {
@@ -489,6 +510,11 @@ func (a tagBelongsToArtifactTx) Clear() error {
 
 func (a tagBelongsToArtifactTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a tagBelongsToArtifactTx) Unscoped() *tagBelongsToArtifactTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type tagDo struct{ gen.DO }

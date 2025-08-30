@@ -137,11 +137,17 @@ func (a *audit) fillFieldMap() {
 
 func (a audit) clone(db *gorm.DB) audit {
 	a.auditDo.ReplaceConnPool(db.Statement.ConnPool)
+	a.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	a.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
+	a.User.db = db.Session(&gorm.Session{Initialized: true})
+	a.User.db.Statement.ConnPool = db.Statement.ConnPool
 	return a
 }
 
 func (a audit) replaceDB(db *gorm.DB) audit {
 	a.auditDo.ReplaceDB(db)
+	a.Namespace.db = db.Session(&gorm.Session{})
+	a.User.db = db.Session(&gorm.Session{})
 	return a
 }
 
@@ -176,6 +182,11 @@ func (a auditBelongsToNamespace) Session(session *gorm.Session) *auditBelongsToN
 
 func (a auditBelongsToNamespace) Model(m *models.Audit) *auditBelongsToNamespaceTx {
 	return &auditBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a auditBelongsToNamespace) Unscoped() *auditBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type auditBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -216,6 +227,11 @@ func (a auditBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a auditBelongsToNamespaceTx) Unscoped() *auditBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type auditBelongsToUser struct {
 	db *gorm.DB
 
@@ -247,6 +263,11 @@ func (a auditBelongsToUser) Session(session *gorm.Session) *auditBelongsToUser {
 
 func (a auditBelongsToUser) Model(m *models.Audit) *auditBelongsToUserTx {
 	return &auditBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a auditBelongsToUser) Unscoped() *auditBelongsToUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type auditBelongsToUserTx struct{ tx *gorm.Association }
@@ -285,6 +306,11 @@ func (a auditBelongsToUserTx) Clear() error {
 
 func (a auditBelongsToUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a auditBelongsToUserTx) Unscoped() *auditBelongsToUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type auditDo struct{ gen.DO }

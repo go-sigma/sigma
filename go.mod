@@ -34,7 +34,6 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
-	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-github/v74 v74.0.0
 	github.com/google/uuid v1.6.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
@@ -71,7 +70,7 @@ require (
 	github.com/xo/dburl v0.23.8
 	gitlab.com/gitlab-org/api/client-go v0.139.2
 	go.uber.org/dig v1.19.0
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.41.0
 	golang.org/x/net v0.43.0
 	golang.org/x/oauth2 v0.30.0
