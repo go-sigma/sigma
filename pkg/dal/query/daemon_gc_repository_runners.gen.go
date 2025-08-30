@@ -162,11 +162,17 @@ func (d *daemonGcRepositoryRunner) fillFieldMap() {
 
 func (d daemonGcRepositoryRunner) clone(db *gorm.DB) daemonGcRepositoryRunner {
 	d.daemonGcRepositoryRunnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Rule.db = db.Session(&gorm.Session{Initialized: true})
+	d.Rule.db.Statement.ConnPool = db.Statement.ConnPool
+	d.OperateUser.db = db.Session(&gorm.Session{Initialized: true})
+	d.OperateUser.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcRepositoryRunner) replaceDB(db *gorm.DB) daemonGcRepositoryRunner {
 	d.daemonGcRepositoryRunnerDo.ReplaceDB(db)
+	d.Rule.db = db.Session(&gorm.Session{})
+	d.OperateUser.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -207,6 +213,11 @@ func (a daemonGcRepositoryRunnerBelongsToRule) Model(m *models.DaemonGcRepositor
 	return &daemonGcRepositoryRunnerBelongsToRuleTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcRepositoryRunnerBelongsToRule) Unscoped() *daemonGcRepositoryRunnerBelongsToRule {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcRepositoryRunnerBelongsToRuleTx struct{ tx *gorm.Association }
 
 func (a daemonGcRepositoryRunnerBelongsToRuleTx) Find() (result *models.DaemonGcRepositoryRule, err error) {
@@ -245,6 +256,11 @@ func (a daemonGcRepositoryRunnerBelongsToRuleTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a daemonGcRepositoryRunnerBelongsToRuleTx) Unscoped() *daemonGcRepositoryRunnerBelongsToRuleTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type daemonGcRepositoryRunnerBelongsToOperateUser struct {
 	db *gorm.DB
 
@@ -276,6 +292,11 @@ func (a daemonGcRepositoryRunnerBelongsToOperateUser) Session(session *gorm.Sess
 
 func (a daemonGcRepositoryRunnerBelongsToOperateUser) Model(m *models.DaemonGcRepositoryRunner) *daemonGcRepositoryRunnerBelongsToOperateUserTx {
 	return &daemonGcRepositoryRunnerBelongsToOperateUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcRepositoryRunnerBelongsToOperateUser) Unscoped() *daemonGcRepositoryRunnerBelongsToOperateUser {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcRepositoryRunnerBelongsToOperateUserTx struct{ tx *gorm.Association }
@@ -314,6 +335,11 @@ func (a daemonGcRepositoryRunnerBelongsToOperateUserTx) Clear() error {
 
 func (a daemonGcRepositoryRunnerBelongsToOperateUserTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcRepositoryRunnerBelongsToOperateUserTx) Unscoped() *daemonGcRepositoryRunnerBelongsToOperateUserTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcRepositoryRunnerDo struct{ gen.DO }

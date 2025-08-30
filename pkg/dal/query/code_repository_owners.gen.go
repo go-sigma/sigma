@@ -130,11 +130,14 @@ func (c *codeRepositoryOwner) fillFieldMap() {
 
 func (c codeRepositoryOwner) clone(db *gorm.DB) codeRepositoryOwner {
 	c.codeRepositoryOwnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	c.User3rdParty.db = db.Session(&gorm.Session{Initialized: true})
+	c.User3rdParty.db.Statement.ConnPool = db.Statement.ConnPool
 	return c
 }
 
 func (c codeRepositoryOwner) replaceDB(db *gorm.DB) codeRepositoryOwner {
 	c.codeRepositoryOwnerDo.ReplaceDB(db)
+	c.User3rdParty.db = db.Session(&gorm.Session{})
 	return c
 }
 
@@ -175,6 +178,11 @@ func (a codeRepositoryOwnerBelongsToUser3rdParty) Model(m *models.CodeRepository
 	return &codeRepositoryOwnerBelongsToUser3rdPartyTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a codeRepositoryOwnerBelongsToUser3rdParty) Unscoped() *codeRepositoryOwnerBelongsToUser3rdParty {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type codeRepositoryOwnerBelongsToUser3rdPartyTx struct{ tx *gorm.Association }
 
 func (a codeRepositoryOwnerBelongsToUser3rdPartyTx) Find() (result *models.User3rdParty, err error) {
@@ -211,6 +219,11 @@ func (a codeRepositoryOwnerBelongsToUser3rdPartyTx) Clear() error {
 
 func (a codeRepositoryOwnerBelongsToUser3rdPartyTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a codeRepositoryOwnerBelongsToUser3rdPartyTx) Unscoped() *codeRepositoryOwnerBelongsToUser3rdPartyTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type codeRepositoryOwnerDo struct{ gen.DO }

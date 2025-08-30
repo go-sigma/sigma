@@ -206,11 +206,14 @@ func (b *builderRunner) fillFieldMap() {
 
 func (b builderRunner) clone(db *gorm.DB) builderRunner {
 	b.builderRunnerDo.ReplaceConnPool(db.Statement.ConnPool)
+	b.Builder.db = db.Session(&gorm.Session{Initialized: true})
+	b.Builder.db.Statement.ConnPool = db.Statement.ConnPool
 	return b
 }
 
 func (b builderRunner) replaceDB(db *gorm.DB) builderRunner {
 	b.builderRunnerDo.ReplaceDB(db)
+	b.Builder.db = db.Session(&gorm.Session{})
 	return b
 }
 
@@ -269,6 +272,11 @@ func (a builderRunnerBelongsToBuilder) Model(m *models.BuilderRunner) *builderRu
 	return &builderRunnerBelongsToBuilderTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a builderRunnerBelongsToBuilder) Unscoped() *builderRunnerBelongsToBuilder {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type builderRunnerBelongsToBuilderTx struct{ tx *gorm.Association }
 
 func (a builderRunnerBelongsToBuilderTx) Find() (result *models.Builder, err error) {
@@ -305,6 +313,11 @@ func (a builderRunnerBelongsToBuilderTx) Clear() error {
 
 func (a builderRunnerBelongsToBuilderTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a builderRunnerBelongsToBuilderTx) Unscoped() *builderRunnerBelongsToBuilderTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type builderRunnerDo struct{ gen.DO }

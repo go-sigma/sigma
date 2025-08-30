@@ -275,9 +275,9 @@ func (mr *MockTagServiceMockRecorder) ListByDtPagination(ctx, repository, limit 
 }
 
 // ListTag mocks base method.
-func (m *MockTagService) ListTag(ctx context.Context, repositoryID int64, name *string, types []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
+func (m *MockTagService) ListTag(ctx context.Context, repositoryID int64, name *string, arg3 []enums.ArtifactType, pagination types.Pagination, sort types.Sortable) ([]*models.Tag, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTag", ctx, repositoryID, name, types, pagination, sort)
+	ret := m.ctrl.Call(m, "ListTag", ctx, repositoryID, name, arg3, pagination, sort)
 	ret0, _ := ret[0].([]*models.Tag)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -285,7 +285,7 @@ func (m *MockTagService) ListTag(ctx context.Context, repositoryID int64, name *
 }
 
 // ListTag indicates an expected call of ListTag.
-func (mr *MockTagServiceMockRecorder) ListTag(ctx, repositoryID, name, types, pagination, sort any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) ListTag(ctx, repositoryID, name, arg3, pagination, sort any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), ctx, repositoryID, name, types, pagination, sort)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTag", reflect.TypeOf((*MockTagService)(nil).ListTag), ctx, repositoryID, name, arg3, pagination, sort)
 }

@@ -144,11 +144,14 @@ func (w *webhookLog) fillFieldMap() {
 
 func (w webhookLog) clone(db *gorm.DB) webhookLog {
 	w.webhookLogDo.ReplaceConnPool(db.Statement.ConnPool)
+	w.Webhook.db = db.Session(&gorm.Session{Initialized: true})
+	w.Webhook.db.Statement.ConnPool = db.Statement.ConnPool
 	return w
 }
 
 func (w webhookLog) replaceDB(db *gorm.DB) webhookLog {
 	w.webhookLogDo.ReplaceDB(db)
+	w.Webhook.db = db.Session(&gorm.Session{})
 	return w
 }
 
@@ -189,6 +192,11 @@ func (a webhookLogBelongsToWebhook) Model(m *models.WebhookLog) *webhookLogBelon
 	return &webhookLogBelongsToWebhookTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a webhookLogBelongsToWebhook) Unscoped() *webhookLogBelongsToWebhook {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type webhookLogBelongsToWebhookTx struct{ tx *gorm.Association }
 
 func (a webhookLogBelongsToWebhookTx) Find() (result *models.Webhook, err error) {
@@ -225,6 +233,11 @@ func (a webhookLogBelongsToWebhookTx) Clear() error {
 
 func (a webhookLogBelongsToWebhookTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a webhookLogBelongsToWebhookTx) Unscoped() *webhookLogBelongsToWebhookTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type webhookLogDo struct{ gen.DO }

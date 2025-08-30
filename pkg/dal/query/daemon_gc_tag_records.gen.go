@@ -143,11 +143,14 @@ func (d *daemonGcTagRecord) fillFieldMap() {
 
 func (d daemonGcTagRecord) clone(db *gorm.DB) daemonGcTagRecord {
 	d.daemonGcTagRecordDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Runner.db = db.Session(&gorm.Session{Initialized: true})
+	d.Runner.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcTagRecord) replaceDB(db *gorm.DB) daemonGcTagRecord {
 	d.daemonGcTagRecordDo.ReplaceDB(db)
+	d.Runner.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -194,6 +197,11 @@ func (a daemonGcTagRecordBelongsToRunner) Model(m *models.DaemonGcTagRecord) *da
 	return &daemonGcTagRecordBelongsToRunnerTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcTagRecordBelongsToRunner) Unscoped() *daemonGcTagRecordBelongsToRunner {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcTagRecordBelongsToRunnerTx struct{ tx *gorm.Association }
 
 func (a daemonGcTagRecordBelongsToRunnerTx) Find() (result *models.DaemonGcTagRunner, err error) {
@@ -230,6 +238,11 @@ func (a daemonGcTagRecordBelongsToRunnerTx) Clear() error {
 
 func (a daemonGcTagRecordBelongsToRunnerTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcTagRecordBelongsToRunnerTx) Unscoped() *daemonGcTagRecordBelongsToRunnerTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcTagRecordDo struct{ gen.DO }

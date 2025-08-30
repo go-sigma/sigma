@@ -304,11 +304,14 @@ func (a *artifactVulnerability) fillFieldMap() {
 
 func (a artifactVulnerability) clone(db *gorm.DB) artifactVulnerability {
 	a.artifactVulnerabilityDo.ReplaceConnPool(db.Statement.ConnPool)
+	a.Artifact.db = db.Session(&gorm.Session{Initialized: true})
+	a.Artifact.db.Statement.ConnPool = db.Statement.ConnPool
 	return a
 }
 
 func (a artifactVulnerability) replaceDB(db *gorm.DB) artifactVulnerability {
 	a.artifactVulnerabilityDo.ReplaceDB(db)
+	a.Artifact.db = db.Session(&gorm.Session{})
 	return a
 }
 
@@ -406,6 +409,11 @@ func (a artifactVulnerabilityBelongsToArtifact) Model(m *models.ArtifactVulnerab
 	return &artifactVulnerabilityBelongsToArtifactTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a artifactVulnerabilityBelongsToArtifact) Unscoped() *artifactVulnerabilityBelongsToArtifact {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type artifactVulnerabilityBelongsToArtifactTx struct{ tx *gorm.Association }
 
 func (a artifactVulnerabilityBelongsToArtifactTx) Find() (result *models.Artifact, err error) {
@@ -442,6 +450,11 @@ func (a artifactVulnerabilityBelongsToArtifactTx) Clear() error {
 
 func (a artifactVulnerabilityBelongsToArtifactTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a artifactVulnerabilityBelongsToArtifactTx) Unscoped() *artifactVulnerabilityBelongsToArtifactTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type artifactVulnerabilityDo struct{ gen.DO }

@@ -143,11 +143,14 @@ func (d *daemonGcArtifactRecord) fillFieldMap() {
 
 func (d daemonGcArtifactRecord) clone(db *gorm.DB) daemonGcArtifactRecord {
 	d.daemonGcArtifactRecordDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Runner.db = db.Session(&gorm.Session{Initialized: true})
+	d.Runner.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcArtifactRecord) replaceDB(db *gorm.DB) daemonGcArtifactRecord {
 	d.daemonGcArtifactRecordDo.ReplaceDB(db)
+	d.Runner.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -194,6 +197,11 @@ func (a daemonGcArtifactRecordBelongsToRunner) Model(m *models.DaemonGcArtifactR
 	return &daemonGcArtifactRecordBelongsToRunnerTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a daemonGcArtifactRecordBelongsToRunner) Unscoped() *daemonGcArtifactRecordBelongsToRunner {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type daemonGcArtifactRecordBelongsToRunnerTx struct{ tx *gorm.Association }
 
 func (a daemonGcArtifactRecordBelongsToRunnerTx) Find() (result *models.DaemonGcArtifactRunner, err error) {
@@ -230,6 +238,11 @@ func (a daemonGcArtifactRecordBelongsToRunnerTx) Clear() error {
 
 func (a daemonGcArtifactRecordBelongsToRunnerTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcArtifactRecordBelongsToRunnerTx) Unscoped() *daemonGcArtifactRecordBelongsToRunnerTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcArtifactRecordDo struct{ gen.DO }

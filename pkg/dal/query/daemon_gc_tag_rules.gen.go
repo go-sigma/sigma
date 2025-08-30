@@ -141,11 +141,14 @@ func (d *daemonGcTagRule) fillFieldMap() {
 
 func (d daemonGcTagRule) clone(db *gorm.DB) daemonGcTagRule {
 	d.daemonGcTagRuleDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	d.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcTagRule) replaceDB(db *gorm.DB) daemonGcTagRule {
 	d.daemonGcTagRuleDo.ReplaceDB(db)
+	d.Namespace.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -180,6 +183,11 @@ func (a daemonGcTagRuleBelongsToNamespace) Session(session *gorm.Session) *daemo
 
 func (a daemonGcTagRuleBelongsToNamespace) Model(m *models.DaemonGcTagRule) *daemonGcTagRuleBelongsToNamespaceTx {
 	return &daemonGcTagRuleBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcTagRuleBelongsToNamespace) Unscoped() *daemonGcTagRuleBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcTagRuleBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -218,6 +226,11 @@ func (a daemonGcTagRuleBelongsToNamespaceTx) Clear() error {
 
 func (a daemonGcTagRuleBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcTagRuleBelongsToNamespaceTx) Unscoped() *daemonGcTagRuleBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcTagRuleDo struct{ gen.DO }

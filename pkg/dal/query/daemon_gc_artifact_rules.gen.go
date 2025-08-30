@@ -133,11 +133,14 @@ func (d *daemonGcArtifactRule) fillFieldMap() {
 
 func (d daemonGcArtifactRule) clone(db *gorm.DB) daemonGcArtifactRule {
 	d.daemonGcArtifactRuleDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Namespace.db = db.Session(&gorm.Session{Initialized: true})
+	d.Namespace.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d daemonGcArtifactRule) replaceDB(db *gorm.DB) daemonGcArtifactRule {
 	d.daemonGcArtifactRuleDo.ReplaceDB(db)
+	d.Namespace.db = db.Session(&gorm.Session{})
 	return d
 }
 
@@ -172,6 +175,11 @@ func (a daemonGcArtifactRuleBelongsToNamespace) Session(session *gorm.Session) *
 
 func (a daemonGcArtifactRuleBelongsToNamespace) Model(m *models.DaemonGcArtifactRule) *daemonGcArtifactRuleBelongsToNamespaceTx {
 	return &daemonGcArtifactRuleBelongsToNamespaceTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a daemonGcArtifactRuleBelongsToNamespace) Unscoped() *daemonGcArtifactRuleBelongsToNamespace {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type daemonGcArtifactRuleBelongsToNamespaceTx struct{ tx *gorm.Association }
@@ -210,6 +218,11 @@ func (a daemonGcArtifactRuleBelongsToNamespaceTx) Clear() error {
 
 func (a daemonGcArtifactRuleBelongsToNamespaceTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a daemonGcArtifactRuleBelongsToNamespaceTx) Unscoped() *daemonGcArtifactRuleBelongsToNamespaceTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type daemonGcArtifactRuleDo struct{ gen.DO }
