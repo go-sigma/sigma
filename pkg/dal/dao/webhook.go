@@ -28,8 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/webhook.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WebhookService
-//go:generate mockgen -destination=mocks/webhook_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WebhookServiceFactory
+//go:generate mockgen -destination=webhook_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao WebhookService,WebhookServiceFactory
 
 // WebhookService is the interface that provides methods to operate on webhook model
 type WebhookService interface {

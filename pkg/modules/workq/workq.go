@@ -21,7 +21,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/modules/workq/database"
 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/modules/workq/inmemory"
-	"github.com/go-sigma/sigma/pkg/modules/workq/kafka"
 	"github.com/go-sigma/sigma/pkg/modules/workq/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
@@ -43,8 +42,6 @@ func InitProducer(config configs.Configuration) error {
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
 		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeKafka:
-		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeRedis:
 		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeInmemory:
@@ -64,8 +61,6 @@ func Initialize(config configs.Configuration) error {
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
 		err = database.NewWorkQueueConsumer(config, TopicHandlers)
-	case enums.WorkQueueTypeKafka:
-		err = kafka.NewWorkQueueConsumer(config, TopicHandlers)
 	case enums.WorkQueueTypeRedis:
 		err = redis.NewWorkQueueConsumer(config, TopicHandlers)
 	case enums.WorkQueueTypeInmemory:
@@ -79,8 +74,6 @@ func Initialize(config configs.Configuration) error {
 	switch config.WorkQueue.Type {
 	case enums.WorkQueueTypeDatabase:
 		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeKafka:
-		ProducerClient, err = kafka.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeRedis:
 		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
 	case enums.WorkQueueTypeInmemory:

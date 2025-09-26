@@ -30,8 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/artifact.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao ArtifactService
-//go:generate mockgen -destination=mocks/artifact_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao ArtifactServiceFactory
+//go:generate mockgen -destination=artifact_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao ArtifactService,ArtifactServiceFactory
 
 // ArtifactService is the interface that provides the artifact service methods
 type ArtifactService interface {

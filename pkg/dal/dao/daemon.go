@@ -28,8 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/daemon.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao DaemonService
-//go:generate mockgen -destination=mocks/daemon_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao DaemonServiceFactory
+//go:generate mockgen -destination=daemon_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao DaemonService,DaemonServiceFactory
 
 // DaemonService is the interface that provides methods to operate on daemon model
 type DaemonService interface {

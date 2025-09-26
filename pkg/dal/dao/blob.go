@@ -25,8 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=mocks/blob.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobService
-//go:generate mockgen -destination=mocks/blob_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao BlobServiceFactory
+//go:generate mockgen -destination=blob_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao BlobService,BlobServiceFactory
 
 // BlobService defines the operations related to blobs
 type BlobService interface {

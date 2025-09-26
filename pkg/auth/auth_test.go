@@ -20,18 +20,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	daomock "github.com/go-sigma/sigma/pkg/dal/dao/mocks"
+	"github.com/go-sigma/sigma/pkg/dal/dao"
 )
 
 func TestFactory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	namespaceServiceFactory := daomock.NewMockNamespaceServiceFactory(ctrl)
-	artifactServiceFactory := daomock.NewMockArtifactServiceFactory(ctrl)
-	namespaceMemberServiceFactory := daomock.NewMockNamespaceMemberServiceFactory(ctrl)
-	repositoryServiceFactory := daomock.NewMockRepositoryServiceFactory(ctrl)
-	tagServiceFactory := daomock.NewMockTagServiceFactory(ctrl)
+	namespaceServiceFactory := dao.NewMockNamespaceServiceFactory(ctrl)
+	artifactServiceFactory := dao.NewMockArtifactServiceFactory(ctrl)
+	namespaceMemberServiceFactory := dao.NewMockNamespaceMemberServiceFactory(ctrl)
+	repositoryServiceFactory := dao.NewMockRepositoryServiceFactory(ctrl)
+	tagServiceFactory := dao.NewMockTagServiceFactory(ctrl)
 
 	authServiceFactory := NewAuthServiceFactory(inject{
 		namespaceMemberServiceFactory: namespaceMemberServiceFactory,

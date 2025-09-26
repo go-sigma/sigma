@@ -14,7 +14,7 @@
 
 package enums
 
-//go:generate go-enum --sql --mustparse
+//go:generate go-enum --sql --mustparse --output-suffix=_generated
 
 // LogLevel x ENUM(
 // trace,
@@ -80,7 +80,6 @@ type CacherType string
 
 // WorkQueueType x ENUM(
 // redis,
-// kafka,
 // database,
 // inmemory,
 // )

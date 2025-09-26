@@ -20,7 +20,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 
 	"github.com/go-sigma/sigma/cmd/builder"
@@ -49,7 +48,6 @@ sigma is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 		PersistentPreRun: func(_ *cobra.Command, _ []string) {
 			initConfig()
-			logger.SetLevel(viper.GetString("log.level"))
 		},
 	}
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c",
@@ -85,8 +83,10 @@ func initConfig() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("read config file failed")
 	}
-	err = yaml.Unmarshal(data, configs.GetConfig())
+	config := configs.GetConfig()
+	err = yaml.Unmarshal(data, config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("unmarshal failed")
 	}
+	logger.SetLevel(config.Log.Level.String())
 }

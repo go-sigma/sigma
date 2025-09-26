@@ -34,8 +34,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryService
-//go:generate mockgen -destination=mocks/repository_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao RepositoryServiceFactory
+//go:generate mockgen -destination=repository_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao RepositoryService,RepositoryServiceFactory
 
 // RepositoryService is the interface that provides the repository service methods
 type RepositoryService interface {

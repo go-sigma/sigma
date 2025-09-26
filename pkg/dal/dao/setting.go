@@ -23,8 +23,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=mocks/setting.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao SettingService
-//go:generate mockgen -destination=mocks/setting_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao SettingServiceFactory
+//go:generate mockgen -destination=setting_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao SettingService,SettingServiceFactory
 
 // SettingService is the interface that provides methods to operate on setting model
 type SettingService interface {
