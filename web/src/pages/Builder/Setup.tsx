@@ -610,7 +610,10 @@ export default function ({ localServer }: { localServer: string }) {
                   <div className="mt-2">
                     <Combobox value={namespaceSelected}
                       disabled={(searchParams.get('namespace_stick') || '') === 'true'}
-                      onChange={(namespace: INamespaceItem) => {
+                      onChange={(namespace: INamespaceItem | null) => {
+                        if (!namespace) {
+                          return;
+                        }
                         setSearchParams({
                           ...Object.fromEntries(searchParams.entries()),
                           namespace: namespace.name,
@@ -695,7 +698,10 @@ export default function ({ localServer }: { localServer: string }) {
                   <div className="mt-2">
                     <Combobox value={repositorySelected}
                       disabled={(searchParams.get('repository_stick') || '') === 'true'}
-                      onChange={(repo: IRepositoryItem) => {
+                      onChange={(repo: IRepositoryItem | null) => {
+                        if (!repo) {
+                          return;
+                        }
                         setSearchParams({
                           ...Object.fromEntries(searchParams.entries()),
                           repository: repo.name,
@@ -868,7 +874,10 @@ export default function ({ localServer }: { localServer: string }) {
                             <Combobox
                               disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
                               value={codeRepositoryProviderSelected}
-                              onChange={(provider: ICodeRepositoryProviderItem) => {
+                              onChange={(provider: ICodeRepositoryProviderItem | null) => {
+                                if (!provider) {
+                                  return;
+                                }
                                 setSearchParams({
                                   ...Object.fromEntries(searchParams.entries()),
                                   provider: provider.provider,
@@ -956,7 +965,10 @@ export default function ({ localServer }: { localServer: string }) {
                             <Combobox
                               disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
                               value={codeRepositoryOwnerSelected}
-                              onChange={(owner: ICodeRepositoryOwnerItem) => {
+                              onChange={(owner: ICodeRepositoryOwnerItem | null) => {
+                                if (!owner) {
+                                  return;
+                                }
                                 setSearchParams({
                                   ...Object.fromEntries(searchParams.entries()),
                                   code_repository_owner: owner.owner,
@@ -1047,7 +1059,10 @@ export default function ({ localServer }: { localServer: string }) {
                             <Combobox
                               disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
                               value={codeRepositorySelected}
-                              onChange={(cr: ICodeRepositoryItem) => {
+                              onChange={(cr: ICodeRepositoryItem | null) => {
+                                if (!cr) {
+                                  return;
+                                }
                                 setSearchParams({
                                   ...Object.fromEntries(searchParams.entries()),
                                   code_repository_name: cr.name,
@@ -1135,7 +1150,10 @@ export default function ({ localServer }: { localServer: string }) {
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Combobox value={codeRepositoryBranchSelected} onChange={(branch: ICodeRepositoryBranchItem) => {
+                            <Combobox value={codeRepositoryBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
+                              if (!branch) {
+                                return;
+                              }
                               setSearchParams({
                                 ...Object.fromEntries(searchParams.entries()),
                                 code_repository_branch_name: branch.name,
@@ -1658,7 +1676,10 @@ export default function ({ localServer }: { localServer: string }) {
                         Branch
                       </label>
                       <div className="mt-2">
-                        <Combobox value={cronBranchSelected} onChange={(branch: ICodeRepositoryBranchItem) => {
+                        <Combobox value={cronBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
+                          if (!branch) {
+                            return;
+                          }
                           setSearchParams({
                             ...Object.fromEntries(searchParams.entries()),
                             cron_branch_name: branch.name,
@@ -1784,7 +1805,10 @@ export default function ({ localServer }: { localServer: string }) {
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Combobox value={mergeEventBranchSelected} onChange={(branch: ICodeRepositoryBranchItem) => {
+                            <Combobox value={mergeEventBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
+                              if (!branch) {
+                                return;
+                              }
                               setSearchParams({
                                 ...Object.fromEntries(searchParams.entries()),
                                 merge_event_branch_name: branch.name,

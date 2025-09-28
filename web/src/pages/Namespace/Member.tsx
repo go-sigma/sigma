@@ -316,7 +316,10 @@ export default function Member({ localServer }: { localServer: string }) {
                       </div>
                       <div className="col-span-4">
                         <Combobox value={userSelected}
-                          onChange={(user: IUserItem) => {
+                          onChange={(user: IUserItem | null) => {
+                            if (!user) {
+                              return;
+                            }
                             setUserSelected(user);
                           }}>
                           <div className="relative mt-1">
