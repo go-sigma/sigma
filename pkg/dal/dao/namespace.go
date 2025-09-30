@@ -28,8 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/namespace.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceService
-//go:generate mockgen -destination=mocks/namespace_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceServiceFactory
+//go:generate mockgen -destination=namespace_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao NamespaceService,NamespaceServiceFactory
 
 // NamespaceService is the interface that provides the namespace service methods.
 type NamespaceService interface {

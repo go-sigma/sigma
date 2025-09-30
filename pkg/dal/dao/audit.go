@@ -22,8 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-//go:generate mockgen -destination=mocks/audit.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuditService
-//go:generate mockgen -destination=mocks/audit_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao AuditServiceFactory
+//go:generate mockgen -destination=audit_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao AuditService,AuditServiceFactory
 
 // AuditService is the interface that provides methods to operate on audit model
 type AuditService interface {

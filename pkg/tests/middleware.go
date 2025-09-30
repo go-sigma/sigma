@@ -16,10 +16,8 @@ package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/spf13/viper"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/dal/redis"
@@ -60,13 +58,7 @@ type Instance struct {
 }
 
 func Initialize(t *testing.T, digCon *dig.Container) (*Instance, error) {
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	typ := viper.GetString("ci.database.type")
-	if typ == "" {
-		typ = enums.DatabaseSqlite3.String()
-	}
+	dbType := enums.DatabaseSqlite3.String() // TODO: get db type from env
 
 	err := digCon.Provide(redis.New)
 	if err != nil {
@@ -80,16 +72,16 @@ func Initialize(t *testing.T, digCon *dig.Container) (*Instance, error) {
 		return nil, fmt.Errorf("initialize locker failed: %v", err)
 	}
 
-	factory, ok := ciDatabaseFactories[typ]
+	factory, ok := ciDatabaseFactories[dbType]
 	if !ok {
-		return nil, fmt.Errorf("ci database %q not registered", typ)
+		return nil, fmt.Errorf("ci database %q not registered", dbType)
 	}
 
 	database := factory.New()
 
 	err = database.Initialize(digCon)
 	if err != nil {
-		return nil, fmt.Errorf("init ci database %q failed: %w", typ, err)
+		return nil, fmt.Errorf("init ci database %q failed: %w", dbType, err)
 	}
 
 	return &Instance{database: database}, nil

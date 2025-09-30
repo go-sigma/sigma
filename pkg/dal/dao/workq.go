@@ -24,8 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
-//go:generate mockgen -destination=mocks/workq.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WorkQueueService
-//go:generate mockgen -destination=mocks/workq_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao WorkQueueServiceFactory
+//go:generate mockgen -destination=workq_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao WorkQueueService,WorkQueueServiceFactory
 
 // WorkQueueService is the interface that provides methods to operate on work queue model
 type WorkQueueService interface {

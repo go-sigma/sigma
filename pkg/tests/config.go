@@ -16,25 +16,13 @@ package tests
 
 import (
 	"os"
-	"strings"
-
-	"github.com/spf13/viper"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 // GetConfig gets the configuration from the environment variables
 func GetConfig() (*configs.Configuration, error) {
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix(consts.AppName)
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	err := viper.Unmarshal(configs.GetConfig())
-	if err != nil {
-		return nil, err
-	}
 	config := configs.GetConfig()
 	badgerDir, err := os.MkdirTemp("", "badger")
 	if err != nil {

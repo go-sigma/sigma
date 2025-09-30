@@ -32,8 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/tag.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao TagService
-//go:generate mockgen -destination=mocks/tag_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao TagServiceFactory
+//go:generate mockgen -destination=tag_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao TagService,TagServiceFactory
 
 // TagService is the interface that provides the tag service methods.
 type TagService interface {

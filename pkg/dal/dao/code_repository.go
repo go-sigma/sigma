@@ -27,8 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/code_repository.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao CodeRepositoryService
-//go:generate mockgen -destination=mocks/code_repository_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao CodeRepositoryServiceFactory
+//go:generate mockgen -destination=code_repository_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao CodeRepositoryService,CodeRepositoryServiceFactory
 
 // CodeRepositoryService is the interface that provides the code repository service methods
 type CodeRepositoryService interface {
