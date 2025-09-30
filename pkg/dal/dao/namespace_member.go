@@ -26,8 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/namespace_member.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberService
-//go:generate mockgen -destination=mocks/namespace_member_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberServiceFactory
+//go:generate mockgen -destination=namespace_member_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao NamespaceMemberService,NamespaceMemberServiceFactory
 
 // NamespaceMemberService is the interface that provides methods to operate on role model
 type NamespaceMemberService interface {

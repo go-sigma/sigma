@@ -28,8 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=mocks/user.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserService
-//go:generate mockgen -destination=mocks/user_factory.go -package=mocks github.com/go-sigma/sigma/pkg/dal/dao UserServiceFactory
+//go:generate mockgen -destination=user_mocks.go -package=dao github.com/go-sigma/sigma/pkg/dal/dao UserService,UserServiceFactory
 
 // UserService is the interface that provides the user service methods
 type UserService interface {
