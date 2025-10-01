@@ -25,6 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -55,6 +56,7 @@ type handler struct {
 	RepositoryServiceFactory dao.RepositoryServiceFactory
 	BlobServiceFactory       dao.BlobServiceFactory
 	BlobUploadServiceFactory dao.BlobUploadServiceFactory
+	StorageDriver            storage.StorageDriver
 }
 
 // handlerNew creates a new instance of the distribution upload blob handlers

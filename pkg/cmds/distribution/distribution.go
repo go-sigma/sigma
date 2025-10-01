@@ -30,8 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -42,16 +40,12 @@ func Serve(digCon *dig.Container) error {
 	}
 
 	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
-	err = workq.InitProducer(config)
-	if err != nil {
-		return err
-	}
+	// err = workq.InitProducer(config)
+	// if err != nil {
+	// 	return err
+	// }
 
 	handlers.InitializeDistribution(dig.New())
-	err = storage.Initialize(config)
-	if err != nil {
-		return err
-	}
 
 	go func() {
 		log.Info().Str("addr", consts.DistributionPort).Msg("Server listening")

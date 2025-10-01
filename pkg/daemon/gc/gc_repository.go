@@ -27,7 +27,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -36,7 +35,7 @@ import (
 // deleteRepositoryWithNamespace -> deleteRepositoryCheckEmpty -> deleteRepository -> collectRecord
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcRepository] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcRepository] = workq.Consumer{
 		Handler:     decorator(enums.DaemonGcRepository),
 		MaxRetry:    6,
 		Concurrency: 10,

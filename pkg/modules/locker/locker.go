@@ -15,31 +15,73 @@
 package locker
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/locker/badger"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
-	"github.com/go-sigma/sigma/pkg/modules/locker/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// Locker ...
-var Locker definition.Locker
+//go:generate mockgen -destination=locker_mocks.go -package=locker github.com/go-sigma/sigma/pkg/modules/locker Locker,Lock,Factory
+
+const (
+	// MinLockExpire ...
+	MinLockExpire = 100 * time.Millisecond
+)
+
+var (
+	// ErrLockNotHeld is returned when trying to release an inactive lock.
+	ErrLockNotHeld = errors.New("locker not held")
+	// ErrLockTooShort expire should longer than 100ms
+	ErrLockTooShort = errors.New("locker expire is too short")
+	// ErrLockAlreadyExpired lock already expired
+	ErrLockAlreadyExpired = errors.New("locker already expired")
+)
+
+// Lock lock interface
+type Lock interface {
+	// Unlock ...
+	Unlock(ctx context.Context) error
+	// Renew ...
+	Renew(ctx context.Context, ttls ...time.Duration) error
+}
+
+// Locker locker interface
+type Locker interface {
+	// Acquire ...
+	Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (Lock, error)
+	// AcquireWithRenew acquire lock with renew the lock
+	AcquireWithRenew(ctx context.Context, key string, expire, waitTimeout time.Duration) error
+}
+
+// Factory is the interface for the storage driver factory
+type Factory interface {
+	New(digCon *dig.Container) (Locker, error)
+}
+
+var factories = make(map[enums.LockerType]Factory)
+
+// Register registers a storage factory driver by name.
+// If Register is called twice with the same name or if driver is nil, it panics.
+func Register(name enums.LockerType, factory Factory) error {
+	if _, ok := factories[name]; ok {
+		return fmt.Errorf("driver %q already registered", name)
+	}
+	factories[name] = factory
+	return nil
+}
 
 // New ...
-func Initialize(digCon *dig.Container) (definition.Locker, error) {
+func Initialize(digCon *dig.Container) (Locker, error) {
 	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
-
-	var err error
-	switch config.Locker.Type {
-	case enums.LockerTypeBadger:
-		Locker, err = badger.New(digCon)
-	case enums.LockerTypeRedis:
-		Locker, err = redis.New(digCon)
-	default:
-		Locker, err = badger.New(digCon)
+	factory, ok := factories[config.Locker.Type]
+	if !ok {
+		return nil, fmt.Errorf("driver %q not registered", config.Storage.Type)
 	}
-	return Locker, err
+	return factory.New(digCon)
 }

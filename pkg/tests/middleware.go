@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/redis"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -65,7 +64,7 @@ func Initialize(t *testing.T, digCon *dig.Container) (*Instance, error) {
 		return nil, fmt.Errorf("initialize redis failed: %v", err)
 	}
 
-	err = digCon.Provide(func() (definition.Locker, error) {
+	err = digCon.Provide(func() (locker.Locker, error) {
 		return locker.Initialize(digCon)
 	})
 	if err != nil {

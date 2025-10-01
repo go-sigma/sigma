@@ -24,7 +24,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -52,7 +51,7 @@ func (h *handler) GetCache(c echo.Context) error {
 	}
 
 	var path = h.genPath(req.BuilderID)
-	reader, err := storage.Driver.Reader(ctx, path)
+	reader, err := h.StorageDriver.Reader(ctx, path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Error().Err(err).Str("cache", path).Msg("Cache not found")

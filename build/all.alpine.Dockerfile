@@ -1,6 +1,6 @@
-ARG GOLANG_VERSION=1.23.1-alpine3.19
-ARG NODE_VERSION=20-alpine3.19
-ARG ALPINE_VERSION=3.19
+ARG GOLANG_VERSION=1.25-alpine3.22
+ARG NODE_VERSION=24-alpine3.22
+ARG ALPINE_VERSION=3.22
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS web-builder
 
@@ -55,20 +55,6 @@ RUN set -eux && \
   if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress --db-repository="tosone/trivy-java-db:1"; fi && \
   trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress --db-repository="tosone/trivy-db:2"
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS skopeo
-
-ARG USE_MIRROR=false
-ARG SKOPEO_VERSION=1.16.0
-ARG TARGETOS TARGETARCH
-
-RUN set -eux && \
-  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make git && \
-  git clone --branch v"${SKOPEO_VERSION}" https://github.com/containers/skopeo /go/src/github.com/containers/skopeo && \
-  cd /go/src/github.com/containers/skopeo && \
-  DISABLE_CGO=1 make bin/skopeo."${TARGETOS}"."${TARGETARCH}" && \
-  cp bin/skopeo."${TARGETOS}"."${TARGETARCH}" /tmp/skopeo
-
 FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder
 
 ARG USE_MIRROR=false
@@ -93,13 +79,11 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache curl
+  apk add --no-cache curl tini git-lfs
 
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/ /opt/trivy/
-COPY --from=skopeo /tmp/skopeo /usr/local/bin/skopeo
-COPY ./bin/*.tar /baseimages/
 COPY ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 
@@ -107,9 +91,11 @@ VOLUME /var/lib/sigma
 VOLUME /etc/sigma
 
 RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
-  chown -R 1001:1001 /opt/trivy && \
-  mkdir -p /var/lib/sigma && \
-  chown -R 1001:1001 /var/lib/sigma
+mkdir -p /var/lib/sigma && \
+mkdir -p /code/ && \
+chown -R 1001:1001 /var/lib/sigma && \
+chown -R 1001:1001 /opt/trivy && \
+chown -R 1001:1001 /code/
 
 WORKDIR /home/sigma
 

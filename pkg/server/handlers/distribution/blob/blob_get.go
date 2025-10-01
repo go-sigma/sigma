@@ -35,7 +35,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
 	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
@@ -122,7 +121,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 				}
 				log.Info().Str("digest", dgest.String()).Int64("length", blobSize).Msg("Proxy blob")
 				ctx := context.Background()
-				err = storage.Driver.Upload(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), reader.LimitReader(pipeReader, blobSize))
+				err = h.StorageDriver.Upload(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)), reader.LimitReader(pipeReader, blobSize))
 				if err != nil {
 					log.Error().Err(err).Str("digest", dgest.String()).Msg("Upload blob failed")
 					return
@@ -145,7 +144,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", blob.Size))
 
 	if h.Config.Storage.Redirect && h.Config.Storage.Type != enums.StorageTypeFilesystem {
-		redirectUrl, err := storage.Driver.Redirect(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
+		redirectUrl, err := h.StorageDriver.Redirect(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 		if err != nil {
 			log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob redirect url failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -153,7 +152,7 @@ func (h *handler) GetBlob(c echo.Context) error {
 		return c.Redirect(http.StatusPermanentRedirect, redirectUrl)
 	}
 
-	reader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
+	reader, err := h.StorageDriver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(dgest)))
 	if err != nil {
 		log.Error().Err(err).Str("digest", dgest.String()).Msg("Get blob reader failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)

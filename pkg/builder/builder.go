@@ -36,6 +36,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
 
+//go:generate mockgen -destination=builder_mocks.go -package=builder github.com/go-sigma/sigma/pkg/builder Builder
+
 // Builder ...
 type Builder interface {
 	// Start start a container to build oci image and push to registry
@@ -69,10 +71,10 @@ func Initialize(config configs.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
 		return nil
 	}
-	typ := config.Daemon.Builder.Type
-	factory, ok := DriverFactories[typ.String()]
+	builderType := config.Daemon.Builder.Type
+	factory, ok := DriverFactories[builderType.String()]
 	if !ok {
-		return fmt.Errorf("builder driver %s not registered", typ.String())
+		return fmt.Errorf("builder driver %s not registered", builderType.String())
 	}
 	var err error
 	err = logger.Initialize()

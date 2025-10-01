@@ -17,23 +17,32 @@ package inmemory
 import (
 	"context"
 
-	"github.com/go-sigma/sigma/pkg/configs"
+	"go.uber.org/dig"
+
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
+func init() {
+	utils.PanicIf(workq.RegisterProducer(enums.WorkQueueTypeInmemory, &producerFactory{}))
+}
+
 type producer struct{}
 
+type producerFactory struct{}
+
+var _ workq.ProducerFactory = producerFactory{}
+
 // NewWorkQueueProducer ...
-func NewWorkQueueProducer(_ configs.Configuration, _ map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
+func (producerFactory) New(_ *dig.Container) (workq.Producer, error) {
 	p := &producer{}
 	return p, nil
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ definition.ProducerOption) error {
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ workq.ProducerOption) error {
 	wq := &models.WorkQueue{
 		Topic:   topic,
 		Payload: utils.MustMarshal(payload),

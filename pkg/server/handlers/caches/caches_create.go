@@ -23,7 +23,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/storage"
 )
 
 // CreateCache handles the create cache request
@@ -53,7 +52,7 @@ func (h *handler) CreateCache(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Bind and validate request body failed: %v", err))
 	}
 
-	err = storage.Driver.Upload(ctx, h.genPath(builderID), c.Request().Body)
+	err = h.StorageDriver.Upload(ctx, h.genPath(builderID), c.Request().Body)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload file failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Upload file failed: %v", err))

@@ -17,54 +17,44 @@ package redis
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-type producer struct {
-	client        *asynq.Client
-	topicHandlers map[enums.Daemon]definition.Consumer
+func init() {
+	utils.PanicIf(workq.RegisterProducer(enums.WorkQueueTypeRedis, &producerFactory{}))
 }
 
-// NewWorkQueueProducer ...
-func NewWorkQueueProducer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
+type producer struct {
+	client *asynq.Client
+}
+
+type producerFactory struct{}
+
+var _ workq.ProducerFactory = producerFactory{}
+
+// New ...
+func (producerFactory) New(digCon *dig.Container) (workq.Producer, error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	if config.Redis.Type != enums.RedisTypeExternal {
 		return nil, fmt.Errorf("work queue: please check redis configuration, it should be external")
 	}
-	redisOpt, err := asynq.ParseRedisURI(config.Redis.URL)
-	if err != nil {
-		return nil, fmt.Errorf("asynq.ParseRedisURI error: %v", err)
-	}
+	redisCli := utils.MustGetObjFromDigCon[redis.UniversalClient](digCon)
 	p := &producer{
-		client:        asynq.NewClient(redisOpt),
-		topicHandlers: topicHandlers,
+		client: asynq.NewClient(&makeClient{redisCli: redisCli}),
 	}
 	return p, nil
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ definition.ProducerOption) error {
-	consumer, ok := p.topicHandlers[topic]
-	if !ok {
-		return fmt.Errorf("Topic %s not registered", topic)
-	}
-	var opts []asynq.Option
-	if consumer.MaxRetry > 0 {
-		opts = append(opts, asynq.MaxRetry(consumer.MaxRetry))
-	} else {
-		opts = append(opts, asynq.MaxRetry(1))
-	}
-	if consumer.Timeout > 0 {
-		opts = append(opts, asynq.Timeout(consumer.Timeout))
-	} else {
-		opts = append(opts, asynq.Timeout(time.Hour))
-	}
-	_, err := p.client.Enqueue(asynq.NewTask(topic.String(), utils.MustMarshal(payload)), opts...)
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, _ workq.ProducerOption) error {
+	_, err := p.client.Enqueue(asynq.NewTask(topic.String(), utils.MustMarshal(payload)))
 	return err
 }

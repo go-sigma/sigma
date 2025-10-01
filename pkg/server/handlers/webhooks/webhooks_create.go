@@ -72,7 +72,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		}
 	} else {
 		namespaceID := ptr.To(req.NamespaceID)
-		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
+		authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
@@ -92,7 +92,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 		return err
 	}
 
-	webhookService := h.webhookServiceFactory.New()
+	webhookService := h.WebhookServiceFactory.New()
 	_, total, err := webhookService.List(ctx, req.NamespaceID, types.Pagination{}, types.Sortable{})
 	if err != nil {
 		log.Error().Err(err).Msg("Get webhook count failed")
@@ -104,7 +104,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		webhookService := h.webhookServiceFactory.New(tx)
+		webhookService := h.WebhookServiceFactory.New(tx)
 		namespaceID := req.NamespaceID
 		if ptr.To(req.NamespaceID) == 0 {
 			namespaceID = nil
@@ -129,7 +129,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 			log.Error().Err(err).Msg("Create webhook failed")
 			return errcode.HTTPErrCodeInternalError.Detail("Create webhook failed")
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  namespaceID,

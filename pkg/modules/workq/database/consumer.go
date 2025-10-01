@@ -21,18 +21,27 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 	"gorm.io/gorm"
 
-	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
+func init() {
+	utils.PanicIf(workq.RegisterConsumer(enums.WorkQueueTypeDatabase, &consumerFactory{}))
+}
+
+type consumerFactory struct{}
+
+var _ workq.ConsumerFactory = consumerFactory{}
+
+// New ...
+func (consumerFactory) New(_ *dig.Container, topicHandlers map[enums.Daemon]workq.Consumer) error {
 	for topic, c := range topicHandlers {
-		go func(consumer definition.Consumer, topic enums.Daemon) {
+		go func(consumer workq.Consumer, topic enums.Daemon) {
 			handler := &consumerHandler{
 				processingSemaphore: make(chan struct{}, consumer.Concurrency),
 				consumer:            consumer,
@@ -45,7 +54,7 @@ func NewWorkQueueConsumer(_ configs.Configuration, topicHandlers map[enums.Daemo
 
 type consumerHandler struct {
 	processingSemaphore chan struct{}
-	consumer            definition.Consumer
+	consumer            workq.Consumer
 }
 
 func (h *consumerHandler) Consume(topic enums.Daemon) {
@@ -54,7 +63,7 @@ func (h *consumerHandler) Consume(topic enums.Daemon) {
 		go func() {
 			err := h.consume(topic)
 			if err != nil {
-				log.Error().Err(err).Msg("Consume topic failed")
+				log.Error().Err(err).Msg("consume topic failed")
 			}
 		}()
 		<-time.After(time.Second * 5)
@@ -71,7 +80,7 @@ func (h *consumerHandler) consume(topic enums.Daemon) error {
 	wq, err := workQueueService.Get(daoCtx, topic)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Trace().Err(err).Msgf("None task in topic(%s)", topic)
+			log.Trace().Err(err).Msgf("none task in topic(%s)", topic)
 			return nil
 		}
 		return err
@@ -90,7 +99,7 @@ func (h *consumerHandler) consume(topic enums.Daemon) error {
 	err = h.consumer.Handler(ctx, wq.Payload)
 	wq.Times++
 	if err != nil {
-		log.Error().Err(err).Str("Topic", topic.String()).Int64("WorkQueueID", wq.ID).Msg("Daemon task run failed")
+		log.Error().Err(err).Str("topic", topic.String()).Int64("workQueueID", wq.ID).Msg("daemon task run failed")
 		if wq.Times < h.consumer.MaxRetry {
 			return workQueueService.UpdateStatus(daoCtx, wq.ID, newVersion, uuid.New().String(), wq.Times, enums.TaskCommonStatusPending)
 		}

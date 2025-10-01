@@ -31,7 +31,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
@@ -99,19 +98,19 @@ func (h *handler) PostUpload(c echo.Context) error {
 		countReader := counter.NewCounter(c.Request().Body)
 
 		srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, fileID)
-		err = storage.Driver.Upload(ctx, srcPath, countReader)
+		err = h.StorageDriver.Upload(ctx, srcPath, countReader)
 		if err != nil {
 			log.Error().Err(err).Msg("Upload blob failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeBlobUploadInvalid)
 		}
 		destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))
-		err = storage.Driver.Move(ctx, srcPath, destPath)
+		err = h.StorageDriver.Move(ctx, srcPath, destPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Move blob failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 
-		err = storage.Driver.Delete(ctx, srcPath)
+		err = h.StorageDriver.Delete(ctx, srcPath)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete blob upload failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -132,7 +131,7 @@ func (h *handler) PostUpload(c echo.Context) error {
 		}
 	}
 
-	uploadID, err := storage.Driver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
+	uploadID, err := h.StorageDriver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
 	if err != nil {
 		log.Error().Err(err).Msg("Create blob upload id failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)

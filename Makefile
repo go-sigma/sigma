@@ -110,13 +110,13 @@ swagen: ## Generate swagger from code comments
 
 .PHONY: addlicense
 addlicense: ## Add license to all go files
-	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2024 -c "sigma"
-	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2024 -c "sigma"
-	@addlicense -l apache -y 2024 -c "sigma" main.go
-	@addlicense -l apache -y 2024 -c "sigma" web/web.go
-	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2024 -c "sigma"
-	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2024 -c "sigma"
-	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2024 -c "sigma"
+	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2025 -c "sigma"
+	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2025 -c "sigma"
+	@addlicense -l apache -y 2025 -c "sigma" main.go
+	@addlicense -l apache -y 2025 -c "sigma" web/web.go
+	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2025 -c "sigma"
+	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2025 -c "sigma"
+	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2025 -c "sigma"
 
 ## Kube:
 .PHONY: kube_install

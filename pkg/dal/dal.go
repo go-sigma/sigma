@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -71,7 +71,7 @@ func Initialize(digCon *dig.Container) error {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	defer ctxCancel()
 
-	locker := utils.MustGetObjFromDigCon[definition.Locker](digCon)
+	locker := utils.MustGetObjFromDigCon[locker.Locker](digCon)
 	err = locker.AcquireWithRenew(ctx, consts.LockerMigration, time.Second*3, time.Second*5)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package redis
+package imports
 
-// mux := asynq.NewServeMux()
-// for taskType, handler := range tasks {
-// 	topic, ok := topics[taskType]
-// 	if !ok {
-// 		return fmt.Errorf("topic for daemon task %q not found", taskType)
-// 	}
-// 	mux.HandleFunc(topic, handler)
-// }
-
-// go func() {
-// 	err := asyncSrv.Run(mux)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("srv.Run error")
-// 	}
-// }()
+import (
+	_ "github.com/go-sigma/sigma/pkg/modules/workq/database"
+	_ "github.com/go-sigma/sigma/pkg/modules/workq/inmemory"
+	_ "github.com/go-sigma/sigma/pkg/modules/workq/redis"
+)

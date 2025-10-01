@@ -28,7 +28,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
@@ -104,7 +103,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	counterReader := counter.NewCounter(c.Request().Body)
 
 	path := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
-	etag, err := storage.Driver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
+	etag, err := h.StorageDriver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 	if err != nil {
 		log.Error().Err(err).Msg("Upload part failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)

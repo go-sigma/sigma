@@ -1,4 +1,4 @@
-// Copyright 2024 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/inits"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/token"
 )
@@ -91,14 +90,14 @@ func initBaseimage(digCon *dig.Container) error {
 		log.Info().Msg("builder image not found, skip push image")
 		return nil
 	}
-	ctx, ctxCancel := context.WithCancel(context.Background())
-	defer ctxCancel()
-	err := locker.Locker.AcquireWithRenew(ctx, consts.LockerBaseimage, time.Second*3, time.Second*5)
-	if err != nil {
-		return err
-	}
+	// ctx, ctxCancel := context.WithCancel(context.Background())
+	// defer ctxCancel()
+	// err := locker.Locker.AcquireWithRenew(ctx, consts.LockerBaseimage, time.Second*3, time.Second*5)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".tar") {
 			d := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(path, dir), "/"), ".tar")
 			var version string

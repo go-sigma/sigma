@@ -28,7 +28,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/tests"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -55,7 +54,7 @@ func initDal(t *testing.T) *dig.Container {
 		}
 		return ptr.To(config)
 	}))
-	require.NoError(t, digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }))
+	require.NoError(t, digCon.Provide(func() (locker.Locker, error) { return locker.Initialize(digCon) }))
 	require.NoError(t, digCon.Provide(badger.New))
 	require.NoError(t, dal.Initialize(digCon))
 

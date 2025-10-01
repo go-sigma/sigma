@@ -34,12 +34,12 @@ func New(config configs.Configuration) (redis.UniversalClient, error) {
 	}
 	redisOpt, err := redis.ParseURL(config.Redis.URL)
 	if err != nil {
-		return nil, fmt.Errorf("redis.ParseURL error: %v", err)
+		return nil, fmt.Errorf("redis parse url failed: %v", err)
 	}
 	redisCli := redis.NewClient(redisOpt)
 	res, err := redisCli.Ping(context.Background()).Result()
 	if err != nil {
-		return nil, fmt.Errorf("redis ping error: %v", err)
+		return nil, fmt.Errorf("redis ping failed: %v", err)
 	}
 	if res != "PONG" {
 		return nil, fmt.Errorf("redis ping should got PONG, real: %s", res)

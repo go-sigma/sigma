@@ -18,22 +18,30 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
+
+func init() {
+	utils.PanicIf(workq.RegisterProducer(enums.WorkQueueTypeDatabase, &producerFactory{}))
+}
 
 type producer struct {
 	workQueueServiceFactory dao.WorkQueueServiceFactory
 }
 
-// NewWorkQueueProducer ...
-func NewWorkQueueProducer(_ configs.Configuration, _ map[enums.Daemon]definition.Consumer) (definition.WorkQueueProducer, error) {
+type producerFactory struct{}
+
+var _ workq.ProducerFactory = producerFactory{}
+
+// New ...
+func (producerFactory) New(_ *dig.Container) (workq.Producer, error) {
 	p := &producer{
 		workQueueServiceFactory: dao.NewWorkQueueServiceFactory(),
 	}
@@ -41,7 +49,7 @@ func NewWorkQueueProducer(_ configs.Configuration, _ map[enums.Daemon]definition
 }
 
 // Produce ...
-func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, option definition.ProducerOption) error {
+func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any, option workq.ProducerOption) error {
 	tx := query.Q
 	if option.Tx != nil {
 		tx = option.Tx

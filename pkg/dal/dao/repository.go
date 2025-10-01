@@ -25,7 +25,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -98,7 +98,7 @@ type AutoCreateNamespace struct {
 	AutoCreate     bool
 	Visibility     enums.Visibility
 	UserID         int64
-	ProducerClient definition.WorkQueueProducer
+	ProducerClient workq.Producer
 }
 
 // Create creates a new repository.
@@ -161,7 +161,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 				Action:       enums.WebhookActionCreate,
 				ResourceType: enums.WebhookResourceTypeNamespace,
 				Payload:      utils.MustMarshal(namespaceObj),
-			}, definition.ProducerOption{Tx: s.tx})
+			}, workq.ProducerOption{Tx: s.tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
 				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
@@ -196,7 +196,7 @@ func (s *repositoryService) Create(ctx context.Context, repositoryObj *models.Re
 				Action:       enums.WebhookActionCreate,
 				ResourceType: enums.WebhookResourceTypeRepository,
 				Payload:      utils.MustMarshal(repositoryObj),
-			}, definition.ProducerOption{Tx: s.tx})
+			}, workq.ProducerOption{Tx: s.tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
 				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))

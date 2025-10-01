@@ -25,9 +25,11 @@ import (
 	"strconv"
 
 	builderlogger "github.com/go-sigma/sigma/pkg/builder/logger"
+	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
@@ -40,8 +42,12 @@ var _ builderlogger.Factory = factory{}
 
 // New returns a new filesystem storage driver
 func (f factory) New() (builderlogger.BuilderLogger, error) {
+	storageDriver, err := storage.Initialize(ptr.To(configs.GetConfig()))
+	if err != nil {
+		return nil, err
+	}
 	return &obs{
-		storage: storage.Driver,
+		storage: storageDriver,
 	}, nil
 }
 

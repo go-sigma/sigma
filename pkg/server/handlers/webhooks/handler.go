@@ -24,9 +24,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler is the interface for the webhook handlers
@@ -56,22 +57,18 @@ type Handler interface {
 var _ Handler = &handler{}
 
 type handler struct {
-	authServiceFactory      auth.AuthServiceFactory
-	namespaceServiceFactory dao.NamespaceServiceFactory
-	webhookServiceFactory   dao.WebhookServiceFactory
-	auditServiceFactory     dao.AuditServiceFactory
-	producerClient          definition.WorkQueueProducer
+	dig.In
+
+	AuthServiceFactory      auth.AuthServiceFactory
+	NamespaceServiceFactory dao.NamespaceServiceFactory
+	WebhookServiceFactory   dao.WebhookServiceFactory
+	AuditServiceFactory     dao.AuditServiceFactory
+	Producer                workq.Producer
 }
 
 // handlerNew creates a new instance of the webhook handlers
 func handlerNew(digCon *dig.Container) Handler {
-	return &handler{
-		authServiceFactory:      utils.MustGetObjFromDigCon[auth.AuthServiceFactory](digCon),
-		namespaceServiceFactory: utils.MustGetObjFromDigCon[dao.NamespaceServiceFactory](digCon),
-		webhookServiceFactory:   utils.MustGetObjFromDigCon[dao.WebhookServiceFactory](digCon),
-		auditServiceFactory:     utils.MustGetObjFromDigCon[dao.AuditServiceFactory](digCon),
-		producerClient:          utils.MustGetObjFromDigCon[definition.WorkQueueProducer](digCon),
-	}
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

@@ -23,7 +23,9 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // Handler ...
@@ -37,14 +39,14 @@ type Handler interface {
 }
 
 type handler struct {
-	digCon *dig.Container
+	dig.In
+
+	StorageDriver storage.StorageDriver
 }
 
 // handlerNew creates a new instance of the builder handlers
-func handlerNew(c *dig.Container) Handler {
-	return &handler{
-		digCon: c,
-	}
+func handlerNew(digCon *dig.Container) Handler {
+	return ptr.Of(utils.MustGetObjFromDigCon[handler](digCon))
 }
 
 type factory struct{}

@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package definition
+package imports
 
-import "context"
-
-//go:generate mockgen -destination=mocks/signing.go -package=mocks github.com/go-sigma/sigma/pkg/signing/definition Signing
-//go:generate mockgen -destination=mocks/verifying.go -package=mocks github.com/go-sigma/sigma/pkg/signing/definition Verifying
-
-// Signing ...
-type Signing interface {
-	Sign(ctx context.Context, token, priKey, ref string) error
-}
-
-// Verifying ...
-type Verifying interface {
-	Verify(ref, token string) error
-}
+import (
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/badger"
+	_ "github.com/go-sigma/sigma/pkg/modules/locker/redis"
+)

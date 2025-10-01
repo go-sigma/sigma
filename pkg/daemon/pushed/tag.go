@@ -27,18 +27,17 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonTagPushed] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonTagPushed] = workq.Consumer{
 		Handler: func(ctx context.Context, data []byte) error {
 			var payload types.DaemonTagPushedPayload
 			err := json.Unmarshal(data, &payload)
 			if err != nil {
-				return fmt.Errorf("Unmarshal payload failed: %v", err)
+				return fmt.Errorf("unmarshal payload failed: %v", err)
 			}
 			r := runnerTag{
 				builderServiceFactory:  dao.NewBuilderServiceFactory(),

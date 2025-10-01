@@ -38,7 +38,7 @@ type fs struct {
 }
 
 func init() {
-	utils.PanicIf(storage.RegisterDriverFactory(enums.StorageTypeFilesystem, &factory{}))
+	utils.PanicIf(storage.Register(enums.StorageTypeFilesystem, &factory{}))
 }
 
 type factory struct{}

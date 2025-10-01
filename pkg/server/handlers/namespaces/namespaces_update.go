@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -137,12 +137,12 @@ func (h *handler) PutNamespace(c echo.Context) error {
 				log.Error().Err(err).Msg("Create audit for update namespace failed")
 				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create audit for update namespace failed: %v", err))
 			}
-			err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+			err = h.Producer.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 				NamespaceID:  ptr.Of(namespaceObj.ID),
 				Action:       enums.WebhookActionUpdate,
 				ResourceType: enums.WebhookResourceTypeNamespace,
 				Payload:      utils.MustMarshal(req),
-			}, definition.ProducerOption{Tx: tx})
+			}, workq.ProducerOption{Tx: tx})
 			if err != nil {
 				log.Error().Err(err).Msg("Webhook event produce failed")
 				return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))

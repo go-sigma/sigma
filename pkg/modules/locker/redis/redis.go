@@ -24,24 +24,17 @@ import (
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-var (
-	luaRelease = redis.NewScript(`if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`)
-	luaRenew   = redis.NewScript(`if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('expire', KEYS[1], ARGV[2]) else return 0 end`)
-)
+func init() {
+	utils.PanicIf(locker.Register(enums.LockerTypeRedis, &factory{}))
+}
 
 type lockerRedis struct {
 	redisCli redis.UniversalClient
-}
-
-// New ...
-func New(digCon *dig.Container) (definition.Locker, error) {
-	return &lockerRedis{
-		redisCli: utils.MustGetObjFromDigCon[redis.UniversalClient](digCon),
-	}, nil
 }
 
 type lock struct {
@@ -50,9 +43,25 @@ type lock struct {
 	expire     time.Duration
 }
 
-func (l lockerRedis) Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (definition.Lock, error) {
-	if expire < definition.MinLockExpire {
-		return nil, definition.ErrLockTooShort
+type factory struct{}
+
+var _ locker.Factory = factory{}
+
+var (
+	luaRelease = redis.NewScript(`if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`)
+	luaRenew   = redis.NewScript(`if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('expire', KEYS[1], ARGV[2]) else return 0 end`)
+)
+
+// New ...
+func (factory) New(digCon *dig.Container) (locker.Locker, error) {
+	return &lockerRedis{
+		redisCli: utils.MustGetObjFromDigCon[redis.UniversalClient](digCon),
+	}, nil
+}
+
+func (l lockerRedis) Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (locker.Lock, error) {
+	if expire < locker.MinLockExpire {
+		return nil, locker.ErrLockTooShort
 	}
 	ddlCtx, cancel := context.WithTimeout(ctx, waitTimeout)
 	defer cancel()
@@ -122,18 +131,18 @@ func (l lock) Renew(ctx context.Context, ttls ...time.Duration) error {
 	} else {
 		expire = ttls[0]
 	}
-	if expire < definition.MinLockExpire {
-		return definition.ErrLockTooShort
+	if expire < locker.MinLockExpire {
+		return locker.ErrLockTooShort
 	}
 	res, err := luaRenew.Run(ctx, l.redisCli, []string{l.key}, l.value, int64(expire/time.Second)).Result()
 	if err == redis.Nil {
-		return definition.ErrLockNotHeld
+		return locker.ErrLockNotHeld
 	} else if err != nil {
 		return err
 	}
 
 	if i, ok := res.(int64); !ok || i != 1 {
-		return definition.ErrLockNotHeld
+		return locker.ErrLockNotHeld
 	}
 	return nil
 }
@@ -142,13 +151,13 @@ func (l lock) Renew(ctx context.Context, ttls ...time.Duration) error {
 func (l lock) Unlock(ctx context.Context) error {
 	res, err := luaRelease.Run(ctx, l.redisCli, []string{l.key}, l.value).Result()
 	if err == redis.Nil {
-		return definition.ErrLockNotHeld
+		return locker.ErrLockNotHeld
 	} else if err != nil {
 		return err
 	}
 
 	if i, ok := res.(int64); !ok || i != 1 {
-		return definition.ErrLockNotHeld
+		return locker.ErrLockNotHeld
 	}
 	return nil
 }

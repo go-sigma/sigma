@@ -30,7 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -108,12 +107,12 @@ func (h *handler) UpdateGcRepositoryRule(c echo.Context) error {
 			log.Error().Err(err).Msg("Update gc repository rule failed")
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
-		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.Producer.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRule,
 			Payload:      utils.MustMarshal(req),
-		}, definition.ProducerOption{Tx: tx})
+		}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msg("Webhook event produce failed")
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))
@@ -299,18 +298,18 @@ func (h *handler) CreateGcRepositoryRunner(c echo.Context) error {
 			log.Error().Int64("ruleID", ruleObj.ID).Msgf("Create gc repository runner failed: %v", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonGcRepository,
-			types.DaemonGcPayload{RunnerID: runnerObj.ID}, definition.ProducerOption{Tx: tx})
+		err = h.Producer.Produce(ctx, enums.DaemonGcRepository,
+			types.DaemonGcPayload{RunnerID: runnerObj.ID}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonGcRepository.String())
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
 		}
-		err = h.ProducerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
+		err = h.Producer.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
 			Payload:      utils.MustMarshal(req),
-		}, definition.ProducerOption{Tx: tx})
+		}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msg("Webhook event produce failed")
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Webhook event produce failed: %v", err))

@@ -24,7 +24,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -56,6 +58,8 @@ type handler struct {
 	TagServiceFactory        dao.TagServiceFactory
 	ArtifactServiceFactory   dao.ArtifactServiceFactory
 	BlobServiceFactory       dao.BlobServiceFactory
+	StorageDriver            storage.StorageDriver
+	Producer                 workq.Producer
 }
 
 // New creates a new instance of the distribution manifest handlers

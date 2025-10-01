@@ -30,7 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -70,7 +69,7 @@ type Service interface {
 type tokenService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
-	cacheCli   definition.Cacher[string]
+	cacheCli   cacher.Cacher[string]
 }
 
 // New creates a new token service.
@@ -139,7 +138,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, int6
 	}
 
 	val, err := s.cacheCli.Get(ctx, id)
-	if err != nil && !errors.Is(err, definition.ErrNotFound) {
+	if err != nil && !errors.Is(err, cacher.ErrNotFound) {
 		return "", 0, err
 	}
 	if val == expireVal {

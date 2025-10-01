@@ -33,7 +33,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -87,7 +86,7 @@ func TestAuth(t *testing.T) {
 	}))
 
 	require.NoError(t, digCon.Provide(badger.New))
-	require.NoError(t, digCon.Provide(func() (definition.Locker, error) { return locker.Initialize(digCon) }))
+	require.NoError(t, digCon.Provide(func() (locker.Locker, error) { return locker.Initialize(digCon) }))
 	require.NoError(t, dal.Initialize(digCon))
 
 	ctx := log.Logger.WithContext(context.Background())
