@@ -26,7 +26,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -72,12 +71,12 @@ func (h *handler) PostRunnerRun(c echo.Context) error {
 			log.Error().Err(err).Msg("Create builder runner failed")
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
+		err = h.Producer.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,
 			RunnerID:     runnerObj.ID,
-		}, definition.ProducerOption{Tx: tx})
+		}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))

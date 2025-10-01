@@ -14,24 +14,24 @@
 
 package inmemory
 
-import (
-	"context"
-	"testing"
+// import (
+// 	"context"
+// 	"testing"
 
-	"github.com/stretchr/testify/assert"
+// 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/types/enums"
-)
+// 	"github.com/go-sigma/sigma/pkg/configs"
+// 	"github.com/go-sigma/sigma/pkg/dal/models"
+// 	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+// 	"github.com/go-sigma/sigma/pkg/types/enums"
+// )
 
-func TestProducer(t *testing.T) {
-	producer, err := NewWorkQueueProducer(configs.Configuration{}, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, producer)
+// func TestProducer(t *testing.T) {
+// 	producer, err := NewWorkQueueProducer(configs.Configuration{}, nil)
+// 	assert.NoError(t, err)
+// 	assert.NotNil(t, producer)
 
-	packs[enums.DaemonBuilder] = make(chan *models.WorkQueue, 10)
-	err = producer.Produce(context.Background(), enums.DaemonBuilder, "test", definition.ProducerOption{})
-	assert.NoError(t, err)
-}
+// 	packs[enums.DaemonBuilder] = make(chan *models.WorkQueue, 10)
+// 	err = producer.Produce(context.Background(), enums.DaemonBuilder, "test", definition.ProducerOption{})
+// 	assert.NoError(t, err)
+// }

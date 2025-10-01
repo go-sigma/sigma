@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/auth"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -69,7 +69,7 @@ type handler struct {
 	RepositoryServiceFactory      dao.RepositoryServiceFactory
 	TagServiceFactory             dao.TagServiceFactory
 	ArtifactServiceFactory        dao.ArtifactServiceFactory
-	ProducerClient                definition.WorkQueueProducer
+	Producer                      workq.Producer
 }
 
 // handlerNew creates a new instance of the distribution handlers

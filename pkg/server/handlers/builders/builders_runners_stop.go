@@ -25,7 +25,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -78,12 +77,12 @@ func (h *handler) GetRunnerStop(c echo.Context) error {
 			log.Error().Err(err).Msg("Update runner status failed")
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update runner status failed: %v", err))
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
+		err = h.Producer.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStop,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,
 			RunnerID:     req.RunnerID,
-		}, definition.ProducerOption{Tx: tx})
+		}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Msgf("Send topic %s to work queue failed", enums.DaemonBuilder.String())
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))

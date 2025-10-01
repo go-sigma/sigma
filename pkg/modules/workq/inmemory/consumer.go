@@ -18,23 +18,34 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
+
+func init() {
+	utils.PanicIf(workq.RegisterConsumer(enums.WorkQueueTypeInmemory, &consumerFactory{}))
+}
+
+type consumerFactory struct{}
+
+var _ workq.ConsumerFactory = consumerFactory{}
 
 // This is only for small-scale deployment, a message queue with 1024 messages should suffice, and it can be adjusted appropriately if necessary.
 var packs = make(map[enums.Daemon]chan *models.WorkQueue, 10)
 
-// NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
+// New ...
+func (consumerFactory) New(digCon *dig.Container, topicHandlers map[enums.Daemon]workq.Consumer) error {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	for topic := range topicHandlers {
 		packs[topic] = make(chan *models.WorkQueue, config.WorkQueue.Inmemory.Concurrency)
 	}
 	for topic, c := range topicHandlers {
-		go func(consumer definition.Consumer, topic enums.Daemon) {
+		go func(consumer workq.Consumer, topic enums.Daemon) {
 			handler := &consumerHandler{
 				processingSemaphore: make(chan struct{}, consumer.Concurrency),
 				consumer:            consumer,
@@ -47,7 +58,7 @@ func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.
 
 type consumerHandler struct {
 	processingSemaphore chan struct{}
-	consumer            definition.Consumer
+	consumer            workq.Consumer
 }
 
 func (h *consumerHandler) Consume(topic enums.Daemon) {

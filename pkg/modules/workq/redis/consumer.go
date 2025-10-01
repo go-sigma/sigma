@@ -19,25 +19,34 @@ import (
 	"fmt"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/logger"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-// NewWorkQueueConsumer ...
-func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.Daemon]definition.Consumer) error {
+func init() {
+	utils.PanicIf(workq.RegisterConsumer(enums.WorkQueueTypeRedis, &consumerFactory{}))
+}
+
+type consumerFactory struct{}
+
+var _ workq.ConsumerFactory = consumerFactory{}
+
+// New ...
+func (consumerFactory) New(digCon *dig.Container, topicHandlers map[enums.Daemon]workq.Consumer) error {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 	if config.Redis.Type != enums.RedisTypeExternal {
 		return fmt.Errorf("work queue: please check redis configuration, it should be external")
 	}
-	redisOpt, err := asynq.ParseRedisURI(config.Redis.URL)
-	if err != nil {
-		return fmt.Errorf("asynq.ParseRedisURI error: %v", err)
-	}
+	redisCli := utils.MustGetObjFromDigCon[redis.UniversalClient](digCon)
 	asyncSrv := asynq.NewServer(
-		redisOpt,
+		&makeClient{redisCli: redisCli},
 		asynq.Config{
 			Concurrency: config.WorkQueue.Redis.Concurrency,
 			Logger:      &logger.Logger{},
@@ -45,7 +54,7 @@ func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.
 	)
 	mux := asynq.NewServeMux()
 	for topic, handler := range topicHandlers {
-		mux.HandleFunc(topic.String(), func(consumer definition.Consumer) func(context.Context, *asynq.Task) error {
+		mux.HandleFunc(topic.String(), func(consumer workq.Consumer) func(context.Context, *asynq.Task) error {
 			return func(ctx context.Context, task *asynq.Task) error {
 				return consumer.Handler(ctx, task.Payload())
 			}
@@ -55,7 +64,7 @@ func NewWorkQueueConsumer(config configs.Configuration, topicHandlers map[enums.
 	go func() {
 		err := asyncSrv.Run(mux)
 		if err != nil {
-			log.Fatal().Err(err).Msg("srv.Run error")
+			log.Fatal().Err(err).Msg("srv run failed")
 		}
 	}()
 

@@ -26,15 +26,12 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/cronjob"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	"github.com/go-sigma/sigma/pkg/modules/locker"
 	"github.com/go-sigma/sigma/pkg/modules/timewheel"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -64,16 +61,17 @@ func builderJob() {
 type builderRunner struct {
 	config                configs.Configuration
 	builderServiceFactory dao.BuilderServiceFactory
+	producer              workq.Producer
 }
 
 func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
-	ctx, ctxCancel := context.WithCancel(log.Logger.WithContext(ctx))
-	defer ctxCancel()
-	err := locker.Locker.AcquireWithRenew(ctx, consts.LockerCronjobBuilder, time.Second*3, time.Second*5)
-	if err != nil {
-		log.Error().Err(err).Msg("Cronjob builder get locker failed")
-		return
-	}
+	// ctx, ctxCancel := context.WithCancel(log.Logger.WithContext(ctx))
+	// defer ctxCancel()
+	// err := locker.Locker.AcquireWithRenew(ctx, consts.LockerCronjobBuilder, time.Second*3, time.Second*5)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Cronjob builder get locker failed")
+	// 	return
+	// }
 
 	builderService := r.builderServiceFactory.New()
 	builderObjs, err := builderService.GetByNextTrigger(ctx, time.Now(), cronjob.MaxJob)
@@ -112,11 +110,11 @@ func (r builderRunner) runner(ctx context.Context, tw timewheel.TimeWheel) {
 				return err
 			}
 
-			err = workq.ProducerClient.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
+			err = r.producer.Produce(ctx, enums.DaemonBuilder, types.DaemonBuilderPayload{
 				Action:    enums.DaemonBuilderActionStart,
 				BuilderID: builderObj.ID,
 				RunnerID:  runner.ID,
-			}, definition.ProducerOption{Tx: tx})
+			}, workq.ProducerOption{Tx: tx})
 			if err != nil {
 				return err
 			}

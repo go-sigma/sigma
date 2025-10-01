@@ -25,13 +25,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonArtifactPushed] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonArtifactPushed] = workq.Consumer{
 		Handler: func(ctx context.Context, data []byte) error {
 			var payload types.DaemonArtifactPushedPayload
 			err := json.Unmarshal(data, &payload)

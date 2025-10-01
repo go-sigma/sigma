@@ -32,10 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/graceful"
-	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/web"
 )
@@ -71,9 +68,9 @@ func Serve(digCon *dig.Container) error {
 	if err != nil {
 		return fmt.Errorf("failed to provide auth service factory: %v", err)
 	}
-	err = digCon.Provide(func() definition.WorkQueueProducer {
-		return workq.ProducerClient
-	})
+	// err = digCon.Provide(func() definition.WorkQueueProducer {
+	// 	return workq.ProducerClient
+	// })
 	if err != nil {
 		return fmt.Errorf("failed to provide work queue producer: %v", err)
 	}
@@ -90,23 +87,18 @@ func Serve(digCon *dig.Container) error {
 		}
 	}
 
-	if !serverConfig.WithoutWorker || !serverConfig.WithoutDistribution {
-		err := workq.Initialize(config)
-		if err != nil {
-			return err
-		}
-	}
+	// if !serverConfig.WithoutWorker || !serverConfig.WithoutDistribution {
+	// 	err := workq.Initialize(config)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	if !serverConfig.WithoutWeb {
 		web.RegisterHandlers(echoServer)
 	}
 
 	err = handlers.Initialize(digCon)
-	if err != nil {
-		return err
-	}
-
-	err = storage.Initialize(config)
 	if err != nil {
 		return err
 	}

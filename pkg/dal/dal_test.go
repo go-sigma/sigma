@@ -31,7 +31,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal"
 	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
@@ -84,7 +83,7 @@ func TestInitialize(t *testing.T) {
 				err = digCon.Provide(badger.New)
 				require.NoError(t, err)
 
-				err = digCon.Provide(func() (definition.Locker, error) {
+				err = digCon.Provide(func() (locker.Locker, error) {
 					return locker.Initialize(digCon)
 				})
 				require.NoError(t, err)
@@ -134,7 +133,7 @@ func TestInitialize(t *testing.T) {
 				err = digCon.Provide(badger.New)
 				require.NoError(t, err)
 
-				err = digCon.Provide(func() (definition.Locker, error) {
+				err = digCon.Provide(func() (locker.Locker, error) {
 					return locker.Initialize(digCon)
 				})
 				require.NoError(t, err)
@@ -188,7 +187,7 @@ func TestInitialize(t *testing.T) {
 				err = digCon.Provide(badger.New)
 				require.NoError(t, err)
 
-				err = digCon.Provide(func() (definition.Locker, error) {
+				err = digCon.Provide(func() (locker.Locker, error) {
 					return locker.Initialize(digCon)
 				})
 				require.NoError(t, err)

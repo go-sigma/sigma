@@ -25,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
@@ -35,7 +34,7 @@ const (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonCodeRepository] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonCodeRepository] = workq.Consumer{
 		Handler:     crRunner,
 		MaxRetry:    6,
 		Concurrency: 10,

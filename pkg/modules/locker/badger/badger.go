@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,19 +26,17 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/modules/locker/definition"
+	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-type lockerDatabase struct {
-	db *badger.DB
+func init() {
+	utils.PanicIf(locker.Register(enums.LockerTypeBadger, &factory{}))
 }
 
-// New ...
-func New(digCon *dig.Container) (definition.Locker, error) {
-	return &lockerDatabase{
-		db: utils.MustGetObjFromDigCon[*badger.DB](digCon),
-	}, nil
+type lockerDatabase struct {
+	db *badger.DB
 }
 
 type lock struct {
@@ -47,10 +45,21 @@ type lock struct {
 	expire     time.Duration
 }
 
+type factory struct{}
+
+var _ locker.Factory = factory{}
+
+// New ...
+func (factory) New(digCon *dig.Container) (locker.Locker, error) {
+	return &lockerDatabase{
+		db: utils.MustGetObjFromDigCon[*badger.DB](digCon),
+	}, nil
+}
+
 // Lock ...
-func (l lockerDatabase) Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (definition.Lock, error) {
+func (l lockerDatabase) Acquire(ctx context.Context, key string, expire, waitTimeout time.Duration) (locker.Lock, error) {
 	if expire < 100*time.Millisecond {
-		return nil, definition.ErrLockTooShort
+		return nil, locker.ErrLockTooShort
 	}
 	ddlCtx, cancel := context.WithTimeout(ctx, waitTimeout)
 	defer cancel()
@@ -154,8 +163,8 @@ func (l lock) Renew(ctx context.Context, ttls ...time.Duration) error {
 	} else {
 		expire = ttls[0]
 	}
-	if expire < definition.MinLockExpire {
-		return definition.ErrLockTooShort
+	if expire < locker.MinLockExpire {
+		return locker.ErrLockTooShort
 	}
 
 	ddlCtx, cancel := context.WithTimeout(ctx, time.Second*5)
@@ -187,10 +196,10 @@ func (l lock) Renew(ctx context.Context, ttls ...time.Duration) error {
 			continue
 		}
 		if v.Value != l.value {
-			return definition.ErrLockNotHeld
+			return locker.ErrLockNotHeld
 		}
 		if v.Expire < time.Now().UnixMilli() {
-			return definition.ErrLockAlreadyExpired
+			return locker.ErrLockAlreadyExpired
 		}
 		err = txn.Set([]byte(l.key), utils.MustMarshal(models.Locker{Key: l.key, Value: l.value,
 			Expire: time.Now().Add(expire).UnixMilli()}))
@@ -234,7 +243,7 @@ func (l *lock) Unlock(ctx context.Context) error {
 			continue
 		}
 		if v.Value != l.value {
-			return definition.ErrLockNotHeld
+			return locker.ErrLockNotHeld
 		}
 		err = txn.Delete([]byte(l.key))
 		if err != nil {

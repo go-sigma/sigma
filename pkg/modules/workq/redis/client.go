@@ -12,8 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package redis
 
-import (
-	_ "github.com/go-sigma/sigma/cmd/imports"
-)
+import "github.com/redis/go-redis/v9"
+
+type makeClient struct {
+	redisCli redis.UniversalClient
+}
+
+// MakeRedisClient ...
+func (m makeClient) MakeRedisClient() any {
+	return m.redisCli
+}

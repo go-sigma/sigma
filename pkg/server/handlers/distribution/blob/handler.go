@@ -33,10 +33,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/cacher"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
@@ -63,6 +63,7 @@ type handler struct {
 	RepositoryServiceFactory dao.RepositoryServiceFactory
 	BlobServiceFactory       dao.BlobServiceFactory
 	BadgerDB                 *badger.DB
+	StorageDriver            storage.StorageDriver
 }
 
 // handlerNew creates a new instance of the distribution blob handlers
@@ -96,7 +97,7 @@ func init() {
 	utils.PanicIf(distribution.RegisterRouterFactory(&factory{}, 3))
 }
 
-func (h *handler) BlobCacher(c echo.Context) (definition.Cacher[*models.Blob], error) {
+func (h *handler) BlobCacher(c echo.Context) (cacher.Cacher[*models.Blob], error) {
 	digCon := dig.New()
 	err := digCon.Provide(func() configs.Configuration { return h.Config })
 	if err != nil {

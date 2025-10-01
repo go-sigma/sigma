@@ -72,7 +72,8 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			locker, err := New(tt.newDigCon(t))
+			f := factory{}
+			locker, err := f.New(tt.newDigCon(t))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return

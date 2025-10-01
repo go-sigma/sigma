@@ -32,7 +32,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/counter"
@@ -112,7 +111,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if exist {
-		err = storage.Driver.AbortUpload(ctx, srcPath, uploadObj.UploadID)
+		err = h.StorageDriver.AbortUpload(ctx, srcPath, uploadObj.UploadID)
 		if err != nil {
 			log.Error().Err(err).Msg("Abort upload failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -144,7 +143,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	}
 	if length != 0 {
 		counterReader := counter.NewCounter(c.Request().Body)
-		etag, err := storage.Driver.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
+		etag, err := h.StorageDriver.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 		if err != nil {
 			log.Error().Err(err).Msg("Upload part failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -166,13 +165,13 @@ func (h *handler) PutUpload(c echo.Context) error {
 		c.Response().Header().Set("Content-Range", fmt.Sprintf("%d-%d", sizeBefore, sizeBefore+size))
 	}
 
-	err = storage.Driver.CommitUpload(ctx, srcPath, uploadID, etags)
+	err = h.StorageDriver.CommitUpload(ctx, srcPath, uploadID, etags)
 	if err != nil {
 		log.Error().Err(err).Str("id", uploadID).Strs("etags", etags).Msg("Commit upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
-	srcPathReader, err := storage.Driver.Reader(ctx, srcPath)
+	srcPathReader, err := h.StorageDriver.Reader(ctx, srcPath)
 	if err != nil {
 		log.Error().Err(err).Str("srcPath", srcPath).Msg("Get blob upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -188,13 +187,13 @@ func (h *handler) PutUpload(c echo.Context) error {
 	}
 
 	destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))
-	err = storage.Driver.Move(ctx, srcPath, destPath)
+	err = h.StorageDriver.Move(ctx, srcPath, destPath)
 	if err != nil {
 		log.Error().Err(err).Str("path", srcPath).Str("digest", dgest.String()).Str("dest", destPath).Msg("Move blob failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
-	err = storage.Driver.Delete(ctx, srcPath)
+	err = h.StorageDriver.Delete(ctx, srcPath)
 	if err != nil {
 		log.Error().Err(err).Msg("Delete blob upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)

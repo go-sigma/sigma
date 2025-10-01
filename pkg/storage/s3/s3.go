@@ -43,7 +43,7 @@ type awss3 struct {
 }
 
 func init() {
-	utils.PanicIf(storage.RegisterDriverFactory(enums.StorageTypeS3, &factory{}))
+	utils.PanicIf(storage.Register(enums.StorageTypeS3, &factory{}))
 }
 
 type factory struct{}

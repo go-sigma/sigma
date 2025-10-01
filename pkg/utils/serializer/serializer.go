@@ -17,7 +17,8 @@ package serializer
 import (
 	"net/http"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/bytedance/sonic/decoder"
+	"github.com/bytedance/sonic/encoder"
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,8 +27,8 @@ type DefaultJSONSerializer struct{}
 
 // Serialize converts an interface into a json and writes it to the response.
 // You can optionally use the indent parameter to produce pretty JSONs.
-func (d DefaultJSONSerializer) Serialize(c echo.Context, i interface{}, indent string) error {
-	enc := jsoniter.NewEncoder(c.Response())
+func (d DefaultJSONSerializer) Serialize(c echo.Context, i any, indent string) error {
+	enc := encoder.NewStreamEncoder(c.Response())
 	if indent != "" {
 		enc.SetIndent("", indent)
 	}
@@ -35,10 +36,10 @@ func (d DefaultJSONSerializer) Serialize(c echo.Context, i interface{}, indent s
 }
 
 // Deserialize reads a JSON from a request body and converts it into an interface.
-func (d DefaultJSONSerializer) Deserialize(c echo.Context, i interface{}) error {
-	err := jsoniter.NewDecoder(c.Request().Body).Decode(i)
+func (d DefaultJSONSerializer) Deserialize(c echo.Context, i any) error {
+	err := decoder.NewStreamDecoder(c.Request().Body).Decode(i)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Unmarshal body failed").SetInternal(err)
+		return echo.NewHTTPError(http.StatusBadRequest, "unmarshal body failed").SetInternal(err)
 	}
 	return err
 }

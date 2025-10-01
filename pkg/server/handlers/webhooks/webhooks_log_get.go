@@ -67,7 +67,7 @@ func (h *handler) GetWebhookLog(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	webhookService := h.webhookServiceFactory.New()
+	webhookService := h.WebhookServiceFactory.New()
 	webhookObj, err := webhookService.Get(ctx, req.WebhookID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -84,7 +84,7 @@ func (h *handler) GetWebhookLog(c echo.Context) error {
 		}
 	} else {
 		namespaceID := ptr.To(webhookObj.NamespaceID)
-		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
+		authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")

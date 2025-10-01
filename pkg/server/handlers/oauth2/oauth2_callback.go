@@ -35,7 +35,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -228,8 +227,8 @@ func (h *handler) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
-					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
+				err = h.Producer.Produce(ctx, enums.DaemonCodeRepository,
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, workq.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return errcode.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
@@ -255,8 +254,8 @@ func (h *handler) Callback(c echo.Context) error {
 					log.Error().Err(err).Msg("Create user failed")
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
-					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
+				err = h.Producer.Produce(ctx, enums.DaemonCodeRepository,
+					types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, workq.ProducerOption{Tx: tx})
 				if err != nil {
 					log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 					return errcode.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")

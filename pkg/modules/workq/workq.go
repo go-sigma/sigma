@@ -15,15 +15,48 @@
 package workq
 
 import (
+	"context"
 	"fmt"
+	"time"
+
+	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/workq/database"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
-	"github.com/go-sigma/sigma/pkg/modules/workq/inmemory"
-	"github.com/go-sigma/sigma/pkg/modules/workq/redis"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/types/enums"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
+
+//go:generate mockgen -destination=workq_mocks.go -package=workq github.com/go-sigma/sigma/pkg/modules/workq Producer,ProducerFactory,ConsumerFactory
+
+// Consumer ...
+type Consumer struct {
+	Handler     func(ctx context.Context, payload []byte) error
+	Concurrency int
+	MaxRetry    int
+	Timeout     time.Duration
+}
+
+// ProducerOption ...
+type ProducerOption struct {
+	Tx *query.Query
+}
+
+// Producer ...
+type Producer interface {
+	// Produce ...
+	Produce(ctx context.Context, topic enums.Daemon, payload any, option ProducerOption) error
+}
+
+// ProducerFactory is the interface for the producer factory
+type ProducerFactory interface {
+	New(digCon *dig.Container) (Producer, error)
+}
+
+// ConsumerFactory is the interface for the consumer factory
+type ConsumerFactory interface {
+	New(digCon *dig.Container, topicHandlers map[enums.Daemon]Consumer) error
+}
 
 // Message ...
 type Message struct {
@@ -31,58 +64,49 @@ type Message struct {
 	Payload []byte
 }
 
-var TopicHandlers = make(map[enums.Daemon]definition.Consumer)
+// TopicHandlers ...
+var TopicHandlers = make(map[enums.Daemon]Consumer)
 
-// ProducerClient ...
-var ProducerClient definition.WorkQueueProducer
+var producerFactories = make(map[enums.WorkQueueType]ProducerFactory)
 
-// InitProducer ...
-func InitProducer(config configs.Configuration) error {
-	var err error
-	switch config.WorkQueue.Type {
-	case enums.WorkQueueTypeDatabase:
-		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeRedis:
-		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeInmemory:
-		ProducerClient, err = inmemory.NewWorkQueueProducer(config, TopicHandlers)
-	default:
-		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
+var consumerFactories = make(map[enums.WorkQueueType]ConsumerFactory)
+
+// RegisterProducer registers a storage factory driver by name.
+// If Register is called twice with the same name or if driver is nil, it panics.
+func RegisterProducer(name enums.WorkQueueType, factory ProducerFactory) error {
+	if _, ok := producerFactories[name]; ok {
+		return fmt.Errorf("driver %q already registered", name)
 	}
-	if err != nil {
-		return err
-	}
+	producerFactories[name] = factory
 	return nil
 }
 
-// Initialize ...
-func Initialize(config configs.Configuration) error {
-	var err error
-	switch config.WorkQueue.Type {
-	case enums.WorkQueueTypeDatabase:
-		err = database.NewWorkQueueConsumer(config, TopicHandlers)
-	case enums.WorkQueueTypeRedis:
-		err = redis.NewWorkQueueConsumer(config, TopicHandlers)
-	case enums.WorkQueueTypeInmemory:
-		err = inmemory.NewWorkQueueConsumer(config, TopicHandlers)
-	default:
-		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
+// RegisterConsumer registers a storage factory driver by name.
+// If Register is called twice with the same name or if driver is nil, it panics.
+func RegisterConsumer(name enums.WorkQueueType, factory ConsumerFactory) error {
+	if _, ok := consumerFactories[name]; ok {
+		return fmt.Errorf("driver %q already registered", name)
 	}
-	if err != nil {
-		return err
-	}
-	switch config.WorkQueue.Type {
-	case enums.WorkQueueTypeDatabase:
-		ProducerClient, err = database.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeRedis:
-		ProducerClient, err = redis.NewWorkQueueProducer(config, TopicHandlers)
-	case enums.WorkQueueTypeInmemory:
-		ProducerClient, err = inmemory.NewWorkQueueProducer(config, TopicHandlers)
-	default:
-		return fmt.Errorf("Workq %s not support", config.WorkQueue.Type.String())
-	}
-	if err != nil {
-		return err
-	}
+	consumerFactories[name] = factory
 	return nil
+}
+
+// InitProducer ...
+func InitProducer(digCon *dig.Container) (Producer, error) {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+	factory, ok := producerFactories[config.WorkQueue.Type]
+	if !ok {
+		return nil, fmt.Errorf("workq %q not support", config.WorkQueue.Type.String())
+	}
+	return factory.New(digCon)
+}
+
+// InitConsumer ...
+func InitConsumer(digCon *dig.Container, topicHandlers map[enums.Daemon]Consumer) error {
+	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
+	factory, ok := consumerFactories[config.WorkQueue.Type]
+	if !ok {
+		return fmt.Errorf("workq %q not support", config.WorkQueue.Type.String())
+	}
+	return factory.New(digCon, topicHandlers)
 }

@@ -67,7 +67,7 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
 	}
 
-	webhookService := h.webhookServiceFactory.New()
+	webhookService := h.WebhookServiceFactory.New()
 	webhookOldObj, err := webhookService.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -84,7 +84,7 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		}
 	} else {
 		namespaceID := ptr.To(webhookOldObj.NamespaceID)
-		authChecked, err := h.authServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
+		authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
@@ -100,13 +100,13 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		webhookService := h.webhookServiceFactory.New(tx)
+		webhookService := h.WebhookServiceFactory.New(tx)
 		err = webhookService.DeleteByID(ctx, req.ID)
 		if err != nil {
 			log.Error().Err(err).Msg("Delete webhook failed")
 			return errcode.HTTPErrCodeInternalError.Detail("Delete webhook failed")
 		}
-		auditService := h.auditServiceFactory.New(tx)
+		auditService := h.AuditServiceFactory.New(tx)
 		err = auditService.Create(ctx, &models.Audit{
 			UserID:       user.ID,
 			NamespaceID:  webhookOldObj.NamespaceID,

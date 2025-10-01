@@ -24,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -61,6 +62,7 @@ type handler struct {
 	BuilderServiceFactory        dao.BuilderServiceFactory
 	UserServiceFactory           dao.UserServiceFactory
 	CodeRepositoryServiceFactory dao.CodeRepositoryServiceFactory
+	Producer                     workq.Producer
 }
 
 // handlerNew creates a new instance of the builder handlers

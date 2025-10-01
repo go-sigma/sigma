@@ -29,7 +29,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -38,7 +37,7 @@ import (
 )
 
 func init() {
-	workq.TopicHandlers[enums.DaemonGcBlob] = definition.Consumer{
+	workq.TopicHandlers[enums.DaemonGcBlob] = workq.Consumer{
 		Handler:     decorator(enums.DaemonGcBlob),
 		MaxRetry:    6,
 		Concurrency: 10,
@@ -69,7 +68,7 @@ type gcBlob struct {
 
 	blobServiceFactory   dao.BlobServiceFactory
 	daemonServiceFactory dao.DaemonServiceFactory
-	storageDriverFactory storage.StorageDriverFactory
+	storageDriver        storage.StorageDriver
 
 	deleteBlobChan        chan blobTask
 	deleteBlobChanOnce    *sync.Once
@@ -202,7 +201,7 @@ func (g gcBlob) deleteBlob() {
 				}
 				continue
 			}
-			err = g.storageDriverFactory.New().Delete(g.ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
+			err = g.storageDriver.Delete(g.ctx, utils.GenPathByDigest(digest.Digest(task.Blob.Digest)))
 			if err != nil {
 				log.Error().Err(err).Interface("blob", task).Msgf("Delete blob in obs failed: %v", err)
 			}

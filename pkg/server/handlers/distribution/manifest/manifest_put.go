@@ -35,10 +35,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
-	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -194,7 +192,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 	} else {
 		for _, reference := range manifest.References() {
 			if reference.MediaType == "application/vnd.oci.image.config.v1+json" || reference.MediaType == "application/vnd.docker.container.image.v1+json" || reference.MediaType == "application/vnd.cncf.helm.config.v1+json" || reference.MediaType == "application/vnd.sylabs.sif.config.v1+json" {
-				configRawReader, err := storage.Driver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)))
+				configRawReader, err := h.StorageDriver.Reader(ctx, path.Join(consts.Blobs, utils.GenPathByDigest(reference.Digest)))
 				if err != nil {
 					log.Error().Err(err).Str("digest", reference.Digest.String()).Msg("Get image config raw layer failed")
 					return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
@@ -264,26 +262,26 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				}
 				return errcode.DSErrCodeUnknown
 			}
-			if workq.ProducerClient != nil { // TODO: init in test
-				err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
-					RepositoryID: repositoryObj.ID,
-					Tag:          refs.Tag,
-				}, definition.ProducerOption{Tx: tx})
-				if err != nil {
-					log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-					return errcode.DSErrCodeUnknown
-				}
-			}
-		}
-		if workq.ProducerClient != nil {
-			err = workq.ProducerClient.Produce(ctx, enums.DaemonArtifactPushed, types.DaemonArtifactPushedPayload{
+			// if workq.ProducerClient != nil { // TODO: init in test
+			err = h.Producer.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
 				RepositoryID: repositoryObj.ID,
-			}, definition.ProducerOption{Tx: tx})
+				Tag:          refs.Tag,
+			}, workq.ProducerOption{Tx: tx})
 			if err != nil {
-				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
+				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
 				return errcode.DSErrCodeUnknown
 			}
+			// }
 		}
+		// if workq.ProducerClient != nil {
+		err = h.Producer.Produce(ctx, enums.DaemonArtifactPushed, types.DaemonArtifactPushedPayload{
+			RepositoryID: repositoryObj.ID,
+		}, workq.ProducerOption{Tx: tx})
+		if err != nil {
+			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
+			return errcode.DSErrCodeUnknown
+		}
+		// }
 		return nil
 	})
 	if err != nil {
@@ -363,10 +361,10 @@ func (h *handler) putManifestIndex(ctx context.Context, user *models.User, diges
 				return errcode.DSErrCodeUnknown
 			}
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
+		err = h.Producer.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
 			RepositoryID: repositoryObj.ID,
 			Tag:          refs.Tag,
-		}, definition.ProducerOption{Tx: tx})
+		}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
 			return errcode.DSErrCodeUnknown
@@ -398,7 +396,7 @@ func (h *handler) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *mod
 	taskSbomPayload := types.TaskSbom{
 		ArtifactID: artifactObj.ID,
 	}
-	err = workq.ProducerClient.Produce(ctx, enums.DaemonSbom, taskSbomPayload, definition.ProducerOption{})
+	err = h.Producer.Produce(ctx, enums.DaemonSbom, taskSbomPayload, workq.ProducerOption{})
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return
@@ -419,7 +417,7 @@ func (h *handler) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	taskVulnerabilityPayload := types.TaskVulnerability{
 		ArtifactID: artifactObj.ID,
 	}
-	err = workq.ProducerClient.Produce(ctx, enums.DaemonVulnerability, taskVulnerabilityPayload, definition.ProducerOption{})
+	err = h.Producer.Produce(ctx, enums.DaemonVulnerability, taskVulnerabilityPayload, workq.ProducerOption{})
 	if err != nil {
 		log.Error().Err(err).Interface("artifactObj", artifactObj).Msg("Enqueue task failed")
 		return

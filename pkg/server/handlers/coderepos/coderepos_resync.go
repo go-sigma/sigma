@@ -28,7 +28,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -91,8 +90,8 @@ func (h *handler) Resync(c echo.Context) error {
 		if err != nil {
 			return errcode.HTTPErrCodeInternalError.Detail("Update user status failed")
 		}
-		err = workq.ProducerClient.Produce(ctx, enums.DaemonCodeRepository,
-			types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, definition.ProducerOption{Tx: tx})
+		err = h.Producer.Produce(ctx, enums.DaemonCodeRepository,
+			types.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID}, workq.ProducerOption{Tx: tx})
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", user3rdPartyObj.UserID).Msg("Publish sync code repository failed")
 		}

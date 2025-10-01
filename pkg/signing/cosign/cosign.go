@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sign
+package cosign
 
 import (
 	"context"
@@ -26,27 +26,36 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution/clients"
-	"github.com/go-sigma/sigma/pkg/signing/definition"
+	"github.com/go-sigma/sigma/pkg/signing"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/hash"
 	"github.com/go-sigma/sigma/pkg/utils/imagerefs"
 )
 
-type signing struct {
+func init() {
+	utils.PanicIf(signing.RegisterSigning(enums.SigningTypeCosign, &factory{}))
+}
+
+type client struct {
 	MultiArch bool
 	Http      bool
 }
 
+type factory struct{}
+
+var _ signing.SigningFactory = factory{}
+
 // New ...
-func New(http, multiArch bool) definition.Signing {
-	return &signing{
+func (factory) New(http, multiArch bool) (signing.Signing, error) {
+	return &client{
 		MultiArch: multiArch,
 		Http:      http,
-	}
+	}, nil
 }
 
 // Sign ...
-func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
+func (s *client) Sign(ctx context.Context, token, priKey, ref string) error {
 	imageRef, err := s.GetImageRef(ctx, token, ref)
 	if err != nil {
 		return err
@@ -91,7 +100,7 @@ func (s *signing) Sign(ctx context.Context, token, priKey, ref string) error {
 }
 
 // GetDigest ...
-func (s *signing) GetImageRef(ctx context.Context, token, ref string) (string, error) {
+func (s *client) GetImageRef(ctx context.Context, token, ref string) (string, error) {
 	domain, _, repo, tag, err := imagerefs.Parse(ref)
 	if err != nil {
 		return "", err

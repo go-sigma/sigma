@@ -289,10 +289,13 @@ func (b Builder) build(imageName string) error {
 }
 
 func (b Builder) sign(imageName string) error {
-	s := signing.NewSigning(signing.Options{
+	s, err := signing.NewSigning(signing.Options{
 		Type:      enums.SigningTypeCosign,
 		Http:      strings.HasPrefix(b.Endpoint, "http://"),
 		MultiArch: len(b.BuildkitPlatforms) > 1,
 	})
+	if err != nil {
+		return err
+	}
 	return s.Sign(context.Background(), b.Authorization, b.SigningPrivateKey, imageName)
 }

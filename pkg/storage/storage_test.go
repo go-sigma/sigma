@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,37 +36,37 @@ func (dummyFactoryError) New(_ configs.Configuration) (StorageDriver, error) {
 	return nil, fmt.Errorf("dummy error")
 }
 
-func TestRegisterDriverFactory(t *testing.T) {
-	driverFactories = make(map[enums.StorageType]Factory)
+func TestRegister(t *testing.T) {
+	factories = make(map[enums.StorageType]Factory)
 
-	err := RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
+	err := Register(enums.StorageTypeDummy, &dummyFactory{})
 	assert.NoError(t, err)
 
-	err = RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
+	err = Register(enums.StorageTypeDummy, &dummyFactory{})
 	assert.Error(t, err)
 }
 
 func TestInitialize(t *testing.T) {
-	driverFactories = make(map[enums.StorageType]Factory)
+	factories = make(map[enums.StorageType]Factory)
 
-	err := RegisterDriverFactory(enums.StorageTypeDummy, &dummyFactory{})
+	err := Register(enums.StorageTypeDummy, &dummyFactory{})
 	assert.NoError(t, err)
 
-	err = Initialize(configs.Configuration{
+	_, err = Initialize(configs.Configuration{
 		Storage: configs.ConfigurationStorage{
 			Type: enums.StorageTypeDummy,
 		},
 	})
 	assert.NoError(t, err)
 
-	err = Initialize(configs.Configuration{
+	_, err = Initialize(configs.Configuration{
 		Storage: configs.ConfigurationStorage{
 			Type: "fake",
 		},
 	})
 	assert.Error(t, err)
 
-	err = RegisterDriverFactory("dummy-error", &dummyFactoryError{})
+	err = Register("dummy-error", &dummyFactoryError{})
 	assert.NoError(t, err)
 }
 

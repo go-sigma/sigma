@@ -15,10 +15,25 @@
 package signing
 
 import (
-	"github.com/go-sigma/sigma/pkg/signing/cosign/sign"
-	"github.com/go-sigma/sigma/pkg/signing/definition"
+	"context"
+	"fmt"
+
+	"go.uber.org/dig"
+
 	"github.com/go-sigma/sigma/pkg/types/enums"
 )
+
+//go:generate mockgen -destination=signing_mocks.go -package=signing github.com/go-sigma/sigma/pkg/signing Signing,Verifying,SigningFactory,VerifyingFactory
+
+// Signing ...
+type Signing interface {
+	Sign(ctx context.Context, token, priKey, ref string) error
+}
+
+// Verifying ...
+type Verifying interface {
+	Verify(ref, token string) error
+}
 
 // Options ...
 type Options struct {
@@ -28,12 +43,59 @@ type Options struct {
 	MultiArch bool
 }
 
-// NewSigning ...
-func NewSigning(opt Options) definition.Signing {
-	switch opt.Type {
-	case enums.SigningTypeCosign:
-		return sign.New(opt.Http, opt.MultiArch)
-	default:
-		return sign.New(opt.Http, opt.MultiArch)
+// SigningFactory is the interface for the signing driver factory
+type SigningFactory interface {
+	New(http, multiArch bool) (Signing, error)
+}
+
+type VerifyingFactory interface {
+	New(digCon *dig.Container) (Verifying, error)
+}
+
+var verifyingFactories = make(map[enums.SigningType]VerifyingFactory)
+
+var signingFactories = make(map[enums.SigningType]SigningFactory)
+
+// RegisterSigning ...
+func RegisterSigning(signingType enums.SigningType, factory SigningFactory) error {
+	if _, ok := signingFactories[signingType]; ok {
+		return nil
 	}
+	signingFactories[signingType] = factory
+	return nil
+}
+
+// RegisterVerifying ...
+func RegisterVerifying(signingType enums.SigningType, factory VerifyingFactory) error {
+	if _, ok := verifyingFactories[signingType]; ok {
+		return nil
+	}
+	verifyingFactories[signingType] = factory
+	return nil
+}
+
+// NewSigning ...
+func NewSigning(opt Options) (Signing, error) {
+	factory, ok := signingFactories[opt.Type]
+	if !ok {
+		return nil, fmt.Errorf("signing %q not support", opt.Type.String())
+	}
+	signing, err := factory.New(opt.Http, opt.MultiArch)
+	if err != nil {
+		return nil, err
+	}
+	return signing, nil
+}
+
+// NewVerifying ...
+func NewVerifying(opt Options) (Verifying, error) {
+	factory, ok := verifyingFactories[opt.Type]
+	if !ok {
+		return nil, fmt.Errorf("verifying %q not support", opt.Type.String())
+	}
+	verifying, err := factory.New(&dig.Container{})
+	if err != nil {
+		return nil, err
+	}
+	return verifying, nil
 }

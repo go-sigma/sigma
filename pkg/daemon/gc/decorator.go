@@ -26,7 +26,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
 	"github.com/go-sigma/sigma/pkg/modules/workq"
-	"github.com/go-sigma/sigma/pkg/modules/workq/definition"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
@@ -55,8 +54,8 @@ type decoratorWebhook struct {
 
 type inject struct {
 	daemonServiceFactory dao.DaemonServiceFactory
-	storageDriverFactory storage.StorageDriverFactory
-	producerClient       definition.WorkQueueProducer
+	storageDriver        storage.StorageDriver
+	producerClient       workq.Producer
 }
 
 // Runner ...
@@ -71,7 +70,10 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 		ctx = log.Logger.WithContext(ctx)
 		id := gjson.GetBytes(payload, "runner_id").Int()
 
-		producerClient := workq.ProducerClient
+		producerClient, err := workq.InitProducer(nil)
+		if err != nil {
+			return fmt.Errorf("initialize work queue producer failed: %v", err)
+		}
 		daemonServiceFactory := dao.NewDaemonServiceFactory()
 		if len(injects) > 0 {
 			ij := injects[0]
@@ -147,7 +149,7 @@ func decorator(daemon enums.Daemon, injects ...inject) func(context.Context, []b
 			}
 		}()
 
-		err := gc.Run(id)
+		err = gc.Run(id)
 		if err != nil {
 			return fmt.Errorf("gc runner(%s) failed: %v", daemon.String(), err)
 		}
@@ -238,13 +240,17 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			waitAllDone: &sync.WaitGroup{},
 		}
 	case enums.DaemonGcBlob:
+		storageDrive, err := storage.Initialize(ptr.To(configs.GetConfig()))
+		if err != nil {
+			log.Fatal().Err(err).Msg("Initialize storage driver failed")
+		}
 		runner := &gcBlob{
 			ctx:    log.Logger.WithContext(ctx),
 			config: ptr.To(configs.GetConfig()),
 
 			blobServiceFactory:   dao.NewBlobServiceFactory(),
 			daemonServiceFactory: dao.NewDaemonServiceFactory(),
-			storageDriverFactory: storage.NewStorageDriverFactory(),
+			storageDriver:        storageDrive,
 
 			deleteBlobChan:        make(chan blobTask, pagination),
 			deleteBlobChanOnce:    &sync.Once{},
@@ -257,10 +263,10 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 			waitAllDone: &sync.WaitGroup{},
 		}
 		if len(injects) > 0 {
-			ij := injects[0]
-			if ij.storageDriverFactory != nil {
-				runner.storageDriverFactory = ij.storageDriverFactory
-			}
+			// ij := injects[0]
+			// if ij.storageDriverFactory != nil {
+			// 	runner.storageDriverFactory = ij.storageDriverFactory
+			// }
 		}
 		return runner
 	default:
@@ -268,14 +274,14 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 	}
 }
 
-func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClient definition.WorkQueueProducer) error {
+func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClient workq.Producer) error {
 	err := producerClient.Produce(ctx, enums.DaemonWebhook, types.DaemonWebhookPayload{
 		NamespaceID:  webhook.NamespaceID,
 		Action:       webhook.Meta.Action,
 		Type:         enums.WebhookTypeSend,
 		ResourceType: webhook.Meta.ResourceType,
 		Payload:      utils.MustMarshal(webhook.WebhookObj),
-	}, definition.ProducerOption{})
+	}, workq.ProducerOption{})
 	if err != nil {
 		return fmt.Errorf("Webhook event produce failed: %v", err)
 	}

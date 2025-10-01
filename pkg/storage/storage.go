@@ -27,16 +27,16 @@ import (
 
 const (
 	// MultipartCopyThresholdSize ...
-	MultipartCopyThresholdSize = 32 << 20 // 32MB
+	MultipartCopyThresholdSize = 64 << 20 // 64MB
 	// MultipartCopyChunkSize ...
-	MultipartCopyChunkSize = 32 << 20 // 32MB
+	MultipartCopyChunkSize = 64 << 20 // 64MB
 	// MultipartCopyMaxConcurrency ...
 	MultipartCopyMaxConcurrency = 100 // 100 goroutines
 	// MaxPaginationKeys ...
 	MaxPaginationKeys = 1000 // 1000 keys
 )
 
-//go:generate mockgen -destination=storage_mocks.go -package=storage github.com/go-sigma/sigma/pkg/storage StorageDriver,StorageDriverFactory
+//go:generate mockgen -destination=storage_mocks.go -package=storage github.com/go-sigma/sigma/pkg/storage StorageDriver
 
 // StorageDriver is the interface for the storage driver
 type StorageDriver interface {
@@ -78,51 +78,25 @@ type Factory interface {
 	New(config configs.Configuration) (StorageDriver, error)
 }
 
-var driverFactories = make(map[enums.StorageType]Factory)
+var factories = make(map[enums.StorageType]Factory)
 
-// RegisterDriverFactory registers a storage factory driver by name.
-// If RegisterDriverFactory is called twice with the same name or if driver is nil, it panics.
-func RegisterDriverFactory(name enums.StorageType, factory Factory) error {
-	if _, ok := driverFactories[name]; ok {
+// Register registers a storage factory driver by name.
+// If Register is called twice with the same name or if driver is nil, it panics.
+func Register(name enums.StorageType, factory Factory) error {
+	if _, ok := factories[name]; ok {
 		return fmt.Errorf("driver %q already registered", name)
 	}
-	driverFactories[name] = factory
+	factories[name] = factory
 	return nil
-}
-
-// Driver is the storage driver
-var Driver StorageDriver
-
-// StorageDriverFactory ...
-type StorageDriverFactory interface {
-	// New new storage driver
-	New() StorageDriver
-}
-
-type storageDriverFactory struct{}
-
-// NewStorageDriverFactory ...
-func NewStorageDriverFactory() StorageDriverFactory {
-	return &storageDriverFactory{}
-}
-
-// New new storage driver
-func (s *storageDriverFactory) New() StorageDriver {
-	return Driver
 }
 
 // Initialize initializes the storage driver
-func Initialize(config configs.Configuration) error {
-	factory, ok := driverFactories[config.Storage.Type]
+func Initialize(config configs.Configuration) (StorageDriver, error) {
+	factory, ok := factories[config.Storage.Type]
 	if !ok {
-		return fmt.Errorf("driver %q not registered", config.Storage.Type)
+		return nil, fmt.Errorf("driver %q not registered", config.Storage.Type)
 	}
-	var err error
-	Driver, err = factory.New(config)
-	if err != nil {
-		return err
-	}
-	return nil
+	return factory.New(config)
 }
 
 // SanitizePath ...

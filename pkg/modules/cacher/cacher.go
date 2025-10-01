@@ -15,32 +15,62 @@
 package cacher
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/configs"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/badger"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/definition"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/inmemory"
-	"github.com/go-sigma/sigma/pkg/modules/cacher/redis"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
+// Fetcher ...
+type Fetcher[T any] func(key string) (T, error)
+
+// Cacher ...
+type Cacher[T any] interface {
+	// Set sets the value of given key if it is new to the cache.
+	// Param val should not be nil.
+	Set(ctx context.Context, key string, val T, ttls ...time.Duration) error
+	// Get tries to fetch a value corresponding to the given key from the cache.
+	// If error occurs during the first time fetching, it will be cached until the
+	// sequential fetching triggered by the refresh goroutine succeed.
+	Get(ctx context.Context, key string) (T, error)
+	// Del deletes the value corresponding to the given key from the cache.
+	Del(ctx context.Context, key string) error
+}
+
+// CacherFactory ...
+type CacherFactory[T any] interface {
+	New(prefix string, fetcher Fetcher[T]) (Cacher[T], error)
+}
+
+var (
+	ErrValNil   = fmt.Errorf("val should not be nil")
+	ErrNotFound = fmt.Errorf("key not found")
+)
+
+func genKey(config configs.Configuration, prefix, key string) string {
+	return fmt.Sprintf("%s:%s:%s", config.Cache.Prefix, prefix, key)
+}
+
 // New ...
-func New[T any](digCon *dig.Container, prefix string, fetcher definition.Fetcher[T]) (definition.Cacher[T], error) {
+func New[T any](digCon *dig.Container, prefix string, fetcher Fetcher[T]) (Cacher[T], error) {
 	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	var err error
-	var cacher definition.Cacher[T]
+	var cacher Cacher[T]
 	switch config.Cache.Type {
 	case enums.CacherTypeRedis:
-		cacher, err = redis.New(digCon, prefix, fetcher)
+		cacher, err = newRedis(digCon, prefix, fetcher)
 	case enums.CacherTypeInmemory:
-		cacher, err = inmemory.New(digCon, prefix, fetcher)
+		cacher, err = newMemory(digCon, prefix, fetcher)
 	case enums.CacherTypeBadger:
-		cacher, err = badger.New(digCon, prefix, fetcher)
+		cacher, err = newBadger(digCon, prefix, fetcher)
 	default:
-		cacher, err = badger.New(digCon, prefix, fetcher)
+		cacher, err = newBadger(digCon, prefix, fetcher)
 	}
 	return cacher, err
 }
