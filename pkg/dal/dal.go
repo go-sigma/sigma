@@ -16,10 +16,11 @@ package dal
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/sqlite"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 	"gorm.io/driver/mysql"
@@ -43,21 +44,19 @@ var (
 // Initialize initializes the database connection
 func Initialize(digCon *dig.Container) error {
 	var err error
-	var dsn string
 
 	config := utils.MustGetObjFromDigCon[configs.Configuration](digCon)
 
 	switch config.Database.Type {
 	case enums.DatabaseMysql:
-		dsn, err = connectMysql(config)
+		err = connectMysql(config)
 	case enums.DatabasePostgresql:
-		dsn, err = connectPostgres(config)
+		err = connectPostgres(config)
 	case enums.DatabaseSqlite3:
 		err = connectSqlite3(config)
 	default:
 		return fmt.Errorf("unknown database type: %s", config.Database.Type)
 	}
-
 	if err != nil {
 		return err
 	}
@@ -77,16 +76,7 @@ func Initialize(digCon *dig.Container) error {
 		return err
 	}
 
-	switch config.Database.Type {
-	case enums.DatabaseMysql:
-		err = migrateMysql(dsn)
-	case enums.DatabasePostgresql:
-		err = migratePostgres(dsn)
-	case enums.DatabaseSqlite3:
-		err = migrateSqlite()
-	default:
-		return fmt.Errorf("unknown database type: %s", config.Database.Type)
-	}
+	err = MigrateDatabase(config)
 	if err != nil {
 		return err
 	}
@@ -109,6 +99,11 @@ func Initialize(digCon *dig.Container) error {
 	return nil
 }
 
+// GetRawDB returns the raw sql.DB instance
+func GetRawDB() (*sql.DB, error) {
+	return DB.DB()
+}
+
 // DeInitialize ...
 func DeInitialize() error {
 	conn, err := DB.DB()
@@ -118,7 +113,7 @@ func DeInitialize() error {
 	return conn.Close()
 }
 
-func connectMysql(config configs.Configuration) (string, error) {
+func connectMysql(config configs.Configuration) error {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC&multiStatements=true",
 		config.Database.Mysql.Username, config.Database.Mysql.Password,
 		config.Database.Mysql.Host, config.Database.Mysql.Port, config.Database.Mysql.Database)
@@ -131,14 +126,14 @@ func connectMysql(config configs.Configuration) (string, error) {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
 	DB = DB.WithContext(log.Logger.WithContext(context.Background()))
 
-	return dsn, nil
+	return nil
 }
 
-func connectPostgres(config configs.Configuration) (string, error) {
+func connectPostgres(config configs.Configuration) error {
 	dsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=%s", config.Database.Postgresql.Username,
 		config.Database.Postgresql.Password, config.Database.Postgresql.Host,
 		config.Database.Postgresql.Port, config.Database.Postgresql.Database,
@@ -151,10 +146,10 @@ func connectPostgres(config configs.Configuration) (string, error) {
 		Logger: logger.ZLogger{},
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
 	DB = DB.WithContext(log.Logger.WithContext(context.Background()))
-	return dsn, nil
+	return nil
 }
 
 func connectSqlite3(config configs.Configuration) error {

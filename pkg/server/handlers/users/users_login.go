@@ -61,7 +61,7 @@ func (h *handler) Login(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
-	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTtl)
+	refreshToken, err := h.TokenService.New(user.ID, h.Config.Auth.Jwt.RefreshTTL)
 	if err != nil {
 		log.Error().Err(err).Msg("Create refresh token failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())

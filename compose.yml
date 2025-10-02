@@ -55,7 +55,7 @@ services:
       - default
   redis:
     container_name: redis
-    image: redis:7.0-alpine
+    image: redis:8.0-alpine
     ports:
       - "6379:6379"
     command: redis-server --requirepass sigma
@@ -70,7 +70,7 @@ services:
       - default
   minio:
     container_name: minio
-    image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     ports:
       - "9000:9000"
       - "9001:9001"

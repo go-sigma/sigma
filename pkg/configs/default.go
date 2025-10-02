@@ -31,8 +31,8 @@ func defaultSettings() {
 	if configuration.Auth.Jwt.Ttl == 0 {
 		configuration.Auth.Jwt.Ttl = time.Hour
 	}
-	if configuration.Auth.Jwt.RefreshTtl == 0 {
-		configuration.Auth.Jwt.RefreshTtl = time.Hour * 24
+	if configuration.Auth.Jwt.RefreshTTL == 0 {
+		configuration.Auth.Jwt.RefreshTTL = time.Hour * 24
 	}
 	if configuration.Namespace.Visibility.String() == "" {
 		configuration.Namespace.Visibility = enums.VisibilityPrivate

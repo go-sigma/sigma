@@ -1,4 +1,4 @@
-// Copyright 2024 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,22 +27,22 @@ import (
 type logger struct{}
 
 // Errorf is the error log
-func (l logger) Errorf(msg string, opts ...interface{}) {
+func (l logger) Errorf(msg string, opts ...any) {
 	log.Error().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
 // Warningf is the warning log
-func (l logger) Warningf(msg string, opts ...interface{}) {
+func (l logger) Warningf(msg string, opts ...any) {
 	log.Warn().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
 // Infof is the info log
-func (l logger) Infof(msg string, opts ...interface{}) {
+func (l logger) Infof(msg string, opts ...any) {
 	log.Info().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
 // Debugf is the debug log
-func (l logger) Debugf(msg string, opts ...interface{}) {
+func (l logger) Debugf(msg string, opts ...any) {
 	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
