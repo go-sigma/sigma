@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -26,11 +29,11 @@ import (
 	"github.com/go-sigma/sigma/cmd/distribution"
 	"github.com/go-sigma/sigma/cmd/server"
 	"github.com/go-sigma/sigma/cmd/tools"
-	"github.com/go-sigma/sigma/cmd/version"
 	"github.com/go-sigma/sigma/cmd/worker"
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/version"
 )
 
 var cfgFile string
@@ -48,6 +51,12 @@ sigma is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 		PersistentPreRun: func(_ *cobra.Command, _ []string) {
 			initConfig()
+			color.Cyan("Hello, welcome to sigma! https://github.com/go-sigma/sigma")
+			fmt.Printf("Version:     %s\n", version.Version)
+			fmt.Printf("GoVersion:   %s\n", runtime.Version())
+			fmt.Printf("Platform:    %s/%s\n", runtime.GOOS, runtime.GOARCH)
+			fmt.Printf("BuildDate:   %s\n", version.BuildDate)
+			fmt.Printf("GitCommit:   %s\n", version.GitHash)
 		},
 	}
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c",
@@ -55,7 +64,6 @@ which can be deployed on any cloud platform or on-premises.`,
 	cmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "log level")
 	cmd.AddCommand(server.NewCmdServer())
 	cmd.AddCommand(worker.NewCmdWorker())
-	cmd.AddCommand(version.NewCmdVersion())
 	cmd.AddCommand(tools.NewCmdTools())
 	cmd.AddCommand(distribution.NewCmdDistribution())
 	cmd.AddCommand(builder.NewCmdBuilder())
@@ -66,7 +74,7 @@ which can be deployed on any cloud platform or on-premises.`,
 func Execute() {
 	err := NewRootCmd().Execute()
 	if err != nil {
-		log.Error().Err(err).Msg("Execute root command with error")
+		log.Error().Err(err).Msg("execute root command failed")
 		os.Exit(1)
 	}
 }

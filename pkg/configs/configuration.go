@@ -306,7 +306,7 @@ type ConfigurationAuthToken struct {
 // ConfigurationAuthJwt ...
 type ConfigurationAuthJwt struct {
 	Ttl        time.Duration `yaml:"ttl"`
-	RefreshTtl time.Duration `yaml:"refreshTtl"`
+	RefreshTTL time.Duration `yaml:"refreshTTL"`
 	PrivateKey string        `yaml:"privateKey"`
 }
 

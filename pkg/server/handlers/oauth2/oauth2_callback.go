@@ -275,7 +275,7 @@ func (h *handler) Callback(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
 	}
 
-	token, err := h.TokenService.New(user3rdPartyObj.User.ID, h.Config.Auth.Jwt.RefreshTtl)
+	token, err := h.TokenService.New(user3rdPartyObj.User.ID, h.Config.Auth.Jwt.RefreshTTL)
 	if err != nil {
 		log.Error().Err(err).Msg("Create token failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())

@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import (
 func NewCmdWorker() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "worker",
-		Short: "Start the sigma worker",
+		Short: "start the sigma worker",
 		Run: func(_ *cobra.Command, _ []string) {
 			digCon, err := inits.NewDigContainer()
 			if err != nil {
@@ -37,19 +37,19 @@ func NewCmdWorker() *cobra.Command {
 
 			err = dal.Initialize(digCon)
 			if err != nil {
-				log.Error().Err(err).Msg("Initialize database with error")
+				log.Error().Err(err).Msg("initialize database failed")
 				return
 			}
 
 			err = inits.Initialize(digCon)
 			if err != nil {
-				log.Error().Err(err).Msg("Initialize inits with error")
+				log.Error().Err(err).Msg("initialize inits failed")
 				return
 			}
 
 			err = worker.Worker(digCon)
 			if err != nil {
-				log.Error().Err(err).Msg("Start worker with error")
+				log.Error().Err(err).Msg("start worker failed")
 				return
 			}
 		},

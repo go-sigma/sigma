@@ -60,8 +60,8 @@ FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder
 ARG USE_MIRROR=false
 
 RUN set -eux && \
-    if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-    apk add --no-cache make bash ncurses git openssl
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
+  apk add --no-cache make bash ncurses git openssl build-base
 
 COPY . /go/src/github.com/go-sigma/sigma
 COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist

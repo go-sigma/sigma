@@ -19,12 +19,16 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/rs/zerolog/log"
 
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/go-sigma/sigma/pkg/configs"
+	"github.com/go-sigma/sigma/pkg/types/enums"
 )
 
 //go:embed migrations/mysql/*.sql
@@ -36,73 +40,51 @@ var postgresqlFS embed.FS
 //go:embed migrations/sqlite3/*.sql
 var sqliteFS embed.FS
 
-func migrateMysql(dsn string) error {
-	d, err := iofs.New(mysqlFS, "migrations/mysql")
+// MigrateDatabase migrates the database to the latest version
+func MigrateDatabase(config configs.Configuration) error {
+	var err error
+	var sourceDriver source.Driver
+	switch config.Database.Type {
+	case enums.DatabaseMysql:
+		sourceDriver, err = iofs.New(mysqlFS, "migrations/mysql")
+	case enums.DatabasePostgresql:
+		sourceDriver, err = iofs.New(postgresqlFS, "migrations/postgresql")
+	case enums.DatabaseSqlite3:
+		sourceDriver, err = iofs.New(sqliteFS, "migrations/sqlite3")
+	}
 	if err != nil {
-		return err
+		return fmt.Errorf("new iofs instance failed: %v", err)
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("mysql://%s", dsn))
-	if err != nil {
-		return err
-	}
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-	version, dirty, err := m.Version()
-	if err != nil {
-		return err
-	}
-	log.Info().Uint("version", version).Bool("dirty", dirty).Msg("Migrate database")
-	return nil
-}
 
-func migratePostgres(dsn string) error {
-	d, err := iofs.New(postgresqlFS, "migrations/postgresql")
+	rawDB, err := GetRawDB()
 	if err != nil {
-		return err
+		return fmt.Errorf("get raw db instance failed: %v", err)
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("postgres://%s", dsn))
-	if err != nil {
-		return err
-	}
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-	version, dirty, err := m.Version()
-	if err != nil {
-		return err
-	}
-	log.Info().Uint("version", version).Bool("dirty", dirty).Msg("Migrate database")
-	return nil
-}
 
-func migrateSqlite() error {
-	d, err := iofs.New(sqliteFS, "migrations/sqlite3")
-	if err != nil {
-		return err
+	var databaseDriver database.Driver
+	switch config.Database.Type {
+	case enums.DatabaseMysql:
+		databaseDriver, err = mysql.WithInstance(rawDB, &mysql.Config{})
+	case enums.DatabasePostgresql:
+		databaseDriver, err = postgres.WithInstance(rawDB, &postgres.Config{})
+	case enums.DatabaseSqlite3:
+		databaseDriver, err = sqlite3.WithInstance(rawDB, &sqlite3.Config{})
 	}
-	rawDB, err := DB.DB()
 	if err != nil {
-		return fmt.Errorf("get raw db instance failed")
+		return fmt.Errorf("get migrate driver failed: %v", err)
 	}
-	migrateDriver, err := sqlite.WithInstance(rawDB, &sqlite.Config{})
+	m, err := migrate.NewWithInstance("iofs", sourceDriver, "", databaseDriver)
 	if err != nil {
-		return fmt.Errorf("get migrate driver failed")
-	}
-	m, err := migrate.NewWithInstance("iofs", d, "", migrateDriver)
-	if err != nil {
-		return err
+		return fmt.Errorf("new migrate instance failed: %v", err)
 	}
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		return err
+		return fmt.Errorf("migrate up failed: %v", err)
 	}
 	version, dirty, err := m.Version()
 	if err != nil {
-		return err
+		return fmt.Errorf("get migrate version failed: %v", err)
 	}
-	log.Info().Uint("version", version).Bool("dirty", dirty).Msg("Migrate database")
+	log.Info().Uint("version", version).Bool("dirty", dirty).Msg("migrate database succeed")
 	return nil
 }
