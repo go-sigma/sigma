@@ -15,6 +15,7 @@
 package dal
 
 import (
+	"database/sql"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -23,25 +24,25 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/casbin/sql_adapter"
 	"github.com/go-sigma/sigma/pkg/consts"
 )
 
 // AuthEnforcer is the global casbin enforcer
 var AuthEnforcer *casbin.SyncedEnforcer
 
-func setAuthModel(db *gorm.DB) error {
+func setAuthModel(db *sql.DB) error {
 	authModel, err := model.NewModelFromString(consts.AuthModel)
 	if err != nil {
 		return err
 	}
-	gormadapter.TurnOffAutoMigrate(db)
-	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "casbin_rules")
-	if err != nil {
-		return err
-	}
+	// gormadapter.TurnOffAutoMigrate(db)
+	// adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "casbin_rules")
+	// if err != nil {
+	// 	return err
+	// }
+	adapter := sql_adapter.NewAdapterByDB(db)
 	AuthEnforcer, err = casbin.NewSyncedEnforcer(authModel, adapter)
 	if err != nil {
 		return err
