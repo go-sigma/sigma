@@ -1,24 +1,8 @@
-ARG GOLANG_VERSION=1.25-alpine3.22
-ARG NODE_VERSION=24-alpine3.22
 ARG ALPINE_VERSION=3.22
-
-FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS web-builder
-
-ARG USE_MIRROR=false
-
-RUN set -eux && \
-  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses build-base
-
-COPY ./web /web
-
-WORKDIR /web
-
-RUN --mount=type=cache,target=/web/node_modules set -eux && corepack enable && yarn install --immutable && yarn build
 
 FROM alpine:${ALPINE_VERSION} AS syft
 
-ARG SYFT_VERSION=1.8.0
+ARG SYFT_VERSION=1.33.0
 ARG TARGETOS TARGETARCH
 ARG USE_MIRROR=false
 
@@ -34,7 +18,7 @@ FROM alpine:${ALPINE_VERSION} AS trivy
 
 ARG USE_MIRROR=false
 ARG WITH_TRIVY_DB=false
-ARG TRIVY_VERSION=0.55.2
+ARG TRIVY_VERSION=0.67.0
 ARG TARGETOS TARGETARCH
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -52,53 +36,24 @@ RUN set -eux && \
   mv trivy /usr/local/bin/trivy && \
   rm trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \
   mkdir -p /opt/trivy/ && \
-  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress --db-repository="tosone/trivy-java-db:1"; fi && \
-  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress --db-repository="tosone/trivy-db:2"
+  if [ "$WITH_TRIVY_DB" = true ]; then trivy --cache-dir /opt/trivy/ image --download-java-db-only --no-progress; fi && \
+  trivy --cache-dir /opt/trivy/ image --download-db-only --no-progress
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS builder
+FROM alpine:${ALPINE_VERSION} AS cosign
 
 ARG USE_MIRROR=false
-
-RUN set -eux && \
-  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses git openssl build-base
-
-COPY . /go/src/github.com/go-sigma/sigma
-COPY --from=web-builder /web/dist /go/src/github.com/go-sigma/sigma/web/dist
-
-WORKDIR /go/src/github.com/go-sigma/sigma
-
+ARG COSIGN_VERSION=v2.6.1
 ARG TARGETOS TARGETARCH
 
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH make build
-
-FROM alpine:${ALPINE_VERSION}
-
-ARG USE_MIRROR=false
-
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache curl tini git-lfs
+  apk add --no-cache wget && \
+  wget --progress=dot:giga -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/"${COSIGN_VERSION}"/cosign-"${TARGETOS}"-"${TARGETARCH}" && \
+  chmod +x /tmp/cosign
 
+FROM scratch
+
+COPY --from=cosign /tmp/cosign /usr/local/bin/cosign
 COPY --from=syft /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=trivy /usr/local/bin/trivy /usr/local/bin/trivy
 COPY --from=trivy /opt/trivy/ /opt/trivy/
-COPY ./conf/config.yaml /etc/sigma/config.yaml
-COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
-
-VOLUME /var/lib/sigma
-VOLUME /etc/sigma
-
-RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 -G sigma sigma && \
-  mkdir -p /var/lib/sigma && \
-  mkdir -p /code/ && \
-  chown -R 1001:1001 /var/lib/sigma && \
-  chown -R 1001:1001 /opt/trivy && \
-  chown -R 1001:1001 /code/
-
-WORKDIR /home/sigma
-
-USER sigma
-
-CMD ["sigma", "server"]

@@ -1,0 +1,18 @@
+ARG GOLANG_VERSION=1.25-alpine3.22
+
+FROM golang:${GOLANG_VERSION}
+
+ARG USE_MIRROR=false
+
+RUN set -eux && \
+  if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
+  apk add --no-cache make bash ncurses git openssl build-base
+
+COPY . /go/src/github.com/go-sigma/sigma
+
+WORKDIR /go/src/github.com/go-sigma/sigma
+
+ARG TARGETOS TARGETARCH
+
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH make build
