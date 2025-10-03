@@ -50,10 +50,9 @@ func setAuthModel(db *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("casbin load policy failed: %w", err)
 	}
-	AuthEnforcer.EnableLog(true)
 	AuthEnforcer.StartAutoLoadPolicy(time.Minute * 10)
 	AuthEnforcer.EnableAutoSave(true)
-	// AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
+	AuthEnforcer.AddFunction("urlMatch", UrlMatchFunc)
 	return nil
 }
 

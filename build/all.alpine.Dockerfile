@@ -90,12 +90,12 @@ COPY --from=builder /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/s
 VOLUME /var/lib/sigma
 VOLUME /etc/sigma
 
-RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
-mkdir -p /var/lib/sigma && \
-mkdir -p /code/ && \
-chown -R 1001:1001 /var/lib/sigma && \
-chown -R 1001:1001 /opt/trivy && \
-chown -R 1001:1001 /code/
+RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 -G sigma sigma && \
+  mkdir -p /var/lib/sigma && \
+  mkdir -p /code/ && \
+  chown -R 1001:1001 /var/lib/sigma && \
+  chown -R 1001:1001 /opt/trivy && \
+  chown -R 1001:1001 /code/
 
 WORKDIR /home/sigma
 

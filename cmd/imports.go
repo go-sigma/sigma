@@ -16,7 +16,6 @@ package cmd
 
 // nolint: gci
 import (
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/apidocs"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/artifacts"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/builders"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/caches"

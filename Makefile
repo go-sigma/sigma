@@ -106,7 +106,7 @@ gormgen: ## Generate gorm model from database
 swagen: ## Generate swagger from code comments
 	# go install github.com/swaggo/swag/cmd/swag@latest
 	@swag fmt
-	@swag init --output pkg/handlers/apidocs
+	@swag init --output swag --outputTypes json
 
 .PHONY: addlicense
 addlicense: ## Add license to all go files

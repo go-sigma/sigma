@@ -23,6 +23,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/badger"
 	"github.com/go-sigma/sigma/pkg/dal/redis"
 	"github.com/go-sigma/sigma/pkg/modules/locker"
+	"github.com/go-sigma/sigma/pkg/modules/workq"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils/password"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/token"
@@ -42,6 +44,10 @@ func NewDigContainer() (*dig.Container, error) {
 			digCon.Provide(password.New), // init password
 			digCon.Provide(func() (token.Service, error) { return token.New(digCon) }),         // init token
 			digCon.Provide(func() (locker.Locker, error) { return locker.Initialize(digCon) }), // init locker
+			digCon.Provide(func() (workq.Producer, error) {
+				return workq.InitProducer(digCon)
+			}),
+			digCon.Provide(storage.Initialize),
 		} {
 			if e != nil {
 				err = e

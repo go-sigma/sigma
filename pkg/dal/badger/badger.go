@@ -38,18 +38,18 @@ func (l logger) Warningf(msg string, opts ...any) {
 
 // Infof is the info log
 func (l logger) Infof(msg string, opts ...any) {
-	log.Info().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
+	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
 // Debugf is the debug log
 func (l logger) Debugf(msg string, opts ...any) {
-	log.Debug().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
+	log.Trace().Msg(strings.TrimSpace(fmt.Sprintf(msg, opts...)))
 }
 
 // New new badger instance
 func New(config configs.Configuration) (*badger.DB, error) {
 	client, err := badger.Open(
-		badger.DefaultOptions(config.Badger.Path).
+		badger.DefaultOptions(strings.TrimSuffix(config.Badger.Path, "/")).
 			WithLogger(&logger{}))
 	if err != nil {
 		return nil, err

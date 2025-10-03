@@ -34,7 +34,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/graceful"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/web"
 )
 
 // ServerConfig ...
@@ -94,9 +93,9 @@ func Serve(digCon *dig.Container) error {
 	// 	}
 	// }
 
-	if !serverConfig.WithoutWeb {
-		web.RegisterHandlers(echoServer)
-	}
+	// if !serverConfig.WithoutWeb {
+	// 	web.RegisterHandlers(echoServer)
+	// }
 
 	err = handlers.Initialize(digCon)
 	if err != nil {

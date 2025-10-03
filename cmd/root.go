@@ -51,7 +51,7 @@ sigma is a cloud-native, distributed, and highly available system,
 which can be deployed on any cloud platform or on-premises.`,
 		PersistentPreRun: func(_ *cobra.Command, _ []string) {
 			initConfig()
-			color.Cyan("Hello, welcome to sigma! https://github.com/go-sigma/sigma")
+			color.Cyan("Hello, sigma!")
 			fmt.Printf("Version:     %s\n", version.Version)
 			fmt.Printf("GoVersion:   %s\n", runtime.Version())
 			fmt.Printf("Platform:    %s/%s\n", runtime.GOOS, runtime.GOARCH)
