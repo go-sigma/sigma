@@ -59,8 +59,6 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
-	github.com/swaggo/echo-swagger v1.4.2-0.20241021205945-c9c2b320fd95
-	github.com/swaggo/swag v1.16.6
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.70
 	github.com/tidwall/gjson v1.18.0
 	github.com/wagslane/go-password-validator v0.3.0
@@ -357,7 +355,7 @@ require (
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
 	github.com/stefanberger/go-pkcs11uri v0.0.0-20230803200340-78284954bff6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/swaggo/files/v2 v2.0.1 // indirect
+	github.com/swaggo/swag v1.16.6 // indirect
 	github.com/sylabs/sif/v2 v2.22.0 // indirect
 	github.com/sylabs/squashfs v1.0.6 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

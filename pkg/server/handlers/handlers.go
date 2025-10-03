@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
@@ -38,8 +37,6 @@ func InitializeDistribution(digCon *dig.Container) {
 
 // Initialize ...
 func Initialize(digCon *dig.Container) error {
-	e := utils.MustGetObjFromDigCon[*echo.Echo](digCon)
-	e.Any("/swagger/*", echoSwagger.WrapHandler)
 	err := validators.Initialize(digCon)
 	if err != nil {
 		return fmt.Errorf("failed to initialize validators: %v", err)

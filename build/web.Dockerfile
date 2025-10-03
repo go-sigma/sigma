@@ -1,5 +1,5 @@
 ARG NODE_VERSION=24-alpine3.22
-ARG NGINX_VERSION=1.29.1-alpine
+ARG NGINX_VERSION=1.29.1-alpine3.22-otel
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS web-builder
 
@@ -16,6 +16,8 @@ COPY ./web .
 RUN --mount=type=cache,target=/web/node_modules set -eux && \
   corepack enable && yarn install --immutable && yarn build
 
-FROM nginx:${NGINX_VERSION}
+FROM nginxinc/nginx-unprivileged:${NGINX_VERSION}
 
-COPY --from=web-builder /web/dist /usr/share/nginx/html
+COPY --from=web-builder --chmod=755 /web/dist /app
+COPY --chmod=755 ./swag /app/swag
+COPY --chmod=644 ./conf/default.conf.template /etc/nginx/templates/default.conf.template

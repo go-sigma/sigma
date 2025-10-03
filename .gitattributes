@@ -1,0 +1,14 @@
+swag/index.html filter=lfs diff=lfs merge=lfs -text
+swag/swagger-initializer.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui-bundle.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui-standalone-preset.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui.css filter=lfs diff=lfs merge=lfs -text
+swag/oauth2-redirect.html filter=lfs diff=lfs merge=lfs -text
+swag/oauth2-redirect.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui-es-bundle-core.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui-es-bundle.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger-ui.js filter=lfs diff=lfs merge=lfs -text
+swag/swagger.json filter=lfs diff=lfs merge=lfs -text
+swag/favicon-16x16.png filter=lfs diff=lfs merge=lfs -text
+swag/favicon-32x32.png filter=lfs diff=lfs merge=lfs -text
+swag/index.css filter=lfs diff=lfs merge=lfs -text
