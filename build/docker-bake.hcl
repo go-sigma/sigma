@@ -40,6 +40,7 @@ target "sigma-server" {
   args = {
     USE_MIRROR = "true"
   }
+  output = [{ type = "cacheonly" }]
   labels = {
     "org.opencontainers.image.title" = "sigma"
     "org.opencontainers.image.description" = "sigma is an OCI artifact storage and distribution system, which is designed to be a lightweight, easy-to-use, and easy-to-deploy, and can be used as a private registry or a public registry. sigma is a cloud-native, distributed, and highly available system, which can be deployed on any cloud platform or on-premises."
@@ -61,6 +62,7 @@ target "sigma-builder" {
   args = {
     USE_MIRROR = "true"
   }
+  output = [{ type = "cacheonly" }]
   labels = {
     "org.opencontainers.image.title" = "sigma"
     "org.opencontainers.image.description" = "sigma is an OCI artifact storage and distribution system, which is designed to be a lightweight, easy-to-use, and easy-to-deploy, and can be used as a private registry or a public registry. sigma is a cloud-native, distributed, and highly available system, which can be deployed on any cloud platform or on-premises."

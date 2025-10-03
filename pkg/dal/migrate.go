@@ -15,6 +15,7 @@
 package dal
 
 import (
+	"database/sql"
 	"embed"
 	"fmt"
 
@@ -41,7 +42,7 @@ var postgresqlFS embed.FS
 var sqliteFS embed.FS
 
 // MigrateDatabase migrates the database to the latest version
-func MigrateDatabase(config configs.Configuration) error {
+func MigrateDatabase(config configs.Configuration, rawDB *sql.DB) error {
 	var err error
 	var sourceDriver source.Driver
 	switch config.Database.Type {
@@ -54,11 +55,6 @@ func MigrateDatabase(config configs.Configuration) error {
 	}
 	if err != nil {
 		return fmt.Errorf("new iofs instance failed: %v", err)
-	}
-
-	rawDB, err := GetRawDB()
-	if err != nil {
-		return fmt.Errorf("get raw db instance failed: %v", err)
 	}
 
 	var databaseDriver database.Driver

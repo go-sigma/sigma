@@ -16,15 +16,14 @@ package dal
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
-	"gorm.io/driver/sqlite"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/dig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -76,12 +75,17 @@ func Initialize(digCon *dig.Container) error {
 		return err
 	}
 
-	err = MigrateDatabase(config)
+	rawDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get raw db instance failed: %v", err)
+	}
+
+	err = MigrateDatabase(config, rawDB)
 	if err != nil {
 		return err
 	}
 
-	err = setAuthModel(DB)
+	err = setAuthModel(rawDB)
 	if err != nil {
 		return err
 	}
@@ -97,11 +101,6 @@ func Initialize(digCon *dig.Container) error {
 	}
 
 	return nil
-}
-
-// GetRawDB returns the raw sql.DB instance
-func GetRawDB() (*sql.DB, error) {
-	return DB.DB()
 }
 
 // DeInitialize ...
