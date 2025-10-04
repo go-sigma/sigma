@@ -27,8 +27,8 @@ RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
   apk add --no-cache wget && \
   case "${TARGETARCH}" in \
-  amd64) export TRIVYARCH='64bit' ;; \
-  arm64) export TRIVYARCH='ARM64' ;; \
+    amd64) export TRIVYARCH='64bit' ;; \
+    arm64) export TRIVYARCH='ARM64' ;; \
   esac; \
   export TRIVYOS=$(echo "${TARGETOS}" | awk '{print toupper(substr($0, 1, 1)) substr($0, 2)}') && \
   wget --progress=dot:giga -O trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz https://github.com/aquasecurity/trivy/releases/download/v"${TRIVY_VERSION}"/trivy_"${TRIVY_VERSION}"_"${TRIVYOS}"-"${TRIVYARCH}".tar.gz && \

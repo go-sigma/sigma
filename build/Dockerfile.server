@@ -6,13 +6,12 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache make bash ncurses git openssl build-base linux-headers
-
-COPY . /go/src/github.com/go-sigma/sigma
+  apk add --no-cache make bash ncurses git git-lfs openssl build-base linux-headers
 
 WORKDIR /go/src/github.com/go-sigma/sigma
 
-ARG TARGETOS TARGETARCH
+COPY . .
 
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH make build
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg/mod \
+  go mod download && make build
