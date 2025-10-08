@@ -8,3 +8,5 @@ e2e/
 scripts/
 assets/
 build/
+badger/
+bin/

@@ -9,9 +9,10 @@ FROM moby/buildkit:${BUILDKIT_VERSION}
 ARG USE_MIRROR=false
 
 USER root
+
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache git-lfs && \
+  apk add --no-cache curl git git-lfs && \
   mkdir -p /code/ && \
   chown -R 1000:1000 /opt/ && \
   chown -R 1000:1000 /code/
