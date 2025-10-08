@@ -12,380 +12,122 @@ on:
       - "v*"
   pull_request:
     branches:
-      - main
+      - dev
 
 jobs:
-  image-build-alpine:
-    name: image-build-alpine
-    runs-on: ubuntu-22.04
+  image-build-amd64:
+    name: image-build-amd64
+    runs-on: ubuntu-24.04
     steps:
       - name: Delete huge unnecessary folders, and clean apt cache
+        shell: bash
         run: |
           rm -rf /opt/hostedtoolcache
           rm -rf /usr/share/dotnet
           rm -rf /opt/ghc
           rm -rf "$AGENT_TOOLSDIRECTORY"
           sudo apt-get clean
-        shell: bash
       - name: Checkout branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           lfs: true
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          cache-image: false
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
         with:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          username: tosone
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Setup golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-          cache: false
-      - name: Build latest skopeo
-        run: |
-          git clone --depth 1 --branch v1.16.0 https://github.com/containers/skopeo.git
-          cd skopeo
-          DISABLE_CGO=1 make bin/skopeo
-          sudo cp ./bin/skopeo /usr/bin/skopeo
-          cd ..
-          rm -rf skopeo
-          skopeo --version
-          go clean -cache
-          go clean -modcache
-      - name: Save dockerfile to local
-        run: |
-          make dockerfile-local
-      - name: Build sigma builder
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/builder.Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: docker.io/sigma/sigma-builder:latest
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-            docker.io/tosone/sigma
-          tags: |
-            type=ref,event=pr
-            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-            type=semver,pattern={{version}}-alpine
-            type=semver,pattern={{major}}.{{minor}}-alpine
-            type=semver,pattern={{major}}-alpine
-            type=raw,value=nightly-alpine,enable={{is_default_branch}}
       - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/all.alpine.Dockerfile
-          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
-          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,force-compression=true,type=image
-  image-build-alpine-trivydb:
-    name: image-build-alpine-trivydb
-    runs-on: ubuntu-22.04
+        shell: bash
+        run: |
+          docker buildx bake --file ./build/docker-bake.hcl \
+            --set "sigma-server.output=type=registry,name=ghcr.io/go-sigma/sigma:nightly-amd64,force-compression=true,oci-mediatypes=true" \
+            --set "sigma-builder.output=type=registry,name=ghcr.io/go-sigma/sigma-builder:nightly-amd64,force-compression=true,oci-mediatypes=true" \
+            --set "server.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-amd64,oci-mediatypes=true,mode=max" \
+            --set "server.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-amd64" \
+            --set "base.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-amd64,oci-mediatypes=true,mode=max" \
+            --set "base.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-amd64" \
+            --set "web.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-amd64,oci-mediatypes=true,mode=max" \
+            --set "web.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-amd64" \
+            --set "base.args.WITH_TRIVY_DB=true" --set "*.platform=linux/amd64" \
+            --provenance false --sbom false sigma-server sigma-builder
+  image-build-arm64:
+    name: image-build-arm64
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Delete huge unnecessary folders, and clean apt cache
+        shell: bash
         run: |
           rm -rf /opt/hostedtoolcache
           rm -rf /usr/share/dotnet
           rm -rf /opt/ghc
           rm -rf "$AGENT_TOOLSDIRECTORY"
           sudo apt-get clean
-        shell: bash
       - name: Checkout branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           lfs: true
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          cache-image: false
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
         with:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          username: tosone
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Setup golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-          cache: false
-      - name: Build latest skopeo
-        run: |
-          git clone --depth 1 --branch v1.16.0 https://github.com/containers/skopeo.git
-          cd skopeo
-          DISABLE_CGO=1 make bin/skopeo
-          sudo cp ./bin/skopeo /usr/bin/skopeo
-          cd ..
-          rm -rf skopeo
-          skopeo --version
-          go clean -cache
-          go clean -modcache
-      - name: Save dockerfile to local
-        run: |
-          make dockerfile-local
-      - name: Build sigma builder
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/builder.Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: docker.io/sigma/sigma-builder:latest
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-            docker.io/tosone/sigma
-          flavor: |
-            latest=false
-          tags: |
-            type=ref,event=pr
-            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-            type=semver,pattern={{version}}-alpine-trivydb
-            type=semver,pattern={{major}}.{{minor}}-alpine-trivydb
-            type=semver,pattern={{major}}-alpine-trivydb
-            type=raw,value=nightly-alpine-trivydb,enable={{is_default_branch}}
       - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/all.alpine.Dockerfile
-          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
-          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,force-compression=true,type=image
-          build-args: |
-            WITH_TRIVY_DB=true
-  image-build-debian:
-    name: image-build-debian
-    runs-on: ubuntu-22.04
+        shell: bash
+        run: |
+          docker buildx bake --file ./build/docker-bake.hcl \
+            --set "sigma-server.output=type=registry,name=ghcr.io/go-sigma/sigma:nightly-arm64,force-compression=true,oci-mediatypes=true" \
+            --set "sigma-builder.output=type=registry,name=ghcr.io/go-sigma/sigma-builder:nightly-arm64,force-compression=true,oci-mediatypes=true" \
+            --set "server.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-arm64,oci-mediatypes=true,mode=max" \
+            --set "server.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-arm64" \
+            --set "base.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-arm64,oci-mediatypes=true,mode=max" \
+            --set "base.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-arm64" \
+            --set "web.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-arm64,oci-mediatypes=true,mode=max" \
+            --set "web.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-arm64" \
+            --set "base.args.WITH_TRIVY_DB=true" --set "*.platform=linux/arm64" \
+            --provenance false --sbom false sigma-server sigma-builder
+  merge-multi-arch:
+    name: merge-multi-arch
+    runs-on: ubuntu-24.04
+    needs: [image-build-amd64, image-build-arm64]
     steps:
-      - name: Delete huge unnecessary folders, and clean apt cache
-        run: |
-          rm -rf /opt/hostedtoolcache
-          rm -rf /usr/share/dotnet
-          rm -rf /opt/ghc
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt-get clean
-        shell: bash
-      - name: Checkout branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
         with:
           registry: ghcr.io
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
         with:
           username: tosone
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Setup golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-          cache: false
-      - name: Build latest skopeo
+      - name: Create and push multi-arch manifest for sigma
         run: |
-          git clone --depth 1 --branch v1.16.0 https://github.com/containers/skopeo.git
-          cd skopeo
-          DISABLE_CGO=1 make bin/skopeo
-          sudo cp ./bin/skopeo /usr/bin/skopeo
-          cd ..
-          rm -rf skopeo
-          skopeo --version
-          go clean -cache
-          go clean -modcache
-      - name: Save dockerfile to local
+          docker buildx imagetools create \
+            -t ghcr.io/go-sigma/sigma:nightly \
+            ghcr.io/go-sigma/sigma:nightly-amd64 \
+            ghcr.io/go-sigma/sigma:nightly-arm64
+      - name: Create and push multi-arch manifest for sigma-builder
         run: |
-          make dockerfile-local
-      - name: Build sigma builder
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/builder.Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: docker.io/sigma/sigma-builder:latest
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-            docker.io/tosone/sigma
-          flavor: |
-            latest=false
-          tags: |
-            type=ref,event=pr
-            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-            type=semver,pattern={{version}}-debian
-            type=semver,pattern={{major}}.{{minor}}-debian
-            type=semver,pattern={{major}}-debian
-            type=raw,value=nightly-debian,enable={{is_default_branch}}
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/all.debian.Dockerfile
-          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
-          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,force-compression=true,type=image
-  image-build-debian-trivydb:
-    name: image-build-debian-trivydb
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Delete huge unnecessary folders, and clean apt cache
-        run: |
-          rm -rf /opt/hostedtoolcache
-          rm -rf /usr/share/dotnet
-          rm -rf /opt/ghc
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt-get clean
-        shell: bash
-      - name: Checkout branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: ghcr.io
-          username: tosone
-          password: ${{ secrets.GHCR_TOKEN }}
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          username: tosone
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Setup golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-          cache: false
-      - name: Build latest skopeo
-        run: |
-          git clone --depth 1 --branch v1.16.0 https://github.com/containers/skopeo.git
-          cd skopeo
-          DISABLE_CGO=1 make bin/skopeo
-          sudo cp ./bin/skopeo /usr/bin/skopeo
-          cd ..
-          rm -rf skopeo
-          skopeo --version
-          go clean -cache
-          go clean -modcache
-      - name: Save dockerfile to local
-        run: |
-          make dockerfile-local
-      - name: Build sigma builder
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/builder.Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: docker.io/sigma/sigma-builder:latest
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,type=oci,dest=./bin/builder.tar
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-            docker.io/tosone/sigma
-          flavor: |
-            latest=false
-          tags: |
-            type=ref,event=pr
-            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-            type=semver,pattern={{version}}-debian-trivydb
-            type=semver,pattern={{major}}.{{minor}}-debian-trivydb
-            type=semver,pattern={{major}}-debian-trivydb
-            type=raw,value=nightly-debian-trivydb,enable={{is_default_branch}}
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/all.debian.Dockerfile
-          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64,linux/arm64' }}
-          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-          outputs: oci-mediatypes=true,force-compression=true,type=image
-          build-args: |
-            WITH_TRIVY_DB=true
+          docker buildx imagetools create \
+            -t ghcr.io/go-sigma/sigma-builder:nightly \
+            ghcr.io/go-sigma/sigma-builder:nightly-amd64 \
+            ghcr.io/go-sigma/sigma-builder:nightly-arm64

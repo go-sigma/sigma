@@ -27,8 +27,8 @@ GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.BuildDate=$(shell d
 GOLDFLAGS        += -X github.com/go-sigma/sigma/pkg/version.GitHash=$(shell git rev-parse --short HEAD)
 GOFLAGS           = -ldflags '-s -w $(GOLDFLAGS)' -trimpath
 
-GOOS             ?= linux
-GOARCH           ?= arm64
+GOOS             ?= $(shell go env GOOS)
+GOARCH           ?= $(shell go env GOARCH)
 CC               ?=
 CXX              ?=
 
@@ -46,7 +46,7 @@ build: ## Build sigma and put the output binary in ./bin
 
 .PHONY: clean
 clean: ## Remove build related file
-	rm -fr ./bin/sigma ./bin/sigma-builder ./bin/*.tar.gz ./bin/*.tar
+	$(RM) ./bin/sigma
 
 .PHONY: vendor
 vendor: ## Copy of all packages needed to support builds and tests in the vendor directory
@@ -68,10 +68,6 @@ lint-go: ## Use golintci-lint on your project
 .PHONY: docker-build
 docker-build: ## Use the dockerfile to build the sigma image
 	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/all.alpine.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,force-compression=true .
-
-.PHONY: dockerfile-local
-dockerfile-local: ## Use skopeo to copy dockerfile to local tarball file
-	@skopeo copy -a docker://docker/dockerfile:1.10.0 oci-archive:bin/dockerfile.1.10.0.tar
 
 .PHONY: docker-build-web
 docker-build-web: ## Build the web image
