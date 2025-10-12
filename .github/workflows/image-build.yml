@@ -19,14 +19,6 @@ jobs:
     name: image-build-amd64
     runs-on: ubuntu-24.04
     steps:
-      - name: Delete huge unnecessary folders, and clean apt cache
-        shell: bash
-        run: |
-          rm -rf /opt/hostedtoolcache
-          rm -rf /usr/share/dotnet
-          rm -rf /opt/ghc
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt-get clean
       - name: Checkout branch
         uses: actions/checkout@v5
         with:
@@ -50,12 +42,6 @@ jobs:
           docker buildx bake --file ./build/docker-bake.hcl \
             --set "sigma-server.output=type=registry,name=ghcr.io/go-sigma/sigma:nightly-amd64,force-compression=true,oci-mediatypes=true" \
             --set "sigma-builder.output=type=registry,name=ghcr.io/go-sigma/sigma-builder:nightly-amd64,force-compression=true,oci-mediatypes=true" \
-            --set "server.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-amd64,oci-mediatypes=true,mode=max" \
-            --set "server.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-amd64" \
-            --set "base.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-amd64,oci-mediatypes=true,mode=max" \
-            --set "base.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-amd64" \
-            --set "web.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-amd64,oci-mediatypes=true,mode=max" \
-            --set "web.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-amd64" \
             --set "base.args.WITH_TRIVY_DB=true" --set "*.platform=linux/amd64" \
             --provenance false --sbom false sigma-server sigma-builder
   image-build-arm64:
@@ -93,12 +79,6 @@ jobs:
           docker buildx bake --file ./build/docker-bake.hcl \
             --set "sigma-server.output=type=registry,name=ghcr.io/go-sigma/sigma:nightly-arm64,force-compression=true,oci-mediatypes=true" \
             --set "sigma-builder.output=type=registry,name=ghcr.io/go-sigma/sigma-builder:nightly-arm64,force-compression=true,oci-mediatypes=true" \
-            --set "server.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-arm64,oci-mediatypes=true,mode=max" \
-            --set "server.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-server-arm64" \
-            --set "base.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-arm64,oci-mediatypes=true,mode=max" \
-            --set "base.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-base-arm64" \
-            --set "web.cache-to=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-arm64,oci-mediatypes=true,mode=max" \
-            --set "web.cache-from=type=registry,ref=ghcr.io/go-sigma/sigma:build-cache-web-arm64" \
             --set "base.args.WITH_TRIVY_DB=true" --set "*.platform=linux/arm64" \
             --provenance false --sbom false sigma-server sigma-builder
   merge-multi-arch:
