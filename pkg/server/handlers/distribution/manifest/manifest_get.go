@@ -53,7 +53,7 @@ func (h *handler) GetManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
-	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
@@ -148,7 +148,7 @@ func (h *handler) getManifestFallbackProxy(c echo.Context, refs Refs) error {
 		log.Error().Err(err).Interface("refs", refs).Int("status", statusCode).Msg("Fallback proxy failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
-	if statusCode == http.StatusOK {
+	if statusCode == http.StatusOK { // nolint: staticcheck
 		c.Response().Header().Set(consts.ContentDigest, header.Get(consts.ContentDigest))
 		c.Response().Header().Set("ETag", header.Get("ETag"))
 		return c.Blob(http.StatusOK, header.Get(echo.HeaderContentType), bodyBytes)

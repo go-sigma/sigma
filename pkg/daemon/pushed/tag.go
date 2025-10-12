@@ -63,42 +63,42 @@ func (r runnerTag) run(ctx context.Context, payload types.DaemonTagPushedPayload
 	tagObj, err := tagService.GetByName(ctx, payload.RepositoryID, payload.Tag)
 	if err != nil {
 		log.Error().Err(err).Int64("repository_id", payload.RepositoryID).Str("tag", payload.Tag).Msg("Get tag by name failed")
-		return fmt.Errorf("Get tag by name failed: %v", err)
+		return fmt.Errorf("get tag by name failed: %v", err)
 	}
 	artifactService := r.artifactServiceFactory.New()
 	artifactObj, err := artifactService.Get(ctx, tagObj.ArtifactID)
 	if err != nil {
 		log.Error().Err(err).Int64("artifact_id", tagObj.ArtifactID).Msg("Get artifact by id failed")
-		return fmt.Errorf("Get artifact by id failed: %v", err)
+		return fmt.Errorf("get artifact by id failed: %v", err)
 	}
 
 	manifest, descriptor, err := distribution.UnmarshalManifest(artifactObj.ContentType, artifactObj.Raw)
 	if err != nil {
 		log.Error().Err(err).Int64("artifact_id", tagObj.ArtifactID).Str("content_type", artifactObj.ContentType).Msg("Unmarshal manifest failed")
-		return fmt.Errorf("Unmarshal manifest failed: %v", err)
+		return fmt.Errorf("unmarshal manifest failed: %v", err)
 	}
 
-	log.Info().Interface("descriptor", descriptor).Str("raw", string(artifactObj.Raw)).Interface("ref", manifest.References()).Msg("Unmarshal manifest success")
+	log.Info().Interface("descriptor", descriptor).Str("raw", string(artifactObj.Raw)).Interface("ref", manifest.References()).Msg("unmarshal manifest success")
 
 	builderIDStr, ok := descriptor.Annotations["org.opencontainers.sigma.builder_id"]
 	if !ok {
-		log.Error().Msg("Annotation not have specific key 'org.opencontainers.sigma.builder_id'")
+		log.Error().Msg("annotation not have specific key 'org.opencontainers.sigma.builder_id'")
 		return nil
 	}
 	builderID, err := strconv.ParseInt(builderIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Msg("Annotation not have specific key 'org.opencontainers.sigma.builder_id'")
-		return fmt.Errorf("Annotation 'org.opencontainers.sigma.builder_id' convert failed: %v", err)
+		log.Error().Err(err).Msg("annotation not have specific key 'org.opencontainers.sigma.builder_id'")
+		return fmt.Errorf("annotation 'org.opencontainers.sigma.builder_id' convert failed: %v", err)
 	}
 	runnerIDStr, ok := descriptor.Annotations["org.opencontainers.sigma.runner_id"]
 	if !ok {
-		log.Error().Msg("Annotation not have specific key 'org.opencontainers.sigma.runner_id'")
+		log.Error().Msg("annotation not have specific key 'org.opencontainers.sigma.runner_id'")
 		return nil
 	}
 	runnerID, err := strconv.ParseInt(runnerIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Msg("Annotation not have specific key 'org.opencontainers.sigma.runner_id'")
-		return fmt.Errorf("Annotation 'org.opencontainers.sigma.runner_id' convert failed: %v", err)
+		log.Error().Err(err).Msg("annotation not have specific key 'org.opencontainers.sigma.runner_id'")
+		return fmt.Errorf("annotation 'org.opencontainers.sigma.runner_id' convert failed: %v", err)
 	}
 
 	builderService := r.builderServiceFactory.New()
@@ -106,8 +106,8 @@ func (r runnerTag) run(ctx context.Context, payload types.DaemonTagPushedPayload
 		query.BuilderRunner.Tag.ColumnName().String(): tagObj.Name,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Runner update tag failed")
-		return fmt.Errorf("Runner update tag failed: %v", err)
+		log.Error().Err(err).Msg("runner update tag failed")
+		return fmt.Errorf("runner update tag failed: %v", err)
 	}
 
 	return nil

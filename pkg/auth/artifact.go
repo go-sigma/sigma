@@ -35,10 +35,10 @@ func (s authService) Artifact(user models.User, artifactID int64, auth enums.Aut
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Err(err).Int64("artifactID", artifactID).Msg("Get artifact by id failed")
-			return false, errors.Join(err, fmt.Errorf("Get artifact by id(%d) failed", artifactID))
+			return false, errors.Join(err, fmt.Errorf("get artifact by id(%d) failed", artifactID))
 		}
 		log.Error().Err(err).Int64("artifactID", artifactID).Msg("Get artifact by id not found")
-		return false, errors.Join(err, fmt.Errorf("Get artifact by id(%d) not found", artifactID))
+		return false, errors.Join(err, fmt.Errorf("get artifact by id(%d) not found", artifactID))
 	}
 	return s.Repository(user, artifactObj.RepositoryID, auth)
 }

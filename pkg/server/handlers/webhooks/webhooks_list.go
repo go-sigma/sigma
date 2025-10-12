@@ -71,7 +71,7 @@ func (h *handler) ListWebhook(c echo.Context) error {
 	}
 
 	if req.NamespaceID == nil {
-		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
+		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) { // nolint: staticcheck
 			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {

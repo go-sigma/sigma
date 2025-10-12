@@ -238,16 +238,16 @@ func ParseContainerID(containerName string) (int64, int64, error) {
 	containerName = strings.TrimPrefix(containerName, "/")
 	ids := strings.TrimPrefix(containerName, ContainerPrefix)
 	if len(strings.Split(ids, "-")) != 2 {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed", containerName)
+		return 0, 0, fmt.Errorf("parse builder task id(%s) failed", containerName)
 	}
 	builderIDStr, runnerIDStr := strings.Split(ids, "-")[0], strings.Split(ids, "-")[1]
 	builderID, err := strconv.ParseInt(builderIDStr, 10, 0)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
+		return 0, 0, fmt.Errorf("parse builder task id(%s) failed: %v", containerName, err)
 	}
 	runnerID, err := strconv.ParseInt(runnerIDStr, 10, 0)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Parse builder task id(%s) failed: %v", containerName, err)
+		return 0, 0, fmt.Errorf("parse builder task id(%s) failed: %v", containerName, err)
 	}
 	return builderID, runnerID, nil
 }

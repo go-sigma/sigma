@@ -29,8 +29,8 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 	codeRepositoryService := cr.codeRepositoryServiceFactory.New()
 	oldRepos, err := codeRepositoryService.ListAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
-		log.Error().Err(err).Msg("List all old repositories failed")
-		return fmt.Errorf("List all old repositories failed: %v", err)
+		log.Error().Err(err).Msg("list all old repositories failed")
+		return fmt.Errorf("list all old repositories failed: %v", err)
 	}
 
 	needUpdateRepos := make([]*models.CodeRepository, 0, len(newRepos))
@@ -65,8 +65,8 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 
 	oldOwners, err := codeRepositoryService.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
-		log.Error().Err(err).Msg("List all old repository owners failed")
-		return fmt.Errorf("List all old repository owners failed: %v", err)
+		log.Error().Err(err).Msg("list all old repository owners failed")
+		return fmt.Errorf("list all old repository owners failed: %v", err)
 	}
 
 	needUpdateOwners := make([]*models.CodeRepositoryOwner, 0, len(newRepos))
@@ -118,15 +118,15 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 		if len(needInsertRepos) > 0 {
 			err := codeRepositoryService.CreateInBatches(ctx, needInsertRepos)
 			if err != nil {
-				log.Error().Err(err).Msg("Create new repositories failed")
-				return fmt.Errorf("Create new repositories failed: %v", err)
+				log.Error().Err(err).Msg("create new repositories failed")
+				return fmt.Errorf("create new repositories failed: %v", err)
 			}
 		}
 		if len(needUpdateRepos) > 0 {
 			err := codeRepositoryService.UpdateInBatches(ctx, needUpdateRepos)
 			if err != nil {
-				log.Error().Err(err).Msg("Update new repositories failed")
-				return fmt.Errorf("Update new repositories failed: %v", err)
+				log.Error().Err(err).Msg("update new repositories failed")
+				return fmt.Errorf("update new repositories failed: %v", err)
 			}
 		}
 		if len(needDelRepos) > 0 {
@@ -136,22 +136,22 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			}
 			err := codeRepositoryService.DeleteInBatches(ctx, needDelRepoIDs)
 			if err != nil {
-				log.Error().Err(err).Msg("Delete old repositories failed")
-				return fmt.Errorf("Delete old repositories failed: %v", err)
+				log.Error().Err(err).Msg("delete old repositories failed")
+				return fmt.Errorf("delete old repositories failed: %v", err)
 			}
 		}
 		if len(needInsertOwners) > 0 {
 			err := codeRepositoryService.CreateOwnersInBatches(ctx, needInsertOwners)
 			if err != nil {
-				log.Error().Err(err).Msg("Create new code repository owners failed")
-				return fmt.Errorf("Create new code repository owner failed: %v", err)
+				log.Error().Err(err).Msg("create new code repository owners failed")
+				return fmt.Errorf("create new code repository owner failed: %v", err)
 			}
 		}
 		if len(needUpdateOwners) > 0 {
 			err := codeRepositoryService.UpdateOwnersInBatches(ctx, needUpdateOwners)
 			if err != nil {
-				log.Error().Err(err).Msg("Update new code repository owners failed")
-				return fmt.Errorf("Update new code repository owner failed: %v", err)
+				log.Error().Err(err).Msg("update new code repository owners failed")
+				return fmt.Errorf("update new code repository owner failed: %v", err)
 			}
 		}
 		if len(needDelOwners) > 0 {
@@ -161,8 +161,8 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			}
 			err := codeRepositoryService.DeleteOwnerInBatches(ctx, needDelRepoOwnerIDs)
 			if err != nil {
-				log.Error().Err(err).Msg("Delete old repositories failed")
-				return fmt.Errorf("Delete old repositories failed: %v", err)
+				log.Error().Err(err).Msg("delete old code repository owners failed")
+				return fmt.Errorf("delete old code repository owners failed: %v", err)
 			}
 		}
 		return nil
@@ -180,8 +180,8 @@ func (cr codeRepository) diffBranch(ctx context.Context, user3rdPartyObj *models
 	codeRepositoryService := cr.codeRepositoryServiceFactory.New()
 	repositoryObjs, err := codeRepositoryService.ListAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
-		log.Error().Err(err).Msg("List all repositories failed")
-		return fmt.Errorf("List all repositories failed: %v", err)
+		log.Error().Err(err).Msg("list all repositories failed")
+		return fmt.Errorf("list all repositories failed: %v", err)
 	}
 
 	var needInsertBranches []*models.CodeRepositoryBranch
@@ -189,8 +189,8 @@ func (cr codeRepository) diffBranch(ctx context.Context, user3rdPartyObj *models
 	for _, repo := range repositoryObjs {
 		oldBranches, _, err := codeRepositoryService.ListBranchesWithoutPagination(ctx, repo.ID)
 		if err != nil {
-			log.Error().Err(err).Int64("id", repo.ID).Msg("List repo branches failed")
-			return fmt.Errorf("List repo branches failed: %v", err)
+			log.Error().Err(err).Int64("id", repo.ID).Msg("list repo branches failed")
+			return fmt.Errorf("list repo branches failed: %v", err)
 		}
 		if len(branchMap[repo.RepositoryID]) == 0 {
 			var bs []*models.CodeRepositoryBranch
@@ -233,15 +233,15 @@ func (cr codeRepository) diffBranch(ctx context.Context, user3rdPartyObj *models
 		if len(needInsertBranches) > 0 {
 			err := codeRepositoryService.CreateBranchesInBatches(ctx, needInsertBranches)
 			if err != nil {
-				log.Error().Err(err).Msg("Create new branches failed")
-				return fmt.Errorf("Create new branches failed: %v", err)
+				log.Error().Err(err).Msg("create new branches failed")
+				return fmt.Errorf("create new branches failed: %v", err)
 			}
 		}
 		if len(needDelBranches) > 0 {
 			err := codeRepositoryService.DeleteBranchesInBatches(ctx, needDelBranches)
 			if err != nil {
-				log.Error().Err(err).Msg("Delete branches failed")
-				return fmt.Errorf("Delete branches failed: %v", err)
+				log.Error().Err(err).Msg("delete branches failed")
+				return fmt.Errorf("delete branches failed: %v", err)
 			}
 		}
 		return nil

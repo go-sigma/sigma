@@ -228,7 +228,7 @@ func (g gcTag) deleteTagWithRepository() {
 			for {
 				var tagObjs []*models.Tag
 				var err error
-				if task.Runner.Rule.RetentionRuleType == enums.RetentionRuleTypeQuantity {
+				if task.Runner.Rule.RetentionRuleType == enums.RetentionRuleTypeQuantity { // nolint: staticcheck
 					tagObjs, err = tagService.FindWithQuantityCursor(g.ctx, task.RepositoryID, int(task.Runner.Rule.RetentionRuleAmount), pagination, artifactCurIndex)
 				} else if task.Runner.Rule.RetentionRuleType == enums.RetentionRuleTypeDay {
 					tagObjs, err = tagService.FindWithDayCursor(g.ctx, task.RepositoryID, int(task.Runner.Rule.RetentionRuleAmount), pagination, artifactCurIndex)

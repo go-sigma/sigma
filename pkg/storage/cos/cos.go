@@ -46,7 +46,7 @@ var _ storage.Factory = factory{}
 func (f factory) New(config configs.Configuration) (storage.StorageDriver, error) {
 	u, err := url.Parse(config.Storage.Cos.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Config [storage.cos.endpoint] is invalid")
+		return nil, fmt.Errorf("config [storage.cos.endpoint] is invalid")
 	}
 
 	c := cos.NewClient(&cos.BaseURL{BucketURL: u}, &http.Client{
@@ -149,7 +149,7 @@ func (t *tencentcos) Delete(ctx context.Context, path string) error {
 		}
 		resp, _, err := t.client.Bucket.Get(ctx, opt)
 		if err != nil {
-			return fmt.Errorf("List objects failed: %v", err)
+			return fmt.Errorf("list objects failed: %v", err)
 		}
 		if len(resp.Contents) == 0 {
 			break
@@ -195,7 +195,7 @@ func (t *tencentcos) Reader(ctx context.Context, path string) (io.ReadCloser, er
 	opt := &cos.ObjectGetOptions{}
 	resp, err := t.client.Object.Get(ctx, path, opt)
 	if err != nil {
-		return nil, fmt.Errorf("Get object failed: %v", err)
+		return nil, fmt.Errorf("get object failed: %v", err)
 	}
 	return resp.Body, nil
 }
@@ -258,7 +258,7 @@ func (t *tencentcos) Redirect(ctx context.Context, path string) (string, error) 
 	opt := &cos.ObjectGetOptions{}
 	url, err := t.client.Object.GetPresignedURL2(ctx, http.MethodGet, path, consts.ObsPresignMaxTtl, opt)
 	if err != nil {
-		return "", fmt.Errorf("Get object failed: %v", err)
+		return "", fmt.Errorf("get object failed: %v", err)
 	}
 	return url.String(), nil
 }

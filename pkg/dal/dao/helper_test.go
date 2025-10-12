@@ -44,7 +44,7 @@ func initDal(t *testing.T) *dig.Container {
 	require.NoError(t, digCon.Provide(func() configs.Configuration {
 		database := strings.ReplaceAll(uuid.Must(uuid.NewV7()).String(), "-", "")
 		config.Database.Sqlite3.Path = fmt.Sprintf("%s.db", database)
-		if config.Database.Type == enums.DatabaseMysql {
+		if config.Database.Type == enums.DatabaseMysql { // nolint: staticcheck
 			config.Database.Mysql.Database = database
 			initMysqlDatabase(t, database)
 		} else if config.Database.Type == enums.DatabasePostgresql {

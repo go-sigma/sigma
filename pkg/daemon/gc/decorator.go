@@ -54,7 +54,7 @@ type decoratorWebhook struct {
 
 type inject struct {
 	daemonServiceFactory dao.DaemonServiceFactory
-	storageDriver        storage.StorageDriver
+	storageDriver        storage.StorageDriver // nolint: unused
 	producerClient       workq.Producer
 }
 
@@ -262,7 +262,7 @@ func initGc(ctx context.Context, daemon enums.Daemon, runnerChan chan decoratorS
 
 			waitAllDone: &sync.WaitGroup{},
 		}
-		if len(injects) > 0 {
+		if len(injects) > 0 { // nolint: staticcheck
 			// ij := injects[0]
 			// if ij.storageDriverFactory != nil {
 			// 	runner.storageDriverFactory = ij.storageDriverFactory
@@ -283,7 +283,7 @@ func triggerWebhook(ctx context.Context, webhook decoratorWebhook, producerClien
 		Payload:      utils.MustMarshal(webhook.WebhookObj),
 	}, workq.ProducerOption{})
 	if err != nil {
-		return fmt.Errorf("Webhook event produce failed: %v", err)
+		return fmt.Errorf("webhook event produce failed: %v", err)
 	}
 	return nil
 }

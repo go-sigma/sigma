@@ -132,7 +132,7 @@ func genSkipper() middleware.Skipper {
 	return func(c echo.Context) bool {
 		requestUri := c.Request().RequestURI
 		requestMethod := c.Request().Method
-		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) {
+		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) { // nolint: staticcheck
 			return true
 		}
 		return slices.Contains(skipAuthns, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
@@ -151,7 +151,7 @@ func genAuthzSkipper() middleware.Skipper {
 	return func(c echo.Context) bool {
 		requestUri := c.Request().RequestURI
 		requestMethod := c.Request().Method
-		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) {
+		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) { // nolint: staticcheck
 			return true
 		}
 		return slices.Contains(skipAuthzs, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))

@@ -67,7 +67,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 	}
 
 	if req.NamespaceID == nil {
-		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) {
+		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) { // nolint: staticcheck
 			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
 		}
 	} else {
@@ -151,7 +151,7 @@ func (h *handler) PostWebhook(c echo.Context) error {
 }
 
 func (h *handler) PostWebhookValidate(req types.PostWebhookRequest) error {
-	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) {
+	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) { // nolint: staticcheck
 		log.Error().Str("URL", req.URL).Msg("URL is invalid")
 		return errcode.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'")
 	}

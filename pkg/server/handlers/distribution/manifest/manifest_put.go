@@ -68,7 +68,7 @@ func (h *handler) PutManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
-	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
@@ -436,7 +436,7 @@ func (h *handler) getArtifactType(descriptor distribution.Descriptor, manifest d
 	}
 	references := manifest.References()
 	for _, descriptor := range references {
-		if descriptor.MediaType == "application/vnd.in-toto+json" {
+		if descriptor.MediaType == "application/vnd.in-toto+json" { // nolint: staticcheck
 			return enums.ArtifactTypeProvenance
 		} else if descriptor.MediaType == "application/vnd.dev.cosign.simplesigning.v1+json" {
 			return enums.ArtifactTypeCosign
@@ -476,7 +476,7 @@ func (h *handler) getArtifactReferrer(ctx context.Context, repository string, ma
 
 	var digest string
 
-	if mediaType == imgspecv1.MediaTypeImageManifest { // nolint: gocritic
+	if mediaType == imgspecv1.MediaTypeImageManifest { // nolint: gocritic, staticcheck
 		var decoded imgspecv1.Manifest
 		err = json.Unmarshal(data, &decoded)
 		if err != nil {

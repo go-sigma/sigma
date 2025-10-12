@@ -159,12 +159,12 @@ type buildTagOption struct {
 func buildTag(tmpl string, option buildTagOption) (string, error) {
 	t, err := template.New("tag").Funcs(sprig.FuncMap()).Parse(tmpl)
 	if err != nil {
-		return "", fmt.Errorf("Template parse failed: %v", err)
+		return "", fmt.Errorf("template parse failed: %v", err)
 	}
 	var buffer bytes.Buffer
 	err = t.Execute(&buffer, option)
 	if err != nil {
-		return "", fmt.Errorf("Execute template failed: %v", err)
+		return "", fmt.Errorf("execute template failed: %v", err)
 	}
 	return buffer.String(), nil
 }

@@ -522,14 +522,14 @@ func TestValuesFromForm(t *testing.T) {
 	exampleMultiPartFormRequest := func(mod func(w *multipart.Writer)) *http.Request {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
-		w.WriteField("name", "Jon Snow")
-		w.WriteField("emails[]", "jon@labstack.com")
+		w.WriteField("name", "Jon Snow")             // nolint: errcheck
+		w.WriteField("emails[]", "jon@labstack.com") // nolint: errcheck
 		if mod != nil {
 			mod(w)
 		}
 
 		fw, _ := w.CreateFormFile("upload", "my.file")
-		fw.Write([]byte(`<div>hi</div>`))
+		fw.Write([]byte(`<div>hi</div>`)) // nolint: errcheck
 		w.Close()
 
 		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(b.String()))
@@ -562,7 +562,7 @@ func TestValuesFromForm(t *testing.T) {
 		{
 			name: "ok, POST multipart/form, multiple value",
 			givenRequest: exampleMultiPartFormRequest(func(w *multipart.Writer) {
-				w.WriteField("emails[]", "snow@labstack.com")
+				w.WriteField("emails[]", "snow@labstack.com") // nolint: errcheck
 			}),
 			whenName:     "emails[]",
 			expectValues: []string{"jon@labstack.com", "snow@labstack.com"},

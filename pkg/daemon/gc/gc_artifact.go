@@ -225,7 +225,7 @@ func (g gcArtifact) deleteArtifactCheck() {
 				continue
 			}
 			// 3. check manifest index associate with this artifact
-			if !(task.Artifact.ContentType == "application/vnd.docker.distribution.manifest.list.v2+json" ||
+			if !(task.Artifact.ContentType == "application/vnd.docker.distribution.manifest.list.v2+json" || // nolint: staticcheck
 				task.Artifact.ContentType == "application/vnd.oci.image.index.v1+json") { // skip this check if artifact is manifest index
 				err = artifactService.IsArtifactAssociatedWithArtifact(g.ctx, task.Artifact.ID)
 				if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

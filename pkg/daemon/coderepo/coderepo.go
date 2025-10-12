@@ -47,7 +47,7 @@ func crRunner(ctx context.Context, payload []byte) error {
 	var task types.DaemonCodeRepositoryPayload
 	err := json.Unmarshal(payload, &task)
 	if err != nil {
-		return fmt.Errorf("Code repository unmarshal payload failed: %v", err)
+		return fmt.Errorf("code repository unmarshal payload failed: %v", err)
 	}
 	cr := codeRepository{
 		userServiceFactory:           dao.NewUserServiceFactory(),
@@ -83,8 +83,8 @@ func (cr codeRepository) runner(ctx context.Context, payload types.DaemonCodeRep
 	// TODO: fix get user 3rdparty
 	user3rdPartyObj, err := userService.GetUser3rdParty(ctx, payload.User3rdPartyID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get 3rdParty user failed")
-		return fmt.Errorf("Get 3rdParty user failed: %v", err)
+		log.Error().Err(err).Msg("get 3rdParty user failed")
+		return fmt.Errorf("get 3rdParty user failed: %v", err)
 	}
 	switch user3rdPartyObj.Provider {
 	case enums.ProviderGithub:

@@ -155,7 +155,7 @@ func (s *namespaceService) ListNamespaceWithAuth(ctx context.Context, userID int
 		if err != nil {
 			return nil, 0, err
 		}
-		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+		if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) { // nolint: staticcheck
 			q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Namespace.ID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
 				Where(s.tx.NamespaceMember.ID.IsNotNull()).Or(s.tx.Namespace.Visibility.Eq(enums.VisibilityPublic))
 		}

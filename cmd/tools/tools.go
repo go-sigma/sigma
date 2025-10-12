@@ -149,7 +149,7 @@ func pushImage(digCon *dig.Container, path, name, version string) error {
 		versionsVal = string(versions.Val)
 	}
 	var sets = mapset.NewSet(strings.Split(versionsVal, ",")...)
-	if !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))) {
+	if !(versionsVal == "" || (versionsVal != "" && sets.ContainsOne(version))) { // nolint: staticcheck
 		return nil
 	}
 	if !sets.Add(version) {

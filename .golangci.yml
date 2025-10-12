@@ -1,43 +1,60 @@
+version: "2"
 run:
-  go: "1.23"
-
+  go: "1.25"
 linters:
   enable:
-    - cyclop
+    - asciicheck
+    - bidichk
+    - bodyclose
     - copyloopvar
+    - cyclop
     - gocritic
     - gosec
-    - ineffassign
     - misspell
     - prealloc
     - unconvert
     - unparam
-    - goimports
-    - whitespace
-    - gci
-    - misspell
-    - bidichk
-    - unparam
-    - unused
     - varnamelen
     - whitespace
-    - asciicheck
-    - bodyclose
-
-linters-settings:
-  whitespace:
-    multi-func: true
-  cyclop:
-    max-complexity: 50
-    package-average: 50
-    skip-tests: true
-  gci:
-    sections:
-      - standard
-      - blank
-      - default
-      - prefix(github.com/go-sigma/sigma)
-      - dot
-  varnamelen:
-    max-distance: 6
-    min-name-length: 1
+  settings:
+    cyclop:
+      max-complexity: 50
+      package-average: 50
+    varnamelen:
+      max-distance: 6
+      min-name-length: 1
+    whitespace:
+      multi-func: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - cyclop
+        path: (.+)_test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - blank
+        - default
+        - prefix(github.com/go-sigma/sigma)
+        - dot
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

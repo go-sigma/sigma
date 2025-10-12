@@ -138,7 +138,7 @@ func (h *handler) Callback(c echo.Context) error {
 			RefreshToken: oauth2Token.RefreshToken,
 		}
 	case enums.ProviderGitlab:
-		client, err := gitlab.NewOAuthClient(oauth2Token.AccessToken)
+		client, err := gitlab.NewOAuthClient(oauth2Token.AccessToken) // nolint: staticcheck
 		if err != nil {
 			log.Error().Err(err).Msg("Create gitlab client failed")
 			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Create gitlab client failed: %v", err))

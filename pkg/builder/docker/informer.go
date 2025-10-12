@@ -62,12 +62,14 @@ func (i *instance) informer(ctx context.Context) {
 								continue
 							}
 						}
+						// nolint: staticcheck
 						if container.ContainerJSONBase != nil && container.ContainerJSONBase.State != nil &&
-							(container.ContainerJSONBase.State.Running ||
-								container.ContainerJSONBase.State.Status == "running" || // TODO: we should test all case
-								container.ContainerJSONBase.State.Status == "exited") {
+							(container.ContainerJSONBase.State.Running || // nolint: staticcheck
+								container.ContainerJSONBase.State.Status == "running" || // nolint: staticcheck
+								// TODO: we should test all case
+								container.ContainerJSONBase.State.Status == "exited") { // nolint: staticcheck
 							log.Info().Str("id", evt.Actor.ID).Str("name", container.ContainerJSONBase.Name).Msg("Builder container started")
-							builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name)
+							builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name) // nolint: staticcheck
 							if err != nil {
 								log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
 								continue
@@ -94,7 +96,7 @@ func (i *instance) informer(ctx context.Context) {
 							}
 						}
 
-						builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name)
+						builderID, runnerID, err := builder.ParseContainerID(container.ContainerJSONBase.Name) // nolint: staticcheck
 						if err != nil {
 							log.Error().Err(err).Str("container", container.ContainerJSONBase.Name).Msg("Parse builder task id failed")
 							continue
@@ -111,8 +113,8 @@ func (i *instance) informer(ctx context.Context) {
 
 						builderService := i.builderServiceFactory.New()
 						updates := make(map[string]any, 1)
-						if container.ContainerJSONBase != nil && container.ContainerJSONBase.State != nil {
-							if container.ContainerJSONBase.State.ExitCode == 0 {
+						if container.ContainerJSONBase != nil && container.ContainerJSONBase.State != nil { // nolint: staticcheck
+							if container.ContainerJSONBase.State.ExitCode == 0 { // nolint: staticcheck
 								updates = map[string]any{
 									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
 									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
@@ -147,8 +149,8 @@ func (i *instance) informer(ctx context.Context) {
 func (i *instance) logStore(ctx context.Context, containerID string, builderID, runnerID int64) error {
 	ok := i.controlled.Add(containerID)
 	if !ok {
-		log.Error().Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("Add container id to controlled array failed")
-		return fmt.Errorf("Add container id to controlled array failed")
+		log.Error().Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("add container id to controlled array failed")
+		return fmt.Errorf("add container id to controlled array failed")
 	}
 	reader, err := i.client.ContainerLogs(ctx, containerID, container.LogsOptions{
 		ShowStdout: true,
@@ -156,23 +158,23 @@ func (i *instance) logStore(ctx context.Context, containerID string, builderID, 
 		Follow:     true,
 	})
 	if err != nil {
-		return fmt.Errorf("Get container logs failed: %v", err)
+		return fmt.Errorf("get container logs failed: %v", err)
 	}
 
 	writer := logger.Driver.Write(builderID, runnerID)
 	_, err = stdcopy.StdCopy(writer, writer, reader)
 	if err != nil {
-		return fmt.Errorf("Copy container logs failed: %v", err)
+		return fmt.Errorf("copy container logs failed: %v", err)
 	}
 	err = writer.Close()
 	if err != nil {
-		return fmt.Errorf("Close container logs failed: %v", err)
+		return fmt.Errorf("close container logs failed: %v", err)
 	}
 
 	err = i.client.ContainerRemove(ctx, containerID, container.RemoveOptions{})
 	if err != nil {
-		log.Error().Err(err).Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("Remove container failed")
-		return fmt.Errorf("Remove container failed: %v", err)
+		log.Error().Err(err).Str("container", containerID).Int64("builder", builderID).Int64("runner", runnerID).Msg("remove container failed")
+		return fmt.Errorf("remove container failed: %v", err)
 	}
 
 	return nil
@@ -184,7 +186,7 @@ func (i *instance) cacheList(ctx context.Context) error {
 		Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("List containers failed")
+		log.Error().Err(err).Msg("list containers failed")
 		return err
 	}
 	for _, container := range containers {
@@ -196,27 +198,27 @@ func (i *instance) cacheList(ctx context.Context) error {
 		}
 		builderID, runnerID, err := builder.ParseContainerID(name)
 		if err != nil {
-			log.Error().Err(err).Msg("Parse builder task id failed")
+			log.Error().Err(err).Msg("parse builder task id failed")
 			continue
 		}
 		con, err := i.client.ContainerInspect(ctx, container.ID)
 		if err != nil {
-			log.Error().Err(err).Str("id", container.ID).Msg("Inspect container failed")
+			log.Error().Err(err).Str("id", container.ID).Msg("inspect container failed")
 			continue
 		}
 		err = i.logStore(ctx, container.ID, builderID, runnerID)
 		if err != nil {
-			log.Error().Err(err).Str("id", container.ID).Msg("Get container log failed")
+			log.Error().Err(err).Str("id", container.ID).Msg("get container log failed")
 			continue
 		}
 		updates := map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
-		if con.ContainerJSONBase != nil && con.ContainerJSONBase.State != nil {
-			if con.ContainerJSONBase.State.ExitCode == 0 {
+		if con.ContainerJSONBase != nil && con.ContainerJSONBase.State != nil { // nolint: staticcheck
+			if con.ContainerJSONBase.State.ExitCode == 0 { // nolint: staticcheck
 				updates = map[string]any{
 					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
 					query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
 				}
-				log.Info().Str("id", container.ID).Str("name", con.ContainerJSONBase.Name).Msg("Builder container succeed")
+				log.Info().Str("id", container.ID).Str("name", con.ContainerJSONBase.Name).Msg("builder container succeed")
 			} else {
 				updates = map[string]any{
 					query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
@@ -225,13 +227,13 @@ func (i *instance) cacheList(ctx context.Context) error {
 				log.Error().Int("ExitCode", con.ContainerJSONBase.State.ExitCode).
 					Str("Error", con.ContainerJSONBase.State.Error).
 					Bool("OOMKilled", con.ContainerJSONBase.State.OOMKilled).
-					Msg("Builder container exited")
+					Msg("builder container exited")
 			}
 		}
 		builderService := i.builderServiceFactory.New()
 		err = builderService.UpdateRunner(ctx, builderID, runnerID, updates)
 		if err != nil {
-			log.Error().Err(err).Msg("Update runner failed")
+			log.Error().Err(err).Msg("update runner failed")
 		}
 	}
 	return nil

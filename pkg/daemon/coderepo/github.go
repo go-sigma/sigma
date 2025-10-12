@@ -33,18 +33,18 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 
 	userObj, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		log.Error().Err(err).Msg("Get user info failed")
-		return fmt.Errorf("Get user info failed: %v", err)
+		log.Error().Err(err).Msg("get user info failed")
+		return fmt.Errorf("get user info failed: %v", err)
 	}
 
 	var repos []*github.Repository
 
 	page := 1
 	for {
-		rs, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}})
+		rs, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}}) // nolint: staticcheck
 		if err != nil {
-			log.Error().Err(err).Msg("List repositories failed")
-			return fmt.Errorf("List repositories failed: %v", err)
+			log.Error().Err(err).Msg("list repositories failed")
+			return fmt.Errorf("list repositories failed: %v", err)
 		}
 		for _, r := range rs {
 			if strings.HasPrefix(ptr.To(r.FullName), fmt.Sprintf("%s/", ptr.To(userObj.Login))) {
@@ -63,8 +63,8 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 	for {
 		os, _, err := client.Organizations.List(ctx, "", &github.ListOptions{Page: page, PerPage: perPage})
 		if err != nil {
-			log.Error().Err(err).Msg("List organizations failed")
-			return fmt.Errorf("List organizations failed: %v", err)
+			log.Error().Err(err).Msg("list organizations failed")
+			return fmt.Errorf("list organizations failed: %v", err)
 		}
 		orgs = append(orgs, os...)
 		if len(os) < perPage {
@@ -79,8 +79,8 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 			rs, _, err := client.Repositories.ListByOrg(ctx, ptr.To(o.Login),
 				&github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}})
 			if err != nil {
-				log.Error().Err(err).Msg("List repositories for orgs failed")
-				return fmt.Errorf("List repositories for orgs failed: %v", err)
+				log.Error().Err(err).Msg("list repositories for orgs failed")
+				return fmt.Errorf("list repositories for orgs failed: %v", err)
 			}
 			repos = append(repos, rs...)
 			if len(rs) < perPage {
@@ -119,8 +119,8 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 				if strings.Contains(err.Error(), "Repository access blocked") {
 					blockedRepo.Insert(r.RepositoryID)
 				} else {
-					log.Error().Err(err).Str("owner", r.Owner).Str("repo", r.Name).Msg("List branches failed")
-					return fmt.Errorf("List branches for repo(%s/%s) failed: %v", r.Owner, r.Name, err)
+					log.Error().Err(err).Str("owner", r.Owner).Str("repo", r.Name).Msg("list branches failed")
+					return fmt.Errorf("list branches for repo(%s/%s) failed: %v", r.Owner, r.Name, err)
 				}
 			}
 			var bsObj = make([]*models.CodeRepositoryBranch, 0, len(bs))

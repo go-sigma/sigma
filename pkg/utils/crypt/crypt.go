@@ -1,4 +1,4 @@
-// Copyright 2023 sigma
+// Copyright 2025 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ func Encrypt(key, plaintext string) (string, error) {
 		return "", err
 	}
 
-	reader := &cipher.StreamReader{S: cipher.NewCFBEncrypter(block, iv), R: strings.NewReader(plaintext)}
+	reader := &cipher.StreamReader{S: cipher.NewCTR(block, iv), R: strings.NewReader(plaintext)}
 	ciphertext, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
@@ -77,7 +77,7 @@ func Decrypt(key, ciphertext string) (string, error) {
 
 	iv := srcBytes[:aes.BlockSize]
 
-	reader := &cipher.StreamReader{S: cipher.NewCFBDecrypter(block, iv), R: bytes.NewReader(srcBytes[aes.BlockSize:])}
+	reader := &cipher.StreamReader{S: cipher.NewCTR(block, iv), R: bytes.NewReader(srcBytes[aes.BlockSize:])}
 
 	plaintext, err := io.ReadAll(reader)
 	if err != nil {

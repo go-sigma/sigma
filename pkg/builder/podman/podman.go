@@ -55,7 +55,7 @@ type instance struct {
 func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 	ctx, err := bindings.NewConnection(context.Background(), "unix:///run/podman/podman.sock")
 	if err != nil {
-		return nil, fmt.Errorf("Create docker client failed: %v", err)
+		return nil, fmt.Errorf("create docker client failed: %v", err)
 	}
 
 	i := &instance{
@@ -83,8 +83,8 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		"builder-id":        strconv.FormatInt(builderConfig.BuilderID, 10),
 		"runner-id":         strconv.FormatInt(builderConfig.RunnerID, 10),
 	}
-	s.ContainerSecurityConfig.SeccompPolicy = "unconfined"
-	s.ContainerSecurityConfig.ApparmorProfile = "unconfined"
+	s.ContainerSecurityConfig.SeccompPolicy = "unconfined"   // nolint: staticcheck
+	s.ContainerSecurityConfig.ApparmorProfile = "unconfined" // nolint: staticcheck
 	createResponse, err := containers.CreateWithSpec(i.conn, s, nil)
 	if err != nil {
 		return fmt.Errorf("create container failed: %v", err)
@@ -137,7 +137,7 @@ func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writ
 			Stdout: ptr.Of(true),
 		}, stdoutChan, stderrChan)
 		if err != nil {
-			err = fmt.Errorf("Get container(%s) log stream failed: %v", name, err)
+			err = fmt.Errorf("get container(%s) log stream failed: %v", name, err)
 		}
 	}()
 

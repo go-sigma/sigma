@@ -35,7 +35,7 @@ func init() {
 			var payload types.DaemonArtifactPushedPayload
 			err := json.Unmarshal(data, &payload)
 			if err != nil {
-				return fmt.Errorf("Unmarshal payload failed: %v", err)
+				return fmt.Errorf("unmarshal payload failed: %v", err)
 			}
 			r := runnerArtifact{
 				namespaceServiceFactory:  dao.NewNamespaceServiceFactory(),
@@ -86,7 +86,7 @@ func (r runnerArtifact) run(ctx context.Context, payload types.DaemonArtifactPus
 		query.Repository.Size.ColumnName().String(): repositorySize,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Update repository failed")
+		log.Error().Err(err).Msg("update repository failed")
 		return err
 	}
 	return nil

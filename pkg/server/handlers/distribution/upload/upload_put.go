@@ -71,7 +71,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
-	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
