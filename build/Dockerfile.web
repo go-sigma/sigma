@@ -10,7 +10,16 @@ RUN set -eux && \
 
 WORKDIR /web
 
+COPY ./web/package.json ./web/yarn.lock ./web/.yarnrc.yml* .
+
+RUN --mount=type=cache,target=/web/node_modules \
+  --mount=type=cache,target=/web/.yarn \
+  --mount=type=cache,target=/root/.yarn \
+  corepack enable && yarn install --immutable
+
 COPY ./web .
 
-RUN --mount=type=cache,target=/web/node_modules set -eux && \
-  corepack enable && yarn install --immutable && yarn build
+RUN --mount=type=cache,target=/web/node_modules \
+  --mount=type=cache,target=/web/.yarn \
+  --mount=type=cache,target=/root/.yarn \
+  yarn build

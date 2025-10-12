@@ -6,6 +6,13 @@ FROM base AS base
 
 FROM moby/buildkit:${BUILDKIT_VERSION}
 
+LABEL org.opencontainers.image.title="sigma" \
+  org.opencontainers.image.description="sigma is an OCI artifact storage and distribution system, which is designed to be a lightweight, easy-to-use, and easy-to-deploy, and can be used as a private registry or a public registry. sigma is a cloud-native, distributed, and highly available system, which can be deployed on any cloud platform or on-premises." \
+  org.opencontainers.image.url="https://hub.docker.com/r/sigmago/sigma" \
+  org.opencontainers.image.source="https://github.com/go-sigma/sigma" \
+  org.opencontainers.image.licenses="Apache-2.0" \
+  org.opencontainers.image.version="v1.0.0"
+
 ARG USE_MIRROR=false
 
 USER root
