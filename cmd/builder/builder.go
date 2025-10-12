@@ -68,7 +68,7 @@ func NewCmdBuilder() *cobra.Command {
 			builder.api = NewAPI(builder.Authorization, builder.Endpoint)
 			checkErr(builder.initCache())
 			checkErr(builder.initToken())
-			if builder.Builder.Source == enums.BuilderSourceDockerfile {
+			if builder.Builder.Source == enums.BuilderSourceDockerfile { // nolint: staticcheck
 				checkErr(builder.writeDockerfile())
 			} else {
 				checkErr(builder.gitClone())
@@ -173,9 +173,9 @@ func (b Builder) gitClone() error {
 	log.Info().Str("command", cmd.String()).Str("dir", workspace).Strs("env", cmd.Env).Msg("Running git clone")
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Clone repository failed: %v", err)
+		return fmt.Errorf("clone repository failed: %v", err)
 	}
-	log.Info().Msg("Finished clone repository")
+	log.Info().Msg("finished clone repository")
 	return nil
 }
 
@@ -244,7 +244,7 @@ func (b Builder) build(imageName string) error {
 	log.Info().Msg("Start to build image")
 	buildCtl, err := exec.LookPath("buildctl-daemonless.sh")
 	if err != nil {
-		return fmt.Errorf("Cannot find the buildctl-daemonless.sh: %v", err)
+		return fmt.Errorf("cannot find the buildctl-daemonless.sh: %v", err)
 	}
 	cmd := exec.Command(buildCtl, "build")
 	cmd.Args = append(cmd.Args, "--local", fmt.Sprintf("context=%s", path.Join(workspace, b.BuildkitContext)))
@@ -276,15 +276,15 @@ func (b Builder) build(imageName string) error {
 	cmd.Env = append(os.Environ(), fmt.Sprintf("BUILDKITD_FLAGS=%s", buildkitdFlags))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", homeSigma))
 
-	log.Info().Str("command", cmd.String()).Strs("env", cmd.Env).Msg("Building image")
+	log.Info().Str("command", cmd.String()).Strs("env", cmd.Env).Msg("building image")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Build image failed: %v", err)
+		return fmt.Errorf("build image failed: %v", err)
 	}
-	log.Info().Msg("Finished build image")
+	log.Info().Msg("finished build image")
 	return nil
 }
 

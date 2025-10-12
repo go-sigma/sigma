@@ -50,7 +50,7 @@ var _ builder.Factory = factory{}
 func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
-		return nil, fmt.Errorf("Create docker client failed: %v", err)
+		return nil, fmt.Errorf("create docker client failed: %v", err)
 	}
 	i := &instance{
 		config:                config,
@@ -102,12 +102,12 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 
 	if err != nil {
-		return fmt.Errorf("Create container failed: %v", err)
+		return fmt.Errorf("create container failed: %v", err)
 	}
 
 	err = i.client.ContainerStart(ctx, builder.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID), container.StartOptions{})
 	if err != nil {
-		return fmt.Errorf("Start container failed: %v", err)
+		return fmt.Errorf("start container failed: %v", err)
 	}
 	builderService := i.builderServiceFactory.New()
 	err = builderService.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{
@@ -115,7 +115,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		query.BuilderRunner.StartedAt.ColumnName().String(): time.Now().UnixMilli(),
 	})
 	if err != nil {
-		return fmt.Errorf("Update runner status failed: %v", err)
+		return fmt.Errorf("update runner status failed: %v", err)
 	}
 	return nil
 }
@@ -132,7 +132,7 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 		status := enums.BuildStatusStopped
 
 		if err != nil {
-			if !(strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")) {
+			if !(strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")) { // nolint: staticcheck
 				status = enums.BuildStatusFailed
 			}
 		}
@@ -151,19 +151,19 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 	err = i.client.ContainerKill(ctx, builder.GenContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
 		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
-			log.Info().Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Container is not running or container is not exist")
+			log.Info().Str("id", builder.GenContainerID(builderID, runnerID)).Msg("container is not running or container is not exist")
 			return nil
 		}
 
-		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Kill container failed")
+		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("kill container failed")
 
-		return fmt.Errorf("Kill container failed: %v", err)
+		return fmt.Errorf("kill container failed: %v", err)
 	}
 
 	err = i.client.ContainerRemove(ctx, builder.GenContainerID(builderID, runnerID), container.RemoveOptions{})
 	if err != nil {
-		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("Remove container failed")
-		return fmt.Errorf("Remove container failed: %v", err)
+		log.Error().Err(err).Str("id", builder.GenContainerID(builderID, runnerID)).Msg("remove container failed")
+		return fmt.Errorf("remove container failed: %v", err)
 	}
 
 	for j := 0; j < retryMax; j++ {
@@ -172,7 +172,7 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID int64) error {
 			if strings.Contains(err.Error(), fmt.Sprintf("No such container: %s", builder.GenContainerID(builderID, runnerID))) {
 				return nil
 			}
-			return fmt.Errorf("Inspect container with error: %v", err)
+			return fmt.Errorf("inspect container with error: %v", err)
 		}
 
 		<-time.After(retryDuration)
@@ -199,7 +199,7 @@ func (i instance) LogStream(ctx context.Context, builderID, runnerID int64, writ
 			Follow:     true,
 		})
 	if err != nil {
-		return fmt.Errorf("Get container logs failed: %v", err)
+		return fmt.Errorf("get container logs failed: %v", err)
 	}
 	_, err = stdcopy.StdCopy(writer, nil, reader)
 	return err

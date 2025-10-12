@@ -34,11 +34,11 @@ func (s authService) Tag(user models.User, tagID int64, auth enums.Auth) (bool, 
 	tagObj, err := tagService.GetByID(ctx, tagID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("tagID", tagID).Msg("Get tag by id failed")
-			return false, errors.Join(err, fmt.Errorf("Get tag by id(%d) failed", tagID))
+			log.Error().Err(err).Int64("tagID", tagID).Msg("get tag by id failed")
+			return false, errors.Join(err, fmt.Errorf("get tag by id(%d) failed", tagID))
 		}
-		log.Error().Err(err).Int64("tagID", tagID).Msg("Get tag by id not found")
-		return false, errors.Join(err, fmt.Errorf("Get tag by id(%d) not found", tagID))
+		log.Error().Err(err).Int64("tagID", tagID).Msg("get tag by id not found")
+		return false, errors.Join(err, fmt.Errorf("get tag by id(%d) not found", tagID))
 	}
 	return s.Repository(user, tagObj.RepositoryID, auth)
 }

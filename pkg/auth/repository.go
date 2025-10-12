@@ -33,11 +33,11 @@ func (s authService) Repository(user models.User, repositoryID int64, auth enums
 	repositoryObj, err := repositoryService.Get(ctx, repositoryID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Int64("repositoryID", repositoryID).Msg("Get repository by id failed")
-			return false, errors.Join(err, fmt.Errorf("Get repository by id(%d) failed", repositoryID))
+			log.Error().Err(err).Int64("repositoryID", repositoryID).Msg("get repository by id failed")
+			return false, errors.Join(err, fmt.Errorf("get repository by id(%d) failed", repositoryID))
 		}
-		log.Error().Err(err).Int64("repositoryID", repositoryID).Msg("Get repository by id not found")
-		return false, errors.Join(err, fmt.Errorf("Get repository by id(%d) not found", repositoryID))
+		log.Error().Err(err).Int64("repositoryID", repositoryID).Msg("get repository by id not found")
+		return false, errors.Join(err, fmt.Errorf("get repository by id(%d) not found", repositoryID))
 	}
 	return s.Namespace(user, repositoryObj.NamespaceID, auth)
 }

@@ -95,7 +95,7 @@ func (d *database) Read(ctx context.Context, id int64) (io.Reader, error) {
 	builderService := d.builderServiceFactory.New()
 	builderLog, err := builderService.GetRunner(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get builder log: %v", err)
+		return nil, fmt.Errorf("failed to get builder log: %v", err)
 	}
 	return bytes.NewReader(builderLog.Log), nil
 }

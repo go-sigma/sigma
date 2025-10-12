@@ -56,7 +56,7 @@ func (b Builder) initToken() error {
 		if utils.IsFile(path.Join(homeSigma, knownHosts)) {
 			err = os.Remove(path.Join(homeSigma, knownHosts))
 			if err != nil {
-				return fmt.Errorf("Remove known hosts file failed")
+				return fmt.Errorf("remove known hosts file failed: %v", err)
 			}
 		}
 		knownHostsFileObj, err := os.Create(path.Join(homeSigma, knownHosts))
@@ -82,19 +82,19 @@ func (b Builder) initToken() error {
 		}()
 		_, err = privateKeyObj.WriteString(ptr.To(b.ScmSshKey))
 		if err != nil {
-			return fmt.Errorf("Write private key failed: %v", err)
+			return fmt.Errorf("write private key failed: %v", err)
 		}
 	}
 	{
 		if utils.IsFile(path.Join(homeSigma, dockerConfig)) {
 			err := os.Remove(path.Join(homeSigma, dockerConfig))
 			if err != nil {
-				return fmt.Errorf("Remove docker config file failed")
+				return fmt.Errorf("remove docker config file failed: %v", err)
 			}
 		}
 		dockerConfigObj, err := os.Create(path.Join(homeSigma, dockerConfig))
 		if err != nil {
-			return fmt.Errorf("Create file failed: %v", dockerConfigObj)
+			return fmt.Errorf("create file failed: %v", err)
 		}
 		defer func() {
 			_ = dockerConfigObj.Close() // nolint: errcheck
@@ -121,7 +121,7 @@ func (b Builder) initToken() error {
 		}
 		err = cf.SaveToWriter(dockerConfigObj)
 		if err != nil {
-			return fmt.Errorf("Save docker config failed: %v", err)
+			return fmt.Errorf("save docker config failed: %v", err)
 		}
 	}
 	var btConfig buildkitdconfig.Config
@@ -149,19 +149,19 @@ func (b Builder) initToken() error {
 	if utils.IsFile(path.Join(homeSigma, buildkitdConfigFilename)) {
 		err := os.Remove(path.Join(homeSigma, buildkitdConfigFilename))
 		if err != nil {
-			return fmt.Errorf("Remove knownHosts file failed")
+			return fmt.Errorf("remove buildkitd config file failed: %v", err)
 		}
 	}
 	btConfigObj, err := os.Create(path.Join(homeSigma, buildkitdConfigFilename))
 	if err != nil {
-		return fmt.Errorf("Create buildkitd config failed: %v", err)
+		return fmt.Errorf("create buildkitd config failed: %v", err)
 	}
 	defer func() {
 		_ = btConfigObj.Close() // nolint: errcheck
 	}()
 	err = toml.NewEncoder(btConfigObj).Encode(btConfig)
 	if err != nil {
-		return fmt.Errorf("Marshal buildkitd config failed: %v", err)
+		return fmt.Errorf("marshal buildkitd config failed: %v", err)
 	}
 	return nil
 }

@@ -74,6 +74,7 @@ func (h *handler) GetRunnerLog(c echo.Context) error {
 				log.Error().Err(err).Msg("Close the ws failed")
 			}
 		}()
+		// nolint: staticcheck
 		if runnerObj.Status == enums.BuildStatusFailed || runnerObj.Status == enums.BuildStatusSuccess { // already built
 			var reader io.Reader
 			if logger.Driver == nil {

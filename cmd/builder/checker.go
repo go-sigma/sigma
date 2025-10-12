@@ -44,60 +44,60 @@ func (b *Builder) checker() error {
 	if ptr.To(b.ScmSshKey) != "" {
 		scmSshKey, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), ptr.To(b.ScmSshKey))
 		if err != nil {
-			return fmt.Errorf("Decrypt ssh key failed: %v", err)
+			return fmt.Errorf("decrypt ssh key failed: %v", err)
 		}
 		b.ScmSshKey = ptr.Of(scmSshKey)
 	}
 
 	if b.ScmCredentialType != nil && ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeToken && ptr.To(b.ScmToken) == "" {
-		return fmt.Errorf("SCM_TOKEN should be set, if SCM_CREDENTIAL_TYPE is 'token'")
+		return fmt.Errorf("env SCM_TOKEN should be set, if SCM_CREDENTIAL_TYPE is 'token'")
 	}
 	if ptr.To(b.ScmToken) != "" {
 		scmToken, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), ptr.To(b.ScmToken))
 		if err != nil {
-			return fmt.Errorf("Decrypt scm token failed: %v", err)
+			return fmt.Errorf("decrypt scm token failed: %v", err)
 		}
 		b.ScmToken = ptr.Of(scmToken)
 	}
 
 	if b.ScmCredentialType != nil && ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeToken &&
 		(!strings.HasPrefix(ptr.To(b.ScmRepository), "http://") && !strings.HasPrefix(ptr.To(b.ScmRepository), "https://")) {
-		return fmt.Errorf("SCM_REPOSITORY should be started with 'http://' or 'https://', if SCM_CREDENTIAL_TYPE is 'token'")
+		return fmt.Errorf("env SCM_REPOSITORY should be started with 'http://' or 'https://', if SCM_CREDENTIAL_TYPE is 'token'")
 	}
 	if b.ScmCredentialType != nil && ptr.To(b.ScmCredentialType) == enums.ScmCredentialTypeUsername && (ptr.To(b.ScmUsername) == "" || ptr.To(b.ScmPassword) == "") {
-		return fmt.Errorf("SCM_USERNAME and SCM_PASSWORD should be set, if SCM_CREDENTIAL_TYPE is 'username'")
+		return fmt.Errorf("env SCM_USERNAME and SCM_PASSWORD should be set, if SCM_CREDENTIAL_TYPE is 'username'")
 	}
 	if ptr.To(b.ScmPassword) != "" {
 		scmPassword, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), ptr.To(b.ScmPassword))
 		if err != nil {
-			return fmt.Errorf("Decrypt scm password failed: %v", err)
+			return fmt.Errorf("decrypt scm password failed: %v", err)
 		}
 		b.ScmPassword = ptr.Of(scmPassword)
 	}
 
 	if b.Source != enums.BuilderSourceDockerfile && (b.ScmProvider == nil || !b.ScmProvider.IsValid()) {
-		return fmt.Errorf("SCM_PROVIDER should be one of 'github', 'gitlab' or 'bitbucket', but got '%s'", b.ScmProvider.String())
+		return fmt.Errorf("env SCM_PROVIDER should be one of 'github', 'gitlab' or 'bitbucket', but got '%s'", b.ScmProvider.String())
 	}
 	for _, platform := range b.BuildkitPlatforms {
 		if !platform.IsValid() {
-			return fmt.Errorf("BUILDKIT_PLATFORMS is invalid")
+			return fmt.Errorf("env BUILDKIT_PLATFORMS is invalid")
 		}
 	}
 
 	if len(b.OciRegistryDomain) != len(b.OciRegistryUsername) || len(b.OciRegistryDomain) != len(b.OciRegistryPassword) {
-		return fmt.Errorf("OCI_REGISTRY_DOMAIN length should equal OCI_REGISTRY_USERNAME and OCI_REGISTRY_PASSWORD")
+		return fmt.Errorf("env OCI_REGISTRY_DOMAIN length should equal OCI_REGISTRY_USERNAME and OCI_REGISTRY_PASSWORD")
 	}
 
 	for index, password := range b.OciRegistryPassword {
 		b.OciRegistryPassword[index], err = crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), password)
 		if err != nil {
-			return fmt.Errorf("Decrypt oci registry password failed: %v", err)
+			return fmt.Errorf("decrypt oci registry password failed: %v", err)
 		}
 	}
 
 	signingPrivateKey, err := crypt.Decrypt(fmt.Sprintf("%d-%d", b.BuilderID, b.RunnerID), b.SigningPrivateKey)
 	if err != nil {
-		return fmt.Errorf("Decrypt signing private key failed: %v", err)
+		return fmt.Errorf("decrypt signing private key failed: %v", err)
 	}
 	b.SigningPrivateKey = signingPrivateKey
 

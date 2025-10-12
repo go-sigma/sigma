@@ -41,11 +41,11 @@ func (s authService) Namespace(user models.User, namespaceID int64, auth enums.A
 	namespaceObj, err := namespaceService.Get(ctx, namespaceID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(err).Msg("Get namespace by id failed")
-			return false, errors.Join(err, fmt.Errorf("Get namespace by id(%d) failed", namespaceID))
+			log.Error().Err(err).Msg("get namespace by id failed")
+			return false, errors.Join(err, fmt.Errorf("get namespace by id(%d) failed", namespaceID))
 		}
-		log.Error().Err(err).Msg("Get namespace by id not found")
-		return false, errors.Join(err, fmt.Errorf("Get namespace by id(%d) not found", namespaceID))
+		log.Error().Err(err).Msg("get namespace by id not found")
+		return false, errors.Join(err, fmt.Errorf("get namespace by id(%d) not found", namespaceID))
 	}
 	if namespaceObj.Visibility == enums.VisibilityPublic && auth == enums.AuthRead {
 		return true, nil
@@ -56,7 +56,7 @@ func (s authService) Namespace(user models.User, namespaceID int64, auth enums.A
 	namespaceMemberObj, err := roleService.GetNamespaceMember(ctx, namespaceID, user.ID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) { // check user's role in this namespace
-			log.Error().Err(err).Msg("Get namespace member by namespace id and user id failed")
+			log.Error().Err(err).Msg("get namespace member by namespace id and user id failed")
 		}
 		return false, nil
 	}

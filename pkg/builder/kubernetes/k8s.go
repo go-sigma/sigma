@@ -57,23 +57,23 @@ func (f factory) New(config configs.Configuration) (builder.Builder, error) {
 		cfg := clientcmdapi.NewConfig()
 		err := yaml.Unmarshal([]byte(ptr.To(config.Daemon.Builder.Kubernetes.Kubeconfig)), &cfg)
 		if err != nil {
-			return nil, fmt.Errorf("Decode kubeconfig failed: %v", err)
+			return nil, fmt.Errorf("decode kubeconfig failed: %v", err)
 		}
 		clientConfig := clientcmd.NewDefaultClientConfig(ptr.To(cfg), &clientcmd.ConfigOverrides{})
 		restConfig, err = clientConfig.ClientConfig()
 		if err != nil {
-			return nil, fmt.Errorf("Get k8s rest config failed: %v", err)
+			return nil, fmt.Errorf("get k8s rest config failed: %v", err)
 		}
 	} else {
 		restConfig, err = restclient.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("Get k8s client in cluster failed: %v", err)
+			return nil, fmt.Errorf("get k8s client in cluster failed: %v", err)
 		}
 	}
 
 	i.client, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Get reset client failed: %v", err)
+		return nil, fmt.Errorf("get reset client failed: %v", err)
 	}
 
 	go i.informer(context.Background())
@@ -113,7 +113,7 @@ func (i instance) Start(ctx context.Context, builderConfig builder.BuilderConfig
 		},
 	}, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("Create pod failed: %v", err)
+		return fmt.Errorf("create pod failed: %v", err)
 	}
 	return nil
 }

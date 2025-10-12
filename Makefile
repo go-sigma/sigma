@@ -58,7 +58,7 @@ lint: lint-go lint-dockerfile ## Run all available linters
 
 .PHONY: lint-dockerfile
 lint-dockerfile: ## Lint your Dockerfile
-	@hadolint $(shell find build -name "*Dockerfile")
+	@hadolint --ignore DL3006 $(shell find build -name "Dockerfile*")
 
 .PHONY: lint-go
 lint-go: ## Use golintci-lint on your project

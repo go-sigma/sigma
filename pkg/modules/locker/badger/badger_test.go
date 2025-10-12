@@ -92,7 +92,7 @@ func TestNew(t *testing.T) {
 						defer wg.Done()
 						l, err := locker.Acquire(ctx, key, time.Second*1, time.Second*3)
 						require.Equal(t, true, err == nil || errors.Is(err, context.DeadlineExceeded))
-						if !(err == nil || errors.Is(err, context.DeadlineExceeded)) {
+						if !(err == nil || errors.Is(err, context.DeadlineExceeded)) { // nolint: staticcheck
 							require.NoError(t, fmt.Errorf("acquire lock failed"))
 						}
 						if l != nil {

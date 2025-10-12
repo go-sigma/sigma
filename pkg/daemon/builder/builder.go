@@ -46,7 +46,7 @@ func builderRunner(ctx context.Context, data []byte) error {
 	var payload types.DaemonBuilderPayload
 	err := json.Unmarshal(data, &payload)
 	if err != nil {
-		return fmt.Errorf("Unmarshal payload failed: %v", err)
+		return fmt.Errorf("unmarshal payload failed: %v", err)
 	}
 	b := runner{
 		builderServiceFactory:    dao.NewBuilderServiceFactory(),
@@ -69,25 +69,25 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 	repositoryService := b.repositoryServiceFactory.New()
 	repositoryObj, err := repositoryService.Get(ctx, payload.RepositoryID)
 	if err != nil {
-		log.Error().Err(err).Int64("id", payload.RepositoryID).Msg("Get repository record failed")
-		return fmt.Errorf("Get repository record failed")
+		log.Error().Err(err).Int64("id", payload.RepositoryID).Msg("get repository record failed")
+		return fmt.Errorf("get repository record failed")
 	}
 	builderService := b.builderServiceFactory.New()
 	builderObj, err := builderService.GetByRepositoryID(ctx, payload.RepositoryID)
 	if err != nil {
-		log.Error().Err(err).Int64("id", payload.RepositoryID).Msg("Get builder record failed")
-		return fmt.Errorf("Get builder record failed")
+		log.Error().Err(err).Int64("id", payload.RepositoryID).Msg("get builder record failed")
+		return fmt.Errorf("get builder record failed")
 	}
 
 	runnerObj, err := builderService.GetRunner(ctx, payload.RunnerID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get runner failed")
-		return fmt.Errorf("Get runner failed: %v", err)
+		log.Error().Err(err).Msg("get runner failed")
+		return fmt.Errorf("get runner failed: %v", err)
 	}
 
 	defer func() {
 		var updates map[string]any
-		if !(payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart || payload.Action == enums.DaemonBuilderActionStop) {
+		if !(payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart || payload.Action == enums.DaemonBuilderActionStop) { // nolint: staticcheck
 			updates = map[string]any{
 				query.BuilderRunner.Status.ColumnName().String():        enums.BuildStatusFailed,
 				query.BuilderRunner.StatusMessage.ColumnName().String(): fmt.Sprintf("Daemon builder action(%s) is not support", payload.Action),
@@ -110,8 +110,8 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 	}()
 
 	if builder.Driver == nil {
-		err = fmt.Errorf("Builder driver is not initialized")
-		return fmt.Errorf("Builder driver is not initialized, or check config.daemon.builder.enabled is true or not")
+		err = fmt.Errorf("builder driver is not initialized")
+		return fmt.Errorf("builder driver is not initialized, or check config.daemon.builder.enabled is true or not")
 	}
 
 	platforms := []enums.OciPlatform{}
@@ -152,36 +152,37 @@ func (b runner) runner(ctx context.Context, payload types.DaemonBuilderPayload) 
 		},
 	}
 	if builderObj.Source == enums.BuilderSourceCodeRepository {
-		buildConfig.Builder.ScmCredentialType = builderObj.ScmCredentialType
+		buildConfig.Builder.ScmCredentialType = builderObj.ScmCredentialType // nolint: staticcheck
 
 		switch ptr.To(builderObj.ScmCredentialType) {
 		case enums.ScmCredentialTypeSsh:
-			buildConfig.Builder.ScmSshKey = builderObj.ScmSshKey
+			buildConfig.Builder.ScmSshKey = builderObj.ScmSshKey // nolint: staticcheck
 			if builderObj.CodeRepository != nil {
-				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.SshUrl)
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.SshUrl) // nolint: staticcheck
 			}
 		case enums.ScmCredentialTypeToken:
-			buildConfig.Builder.ScmToken = builderObj.ScmToken
+			buildConfig.Builder.ScmToken = builderObj.ScmToken // nolint: staticcheck
 			if builderObj.CodeRepository != nil {
-				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl)
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl) // nolint: staticcheck
 			}
 		case enums.ScmCredentialTypeUsername:
-			buildConfig.Builder.ScmUsername = builderObj.ScmUsername
-			buildConfig.Builder.ScmPassword = builderObj.ScmPassword
+			buildConfig.Builder.ScmUsername = builderObj.ScmUsername // nolint: staticcheck
+			buildConfig.Builder.ScmPassword = builderObj.ScmPassword // nolint: staticcheck
 
 			if builderObj.CodeRepository != nil {
-				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl)
+				buildConfig.Builder.ScmRepository = ptr.Of(builderObj.CodeRepository.CloneUrl) // nolint: staticcheck
 			}
 		}
 
+		// nolint: staticcheck
 		buildConfig.Builder.ScmProvider = (*enums.ScmProvider)(&builderObj.CodeRepository.User3rdParty.Provider) // TODO: change type
 	}
 
 	if payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart {
 		err = builder.Driver.Start(ctx, buildConfig)
 		if err != nil {
-			log.Error().Err(err).Msg("Start or restart builder failed")
-			return fmt.Errorf("Start or restart builder failed: %v", err)
+			log.Error().Err(err).Msg("start or restart builder failed")
+			return fmt.Errorf("start or restart builder failed: %v", err)
 		}
 	}
 

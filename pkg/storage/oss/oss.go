@@ -88,7 +88,7 @@ func (a *alioss) Move(ctx context.Context, srcPath string, dstPath string) error
 	srcSize, err := strconv.ParseInt(header.Get(textproto.CanonicalMIMEHeaderKey("Content-Length")), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Interface("Headers", header).Msg("Get object header failed")
-		return fmt.Errorf("Convert header content-length to int failed: %v", err)
+		return fmt.Errorf("convert header content-length to int failed: %v", err)
 	}
 
 	if srcSize <= storage.MultipartCopyThresholdSize {

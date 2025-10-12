@@ -38,7 +38,7 @@ func checkRedis(config Configuration) error {
 		return nil
 	}
 	if config.Redis.Type != enums.RedisTypeExternal {
-		return fmt.Errorf("Unknown redis type: %s", config.Redis.Type)
+		return fmt.Errorf("unknown redis type: %s", config.Redis.Type)
 	}
 	redisOpt, err := redis.ParseURL(config.Redis.URL)
 	if err != nil {
@@ -118,7 +118,7 @@ func checkStorage(config Configuration) error {
 	case enums.StorageTypeS3:
 		return checkStorageS3(config)
 	default:
-		return fmt.Errorf("Not support storage type")
+		return fmt.Errorf("not support storage type")
 	}
 }
 

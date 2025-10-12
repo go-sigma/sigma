@@ -56,7 +56,7 @@ func (h *handler) DeleteManifest(c echo.Context) error {
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
-	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) {
+	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
 		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}

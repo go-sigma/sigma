@@ -87,7 +87,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		Key:    aws.String(srcPath),
 	})
 	if err != nil {
-		return fmt.Errorf("Head source path(%s) failed: %v", srcPath, err)
+		return fmt.Errorf("head source path(%s) failed: %v", srcPath, err)
 	}
 	srcSize := ptr.To(srcFile.ContentLength)
 

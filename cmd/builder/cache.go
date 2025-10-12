@@ -68,7 +68,7 @@ func (a api) CreateCache(ctx context.Context, builderID int64, p string) error {
 		return err
 	}
 	if code != http.StatusCreated {
-		return fmt.Errorf("Create cache response status code(%d) is not 201", code)
+		return fmt.Errorf("create cache response status code(%d) is not 201", code)
 	}
 	return nil
 }
@@ -82,7 +82,7 @@ func (a api) GetCache(ctx context.Context, builderID int64) (io.ReadCloser, erro
 	if code == http.StatusNotFound {
 		return nil, os.ErrNotExist
 	} else if code != http.StatusOK {
-		return nil, fmt.Errorf("Get cache response status code(%d) is not 200", code)
+		return nil, fmt.Errorf("get cache response status code(%d) is not 200", code)
 	}
 	return reader, nil
 }
@@ -127,24 +127,24 @@ func (b Builder) initCache() error {
 		}
 		err = file.Close()
 		if err != nil {
-			log.Error().Err(err).Msg("Cache file close failed")
+			log.Error().Err(err).Msg("cache file close failed")
 		}
 	}
 	if utils.IsFile(path.Join(cache, compressedCache)) {
 		log.Info().Msg("Start to decompress cache")
 		err := archiver.Unarchive(path.Join(cache, compressedCache), home)
 		if err != nil {
-			return fmt.Errorf("Decompress cache failed: %v", err)
+			return fmt.Errorf("decompress cache failed: %v", err)
 		}
 		fileInfo, err := os.Stat(path.Join(cache, compressedCache))
 		if err != nil {
-			return fmt.Errorf("Read compressed file failed: %v", err)
+			return fmt.Errorf("read compressed file failed: %v", err)
 		}
 		err = os.Rename(cacheOut, cacheIn)
 		if err != nil {
-			return fmt.Errorf("Rename cache_out to cache_in failed: %v", err)
+			return fmt.Errorf("rename cache_out to cache_in failed: %v", err)
 		}
-		log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("Decompress cache success")
+		log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("decompress cache success")
 	}
 	var dirs = []string{cacheOut, cacheIn}
 	for _, dir := range dirs {
@@ -159,24 +159,24 @@ func (b Builder) initCache() error {
 }
 
 func (b Builder) exportCache() error {
-	log.Info().Msg("Start to compress cache")
+	log.Info().Msg("start to compress cache")
 	tgz := archiver.NewTarGz()
 	err := tgz.Archive([]string{path.Join(cacheOut)}, path.Join("/tmp", compressedCache))
 	if err != nil {
-		return fmt.Errorf("Compress cache failed: %v", err)
+		return fmt.Errorf("compress cache failed: %v", err)
 	}
 	err = os.Rename(path.Join("/tmp", compressedCache), path.Join(cache, compressedCache))
 	if err != nil {
-		return fmt.Errorf("Move compressed file to dir failed")
+		return fmt.Errorf("move compressed file to dir failed: %v", err)
 	}
 	fileInfo, err := os.Stat(path.Join(cache, compressedCache))
 	if err != nil {
-		return fmt.Errorf("Read compressed file failed: %v", err)
+		return fmt.Errorf("read compressed file failed: %v", err)
 	}
 	err = b.api.CreateCache(context.Background(), b.BuilderID, path.Join(cache, compressedCache))
 	if err != nil {
-		return fmt.Errorf("Export cache to server failed: %v", err)
+		return fmt.Errorf("export cache to server failed: %v", err)
 	}
-	log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("Export cache success")
+	log.Info().Str("size", humanize.BigIBytes(big.NewInt(fileInfo.Size()))).Msg("export cache success")
 	return nil
 }

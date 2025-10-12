@@ -247,7 +247,7 @@ func (s *repositoryService) ListWithScrollable(ctx context.Context, namespaceID,
 	if err != nil {
 		return nil, err
 	}
-	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) { // nolint: staticcheck
 		q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
 			Where(s.tx.NamespaceMember.ID.IsNotNull())
 	}
@@ -274,7 +274,7 @@ func (s *repositoryService) ListRepositoryWithAuth(ctx context.Context, namespac
 	if err != nil {
 		return nil, 0, err
 	}
-	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) {
+	if !(userObj.Role == enums.UserRoleAdmin || userObj.Role == enums.UserRoleRoot) { // nolint: staticcheck
 		q = q.LeftJoin(s.tx.NamespaceMember, s.tx.Repository.NamespaceID.EqCol(s.tx.NamespaceMember.NamespaceID), s.tx.NamespaceMember.UserID.Eq(userID)).
 			Where(s.tx.NamespaceMember.ID.IsNotNull())
 	}
