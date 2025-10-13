@@ -19,7 +19,7 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache curl tini
+  apk add --no-cache ca-certificates tini mailcap
 
 COPY --chmod=0755 ./swag /app/swag
 COPY --chmod=0644 ./conf/default.conf.template /etc/nginx/templates/default.conf.template

@@ -67,19 +67,7 @@ lint-go: ## Use golintci-lint on your project
 ## Docker:
 .PHONY: docker-build
 docker-build: ## Use the dockerfile to build the sigma image
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/all.alpine.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,force-compression=true .
-
-.PHONY: docker-build-web
-docker-build-web: ## Build the web image
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/web.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-web:latest,push=false,oci-mediatypes=true,force-compression=true .
-
-.PHONY: docker-build-trivy
-docker-build-trivy: ## Build the trivy image
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) -f build/trivy.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME)-trivy:latest,push=false,oci-mediatypes=true,force-compression=true .
-
-.PHONY: docker-build-local
-docker-build-local: build ## Build the local sigma image
-	@docker buildx build --build-arg USE_MIRROR=$(USE_MIRROR) --build-arg WITH_TRIVY_DB=$(WITH_TRIVY_DB) -f build/local.Dockerfile --platform $(DOCKER_PLATFORMS) --progress plain --output type=docker,name=$(DOCKER_REGISTRY)/$(BINARY_NAME):latest,push=false,oci-mediatypes=true,force-compression=true .
+	@docker buildx bake --file ./build/docker-bake.hcl --set "*.args.USE_MIRROR=true" --provenance false --sbom false all
 
 ## Misc:
 .PHONY: migration-create
