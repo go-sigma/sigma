@@ -23,14 +23,14 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog/log"
+	"resty.dev/v3"
 
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -108,7 +108,7 @@ func (a api) DoRequest(ctx context.Context, method, path string, headers http.He
 		return 0, nil, err
 	}
 
-	return resp.StatusCode(), resp.RawBody(), nil
+	return resp.StatusCode(), resp.Body, nil
 }
 
 func (b Builder) initCache() error {
@@ -132,10 +132,23 @@ func (b Builder) initCache() error {
 	}
 	if utils.IsFile(path.Join(cache, compressedCache)) {
 		log.Info().Msg("Start to decompress cache")
-		err := archiver.Unarchive(path.Join(cache, compressedCache), home)
+		// 使用zstd命令解压缩
+		cmd := exec.Command("zstd", "-d", path.Join(cache, compressedCache), "-o", path.Join(home, "cache.tar"))
+		err := cmd.Run()
 		if err != nil {
 			return fmt.Errorf("decompress cache failed: %v", err)
 		}
+		
+		// 解包tar文件
+		cmd = exec.Command("tar", "-xf", path.Join(home, "cache.tar"), "-C", home)
+		err = cmd.Run()
+		if err != nil {
+			return fmt.Errorf("untar cache failed: %v", err)
+		}
+		
+		// 清理临时tar文件
+		_ = os.Remove(path.Join(home, "cache.tar"))
+		
 		fileInfo, err := os.Stat(path.Join(cache, compressedCache))
 		if err != nil {
 			return fmt.Errorf("read compressed file failed: %v", err)
@@ -160,11 +173,24 @@ func (b Builder) initCache() error {
 
 func (b Builder) exportCache() error {
 	log.Info().Msg("start to compress cache")
-	tgz := archiver.NewTarGz()
-	err := tgz.Archive([]string{path.Join(cacheOut)}, path.Join("/tmp", compressedCache))
+	
+	// 先打包成tar文件
+	cmd := exec.Command("tar", "-cf", path.Join("/tmp", "cache.tar"), "-C", cacheOut, ".")
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("tar cache failed: %v", err)
+	}
+	
+	// 使用zstd命令压缩
+	cmd = exec.Command("zstd", path.Join("/tmp", "cache.tar"), "-o", path.Join("/tmp", compressedCache))
+	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("compress cache failed: %v", err)
 	}
+	
+	// 清理临时tar文件
+	_ = os.Remove(path.Join("/tmp", "cache.tar"))
+	
 	err = os.Rename(path.Join("/tmp", compressedCache), path.Join(cache, compressedCache))
 	if err != nil {
 		return fmt.Errorf("move compressed file to dir failed: %v", err)

@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24-alpine3.22
+ARG NODE_VERSION=25-alpine3.22
 
 FROM node:${NODE_VERSION}
 
@@ -15,5 +15,6 @@ COPY ./web .
 RUN --mount=type=cache,target=/web/node_modules \
   --mount=type=cache,target=/web/.yarn \
   --mount=type=cache,target=/root/.yarn \
+  npm install --force -g corepack && \
   corepack enable && yarn install --immutable && \
   yarn build && yarn cache clean

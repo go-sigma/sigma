@@ -24,10 +24,10 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog/log"
+	"resty.dev/v3"
 
 	"github.com/go-sigma/sigma/pkg/configs"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -92,7 +92,7 @@ func (c clientsFactory) New(config configs.Configuration) (Clients, error) {
 	}
 	client.SetHeader("User-Agent", consts.UserAgent)
 	client.SetRetryCount(3) // TODO: set in config
-	client.AddRetryCondition(func(r *resty.Response, err error) bool {
+	client.AddRetryConditions(func(r *resty.Response, err error) bool {
 		return err != nil || r.StatusCode() >= http.StatusInternalServerError || r.StatusCode() == http.StatusTooManyRequests
 	})
 
@@ -182,7 +182,7 @@ func (c *clients) ping(headers ...map[string]string) (*challenge.Challenge, erro
 
 // token returns the token
 func (c *clients) token(cha challenge.Challenge) (string, error) {
-	c.cli.Header.Del("Authorization") // clear the authorization header
+	c.cli.Header().Del("Authorization") // clear the authorization header
 	req := c.cli.R()
 	req.SetHeader("Content-Type", "application/json")
 	if cha.Parameters["service"] != "" {
@@ -205,7 +205,7 @@ func (c *clients) token(cha challenge.Challenge) (string, error) {
 		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 	var body types.PostUserTokenResponse
-	err = json.Unmarshal(resp.Body(), &body)
+	err = json.Unmarshal(resp.Bytes(), &body)
 	if err != nil {
 		return "", err
 	}
@@ -264,5 +264,5 @@ func (c *clients) DoRequest(ctx context.Context, method, path string, headers ht
 		return 0, nil, nil, fmt.Errorf("unsupported schema: %s", cha.Scheme)
 	}
 
-	return resp.StatusCode(), resp.RawResponse.Header, resp.RawBody(), nil
+	return resp.StatusCode(), resp.RawResponse.Header, resp.Body, nil
 }

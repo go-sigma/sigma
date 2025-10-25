@@ -26,9 +26,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"resty.dev/v3"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/dao"
@@ -274,10 +274,8 @@ func (w webhook) client(opt clientOption) *resty.Request {
 		})
 	}
 	client = client.SetRetryCount(opt.RetryTimes)
-	client = client.SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
-		return time.Duration(opt.RetryDuration) * time.Second, nil
-	})
-	client = client.AddRetryCondition(func(r *resty.Response, err error) bool {
+	client = client.SetRetryWaitTime(time.Duration(opt.RetryDuration) * time.Second)
+	client = client.AddRetryConditions(func(r *resty.Response, err error) bool {
 		return err != nil || r.StatusCode() >= http.StatusInternalServerError || r.StatusCode() == http.StatusTooManyRequests
 	})
 	return client.R()
@@ -299,7 +297,7 @@ func (w webhook) decorator(runner func(context.Context, types.DaemonWebhookPaylo
 }
 
 func (w webhook) respBody(resp *resty.Response) ([]byte, error) {
-	reader := resp.RawBody()
+	reader := resp.Body
 	defer reader.Close() // nolint: errcheck
 	return io.ReadAll(&io.LimitedReader{R: reader, N: 10 * 1024})
 }

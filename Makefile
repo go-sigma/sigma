@@ -67,7 +67,7 @@ lint-go: ## Use golintci-lint on your project
 ## Docker:
 .PHONY: docker-build
 docker-build: ## Use the dockerfile to build the sigma image
-	@docker buildx bake --file ./build/docker-bake.hcl --set "*.args.USE_MIRROR=true" --provenance false --sbom false all
+	@docker buildx bake --file ./build/docker-bake.hcl --progress plain --set "*.args.USE_MIRROR=false" --provenance false --sbom false all
 
 ## Misc:
 .PHONY: migration-create
