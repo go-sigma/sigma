@@ -41,12 +41,12 @@ func (h *handler) PatchUpload(c echo.Context) error {
 
 	iuser := c.Get(consts.ContextUser)
 	if iuser == nil {
-		log.Error().Msg("Get user from header failed")
+		log.Error().Msg("get user from header failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 	user, ok := iuser.(*models.User)
 	if !ok {
-		log.Error().Msg("Convert user from header failed")
+		log.Error().Msg("convert user from header failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
 	}
 
@@ -61,42 +61,42 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		log.Error().Err(err).Str("repository", repository).Msg("repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		log.Error().Err(err).Str("repository", repository).Msg("repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
-		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		log.Error().Err(err).Str("repository", repository).Msg("get repository by name failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 
 	authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("Resource not found")
+			log.Error().Err(errors.New(utils.UnwrapJoinedErrors(err))).Msg("resource not found")
 			return errcode.GenDSErrCodeResourceNotFound(err)
 		}
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if !authChecked {
-		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("Auth check failed")
+		log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceObj.ID).Msg("auth check failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeDenied)
 	}
 
 	blobUploadService := h.BlobUploadServiceFactory.New()
 	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get blob upload record failed")
+		log.Error().Err(err).Msg("get blob upload record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get blob upload record failed")
+		log.Error().Err(err).Msg("get blob upload record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
@@ -105,7 +105,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 	path := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
 	etag, err := h.StorageDriver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 	if err != nil {
-		log.Error().Err(err).Msg("Upload part failed")
+		log.Error().Err(err).Msg("upload part failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
@@ -119,7 +119,7 @@ func (h *handler) PatchUpload(c echo.Context) error {
 		Size:       size,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Save blob upload record failed")
+		log.Error().Err(err).Msg("save blob upload record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	// Note that the HTTP Range header byte ranges are inclusive and that will be honored, even in non-standard use cases.

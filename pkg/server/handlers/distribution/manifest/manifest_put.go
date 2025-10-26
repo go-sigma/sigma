@@ -240,7 +240,8 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 		artifactService := h.ArtifactServiceFactory.New(tx)
 		err = artifactService.Create(ctx, artifactObj)
 		if err != nil {
-			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).Interface("artifactObj", artifactObj).Msg("Create artifact failed")
+			log.Error().Err(err).Str("repository", repositoryObj.Name).Str("digest", refs.Digest.String()).
+				Interface("artifactObj", artifactObj).Msg("Create artifact failed")
 			e, ok := err.(errcode.ErrCode)
 			if ok {
 				return e
@@ -263,24 +264,24 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 				return errcode.DSErrCodeUnknown
 			}
 			// if workq.ProducerClient != nil { // TODO: init in test
-			err = h.Producer.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
-				RepositoryID: repositoryObj.ID,
-				Tag:          refs.Tag,
-			}, workq.ProducerOption{Tx: tx})
-			if err != nil {
-				log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
-				return errcode.DSErrCodeUnknown
-			}
+			// err = h.Producer.Produce(ctx, enums.DaemonTagPushed, types.DaemonTagPushedPayload{
+			// 	RepositoryID: repositoryObj.ID,
+			// 	Tag:          refs.Tag,
+			// }, workq.ProducerOption{Tx: tx})
+			// if err != nil {
+			// 	log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue tag pushed task failed")
+			// 	return errcode.DSErrCodeUnknown
+			// }
 			// }
 		}
 		// if workq.ProducerClient != nil {
-		err = h.Producer.Produce(ctx, enums.DaemonArtifactPushed, types.DaemonArtifactPushedPayload{
-			RepositoryID: repositoryObj.ID,
-		}, workq.ProducerOption{Tx: tx})
-		if err != nil {
-			log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
-			return errcode.DSErrCodeUnknown
-		}
+		// err = h.Producer.Produce(ctx, enums.DaemonArtifactPushed, types.DaemonArtifactPushedPayload{
+		// 	RepositoryID: repositoryObj.ID,
+		// }, workq.ProducerOption{Tx: tx})
+		// if err != nil {
+		// 	log.Error().Err(err).Str("tag", refs.Tag).Str("digest", refs.Digest.String()).Msg("Enqueue artifact pushed task failed")
+		// 	return errcode.DSErrCodeUnknown
+		// }
 		// }
 		return nil
 	})
@@ -292,9 +293,9 @@ func (h *handler) putManifestManifest(ctx context.Context, user *models.User, di
 		return errcode.DSErrCodeUnknown
 	}
 
-	if needScan(manifest, descriptor) {
-		h.putManifestAsyncTask(ctx, artifactObj)
-	}
+	// if needScan(manifest, descriptor) {
+	// 	h.putManifestAsyncTask(ctx, artifactObj)
+	// }
 
 	return nil
 }

@@ -63,16 +63,16 @@ func (h *handler) PutUpload(c echo.Context) error {
 	repository := strings.TrimPrefix(strings.TrimSuffix(uri[:strings.LastIndex(uri, "/")], "/blobs"), "/v2/")
 	_, namespace, _, _, err := imagerefs.Parse(repository)
 	if err != nil {
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		log.Error().Err(err).Str("repository", repository).Msg("repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 	namespaceObj, err := h.NamespaceServiceFactory.New().GetByName(ctx, namespace)
 	if err != nil {
-		log.Error().Err(err).Str("Name", repository).Msg("Get repository by name failed")
+		log.Error().Err(err).Str("repository", repository).Msg("get repository by name failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck
-		log.Error().Err(err).Str("Repository", repository).Msg("Repository must container a valid namespace")
+		log.Error().Err(err).Str("repository", repository).Msg("repository must container a valid namespace")
 		return errcode.NewDSError(c, errcode.DSErrCodeManifestWithNamespace)
 	}
 
@@ -99,7 +99,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 	blobUploadService := h.BlobUploadServiceFactory.New()
 	uploadObj, err := blobUploadService.GetLastPart(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get blob upload record failed")
+		log.Error().Err(err).Msg("get blob upload record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
@@ -107,49 +107,49 @@ func (h *handler) PutUpload(c echo.Context) error {
 	blobService := h.BlobServiceFactory.New()
 	exist, err := blobService.Exists(ctx, dgest.String())
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error().Err(err).Str("digest", dgest.String()).Msg("Check blob exist failed")
+		log.Error().Err(err).Str("digest", dgest.String()).Msg("check blob exist failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if exist {
 		err = h.StorageDriver.AbortUpload(ctx, srcPath, uploadObj.UploadID)
 		if err != nil {
-			log.Error().Err(err).Msg("Abort upload failed")
+			log.Error().Err(err).Msg("abort upload failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		return c.NoContent(http.StatusCreated)
 	}
 
 	if !reference.NameRegexp.MatchString(repository) {
-		log.Error().Str("repository", repository).Msg("Invalid repository name")
+		log.Error().Str("repository", repository).Msg("invalid repository name")
 		return errcode.NewDSError(c, errcode.DSErrCodeNameInvalid)
 	}
 
 	etags, err := blobUploadService.TotalEtagsByUploadID(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get blob upload etags failed")
+		log.Error().Err(err).Msg("get blob upload etags failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	sizeBefore, err := blobUploadService.TotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Get blob upload size failed")
+		log.Error().Err(err).Msg("get blob upload size failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	length, err := utils.GetContentLength(c.Request())
 	if err != nil {
-		log.Error().Err(err).Msg("Get content length failed")
+		log.Error().Err(err).Msg("get content length failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if length != 0 {
 		counterReader := counter.NewCounter(c.Request().Body)
 		etag, err := h.StorageDriver.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 		if err != nil {
-			log.Error().Err(err).Msg("Upload part failed")
+			log.Error().Str("uploadID", uploadObj.UploadID).Err(err).Msg("upload part failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		size := counterReader.Count()
-		etags = append(etags, etag)
+		etags = append(etags, strings.Trim(etag, "\""))
 		err = blobUploadService.Create(ctx, &models.BlobUpload{
 			PartNumber: uploadObj.PartNumber + 1,
 			UploadID:   uploadID,
@@ -159,49 +159,50 @@ func (h *handler) PutUpload(c echo.Context) error {
 			Size:       size,
 		})
 		if err != nil {
-			log.Error().Err(err).Msg("Create blob upload record failed")
+			log.Error().Err(err).Msg("create blob upload record failed")
 			return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 		}
 		c.Response().Header().Set("Content-Range", fmt.Sprintf("%d-%d", sizeBefore, sizeBefore+size))
 	}
 
+	log.Info().Str("uploadID", uploadID).Strs("etags", etags).Msg("committing upload")
 	err = h.StorageDriver.CommitUpload(ctx, srcPath, uploadID, etags)
 	if err != nil {
-		log.Error().Err(err).Str("id", uploadID).Strs("etags", etags).Msg("Commit upload failed")
+		log.Error().Err(err).Str("id", uploadID).Strs("etags", etags).Msg("commit upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	srcPathReader, err := h.StorageDriver.Reader(ctx, srcPath)
 	if err != nil {
-		log.Error().Err(err).Str("srcPath", srcPath).Msg("Get blob upload failed")
+		log.Error().Err(err).Str("srcPath", srcPath).Msg("get blob upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	srcPathHash, err := hash.Reader(srcPathReader, dgest.Algorithm().String())
 	if err != nil {
-		log.Error().Err(err).Str("srcPath", srcPath).Msg("Hash blob upload failed")
+		log.Error().Err(err).Str("srcPath", srcPath).Msg("hash blob upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 	if fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash) != dgest.String() {
-		log.Error().Str("srcPath", srcPath).Str("srcPathHash", fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash)).Str("targetHash", dgest.String()).Msg("Hash blob upload mismatch")
+		log.Error().Str("srcPath", srcPath).Str("srcPathHash", fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash)).Str("targetHash", dgest.String()).Msg("hash blob upload mismatch")
 		return errcode.NewDSError(c, errcode.DSErrCodeBlobUploadDigestMismatch)
 	}
 
 	destPath := path.Join(consts.Blobs, utils.GenPathByDigest(dgest))
 	err = h.StorageDriver.Move(ctx, srcPath, destPath)
 	if err != nil {
-		log.Error().Err(err).Str("path", srcPath).Str("digest", dgest.String()).Str("dest", destPath).Msg("Move blob failed")
+		log.Error().Err(err).Str("path", srcPath).Str("digest", dgest.String()).Str("dest", destPath).Msg("move blob failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	err = h.StorageDriver.Delete(ctx, srcPath)
 	if err != nil {
-		log.Error().Err(err).Msg("Delete blob upload failed")
+		log.Error().Err(err).Msg("delete blob upload failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
 	err = blobUploadService.DeleteByUploadID(ctx, uploadID)
 	if err != nil {
-		log.Error().Err(err).Msg("Delete blob upload record failed")
+		log.Error().Err(err).Msg("delete blob upload record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 
@@ -213,7 +214,7 @@ func (h *handler) PutUpload(c echo.Context) error {
 		PushedAt:    time.Now().UnixMilli(),
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Create blob record failed")
+		log.Error().Err(err).Msg("create blob record failed")
 		return errcode.NewDSError(c, errcode.DSErrCodeUnknown)
 	}
 

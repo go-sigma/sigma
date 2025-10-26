@@ -192,12 +192,14 @@ type ConfigurationStorageFilesystem struct {
 
 // ConfigurationStorageS3 ...
 type ConfigurationStorageS3 struct {
-	Ak             string `yaml:"ak"`
-	Sk             string `yaml:"sk"`
-	Endpoint       string `yaml:"endpoint"`
-	Region         string `yaml:"region"`
-	Bucket         string `yaml:"bucket"`
-	ForcePathStyle bool   `yaml:"forcePathStyle"`
+	Ak                      string `yaml:"ak"`
+	Sk                      string `yaml:"sk"`
+	Endpoint                string `yaml:"endpoint"`
+	Region                  string `yaml:"region"`
+	Bucket                  string `yaml:"bucket"`
+	ForcePathStyle          bool   `yaml:"forcePathStyle"`
+	OperateObjectWithoutMD5 bool   `yaml:"operateObjectWithoutMD5"`
+	ChecksumValidation      string `yaml:"checksumValidation"`
 }
 
 // ConfigurationStorageCos ...

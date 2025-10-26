@@ -26,6 +26,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-sigma/sigma/pkg/configs"
@@ -38,6 +40,7 @@ import (
 
 type awss3 struct {
 	client        *s3.Client
+	opts          []func(*s3.Options)
 	rootDirectory string
 	bucket        string
 }
@@ -50,24 +53,51 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
+// withoutContentMD5 removes all flexible checksum procedures from an operation,
+// instead computing an MD5 checksum for the request payload.
+func withoutContentMD5(o *s3.Options) {
+	o.APIOptions = append(o.APIOptions, func(stack *middleware.Stack) error {
+		stack.Initialize.Remove("AWSChecksum:SetupInputContext")         // nolint: errcheck
+		stack.Build.Remove("AWSChecksum:RequestMetricsTracking")         // nolint: errcheck
+		stack.Finalize.Remove("AWSChecksum:ComputeInputPayloadChecksum") // nolint: errcheck
+		stack.Finalize.Remove("addInputChecksumTrailer")                 // nolint: errcheck
+		return smithyhttp.AddContentChecksumMiddleware(stack)
+	})
+}
+
 func (f factory) New(cfg configs.Configuration) (storage.StorageDriver, error) {
-	c, err := config.LoadDefaultConfig(context.Background(),
+	var optFns = []func(*config.LoadOptions) error{
 		config.WithRegion(cfg.Storage.S3.Region),
-		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(_ context.Context) (aws.Credentials, error) {
 			return aws.Credentials{
 				AccessKeyID:     cfg.Storage.S3.Ak,
 				SecretAccessKey: cfg.Storage.S3.Sk,
 			}, nil
 		})),
-	)
+	}
+
+	if cfg.Storage.S3.ChecksumValidation == "when_required" || cfg.Storage.S3.ChecksumValidation == "" {
+		optFns = append(optFns,
+			config.WithResponseChecksumValidation(aws.ResponseChecksumValidationWhenRequired),
+			config.WithRequestChecksumCalculation(aws.RequestChecksumCalculationWhenRequired))
+	}
+
+	s3opts := []func(*s3.Options){}
+	if cfg.Storage.S3.OperateObjectWithoutMD5 {
+		s3opts = append(s3opts, withoutContentMD5)
+	}
+
+	c, err := config.LoadDefaultConfig(context.Background(), optFns...)
 	if err != nil {
 		return nil, fmt.Errorf("new s3 config failed: %v", err)
 	}
+
 	return &awss3{
 		client: s3.NewFromConfig(c, func(o *s3.Options) {
 			o.BaseEndpoint = aws.String(cfg.Storage.S3.Endpoint)
 			o.UsePathStyle = cfg.Storage.S3.ForcePathStyle
 		}),
+		opts:          s3opts,
 		bucket:        cfg.Storage.S3.Bucket,
 		rootDirectory: strings.TrimPrefix(cfg.Storage.RootDirectory, "/"),
 	}, nil
@@ -85,7 +115,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	srcFile, err := a.client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(srcPath),
-	})
+	}, a.opts...)
 	if err != nil {
 		return fmt.Errorf("head source path(%s) failed: %v", srcPath, err)
 	}
@@ -96,7 +126,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 			Bucket:     aws.String(a.bucket),
 			Key:        aws.String(dstPath),
 			CopySource: aws.String(path.Join(a.bucket, srcPath)),
-		})
+		}, a.opts...)
 		if err != nil {
 			return err
 		}
@@ -106,7 +136,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 	createResp, err := a.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(dstPath),
-	})
+	}, a.opts...)
 	if err != nil {
 		return err
 	}
@@ -132,7 +162,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 				PartNumber:      aws.Int32(i + 1),
 				UploadId:        createResp.UploadId,
 				CopySourceRange: aws.String(fmt.Sprintf("bytes=%d-%d", firstByte, lastByte)),
-			})
+			}, a.opts...)
 			if err == nil {
 				completedParts[i] = types.CompletedPart{
 					ETag:       uploadResp.CopyPartResult.ETag,
@@ -156,7 +186,7 @@ func (a *awss3) Move(ctx context.Context, srcPath string, dstPath string) error 
 		Key:             aws.String(dstPath),
 		UploadId:        createResp.UploadId,
 		MultipartUpload: &types.CompletedMultipartUpload{Parts: completedParts},
-	})
+	}, a.opts...)
 	return err
 }
 
@@ -192,7 +222,7 @@ func (a *awss3) Delete(ctx context.Context, path string) error {
 					Objects: s3Objects,
 					Quiet:   aws.Bool(false),
 				},
-			})
+			}, a.opts...)
 			if err != nil {
 				return err
 			}
@@ -218,7 +248,7 @@ func (a *awss3) Reader(ctx context.Context, path string) (io.ReadCloser, error) 
 	resp, err := a.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
-	})
+	}, a.opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +260,7 @@ func (a *awss3) CreateUploadID(ctx context.Context, path string) (string, error)
 	resp, err := a.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
-	})
+	}, a.opts...)
 	if err != nil {
 		return "", err
 	}
@@ -274,7 +304,7 @@ func (a *awss3) UploadPart(ctx context.Context, path, uploadID string, partNumbe
 		UploadId:   aws.String(uploadID),
 		PartNumber: aws.Int32(partNumber),
 		Body:       fd,
-	})
+	}, a.opts...)
 	if err != nil {
 		return "", err
 	}
@@ -295,7 +325,7 @@ func (a *awss3) CommitUpload(ctx context.Context, path, uploadID string, parts [
 		Key:             aws.String(a.sanitizePath(path)),
 		UploadId:        aws.String(uploadID),
 		MultipartUpload: &types.CompletedMultipartUpload{Parts: completedParts},
-	})
+	}, a.opts...)
 	return err
 }
 
@@ -305,7 +335,7 @@ func (a *awss3) AbortUpload(ctx context.Context, path string, uploadID string) e
 		Bucket:   aws.String(a.bucket),
 		Key:      aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		UploadId: aws.String(uploadID),
-	})
+	}, a.opts...)
 	return err
 }
 
@@ -315,16 +345,22 @@ func (a *awss3) Upload(ctx context.Context, path string, body io.Reader) error {
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(storage.SanitizePath(a.rootDirectory, path)),
 		Body:   body,
-	})
+	}, a.opts...)
 	return err
 }
 
 // Redirect get a temporary link
 func (a *awss3) Redirect(ctx context.Context, path string) (string, error) {
+	var opts = []func(*s3.PresignOptions){
+		s3.WithPresignExpires(consts.ObsPresignMaxTtl),
+		func(o *s3.PresignOptions) {
+			o.ClientOptions = a.opts
+		},
+	}
 	req, err := s3.NewPresignClient(a.client).PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.sanitizePath(path)),
-	}, s3.WithPresignExpires(consts.ObsPresignMaxTtl))
+	}, opts...)
 	if err != nil {
 		return "", err
 	}

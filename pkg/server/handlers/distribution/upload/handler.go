@@ -88,7 +88,7 @@ func (f factory) Initialize(c echo.Context, digCon *dig.Container) error {
 		case http.MethodDelete:
 			return blobUploadHandler.DeleteUpload(c)
 		default:
-			return c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+			return c.String(http.StatusMethodNotAllowed, "method Not Allowed")
 		}
 	}
 	return distribution.ErrNext

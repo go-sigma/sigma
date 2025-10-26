@@ -49,35 +49,17 @@ func NewEchoServer(digCon *dig.Container) (*echo.Echo, error) {
 	e.HidePort = true
 	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().URL.Path == "/healthz" ||
-				c.Request().URL.Path == "/metrics" {
-				log.Trace().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Msg("Request debugger")
-			} else {
-				log.Debug().
-					Str("method", c.Request().Method).
-					Str("path", c.Request().URL.Path).
-					Str("query", c.Request().URL.RawQuery).
-					Msg("Request debugger")
+			var logger = log.Debug()
+			var path = c.Request().URL.Path
+			if path == "/healthz" || path == "/metrics" {
+				logger = log.Trace()
 			}
-			reqPath := c.Request().URL.Path
-			if strings.HasPrefix(reqPath, "/assets/") {
-				if strings.HasSuffix(c.Request().URL.Path, ".js") || // TODO: test content type
-					strings.HasSuffix(c.Request().URL.Path, ".map") ||
-					strings.HasSuffix(c.Request().URL.Path, ".css") ||
-					strings.HasSuffix(c.Request().URL.Path, ".svg") ||
-					strings.HasSuffix(c.Request().URL.Path, ".png") ||
-					strings.HasSuffix(c.Request().URL.Path, ".ttf") ||
-					strings.HasSuffix(c.Request().URL.Path, ".json") ||
-					strings.HasSuffix(c.Request().URL.Path, ".yaml") {
-					c.Response().Header().Add("Cache-Control", "max-age=3600")
-				}
-			}
-			n := next(c)
-			return n
+			logger.
+				Str("method", c.Request().Method).
+				Str("path", c.Request().URL.Path).
+				Str("query", c.Request().URL.RawQuery).
+				Msg("request debugger")
+			return next(c)
 		}
 	}))
 	e.Use(middleware.CORS())

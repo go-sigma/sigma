@@ -104,6 +104,8 @@ storage:
     region: cn-north-1
     bucket: sigma
     forcePathStyle: true
+    operateObjectWithoutMD5: true
+    checksumValidation: when_required
   cos:
     ak: sigma
     sk: sigma-sigma
