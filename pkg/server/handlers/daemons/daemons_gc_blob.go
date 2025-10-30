@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hako/durafmt"
 	"github.com/labstack/echo/v4"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -221,29 +220,19 @@ func (h *handler) GetGcBlobLatestRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc blob latest runner failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc blob latest runner failed: %v", err))
 	}
-	var startedAt, endedAt *string
-	if runnerObj.StartedAt != nil {
-		startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
-	}
-	if runnerObj.EndedAt != nil {
-		endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
-	}
-	var duration *string
-	if runnerObj.Duration != nil {
-		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
-	}
+	base := buildRunnerItemBase(runnerObj)
 	return c.JSON(http.StatusOK, types.GcBlobRunnerItem{
-		ID:           runnerObj.ID,
-		Status:       runnerObj.Status,
-		Message:      string(runnerObj.Message),
-		FailedCount:  runnerObj.FailedCount,
-		SuccessCount: runnerObj.SuccessCount,
-		RawDuration:  runnerObj.Duration,
-		Duration:     duration,
-		StartedAt:    startedAt,
-		EndedAt:      endedAt,
-		CreatedAt:    time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*ruleObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		ID:           base.ID,
+		Status:       base.Status,
+		Message:      base.Message,
+		FailedCount:  base.FailedCount,
+		SuccessCount: base.SuccessCount,
+		RawDuration:  base.RawDuration,
+		Duration:     base.Duration,
+		StartedAt:    base.StartedAt,
+		EndedAt:      base.EndedAt,
+		CreatedAt:    base.CreatedAt,
+		UpdatedAt:    base.UpdatedAt,
 	})
 }
 
@@ -375,29 +364,19 @@ func (h *handler) ListGcBlobRunners(c echo.Context) error {
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		var startedAt, endedAt *string
-		if runnerObj.StartedAt != nil {
-			startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
-		}
-		if runnerObj.EndedAt != nil {
-			endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
-		}
-		var duration *string
-		if runnerObj.Duration != nil {
-			duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
-		}
+		base := buildRunnerItemBase(runnerObj)
 		resp = append(resp, types.GcBlobRunnerItem{
-			ID:           runnerObj.ID,
-			Status:       runnerObj.Status,
-			Message:      string(runnerObj.Message),
-			SuccessCount: runnerObj.SuccessCount,
-			FailedCount:  runnerObj.FailedCount,
-			RawDuration:  runnerObj.Duration,
-			Duration:     duration,
-			StartedAt:    startedAt,
-			EndedAt:      endedAt,
-			CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-			UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			ID:           base.ID,
+			Status:       base.Status,
+			Message:      base.Message,
+			SuccessCount: base.SuccessCount,
+			FailedCount:  base.FailedCount,
+			RawDuration:  base.RawDuration,
+			Duration:     base.Duration,
+			StartedAt:    base.StartedAt,
+			EndedAt:      base.EndedAt,
+			CreatedAt:    base.CreatedAt,
+			UpdatedAt:    base.UpdatedAt,
 		})
 	}
 	return c.JSON(http.StatusOK, types.CommonList{Total: total, Items: resp})
@@ -436,29 +415,19 @@ func (h *handler) GetGcBlobRunner(c echo.Context) error {
 		log.Error().Err(err).Msg("Get gc tag runner failed")
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get gc tag runner failed: %v", err))
 	}
-	var startedAt, endedAt *string
-	if runnerObj.StartedAt != nil {
-		startedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.StartedAt)).UTC().Format(consts.DefaultTimePattern))
-	}
-	if runnerObj.EndedAt != nil {
-		endedAt = ptr.Of(time.Unix(0, int64(time.Millisecond)*ptr.To(runnerObj.EndedAt)).UTC().Format(consts.DefaultTimePattern))
-	}
-	var duration *string
-	if runnerObj.Duration != nil {
-		duration = ptr.Of(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
-	}
+	base := buildRunnerItemBase(runnerObj)
 	return c.JSON(http.StatusOK, types.GcBlobRunnerItem{
-		ID:           runnerObj.ID,
-		Status:       runnerObj.Status,
-		Message:      string(runnerObj.Message),
-		SuccessCount: runnerObj.SuccessCount,
-		FailedCount:  runnerObj.FailedCount,
-		RawDuration:  runnerObj.Duration,
-		Duration:     duration,
-		StartedAt:    startedAt,
-		EndedAt:      endedAt,
-		CreatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		UpdatedAt:    time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+		ID:           base.ID,
+		Status:       base.Status,
+		Message:      base.Message,
+		SuccessCount: base.SuccessCount,
+		FailedCount:  base.FailedCount,
+		RawDuration:  base.RawDuration,
+		Duration:     base.Duration,
+		StartedAt:    base.StartedAt,
+		EndedAt:      base.EndedAt,
+		CreatedAt:    base.CreatedAt,
+		UpdatedAt:    base.UpdatedAt,
 	})
 }
 

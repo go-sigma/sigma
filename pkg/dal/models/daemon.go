@@ -240,3 +240,123 @@ type DaemonGcBlobRecord struct {
 	Status  enums.GcRecordStatus `gorm:"default:Success"`
 	Message []byte
 }
+
+// GetID returns the ID
+func (r *DaemonGcTagRunner) GetID() int64 { return r.ID }
+
+// GetStatus returns the Status
+func (r *DaemonGcTagRunner) GetStatus() enums.TaskCommonStatus { return r.Status }
+
+// GetMessage returns the Message
+func (r *DaemonGcTagRunner) GetMessage() []byte { return r.Message }
+
+// GetSuccessCount returns the SuccessCount
+func (r *DaemonGcTagRunner) GetSuccessCount() *int64 { return r.SuccessCount }
+
+// GetFailedCount returns the FailedCount
+func (r *DaemonGcTagRunner) GetFailedCount() *int64 { return r.FailedCount }
+
+// GetStartedAt returns the StartedAt
+func (r *DaemonGcTagRunner) GetStartedAt() *int64 { return r.StartedAt }
+
+// GetEndedAt returns the EndedAt
+func (r *DaemonGcTagRunner) GetEndedAt() *int64 { return r.EndedAt }
+
+// GetDuration returns the Duration
+func (r *DaemonGcTagRunner) GetDuration() *int64 { return r.Duration }
+
+// GetCreatedAt returns the CreatedAt
+func (r *DaemonGcTagRunner) GetCreatedAt() int64 { return r.CreatedAt }
+
+// GetUpdatedAt returns the UpdatedAt
+func (r *DaemonGcTagRunner) GetUpdatedAt() int64 { return r.UpdatedAt }
+
+// GetID returns the ID
+func (r *DaemonGcRepositoryRunner) GetID() int64 { return r.ID }
+
+// GetStatus returns the Status
+func (r *DaemonGcRepositoryRunner) GetStatus() enums.TaskCommonStatus { return r.Status }
+
+// GetMessage returns the Message
+func (r *DaemonGcRepositoryRunner) GetMessage() []byte { return r.Message }
+
+// GetSuccessCount returns the SuccessCount
+func (r *DaemonGcRepositoryRunner) GetSuccessCount() *int64 { return r.SuccessCount }
+
+// GetFailedCount returns the FailedCount
+func (r *DaemonGcRepositoryRunner) GetFailedCount() *int64 { return r.FailedCount }
+
+// GetStartedAt returns the StartedAt
+func (r *DaemonGcRepositoryRunner) GetStartedAt() *int64 { return r.StartedAt }
+
+// GetEndedAt returns the EndedAt
+func (r *DaemonGcRepositoryRunner) GetEndedAt() *int64 { return r.EndedAt }
+
+// GetDuration returns the Duration
+func (r *DaemonGcRepositoryRunner) GetDuration() *int64 { return r.Duration }
+
+// GetCreatedAt returns the CreatedAt
+func (r *DaemonGcRepositoryRunner) GetCreatedAt() int64 { return r.CreatedAt }
+
+// GetUpdatedAt returns the UpdatedAt
+func (r *DaemonGcRepositoryRunner) GetUpdatedAt() int64 { return r.UpdatedAt }
+
+// GetID returns the ID
+func (r *DaemonGcArtifactRunner) GetID() int64 { return r.ID }
+
+// GetStatus returns the Status
+func (r *DaemonGcArtifactRunner) GetStatus() enums.TaskCommonStatus { return r.Status }
+
+// GetMessage returns the Message
+func (r *DaemonGcArtifactRunner) GetMessage() []byte { return r.Message }
+
+// GetSuccessCount returns the SuccessCount
+func (r *DaemonGcArtifactRunner) GetSuccessCount() *int64 { return r.SuccessCount }
+
+// GetFailedCount returns the FailedCount
+func (r *DaemonGcArtifactRunner) GetFailedCount() *int64 { return r.FailedCount }
+
+// GetStartedAt returns the StartedAt
+func (r *DaemonGcArtifactRunner) GetStartedAt() *int64 { return r.StartedAt }
+
+// GetEndedAt returns the EndedAt
+func (r *DaemonGcArtifactRunner) GetEndedAt() *int64 { return r.EndedAt }
+
+// GetDuration returns the Duration
+func (r *DaemonGcArtifactRunner) GetDuration() *int64 { return r.Duration }
+
+// GetCreatedAt returns the CreatedAt
+func (r *DaemonGcArtifactRunner) GetCreatedAt() int64 { return r.CreatedAt }
+
+// GetUpdatedAt returns the UpdatedAt
+func (r *DaemonGcArtifactRunner) GetUpdatedAt() int64 { return r.UpdatedAt }
+
+// GetID returns the ID
+func (r *DaemonGcBlobRunner) GetID() int64 { return r.ID }
+
+// GetStatus returns the Status
+func (r *DaemonGcBlobRunner) GetStatus() enums.TaskCommonStatus { return r.Status }
+
+// GetMessage returns the Message
+func (r *DaemonGcBlobRunner) GetMessage() []byte { return r.Message }
+
+// GetSuccessCount returns the SuccessCount
+func (r *DaemonGcBlobRunner) GetSuccessCount() *int64 { return r.SuccessCount }
+
+// GetFailedCount returns the FailedCount
+func (r *DaemonGcBlobRunner) GetFailedCount() *int64 { return r.FailedCount }
+
+// GetStartedAt returns the StartedAt
+func (r *DaemonGcBlobRunner) GetStartedAt() *int64 { return r.StartedAt }
+
+// GetEndedAt returns the EndedAt
+func (r *DaemonGcBlobRunner) GetEndedAt() *int64 { return r.EndedAt }
+
+// GetDuration returns the Duration
+func (r *DaemonGcBlobRunner) GetDuration() *int64 { return r.Duration }
+
+// GetCreatedAt returns the CreatedAt
+func (r *DaemonGcBlobRunner) GetCreatedAt() int64 { return r.CreatedAt }
+
+// GetUpdatedAt returns the UpdatedAt
+func (r *DaemonGcBlobRunner) GetUpdatedAt() int64 { return r.UpdatedAt }
