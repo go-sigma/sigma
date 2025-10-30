@@ -30,7 +30,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // GetWebhook handles the get webhook request
@@ -77,25 +76,8 @@ func (h *handler) GetWebhook(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
-	if webhookObj.NamespaceID == nil {
-		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) { // nolint: staticcheck
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
-		}
-	} else {
-		namespaceID := ptr.To(webhookObj.NamespaceID)
-		authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthRead)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
-				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
-			}
-			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
-		}
-		if !authChecked {
-			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
-		}
+	if err := h.checkWebhookAuth(c, user, webhookObj, enums.AuthRead); err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, types.WebhookItem{

@@ -31,7 +31,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/types"
 	"github.com/go-sigma/sigma/pkg/types/enums"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // DeleteWebhook handles the delete webhook request
@@ -78,25 +77,8 @@ func (h *handler) DeleteWebhook(c echo.Context) error {
 		return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get namespace(%d) failed", req.ID))
 	}
 
-	if webhookOldObj.NamespaceID == nil {
-		if !(user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot) { // nolint: staticcheck
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
-		}
-	} else {
-		namespaceID := ptr.To(webhookOldObj.NamespaceID)
-		authChecked, err := h.AuthServiceFactory.New().Namespace(ptr.To(user), namespaceID, enums.AuthManage)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace not found")
-				return errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%d) not found: %v", namespaceID, err))
-			}
-			log.Error().Err(err).Int64("NamespaceID", namespaceID).Msg("Namespace find failed")
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%d) find failed: %v", namespaceID, err))
-		}
-		if !authChecked {
-			log.Error().Int64("UserID", user.ID).Int64("NamespaceID", namespaceID).Msg("Auth check failed")
-			return errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api")
-		}
+	if err := h.checkWebhookAuth(c, user, webhookOldObj, enums.AuthManage); err != nil {
+		return err
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
