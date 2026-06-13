@@ -1,0 +1,73 @@
+build/Dockerfile
+  h_fd9e36a3acc65d 8
+pkg/daemon/builder/builder.go
+  h_fd9e36a3acc65d 131,160,165,172
+pkg/daemon/gc/gc_tag.go
+  h_fd9e36a3acc65d 282
+pkg/inits/user.go
+  h_fd9e36a3acc65d 32,91-92
+pkg/server/handlers/artifacts/handler.go
+  h_fd9e36a3acc65d 28,54
+pkg/utils/ptr/ptr_test.go
+  s_1c23c20457fbf6::t_e5afab74840af8 29,33,38
+pkg/builder/podman/podman.go
+  h_fd9e36a3acc65d 36,102,106,133-135
+pkg/server/handlers/repositories/repositories_list.go
+  s_1c23c20457fbf6::t_bb242c37bae853 34
+pkg/auth/namespace.go
+  h_fd9e36a3acc65d 27,87,102
+cmd/builder/init.go
+  h_fd9e36a3acc65d 134,136,140,143
+pkg/dal/dao/tag.go
+  h_fd9e36a3acc65d 126
+pkg/utils/ptr/ptr.go
+  s_1c23c20457fbf6::t_0fe1cd983c56fb 22
+cmd/builder/checker.go
+  h_fd9e36a3acc65d 49,60,75
+pkg/dal/dao/namespace_member.go
+  h_fd9e36a3acc65d 81-87
+pkg/dal/dao/user_test.go
+  h_fd9e36a3acc65d 47
+pkg/daemon/gc/gc_blob.go
+  h_fd9e36a3acc65d 199
+pkg/server/handlers/builders/handler.go
+  s_1c23c20457fbf6::t_2abfb8ad92a838 30
+pkg/dal/dao/repository.go
+  h_fd9e36a3acc65d 130-136,149,160,184,195
+pkg/daemon/gc/gc_repository.go
+  h_fd9e36a3acc65d 235
+pkg/server/handlers/distribution/manifest/handler.go
+  s_1c23c20457fbf6::t_0c8c6f1cd3ccf2 31
+pkg/daemon/coderepo/gitlab.go
+  h_fd9e36a3acc65d 52,74
+pkg/daemon/webhook/helper.go
+  h_fd9e36a3acc65d 50,54
+pkg/daemon/gc/gc_artifact.go
+  h_fd9e36a3acc65d 274
+pkg/dal/dao/user.go
+  h_fd9e36a3acc65d 263-265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "45b9c10cb5d22be66017bbea43104bfc7da092a0",
+  "prompts": {},
+  "humans": {
+    "h_fd9e36a3acc65d": {
+      "author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "sessions": {
+    "s_1c23c20457fbf6": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a280f2615cf8e9a68a02f8e",
+        "model": "gpt-5.5__dev",
+        "display_model_name": "GPT-5.5"
+      },
+      "human_author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
