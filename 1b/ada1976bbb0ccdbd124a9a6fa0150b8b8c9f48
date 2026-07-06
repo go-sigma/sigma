@@ -1,0 +1,61 @@
+pkg/server/middlewares/authn/authn_test.go
+  s_da1fb10df8f021::t_b6415c5f35d24e 112-113,116-117,121,129-130,134
+pkg/server/handlers/oauth2/oauth2_clientid_test.go
+  s_da1fb10df8f021::t_42c0a340b4633a 66
+cmd/tools/tools.go
+  s_da1fb10df8f021::t_65a0f47626a16f 86-87,90,135-136,168-169,175,181
+  s_da1fb10df8f021::t_c907343c78dfed 185
+pkg/storage/s3/s3.go
+  s_da1fb10df8f021::t_2f16a86e48346e 27,69-71,81-82,90
+  s_da1fb10df8f021::t_8f234962e7e7a4 29
+  s_da1fb10df8f021::t_319e23458b3f11 68
+pkg/logger/logger.go
+  s_da1fb10df8f021::t_aaeb88d49a2663 48
+AGENTS.md
+  s_da1fb10df8f021::t_9d81c5a416690a 141,152,160,177-188,193-203,218-227,229,232,282
+  s_da1fb10df8f021::t_60671c22d813ed 66-69,71,156,263
+pkg/testkit/config.go
+  s_da1fb10df8f021::t_21ec08147b9756 23
+  s_da1fb10df8f021::t_beeee17a538a10 24-25
+  s_da1fb10df8f021::t_236eff83ca4f79 27
+web/public/title.svg
+  h_fd9e36a3acc65d 2-5,7-9
+pkg/server/handlers/tokens/tokens_test.go
+  s_da1fb10df8f021::t_c572cb82195940 89
+web/public/sigma.svg
+  h_fd9e36a3acc65d 2-6,8-10
+pkg/dal/dal.go
+  s_da1fb10df8f021::t_8434cfe206b785 34,47-48,52,54,56,58,60,66,89
+pkg/testkit/middleware_sqlite3.go
+  s_da1fb10df8f021::t_a3ef20aaa68c30 65-69
+pkg/testkit/middleware_postgresql.go
+  s_da1fb10df8f021::t_8d460962c61924 34,56-62,65-66,69-70
+pkg/server/handlers/handlers_test.go
+  s_da1fb10df8f021::t_6723550eb95b2b 96,100
+cmd/builder/builder.go
+  s_da1fb10df8f021::t_b07badea36bd65 37-38
+  s_da1fb10df8f021::t_e18652d0883d35 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "1bada1976bbb0ccdbd124a9a6fa0150b8b8c9f48",
+  "prompts": {},
+  "humans": {
+    "h_fd9e36a3acc65d": {
+      "author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "sessions": {
+    "s_da1fb10df8f021": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a4b9d65c6175452fd173095",
+        "model": "gpt-5.5__dev"
+      },
+      "human_author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
