@@ -1,0 +1,120 @@
+{{- if .Values.rs3.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sigma.rs3" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rs3
+spec:
+  replicas: 1
+  serviceName: {{ include "sigma.rs3.headless" . | quote }}
+  selector:
+    matchLabels:
+      {{- include "sigma.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: rs3
+  template:
+    metadata:
+      labels:
+        {{- include "sigma.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: rs3
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.rs3.podSecurityContext | nindent 8 }}
+      {{- if .Values.rs3.s3.autoCreateBucket }}
+      initContainers:
+        - name: create-bucket
+          image: {{ printf "%s:%s" .Values.rs3.image.repository .Values.rs3.image.tag | quote }}
+          imagePullPolicy: {{ .Values.rs3.image.pullPolicy }}
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |-
+              set -e;
+              mkdir -p "/var/lib/rs3/data/{{ .Values.rs3.s3.bucket }}";
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/rs3/data
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
+      {{- end }}
+      containers:
+        - name: rs3
+          image: {{ printf "%s:%s" .Values.rs3.image.repository .Values.rs3.image.tag | quote }}
+          imagePullPolicy: {{ .Values.rs3.image.pullPolicy }}
+          env:
+            - name: RS3_HOST
+              value: "0.0.0.0"
+            - name: RS3_PORT
+              value: {{ .Values.rs3.service.port | quote }}
+            - name: RS3_DATA_DIR
+              value: /var/lib/rs3/data
+            - name: RS3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sigma.secret" . | quote }}
+                  key: RS3_ACCESS_KEY
+            - name: RS3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sigma.secret" . | quote }}
+                  key: RS3_SECRET_KEY
+          ports:
+            - name: s3
+              containerPort: {{ .Values.rs3.service.port }}
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/rs3/data
+          resources:
+            {{- toYaml .Values.rs3.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.rs3.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "sigma.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: rs3
+      spec:
+        accessModes:
+          - {{ .Values.rs3.persistence.accessMode | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.rs3.persistence.size | quote }}
+        {{- if .Values.rs3.persistence.storageClass }}
+        storageClassName: {{ .Values.rs3.persistence.storageClass | quote }}
+        {{- end }}
+  {{- end }}
+{{- end }}

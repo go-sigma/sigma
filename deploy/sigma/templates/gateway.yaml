@@ -1,0 +1,62 @@
+{{- if .Values.gateway.enabled }}
+{{- if .Values.gateway.create }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "sigma.fullname" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className | quote }}
+  listeners:
+    - name: http
+      {{- if .Values.gateway.hostname }}
+      hostname: {{ .Values.gateway.hostname | quote }}
+      {{- end }}
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "sigma.fullname" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+  {{- if .Values.gateway.parentRefs }}
+    {{- toYaml .Values.gateway.parentRefs | nindent 4 }}
+  {{- else }}
+    - name: {{ include "sigma.fullname" . | quote }}
+  {{- end }}
+  {{- if .Values.gateway.hostname }}
+  hostnames:
+    - {{ .Values.gateway.hostname | quote }}
+  {{- end }}
+  rules:
+  {{- range .Values.gateway.paths }}
+    {{- $backendName := include "sigma.distribution" $ }}
+    {{- if eq .name "server" }}
+    {{- $backendName = include "sigma.server" $ }}
+    {{- else if eq .name "web" }}
+    {{- $backendName = include "sigma.web" $ }}
+    {{- end }}
+    - matches:
+        - path:
+            type: {{ .pathType | quote }}
+            value: {{ .path | quote }}
+      backendRefs:
+        - name: {{ $backendName | quote }}
+          port: {{ .port }}
+  {{- end }}
+{{- end }}

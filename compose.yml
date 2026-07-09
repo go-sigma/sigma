@@ -1,0 +1,94 @@
+version: "2"
+services:
+  sigma:
+    container_name: sigma
+    image: ghcr.io/go-sigma/sigma:nightly-alpine
+    ports:
+      - "3000:3000"
+    command: ["sigma", "server"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PWD}/conf:/etc/sigma
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-s", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - default
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: sigma
+      MYSQL_DATABASE: sigma
+      MYSQL_USER: sigma
+      MYSQL_PASSWORD: sigma
+    volumes:
+      - ${PWD}/storage/mysql:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "sigma",
+          "--password=sigma",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+  redis:
+    container_name: redis
+    image: redis:8.0-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass sigma
+    volumes:
+      - ${PWD}/storage/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "sigma", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: sigma
+      MINIO_ROOT_PASSWORD: sigma-sigma
+      MINIO_REGION_NAME: cn-north-1
+    entrypoint: ""
+    command: /bin/sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'
+    volumes:
+      - ${PWD}/storage/minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+networks:
+  default:
+    name: ${DOCKER_NETWORK:-sigma}

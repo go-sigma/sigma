@@ -1,0 +1,97 @@
+// Copyright 2026 sigma
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package compress
+
+import (
+	"bytes"
+	"compress/gzip"
+	"io"
+	"log/slog"
+	"os"
+)
+
+// Compress compresses the given string using gzip.
+func Compress(src string) ([]byte, error) {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		e := srcFile.Close()
+		if e != nil {
+			slog.Warn("close file failed", "err", e)
+		}
+	}()
+
+	var dst bytes.Buffer
+	gzipWriter, err := gzip.NewWriterLevel(&dst, gzip.BestSpeed)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = io.Copy(gzipWriter, srcFile)
+	if err != nil {
+		return nil, err
+	}
+
+	err = gzipWriter.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return dst.Bytes(), nil
+}
+
+// CompressBytes ...
+func CompressBytes(src []byte) ([]byte, error) {
+	srcReader := bytes.NewReader(src)
+	var dst bytes.Buffer
+	gzipWriter, err := gzip.NewWriterLevel(&dst, gzip.BestSpeed)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(gzipWriter, srcReader)
+	if err != nil {
+		return nil, err
+	}
+	err = gzipWriter.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return dst.Bytes(), nil
+}
+
+// Decompress decompresses the given string using gzip.
+func Decompress(src []byte) (string, error) {
+	srcReader := bytes.NewReader(src)
+	gzipReader, err := gzip.NewReader(srcReader)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		e := gzipReader.Close()
+		if e != nil {
+			slog.Warn("close gzip reader failed", "err", e)
+		}
+	}()
+
+	dst, err := io.ReadAll(gzipReader)
+	if err != nil {
+		return "", err
+	}
+
+	return string(dst), nil
+}

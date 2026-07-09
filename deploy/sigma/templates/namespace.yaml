@@ -1,0 +1,8 @@
+{{- if and .Values.config.daemon.builder.enabled ( eq .Values.config.daemon.builder.type "kubernetes" ) }}
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: {{ .Values.config.daemon.builder.kubernetes.namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,50 @@
+name: Build CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  local-build:
+    name: local-build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        go: ["1.26"]
+        bun: ["latest"]
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun }}
+      - name: Cache bun
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            web/node_modules
+          key: ${{ runner.os }}-bun-${{ matrix.bun }}-${{ hashFiles('web/bun.lock', 'web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ matrix.bun }}-
+            ${{ runner.os }}-bun-
+      - name: Build web
+        run: |
+          cd web && bun install --frozen-lockfile && bun run build
+      - name: Build server
+        run: |
+          make build build-cli

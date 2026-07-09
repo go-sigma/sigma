@@ -1,0 +1,349 @@
+## @param commonLabels Labels to add to all deployed objects
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+commonAnnotations: {}
+
+image:
+  registry: ghcr.io
+  ## main image contain all of the sigma logic
+  repository: go-sigma/sigma
+  tag: latest
+  ## web image contain a static server nginx serve for fontend files
+  web:
+    repository: go-sigma/sigma
+    tag: latest
+    command:
+      - nginx
+    args:
+      - -g
+      - daemon off;
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  server:
+    port: 3000
+  worker:
+    port: 3001
+  distribution:
+    port: 3002
+  web:
+    port: 80
+    containerPort: 8080
+
+gateway:
+  enabled: true
+  create: true
+  className: nginx
+  annotations: {}
+  hostname: "test.sigma.io"
+  parentRefs: []
+  paths:
+    - name: server
+      path: /api/v1/
+      pathType: PathPrefix
+      port: 3000
+    - name: web
+      path: /swagger/
+      pathType: PathPrefix
+      port: 80
+    - name: distribution
+      path: /v2/
+      pathType: PathPrefix
+      port: 3002
+    - name: web
+      path: /
+      pathType: PathPrefix
+      port: 80
+
+resources:
+  server:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  worker:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  distribution:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  web:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+terminationGracePeriods:
+  server: 45
+  worker: 45
+  distribution: 45
+  web: 30
+  drainDelay: 5
+
+autoscaling:
+  enabled: false
+  replicaCount:
+    server: 2
+    web: 2
+    distribution: 2
+    worker: 2
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+serviceAccount:
+  ## @param serviceAccount.create Create the service account used by server and worker when Kubernetes builder is enabled
+  create: true
+  ## @param serviceAccount.name Existing service account name to use when serviceAccount.create is false
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  automountServiceAccountToken: true
+
+config:
+  log:
+    level: debug
+  database:
+    # The database type to use. Supported types are: sqlite3, turso, mysql, postgresql
+    type: ""
+    # sqlite3, turso, mysql, postgresql
+    sqlite3: {}
+    turso: {}
+  redis:
+    url: ""
+    #ex: redis://:sigma@localhost:6789/0
+  http:
+    server: 0.0.0.0:3000
+    worker: 0.0.0.0:3001
+    timeout:
+      readHeader: 30s
+      # read and write cover full push/pull transfers; increase them for very large images or slow links
+      read: 1h
+      write: 1h
+      idle: 2m
+    bodyLimit:
+      # request body size limits in bytes; 0 disables the limit for that route class
+      enabled: true
+      # default applies to regular API requests
+      default: 10485760
+      # manifest applies to PUT /v2/<name>/manifests/<reference>
+      manifest: 104857600
+      # blob applies to /v2/<name>/blobs/uploads requests; increase for large image pushes
+      blob: 10737418240
+  storage:
+    rootdirectory: ./storage
+    # redirect blob pull requests to object storage presigned URLs when supported
+    redirect: false
+    type: s3
+    filesystem:
+      path: /
+  daemon:
+    builder:
+      enabled: true
+      image:
+        repository: tosone/sigma-builder
+        tag: latest
+      type: kubernetes
+      kubernetes:
+        kubeconfig: ""
+        namespace: sigma-builder
+    vulnerability:
+      staleTimeout: 6h
+      grype:
+        dbCacheDir: ""
+  proxy:
+    enabled: true
+    endpoint: https://registry-1.docker.io
+    tlsVerify: true
+    username: ""
+    password: ""
+  audit:
+    enabled: true
+    recordListGet: false
+    cleanup:
+      softDeleteAfterMonths: 3
+      hardDeleteAfterMonths: 6
+      interval: 168h
+      batchSize: 1000
+  mcp:
+    enabled: false
+    path: /api/v1/mcp
+    transport: streamable_http
+    auditWrites: true
+    toolTimeout: 30s
+    maxRequestBody: 1048576
+  auth:
+    user:
+      password: ""
+    internalUser:
+      username: internal-sigma
+      password: internal-sigma
+    admin:
+      username: sigma
+      password: sigma
+    token:
+      realm: ""
+      service: ""
+    jwt:
+      ttl: 1h
+      refreshTtl: 24h
+      privateKey: ""
+
+external:
+  postgresql:
+    host: localhost
+    port: 5432
+    user: sigma
+    password: sigma
+    database: sigma
+    sslMode: disable
+  mysql:
+    host: localhost
+    port: 3306
+    user: sigma
+    password: sigma
+    database: sigma
+  redis:
+    # URL 形式连接串；非空时优先使用，覆盖以下字段
+    url: ""
+    # 单节点写一个；集群写多个；哨兵写所有 Sentinel 地址
+    addrs:
+      - localhost:6379
+    username: ""
+    password: ""
+    db: 0
+    # 哨兵模式下的 master 名；非空时 addrs 视为 Sentinel 列表
+    masterName: ""
+    poolSize: 0
+    minIdleConns: 0
+    maxRetries: 0
+  s3:
+    ak: sigma
+    sk: sigma-sigma
+    endpoint: http://127.0.0.1:8333
+    region: cn-north-1
+    bucket: sigma
+    pathStyle: true
+
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    username: sigma
+    password: sigma
+    database: sigma
+  service:
+    port: 5432
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+rs3:
+  enabled: true
+  image:
+    repository: ghcr.io/go-sigma/rs3
+    tag: nightly
+    pullPolicy: IfNotPresent
+  service:
+    port: 9000
+  s3:
+    ak: sigma
+    sk: sigma-sigma
+    region: cn-north-1
+    bucket: sigma
+    autoCreateBucket: true
+  podSecurityContext:
+    fsGroup: 10001
+    runAsGroup: 10001
+    runAsNonRoot: true
+    runAsUser: 10001
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 50Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: true
+    password: "sigma"
+  service:
+    port: 6379
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

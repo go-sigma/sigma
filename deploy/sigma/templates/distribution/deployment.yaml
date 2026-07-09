@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sigma.distribution" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.distribution.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.autoscaling.replicaCount.distribution }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sigma.distribution.labels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sigma.distribution.labels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriods.distribution }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: check-middlewares
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- include "sigma.secretEnvFrom" . | nindent 10 }}
+          command:
+            - sigma
+          args:
+            - tools
+            - middleware-checker
+      containers:
+        - name: {{ printf "%s-distribution" ( include "sigma.fullname" . ) | quote }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- include "sigma.secretEnvFrom" . | nindent 10 }}
+          command:
+            - sigma
+          args:
+            - distribution
+            - --config=/etc/sigma/config.yaml
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.distribution.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.distribution.port }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.service.distribution.port }}
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.service.distribution.port }}
+            failureThreshold: 30
+            periodSeconds: 2
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.terminationGracePeriods.drainDelay }}"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources:
+            {{- if or .Values.resources.limits .Values.resources.requests }}
+            {{- toYaml (pick .Values.resources "limits" "requests") | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.resources.distribution | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

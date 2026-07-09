@@ -1,0 +1,37 @@
+[changelog]
+body = """
+{% if version %}
+<a name=\"{{ version }}\"></a>
+## {% if previous.version %}[{{ version }}](https://github.com/go-sigma/sigma/compare/{{ previous.version }}...{{ version }}){% else %}{{ version }}{% endif %} ({{ timestamp | date(format=\"%Y-%m-%d\") }})
+
+{% for group, commits in commits | group_by(attribute=\"group\") %}
+### {{ group }}
+
+{% for commit in commits %}
+* {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | upper_first }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+"""
+trim = false
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+tag_pattern = "v[0-9].*"
+sort_commits = "oldest"
+
+commit_parsers = [
+  { message = "^feat", group = "Features" },
+  { message = "^fix", group = "Bug Fixes" },
+  { message = "^perf", group = "Performance Improvements" },
+  { message = "^refactor", group = "Code Refactoring" },
+  { message = "^docs", group = "Docs" },
+  { message = "^build", group = "Build" },
+  { message = "^ci", group = "CI" },
+  { message = "^test", group = "Tests" },
+  { message = "^chore", group = "Chores" },
+  { message = "^style", group = "Styles" },
+  { message = "^revert", group = "Reverts" },
+]

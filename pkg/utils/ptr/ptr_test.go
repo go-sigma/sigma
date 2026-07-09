@@ -1,0 +1,40 @@
+// Copyright 2023 sigma
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package ptr
+
+import (
+	"reflect"
+	"testing"
+)
+
+func equal(t *testing.T, expected, actual any) {
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Expected %#v, actual %#v", expected, actual)
+	}
+}
+
+func TestOf(t *testing.T) {
+	equal(t, int(10), *Of(10))
+}
+
+func TestTo(t *testing.T) {
+	equal(t, int(10), To(new(10)))
+	equal(t, int(0), To((*int)(nil)))
+}
+
+func TestToDef(t *testing.T) {
+	equal(t, int(10), ToDef(new(10), 0))
+	equal(t, int(5), ToDef(nil, 5))
+}
