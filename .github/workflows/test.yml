@@ -1,0 +1,236 @@
+name: Test CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  unit-test:
+    name: unit-test
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        go: ["1.26"]
+        bun: ["latest"]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: sigma
+          MYSQL_DATABASE: sigma
+          MYSQL_USER: sigma
+          MYSQL_PASSWORD: sigma
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+      postgresql:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: sigma
+          POSTGRES_USER: sigma
+          POSTGRES_DB: sigma
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U sigma -d sigma || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup redis
+        run: |
+          docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
+      - name: Setup golang
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun }}
+      - name: Cache bun
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            web/node_modules
+          key: ${{ runner.os }}-bun-${{ matrix.bun }}-${{ hashFiles('web/bun.lock', 'web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ matrix.bun }}-
+            ${{ runner.os }}-bun-
+      - name: Build web
+        run: |
+          cd web
+          bun install --frozen-lockfile
+          bun run build
+      - name: Setup minio
+        run: |
+          ./scripts/run_minio.sh
+          sleep 5
+      - name: Cache go modules
+        uses: actions/cache@v6
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ matrix.go }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-${{ matrix.go }}-
+            ${{ runner.os }}-go-mod-
+      - name: Cache go build and test
+        uses: actions/cache@v6
+        with:
+          path: /home/runner/.cache/go-build
+          key: ${{ runner.os }}-go-build-test-${{ matrix.go }}-${{ hashFiles('go.mod', 'go.sum') }}-${{ hashFiles('cmd/**/*.go', 'pkg/**/*.go', 'main.go') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-test-${{ matrix.go }}-${{ hashFiles('go.mod', 'go.sum') }}-
+            ${{ runner.os }}-go-build-test-${{ matrix.go }}-
+            ${{ runner.os }}-go-build-test-
+      - name: Run unit tests
+        env:
+          COS_ENDPOINT_SQLITE: ${{ secrets.COS_ENDPOINT_SQLITE }}
+          COS_ENDPOINT_POSTGRESQL: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
+          COS_ENDPOINT_MYSQL: ${{ secrets.COS_ENDPOINT_MYSQL }}
+          COS_AK: ${{ secrets.COS_AK }}
+          COS_SK: ${{ secrets.COS_SK }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_AK: ${{ secrets.OSS_AK }}
+          OSS_SK: ${{ secrets.OSS_SK }}
+          OSS_BUCKET_SQLITE: ${{ secrets.OSS_BUCKET_SQLITE }}
+          OSS_BUCKET_POSTGRESQL: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
+          OSS_BUCKET_MYSQL: ${{ secrets.OSS_BUCKET_MYSQL }}
+          GOCACHE: /home/runner/.cache/go-build
+        run: |
+          set -euo pipefail
+
+          mkdir -p test-results
+
+          packages() {
+            local excludes=(
+              "pkg/dal/query"
+              "pkg/dal/cmd"
+              "pkg/distribution/clients/mocks"
+              "pkg/service/password/mocks"
+              "pkg/storage/cos"
+            )
+            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+              excludes+=("pkg/storage/oss")
+            fi
+
+            go list ./... | while read -r pkg; do
+              local skipped=0
+              for exclude in "${excludes[@]}"; do
+                if [[ "${pkg}" == *"${exclude}"* ]]; then
+                  skipped=1
+                  break
+                fi
+              done
+              if [ "${skipped}" -eq 0 ]; then
+                echo "${pkg}"
+              fi
+            done
+          }
+
+          database_packages() {
+            packages | while read -r pkg; do
+              case "${pkg}" in
+                github.com/go-sigma/sigma/pkg/dal|github.com/go-sigma/sigma/pkg/dal/repository/*)
+                  echo "${pkg}"
+                  ;;
+              esac
+            done
+          }
+
+          application_packages() {
+            packages | while read -r pkg; do
+              case "${pkg}" in
+                github.com/go-sigma/sigma/pkg/dal|github.com/go-sigma/sigma/pkg/dal/repository/*)
+                  ;;
+                *)
+                  echo "${pkg}"
+                  ;;
+              esac
+            done
+          }
+
+          run_tests() {
+            local suite="$1"
+            local database_type="$2"
+            local cos_endpoint="$3"
+            local oss_bucket="$4"
+            local coverage_file="coverage-${suite}-${database_type}.txt"
+            local -a test_packages
+
+            if [ "${suite}" = "database" ]; then
+              mapfile -t test_packages < <(database_packages)
+            else
+              mapfile -t test_packages < <(application_packages)
+            fi
+
+            {
+              echo ""
+              echo "========== unit-test-${suite}-${database_type} =========="
+              echo "Running ${suite} tests with CI_DATABASE_TYPE=${database_type}"
+            } | tee -a test-results/unit-test.log
+
+            set +e
+            CI_DATABASE_TYPE="${database_type}" \
+              COS_ENDPOINT="${cos_endpoint}" \
+              OSS_BUCKET="${oss_bucket}" \
+              go test -parallel 1 -failfast \
+                -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+                -timeout 30m -v \
+                -coverprofile="${coverage_file}" -covermode=atomic \
+                "${test_packages[@]}" 2>&1 | tee -a test-results/unit-test.log
+            local status="${PIPESTATUS[0]}"
+            set -e
+
+            echo "${suite}:${database_type}:${status}" >> test-results/status.txt
+            return "${status}"
+          }
+
+          status=0
+          run_tests "application" "postgresql" "${COS_ENDPOINT_POSTGRESQL}" "${OSS_BUCKET_POSTGRESQL}" || status=1
+          run_tests "database" "sqlite3" "${COS_ENDPOINT_SQLITE}" "${OSS_BUCKET_SQLITE}" || status=1
+          run_tests "database" "turso" "${COS_ENDPOINT_SQLITE}" "${OSS_BUCKET_SQLITE}" || status=1
+          run_tests "database" "postgresql" "${COS_ENDPOINT_POSTGRESQL}" "${OSS_BUCKET_POSTGRESQL}" || status=1
+          run_tests "database" "mysql" "${COS_ENDPOINT_MYSQL}" "${OSS_BUCKET_MYSQL}" || status=1
+
+          {
+            echo "## Unit Test Summary"
+            echo ""
+            echo "| Suite | Database | Status |"
+            echo "| --- | --- | --- |"
+            while IFS=: read -r suite database_type result; do
+              if [ "${result}" = "0" ]; then
+                echo "| ${suite} | ${database_type} | passed |"
+              else
+                echo "| ${suite} | ${database_type} | failed |"
+              fi
+            done < test-results/status.txt
+            echo ""
+            echo "### Package Results"
+            grep -hE "^(ok|FAIL|\\?)\\s+github.com/go-sigma/sigma/" test-results/unit-test.log | sort | uniq || true
+          } | tee test-results/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+          exit "${status}"
+      - name: Upload unit test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results
+          path: |
+            test-results/
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit-test
+          files: coverage-application-postgresql.txt,coverage-database-sqlite3.txt,coverage-database-turso.txt,coverage-database-postgresql.txt,coverage-database-mysql.txt

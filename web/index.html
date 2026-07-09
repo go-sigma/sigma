@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/sigma.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      try {
+        var stored = window.localStorage.getItem("sigma-ui-preferences");
+        var themeMode = stored ? JSON.parse(stored).state.themeMode : "system";
+        var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var resolvedTheme = themeMode === "dark" || (themeMode !== "light" && prefersDark) ? "dark" : "light";
+        document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+        document.documentElement.style.colorScheme = resolvedTheme;
+      } catch (error) {
+        var fallbackDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", fallbackDark);
+        document.documentElement.style.colorScheme = fallbackDark ? "dark" : "light";
+      }
+    })();
+  </script>
+  <title>sigma</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

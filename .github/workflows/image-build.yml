@@ -1,0 +1,103 @@
+name: Image CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+      - release-*
+      - dev
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  image-build:
+    name: image-build-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+            platform: linux/amd64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    steps:
+      - name: Delete huge unnecessary folders, and clean apt cache
+        if: matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          rm -rf /opt/hostedtoolcache
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: tosone
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build sigma-server
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/Dockerfile
+          target: sigma-server
+          platforms: ${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/go-sigma/sigma:${{ github.ref_type == 'tag' && format('{0}-{1}', github.ref_name, matrix.arch) || format('nightly-{0}', matrix.arch) }}
+          provenance: false
+          sbom: false
+          outputs: "${{ github.event_name != 'pull_request' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
+      - name: Build sigma-builder
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/Dockerfile
+          target: sigma-builder
+          platforms: ${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/go-sigma/sigma-builder:${{ github.ref_type == 'tag' && format('{0}-{1}', github.ref_name, matrix.arch) || format('nightly-{0}', matrix.arch) }}
+          provenance: false
+          sbom: false
+          outputs: "${{ github.event_name != 'pull_request' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
+  merge-multi-arch:
+    name: merge-multi-arch
+    runs-on: ubuntu-24.04
+    needs: [image-build]
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: tosone
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Create and push multi-arch manifest for sigma
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/go-sigma/sigma:${{ github.ref_type == 'tag' && github.ref_name || 'nightly' }} \
+            ghcr.io/go-sigma/sigma:${{ github.ref_type == 'tag' && format('{0}-amd64', github.ref_name) || 'nightly-amd64' }} \
+            ghcr.io/go-sigma/sigma:${{ github.ref_type == 'tag' && format('{0}-arm64', github.ref_name) || 'nightly-arm64' }}
+      - name: Create and push multi-arch manifest for sigma-builder
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/go-sigma/sigma-builder:${{ github.ref_type == 'tag' && github.ref_name || 'nightly' }} \
+            ghcr.io/go-sigma/sigma-builder:${{ github.ref_type == 'tag' && format('{0}-amd64', github.ref_name) || 'nightly-amd64' }} \
+            ghcr.io/go-sigma/sigma-builder:${{ github.ref_type == 'tag' && format('{0}-arm64', github.ref_name) || 'nightly-arm64' }}

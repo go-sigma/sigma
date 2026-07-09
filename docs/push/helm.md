@@ -1,0 +1,47 @@
+---
+title: Helm
+description: Push helm chart to sigma
+---
+
+# Push helm chart to sigma
+
+### Generate a sample helm chart
+
+``` bash
+helm create demo
+```
+
+This command will create 'demo' directory, and a sample helm chart in it.
+
+``` bash
+helm package demo
+```
+
+Run this command outside the 'demo' directory, and you will get a file which named 'demo-0.1.0.tgz'.
+
+### Push the helm chart to sigma
+
+Note: before helm version v3.13.0, it doesn't support push helm chart to OCI registry over HTTP, you must use HTTPS.
+You can see the v3.13.0 [release note](https://github.com/helm/helm/releases/tag/v3.13.0).
+
+Before helm version v3.13.0:
+
+``` bash
+helm registry login --insecure -u sigma -p Admin@123 127.0.0.1:3000
+helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --insecure-skip-tls-verify
+```
+
+After helm version v3.13.0:
+
+``` bash
+helm registry login -u sigma -p Admin@123 127.0.0.1:3000
+helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --plain-http
+```
+
+### Pull the helm chart from sigma
+
+``` bash
+# before v3.13.0
+# helm pull oci://127.0.0.1:3000/library/demo --version 0.1.0 --insecure-skip-tls-verify
+helm pull oci://127.0.0.1:3000/library/demo --version 0.1.0 --plain-http
+```

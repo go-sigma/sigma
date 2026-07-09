@@ -1,0 +1,86 @@
+// Copyright 2023 sigma
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package repositories
+
+import (
+	"errors"
+	"log/slog"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
+	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/utils"
+)
+
+// PutRepository handles the update repository request
+//
+//	@Summary	Update repository
+//	@Tags		Repository
+//	@security	BasicAuth
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id} [put]
+//	@Param		namespace_id	path	number						true	"Namespace id"
+//	@Param		repository_id	path	number						true	"Repository id"
+//	@Param		message			body	api.UpdateRepositoryRequest	true	"Repository object"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
+func (h *handler) UpdateRepository(c *gin.Context, req *api.UpdateRepositoryRequest) {
+	ctx := c.Request.Context()
+
+	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
+	if !ok {
+		slog.Error("get user from context failed")
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
+		return
+	}
+
+	authChecked, err := h.Authorizer.Repository(ctx, *user, req.ID, enums.AuthManage)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
+			errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
+			return
+		}
+		slog.Error("get resource failed", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
+		return
+	}
+	if !authChecked {
+		slog.Error("auth check failed", "UserID", user.ID, "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized, "No permission with this api or resource")
+		return
+	}
+
+	err = h.RepoSvc.UpdateRepository(ctx, user.ID, *req)
+	if err != nil {
+		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
+			errcode.NewHTTPError(c, e)
+			return
+		}
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, err.Error())
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}

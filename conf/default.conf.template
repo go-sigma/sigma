@@ -1,0 +1,69 @@
+pid /tmp/nginx.pid;
+
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /dev/stdout;
+  error_log /dev/stderr warn;
+
+  server_tokens off;
+  absolute_redirect off;
+  client_max_body_size 0;
+  client_body_temp_path /tmp/client_temp;
+  proxy_temp_path /tmp/proxy_temp;
+  fastcgi_temp_path /tmp/fastcgi_temp;
+  uwsgi_temp_path /tmp/uwsgi_temp;
+  scgi_temp_path /tmp/scgi_temp;
+
+  gzip on;
+  gzip_static on;
+  gzip_disable "msie6";
+  gzip_vary on;
+  gzip_types text/plain text/css application/javascript application/json;
+
+  server {
+    listen 8080;
+    server_name _;
+    index index.html;
+
+    location /api/ {
+      proxy_pass http://127.0.0.1:3000;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /v2/ {
+      proxy_pass http://127.0.0.1:3000;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location = /swagger {
+      return 301 /swagger/;
+    }
+
+    location /swagger/ {
+      alias /app/swag/;
+      try_files $uri $uri/ =404;
+    }
+
+    location / {
+      alias /app/;
+      try_files $uri $uri/ /index.html;
+      expires 1d;
+      add_header X-Frame-Options DENY always;
+      add_header Content-Security-Policy "frame-ancestors 'none'" always;
+    }
+  }
+}

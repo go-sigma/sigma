@@ -1,0 +1,17 @@
+coverage:
+  precision: 2
+  round: down
+  range: "30...100"
+  status:
+    patch:
+      default:
+        threshold: 4%
+    project:
+      default:
+        threshold: 4%
+ignore:
+  - "./main.go"
+  - "./web/"
+  - "./cmd/"
+  - "./pkg/cmds/"
+  - "./pkg/tests/"

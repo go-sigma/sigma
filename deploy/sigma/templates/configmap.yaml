@@ -1,0 +1,142 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" (include "sigma.fullname" .) | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "sigma.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    log:
+      level: debug
+    database:
+      type: postgresql
+      sqlite3: {}
+      turso: {}
+      postgresql:
+        {{- if .Values.postgresql.enabled }}
+        host: {{ include "sigma.postgresql" . }}
+        port: {{ .Values.postgresql.service.port }}
+        username: {{ .Values.postgresql.auth.username }}
+        password: ""
+        database: {{ .Values.postgresql.auth.database }}
+        sslMode: disable
+        {{- else }}
+        host: {{ .Values.external.postgresql.host }}
+        port: {{ .Values.external.postgresql.port }}
+        username: {{ .Values.external.postgresql.user }}
+        password: ""
+        database: {{ .Values.external.postgresql.database }}
+        sslMode: {{ .Values.external.postgresql.sslMode | default "disable" }}
+        {{- end }}
+      mysql: {}
+    redis:
+      {{- if .Values.redis.enabled }}
+      addrs:
+        - {{ printf "%s:%d" (include "sigma.redis" .) (.Values.redis.service.port | int) | quote }}
+      password: ""
+      db: 0
+      {{- else }}
+      url: ""
+      addrs:
+        {{- range $addr := .Values.external.redis.addrs }}
+        - {{ $addr | quote }}
+        {{- end }}
+      username: ""
+      password: ""
+      db: {{ .Values.external.redis.db | default 0 }}
+      masterName: {{ .Values.external.redis.masterName | default "" | quote }}
+      poolSize: {{ .Values.external.redis.poolSize | default 0 }}
+      minIdleConns: {{ .Values.external.redis.minIdleConns | default 0 }}
+      maxRetries: {{ .Values.external.redis.maxRetries | default 0 }}
+      {{- end }}
+    http:
+      internalEndpoint: http://{{ include "sigma.distribution" . }}:{{ .Values.service.distribution.port }}
+      server: 0.0.0.0:{{.Values.service.server.port}}
+      worker: 0.0.0.0:{{.Values.service.worker.port}}
+      timeout:
+        readHeader: {{ .Values.config.http.timeout.readHeader | quote }}
+        read: {{ .Values.config.http.timeout.read | quote }}
+        write: {{ .Values.config.http.timeout.write | quote }}
+        idle: {{ .Values.config.http.timeout.idle | quote }}
+      bodyLimit:
+        enabled: {{ .Values.config.http.bodyLimit.enabled }}
+        default: {{ .Values.config.http.bodyLimit.default }}
+        manifest: {{ .Values.config.http.bodyLimit.manifest }}
+        blob: {{ .Values.config.http.bodyLimit.blob }}
+    daemon:
+      builder:
+        enabled: {{ .Values.config.daemon.builder.enabled }}
+        image: "{{ .Values.image.registry }}/{{ .Values.config.daemon.builder.image.repository }}:{{ .Values.config.daemon.builder.image.tag }}"
+        type: {{ .Values.config.daemon.builder.type | quote }}
+        kubernetes:
+          kubeconfig: ""
+          namespace: {{ .Values.config.daemon.builder.kubernetes.namespace | quote }}
+      gc:
+        # if blob not associate with artifact
+        retention: 72h
+        # At 02:00 on Saturday
+        cron: 0 2 * * 6
+      vulnerability:
+        staleTimeout: {{ .Values.config.daemon.vulnerability.staleTimeout }}
+        grype:
+          dbCacheDir: {{ .Values.config.daemon.vulnerability.grype.dbCacheDir | quote }}
+    storage:
+      rootDirectory: ./storage
+      redirect: {{ .Values.config.storage.redirect }}
+      type: s3
+      filesystem:
+        path: /
+      s3:
+        {{- if .Values.rs3.enabled }}
+        ak: ""
+        sk: ""
+        endpoint: {{ printf "http://%s:%d" (include "sigma.rs3" .) (.Values.rs3.service.port | int) | quote }}
+        region: {{ .Values.rs3.s3.region | quote }}
+        bucket: {{ .Values.rs3.s3.bucket | quote }}
+        forcePathStyle: true
+        {{- else }}
+        ak: ""
+        sk: ""
+        endpoint: {{ .Values.external.s3.endpoint | quote }}
+        region: {{ .Values.external.s3.region | quote }}
+        bucket: {{ .Values.external.s3.bucket | quote }}
+        forcePathStyle: {{ .Values.external.s3.pathStyle | default false }}
+        {{- end }}
+    proxy:
+      enabled: false
+      endpoint: https://registry-1.docker.io
+      tlsVerify: true
+      username: ""
+      password: ""
+    workqueue:
+      type: redis
+    locker:
+      type: redis
+    audit:
+      enabled: {{ .Values.config.audit.enabled }}
+      recordListGet: {{ .Values.config.audit.recordListGet }}
+      cleanup:
+        softDeleteAfterMonths: {{ .Values.config.audit.cleanup.softDeleteAfterMonths }}
+        hardDeleteAfterMonths: {{ .Values.config.audit.cleanup.hardDeleteAfterMonths }}
+        interval: {{ .Values.config.audit.cleanup.interval }}
+        batchSize: {{ .Values.config.audit.cleanup.batchSize }}
+    mcp:
+      enabled: {{ .Values.config.mcp.enabled }}
+      path: {{ .Values.config.mcp.path | quote }}
+      transport: {{ .Values.config.mcp.transport | quote }}
+      auditWrites: {{ .Values.config.mcp.auditWrites }}
+      toolTimeout: {{ .Values.config.mcp.toolTimeout }}
+      maxRequestBody: {{ .Values.config.mcp.maxRequestBody | int64 }}
+    auth:
+      anonymous:
+        enabled: true
+      admin:
+        username: "sigma"
+        password: "Admin@123"
+      token:
+        realm: ""
+        service: ""
+      jwt:
+        ttl: 1h
+        refreshTtl: 24h
+        privateKey: {{ genPrivateKey "rsa" | b64enc }}

@@ -1,0 +1,61 @@
+name: Lint CI
+
+on:
+  push:
+    branches:
+      - main
+      - gh-readonly-queue/main/*
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        go: ["1.26"]
+        bun: ["latest"]
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun }}
+      - name: Cache bun
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            web/node_modules
+          key: ${{ runner.os }}-bun-${{ matrix.bun }}-${{ hashFiles('web/bun.lock', 'web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ matrix.bun }}-
+            ${{ runner.os }}-bun-
+      - name: Build web
+        run: |
+          cd web
+          bun install --frozen-lockfile
+          bun run build
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
+          args: --timeout=30m --verbose --build-tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp"
+          skip-cache: false
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: ./build/Dockerfile
+          ignore: DL3006

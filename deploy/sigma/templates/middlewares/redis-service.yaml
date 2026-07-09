@@ -1,0 +1,40 @@
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sigma.redis" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "sigma.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-headless" (include "sigma.redis" .) | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "sigma.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+{{- end }}

@@ -1,0 +1,46 @@
+// Copyright 2024 sigma
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package repositories
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
+
+	"github.com/go-sigma/sigma/pkg/authz"
+	"github.com/go-sigma/sigma/pkg/config"
+	repoaudit "github.com/go-sigma/sigma/pkg/dal/repository/audit"
+	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
+	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
+	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+	"github.com/go-sigma/sigma/pkg/testkit"
+)
+
+func TestFactory(t *testing.T) {
+	digCon := dig.New()
+	require.NoError(t, digCon.Provide(func() *config.Configuration { return &config.Configuration{} }))
+	require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() reporegistry.RepositoryRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() repoaudit.AuditRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
+	require.NoError(t, digCon.Provide(func() repobuilder.BuilderRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() reporegistry.TagRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() reporegistry.ArtifactRepository { return nil }))
+	require.NoError(t, digCon.Provide(func() svcrepository.RepositoryService { return nil }))
+	require.NoError(t, digCon.Provide(testkit.NewGin))
+	require.NoError(t, factory{}.Initialize(digCon))
+}
