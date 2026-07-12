@@ -1,0 +1,285 @@
+pkg/api/user.go
+  s_aafc5b485f3397::t_8214cd5a5bac16 133
+pkg/server/handlers/namespaces/handler_test.go
+  s_aafc5b485f3397::t_ae07b4805cad17 65,69,76,80,84,88,92
+pkg/service/builders/builders.go
+  s_aafc5b485f3397::t_bdeea648b6f830 63,65
+pkg/background/daemon/gc/gc_repository.go
+  s_aafc5b485f3397::t_033449a4cc785e 90,122-123
+pkg/dal/repository/registry/tag.go
+  s_aafc5b485f3397::t_cf209570e7b903 43,45,47,49,51,53,55,57,59,61,65,67,69,71,73,112
+pkg/api/repository.go
+  s_aafc5b485f3397::t_1dcb64b867d01e 74
+pkg/testkit/database_name.go
+  s_aafc5b485f3397::t_5e5e3a501144e8 1-20,22-25,28-33,35
+  s_aafc5b485f3397::t_b5b744819e27a9 21,26-27,34
+pkg/server/middlewares/authn/authn_test.go
+  s_aafc5b485f3397::t_d0cb8f5bc32852 262
+  s_aafc5b485f3397::t_2f7f001844993e 186,193,200,324,331,338
+pkg/server/handlers/coderepos/coderepos_list.go
+  s_aafc5b485f3397::t_40bb242e52f162 90,96
+pkg/dal/repository/registry/tag_test.go
+  s_aafc5b485f3397::t_87e34a7c37398a 54
+  s_aafc5b485f3397::t_01b0b35f02cc78 51
+pkg/server/handlers/repositories/repositories_update.go
+  s_aafc5b485f3397::t_d87dfc915135da 75
+pkg/server/handlers/webhooks/webhooks_log_resend.go
+  s_aafc5b485f3397::t_4ad1a3a9b31b1c 64,79,83
+pkg/app/bootstrap/signing_test.go
+  s_aafc5b485f3397::t_594431d5a3f1b9 50,57,64
+pkg/server/handlers/namespaces/namespaces_list_hot_test.go
+  s_aafc5b485f3397::t_0c971cf53483f4 44-46,49,60,92,95
+pkg/background/buildrunner/kubernetes/k8s.go
+  s_aafc5b485f3397::t_e7a8fbdc53f39d 122,142
+  s_aafc5b485f3397::t_20b87fb9ade1dd 99-100
+pkg/background/buildrunner/logger/database/database.go
+  s_aafc5b485f3397::t_56a5a1dbe1ebf0 51
+pkg/dal/repository/namespace/namespace.go
+  s_aafc5b485f3397::t_a7e80559e85bee 40,42,44,50,54,56,85,90,99,133,139
+pkg/service/analytics/analytics.go
+  s_aafc5b485f3397::t_6e25691a33e76c 65-66,68-69,112,127,132,137-138,143,148-149,154,184,214,258-260,268-269,271,274,277,280,283,381-382,410,413,415
+pkg/background/buildrunner/logger/obs/obs.go
+  s_aafc5b485f3397::t_18178ec61fe784 58,71-72,90,95-96
+pkg/server/handlers/namespaces/namespaces_list.go
+  s_aafc5b485f3397::t_0c88a041157df5 50
+pkg/server/handlers/tags/tags_get.go
+  s_aafc5b485f3397::t_535c9f9f96e46e 62,66
+pkg/server/handlers/repositories/repositories_list.go
+  s_aafc5b485f3397::t_785820494e701a 54
+pkg/builder/api.go
+  s_aafc5b485f3397::t_0ea946af3553fc 54,59,70-71
+pkg/api/daemon.go
+  s_aafc5b485f3397::t_e151ec8c527794 88,90,97,103,113,118,121,125,133,138,146-147,152-153,161,171-173,178,180,187,192,202,207,210,214,222,227,235-236,241-242,250,260-262,267,269,276,281,291,296,299,303,311,316,324-325,330-331,339,349-351,356,361,367,376,384,389,392,396,404,409,417-418,423-424,432,442-444
+pkg/utils/uuid/uuid_test.go
+  s_aafc5b485f3397::t_116ad3a3f1051d 1-18,21-29,31-43
+  s_aafc5b485f3397::t_701e1da4d542ca 19-20,30
+pkg/testkit/mysql_database.go
+  s_aafc5b485f3397::t_85c0cdc5ab81c7 48,53-57
+  s_aafc5b485f3397::t_86da73b58ffd75 1-47,49-52,58-59
+pkg/service/oauth2/oauth2.go
+  s_aafc5b485f3397::t_f0b07714cdc925 54,105,109
+pkg/server/handlers/tags/tags_delete.go
+  s_aafc5b485f3397::t_474772c2eeb6a4 62,66
+pkg/api/common.go
+  s_aafc5b485f3397::t_efebf61d5f50e9 21
+pkg/service/coderepos/coderepos.go
+  s_aafc5b485f3397::t_35722fe5344a58 127,130,134
+pkg/api/namespace.go
+  s_aafc5b485f3397::t_7f15e30107e1ba 58,63,68,73,75-77,85,87,93
+  s_aafc5b485f3397::t_cbe62920265326 26-29
+pkg/dal/repository/registry/artifact.go
+  s_aafc5b485f3397::t_cabc92165ad365 42,44,46,48,50,60,62,64,70,72,82,84,86,88,90,92,116,125,128-129,151,164,173,225,235-236,241-242,260-261,266-267,288
+pkg/server/handlers/namespaces/namespaces_delete_test.go
+  s_aafc5b485f3397::t_d8f41a32154d43 44-47,52-54,59,72,76,94,98,102
+pkg/server/middlewares/authn/authn.go
+  s_aafc5b485f3397::t_ede56836750f2e 90
+  s_aafc5b485f3397::t_5f15597ef68aed 89
+pkg/background/buildrunner/builder.go
+  s_aafc5b485f3397::t_6fe1b0e9c80be7 240,247-248
+  s_aafc5b485f3397::t_f5d2bcd077ad23 127-128,131
+  s_aafc5b485f3397::t_ca63b5cfcca5e8 239,244,249,251
+  s_aafc5b485f3397::t_c7ec66d5bae3ed 45,49,149,177,181,185,190
+pkg/background/buildrunner/logger/logger.go
+  s_aafc5b485f3397::t_668e29c60e7eef 27
+pkg/background/daemon/gc/gc_tag.go
+  s_aafc5b485f3397::t_f6e3937a5d2c38 141,159-160
+  s_aafc5b485f3397::t_015a99a70c32db 140
+  s_aafc5b485f3397::t_fad5ba59a9ab30 109
+pkg/dal/repository/registry/blob_test.go
+  s_aafc5b485f3397::t_1738c2288f7815 55,77
+  s_aafc5b485f3397::t_8d5900978fd941 52,74
+pkg/service/distribution/manifest/manifest.go
+  s_aafc5b485f3397::t_bedabc3181a64b 130,235,244
+  s_aafc5b485f3397::t_fa0ea049198098 135
+pkg/service/token/token.go
+  s_aafc5b485f3397::t_e9d76e07f1652c 64,114,118
+pkg/background/daemon/webhook/helper.go
+  s_aafc5b485f3397::t_ccbc156c00414c 27
+pkg/background/buildrunner/docker/docker.go
+  s_aafc5b485f3397::t_bcc589548c03c6 93-94
+  s_aafc5b485f3397::t_f14540f6655ec4 129,194
+pkg/builder/config.go
+  s_aafc5b485f3397::t_3fe28fe8aba37c 23-24
+pkg/server/handlers/handlers_test.go
+  s_aafc5b485f3397::t_1865d172abdf03 64,71,78
+pkg/authz/cache.go
+  s_aafc5b485f3397::t_21f0640fc1f7de 51,63
+pkg/dal/repository/webhook/webhook.go
+  s_aafc5b485f3397::t_a85c2157efcb4b 38,40,44,46,50,52,54,78
+pkg/api/coderepos.go
+  s_aafc5b485f3397::t_d4a178726382e2 30
+pkg/builder/flow.go
+  s_aafc5b485f3397::t_d068e3ea553a31 133,136
+pkg/background/buildrunner/docker/informer.go
+  s_aafc5b485f3397::t_185f19450ca142 152,212
+pkg/dal/dal_test.go
+  s_aafc5b485f3397::t_61d27ec564168f 29
+  s_aafc5b485f3397::t_e7eb3fb05b4f60 30,60,119
+  s_aafc5b485f3397::t_3cce8f6c2a330c 81
+  s_aafc5b485f3397::t_469cb05984247e 64,98,139
+pkg/server/middlewares/redirect_repository.go
+  s_aafc5b485f3397::t_36635376cf991f 53
+pkg/app/bootstrap/user_test.go
+  s_aafc5b485f3397::t_f08496361ffa5a 72,79,86,162,169,176,233,240,247
+pkg/dal/repository/registry/repository.go
+  s_aafc5b485f3397::t_fee66cb7effb77 56,58,60
+  s_aafc5b485f3397::t_022219d684388e 46,48,50,54,70
+pkg/server/handlers/namespaces/namespaces_create_test.go
+  s_aafc5b485f3397::t_59d810c5791041 45-47,49,52,60,80,99,102
+pkg/server/handlers/tokens/tokens_test.go
+  s_aafc5b485f3397::t_5c218a954693a4 98
+pkg/server/handlers/analytics/user_heatmap.go
+  s_aafc5b485f3397::t_8d4bfb885b916a 39-40
+pkg/server/handlers/tags/tags_list.go
+  s_aafc5b485f3397::t_40cb74ccf4e24b 69,73
+pkg/api/tag.go
+  s_aafc5b485f3397::t_1261132836ba6f 32,41,44
+pkg/utils/uuid/uuid.go
+  s_aafc5b485f3397::t_592abd34ea407a 1-16,18,21-27
+  s_aafc5b485f3397::t_c207548ccb79e6 19-20
+  s_aafc5b485f3397::t_6d2662de2bc00a 17
+pkg/background/daemon/gc/runner_context.go
+  s_aafc5b485f3397::t_1a2fda200b06f3 81,109,114
+pkg/authz/resolver.go
+  s_aafc5b485f3397::t_12f05fa71949e2 29-30,121
+pkg/server/handlers/webhooks/webhooks_log_get.go
+  s_aafc5b485f3397::t_45385593deb8d1 66,81,85,101
+pkg/background/daemon/gc/gc_artifact.go
+  s_aafc5b485f3397::t_863a8fc6f136c7 90,122-123,141-142
+pkg/api/builder.go
+  s_aafc5b485f3397::t_bc43c7137c91a4 186
+AGENTS.md
+  s_aafc5b485f3397::t_cb915604577349 114-121,296-297
+  s_aafc5b485f3397::t_a30391318b4a61 147
+pkg/server/handlers/distribution/base/repository_list.go
+  s_aafc5b485f3397::t_2b1757fd48ebb0 63
+pkg/background/buildrunner/podman/podman.go
+  s_aafc5b485f3397::t_10c289c6c1e851 81-82,101,127
+pkg/api/webhook.go
+  s_aafc5b485f3397::t_168d4bf6d400f5 145-148
+pkg/service/audit/audit.go
+  s_aafc5b485f3397::t_f1c75ba5690251 30
+  s_aafc5b485f3397::t_a9c9cbe59d1bcb 31
+pkg/service/daemons/daemons.go
+  s_aafc5b485f3397::t_b6f108df9b4a11 185,285,430,530,681,783,929,1019
+  s_aafc5b485f3397::t_480aeab7e5f8ff 336,366,581,611,835,865,1093
+  s_aafc5b485f3397::t_fe29d733c43b93 367-369
+  s_aafc5b485f3397::t_6c93b5500d84c0 1092
+  s_aafc5b485f3397::t_e3840f982c6703 57,61,76,80,95,99,118
+  s_aafc5b485f3397::t_f10b31418f4b0f 42,46,48-52,54-56,58-60,65,67-71,73-75,77-79,84,86-90,92-94,96-98,103,105,107-111,113-117,142
+  s_aafc5b485f3397::t_b4051c8ce6076c 154,217-221,236-240,264,311-315,335,354-355,365,399,462-466,481-485,509,556-560,580,599-600,610,644,715-719,734-738,762,810-814,834,853-854,864,898,959,974-976,1002,1046,1066-1067,1081
+  s_aafc5b485f3397::t_3477f2c5122aa1 866-868
+  s_aafc5b485f3397::t_7f4a6ab4ddce8e 1003
+  s_aafc5b485f3397::t_67bcbab77a5d6f 1082
+  s_aafc5b485f3397::t_724aaf3ba8dfd5 612-614
+pkg/builder/checker.go
+  s_aafc5b485f3397::t_edddb7b8ff9241 31,46,57,72,93,99
+pkg/service/token/token_test.go
+  s_aafc5b485f3397::t_1b342a49162ce8 198
+  s_aafc5b485f3397::t_8eae58fe82ac03 191,197
+pkg/server/handlers/webhooks/webhooks_delete.go
+  s_aafc5b485f3397::t_030f2436a8f19d 63,78,82
+pkg/testkit/database_name_test.go
+  s_aafc5b485f3397::t_bd7c6a2f4ffbf4 1-39
+pkg/dal/repository/registry/blob.go
+  s_aafc5b485f3397::t_67f80eb3b8363a 49,51,53,61,63,145,154,156-157,176,181-182
+pkg/background/daemon/scan/vulngrype/vulnerability.go
+  s_aafc5b485f3397::t_6a01415bd25af0 142
+pkg/service/repositories/repositories.go
+  s_aafc5b485f3397::t_5a691f9d1eeec2 54,87,92,94,98,124
+  s_aafc5b485f3397::t_9cf18f9ec08b9c 125
+pkg/server/handlers/namespaces/namespaces_get_test.go
+  s_aafc5b485f3397::t_a003e70c5288d6 44-46,59,66,80,83
+pkg/config/configuration.go
+  s_aafc5b485f3397::t_9b602d4eb62ac3 169-171
+pkg/server/handlers/repositories/repositories_delete_test.go
+  s_aafc5b485f3397::t_a02c7e204d930c 44-48,55-57,62,89,93,108,112,130,136,140
+pkg/dal/repository/analytics/analytics.go
+  s_aafc5b485f3397::t_597c1017bbe998 33,35,37,39,58
+pkg/server/handlers/webhooks/webhooks_list.go
+  s_aafc5b485f3397::t_6c6c9459cde6eb 73,77
+pkg/server/handlers/webhooks/webhooks_log_list.go
+  s_aafc5b485f3397::t_6605b54a1b7e7e 69,83,87
+pkg/service/tags/tags.go
+  s_aafc5b485f3397::t_14a6e14165dbaf 43,45,49,79,84,86,93,95,109,141,146,148,155,157
+pkg/server/handlers/webhooks/webhooks_ping.go
+  s_aafc5b485f3397::t_b2a92e78837af8 63,78,82
+pkg/server/handlers/webhooks/webhooks_log_delete.go
+  s_aafc5b485f3397::t_52493d9a1a8d2e 64,79,83
+pkg/authz/authorizer.go
+  s_aafc5b485f3397::t_aaa7ce02905824 42-43,45,47,49,51,53,55,95,139,147,149,166,175,181,189,193,195,201,205,207,213,217,219,227,260
+pkg/service/analytics/analytics_test.go
+  s_aafc5b485f3397::t_7e8215db5b2504 35-38,58-59,61,75,82,129,141-143,160-161,175-176
+pkg/server/handlers/analytics/namespace_trends.go
+  s_aafc5b485f3397::t_a3f18a43bf3abf 40-41
+docs/docs/configuration.mdx
+  s_aafc5b485f3397::t_9c763f1575ce98 38,40,58-59,61
+pkg/background/daemon/coderepo/diff.go
+  s_aafc5b485f3397::t_9fba43f9557539 81
+pkg/background/daemon/gc/decorator.go
+  s_aafc5b485f3397::t_40e0fffbe9e6f4 93,101,106
+pkg/background/daemon/scan/decorator.go
+  s_aafc5b485f3397::t_5776d062ef403f 87
+conf/config.yaml
+  s_aafc5b485f3397::t_3b9ba4e44c7804 36
+pkg/server/handlers/webhooks/webhooks_get.go
+  s_aafc5b485f3397::t_01d0a558f98c43 64,79,83
+pkg/dal/repository/builder/builder.go
+  s_aafc5b485f3397::t_e4e4d9f1c48f42 52,56,80,95,100,108,116,128,133,153
+pkg/dal/repository/testhelper/helper.go
+  s_aafc5b485f3397::t_c8d4adb1ff8feb 41
+  s_aafc5b485f3397::t_cc3eca1c58d2f5 64
+pkg/testkit/middleware_mysql.go
+  s_aafc5b485f3397::t_cf5e07ea72fbf3 48,52,76
+pkg/background/buildrunner/builder_test.go
+  s_aafc5b485f3397::t_911f9dccd2025c 24,34-35,41,43-44
+pkg/dal/repository/daemon/daemon.go
+  s_aafc5b485f3397::t_e42b742078f0ba 37,41,43,45,47,51,55,57,60,64,66,68,70,74,78,80,83,87,89,91,93,97,101,103,110,112,114,116,120,124,126,130,149,165,180,187,196,221,235,255,268,283,294,301,310,335,349,369,377,393,408,415,424,449,463,483,501,516,523,532,557,571,591,613
+pkg/server/handlers/webhooks/webhooks_put.go
+  s_aafc5b485f3397::t_bce028e4729a34 65,80,84
+pkg/server/handlers/namespaces/namespaces_update_test.go
+  s_aafc5b485f3397::t_0ae90634c936f0 46-47,49,100
+  s_aafc5b485f3397::t_b1053b05952923 48,57-58,63,77,81,104,108
+  s_aafc5b485f3397::t_2719b262af314d 56
+pkg/server/handlers/namespaces/namespaces_members_add.go
+  s_aafc5b485f3397::t_f2b7e1a81bbe94 60,64
+pkg/server/handlers/namespaces/namespaces_list_test.go
+  s_aafc5b485f3397::t_a83d22ab322164 45-47,58,70,91
+pkg/server/handlers/webhooks/webhooks_create.go
+  s_aafc5b485f3397::t_3bd67a8605868c 65,69
+pkg/background/daemon/gc/gc_blob.go
+  s_aafc5b485f3397::t_85e07f1d57732f 92
+pkg/server/handlers/repositories/repositories_list_test.go
+  s_aafc5b485f3397::t_812b8157d677f2 49-52,63-64,74,94
+  s_aafc5b485f3397::t_ec3b5e43931775 116
+  s_aafc5b485f3397::t_1cc9f212aef694 126,130,134,138,142,149,153
+pkg/authz/authorizer_test.go
+  s_aafc5b485f3397::t_8653d0ee3cc19a 338,343,349,354
+  s_aafc5b485f3397::t_d1d4901019891e 248-249,255-256,259-265,269,276-278,281-284,287,290,293,295,298-299,302-305,308-309,312
+  s_aafc5b485f3397::t_46b91feadd73eb 57-59,62,183,187-188,193-194,200,202,209,216,224
+pkg/background/daemon/pushed/tag.go
+  s_aafc5b485f3397::t_a14a248f8413aa 110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "454749235daa3187f89505f5f02c9b604e4b48e1",
+  "prompts": {},
+  "humans": {
+    "h_fd9e36a3acc65d": {
+      "author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "sessions": {
+    "s_aafc5b485f3397": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a5387412fa9a8486228f49e",
+        "model": "gpt-5.5__dev"
+      },
+      "human_author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
