@@ -1,0 +1,57 @@
+pkg/api/validator.go
+  s_f796bd8120f5dd::t_f345dcbe326212 17,22,27,32,37
+pkg/api/namespace.go
+  s_f796bd8120f5dd::t_41083ddcdc4f3e 19,37,42,46,56,61,66,71,83,91,96,104,110,114,121,132
+pkg/api/coderepos.go
+  s_f796bd8120f5dd::t_6cce7175b23239 19,35,45,55,61,67,72,80,86,102
+pkg/api/cache.go
+  s_f796bd8120f5dd::t_ca228fcc2ed661 17,22,27
+pkg/api/system.go
+  s_f796bd8120f5dd::t_ffe5a6e45894f3 17,22,29,34,40
+pkg/api/tag.go
+  s_f796bd8120f5dd::t_7e9d7eac17caf6 19,39,51,63,70
+pkg/api/builder.go
+  s_f796bd8120f5dd::t_968f995460ab34 21,66,107,144,152,161,171,193,204,212,217,225,233,241
+pkg/api/analytics.go
+  s_f796bd8120f5dd::t_ff5fce5146fa27 17,23,32,37
+pkg/api/user.go
+  s_f796bd8120f5dd::t_abfbd1917ed5ac 21,26,31,40,52,67,73,82,89,96,102,110,115,121,127,132,138,144,149,154,159
+pkg/api/daemon.go
+  s_f796bd8120f5dd::t_08e8dafe6aaa45 354,365,370,382,387,402,407,415,421,430,440
+  s_f796bd8120f5dd::t_1d6e015fe36df3 176,185,190,200,205,220,225,233,239,248,258,265,274,279,289,294,309,314,322,328,337,347
+  s_f796bd8120f5dd::t_507adf8029c54d 21,26,31,36,41,46,57,65,70,76,81,86,95,100,111,116,131,136,144,150,159,169
+pkg/api/webhook.go
+  s_f796bd8120f5dd::t_22b916ff94c886 19,36,54,59,64,84,92,100,116,122,128,134,139,157,174,178,182,189,196,204,213,222,229,235,247,256,266,276
+pkg/api/common.go
+  s_f796bd8120f5dd::t_3714fe1647e8f5 19,25,31
+  s_f796bd8120f5dd::t_52067347310adc 27-28
+pkg/api/oauth2.go
+  s_f796bd8120f5dd::t_a5bf1a4a8bf250 19,24,31,36,46,55,60
+pkg/api/artifact.go
+  s_f796bd8120f5dd::t_652ef80a786e9e 17,31,39,46
+pkg/api/repository.go
+  s_f796bd8120f5dd::t_64e84e8f325481 19,38,48,54,60,72,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "aaed001b562c3317223f4d69aae1174d12e4a929",
+  "prompts": {},
+  "humans": {
+    "h_fd9e36a3acc65d": {
+      "author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "sessions": {
+    "s_f796bd8120f5dd": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a54d3722fa9a84862291bed",
+        "model": "gpt-5.5__dev"
+      },
+      "human_author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
