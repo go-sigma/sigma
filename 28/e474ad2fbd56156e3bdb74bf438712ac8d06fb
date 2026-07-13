@@ -1,0 +1,55 @@
+build/Dockerfile
+  h_fd9e36a3acc65d 106,109-112
+  s_f796bd8120f5dd::t_3122cbd5837c89 8,101-105,107-108,113-126,156
+pkg/app/bootstrap/dig.go
+  s_c5c18e1ebda5e0::t_bfa9e9ba217a94 47
+pkg/api/daemon.go
+  s_f796bd8120f5dd::t_385fe3c6cdcaf3 90,103,180,192,269,281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "28e474ad2fbd56156e3bdb74bf438712ac8d06fb",
+  "prompts": {},
+  "humans": {
+    "h_fd9e36a3acc65d": {
+      "author": "Tosone <i@tosone.cn>"
+    }
+  },
+  "sessions": {
+    "s_c5c18e1ebda5e0": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a54cd6a2fa9a8486229173b",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "Tosone <i@tosone.cn>"
+    },
+    "s_f796bd8120f5dd": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a54d3722fa9a84862291bed",
+        "model": "gpt-5.5__dev",
+        "display_model_name": "GPT-5.5"
+      },
+      "human_author": null
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {
+    "s_f796bd8120f5dd": {
+      "tool": "trae",
+      "conversation_id": "6a54d3722fa9a84862291bed",
+      "session_id": "6a54d3722fa9a84862291bed",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_f796bd8120f5dd::t_36b4b2697541a6": {
+      "tool": "trae",
+      "conversation_id": "6a54d3722fa9a84862291bed",
+      "session_id": "6a54d3722fa9a84862291bed",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
