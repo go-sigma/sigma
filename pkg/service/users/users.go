@@ -264,13 +264,13 @@ func (s *userService) Signup(ctx context.Context, req api.PostUserSignupRequest,
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	refreshToken, err := s.tokenSvc.New(userObj.ID, ttl)
+	refreshToken, err := s.tokenSvc.New(userObj.ID, refreshTTL)
 	if err != nil {
 		slog.Error("create refresh token failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	accessToken, err := s.tokenSvc.New(userObj.ID, refreshTTL)
+	accessToken, err := s.tokenSvc.New(userObj.ID, ttl)
 	if err != nil {
 		slog.Error("create token failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
