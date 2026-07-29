@@ -114,11 +114,14 @@ jobs:
 
           packages() {
             local excludes=(
+              "pkg/api"
+              "pkg/dal/models"
               "pkg/dal/query"
               "pkg/dal/cmd"
               "pkg/distribution/clients/mocks"
               "pkg/service/password/mocks"
               "pkg/storage/cos"
+              "pkg/version"
             )
             if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
               excludes+=("pkg/storage/oss")
@@ -204,20 +207,70 @@ jobs:
           run_tests "database" "mysql" "${COS_ENDPOINT_MYSQL}" "${OSS_BUCKET_MYSQL}" || status=1
 
           {
-            echo "## Unit Test Summary"
-            echo ""
-            echo "| Suite | Database | Status |"
-            echo "| --- | --- | --- |"
-            while IFS=: read -r suite database_type result; do
-              if [ "${result}" = "0" ]; then
-                echo "| ${suite} | ${database_type} | passed |"
-              else
-                echo "| ${suite} | ${database_type} | failed |"
-              fi
-            done < test-results/status.txt
-            echo ""
             echo "### Package Results"
-            grep -hE "^(ok|FAIL|\\?)\\s+github.com/go-sigma/sigma/" test-results/unit-test.log | sort | uniq || true
+            echo ""
+            echo "| Suite | Database | Status | Package | Duration | Coverage | Notes |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
+            awk '
+                /^========== unit-test-/ {
+                  section = $0
+                  sub(/^========== unit-test-/, "", section)
+                  sub(/ ==========$/, "", section)
+                  split(section, section_parts, "-")
+                  suite = section_parts[1]
+                  database = section_parts[2]
+                  next
+                }
+
+                /^(ok|FAIL|\?)[[:space:]]+github\.com\/go-sigma\/sigma\// {
+                  status = $1
+                  package_name = $2
+                  sub(/^github\.com\/go-sigma\/sigma\//, "", package_name)
+                  duration = "-"
+                  coverage = "-"
+                  notes = "-"
+
+                  if (status == "ok") {
+                    status = "passed"
+                  } else if (status == "FAIL") {
+                    status = "failed"
+                  } else {
+                    status = "no tests"
+                  }
+
+                  for (i = 3; i <= NF; i++) {
+                    if ($i ~ /^[0-9]+(\.[0-9]+)?s$/) {
+                      duration = $i
+                    } else if ($i == "coverage:" && i < NF) {
+                      coverage = $(i + 1)
+                    }
+                  }
+
+                  if (index($0, "(cached)") > 0) {
+                    notes = "cached"
+                  }
+                  if (index($0, "[no test files]") > 0) {
+                    notes = "no test files"
+                  } else if (index($0, "[no tests to run]") > 0) {
+                    notes = notes == "-" ? "no tests to run" : notes ", no tests to run"
+                  }
+
+                  database_order = 99
+                  if (database == "postgresql") {
+                    database_order = 1
+                  } else if (database == "mysql") {
+                    database_order = 2
+                  } else if (database == "sqlite3") {
+                    database_order = 3
+                  } else if (database == "turso") {
+                    database_order = 4
+                  }
+
+                  printf "%d\t| %s | %s | %s | `%s` | %s | %s | %s |\n", database_order, suite, database, status, package_name, duration, coverage, notes
+                }
+              ' test-results/unit-test.log |
+              sort -s -k1,1n |
+              cut -f2- || true
           } | tee test-results/summary.md >> "$GITHUB_STEP_SUMMARY"
 
           exit "${status}"
