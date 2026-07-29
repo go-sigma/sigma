@@ -14,155 +14,101 @@
 
 package tags
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"net/url"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"log/slog"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/tidwall/gjson"
-// 	"go.uber.org/mock/gomock"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	daomock "github.com/go-sigma/sigma/pkg/dal/repository/mocks"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/dal/query"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// 	"github.com/go-sigma/sigma/pkg/validators"
-// )
+	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/authz"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+)
 
-// func TestGetTag(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	e := echo.New()
-// 	validators.Initialize()
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+func TestGetTag(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	tagSvc := svctag.NewMockTagService(ctrl)
+	tagSvc.EXPECT().GetTag(gomock.Any(), "tag-1").Return(&models.Tag{
+		ID:   "tag-1",
+		Name: "latest",
+		Artifact: &models.Artifact{
+			ID:     "artifact-1",
+			Digest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
+	}, nil)
+	tagSvc.EXPECT().GetArtifactRaw(gomock.Any(), "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").
+		Return([]byte("manifest"), nil)
 
-// 	ctx := context.Background()
+	recorder, c := newTagContext(t)
+	(&handler{
+		TagSvc:     tagSvc,
+		Authorizer: fakeAuthorizer{tag: true},
+	}).GetTag(c, &api.GetTagRequest{NamespaceID: "namespace-1", RepositoryID: "repository-1", ID: "tag-1"})
+	c.Writer.WriteHeaderNow()
 
-// 	const (
-// 		namespaceName  = "test"
-// 		repositoryName = "busybox"
-// 	)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"id":"tag-1"`)
+	require.Contains(t, recorder.Body.String(), `"name":"latest"`)
+	require.Contains(t, recorder.Body.String(), `"raw":"manifest"`)
+}
 
-// 	userRepository := repouser.NewUserRepository()
-// 	userRepository := userRepository.New()
-// 	userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com"), Role: enums.UserRoleAdmin}
-// 	err := userRepository.Create(ctx, userObj)
-// 	assert.NoError(t, err)
-// 	namespaceRepository := reponamespace.NewNamespaceRepository()
-// 	namespaceRepository := namespaceRepository.New()
-// 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-// 	err = namespaceRepository.Create(ctx, namespaceObj)
-// 	assert.NoError(t, err)
-// 	slog.Info("namespace created", "namespace", namespaceObj)
-// 	repositoryRepository := reporegistry.NewRepositoryRepository()
-// 	repositoryRepository := repositoryRepository.New()
-// 	repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID, Visibility: enums.VisibilityPrivate}
-// 	err = repositoryRepository.Create(ctx, repositoryObj, reporegistry.AutoCreateNamespace{UserID: userObj.ID})
-// 	assert.NoError(t, err)
-// 	artifactRepository := reporegistry.NewArtifactRepository()
-// 	artifactRepository := artifactRepository.New()
-// 	artifactObj := &models.Artifact{
-// 		RepositoryID: repositoryObj.ID,
-// 		Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
-// 		Size:         1234,
-// 		ContentType:  "application/octet-stream",
-// 		Raw:          []byte("test"),
-// 		PushedAt:     time.Now(),
-// 		Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
-// 	}
-// 	err = artifactRepository.Create(ctx, artifactObj)
-// 	assert.NoError(t, err)
-// 	tagRepository := reporegistry.NewTagRepository()
-// 	tagRepository := tagRepository.New()
-// 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now()}
-// 	err = tagRepository.Create(ctx, tagObj)
-// 	assert.NoError(t, err)
+func TestGetTagUnauthorized(t *testing.T) {
+	recorder, c := newTagContext(t)
+	(&handler{
+		Authorizer: fakeAuthorizer{tag: false},
+	}).GetTag(c, &api.GetTagRequest{NamespaceID: "namespace-1", RepositoryID: "repository-1", ID: "tag-1"})
+	c.Writer.WriteHeaderNow()
 
-// 	tagHandler := handlerNew()
+	require.Equal(t, http.StatusUnauthorized, recorder.Code)
+}
 
-// 	q := make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req := httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	c.SetParamNames("namespace", "id")
-// 	c.SetParamValues(namespaceName, "1")
-// 	err = tagHandler.GetTag(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
-// 	assert.Equal(t, "latest", gjson.GetBytes(rec.Body.Bytes(), "name").String())
+func newTagContext(t *testing.T) (*httptest.ResponseRecorder, *gin.Context) {
+	t.Helper()
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+	return recorder, c
+}
 
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	c.SetParamNames("namespace", "id")
-// 	c.SetParamValues(namespaceName, "2")
-// 	err = tagHandler.GetTag(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
+type fakeAuthorizer struct {
+	tag        bool
+	repository bool
+}
 
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	c.SetParamNames("id")
-// 	c.SetParamValues("2")
-// 	err = tagHandler.GetTag(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
+var _ authz.Authorizer = fakeAuthorizer{}
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+func (fakeAuthorizer) Authorize(context.Context, string, bool, string, string) (bool, error) {
+	return false, nil
+}
 
-// 	daoMockTagRepository := daomock.NewMockTagRepository(ctrl)
-// 	daoMockTagRepository.EXPECT().GetByID(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64) (*models.Tag, error) {
-// 		return nil, fmt.Errorf("test")
-// 	}).Times(1)
-// 	daoMockTagRepository := daomock.NewMockTagRepository(ctrl)
-// 	daoMockTagRepository.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) reporegistry.TagRepository {
-// 		return daoMockTagRepository
-// 	}).Times(1)
+func (fakeAuthorizer) Namespace(context.Context, models.User, string, enums.Auth) (bool, error) {
+	return false, nil
+}
 
-// 	tagHandler = handlerNew(inject{tagRepository: daoMockTagRepository})
+func (fakeAuthorizer) NamespaceRole(context.Context, models.User, string) (*enums.NamespaceRole, error) {
+	return nil, nil
+}
 
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	c.SetParamNames("namespace", "id")
-// 	c.SetParamValues(namespaceName, "2")
-// 	err = tagHandler.GetTag(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-// }
+func (fakeAuthorizer) NamespacesRole(context.Context, models.User, []string) (map[string]*enums.NamespaceRole, error) {
+	return nil, nil
+}
+
+func (f fakeAuthorizer) Repository(context.Context, models.User, string, enums.Auth) (bool, error) {
+	return f.repository, nil
+}
+
+func (f fakeAuthorizer) Tag(context.Context, models.User, string, enums.Auth) (bool, error) {
+	return f.tag, nil
+}
+
+func (fakeAuthorizer) Artifact(context.Context, models.User, string, enums.Auth) (bool, error) {
+	return false, nil
+}

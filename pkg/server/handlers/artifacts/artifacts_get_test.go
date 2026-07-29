@@ -14,175 +14,60 @@
 
 package artifacts
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"net/url"
-// 	"testing"
-// 	"time"
+import (
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"log/slog"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/tidwall/gjson"
-// 	"go.uber.org/mock/gomock"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	daomock "github.com/go-sigma/sigma/pkg/dal/repository/mocks"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/dal/query"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// 	"github.com/go-sigma/sigma/pkg/validators"
-// )
+	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	svcartifact "github.com/go-sigma/sigma/pkg/service/artifacts"
+)
 
-// func TestGetArtifact(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	e := echo.New()
-// 	validators.Initialize()
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+func TestGetArtifact(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	service := svcartifact.NewMockArtifactService(ctrl)
+	service.EXPECT().GetArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(&models.Artifact{
+		ID:     "artifact-1",
+		Digest: "sha256:abc",
+		Size:   123,
+	}, nil)
+	recorder, c := newArtifactContext()
 
-// 	ctx := context.Background()
+	(&handler{ArtifactSvc: service}).GetArtifact(c, &api.GetArtifactRequest{
+		Repository: "library/alpine",
+		Digest:     "sha256:abc",
+	})
+	c.Writer.WriteHeaderNow()
 
-// 	const (
-// 		namespaceName  = "test"
-// 		repositoryName = "busybox"
-// 	)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"id":"artifact-1"`)
+	require.Contains(t, recorder.Body.String(), `"digest":"sha256:abc"`)
+}
 
-// 	userRepository := repouser.NewUserRepository()
-// 	userRepository := userRepository.New()
-// 	userObj := &models.User{Username: "new-runner", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-// 	assert.NoError(t, userRepository.Create(ctx, userObj))
-// 	namespaceRepository := reponamespace.NewNamespaceRepository()
-// 	namespaceRepository := namespaceRepository.New()
-// 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-// 	assert.NoError(t, namespaceRepository.Create(ctx, namespaceObj))
-// 	slog.Info("namespace created", "namespace", namespaceObj)
-// 	repositoryRepository := reporegistry.NewRepositoryRepository()
-// 	repositoryRepository := repositoryRepository.New()
-// 	repositoryObj := &models.Repository{Name: namespaceName + "/" + repositoryName, NamespaceID: namespaceObj.ID}
-// 	assert.NoError(t, repositoryRepository.Create(ctx, repositoryObj, reporegistry.AutoCreateNamespace{UserID: userObj.ID}))
-// 	artifactRepository := reporegistry.NewArtifactRepository()
-// 	artifactRepository := artifactRepository.New()
-// 	artifactObj := &models.Artifact{
-// 		NamespaceID:  namespaceObj.ID,
-// 		RepositoryID: repositoryObj.ID,
-// 		Digest:       "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf",
-// 		Size:         1234,
-// 		ContentType:  "application/octet-stream",
-// 		Raw:          []byte("test"),
-// 		PushedAt:     time.Now().UnixMilli(),
-// 		Blobs:        []*models.Blob{{Digest: "sha256:123", Size: 123, ContentType: "test"}, {Digest: "sha256:234", Size: 234, ContentType: "test"}},
-// 	}
-// 	assert.NoError(t, artifactRepository.Create(ctx, artifactObj))
-// 	tagRepository := reporegistry.NewTagRepository()
-// 	tagRepository := tagRepository.New()
-// 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
-// 	assert.NoError(t, tagRepository.Create(ctx, tagObj))
+func TestGetArtifactServiceError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	service := svcartifact.NewMockArtifactService(ctrl)
+	service.EXPECT().GetArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(nil, errors.New("failed"))
+	recorder, c := newArtifactContext()
 
-// 	artifactHandler := handlerNew()
+	(&handler{ArtifactSvc: service}).GetArtifact(c, &api.GetArtifactRequest{
+		Repository: "library/alpine",
+		Digest:     "sha256:abc",
+	})
+	c.Writer.WriteHeaderNow()
 
-// 	q := make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req := httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	c.SetParamNames("namespace", "digest")
-// 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
-// 	assert.Equal(t, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf", gjson.GetBytes(rec.Body.Bytes(), "digest").String())
+	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
 
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.SetParamNames("digest")
-// 	c.SetParamValues("sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5faf")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
-
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.SetParamNames("namespace", "digest")
-// 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
-
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox-none-exist")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.SetParamNames("namespace", "digest")
-// 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
-
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-
-// 	daoMockArtifactRepository := daomock.NewMockArtifactRepository(ctrl)
-// 	daoMockArtifactRepository.EXPECT().GetByDigest(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ int64, _ string) (*models.Artifact, error) {
-// 		return nil, fmt.Errorf("test")
-// 	}).Times(1)
-// 	daoMockArtifactRepository := daomock.NewMockArtifactRepository(ctrl)
-// 	daoMockArtifactRepository.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) reporegistry.ArtifactRepository {
-// 		return daoMockArtifactRepository
-// 	}).Times(1)
-
-// 	artifactHandler = handlerNew(inject{artifactRepository: daoMockArtifactRepository})
-
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.SetParamNames("namespace", "digest")
-// 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-
-// 	daoMockRepositoryRepository := daomock.NewMockRepositoryRepository(ctrl)
-// 	daoMockRepositoryRepository.EXPECT().GetByName(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (*models.Repository, error) {
-// 		return nil, fmt.Errorf("test")
-// 	}).Times(1)
-// 	daoMockRepositoryRepository := daomock.NewMockRepositoryRepository(ctrl)
-// 	daoMockRepositoryRepository.EXPECT().New(gomock.Any()).DoAndReturn(func(txs ...*query.Query) reporegistry.RepositoryRepository {
-// 		return daoMockRepositoryRepository
-// 	}).Times(1)
-
-// 	artifactHandler = handlerNew(inject{repositoryRepository: daoMockRepositoryRepository})
-
-// 	q = make(url.Values)
-// 	q.Set("repository", "test/busybox")
-// 	req = httptest.NewRequest(http.MethodDelete, "/?"+q.Encode(), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.SetParamNames("namespace", "digest")
-// 	c.SetParamValues(namespaceName, "sha256:e032eb458559f05c333b90abdeeac8ccb23bc1613137eeab2bbc0ea1224c5f1f")
-// 	assert.NoError(t, artifactHandler.GetArtifact(c))
-// 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-// }
+func newArtifactContext() (*httptest.ResponseRecorder, *gin.Context) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+	return recorder, c
+}

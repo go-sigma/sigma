@@ -1,4 +1,4 @@
-// Copyright 2024 sigma
+// Copyright 2026 sigma
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coderepos
+package analytics
 
 import (
 	"net/http"
@@ -22,36 +22,32 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/config"
-	"github.com/go-sigma/sigma/pkg/service/coderepos"
+	"github.com/go-sigma/sigma/pkg/authz"
+	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
 func TestFactory(t *testing.T) {
-	cfg := config.GetConfig()
-	enabled := cfg.Daemon.Builder.Enabled
-	cfg.Daemon.Builder.Enabled = true
-	t.Cleanup(func() {
-		cfg.Daemon.Builder.Enabled = enabled
-	})
-
 	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() coderepos.CodeRepositoryService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcanalytics.Service { return nil }))
+	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
-		routes := engine.Routes()
-		require.Len(t, routes, 8)
-		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/providers"))
-		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/:provider/repos/:id/branches/:name"))
+		requireRoutes(t, engine, map[string]string{
+			"/api/v1/users/:user_id/activity/heatmap":          http.MethodGet,
+			"/api/v1/namespaces/:namespace_id/activity/trends": http.MethodGet,
+		})
 	}))
 }
 
-func hasRoute(routes gin.RoutesInfo, method, path string) bool {
-	for _, route := range routes {
-		if route.Method == method && route.Path == path {
-			return true
-		}
+func requireRoutes(t *testing.T, engine *gin.Engine, expected map[string]string) {
+	t.Helper()
+	routes := make(map[string]string, len(engine.Routes()))
+	for _, route := range engine.Routes() {
+		routes[route.Path] = route.Method
 	}
-	return false
+	for path, method := range expected {
+		require.Equal(t, method, routes[path], path)
+	}
 }

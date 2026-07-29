@@ -16,6 +16,7 @@ package namespaces
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,22 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
+	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
+		routes := engine.Routes()
+		require.Len(t, routes, 11)
+		require.True(t, hasRoute(routes, http.MethodPost, "/api/v1/namespaces/"))
+		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/namespaces/:namespace_id/members/self"))
+		require.True(t, hasRoute(routes, http.MethodDelete, "/api/v1/namespaces/:namespace_id/members/:user_id"))
+	}))
+}
+
+func hasRoute(routes gin.RoutesInfo, method, path string) bool {
+	for _, route := range routes {
+		if route.Method == method && route.Path == path {
+			return true
+		}
+	}
+	return false
 }
 
 func newNamespacesTestRouter(h handler, user *models.User) *gin.Engine {
