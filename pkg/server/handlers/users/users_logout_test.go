@@ -14,74 +14,38 @@
 
 package users
 
-// import (
-// 	"bytes"
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"net/http"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/stretchr/testify/assert"
-// 	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	tokenmock "github.com/go-sigma/sigma/pkg/service/token"
-// 	"github.com/go-sigma/sigma/pkg/validators"
-// )
+	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/consts"
+	svcuser "github.com/go-sigma/sigma/pkg/service/users"
+)
 
-// func TestLogout(t *testing.T) {
-// 	logger.SetLevel("debug")
+func TestLogout(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	service := svcuser.NewMockUserService(ctrl)
+	service.EXPECT().Logout(gomock.Any(), []string{"access-token", "refresh-token"}, "jti-1").Return(nil)
+	recorder, c := newUserContext()
+	c.Set(consts.ContextJti, "jti-1")
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	(&handler{UserSvc: service}).Logout(c, &api.PostUserLogoutRequest{
+		Tokens: []string{"access-token", "refresh-token"},
+	})
+	c.Writer.WriteHeaderNow()
 
-// 	var times int
-// 	tokenMock := tokenmock.NewMockTokenService(ctrl)
-// 	tokenMock.EXPECT().Revoke(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) error {
-// 		if times < 1 {
-// 			times++
-// 			return nil
-// 		} else {
-// 			return fmt.Errorf("error")
-// 		}
-// 	}).AnyTimes()
-// 	tokenMock.EXPECT().Validate(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, _ string) (string, string, error) {
-// 		return "test", "id", nil
-// 	}).AnyTimes()
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+}
 
-// 	userHandler, err := handlerNew(inject{tokenSvc: tokenMock})
-// 	assert.NoError(t, err)
+func TestLogoutWithoutJTI(t *testing.T) {
+	recorder, c := newUserContext()
 
-// 	e := echo.New()
-// 	validators.Initialize()
+	(&handler{}).Logout(c, &api.PostUserLogoutRequest{Tokens: []string{"access-token"}})
+	c.Writer.WriteHeaderNow()
 
-// 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusUnauthorized, c.Response().Status)
-
-// 	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "test")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusNoContent, c.Response().Status)
-
-// 	req = httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"tokens":["123","234"]}`))
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = e.NewContext(req, rec)
-// 	c.Set(consts.ContextJti, "test")
-// 	err = userHandler.Logout(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
-// }
+	require.Equal(t, http.StatusUnauthorized, recorder.Code)
+}

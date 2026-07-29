@@ -14,74 +14,61 @@
 
 package users
 
-// import (
-// 	"bytes"
-// 	"context"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
 
-// 	"github.com/labstack/echo/v4"
-// 	"log/slog"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/config"
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	"github.com/go-sigma/sigma/pkg/app/bootstrap"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// )
+	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	svcuser "github.com/go-sigma/sigma/pkg/service/users"
+)
 
-// func TestLogin(t *testing.T) {
-// 	logger.SetLevel("debug")
+func TestLogin(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	service := svcuser.NewMockUserService(ctrl)
+	service.EXPECT().Login(gomock.Any(), "user-1", time.Minute, time.Hour).
+		Return("access-token", "refresh-token", nil)
+	recorder, c := newUserContext()
+	email := "sigma@example.test"
+	c.Set(consts.ContextUser, &models.User{ID: "user-1", Username: "sigma", Email: &email})
 
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+	(&handler{
+		Config: &config.Configuration{Auth: config.ConfigurationAuth{Jwt: config.ConfigurationAuthJwt{
+			Ttl:        time.Minute,
+			RefreshTTL: time.Hour,
+		}}},
+		UserSvc: service,
+	}).Login(c)
+	c.Writer.WriteHeaderNow()
 
-// 	config := &config.Configuration{
-// 		Auth: config.ConfigurationAuth{
-// 			Admin: config.ConfigurationAuthAdmin{
-// 				Username: "sigma",
-// 				Password: "sigma",
-// 				Email:    "sigma@gmail.com",
-// 			},
-// 			Jwt: config.ConfigurationAuthJwt{
-// 				PrivateKey: privateKeyString,
-// 			},
-// 			Token: config.ConfigurationAuthToken{
-// 				Realm:   "http://localhost:8080/user/token",
-// 				Service: "sigma-dev",
-// 			},
-// 		},
-// 	}
-// 	config.SetConfiguration(config)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"token":"access-token"`)
+	require.Contains(t, recorder.Body.String(), `"refresh_token":"refresh-token"`)
+	require.Contains(t, recorder.Body.String(), `"username":"sigma"`)
+}
 
-// 	assert.NoError(t, bootstrap.Initialize(ptr.To(config)))
+func TestLoginWithoutUser(t *testing.T) {
+	recorder, c := newUserContext()
 
-// 	userHandler, err := handlerNew()
-// 	assert.NoError(t, err)
+	(&handler{
+		Config:  &config.Configuration{},
+		UserSvc: nil,
+	}).Login(c)
+	c.Writer.WriteHeaderNow()
 
-// 	userRepository := repouser.NewUserRepository()
-// 	userObj, err := userRepository.GetByUsername(context.Background(), "sigma")
-// 	assert.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, recorder.Code)
+}
 
-// 	e := echo.New()
-
-// 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{"username":"sigma","password":"sigma"}`))
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	err = userHandler.Login(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
-// }
+func newUserContext() (*httptest.ResponseRecorder, *gin.Context) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+	return recorder, c
+}
