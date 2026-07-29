@@ -95,7 +95,7 @@ func (s *webhookService) CreateWebhook(ctx context.Context, userID string, req a
 		slog.Error("get webhook count failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
-	if total > consts.MaxWebhooks {
+	if total >= consts.MaxWebhooks {
 		slog.Error("reached the maximum webhooks", "total", total)
 		return errcode.HTTPErrCodeBadRequest.Detail("Reached the maximum webhooks")
 	}
@@ -196,7 +196,7 @@ func (s *webhookService) UpdateWebhook(ctx context.Context, userID string, id st
 	if req.EventMember != nil {
 		updates[query.Webhook.EventMember.ColumnName().String()] = ptr.To(req.EventMember)
 	}
-	if req.EventMember != nil {
+	if req.EventDaemonTaskGc != nil {
 		updates[query.Webhook.EventDaemonTaskGc.ColumnName().String()] = ptr.To(req.EventDaemonTaskGc)
 	}
 
@@ -290,10 +290,10 @@ func (s *webhookService) DeleteWebhookLog(ctx context.Context, userID string, we
 
 	return query.Q.Transaction(func(tx *query.Query) error {
 		webhookRepository := repowebhook.NewWebhookRepository(tx)
-		err = webhookRepository.DeleteByID(ctx, webhookLogID)
+		err = webhookRepository.DeleteLogByID(ctx, webhookLogID)
 		if err != nil {
-			slog.Error("create webhook failed", "err", err)
-			return errcode.HTTPErrCodeInternalError.Detail("Create webhook failed")
+			slog.Error("delete webhook log failed", "err", err)
+			return errcode.HTTPErrCodeInternalError.Detail("Delete webhook log failed")
 		}
 		return nil
 	})
