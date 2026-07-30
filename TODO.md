@@ -265,6 +265,38 @@
 
 ---
 
+## 14. Unit Test Coverage Priorities
+
+**Current state**: CI package coverage report for the PostgreSQL application suite and multi-database DAL suite
+
+- Coverage is uneven across the most important runtime paths. Several protocol, service, and handler packages remain below 10% coverage
+- The database repository matrix already runs across PostgreSQL, MySQL, SQLite, and Turso, so repository coverage should be improved selectively where behavior is complex
+- Handler tests should focus on request binding, authorization decisions, route registration, service calls, and error mapping instead of trying to cover all service behavior through HTTP tests
+- Service tests should be prioritized for state transitions, transactional behavior, queue messages, storage side effects, and OCI protocol edge cases
+
+**P0 recommendations**:
+
+- [ ] Add focused tests for `pkg/service/distribution/manifest`, especially manifest push/pull flows, digest validation, tag handling, delete behavior, and error mapping
+- [ ] Add tests for `pkg/service/distribution/blob` and `pkg/service/distribution/upload`, covering blob reads, uploads, mounts, cleanup, and storage error handling
+- [ ] Add tests for `pkg/server/handlers/distribution/base`, `blob`, `manifest`, and `upload`, covering HTTP methods, headers, status codes, range behavior, and distribution-spec errors
+- [ ] Add service-layer tests for `pkg/service/repositories`, `pkg/service/namespaces`, and `pkg/service/users`, covering permissions, quotas, member changes, login flows, and state updates
+- [ ] Add tests for `pkg/service/builders`, `pkg/service/coderepos`, and `pkg/service/daemons`, with emphasis on asynchronous task creation, queue payloads, and status transitions
+
+**P1 recommendations**:
+
+- [ ] Add handler tests for `pkg/server/handlers/webhooks`, covering request validation, authorization, service calls, and error responses
+- [ ] Add service tests for `pkg/service/webhooks`, covering URL validation, quota checks, event enqueueing, log deletion, and log resend behavior
+- [ ] Add targeted handler tests for builders, code repositories, daemons, users, repositories, namespaces, and tags where coverage is below 50%
+- [ ] Add repository tests for `pkg/dal/repository/namespace` and `pkg/dal/repository/registry`, focusing on complex queries, soft-delete behavior, count updates, and size reconciliation
+
+**P2 recommendations**:
+
+- [ ] Add integration-style tests for `pkg/background/buildrunner/docker`, `pkg/background/daemon/gc`, and `pkg/background/daemon/scan/vulngrype` only after the service-layer contracts are covered
+- [ ] Add targeted tests for `pkg/infra/workq`, `pkg/infra/workq/inmemory`, `pkg/infra/workq/redis`, `pkg/storage`, and `pkg/telemetry` when their adapters change
+- [ ] Keep analytics, validators, systems, tokens, and password tests at their current priority unless related code changes increase risk
+
+---
+
 ## Priority Recommendations
 
 | Priority | Item                                                        | Impact                                                              |
