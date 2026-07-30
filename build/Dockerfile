@@ -153,17 +153,13 @@ COPY --chmod=0644 ./conf/config.yaml /etc/sigma/config.yaml
 COPY --from=syft --chmod=0755 /usr/local/bin/syft /usr/local/bin/syft
 COPY --from=cosign --chmod=0755 /tmp/cosign /usr/local/bin/cosign
 COPY --from=grype --chmod=0755 /usr/local/bin/grype /usr/local/bin/grype
-COPY --from=grype --chmod=0755 /opt/grype/ /opt/grype/
+COPY --from=grype --chown=1001:1001 --chmod=0755 /opt/grype/ /opt/grype/
 COPY --from=server --chmod=0755 /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 COPY --from=web --chmod=755 /web/dist /app
 COPY --from=swagger --chmod=0755 /app/swag /app/swag
 
 RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
-  mkdir -p /var/lib/sigma && \
-  mkdir -p /code/ && \
-  chown -R 1001:1001 /var/lib/sigma && \
-  chown -R 1001:1001 /opt/grype && \
-  chown -R 1001:1001 /code/
+  install -d -o 1001 -g 1001 /var/lib/sigma /code/
 
 WORKDIR /home/sigma
 
