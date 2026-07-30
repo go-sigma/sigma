@@ -66,10 +66,8 @@ type service struct {
 	Producer    workq.Producer
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 // GetClientID returns the client ID for the given provider.

@@ -15,9 +15,6 @@
 package users
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/users"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the tag handlers
@@ -69,29 +64,21 @@ type handler struct {
 
 var _ Handler = &handler{}
 
-type factory struct{}
-
-// Initialize ...
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		group := e.Group(consts.APIV1 + "/users")
-		group.GET("/", server.WrapRequest(h.List))
-		group.POST("/", server.WrapRequest(h.Post))
-		group.PUT("/:id", server.WrapRequest(h.Put))
-		group.POST("/login", server.Wrap(h.Login))
-		group.POST("/logout", server.WrapRequest(h.Logout))
-		group.GET("/signup", server.WrapRequest(h.Signup))
-		group.GET("/create", server.WrapRequest(h.Signup))
-		group.GET("/self", server.Wrap(h.SelfGet))
-		group.PUT("/self", server.WrapRequest(h.SelfPut))
-		group.PUT("/self/reset-password", server.WrapRequest(h.SelfResetPassword))
-		group.GET("/recover-password", server.WrapRequest(h.RecoverPassword))
-		group.PUT("/recover-password-reset/:code", server.WrapRequest(h.RecoverPasswordReset))
-		group.PUT("/:id/reset-password", server.WrapRequest(h.ResetPassword))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	group := e.Group(consts.APIV1 + "/users")
+	group.GET("/", server.WrapRequest(h.List))
+	group.POST("/", server.WrapRequest(h.Post))
+	group.PUT("/:id", server.WrapRequest(h.Put))
+	group.POST("/login", server.Wrap(h.Login))
+	group.POST("/logout", server.WrapRequest(h.Logout))
+	group.GET("/signup", server.WrapRequest(h.Signup))
+	group.GET("/create", server.WrapRequest(h.Signup))
+	group.GET("/self", server.Wrap(h.SelfGet))
+	group.PUT("/self", server.WrapRequest(h.SelfPut))
+	group.PUT("/self/reset-password", server.WrapRequest(h.SelfResetPassword))
+	group.GET("/recover-password", server.WrapRequest(h.RecoverPassword))
+	group.PUT("/recover-password-reset/:code", server.WrapRequest(h.RecoverPasswordReset))
+	group.PUT("/:id/reset-password", server.WrapRequest(h.ResetPassword))
+	return nil
 }

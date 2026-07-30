@@ -69,10 +69,8 @@ type service struct {
 	Producer    workq.Producer
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 func (s *service) CreateWebhook(ctx context.Context, userID string, req api.PostWebhookRequest) error {

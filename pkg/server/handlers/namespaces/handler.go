@@ -15,9 +15,6 @@
 package namespaces
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/namespaces"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the namespace handlers
@@ -66,30 +61,22 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	namespaceGroup := e.Group(consts.APIV1 + "/namespaces")
 
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		namespaceGroup := e.Group(consts.APIV1 + "/namespaces")
+	namespaceGroup.GET("/", server.WrapRequest(h.ListNamespaces))
+	namespaceGroup.GET("/:namespace_id", server.WrapRequest(h.GetNamespace))
+	namespaceGroup.POST("/", server.WrapRequest(h.PostNamespace))
+	namespaceGroup.PUT("/:namespace_id", server.WrapRequest(h.PutNamespace))
+	namespaceGroup.DELETE("/:namespace_id", server.WrapRequest(h.DeleteNamespace))
+	namespaceGroup.GET("/hot", server.Wrap(h.HotNamespace))
 
-		namespaceGroup.GET("/", server.WrapRequest(h.ListNamespaces))
-		namespaceGroup.GET("/:namespace_id", server.WrapRequest(h.GetNamespace))
-		namespaceGroup.POST("/", server.WrapRequest(h.PostNamespace))
-		namespaceGroup.PUT("/:namespace_id", server.WrapRequest(h.PutNamespace))
-		namespaceGroup.DELETE("/:namespace_id", server.WrapRequest(h.DeleteNamespace))
-		namespaceGroup.GET("/hot", server.Wrap(h.HotNamespace))
+	namespaceGroup.GET("/:namespace_id/members/", server.WrapRequest(h.ListNamespaceMembers))
+	namespaceGroup.GET("/:namespace_id/members/self", server.WrapRequest(h.GetNamespaceMemberSelf))
+	namespaceGroup.POST("/:namespace_id/members/", server.WrapRequest(h.AddNamespaceMember))
+	namespaceGroup.PUT("/:namespace_id/members/:user_id", server.WrapRequest(h.UpdateNamespaceMember))
+	namespaceGroup.DELETE("/:namespace_id/members/:user_id", server.WrapRequest(h.DeleteNamespaceMember))
 
-		namespaceGroup.GET("/:namespace_id/members/", server.WrapRequest(h.ListNamespaceMembers))
-		namespaceGroup.GET("/:namespace_id/members/self", server.WrapRequest(h.GetNamespaceMemberSelf))
-		namespaceGroup.POST("/:namespace_id/members/", server.WrapRequest(h.AddNamespaceMember))
-		namespaceGroup.PUT("/:namespace_id/members/:user_id", server.WrapRequest(h.UpdateNamespaceMember))
-		namespaceGroup.DELETE("/:namespace_id/members/:user_id", server.WrapRequest(h.DeleteNamespaceMember))
-
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+	return nil
 }

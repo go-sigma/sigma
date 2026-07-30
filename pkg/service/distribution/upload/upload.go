@@ -68,10 +68,8 @@ type service struct {
 	Storage      storage.StorageDriver
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 // GetNamespaceByName gets a namespace by name.

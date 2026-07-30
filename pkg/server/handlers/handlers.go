@@ -21,30 +21,53 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
-	"github.com/go-sigma/sigma/pkg/infra/registry"
 	"github.com/go-sigma/sigma/pkg/server"
+	"github.com/go-sigma/sigma/pkg/server/handlers/analytics"
+	"github.com/go-sigma/sigma/pkg/server/handlers/artifacts"
+	"github.com/go-sigma/sigma/pkg/server/handlers/builders"
+	"github.com/go-sigma/sigma/pkg/server/handlers/coderepos"
+	"github.com/go-sigma/sigma/pkg/server/handlers/daemons"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
+	"github.com/go-sigma/sigma/pkg/server/handlers/namespaces"
+	"github.com/go-sigma/sigma/pkg/server/handlers/oauth2"
+	"github.com/go-sigma/sigma/pkg/server/handlers/repositories"
+	"github.com/go-sigma/sigma/pkg/server/handlers/systems"
+	"github.com/go-sigma/sigma/pkg/server/handlers/tags"
+	handlertokens "github.com/go-sigma/sigma/pkg/server/handlers/tokens"
+	"github.com/go-sigma/sigma/pkg/server/handlers/users"
+	handlervalidators "github.com/go-sigma/sigma/pkg/server/handlers/validators"
+	"github.com/go-sigma/sigma/pkg/server/handlers/webhooks"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
-// Factory is the interface for the storage router factory
-type Factory interface {
-	Initialize(c *dig.Container) error
-}
-
-// Routers is the registry for storage router factories
-var Routers = make(registry.Factories[string, Factory])
-
-// Initialize ...
+// Initialize registers all API handler routes.
 func Initialize(digCon *dig.Container) error {
 	err := validators.Initialize()
 	if err != nil {
 		return fmt.Errorf("failed to initialize validators: %v", err)
 	}
 
-	for name, factory := range Routers {
-		if err := factory.Initialize(digCon); err != nil {
-			return fmt.Errorf("failed to initialize router factory %q: %v", name, err)
+	for _, item := range []struct {
+		name       string
+		initialize any
+	}{
+		{name: "analytics", initialize: analytics.Initialize},
+		{name: "artifacts", initialize: artifacts.Initialize},
+		{name: "builders", initialize: builders.Initialize},
+		{name: "coderepos", initialize: coderepos.Initialize},
+		{name: "daemons", initialize: daemons.Initialize},
+		{name: "namespaces", initialize: namespaces.Initialize},
+		{name: "oauth2", initialize: oauth2.Initialize},
+		{name: "repositories", initialize: repositories.Initialize},
+		{name: "systems", initialize: systems.Initialize},
+		{name: "tags", initialize: tags.Initialize},
+		{name: "tokens", initialize: handlertokens.Initialize},
+		{name: "users", initialize: users.Initialize},
+		{name: "validators", initialize: handlervalidators.Initialize},
+		{name: "webhooks", initialize: webhooks.Initialize},
+	} {
+		if err := digCon.Invoke(item.initialize); err != nil {
+			return fmt.Errorf("failed to initialize handler %q: %v", item.name, err)
 		}
 	}
 

@@ -37,21 +37,21 @@ import (
 // InitDigContainer registers all services into the dig container.
 func InitDigContainer(digCon *dig.Container) error {
 	for _, e := range []error{
-		namespaces.NewService(digCon),
-		analytics.NewService(digCon),
-		repositories.NewService(digCon),
-		tags.NewService(digCon),
-		artifacts.NewService(digCon),
-		users.NewService(digCon),
-		webhooks.NewService(digCon),
-		builders.NewService(digCon),
-		coderepos.NewService(digCon),
-		daemons.NewService(digCon),
-		systems.NewService(digCon),
-		oauth2.NewService(digCon),
-		blob.NewService(digCon),
-		manifest.NewService(digCon),
-		upload.NewService(digCon),
+		digCon.Provide(namespaces.NewService),
+		digCon.Provide(analytics.NewService),
+		digCon.Provide(repositories.NewService),
+		digCon.Provide(tags.NewService),
+		digCon.Provide(artifacts.NewService),
+		digCon.Provide(users.NewService),
+		digCon.Provide(webhooks.NewService),
+		digCon.Provide(builders.NewService),
+		digCon.Provide(coderepos.NewService),
+		digCon.Provide(daemons.NewService),
+		digCon.Provide(systems.NewService),
+		digCon.Provide(oauth2.NewService),
+		digCon.Provide(blob.NewService),
+		digCon.Provide(manifest.NewService),
+		digCon.Provide(upload.NewService),
 	} {
 		if err := e; err != nil {
 			return err

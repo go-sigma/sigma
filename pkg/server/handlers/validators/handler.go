@@ -15,17 +15,11 @@
 package validators
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
-	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler ...
@@ -46,22 +40,14 @@ var _ Handler = &handler{}
 
 type handler struct{}
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine) error {
-		h := &handler{}
-		group := e.Group(consts.APIV1 + "/validators")
-		group.GET("/reference", server.WrapRequest(h.GetReference))
-		group.GET("/tag", server.WrapRequest(h.GetTag))
-		group.POST("/password", server.WrapRequest(h.GetPassword))
-		group.POST("/cron", server.WrapRequest(h.ValidateCron))
-		group.POST("/regexp", server.WrapRequest(h.ValidateRegexp))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine) error {
+	h := &handler{}
+	group := e.Group(consts.APIV1 + "/validators")
+	group.GET("/reference", server.WrapRequest(h.GetReference))
+	group.GET("/tag", server.WrapRequest(h.GetTag))
+	group.POST("/password", server.WrapRequest(h.GetPassword))
+	group.POST("/cron", server.WrapRequest(h.ValidateCron))
+	group.POST("/regexp", server.WrapRequest(h.ValidateRegexp))
+	return nil
 }

@@ -125,10 +125,8 @@ type service struct {
 	Producer   workq.Producer
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 // parseCronNextTrigger parses the cron rule and returns the next trigger timestamp in milliseconds

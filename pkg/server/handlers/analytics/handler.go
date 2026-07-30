@@ -15,18 +15,13 @@
 package analytics
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for analytics handlers.
@@ -44,17 +39,10 @@ type handler struct {
 	Authorizer   authz.Authorizer
 }
 
-type factory struct{}
-
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		group := e.Group(consts.APIV1)
-		group.GET("/users/:user_id/activity/heatmap", server.Wrap(h.GetUserPushHeatmap))
-		group.GET("/namespaces/:namespace_id/activity/trends", server.Wrap(h.GetNamespaceTrends))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	group := e.Group(consts.APIV1)
+	group.GET("/users/:user_id/activity/heatmap", server.Wrap(h.GetUserPushHeatmap))
+	group.GET("/namespaces/:namespace_id/activity/trends", server.Wrap(h.GetNamespaceTrends))
+	return nil
 }

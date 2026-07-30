@@ -15,18 +15,13 @@
 package token
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/token"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the tag handlers
@@ -44,16 +39,9 @@ type handler struct {
 
 var _ Handler = &handler{}
 
-type factory struct{}
-
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		group := e.Group(consts.APIV1)
-		group.GET("/tokens", server.Wrap(h.Token))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	group := e.Group(consts.APIV1)
+	group.GET("/tokens", server.Wrap(h.Token))
+	return nil
 }

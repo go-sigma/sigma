@@ -63,12 +63,19 @@ type PullEvent struct {
 
 // Service records and queries backend analytics rollups.
 type Service interface {
+	// RecordPush records a successful manifest push event.
 	RecordPush(ctx context.Context, event PushEvent) error
+	// RecordPull records a successful manifest pull event.
 	RecordPull(ctx context.Context, event PullEvent) error
+	// RecordNamespaceSizeDelta records a namespace storage size delta.
 	RecordNamespaceSizeDelta(ctx context.Context, namespaceID string, delta int64) error
+	// RecordNamespaceTagDelta records a namespace tag count delta.
 	RecordNamespaceTagDelta(ctx context.Context, namespaceID string, delta int64) error
+	// Flush persists pending analytics counters into the repository.
 	Flush(ctx context.Context) error
+	// GetUserPushHeatmap returns daily push counts for a user.
 	GetUserPushHeatmap(ctx context.Context, userID string, days int) ([]api.DailyCount, error)
+	// GetNamespaceTrends returns hourly namespace activity metrics.
 	GetNamespaceTrends(ctx context.Context, namespaceID string, days int) ([]api.NamespaceHourlyMetric, error)
 }
 
@@ -81,12 +88,10 @@ type service struct {
 	Locker        lock.Locker
 }
 
-// NewService registers the analytics service in the dependency container.
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		params.Config = withDefaults(params.Config)
-		return &params
-	})
+// NewService creates the analytics service.
+func NewService(params service) Service {
+	params.Config = withDefaults(params.Config)
+	return &params
 }
 
 func withDefaults(config *config.Configuration) *config.Configuration {

@@ -15,9 +15,6 @@
 package oauth2
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	oauth2svc "github.com/go-sigma/sigma/pkg/service/oauth2"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the oauth2 handlers
@@ -49,19 +44,11 @@ type handler struct {
 	Config    *config.Configuration
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		oauth2Group := e.Group(consts.APIV1 + "/oauth2")
-		oauth2Group.GET("/:provider/callback", server.WrapRequest(h.Callback))
-		oauth2Group.GET("/:provider/client_id", server.WrapRequest(h.ClientID))
-		oauth2Group.GET("/:provider/redirect_callback", server.WrapRequest(h.RedirectCallback))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	oauth2Group := e.Group(consts.APIV1 + "/oauth2")
+	oauth2Group.GET("/:provider/callback", server.WrapRequest(h.Callback))
+	oauth2Group.GET("/:provider/client_id", server.WrapRequest(h.ClientID))
+	oauth2Group.GET("/:provider/redirect_callback", server.WrapRequest(h.RedirectCallback))
+	return nil
 }

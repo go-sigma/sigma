@@ -15,9 +15,6 @@
 package repositories
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the repository handlers
@@ -53,21 +48,13 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		repositoryGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories")
-		repositoryGroup.GET("/", server.WrapRequest(h.ListRepositories))
-		repositoryGroup.POST("/", server.WrapRequest(h.CreateRepository))
-		repositoryGroup.GET("/:repository_id", server.WrapRequest(h.GetRepository))
-		repositoryGroup.PUT("/:repository_id", server.WrapRequest(h.UpdateRepository))
-		repositoryGroup.DELETE("/:repository_id", server.WrapRequest(h.DeleteRepository))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	repositoryGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories")
+	repositoryGroup.GET("/", server.WrapRequest(h.ListRepositories))
+	repositoryGroup.POST("/", server.WrapRequest(h.CreateRepository))
+	repositoryGroup.GET("/:repository_id", server.WrapRequest(h.GetRepository))
+	repositoryGroup.PUT("/:repository_id", server.WrapRequest(h.UpdateRepository))
+	repositoryGroup.DELETE("/:repository_id", server.WrapRequest(h.DeleteRepository))
+	return nil
 }

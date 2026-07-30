@@ -27,12 +27,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
-func TestFactory(t *testing.T) {
+func TestInitialize(t *testing.T) {
 	digCon := dig.New()
 	require.NoError(t, digCon.Provide(func() svcanalytics.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
-	require.NoError(t, factory{}.Initialize(digCon))
+	require.NoError(t, digCon.Invoke(Initialize))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
 		requireRoutes(t, engine, map[string]string{
 			"/api/v1/users/:user_id/activity/heatmap":          http.MethodGet,
