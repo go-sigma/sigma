@@ -39,7 +39,7 @@ func TestParseManifestRef(t *testing.T) {
 }
 
 func TestManifestClassification(t *testing.T) {
-	service := &distributionManifestService{}
+	service := &service{}
 
 	require.Equal(t, enums.ArtifactTypeImage, service.getArtifactType(
 		distribution.Descriptor{MediaType: manifestlist.MediaTypeManifestList},

@@ -34,7 +34,7 @@ import (
 
 func TestFactory(t *testing.T) {
 	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() svcnamespace.NamespaceService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcnamespace.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))

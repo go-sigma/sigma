@@ -41,7 +41,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.RepositoryRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.BlobRepository { return nil }))
-	require.NoError(t, digCon.Provide(func() svcupload.DistributionUploadService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcupload.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() storage.StorageDriver { return nil }))
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)

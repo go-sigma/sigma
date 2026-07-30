@@ -55,7 +55,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	CodeRepoSvc coderepos.CodeRepositoryService
+	CodeRepoSvc coderepos.Service
 }
 
 type factory struct{}

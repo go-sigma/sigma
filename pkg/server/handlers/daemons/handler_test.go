@@ -28,7 +28,7 @@ import (
 
 func TestFactory(t *testing.T) {
 	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() daemons.DaemonService { return nil }))
+	require.NoError(t, digCon.Provide(func() daemons.Service { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {

@@ -36,10 +36,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=webhooks_mocks.go -package=webhooks github.com/go-sigma/sigma/pkg/service/webhooks WebhookService
+//go:generate mockgen -mock_names Service=MockWebhookService -destination=webhooks_mocks.go -package=webhooks github.com/go-sigma/sigma/pkg/service/webhooks Service
 
-// WebhookService encapsulates webhook-related business logic.
-type WebhookService interface {
+// Service encapsulates webhook-related business logic.
+type Service interface {
 	// CreateWebhook creates a webhook (includes: validate url + check quota + create).
 	CreateWebhook(ctx context.Context, userID string, req api.PostWebhookRequest) error
 	// ListWebhooks lists webhooks with pagination.
@@ -62,35 +62,26 @@ type WebhookService interface {
 	ResendWebhookLog(ctx context.Context, userID string, webhookID string, webhookLogID string) error
 }
 
-type webhookService struct {
-	webhookRepository repowebhook.WebhookRepository
-	producer          workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	WebhookRepository repowebhook.WebhookRepository
-	Producer          workq.Producer
+	RepoWebhook repowebhook.WebhookRepository
+	Producer    workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) WebhookService {
-		return &webhookService{
-			webhookRepository: params.WebhookRepository,
-			producer:          params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *webhookService) CreateWebhook(ctx context.Context, userID string, req api.PostWebhookRequest) error {
+func (s *service) CreateWebhook(ctx context.Context, userID string, req api.PostWebhookRequest) error {
 	if !(strings.HasPrefix(req.URL, "http://") || strings.HasPrefix(req.URL, "https://")) { // nolint: staticcheck
 		slog.Error("uRL is invalid", "URL", req.URL)
 		return errcode.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'")
 	}
 
-	webhookRepository := s.webhookRepository
-	_, total, err := webhookRepository.List(ctx, req.NamespaceID, api.Pagination{}, api.Sortable{})
+	_, total, err := s.RepoWebhook.List(ctx, req.NamespaceID, api.Pagination{}, api.Sortable{})
 	if err != nil {
 		slog.Error("get webhook count failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -101,7 +92,7 @@ func (s *webhookService) CreateWebhook(ctx context.Context, userID string, req a
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		webhookRepository := repowebhook.NewWebhookRepository(tx)
+		repoWebhook := repowebhook.NewWebhookRepository(tx)
 		namespaceID := req.NamespaceID
 		if ptr.To(req.NamespaceID) == "" {
 			namespaceID = nil
@@ -122,7 +113,7 @@ func (s *webhookService) CreateWebhook(ctx context.Context, userID string, req a
 			EventMember:       req.EventMember,
 			EventDaemonTaskGc: req.EventDaemonTaskGc,
 		}
-		err = webhookRepository.Create(ctx, webhookObj)
+		err = repoWebhook.Create(ctx, webhookObj)
 		if err != nil {
 			slog.Error("create webhook failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail("Create webhook failed")
@@ -131,18 +122,16 @@ func (s *webhookService) CreateWebhook(ctx context.Context, userID string, req a
 	})
 }
 
-func (s *webhookService) ListWebhooks(ctx context.Context, namespaceID *string, pagination api.Pagination, sort api.Sortable) ([]*models.Webhook, int64, error) {
-	webhookRepository := s.webhookRepository
-	return webhookRepository.List(ctx, namespaceID, pagination, sort)
+func (s *service) ListWebhooks(ctx context.Context, namespaceID *string, pagination api.Pagination, sort api.Sortable) ([]*models.Webhook, int64, error) {
+	return s.RepoWebhook.List(ctx, namespaceID, pagination, sort)
 }
 
-func (s *webhookService) GetWebhook(ctx context.Context, id string) (*models.Webhook, error) {
-	webhookRepository := s.webhookRepository
-	webhookObj, err := webhookRepository.Get(ctx, id)
+func (s *service) GetWebhook(ctx context.Context, id string) (*models.Webhook, error) {
+	webhookObj, err := s.RepoWebhook.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook not found", "err", err, "id", id)
-			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook(%s) not found", id))
+			return nil, errcode.HTTPErrCodeNotFound.Detail("Webhook not found")
 		}
 		slog.Error("get webhook failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook(%s) failed", id))
@@ -150,13 +139,12 @@ func (s *webhookService) GetWebhook(ctx context.Context, id string) (*models.Web
 	return webhookObj, nil
 }
 
-func (s *webhookService) UpdateWebhook(ctx context.Context, userID string, id string, req api.PutWebhookRequest) error {
-	webhookRepository := s.webhookRepository
-	_, err := webhookRepository.Get(ctx, id)
+func (s *service) UpdateWebhook(ctx context.Context, userID string, id string, req api.PutWebhookRequest) error {
+	_, err := s.RepoWebhook.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook not found", "err", err, "id", id)
-			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook(%s) not found", id))
+			return errcode.HTTPErrCodeNotFound.Detail("Webhook not found")
 		}
 		slog.Error("get webhook failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook(%s) failed", id))
@@ -201,8 +189,8 @@ func (s *webhookService) UpdateWebhook(ctx context.Context, userID string, id st
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		webhookRepository := repowebhook.NewWebhookRepository(tx)
-		err = webhookRepository.UpdateByID(ctx, id, updates)
+		repoWebhook := repowebhook.NewWebhookRepository(tx)
+		err = repoWebhook.UpdateByID(ctx, id, updates)
 		if err != nil {
 			slog.Error("update webhook failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail("Update webhook failed")
@@ -211,21 +199,20 @@ func (s *webhookService) UpdateWebhook(ctx context.Context, userID string, id st
 	})
 }
 
-func (s *webhookService) DeleteWebhook(ctx context.Context, userID string, id string) error {
-	webhookRepository := s.webhookRepository
-	_, err := webhookRepository.Get(ctx, id)
+func (s *service) DeleteWebhook(ctx context.Context, userID string, id string) error {
+	_, err := s.RepoWebhook.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook not found", "err", err, "id", id)
-			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook(%s) not found", id))
+			return errcode.HTTPErrCodeNotFound.Detail("Webhook not found")
 		}
 		slog.Error("get webhook failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook(%s) failed", id))
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		webhookRepository := repowebhook.NewWebhookRepository(tx)
-		err = webhookRepository.DeleteByID(ctx, id)
+		repoWebhook := repowebhook.NewWebhookRepository(tx)
+		err = repoWebhook.DeleteByID(ctx, id)
 		if err != nil {
 			slog.Error("delete webhook failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail("Delete webhook failed")
@@ -234,20 +221,19 @@ func (s *webhookService) DeleteWebhook(ctx context.Context, userID string, id st
 	})
 }
 
-func (s *webhookService) PingWebhook(ctx context.Context, userID string, webhookID string) error {
-	webhookRepository := s.webhookRepository
-	webhookObj, err := webhookRepository.Get(ctx, webhookID)
+func (s *service) PingWebhook(ctx context.Context, userID string, webhookID string) error {
+	webhookObj, err := s.RepoWebhook.Get(ctx, webhookID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook not found", "err", err, "WebhookID", webhookID)
-			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook(%s) not found", webhookID))
+			return errcode.HTTPErrCodeNotFound.Detail("Webhook not found")
 		}
 		slog.Error("get webhook failed", "err", err, "WebhookID", webhookID)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook(%s) failed", webhookID))
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		err := s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err := s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  webhookObj.NamespaceID,
 			WebhookID:    webhookObj.ID,
 			Type:         enums.WebhookTypePing,
@@ -262,13 +248,12 @@ func (s *webhookService) PingWebhook(ctx context.Context, userID string, webhook
 	})
 }
 
-func (s *webhookService) GetWebhookLog(ctx context.Context, webhookLogID string) (*models.WebhookLog, error) {
-	webhookRepository := s.webhookRepository
-	webhookLogObj, err := webhookRepository.GetLog(ctx, webhookLogID)
+func (s *service) GetWebhookLog(ctx context.Context, webhookLogID string) (*models.WebhookLog, error) {
+	webhookLogObj, err := s.RepoWebhook.GetLog(ctx, webhookLogID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook log not found", "err", err, "id", webhookLogID)
-			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook log(%s) not found", webhookLogID))
+			return nil, errcode.HTTPErrCodeNotFound.Detail("Webhook log not found")
 		}
 		slog.Error("get webhook log failed", "err", err, "id", webhookLogID)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook log(%s) failed", webhookLogID))
@@ -276,21 +261,20 @@ func (s *webhookService) GetWebhookLog(ctx context.Context, webhookLogID string)
 	return webhookLogObj, nil
 }
 
-func (s *webhookService) DeleteWebhookLog(ctx context.Context, userID string, webhookID string, webhookLogID string) error {
-	webhookRepository := s.webhookRepository
-	_, err := webhookRepository.Get(ctx, webhookID)
+func (s *service) DeleteWebhookLog(ctx context.Context, userID string, webhookID string, webhookLogID string) error {
+	_, err := s.RepoWebhook.Get(ctx, webhookID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("webhook not found", "err", err, "WebhookID", webhookID, "WebhookLogID", webhookLogID)
-			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook(%s) not found", webhookID))
+			return errcode.HTTPErrCodeNotFound.Detail("Webhook not found")
 		}
 		slog.Error("get webhook failed", "err", err, "WebhookID", webhookID, "WebhookLogID", webhookLogID)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook(%s) failed", webhookID))
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		webhookRepository := repowebhook.NewWebhookRepository(tx)
-		err = webhookRepository.DeleteLogByID(ctx, webhookLogID)
+		repoWebhook := repowebhook.NewWebhookRepository(tx)
+		err = repoWebhook.DeleteLogByID(ctx, webhookLogID)
 		if err != nil {
 			slog.Error("delete webhook log failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail("Delete webhook log failed")
@@ -299,25 +283,23 @@ func (s *webhookService) DeleteWebhookLog(ctx context.Context, userID string, we
 	})
 }
 
-func (s *webhookService) ListWebhookLogs(ctx context.Context, webhookID string, pagination api.Pagination, sort api.Sortable) ([]*models.WebhookLog, int64, error) {
-	webhookRepository := s.webhookRepository
-	return webhookRepository.ListLogs(ctx, webhookID, pagination, sort)
+func (s *service) ListWebhookLogs(ctx context.Context, webhookID string, pagination api.Pagination, sort api.Sortable) ([]*models.WebhookLog, int64, error) {
+	return s.RepoWebhook.ListLogs(ctx, webhookID, pagination, sort)
 }
 
-func (s *webhookService) ResendWebhookLog(ctx context.Context, userID string, webhookID string, webhookLogID string) error {
-	webhookRepository := s.webhookRepository
-	webhookLogObj, err := webhookRepository.GetLog(ctx, webhookLogID)
+func (s *service) ResendWebhookLog(ctx context.Context, userID string, webhookID string, webhookLogID string) error {
+	webhookLogObj, err := s.RepoWebhook.GetLog(ctx, webhookLogID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("webhook not found", "err", err, "WebhookID", webhookID, "WebhookLogID", webhookLogID)
-			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Webhook log(%s) not found", webhookLogID))
+			slog.Error("webhook log not found", "err", err, "WebhookID", webhookID, "WebhookLogID", webhookLogID)
+			return errcode.HTTPErrCodeNotFound.Detail("Webhook log not found")
 		}
 		slog.Error("get webhook failed", "err", err, "WebhookID", webhookID, "WebhookLogID", webhookLogID)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get webhook log(%s) failed", webhookLogID))
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		err := s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err := s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  webhookLogObj.Webhook.NamespaceID,
 			WebhookID:    webhookLogObj.Webhook.ID,
 			WebhookLogID: new(webhookLogID),

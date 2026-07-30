@@ -48,7 +48,7 @@ type handler struct {
 	dig.In
 
 	Config      *config.Configuration
-	ManifestSvc svcmanifest.DistributionManifestService
+	ManifestSvc svcmanifest.Service
 	Authorizer  authz.Authorizer
 }
 

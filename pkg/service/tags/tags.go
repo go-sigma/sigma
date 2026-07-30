@@ -35,10 +35,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-//go:generate mockgen -destination=tags_mocks.go -package=tags github.com/go-sigma/sigma/pkg/service/tags TagService
+//go:generate mockgen -mock_names Service=MockTagService -destination=tags_mocks.go -package=tags github.com/go-sigma/sigma/pkg/service/tags Service
 
-// TagService encapsulates tag-related business logic.
-type TagService interface {
+// Service encapsulates tag-related business logic.
+type Service interface {
 	// ListTags lists tags for a repository (includes: validate namespace/repository match).
 	ListTags(ctx context.Context, namespaceID, repositoryID string, name *string, artifactTypes []enums.ArtifactType, pagination api.Pagination, sort api.Sortable) ([]*models.Tag, int64, error)
 	// GetTag gets a tag by ID.
@@ -49,36 +49,23 @@ type TagService interface {
 	DeleteTag(ctx context.Context, namespaceID, repositoryID, id string) error
 }
 
-type tagService struct {
-	namespaceRepository  reponamespace.NamespaceRepository
-	repositoryRepository reporegistry.RepositoryRepository
-	tagRepository        reporegistry.TagRepository
-	storageDriver        storage.StorageDriver
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	NamespaceRepository  reponamespace.NamespaceRepository
-	RepositoryRepository reporegistry.RepositoryRepository
-	TagRepository        reporegistry.TagRepository
-	StorageDriver        storage.StorageDriver
+	RepoNs       reponamespace.NamespaceRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoTag      reporegistry.TagRepository
+	Storage      storage.StorageDriver
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) TagService {
-		return &tagService{
-			namespaceRepository:  params.NamespaceRepository,
-			repositoryRepository: params.RepositoryRepository,
-			tagRepository:        params.TagRepository,
-			storageDriver:        params.StorageDriver,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *tagService) ListTags(ctx context.Context, namespaceID, repositoryID string, name *string, artifactTypes []enums.ArtifactType, pagination api.Pagination, sort api.Sortable) ([]*models.Tag, int64, error) {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) ListTags(ctx context.Context, namespaceID, repositoryID string, name *string, artifactTypes []enums.ArtifactType, pagination api.Pagination, sort api.Sortable) ([]*models.Tag, int64, error) {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, 0, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found: %v", namespaceID, err))
@@ -86,8 +73,7 @@ func (s *tagService) ListTags(ctx context.Context, namespaceID, repositoryID str
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%s) find failed: %v", namespaceID, err))
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.Get(ctx, repositoryID)
+	repositoryObj, err := s.RepoRegistry.Get(ctx, repositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, 0, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Repository(%s) not found: %v", repositoryID, err))
@@ -98,17 +84,15 @@ func (s *tagService) ListTags(ctx context.Context, namespaceID, repositoryID str
 		return nil, 0, errcode.HTTPErrCodeNotFound.Detail("Repository's namespace ref id not equal namespace id")
 	}
 
-	tagRepository := s.tagRepository
-	tags, total, err := tagRepository.ListTag(ctx, repositoryObj.ID, name, artifactTypes, pagination, sort)
+	tags, total, err := s.RepoTag.ListTag(ctx, repositoryObj.ID, name, artifactTypes, pagination, sort)
 	if err != nil {
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List tag from db failed: %v", err))
 	}
 	return tags, total, nil
 }
 
-func (s *tagService) GetTag(ctx context.Context, id string) (*models.Tag, error) {
-	tagRepository := s.tagRepository
-	tag, err := tagRepository.GetByID(ctx, id)
+func (s *service) GetTag(ctx context.Context, id string) (*models.Tag, error) {
+	tag, err := s.RepoTag.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Tag not found: %v", err))
@@ -118,13 +102,13 @@ func (s *tagService) GetTag(ctx context.Context, id string) (*models.Tag, error)
 	return tag, nil
 }
 
-func (s *tagService) GetArtifactRaw(ctx context.Context, digestStr string) ([]byte, error) {
+func (s *service) GetArtifactRaw(ctx context.Context, digestStr string) ([]byte, error) {
 	dgst, err := digest.Parse(digestStr)
 	if err != nil {
 		slog.Error("parse artifact digest failed", "err", err, "digest", digestStr)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Parse artifact digest failed: %v", err))
 	}
-	reader, err := s.storageDriver.Reader(ctx, utils.GenManifestPathByDigest(dgst))
+	reader, err := s.Storage.Reader(ctx, utils.GenManifestPathByDigest(dgst))
 	if err != nil {
 		slog.Error("read artifact raw failed", "err", err, "digest", digestStr)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Read artifact raw failed: %v", err))
@@ -138,9 +122,8 @@ func (s *tagService) GetArtifactRaw(ctx context.Context, digestStr string) ([]by
 	return raw, nil
 }
 
-func (s *tagService) DeleteTag(ctx context.Context, namespaceID, repositoryID, id string) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) DeleteTag(ctx context.Context, namespaceID, repositoryID, id string) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found: %v", namespaceID, err))
@@ -148,8 +131,7 @@ func (s *tagService) DeleteTag(ctx context.Context, namespaceID, repositoryID, i
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%s) find failed: %v", namespaceID, err))
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.Get(ctx, repositoryID)
+	repositoryObj, err := s.RepoRegistry.Get(ctx, repositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Repository(%s) not found: %v", repositoryID, err))
@@ -160,8 +142,7 @@ func (s *tagService) DeleteTag(ctx context.Context, namespaceID, repositoryID, i
 		return errcode.HTTPErrCodeNotFound.Detail("Repository's namespace ref id not equal namespace id")
 	}
 
-	tagRepository := s.tagRepository
-	err = tagRepository.DeleteByID(ctx, id)
+	err = s.RepoTag.DeleteByID(ctx, id)
 	if err != nil {
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete tag failed: %v", err))
 	}

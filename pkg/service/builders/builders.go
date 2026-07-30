@@ -43,10 +43,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=builders_mocks.go -package=builders github.com/go-sigma/sigma/pkg/service/builders BuilderService
+//go:generate mockgen -mock_names Service=MockBuilderService -destination=builders_mocks.go -package=builders github.com/go-sigma/sigma/pkg/service/builders Service
 
-// BuilderService encapsulates builder-related business logic.
-type BuilderService interface {
+// Service encapsulates builder-related business logic.
+type Service interface {
 	// CreateBuilder creates a builder (includes: validate + check existing + compress dockerfile + resolve credentials + create).
 	CreateBuilder(ctx context.Context, userID string, req api.CreateBuilderRequest) error
 	// UpdateBuilder updates a builder (includes: compress dockerfile + resolve credentials + update).
@@ -67,30 +67,18 @@ type BuilderService interface {
 	RunnerLogReader(ctx context.Context, builderID string, runnerID string, status enums.BuildStatus) (io.Reader, bool, error)
 }
 
-type builderService struct {
-	builderRepository        repobuilder.BuilderRepository
-	repositoryRepository     reporegistry.RepositoryRepository
-	codeRepositoryRepository repocoderepo.CodeRepositoryRepository
-	producer                 workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	BuilderRepository        repobuilder.BuilderRepository
-	RepositoryRepository     reporegistry.RepositoryRepository
-	CodeRepositoryRepository repocoderepo.CodeRepositoryRepository
-	Producer                 workq.Producer
+	RepoBuilder  repobuilder.BuilderRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoCode     repocoderepo.CodeRepositoryRepository
+	Producer     workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) BuilderService {
-		return &builderService{
-			builderRepository:        params.BuilderRepository,
-			repositoryRepository:     params.RepositoryRepository,
-			codeRepositoryRepository: params.CodeRepositoryRepository,
-			producer:                 params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
@@ -140,7 +128,7 @@ func createBuilderValidator(req api.CreateBuilderRequest) error {
 	return nil
 }
 
-func (s *builderService) RunnerLogReader(ctx context.Context, builderID string, runnerID string, status enums.BuildStatus) (io.Reader, bool, error) {
+func (s *service) RunnerLogReader(ctx context.Context, builderID string, runnerID string, status enums.BuildStatus) (io.Reader, bool, error) {
 	if status == enums.BuildStatusFailed || status == enums.BuildStatusSuccess {
 		if builderlogger.Driver == nil {
 			return strings.NewReader(""), true, nil
@@ -182,13 +170,12 @@ func compressDockerfile(str *string) ([]byte, error) {
 	return compress.CompressBytes(data)
 }
 
-func (s *builderService) CreateBuilder(ctx context.Context, userID string, req api.CreateBuilderRequest) error {
+func (s *service) CreateBuilder(ctx context.Context, userID string, req api.CreateBuilderRequest) error {
 	if err := createBuilderValidator(req); err != nil {
 		return err
 	}
 
-	repositoryRepository := s.repositoryRepository
-	_, err := repositoryRepository.Get(ctx, req.RepositoryID)
+	_, err := s.RepoRegistry.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("repository not found", "err", err, "id", req.RepositoryID)
@@ -198,8 +185,7 @@ func (s *builderService) CreateBuilder(ctx context.Context, userID string, req a
 		return errcode.HTTPErrCodeInternalError.Detail("Repository find failed")
 	}
 
-	builderRepository := s.builderRepository
-	_, err = builderRepository.GetByRepositoryID(ctx, req.RepositoryID)
+	_, err = s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get builder by repository id failed", "err", err, "id", req.RepositoryID)
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -251,8 +237,7 @@ func (s *builderService) CreateBuilder(ctx context.Context, userID string, req a
 		BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
 	}
 	if builderObj.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
-		codeRepositoryRepository := s.codeRepositoryRepository
-		codeRepositoryObj, err := codeRepositoryRepository.Get(ctx, ptr.To(req.CodeRepositoryID))
+		codeRepositoryObj, err := s.RepoCode.Get(ctx, ptr.To(req.CodeRepositoryID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("get code repository by id not found", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
@@ -261,7 +246,7 @@ func (s *builderService) CreateBuilder(ctx context.Context, userID string, req a
 			slog.Error("get code repository by id failed", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%s) failed: %v", ptr.To(req.CodeRepositoryID), err))
 		}
-		cloneCredentialObj, err := codeRepositoryRepository.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		cloneCredentialObj, err := s.RepoCode.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("get code repository clone credential failed", "err", err)
@@ -279,8 +264,8 @@ func (s *builderService) CreateBuilder(ctx context.Context, userID string, req a
 		}
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
-		builderRepository := repobuilder.NewBuilderRepository(tx)
-		err = builderRepository.Create(ctx, builderObj)
+		repoBuilder := repobuilder.NewBuilderRepository(tx)
+		err = repoBuilder.Create(ctx, builderObj)
 		if err != nil {
 			slog.Error("create builder for repository failed", "err", err, "id", req.RepositoryID)
 			return errcode.HTTPErrCodeInternalError.Detail("Create builder for repository failed")
@@ -289,7 +274,7 @@ func (s *builderService) CreateBuilder(ctx context.Context, userID string, req a
 	})
 }
 
-func (s *builderService) UpdateBuilder(ctx context.Context, userID string, builderID string, req api.UpdateBuilderRequest) error {
+func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID string, req api.UpdateBuilderRequest) error {
 	compressedDockerfile, err := compressDockerfile(req.Dockerfile)
 	if err != nil {
 		slog.Error("dockerfile base64 decode failed", "err", err)
@@ -321,8 +306,7 @@ func (s *builderService) UpdateBuilder(ctx context.Context, userID string, build
 		query.Builder.BuildkitPlatforms.ColumnName().String():          utils.StringsJoin(req.BuildkitPlatforms, ","),
 	}
 	if req.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
-		codeRepositoryRepository := s.codeRepositoryRepository
-		codeRepositoryObj, err := codeRepositoryRepository.Get(ctx, ptr.To(req.CodeRepositoryID))
+		codeRepositoryObj, err := s.RepoCode.Get(ctx, ptr.To(req.CodeRepositoryID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("get code repository by id not found", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
@@ -331,7 +315,7 @@ func (s *builderService) UpdateBuilder(ctx context.Context, userID string, build
 			slog.Error("get code repository by id failed", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%s) failed: %v", ptr.To(req.CodeRepositoryID), err))
 		}
-		cloneCredentialObj, err := codeRepositoryRepository.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		cloneCredentialObj, err := s.RepoCode.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("get code repository clone credential failed", "err", err)
@@ -363,9 +347,8 @@ func (s *builderService) UpdateBuilder(ctx context.Context, userID string, build
 	})
 }
 
-func (s *builderService) GetBuilderByRepositoryID(ctx context.Context, repositoryID string) (*models.Builder, error) {
-	builderRepository := s.builderRepository
-	builderObj, err := builderRepository.GetByRepositoryID(ctx, repositoryID)
+func (s *service) GetBuilderByRepositoryID(ctx context.Context, repositoryID string) (*models.Builder, error) {
+	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, repositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get builder by repository id failed", "err", err, "id", repositoryID)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get builder by repository id failed: %v", err))
@@ -373,9 +356,8 @@ func (s *builderService) GetBuilderByRepositoryID(ctx context.Context, repositor
 	return builderObj, err
 }
 
-func (s *builderService) GetRunner(ctx context.Context, runnerID string) (*models.BuilderRunner, error) {
-	builderRepository := s.builderRepository
-	runnerObj, err := builderRepository.GetRunner(ctx, runnerID)
+func (s *service) GetRunner(ctx context.Context, runnerID string) (*models.BuilderRunner, error) {
+	runnerObj, err := s.RepoBuilder.GetRunner(ctx, runnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("builder runner not found", "err", err)
@@ -387,14 +369,12 @@ func (s *builderService) GetRunner(ctx context.Context, runnerID string) (*model
 	return runnerObj, nil
 }
 
-func (s *builderService) ListRunners(ctx context.Context, builderID string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error) {
-	builderRepository := s.builderRepository
-	return builderRepository.ListRunners(ctx, builderID, pagination, sort)
+func (s *service) ListRunners(ctx context.Context, builderID string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error) {
+	return s.RepoBuilder.ListRunners(ctx, builderID, pagination, sort)
 }
 
-func (s *builderService) RunRunner(ctx context.Context, req api.PostRunnerRun) (string, error) {
-	builderRepository := s.builderRepository
-	builderObj, err := builderRepository.GetByRepositoryID(ctx, req.RepositoryID)
+func (s *service) RunRunner(ctx context.Context, req api.PostRunnerRun) (string, error) {
+	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get builder by repository id not found", "err", err, "id", req.RepositoryID)
@@ -410,19 +390,19 @@ func (s *builderService) RunRunner(ctx context.Context, req api.PostRunnerRun) (
 
 	var runnerObj *models.BuilderRunner
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderRepository := repobuilder.NewBuilderRepository(tx)
+		repoBuilder := repobuilder.NewBuilderRepository(tx)
 		runnerObj = &models.BuilderRunner{
 			ID:        uuid.NewV7String(),
 			BuilderID: req.BuilderID,
 			RawTag:    req.RawTag,
 			ScmBranch: req.ScmBranch,
 		}
-		err = builderRepository.CreateRunner(ctx, runnerObj)
+		err = repoBuilder.CreateRunner(ctx, runnerObj)
 		if err != nil {
 			slog.Error("create builder runner failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,
@@ -440,9 +420,8 @@ func (s *builderService) RunRunner(ctx context.Context, req api.PostRunnerRun) (
 	return runnerObj.ID, nil
 }
 
-func (s *builderService) RerunRunner(ctx context.Context, req api.GetRunnerStop) (string, error) {
-	builderRepository := s.builderRepository
-	builderObj, err := builderRepository.GetByRepositoryID(ctx, req.RepositoryID)
+func (s *service) RerunRunner(ctx context.Context, req api.GetRunnerStop) (string, error) {
+	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get builder by repository id not found", "err", err, "id", req.RepositoryID)
@@ -456,7 +435,7 @@ func (s *builderService) RerunRunner(ctx context.Context, req api.GetRunnerStop)
 		return "", errcode.HTTPErrCodeInternalError.Detail("Get builder by id failed")
 	}
 
-	runnerObj, err := builderRepository.GetRunner(ctx, req.RunnerID)
+	runnerObj, err := s.RepoBuilder.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("builder runner not found", "err", err)
@@ -473,19 +452,19 @@ func (s *builderService) RerunRunner(ctx context.Context, req api.GetRunnerStop)
 
 	var newRunnerObj *models.BuilderRunner
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		builderRepository := repobuilder.NewBuilderRepository(tx)
+		repoBuilder := repobuilder.NewBuilderRepository(tx)
 		newRunnerObj = &models.BuilderRunner{
 			ID:        uuid.NewV7String(),
 			BuilderID: req.BuilderID,
 			RawTag:    runnerObj.RawTag,
 			ScmBranch: runnerObj.ScmBranch,
 		}
-		err = builderRepository.CreateRunner(ctx, newRunnerObj)
+		err = repoBuilder.CreateRunner(ctx, newRunnerObj)
 		if err != nil {
 			slog.Error("create builder runner failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStart,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,
@@ -503,9 +482,8 @@ func (s *builderService) RerunRunner(ctx context.Context, req api.GetRunnerStop)
 	return newRunnerObj.ID, nil
 }
 
-func (s *builderService) StopRunner(ctx context.Context, req api.GetRunnerStop) error {
-	builderRepository := s.builderRepository
-	builderObj, err := builderRepository.GetByRepositoryID(ctx, req.RepositoryID)
+func (s *service) StopRunner(ctx context.Context, req api.GetRunnerStop) error {
+	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get builder by repository id failed", "err", err, "id", req.RepositoryID)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get builder by repository id failed: %v", err))
@@ -515,7 +493,7 @@ func (s *builderService) StopRunner(ctx context.Context, req api.GetRunnerStop) 
 		return errcode.HTTPErrCodeInternalError.Detail("Get builder by id failed")
 	}
 
-	runnerObj, err := builderRepository.GetRunner(ctx, req.RunnerID)
+	runnerObj, err := s.RepoBuilder.GetRunner(ctx, req.RunnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("builder runner not found", "err", err)
@@ -531,15 +509,15 @@ func (s *builderService) StopRunner(ctx context.Context, req api.GetRunnerStop) 
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		builderRepository := repobuilder.NewBuilderRepository(tx)
-		err = builderRepository.UpdateRunner(ctx, req.BuilderID, req.RunnerID, map[string]any{
+		repoBuilder := repobuilder.NewBuilderRepository(tx)
+		err = repoBuilder.UpdateRunner(ctx, req.BuilderID, req.RunnerID, map[string]any{
 			query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusStopping,
 		})
 		if err != nil {
 			slog.Error("update runner status failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update runner status failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
 			Action:       enums.DaemonBuilderActionStop,
 			RepositoryID: req.RepositoryID,
 			BuilderID:    req.BuilderID,

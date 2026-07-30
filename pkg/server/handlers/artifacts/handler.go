@@ -44,7 +44,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	ArtifactSvc artifacts.ArtifactService
+	ArtifactSvc artifacts.Service
 }
 
 type factory struct{}

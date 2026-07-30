@@ -28,7 +28,7 @@ import (
 func TestGetRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
-	service := &repositoryService{repositoryRepository: repositoryRepository}
+	service := &service{RepoRegistry: repositoryRepository}
 
 	repositoryRepository.EXPECT().
 		Get(gomock.Any(), "repository-1").
@@ -47,7 +47,7 @@ func TestGetRepository(t *testing.T) {
 func TestGetRepositoryByName(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
-	service := &repositoryService{repositoryRepository: repositoryRepository}
+	service := &service{RepoRegistry: repositoryRepository}
 
 	repositoryRepository.EXPECT().
 		GetByName(gomock.Any(), "sigma/demo").

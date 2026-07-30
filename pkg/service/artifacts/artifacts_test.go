@@ -36,7 +36,7 @@ func TestListArtifacts(t *testing.T) {
 	artifactRepository.EXPECT().ListArtifact(gomock.Any(), request).Return(items, nil)
 	artifactRepository.EXPECT().CountArtifact(gomock.Any(), request).Return(int64(1), nil)
 
-	got, total, err := (&artifactService{artifactRepository: artifactRepository}).
+	got, total, err := (&service{RepoArtifact: artifactRepository}).
 		ListArtifacts(t.Context(), request)
 	require.NoError(t, err)
 	require.Equal(t, items, got)
@@ -47,9 +47,9 @@ func TestGetArtifact(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
 	artifactRepository := reporegistry.NewMockArtifactRepository(ctrl)
-	service := &artifactService{
-		repositoryRepository: repositoryRepository,
-		artifactRepository:   artifactRepository,
+	service := &service{
+		RepoRegistry: repositoryRepository,
+		RepoArtifact: artifactRepository,
 	}
 	repositoryRepository.EXPECT().
 		GetByName(gomock.Any(), "sigma/demo").
@@ -76,7 +76,7 @@ func TestDeleteArtifactError(t *testing.T) {
 		DeleteByDigest(gomock.Any(), "sigma/demo", "sha256:digest").
 		Return(errors.New("delete failed"))
 
-	err := (&artifactService{artifactRepository: artifactRepository}).
+	err := (&service{RepoArtifact: artifactRepository}).
 		DeleteArtifact(t.Context(), "sigma/demo", "sha256:digest")
 	require.Error(t, err)
 }

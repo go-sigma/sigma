@@ -105,7 +105,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	DaemonSvc daemons.DaemonService
+	DaemonSvc daemons.Service
 }
 
 type factory struct{}

@@ -31,9 +31,9 @@ func TestUploadQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
 	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
-	service := &distributionUploadService{
-		namespaceRepository: namespaceRepository,
-		blobRepository:      blobRepository,
+	service := &service{
+		RepoNs:   namespaceRepository,
+		RepoBlob: blobRepository,
 	}
 
 	namespaceRepository.EXPECT().
@@ -55,9 +55,9 @@ func TestDeleteUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
-	service := &distributionUploadService{
-		blobRepository: blobRepository,
-		storageDriver:  storageDriver,
+	service := &service{
+		RepoBlob: blobRepository,
+		Storage:  storageDriver,
 	}
 	upload := &models.BlobUpload{UploadID: "storage-upload-1", FileID: "file-1"}
 	blobRepository.EXPECT().

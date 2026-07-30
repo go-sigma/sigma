@@ -45,10 +45,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=oauth2_mocks.go -package=oauth2 github.com/go-sigma/sigma/pkg/service/oauth2 OAuth2Service
+//go:generate mockgen -mock_names Service=MockOAuth2Service -destination=oauth2_mocks.go -package=oauth2 github.com/go-sigma/sigma/pkg/service/oauth2 Service
 
-// OAuth2Service encapsulates oauth2-related business logic.
-type OAuth2Service interface {
+// Service encapsulates oauth2-related business logic.
+type Service interface {
 	// Callback handles the oauth2 callback flow: token exchange, user lookup/creation, 3rd party binding, JWT issuance.
 	// Returns: user ID, username, email, accessToken, refreshToken
 	Callback(ctx context.Context, provider enums.Provider, code string, endpoint string, authorization string) (string, string, string, string, string, error)
@@ -56,45 +56,31 @@ type OAuth2Service interface {
 	GetClientID(ctx context.Context, provider enums.Provider) (string, error)
 }
 
-type oauth2Service struct {
-	config         *config.Configuration
-	userRepository repouser.UserRepository
-	tokenSvc       token.Service
-	passwordSvc    password.Service
-	producer       workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	Config         *config.Configuration
-	UserRepository repouser.UserRepository
-	TokenSvc       token.Service
-	PasswordSvc    password.Service
-	Producer       workq.Producer
+	Config      *config.Configuration
+	RepoUser    repouser.UserRepository
+	SvcToken    token.Service
+	SvcPassword password.Service
+	Producer    workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) OAuth2Service {
-		return &oauth2Service{
-			config:         params.Config,
-			userRepository: params.UserRepository,
-			tokenSvc:       params.TokenSvc,
-			passwordSvc:    params.PasswordSvc,
-			producer:       params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
 // GetClientID returns the client ID for the given provider.
-func (s *oauth2Service) GetClientID(_ context.Context, provider enums.Provider) (string, error) {
+func (s *service) GetClientID(_ context.Context, provider enums.Provider) (string, error) {
 	switch provider {
 	case enums.ProviderGithub:
-		return s.config.Auth.Oauth2.Github.ClientID, nil
+		return s.Config.Auth.Oauth2.Github.ClientID, nil
 	case enums.ProviderGitlab:
-		return s.config.Auth.Oauth2.Gitlab.ClientID, nil
+		return s.Config.Auth.Oauth2.Gitlab.ClientID, nil
 	case enums.ProviderGitea:
-		return s.config.Auth.Oauth2.Gitea.ClientID, nil
+		return s.Config.Auth.Oauth2.Gitea.ClientID, nil
 	default:
 		return "", errcode.HTTPErrCodeBadRequest.Detail(fmt.Sprintf("invalid provider %s", provider))
 	}
@@ -102,7 +88,7 @@ func (s *oauth2Service) GetClientID(_ context.Context, provider enums.Provider) 
 
 // Callback handles the oauth2 callback flow: token exchange, user lookup/creation, 3rd party binding, JWT issuance.
 // Returns: user ID, username, email, accessToken, refreshToken
-func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, code string, endpoint string, authorization string) (string, string, string, string, string, error) {
+func (s *service) Callback(ctx context.Context, provider enums.Provider, code string, endpoint string, authorization string) (string, string, string, string, string, error) {
 	userSignedObj, err := s.tryGetUser(ctx, authorization)
 	if err != nil {
 		slog.Error("get user failed", "err", err)
@@ -113,8 +99,8 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 	switch provider {
 	case enums.ProviderGithub:
 		conf = &oauth2.Config{
-			ClientID:     s.config.Auth.Oauth2.Github.ClientID,
-			ClientSecret: s.config.Auth.Oauth2.Github.ClientSecret,
+			ClientID:     s.Config.Auth.Oauth2.Github.ClientID,
+			ClientSecret: s.Config.Auth.Oauth2.Github.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://github.com/login/oauth/authorize",    // #nosec G101 -- public OAuth endpoint, not a credential
 				TokenURL: "https://github.com/login/oauth/access_token", // #nosec G101 -- public OAuth endpoint, not a credential
@@ -122,20 +108,20 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 		}
 	case enums.ProviderGitlab:
 		conf = &oauth2.Config{
-			ClientID:     s.config.Auth.Oauth2.Gitlab.ClientID,
-			ClientSecret: s.config.Auth.Oauth2.Gitlab.ClientSecret,
+			ClientID:     s.Config.Auth.Oauth2.Gitlab.ClientID,
+			ClientSecret: s.Config.Auth.Oauth2.Gitlab.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize", // #nosec G101 -- public OAuth endpoint, not a credential
 				TokenURL: "https://gitlab.com/oauth/token",     // #nosec G101 -- public OAuth endpoint, not a credential
 			},
 			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
-				s.config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(endpoint)),
+				s.Config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(endpoint)),
 			Scopes: []string{"api", "read_api", "read_user", "read_repository"},
 		}
 	case enums.ProviderGitea:
 		conf = &oauth2.Config{
-			ClientID:     s.config.Auth.Oauth2.Gitea.ClientID,
-			ClientSecret: s.config.Auth.Oauth2.Gitea.ClientSecret,
+			ClientID:     s.Config.Auth.Oauth2.Gitea.ClientID,
+			ClientSecret: s.Config.Auth.Oauth2.Gitea.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://gitlab.com/oauth/authorize", // #nosec G101 -- public OAuth endpoint, not a credential
 				TokenURL: "https://gitlab.com/oauth/token",     // #nosec G101 -- public OAuth endpoint, not a credential
@@ -198,8 +184,7 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 
 	var userExist = true
 
-	userRepository := s.userRepository
-	user3rdPartyObj, err := userRepository.GetUser3rdPartyByAccountID(ctx, provider, userInfo.ID)
+	user3rdPartyObj, err := s.RepoUser.GetUser3rdPartyByAccountID(ctx, provider, userInfo.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			userExist = false
@@ -215,7 +200,7 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 	}
 
 	if userExist {
-		err = userRepository.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
+		err = s.RepoUser.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
 			query.User3rdParty.Token.ColumnName().String():        oauth2Token.AccessToken,
 			query.User3rdParty.RefreshToken.ColumnName().String(): oauth2Token.RefreshToken,
 		})
@@ -228,7 +213,7 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 	if !userExist {
 		if userSignedObj == nil {
 			var usernameExist = true
-			_, err = userRepository.GetByUsername(ctx, userInfo.Username)
+			_, err = s.RepoUser.GetByUsername(ctx, userInfo.Username)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					usernameExist = false
@@ -265,7 +250,7 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 					slog.Error("create user failed", "err", err)
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = s.producer.Produce(ctx, enums.DaemonCodeRepository,
+				err = s.Producer.Produce(ctx, enums.DaemonCodeRepository,
 					api.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
 				if err != nil {
 					slog.Error("publish sync code repository failed", "err", err, "user_id", user3rdPartyObj.UserID)
@@ -293,7 +278,7 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 					slog.Error("create user failed", "err", err)
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
-				err = s.producer.Produce(ctx, enums.DaemonCodeRepository,
+				err = s.Producer.Produce(ctx, enums.DaemonCodeRepository,
 					api.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
 				if err != nil {
 					slog.Error("publish sync code repository failed", "err", err, "user_id", user3rdPartyObj.UserID)
@@ -308,13 +293,13 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 		}
 	}
 
-	refreshToken, err := s.tokenSvc.New(user3rdPartyObj.User.ID, s.config.Auth.Jwt.Ttl)
+	refreshToken, err := s.SvcToken.New(user3rdPartyObj.User.ID, s.Config.Auth.Jwt.Ttl)
 	if err != nil {
 		slog.Error("create refresh token failed", "err", err)
 		return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	accessToken, err := s.tokenSvc.New(user3rdPartyObj.User.ID, s.config.Auth.Jwt.RefreshTTL)
+	accessToken, err := s.SvcToken.New(user3rdPartyObj.User.ID, s.Config.Auth.Jwt.RefreshTTL)
 	if err != nil {
 		slog.Error("create token failed", "err", err)
 		return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -327,11 +312,9 @@ func (s *oauth2Service) Callback(ctx context.Context, provider enums.Provider, c
 // For Basic auth: lookup by username + verify password.
 // For Bearer auth: validate the JWT token.
 // Returns the resolved user, or nil if no Authorization header is present.
-func (s *oauth2Service) tryGetUser(ctx context.Context, authorization string) (*models.User, error) {
+func (s *service) tryGetUser(ctx context.Context, authorization string) (*models.User, error) {
 	var uid string
 	var err error
-
-	userRepository := s.userRepository
 
 	switch {
 	case strings.HasPrefix(authorization, "Basic"):
@@ -342,20 +325,20 @@ func (s *oauth2Service) tryGetUser(ctx context.Context, authorization string) (*
 			return nil, nil
 		}
 
-		user, err := userRepository.GetByUsername(ctx, username)
+		user, err := s.RepoUser.GetByUsername(ctx, username)
 		if err != nil {
 			slog.Error("get user by username failed", "err", err)
 			return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user by username failed: %v", err))
 		}
 		uid = user.ID
 
-		verify := s.passwordSvc.Verify(pwd, ptr.To(user.Password))
+		verify := s.SvcPassword.Verify(pwd, ptr.To(user.Password))
 		if !verify {
 			slog.Error("verify password failed")
 			return nil, errcode.HTTPErrCodeUnauthorized.Detail("Verify password failed")
 		}
 	case strings.HasPrefix(authorization, "Bearer"):
-		_, uid, err = s.tokenSvc.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
+		_, uid, err = s.SvcToken.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 		if err != nil {
 			slog.Error("validate token failed", "err", err)
 			return nil, errcode.HTTPErrCodeUnauthorized.Detail(fmt.Sprintf("Validate token failed: %v", err))
@@ -364,7 +347,7 @@ func (s *oauth2Service) tryGetUser(ctx context.Context, authorization string) (*
 		return nil, nil
 	}
 
-	userObj, err := userRepository.Get(ctx, uid)
+	userObj, err := s.RepoUser.Get(ctx, uid)
 	if err != nil {
 		slog.Error("get user failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user failed: %v", err))

@@ -72,14 +72,14 @@ func TestNew(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		newParams func(*testing.T) Params
+		newParams func(*testing.T) service
 		want      Service
 		wantErr   bool
 	}{
 		{
 			name: "bad redis",
-			newParams: func(t *testing.T) Params {
-				return Params{
+			newParams: func(t *testing.T) service {
+				return service{
 					Config: &config.Configuration{
 						Redis: config.ConfigurationRedis{},
 						Cache: config.ConfigurationCache{
@@ -97,9 +97,9 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name: "invalid key",
-			newParams: func(t *testing.T) Params {
+			newParams: func(t *testing.T) service {
 				miniRedis := miniredis.RunT(t)
-				return Params{
+				return service{
 					Config: &config.Configuration{
 						Redis: config.ConfigurationRedis{
 							URL: "redis://" + miniRedis.Addr(),
@@ -122,9 +122,9 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name: "bad key",
-			newParams: func(t *testing.T) Params {
+			newParams: func(t *testing.T) service {
 				miniRedis := miniredis.RunT(t)
-				return Params{
+				return service{
 					Config: &config.Configuration{
 						Redis: config.ConfigurationRedis{
 
@@ -148,9 +148,9 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name: "normal",
-			newParams: func(t *testing.T) Params {
+			newParams: func(t *testing.T) service {
 				miniRedis := miniredis.RunT(t)
-				return Params{
+				return service{
 					Config: &config.Configuration{
 						Redis: config.ConfigurationRedis{
 
@@ -175,9 +175,9 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tokenService, err := New(tt.newParams(t))
+			tokenSvc, err := newService(tt.newParams(t))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("newService() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -185,20 +185,20 @@ func TestNew(t *testing.T) {
 				return
 			}
 
-			token, err := tokenService.New("100", time.Second*30)
+			token, err := tokenSvc.New("100", time.Second*30)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, token)
 
-			id, uid, err := tokenService.Validate(context.Background(), token)
+			id, uid, err := tokenSvc.Validate(context.Background(), token)
 			assert.NoError(t, err)
 			assert.Equal(t, "100", uid)
 			_, err = uuid.Parse(id)
 			assert.NoError(t, err)
 
-			err = tokenService.Revoke(context.Background(), id)
+			err = tokenSvc.Revoke(context.Background(), id)
 			assert.NoError(t, err)
 
-			_, _, err = tokenService.Validate(context.Background(), token)
+			_, _, err = tokenSvc.Validate(context.Background(), token)
 			assert.Error(t, err)
 		})
 	}

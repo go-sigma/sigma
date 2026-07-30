@@ -30,7 +30,7 @@ import (
 
 func TestFactory(t *testing.T) {
 	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() svcwebhook.WebhookService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcwebhook.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(func() *config.Configuration { return &config.Configuration{} }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))

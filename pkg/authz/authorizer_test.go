@@ -315,7 +315,10 @@ func TestAuthorizer(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Use a fresh authorizer per case to avoid cache cross-contamination.
-			aFresh := NewAuthorizer(nsRepo, memberRepo, nil, nil, nil)
+			aFresh := NewAuthorizer(authorizer{
+				RepoNs:       nsRepo,
+				RepoNsMember: memberRepo,
+			})
 			passed, err := aFresh.Authorize(ctx, tc.userID, tc.isAnonymous, tc.uri, tc.method)
 			require.NoError(t, err)
 			assert.Equal(t, tc.wantPass, passed)
@@ -342,7 +345,10 @@ func TestAuthorizerCacheHit(t *testing.T) {
 	// GetNamespaceMember should be called exactly once (cached afterwards).
 	memberRepo.EXPECT().GetNamespaceMember(gomock.Any(), "1", "100").Return(&models.NamespaceMember{Role: enums.NamespaceRoleReader}, nil).Times(1)
 
-	a := NewAuthorizer(nsRepo, memberRepo, nil, nil, nil)
+	a := NewAuthorizer(authorizer{
+		RepoNs:       nsRepo,
+		RepoNsMember: memberRepo,
+	})
 	ctx := context.Background()
 
 	// First call hits DB.

@@ -60,7 +60,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	WebhookSvc svcwebhook.WebhookService
+	WebhookSvc svcwebhook.Service
 	Authorizer authz.Authorizer
 	Config     *config.Configuration
 }

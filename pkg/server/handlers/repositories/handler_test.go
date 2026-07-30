@@ -42,7 +42,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() repobuilder.BuilderRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.TagRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.ArtifactRepository { return nil }))
-	require.NoError(t, digCon.Provide(func() svcrepository.RepositoryService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcrepository.Service { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {

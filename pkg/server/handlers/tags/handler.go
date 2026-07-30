@@ -45,7 +45,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	TagSvc     tags.TagService
+	TagSvc     tags.Service
 	Authorizer authz.Authorizer
 }
 

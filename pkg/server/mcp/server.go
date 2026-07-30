@@ -48,22 +48,22 @@ type Params struct {
 	Engine          *gin.Engine
 	AuditRepository repoaudit.AuditRepository
 	Authorizer      authz.Authorizer
-	SystemsSvc      svcsystems.SystemsService
-	NamespaceSvc    svcnamespaces.NamespaceService
-	RepositorySvc   svcrepositories.RepositoryService
-	TagSvc          svctags.TagService
-	ArtifactSvc     svcartifacts.ArtifactService
+	SystemsSvc      svcsystems.Service
+	NamespaceSvc    svcnamespaces.Service
+	RepositorySvc   svcrepositories.Service
+	TagSvc          svctags.Service
+	ArtifactSvc     svcartifacts.Service
 }
 
 type Server struct {
 	config          *config.Configuration
 	auditRepository repoaudit.AuditRepository
 	authorizer      authz.Authorizer
-	systemsSvc      svcsystems.SystemsService
-	namespaceSvc    svcnamespaces.NamespaceService
-	repositorySvc   svcrepositories.RepositoryService
-	tagSvc          svctags.TagService
-	artifactSvc     svcartifacts.ArtifactService
+	systemsSvc      svcsystems.Service
+	namespaceSvc    svcnamespaces.Service
+	repositorySvc   svcrepositories.Service
+	tagSvc          svctags.Service
+	artifactSvc     svcartifacts.Service
 }
 
 // Register registers the embedded MCP HTTP endpoint when it is enabled.

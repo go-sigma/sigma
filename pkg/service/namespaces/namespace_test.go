@@ -34,7 +34,7 @@ func TestListNamespaces(t *testing.T) {
 		ListNamespaceWithAuth(gomock.Any(), "user-1", nil, gomock.Any(), api.Sortable{}).
 		Return(items, int64(1), nil)
 
-	got, total, err := (&namespaceService{namespaceRepository: namespaceRepository}).
+	got, total, err := (&service{RepoNs: namespaceRepository}).
 		ListNamespaces(t.Context(), "user-1", nil, api.Pagination{}, api.Sortable{})
 	require.NoError(t, err)
 	require.Equal(t, items, got)
@@ -46,10 +46,10 @@ func TestGetNamespace(t *testing.T) {
 	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
 	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
 	tagRepository := reporegistry.NewMockTagRepository(ctrl)
-	service := &namespaceService{
-		namespaceRepository:  namespaceRepository,
-		repositoryRepository: repositoryRepository,
-		tagRepository:        tagRepository,
+	service := &service{
+		RepoNs:       namespaceRepository,
+		RepoRegistry: repositoryRepository,
+		RepoTag:      tagRepository,
 	}
 	namespaceRepository.EXPECT().
 		Get(gomock.Any(), "namespace-1").
@@ -71,7 +71,7 @@ func TestGetNamespace(t *testing.T) {
 func TestNamespaceMemberQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	memberRepository := reponamespace.NewMockNamespaceMemberRepository(ctrl)
-	service := &namespaceService{namespaceMemberRepository: memberRepository}
+	service := &service{RepoNsMember: memberRepository}
 	members := []*models.NamespaceMember{{ID: "member-1"}}
 
 	memberRepository.EXPECT().

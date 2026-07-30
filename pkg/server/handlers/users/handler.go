@@ -64,7 +64,7 @@ type handler struct {
 	dig.In
 
 	Config  *config.Configuration
-	UserSvc users.UserService
+	UserSvc users.Service
 }
 
 var _ Handler = &handler{}

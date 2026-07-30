@@ -40,10 +40,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=blob_mocks.go -package=blob github.com/go-sigma/sigma/pkg/service/distribution/blob DistributionBlobService
+//go:generate mockgen -mock_names Service=MockDistributionBlobService -destination=blob_mocks.go -package=blob github.com/go-sigma/sigma/pkg/service/distribution/blob Service
 
-// DistributionBlobService encapsulates distribution blob business logic.
-type DistributionBlobService interface {
+// Service encapsulates distribution blob business logic.
+type Service interface {
 	// GetNamespaceByName gets a namespace by name (used by handler for auth check).
 	GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error)
 	// DeleteBlob deletes a blob (includes: find blob, check deletable, delete from DB).
@@ -56,45 +56,30 @@ type DistributionBlobService interface {
 	GetBlob(ctx context.Context, namespaceID string, digestStr string, requestMethod string, requestPath string) (io.ReadCloser, *models.Blob, string, error)
 }
 
-type distributionBlobService struct {
-	config               *config.Configuration
-	blobRepository       reporegistry.BlobRepository
-	namespaceRepository  reponamespace.NamespaceRepository
-	repositoryRepository reporegistry.RepositoryRepository
-	storageDriver        storage.StorageDriver
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	Config               *config.Configuration
-	BlobRepository       reporegistry.BlobRepository
-	NamespaceRepository  reponamespace.NamespaceRepository
-	RepositoryRepository reporegistry.RepositoryRepository
-	StorageDriver        storage.StorageDriver
+	Config       *config.Configuration
+	RepoBlob     reporegistry.BlobRepository
+	RepoNs       reponamespace.NamespaceRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	Storage      storage.StorageDriver
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) DistributionBlobService {
-		return &distributionBlobService{
-			config:               params.Config,
-			blobRepository:       params.BlobRepository,
-			namespaceRepository:  params.NamespaceRepository,
-			repositoryRepository: params.RepositoryRepository,
-			storageDriver:        params.StorageDriver,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
 // GetNamespaceByName gets a namespace by name.
-func (s *distributionBlobService) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
-	return s.namespaceRepository.GetByName(ctx, name)
+func (s *service) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
+	return s.RepoNs.GetByName(ctx, name)
 }
 
 // DeleteBlob deletes a blob (includes: find blob, check deletable, delete from DB).
-func (s *distributionBlobService) DeleteBlob(ctx context.Context, namespaceID string, digestStr string, userID string) error {
-	blobRepository := s.blobRepository
-	blobObj, err := blobRepository.FindByDigest(ctx, digestStr)
+func (s *service) DeleteBlob(ctx context.Context, namespaceID string, digestStr string, userID string) error {
+	blobObj, err := s.RepoBlob.FindByDigest(ctx, digestStr)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("blob not found", "err", err, "digest", digestStr)
@@ -103,7 +88,7 @@ func (s *distributionBlobService) DeleteBlob(ctx context.Context, namespaceID st
 		slog.Error("find blob failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeUnknown
 	}
-	result, err := blobRepository.FindAssociateWithArtifact(ctx, []string{blobObj.ID})
+	result, err := s.RepoBlob.FindAssociateWithArtifact(ctx, []string{blobObj.ID})
 	if err != nil {
 		slog.Error("find associate with artifact failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeUnknown
@@ -112,7 +97,7 @@ func (s *distributionBlobService) DeleteBlob(ctx context.Context, namespaceID st
 		slog.Error("blob associate with artifact", "digest", digestStr)
 		return errcode.DSErrCodeBlobAssociated
 	}
-	err = blobRepository.DeleteByID(ctx, blobObj.ID)
+	err = s.RepoBlob.DeleteByID(ctx, blobObj.ID)
 	if err != nil {
 		slog.Error("delete blob failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeUnknown
@@ -121,13 +106,12 @@ func (s *distributionBlobService) DeleteBlob(ctx context.Context, namespaceID st
 }
 
 // HeadBlob gets blob metadata without content.
-func (s *distributionBlobService) HeadBlob(ctx context.Context, namespaceID string, digestStr string, requestMethod string, requestPath string) (*models.Blob, error) {
-	blobRepository := s.blobRepository
-	blobObj, err := blobRepository.FindByDigest(ctx, digestStr)
+func (s *service) HeadBlob(ctx context.Context, namespaceID string, digestStr string, requestMethod string, requestPath string) (*models.Blob, error) {
+	blobObj, err := s.RepoBlob.FindByDigest(ctx, digestStr)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && s.config.Proxy.Enabled {
+		if errors.Is(err, gorm.ErrRecordNotFound) && s.Config.Proxy.Enabled {
 			f := clients.NewClientsFactory()
-			cli, err := f.New(s.config)
+			cli, err := f.New(s.Config)
 			if err != nil {
 				slog.Error("new proxy server failed", "err", err, "digest", digestStr)
 				return nil, errcode.DSErrCodeUnknown
@@ -160,19 +144,18 @@ func (s *distributionBlobService) HeadBlob(ctx context.Context, namespaceID stri
 }
 
 // GetBlob gets blob metadata and content reader.
-func (s *distributionBlobService) GetBlob(ctx context.Context, namespaceID string, digestStr string, requestMethod string, requestPath string) (io.ReadCloser, *models.Blob, string, error) {
+func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr string, requestMethod string, requestPath string) (io.ReadCloser, *models.Blob, string, error) {
 	dgest, err := digest.Parse(digestStr)
 	if err != nil {
 		slog.Error("parse digest failed", "err", err, "digest", digestStr)
 		return nil, nil, "", errcode.DSErrCodeDigestInvalid
 	}
 
-	blobRepository := s.blobRepository
-	blob, err := blobRepository.FindByDigest(ctx, digestStr)
+	blob, err := s.RepoBlob.FindByDigest(ctx, digestStr)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) && s.config.Proxy.Enabled {
+		if errors.Is(err, gorm.ErrRecordNotFound) && s.Config.Proxy.Enabled {
 			f := clients.NewClientsFactory()
-			cli, err := f.New(s.config)
+			cli, err := f.New(s.Config)
 			if err != nil {
 				slog.Error("new proxy server failed", "err", err, "digest", digestStr)
 				return nil, nil, "", errcode.DSErrCodeUnknown
@@ -197,14 +180,14 @@ func (s *distributionBlobService) GetBlob(ctx context.Context, namespaceID strin
 			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
 			go func() {
 				uploadCtx := context.WithoutCancel(ctx)
-				uploadErr := s.storageDriver.Upload(uploadCtx, utils.GenBlobPathByDigest(dgest), io.LimitReader(pipeReader, blobSize))
+				uploadErr := s.Storage.Upload(uploadCtx, utils.GenBlobPathByDigest(dgest), io.LimitReader(pipeReader, blobSize))
 				if uploadErr != nil {
 					slog.Error("upload blob failed", "err", uploadErr, "digest", digestStr)
 					return
 				}
 				// Note: the blob exist in the storage, but not in the database,
 				// so gc should delete the file directly.
-				createErr := blobRepository.Create(uploadCtx, &models.Blob{ID: uuid.NewV7String(), Digest: digestStr, Size: blobSize, ContentType: contentType, PushedAt: time.Now().UnixMilli()})
+				createErr := s.RepoBlob.Create(uploadCtx, &models.Blob{ID: uuid.NewV7String(), Digest: digestStr, Size: blobSize, ContentType: contentType, PushedAt: time.Now().UnixMilli()})
 				if createErr != nil {
 					slog.Error("create blob failed", "err", createErr, "digest", digestStr)
 					return
@@ -222,8 +205,8 @@ func (s *distributionBlobService) GetBlob(ctx context.Context, namespaceID strin
 		return nil, nil, "", errcode.DSErrCodeBlobUnknown
 	}
 
-	if s.config.Storage.Redirect && s.config.Storage.Type != enums.StorageTypeFilesystem {
-		redirectUrl, err := s.storageDriver.Redirect(ctx, utils.GenBlobPathByDigest(dgest))
+	if s.Config.Storage.Redirect && s.Config.Storage.Type != enums.StorageTypeFilesystem {
+		redirectUrl, err := s.Storage.Redirect(ctx, utils.GenBlobPathByDigest(dgest))
 		if err != nil {
 			slog.Error("get blob redirect url failed", "err", err, "digest", digestStr)
 			return nil, nil, "", errcode.DSErrCodeUnknown
@@ -231,7 +214,7 @@ func (s *distributionBlobService) GetBlob(ctx context.Context, namespaceID strin
 		return nil, blob, redirectUrl, nil
 	}
 
-	reader, err := s.storageDriver.Reader(ctx, utils.GenBlobPathByDigest(dgest))
+	reader, err := s.Storage.Reader(ctx, utils.GenBlobPathByDigest(dgest))
 	if err != nil {
 		slog.Error("get blob reader failed", "err", err, "digest", digestStr)
 		return nil, nil, "", errcode.DSErrCodeUnknown

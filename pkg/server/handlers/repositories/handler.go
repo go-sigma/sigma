@@ -49,7 +49,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	RepoSvc    svcrepository.RepositoryService
+	RepoSvc    svcrepository.Service
 	Authorizer authz.Authorizer
 }
 

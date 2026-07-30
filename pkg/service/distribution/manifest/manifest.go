@@ -61,10 +61,10 @@ const (
 	cosignSimpleSigningMediaType = "application/vnd.dev.cosign.simplesigning.v1+json"
 )
 
-//go:generate mockgen -destination=manifest_mocks.go -package=manifest github.com/go-sigma/sigma/pkg/service/distribution/manifest DistributionManifestService
+//go:generate mockgen -mock_names Service=MockDistributionManifestService -destination=manifest_mocks.go -package=manifest github.com/go-sigma/sigma/pkg/service/distribution/manifest Service
 
-// DistributionManifestService encapsulates the OCI registry manifest business logic.
-type DistributionManifestService interface {
+// Service encapsulates the OCI registry manifest business logic.
+type Service interface {
 	// GetNamespaceByName resolves a namespace by name. Used by handlers to resolve
 	// the namespace id needed for auth checks before invoking manifest operations.
 	GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error)
@@ -84,45 +84,23 @@ type DistributionManifestService interface {
 	GetReferrer(ctx context.Context, repository string, digest string, artifactTypes []string) ([]byte, error)
 }
 
-type distributionManifestService struct {
-	config               *config.Configuration
-	artifactRepository   reporegistry.ArtifactRepository
-	blobRepository       reporegistry.BlobRepository
-	tagRepository        reporegistry.TagRepository
-	repositoryRepository reporegistry.RepositoryRepository
-	namespaceRepository  reponamespace.NamespaceRepository
-	analyticsSvc         svcanalytics.Service
-	storageDriver        storage.StorageDriver
-	producer             workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	Config               *config.Configuration
-	ArtifactRepository   reporegistry.ArtifactRepository
-	BlobRepository       reporegistry.BlobRepository
-	TagRepository        reporegistry.TagRepository
-	RepositoryRepository reporegistry.RepositoryRepository
-	NamespaceRepository  reponamespace.NamespaceRepository
-	AnalyticsSvc         svcanalytics.Service `optional:"true"`
-	StorageDriver        storage.StorageDriver
-	Producer             workq.Producer
+	Config       *config.Configuration
+	RepoArtifact reporegistry.ArtifactRepository
+	RepoBlob     reporegistry.BlobRepository
+	RepoTag      reporegistry.TagRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoNs       reponamespace.NamespaceRepository
+	SvcAnalytics svcanalytics.Service `optional:"true"`
+	Storage      storage.StorageDriver
+	Producer     workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) DistributionManifestService {
-		return &distributionManifestService{
-			config:               params.Config,
-			artifactRepository:   params.ArtifactRepository,
-			blobRepository:       params.BlobRepository,
-			tagRepository:        params.TagRepository,
-			repositoryRepository: params.RepositoryRepository,
-			namespaceRepository:  params.NamespaceRepository,
-			analyticsSvc:         params.AnalyticsSvc,
-			storageDriver:        params.StorageDriver,
-			producer:             params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
@@ -136,24 +114,23 @@ func parseManifestRef(ref string) (tag string, dgst digest.Digest) {
 }
 
 // GetNamespaceByName resolves a namespace by name.
-func (s *distributionManifestService) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
-	return s.namespaceRepository.GetByName(ctx, name)
+func (s *service) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
+	return s.RepoNs.GetByName(ctx, name)
 }
 
 // GetManifest gets a manifest by reference (tag or digest).
-func (s *distributionManifestService) GetManifest(ctx context.Context, _ string, repository string, reference string) ([]byte, string, *models.Tag, error) {
+func (s *service) GetManifest(ctx context.Context, _ string, repository string, reference string) ([]byte, string, *models.Tag, error) {
 	return s.getOrHeadManifest(ctx, repository, reference, true)
 }
 
 // HeadManifest gets manifest metadata (same as GetManifest).
-func (s *distributionManifestService) HeadManifest(ctx context.Context, _ string, repository string, reference string) ([]byte, string, *models.Tag, error) {
+func (s *service) HeadManifest(ctx context.Context, _ string, repository string, reference string) ([]byte, string, *models.Tag, error) {
 	return s.getOrHeadManifest(ctx, repository, reference, false)
 }
 
 // getOrHeadManifest contains the shared lookup logic for GET and HEAD manifest.
-func (s *distributionManifestService) getOrHeadManifest(ctx context.Context, repository string, reference string, recordPull bool) ([]byte, string, *models.Tag, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repository)
+func (s *service) getOrHeadManifest(ctx context.Context, repository string, reference string, recordPull bool) ([]byte, string, *models.Tag, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("cannot find repository", "err", err, "repository", repository)
@@ -168,8 +145,7 @@ func (s *distributionManifestService) getOrHeadManifest(ctx context.Context, rep
 	var tag *models.Tag
 	var artifactDigest string
 	if tagName != "" {
-		tagRepository := s.tagRepository
-		tag, err = tagRepository.GetByName(ctx, repositoryObj.ID, tagName)
+		tag, err = s.RepoTag.GetByName(ctx, repositoryObj.ID, tagName)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("get artifact failed", "err", err, "ref", reference)
@@ -178,7 +154,7 @@ func (s *distributionManifestService) getOrHeadManifest(ctx context.Context, rep
 			slog.Error("get artifact failed", "err", err, "ref", reference)
 			return nil, "", nil, errcode.DSErrCodeManifestUnknown
 		}
-		err = tagRepository.Incr(ctx, tag.ID)
+		err = s.RepoTag.Incr(ctx, tag.ID)
 		if err != nil {
 			slog.Error("incr tag failed", "err", err, "ref", reference)
 		}
@@ -187,8 +163,7 @@ func (s *distributionManifestService) getOrHeadManifest(ctx context.Context, rep
 		artifactDigest = refDigest.String()
 	}
 
-	artifactRepository := s.artifactRepository
-	artifact, err := artifactRepository.GetByDigest(ctx, repositoryObj.ID, artifactDigest)
+	artifact, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, artifactDigest)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get artifact failed", "err", err, "ref", reference)
@@ -215,12 +190,12 @@ func (s *distributionManifestService) getOrHeadManifest(ctx context.Context, rep
 	return raw, artifact.ContentType, tag, nil
 }
 
-func (s *distributionManifestService) readManifest(ctx context.Context, digestStr string) ([]byte, error) {
+func (s *service) readManifest(ctx context.Context, digestStr string) ([]byte, error) {
 	dgst, err := digest.Parse(digestStr)
 	if err != nil {
 		return nil, err
 	}
-	reader, err := s.storageDriver.Reader(ctx, utils.GenManifestPathByDigest(dgst))
+	reader, err := s.Storage.Reader(ctx, utils.GenManifestPathByDigest(dgst))
 	if err != nil {
 		return nil, err
 	}
@@ -228,45 +203,44 @@ func (s *distributionManifestService) readManifest(ctx context.Context, digestSt
 	return io.ReadAll(reader)
 }
 
-func (s *distributionManifestService) recordPush(ctx context.Context, event svcanalytics.PushEvent) {
-	if s.analyticsSvc == nil {
+func (s *service) recordPush(ctx context.Context, event svcanalytics.PushEvent) {
+	if s.SvcAnalytics == nil {
 		return
 	}
-	if err := s.analyticsSvc.RecordPush(ctx, event); err != nil {
+	if err := s.SvcAnalytics.RecordPush(ctx, event); err != nil {
 		slog.Warn("record analytics push failed", "err", err, "namespaceID", event.NamespaceID, "repositoryID", event.RepositoryID)
 	}
 }
 
-func (s *distributionManifestService) recordPull(ctx context.Context, event svcanalytics.PullEvent) {
-	if s.analyticsSvc == nil {
+func (s *service) recordPull(ctx context.Context, event svcanalytics.PullEvent) {
+	if s.SvcAnalytics == nil {
 		return
 	}
-	if err := s.analyticsSvc.RecordPull(ctx, event); err != nil {
+	if err := s.SvcAnalytics.RecordPull(ctx, event); err != nil {
 		slog.Warn("record analytics pull failed", "err", err, "namespaceID", event.NamespaceID, "repositoryID", event.RepositoryID)
 	}
 }
 
-func (s *distributionManifestService) recordNamespaceSizeDelta(ctx context.Context, namespaceID string, delta int64) {
-	if s.analyticsSvc == nil {
+func (s *service) recordNamespaceSizeDelta(ctx context.Context, namespaceID string, delta int64) {
+	if s.SvcAnalytics == nil {
 		return
 	}
-	if err := s.analyticsSvc.RecordNamespaceSizeDelta(ctx, namespaceID, delta); err != nil {
+	if err := s.SvcAnalytics.RecordNamespaceSizeDelta(ctx, namespaceID, delta); err != nil {
 		slog.Warn("record analytics namespace size delta failed", "err", err, "namespaceID", namespaceID, "delta", delta)
 	}
 }
 
-func (s *distributionManifestService) recordNamespaceTagDelta(ctx context.Context, namespaceID string, delta int64) {
-	if s.analyticsSvc == nil {
+func (s *service) recordNamespaceTagDelta(ctx context.Context, namespaceID string, delta int64) {
+	if s.SvcAnalytics == nil {
 		return
 	}
-	if err := s.analyticsSvc.RecordNamespaceTagDelta(ctx, namespaceID, delta); err != nil {
+	if err := s.SvcAnalytics.RecordNamespaceTagDelta(ctx, namespaceID, delta); err != nil {
 		slog.Warn("record analytics namespace tag delta failed", "err", err, "namespaceID", namespaceID, "delta", delta)
 	}
 }
 
-func (s *distributionManifestService) ensureRepository(ctx context.Context, userID string, namespaceID string, repository string) (*models.Repository, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repository)
+func (s *service) ensureRepository(ctx context.Context, userID string, namespaceID string, repository string) (*models.Repository, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err == nil {
 		return repositoryObj, nil
 	}
@@ -312,8 +286,8 @@ func (s *distributionManifestService) ensureRepository(ctx context.Context, user
 			}
 		}
 
-		repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-		err = repositoryRepository.Create(ctx, repositoryObj)
+		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		err = repoRegistry.Create(ctx, repositoryObj)
 		if err != nil {
 			slog.Error("create repository failed", "err", err, "repository", repository)
 			return errcode.DSErrCodeUnknown
@@ -339,10 +313,9 @@ func (s *distributionManifestService) ensureRepository(ctx context.Context, user
 	return repositoryObj, nil
 }
 
-func (s *distributionManifestService) resolveRepositoryNamespace(ctx context.Context, namespaceID string, namespaceName string) (*models.Namespace, bool, error) {
-	namespaceRepository := s.namespaceRepository
+func (s *service) resolveRepositoryNamespace(ctx context.Context, namespaceID string, namespaceName string) (*models.Namespace, bool, error) {
 	if namespaceID != "" {
-		namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+		namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, false, errcode.DSErrCodeNameUnknown
@@ -357,7 +330,7 @@ func (s *distributionManifestService) resolveRepositoryNamespace(ctx context.Con
 		return namespaceObj, false, nil
 	}
 
-	namespaceObj, err := namespaceRepository.GetByName(ctx, namespaceName)
+	namespaceObj, err := s.RepoNs.GetByName(ctx, namespaceName)
 	if err == nil {
 		return namespaceObj, false, nil
 	}
@@ -365,10 +338,10 @@ func (s *distributionManifestService) resolveRepositoryNamespace(ctx context.Con
 		slog.Error("get namespace failed", "err", err, "namespace", namespaceName)
 		return nil, false, errcode.DSErrCodeUnknown
 	}
-	if !s.config.Namespace.AutoCreate {
+	if !s.Config.Namespace.AutoCreate {
 		return nil, false, errcode.DSErrCodeNameUnknown
 	}
-	visibility := s.config.Namespace.Visibility
+	visibility := s.Config.Namespace.Visibility
 	if !visibility.IsValid() {
 		visibility = enums.VisibilityPrivate
 	}
@@ -379,12 +352,12 @@ func (s *distributionManifestService) resolveRepositoryNamespace(ctx context.Con
 	}, true, nil
 }
 
-func (s *distributionManifestService) produceNamespaceCreateWebhook(ctx context.Context, namespaceObj *models.Namespace) error {
-	if s.producer == nil {
+func (s *service) produceNamespaceCreateWebhook(ctx context.Context, namespaceObj *models.Namespace) error {
+	if s.Producer == nil {
 		return nil
 	}
 	namespaceID := namespaceObj.ID
-	return s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+	return s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 		NamespaceID:  &namespaceID,
 		Action:       enums.WebhookActionCreate,
 		ResourceType: enums.WebhookResourceTypeNamespace,
@@ -392,11 +365,11 @@ func (s *distributionManifestService) produceNamespaceCreateWebhook(ctx context.
 	})
 }
 
-func (s *distributionManifestService) produceRepositoryCreateWebhook(ctx context.Context, namespaceID string, repositoryObj *models.Repository) error {
-	if s.producer == nil {
+func (s *service) produceRepositoryCreateWebhook(ctx context.Context, namespaceID string, repositoryObj *models.Repository) error {
+	if s.Producer == nil {
 		return nil
 	}
-	return s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+	return s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 		NamespaceID:  &namespaceID,
 		Action:       enums.WebhookActionCreate,
 		ResourceType: enums.WebhookResourceTypeRepository,
@@ -405,7 +378,7 @@ func (s *distributionManifestService) produceRepositoryCreateWebhook(ctx context
 }
 
 // PutManifest creates/updates a manifest.
-func (s *distributionManifestService) PutManifest(ctx context.Context, userID string, namespaceID string, repository string, reference string, body []byte, mediaType string) (string, error) {
+func (s *service) PutManifest(ctx context.Context, userID string, namespaceID string, repository string, reference string, body []byte, mediaType string) (string, error) {
 	tagName, refDigest := parseManifestRef(reference)
 	_ = refDigest // digest is computed from the body below
 
@@ -425,7 +398,7 @@ func (s *distributionManifestService) PutManifest(ctx context.Context, userID st
 		slog.Error("unmarshal manifest failed", "err", err, "digest", dgst.String())
 		return "", errcode.DSErrCodeManifestInvalid
 	}
-	err = s.storageDriver.Upload(ctx, manifestPath, bytes.NewReader(body))
+	err = s.Storage.Upload(ctx, manifestPath, bytes.NewReader(body))
 	if err != nil {
 		slog.Error("upload manifest failed", "err", err, "digest", dgst.String(), "path", manifestPath)
 		return "", errcode.DSErrCodeUnknown
@@ -455,8 +428,7 @@ func (s *distributionManifestService) PutManifest(ctx context.Context, userID st
 	}
 	artifactObj.ReferrerID = referrerID
 
-	artifactRepository := s.artifactRepository
-	tryFindArtifactObj, err := artifactRepository.GetByDigest(ctx, repositoryObj.ID, dgst.String())
+	tryFindArtifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, dgst.String())
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("find artifact failed", "err", err, "repository", repositoryObj.Name, "digest", dgst.String(), "artifactObj", artifactObj)
@@ -469,7 +441,7 @@ func (s *distributionManifestService) PutManifest(ctx context.Context, userID st
 	isNewArtifact := tryFindArtifactObj == nil
 	isNewTag := false
 	if tagName != "" {
-		_, err = s.tagRepository.GetByName(ctx, repositoryObj.ID, tagName)
+		_, err = s.RepoTag.GetByName(ctx, repositoryObj.ID, tagName)
 		isNewTag = errors.Is(err, gorm.ErrRecordNotFound)
 		if err != nil && !isNewTag {
 			slog.Warn("get tag before analytics failed", "err", err, "repository", repositoryObj.Name, "tag", tagName)
@@ -494,7 +466,7 @@ func (s *distributionManifestService) PutManifest(ctx context.Context, userID st
 				reference.MediaType == schema2.MediaTypeImageConfig ||
 				reference.MediaType == helmConfigMediaType ||
 				reference.MediaType == sifConfigMediaType {
-				configRawReader, readErr := s.storageDriver.Reader(ctx, utils.GenBlobPathByDigest(reference.Digest))
+				configRawReader, readErr := s.Storage.Reader(ctx, utils.GenBlobPathByDigest(reference.Digest))
 				if readErr != nil {
 					slog.Error("get image config raw layer failed", "err", readErr, "digest", reference.Digest.String())
 					return "", errcode.DSErrCodeUnknown
@@ -548,9 +520,8 @@ type manifestRefs struct {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (s *distributionManifestService) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, manifest distribution.Manifest, descriptor distribution.Descriptor, isNewArtifact bool) error {
-	blobRepository := s.blobRepository
-	blobObjs, err := blobRepository.FindByDigests(ctx, digests)
+func (s *service) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, manifest distribution.Manifest, descriptor distribution.Descriptor, isNewArtifact bool) error {
+	blobObjs, err := s.RepoBlob.FindByDigests(ctx, digests)
 	if err != nil {
 		slog.Error("find blobs failed", "err", err, "digest", refs.Digest.String())
 		return errcode.DSErrCodeUnknown
@@ -648,9 +619,8 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (s *distributionManifestService) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, _ distribution.Manifest, _ distribution.Descriptor, isNewArtifact bool) error {
-	artifactRepository := s.artifactRepository
-	artifactObjs, err := artifactRepository.GetByDigests(ctx, repositoryObj.Name, digests)
+func (s *service) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, _ distribution.Manifest, _ distribution.Descriptor, isNewArtifact bool) error {
+	artifactObjs, err := s.RepoArtifact.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
 		slog.Error("get artifacts failed", "err", err, "repository", repositoryObj.Name, "digests", digests)
 		return errcode.DSErrCodeUnknown
@@ -659,8 +629,8 @@ func (s *distributionManifestService) putManifestIndex(ctx context.Context, dige
 	artifactObj.ArtifactSubs = artifactObjs
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		artifactRepository := reporegistry.NewArtifactRepository(tx)
-		err = artifactRepository.Create(ctx, artifactObj)
+		repoArtifact := reporegistry.NewArtifactRepository(tx)
+		err = repoArtifact.Create(ctx, artifactObj)
 		if err != nil {
 			slog.Error("create artifact failed", "err", err, "repository", repositoryObj.Name, "digest", refs.Digest.String())
 			if e, ok := err.(errcode.ErrCode); ok {
@@ -702,7 +672,7 @@ func (s *distributionManifestService) putManifestIndex(ctx context.Context, dige
 				return errcode.DSErrCodeUnknown
 			}
 		}
-		err = s.producer.Produce(ctx, enums.DaemonTagPushed, api.DaemonTagPushedPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonTagPushed, api.DaemonTagPushedPayload{
 			RepositoryID: repositoryObj.ID,
 			Tag:          refs.Tag,
 		})
@@ -726,9 +696,8 @@ func (s *distributionManifestService) putManifestIndex(ctx context.Context, dige
 }
 
 // putManifestAsyncTaskVulnerability enqueues the vulnerability scan task for the artifact.
-func (s *distributionManifestService) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact) {
-	artifactRepository := s.artifactRepository
-	err := artifactRepository.CreateVulnerability(ctx, &models.ArtifactVulnerability{
+func (s *service) putManifestAsyncTaskVulnerability(ctx context.Context, artifactObj *models.Artifact) {
+	err := s.RepoArtifact.CreateVulnerability(ctx, &models.ArtifactVulnerability{
 		ID:         uuid.NewV7String(),
 		ArtifactID: artifactObj.ID,
 		Status:     enums.TaskCommonStatusPending,
@@ -740,12 +709,12 @@ func (s *distributionManifestService) putManifestAsyncTaskVulnerability(ctx cont
 }
 
 // putManifestAsyncTask triggers the post-push async scan tasks.
-func (s *distributionManifestService) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact) {
+func (s *service) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact) {
 	s.putManifestAsyncTaskVulnerability(ctx, artifactObj)
 }
 
 // getArtifactType determines the artifact type from the manifest descriptors.
-func (s *distributionManifestService) getArtifactType(descriptor distribution.Descriptor, manifest distribution.Manifest) enums.ArtifactType {
+func (s *service) getArtifactType(descriptor distribution.Descriptor, manifest distribution.Manifest) enums.ArtifactType {
 	if descriptor.MediaType == manifestlist.MediaTypeManifestList ||
 		descriptor.MediaType == imgspecv1.MediaTypeImageIndex {
 		return enums.ArtifactTypeImage
@@ -780,13 +749,12 @@ func (s *distributionManifestService) getArtifactType(descriptor distribution.De
 }
 
 // getArtifactReferrer resolves the referrer artifact id (OCI Subject).
-func (s *distributionManifestService) getArtifactReferrer(ctx context.Context, repository string, manifest distribution.Manifest) (*string, error) {
+func (s *service) getArtifactReferrer(ctx context.Context, repository string, manifest distribution.Manifest) (*string, error) {
 	mediaType, data, err := manifest.Payload()
 	if err != nil {
 		return nil, err
 	}
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repository)
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err != nil {
 		return nil, err
 	}
@@ -818,8 +786,7 @@ func (s *distributionManifestService) getArtifactReferrer(ctx context.Context, r
 		return nil, nil
 	}
 
-	artifactRepository := s.artifactRepository
-	artifactObj, err := artifactRepository.GetByDigest(ctx, repositoryObj.ID, dgst)
+	artifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, dgst)
 	if err != nil {
 		return nil, err
 	}
@@ -830,11 +797,10 @@ func (s *distributionManifestService) getArtifactReferrer(ctx context.Context, r
 // DeleteManifest deletes a manifest by digest or tag.
 // if reference is a tag, just delete the tag
 // if reference is a digest, delete the artifact and all of the tags that reference it
-func (s *distributionManifestService) DeleteManifest(ctx context.Context, namespaceID string, repository string, reference string, userID string) error {
+func (s *service) DeleteManifest(ctx context.Context, namespaceID string, repository string, reference string, userID string) error {
 	_ = namespaceID // namespaceID is already auth-checked by the handler; repository owns the artifact
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repository)
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("cannot find repository", "err", err, "repository", repository)
@@ -847,8 +813,7 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 	tagName, refDigest := parseManifestRef(reference)
 
 	if tagName != "" {
-		tagRepository := s.tagRepository
-		_, err = tagRepository.GetByName(ctx, repositoryObj.ID, tagName)
+		_, err = s.RepoTag.GetByName(ctx, repositoryObj.ID, tagName)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Error("cannot find tag", "err", err, "repository", repository, "tag", tagName)
@@ -857,7 +822,7 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 			slog.Error("get tag failed", "err", err, "repository", repository, "tag", tagName)
 			return errcode.DSErrCodeUnknown
 		}
-		err = tagRepository.DeleteByName(ctx, repositoryObj.ID, tagName)
+		err = s.RepoTag.DeleteByName(ctx, repositoryObj.ID, tagName)
 		if err != nil {
 			slog.Error("delete tag failed", "err", err, "Tag", tagName)
 			return errcode.DSErrCodeUnknown
@@ -865,8 +830,7 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 		return nil
 	}
 
-	artifactRepository := s.artifactRepository
-	artifactObj, err := artifactRepository.GetByDigest(ctx, repositoryObj.ID, refDigest.String())
+	artifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, refDigest.String())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("cannot find artifact", "err", err, "repository", repository, "artifact", refDigest.String())
@@ -882,8 +846,8 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 			slog.Error("delete tag by artifact id failed", "err", err, "ArtifactID", artifactObj.ID)
 			return errcode.DSErrCodeUnknown
 		}
-		artifactRepository := reporegistry.NewArtifactRepository(tx)
-		err = artifactRepository.DeleteByID(ctx, artifactObj.ID)
+		repoArtifact := reporegistry.NewArtifactRepository(tx)
+		err = repoArtifact.DeleteByID(ctx, artifactObj.ID)
 		if err != nil {
 			slog.Error("delete artifact by id failed", "err", err, "ArtifactID", artifactObj.ID)
 			return errcode.DSErrCodeUnknown
@@ -893,8 +857,8 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 			slog.Error("decrement namespace size failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
 			return errcode.DSErrCodeUnknown
 		}
-		repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-		if err := repositoryRepository.DecrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
+		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		if err := repoRegistry.DecrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
 			slog.Error("decrement repository size failed", "err", err, "repository_id", repositoryObj.ID)
 			return errcode.DSErrCodeUnknown
 		}
@@ -907,7 +871,7 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 		return errcode.DSErrCodeUnknown
 	}
 	s.invalidateMetadataCache(ctx, repositoryObj)
-	err = s.storageDriver.Delete(ctx, utils.GenManifestPathByDigest(refDigest))
+	err = s.Storage.Delete(ctx, utils.GenManifestPathByDigest(refDigest))
 	if err != nil {
 		slog.Error("delete manifest failed", "err", err, "digest", refDigest.String())
 		return errcode.DSErrCodeUnknown
@@ -915,32 +879,32 @@ func (s *distributionManifestService) DeleteManifest(ctx context.Context, namesp
 	return nil
 }
 
-func (s *distributionManifestService) invalidateMetadataCache(ctx context.Context, repositoryObj *models.Repository) {
+func (s *service) invalidateMetadataCache(ctx context.Context, repositoryObj *models.Repository) {
 	if repositoryObj == nil {
 		return
 	}
-	if invalidator, ok := s.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
 		if err := invalidator.InvalidateNamespaceID(ctx, repositoryObj.NamespaceID); err != nil {
 			slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
 		}
 	}
-	if invalidator, ok := s.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+	if invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator); ok {
 		if err := invalidator.InvalidateRepository(ctx, repositoryObj); err != nil {
 			slog.Warn("invalidate repository cache failed", "err", err, "repository_id", repositoryObj.ID)
 		}
 	}
 }
 
-func (s *distributionManifestService) seedNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
-	if seeder, ok := s.namespaceRepository.(reponamespace.NamespaceCacheSeeder); ok {
+func (s *service) seedNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
+	if seeder, ok := s.RepoNs.(reponamespace.NamespaceCacheSeeder); ok {
 		if err := seeder.SeedNamespace(ctx, namespaceObj); err != nil {
 			slog.Warn("seed namespace cache failed", "err", err, "namespace_id", namespaceObj.ID)
 		}
 	}
 }
 
-func (s *distributionManifestService) seedRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
-	if seeder, ok := s.repositoryRepository.(reporegistry.RepositoryCacheSeeder); ok {
+func (s *service) seedRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
+	if seeder, ok := s.RepoRegistry.(reporegistry.RepositoryCacheSeeder); ok {
 		if err := seeder.SeedRepository(ctx, repositoryObj); err != nil {
 			slog.Warn("seed repository cache failed", "err", err, "repository_id", repositoryObj.ID)
 		}
@@ -948,16 +912,14 @@ func (s *distributionManifestService) seedRepositoryCache(ctx context.Context, r
 }
 
 // GetReferrer gets the referrer manifest for a given digest.
-func (s *distributionManifestService) GetReferrer(ctx context.Context, repository string, dgst string, artifactTypes []string) ([]byte, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repository)
+func (s *service) GetReferrer(ctx context.Context, repository string, dgst string, artifactTypes []string) ([]byte, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err != nil {
 		slog.Error("get repository failed", "err", err, "repository", repository)
 		return nil, errcode.DSErrCodeUnknown
 	}
 
-	artifactRepository := s.artifactRepository
-	artifactObjs, err := artifactRepository.GetReferrers(ctx, repositoryObj.ID, dgst, artifactTypes)
+	artifactObjs, err := s.RepoArtifact.GetReferrers(ctx, repositoryObj.ID, dgst, artifactTypes)
 	if err != nil {
 		slog.Error("get referrers failed", "err", err)
 		return nil, errcode.DSErrCodeUnknown

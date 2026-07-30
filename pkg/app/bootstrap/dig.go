@@ -40,7 +40,7 @@ func NewDigContainer() (*dig.Container, error) {
 			digCon.Provide(config.GetConfig),       // init config
 			digCon.Provide(redis.NewClientFactory), // init redis
 			digCon.Provide(password.New),           // init password
-			digCon.Provide(token.New),              // init token
+			token.NewService(digCon),               // init token
 			digCon.Provide(lock.Initialize),        // init locker
 			digCon.Provide(counter.Initialize),     // init counter
 			digCon.Provide(workq.InitProducer),

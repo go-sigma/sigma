@@ -39,10 +39,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=repositories_mocks.go -package=repositories github.com/go-sigma/sigma/pkg/service/repositories RepositoryService
+//go:generate mockgen -mock_names Service=MockRepositoryService -destination=repositories_mocks.go -package=repositories github.com/go-sigma/sigma/pkg/service/repositories Service
 
-// RepositoryService encapsulates repository-related business logic.
-type RepositoryService interface {
+// Service encapsulates repository-related business logic.
+type Service interface {
 	// CreateRepository creates a repository and produces its webhook event.
 	CreateRepository(ctx context.Context, userID string, req api.CreateRepositoryRequest) (*models.Repository, error)
 	// ListRepositories lists repositories with auth filtering, also returns builders keyed by repository id.
@@ -57,39 +57,24 @@ type RepositoryService interface {
 	DeleteRepository(ctx context.Context, userID, namespaceID, id string) error
 }
 
-type repositoryService struct {
-	config               *config.Configuration
-	namespaceRepository  reponamespace.NamespaceRepository
-	repositoryRepository reporegistry.RepositoryRepository
-	builderRepository    repobuilder.BuilderRepository
-	producer             workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	Config               *config.Configuration
-	NamespaceRepository  reponamespace.NamespaceRepository
-	RepositoryRepository reporegistry.RepositoryRepository
-	BuilderRepository    repobuilder.BuilderRepository
-	Producer             workq.Producer
+	Config       *config.Configuration
+	RepoNs       reponamespace.NamespaceRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoBuilder  repobuilder.BuilderRepository
+	Producer     workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) RepositoryService {
-		return &repositoryService{
-			config:               params.Config,
-			namespaceRepository:  params.NamespaceRepository,
-			repositoryRepository: params.RepositoryRepository,
-			builderRepository:    params.BuilderRepository,
-			producer:             params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *repositoryService) CreateRepository(ctx context.Context, userID string, req api.CreateRepositoryRequest) (*models.Repository, error) {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, req.NamespaceID)
+func (s *service) CreateRepository(ctx context.Context, userID string, req api.CreateRepositoryRequest) (*models.Repository, error) {
+	namespaceObj, err := s.RepoNs.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found: %v", req.NamespaceID, err))
@@ -105,8 +90,7 @@ func (s *repositoryService) CreateRepository(ctx context.Context, userID string,
 		return nil, errcode.HTTPErrCodeBadRequest.Detail("Repository namespace does not match the request namespace")
 	}
 
-	repositoryRepository := s.repositoryRepository
-	existingRepositoryObj, err := repositoryRepository.GetByName(ctx, req.Name)
+	existingRepositoryObj, err := s.RepoRegistry.GetByName(ctx, req.Name)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get repository by name failed: %v", err))
 	}
@@ -124,8 +108,8 @@ func (s *repositoryService) CreateRepository(ctx context.Context, userID string,
 		SizeLimit:   ptr.To(req.SizeLimit),
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-		err = repositoryRepository.Create(ctx, repositoryObj)
+		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		err = repoRegistry.Create(ctx, repositoryObj)
 		if err != nil {
 			slog.Error("repository create failed", "err", err, "repositoryObj", repositoryObj)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create repository failed: %v", err))
@@ -144,10 +128,9 @@ func (s *repositoryService) CreateRepository(ctx context.Context, userID string,
 	return repositoryObj, nil
 }
 
-func (s *repositoryService) ListRepositories(ctx context.Context, userID string, namespaceID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Repository, map[string]*models.Builder, int64, error) {
+func (s *service) ListRepositories(ctx context.Context, userID string, namespaceID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Repository, map[string]*models.Builder, int64, error) {
 	if namespaceID != "" {
-		namespaceRepository := s.namespaceRepository
-		_, err := namespaceRepository.Get(ctx, namespaceID)
+		_, err := s.RepoNs.Get(ctx, namespaceID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, nil, 0, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found: %v", namespaceID, err))
@@ -156,8 +139,7 @@ func (s *repositoryService) ListRepositories(ctx context.Context, userID string,
 		}
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObjs, total, err := repositoryRepository.ListRepositoryWithAuth(ctx, namespaceID, userID, name, pagination, sort)
+	repositoryObjs, total, err := s.RepoRegistry.ListRepositoryWithAuth(ctx, namespaceID, userID, name, pagination, sort)
 	if err != nil {
 		return nil, nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List repository failed: %v", err))
 	}
@@ -166,17 +148,15 @@ func (s *repositoryService) ListRepositories(ctx context.Context, userID string,
 	for _, r := range repositoryObjs {
 		repositoryIDs = append(repositoryIDs, r.ID)
 	}
-	builderRepository := s.builderRepository
-	builderMap, err := builderRepository.GetByRepositoryIDs(ctx, repositoryIDs)
+	builderMap, err := s.RepoBuilder.GetByRepositoryIDs(ctx, repositoryIDs)
 	if err != nil {
 		return nil, nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Find builders with repository failed: %v", err))
 	}
 	return repositoryObjs, builderMap, total, nil
 }
 
-func (s *repositoryService) GetRepository(ctx context.Context, id string) (*models.Repository, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.Get(ctx, id)
+func (s *service) GetRepository(ctx context.Context, id string) (*models.Repository, error) {
+	repositoryObj, err := s.RepoRegistry.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get repository by id not found: %v", err))
@@ -186,9 +166,8 @@ func (s *repositoryService) GetRepository(ctx context.Context, id string) (*mode
 	return repositoryObj, nil
 }
 
-func (s *repositoryService) GetRepositoryByName(ctx context.Context, name string) (*models.Repository, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, name)
+func (s *service) GetRepositoryByName(ctx context.Context, name string) (*models.Repository, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get repository by name not found: %v", err))
@@ -198,9 +177,8 @@ func (s *repositoryService) GetRepositoryByName(ctx context.Context, name string
 	return repositoryObj, nil
 }
 
-func (s *repositoryService) UpdateRepository(ctx context.Context, userID string, req api.UpdateRepositoryRequest) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, req.NamespaceID)
+func (s *service) UpdateRepository(ctx context.Context, userID string, req api.UpdateRepositoryRequest) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, req.NamespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -208,8 +186,7 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, userID string,
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.Get(ctx, req.ID)
+	repositoryObj, err := s.RepoRegistry.Get(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -235,7 +212,7 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, userID string,
 	}
 
 	if len(updates) > 0 {
-		err = repositoryRepository.UpdateRepository(ctx, repositoryObj.ID, updates)
+		err = s.RepoRegistry.UpdateRepository(ctx, repositoryObj.ID, updates)
 		if err != nil {
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Repository update failed: %v", err))
 		}
@@ -243,9 +220,8 @@ func (s *repositoryService) UpdateRepository(ctx context.Context, userID string,
 	return nil
 }
 
-func (s *repositoryService) DeleteRepository(ctx context.Context, userID, namespaceID, id string) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) DeleteRepository(ctx context.Context, userID, namespaceID, id string) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found: %v", namespaceID, err))
@@ -253,8 +229,7 @@ func (s *repositoryService) DeleteRepository(ctx context.Context, userID, namesp
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%s) find failed: %v", namespaceID, err))
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.Get(ctx, id)
+	repositoryObj, err := s.RepoRegistry.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -266,8 +241,8 @@ func (s *repositoryService) DeleteRepository(ctx context.Context, userID, namesp
 	}
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-		err = repositoryRepository.DeleteByID(ctx, id)
+		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		err = repoRegistry.DeleteByID(ctx, id)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Delete repository by id not found: %v", err))
@@ -283,8 +258,8 @@ func (s *repositoryService) DeleteRepository(ctx context.Context, userID, namesp
 	return nil
 }
 
-func (s *repositoryService) invalidateRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
-	invalidator, ok := s.repositoryRepository.(reporegistry.RepositoryCacheInvalidator)
+func (s *service) invalidateRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
+	invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator)
 	if !ok {
 		return
 	}
@@ -293,8 +268,8 @@ func (s *repositoryService) invalidateRepositoryCache(ctx context.Context, repos
 	}
 }
 
-func (s *repositoryService) seedRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
-	seeder, ok := s.repositoryRepository.(reporegistry.RepositoryCacheSeeder)
+func (s *service) seedRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
+	seeder, ok := s.RepoRegistry.(reporegistry.RepositoryCacheSeeder)
 	if !ok {
 		return
 	}
@@ -303,11 +278,11 @@ func (s *repositoryService) seedRepositoryCache(ctx context.Context, repositoryO
 	}
 }
 
-func (s *repositoryService) produceRepositoryCreateWebhook(ctx context.Context, namespaceID string, repositoryObj *models.Repository) error {
-	if s.producer == nil {
+func (s *service) produceRepositoryCreateWebhook(ctx context.Context, namespaceID string, repositoryObj *models.Repository) error {
+	if s.Producer == nil {
 		return nil
 	}
-	return s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+	return s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 		NamespaceID:  &namespaceID,
 		Action:       enums.WebhookActionCreate,
 		ResourceType: enums.WebhookResourceTypeRepository,

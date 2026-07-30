@@ -62,7 +62,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	NsSvc      namespaces.NamespaceService
+	NsSvc      namespaces.Service
 	Authorizer authz.Authorizer
 }
 

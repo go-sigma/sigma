@@ -37,10 +37,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=namespace_mocks.go -package=namespaces github.com/go-sigma/sigma/pkg/service/namespaces NamespaceService
+//go:generate mockgen -mock_names Service=MockNamespaceService -destination=namespace_mocks.go -package=namespaces github.com/go-sigma/sigma/pkg/service/namespaces Service
 
-// NamespaceService encapsulates namespace-related business logic.
-type NamespaceService interface {
+// Service encapsulates namespace-related business logic.
+type Service interface {
 	// CreateNamespace creates a namespace (includes: create namespace + add admin member + produce webhook).
 	CreateNamespace(ctx context.Context, userID string, req api.PostNamespaceRequest) (*models.Namespace, error)
 	// ListNamespaces lists namespaces with auth filtering.
@@ -68,39 +68,25 @@ type NamespaceService interface {
 	GetNamespaceMember(ctx context.Context, namespaceID string, userID string) (*models.NamespaceMember, error)
 }
 
-type namespaceService struct {
-	namespaceRepository       reponamespace.NamespaceRepository
-	namespaceMemberRepository reponamespace.NamespaceMemberRepository
-	repositoryRepository      reporegistry.RepositoryRepository
-	tagRepository             reporegistry.TagRepository
-	producer                  workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	NamespaceRepository       reponamespace.NamespaceRepository
-	NamespaceMemberRepository reponamespace.NamespaceMemberRepository
-	RepositoryRepository      reporegistry.RepositoryRepository
-	TagRepository             reporegistry.TagRepository
-	Producer                  workq.Producer
+	RepoNs       reponamespace.NamespaceRepository
+	RepoNsMember reponamespace.NamespaceMemberRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoTag      reporegistry.TagRepository
+
+	Producer workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) NamespaceService {
-		return &namespaceService{
-			namespaceRepository:       params.NamespaceRepository,
-			namespaceMemberRepository: params.NamespaceMemberRepository,
-			repositoryRepository:      params.RepositoryRepository,
-			tagRepository:             params.TagRepository,
-			producer:                  params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *namespaceService) CreateNamespace(ctx context.Context, userID string, req api.PostNamespaceRequest) (*models.Namespace, error) {
-	namespaceRepository := s.namespaceRepository
-	_, err := namespaceRepository.GetByName(ctx, req.Name)
+func (s *service) CreateNamespace(ctx context.Context, userID string, req api.PostNamespaceRequest) (*models.Namespace, error) {
+	_, err := s.RepoNs.GetByName(ctx, req.Name)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get namespace by name failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get namespace by name failed: %v", err))
@@ -140,7 +126,7 @@ func (s *namespaceService) CreateNamespace(ctx context.Context, userID string, r
 			slog.Error("add namespace member failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Add namespace member failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  new(namespaceObj.ID),
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeNamespace,
@@ -159,15 +145,13 @@ func (s *namespaceService) CreateNamespace(ctx context.Context, userID string, r
 	return namespaceObj, nil
 }
 
-func (s *namespaceService) ListNamespaces(ctx context.Context, userID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Namespace, int64, error) {
+func (s *service) ListNamespaces(ctx context.Context, userID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Namespace, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	namespaceRepository := s.namespaceRepository
-	return namespaceRepository.ListNamespaceWithAuth(ctx, userID, name, pagination, sort)
+	return s.RepoNs.ListNamespaceWithAuth(ctx, userID, name, pagination, sort)
 }
 
-func (s *namespaceService) GetNamespace(ctx context.Context, id string) (*models.Namespace, int64, int64, error) {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, id)
+func (s *service) GetNamespace(ctx context.Context, id string) (*models.Namespace, int64, int64, error) {
+	namespaceObj, err := s.RepoNs.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, 0, 0, errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -175,14 +159,12 @@ func (s *namespaceService) GetNamespace(ctx context.Context, id string) (*models
 		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	repositoryRepository := s.repositoryRepository
-	repositoryMapCount, err := repositoryRepository.CountByNamespace(ctx, []string{namespaceObj.ID})
+	repositoryMapCount, err := s.RepoRegistry.CountByNamespace(ctx, []string{namespaceObj.ID})
 	if err != nil {
 		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	tagRepository := s.tagRepository
-	tagMapCount, err := tagRepository.CountByNamespace(ctx, []string{namespaceObj.ID})
+	tagMapCount, err := s.RepoTag.CountByNamespace(ctx, []string{namespaceObj.ID})
 	if err != nil {
 		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
@@ -190,9 +172,8 @@ func (s *namespaceService) GetNamespace(ctx context.Context, id string) (*models
 	return namespaceObj, repositoryMapCount[namespaceObj.ID], tagMapCount[namespaceObj.ID], nil
 }
 
-func (s *namespaceService) UpdateNamespace(ctx context.Context, userID string, id string, req api.UpdateNamespaceRequest) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, id)
+func (s *service) UpdateNamespace(ctx context.Context, userID string, id string, req api.UpdateNamespaceRequest) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -234,7 +215,7 @@ func (s *namespaceService) UpdateNamespace(ctx context.Context, userID string, i
 		if err != nil {
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update namespace failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  new(namespaceObj.ID),
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeNamespace,
@@ -252,9 +233,8 @@ func (s *namespaceService) UpdateNamespace(ctx context.Context, userID string, i
 	return nil
 }
 
-func (s *namespaceService) DeleteNamespace(ctx context.Context, userID string, id string) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, id)
+func (s *service) DeleteNamespace(ctx context.Context, userID string, id string) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace(%s) not found", id))
@@ -268,7 +248,7 @@ func (s *namespaceService) DeleteNamespace(ctx context.Context, userID string, i
 		if err != nil {
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Namespace(%s) delete failed: %v", id, err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  new(namespaceObj.ID),
 			Action:       enums.WebhookActionDelete,
 			ResourceType: enums.WebhookResourceTypeNamespace,
@@ -286,18 +266,16 @@ func (s *namespaceService) DeleteNamespace(ctx context.Context, userID string, i
 	return nil
 }
 
-func (s *namespaceService) HotNamespaces(ctx context.Context, userID string) ([]*models.Namespace, error) {
+func (s *service) HotNamespaces(ctx context.Context, userID string) ([]*models.Namespace, error) {
 	return []*models.Namespace{}, nil
 }
 
-func (s *namespaceService) ListNamespaceMembers(ctx context.Context, namespaceID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.NamespaceMember, int64, error) {
-	namespaceMemberRepository := s.namespaceMemberRepository
-	return namespaceMemberRepository.ListNamespaceMembers(ctx, namespaceID, name, pagination, sort)
+func (s *service) ListNamespaceMembers(ctx context.Context, namespaceID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.NamespaceMember, int64, error) {
+	return s.RepoNsMember.ListNamespaceMembers(ctx, namespaceID, name, pagination, sort)
 }
 
-func (s *namespaceService) AddNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string, role enums.NamespaceRole) (*models.NamespaceMember, error) {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) AddNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string, role enums.NamespaceRole) (*models.NamespaceMember, error) {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(err.Error())
@@ -305,8 +283,7 @@ func (s *namespaceService) AddNamespaceMember(ctx context.Context, userID string
 		return nil, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	namespaceMemberRepository := s.namespaceMemberRepository
-	_, err = namespaceMemberRepository.GetNamespaceMember(ctx, namespaceID, targetUserID)
+	_, err = s.RepoNsMember.GetNamespaceMember(ctx, namespaceID, targetUserID)
 	if err == nil {
 		return nil, errcode.HTTPErrCodeConflict.Detail("User already have role in namespace")
 	}
@@ -314,7 +291,7 @@ func (s *namespaceService) AddNamespaceMember(ctx context.Context, userID string
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get namespace member failed: %v", err))
 	}
 
-	roleCount, err := namespaceMemberRepository.CountNamespaceMember(ctx, targetUserID, namespaceID)
+	roleCount, err := s.RepoNsMember.CountNamespaceMember(ctx, targetUserID, namespaceID)
 	if err != nil {
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Count namespace role failed: %v", err))
 	}
@@ -337,9 +314,8 @@ func (s *namespaceService) AddNamespaceMember(ctx context.Context, userID string
 	return namespaceMemberObj, nil
 }
 
-func (s *namespaceService) UpdateNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string, role enums.NamespaceRole) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) UpdateNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string, role enums.NamespaceRole) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace not found: %v", err))
@@ -347,8 +323,7 @@ func (s *namespaceService) UpdateNamespaceMember(ctx context.Context, userID str
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Find namespace failed: %v", err))
 	}
 
-	namespaceMemberRepository := s.namespaceMemberRepository
-	existingMember, err := namespaceMemberRepository.GetNamespaceMember(ctx, namespaceID, targetUserID)
+	existingMember, err := s.RepoNsMember.GetNamespaceMember(ctx, namespaceID, targetUserID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail("User not have role in namespace")
@@ -374,9 +349,8 @@ func (s *namespaceService) UpdateNamespaceMember(ctx context.Context, userID str
 	return nil
 }
 
-func (s *namespaceService) DeleteNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string) error {
-	namespaceRepository := s.namespaceRepository
-	namespaceObj, err := namespaceRepository.Get(ctx, namespaceID)
+func (s *service) DeleteNamespaceMember(ctx context.Context, userID string, namespaceID string, targetUserID string) error {
+	namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Namespace not found: %v", err))
@@ -398,9 +372,8 @@ func (s *namespaceService) DeleteNamespaceMember(ctx context.Context, userID str
 	return nil
 }
 
-func (s *namespaceService) GetNamespaceMember(ctx context.Context, namespaceID string, userID string) (*models.NamespaceMember, error) {
-	namespaceMemberRepository := s.namespaceMemberRepository
-	member, err := namespaceMemberRepository.GetNamespaceMember(ctx, namespaceID, userID)
+func (s *service) GetNamespaceMember(ctx context.Context, namespaceID string, userID string) (*models.NamespaceMember, error) {
+	member, err := s.RepoNsMember.GetNamespaceMember(ctx, namespaceID, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Get namespace role from db not found: %v", err))
@@ -410,8 +383,8 @@ func (s *namespaceService) GetNamespaceMember(ctx context.Context, namespaceID s
 	return member, nil
 }
 
-func (s *namespaceService) seedNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
-	seeder, ok := s.namespaceRepository.(reponamespace.NamespaceCacheSeeder)
+func (s *service) seedNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
+	seeder, ok := s.RepoNs.(reponamespace.NamespaceCacheSeeder)
 	if !ok {
 		return
 	}
@@ -420,8 +393,8 @@ func (s *namespaceService) seedNamespaceCache(ctx context.Context, namespaceObj 
 	}
 }
 
-func (s *namespaceService) invalidateNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
-	invalidator, ok := s.namespaceRepository.(reponamespace.NamespaceCacheInvalidator)
+func (s *service) invalidateNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
+	invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator)
 	if !ok {
 		return
 	}

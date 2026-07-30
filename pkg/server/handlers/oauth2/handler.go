@@ -45,7 +45,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	OAuth2Svc oauth2svc.OAuth2Service
+	OAuth2Svc oauth2svc.Service
 	Config    *config.Configuration
 }
 

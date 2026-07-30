@@ -45,7 +45,7 @@ type handler struct {
 	dig.In
 
 	Config     *config.Configuration
-	BlobSvc    svcblob.DistributionBlobService
+	BlobSvc    svcblob.Service
 	Authorizer authz.Authorizer
 }
 

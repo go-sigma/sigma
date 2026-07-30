@@ -61,7 +61,7 @@ func TestCompressDockerfile(t *testing.T) {
 }
 
 func TestRunnerLogReaderForInactiveRunner(t *testing.T) {
-	reader, compressed, err := (&builderService{}).RunnerLogReader(
+	reader, compressed, err := (&service{}).RunnerLogReader(
 		t.Context(), "builder-1", "runner-1", enums.BuildStatusPending,
 	)
 	require.NoError(t, err)

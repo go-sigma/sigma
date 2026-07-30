@@ -24,10 +24,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/version"
 )
 
-//go:generate mockgen -destination=systems_mocks.go -package=systems github.com/go-sigma/sigma/pkg/service/systems SystemsService
+//go:generate mockgen -mock_names Service=MockSystemsService -destination=systems_mocks.go -package=systems github.com/go-sigma/sigma/pkg/service/systems Service
 
-// SystemsService encapsulates system-related business logic.
-type SystemsService interface {
+// Service encapsulates system-related business logic.
+type Service interface {
 	// GetConfig returns the system configuration.
 	GetConfig(ctx context.Context) (config.Configuration, error)
 	// GetEndpoint returns the HTTP endpoint.
@@ -36,31 +36,27 @@ type SystemsService interface {
 	GetVersion(ctx context.Context) (api.GetSystemVersionResponse, error)
 }
 
-type systemsService struct {
-	config *config.Configuration
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
 	Config *config.Configuration
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) SystemsService {
-		return &systemsService{config: params.Config}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *systemsService) GetConfig(ctx context.Context) (config.Configuration, error) {
-	return *s.config, nil
+func (s *service) GetConfig(ctx context.Context) (config.Configuration, error) {
+	return *s.Config, nil
 }
 
-func (s *systemsService) GetEndpoint(ctx context.Context) (string, error) {
-	return s.config.HTTP.Endpoint, nil
+func (s *service) GetEndpoint(ctx context.Context) (string, error) {
+	return s.Config.HTTP.Endpoint, nil
 }
 
-func (s *systemsService) GetVersion(ctx context.Context) (api.GetSystemVersionResponse, error) {
+func (s *service) GetVersion(ctx context.Context) (api.GetSystemVersionResponse, error) {
 	return api.GetSystemVersionResponse{
 		Version:   version.Version,
 		GitHash:   version.GitHash,

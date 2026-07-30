@@ -43,7 +43,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	SystemsSvc systems.SystemsService
+	SystemsSvc systems.Service
 }
 
 type factory struct{}

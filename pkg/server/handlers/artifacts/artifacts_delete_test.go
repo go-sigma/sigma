@@ -41,7 +41,7 @@ func TestDeleteArtifact(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, recorder.Code)
 }
 
-func TestDeleteArtifactServiceError(t *testing.T) {
+func TestDeleteServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	service := svcartifact.NewMockArtifactService(ctrl)
 	service.EXPECT().DeleteArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(errors.New("failed"))

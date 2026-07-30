@@ -30,7 +30,7 @@ import (
 func TestCodeRepositoryQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	codeRepository := repocoderepo.NewMockCodeRepositoryRepository(ctrl)
-	service := &codeRepositoryService{codeRepositoryRepository: codeRepository}
+	service := &service{RepoCode: codeRepository}
 
 	codeRepository.EXPECT().
 		ListBranchesWithoutPagination(gomock.Any(), "repository-1").
@@ -56,7 +56,7 @@ func TestGetCodeRepositoryProviderError(t *testing.T) {
 		GetUser3rdPartyByProvider(gomock.Any(), "user-1", enums.ProviderGithub).
 		Return(nil, expectedErr)
 
-	_, err := (&codeRepositoryService{userRepository: userRepository}).
+	_, err := (&service{RepoUser: userRepository}).
 		GetCodeRepositoryUser3rdParty(t.Context(), "user-1", enums.ProviderGithub)
 	require.Error(t, err)
 }

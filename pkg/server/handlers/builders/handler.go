@@ -55,7 +55,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	BuilderSvc builders.BuilderService
+	BuilderSvc builders.Service
 	Config     *config.Configuration
 }
 
