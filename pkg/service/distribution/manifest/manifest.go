@@ -98,10 +98,8 @@ type service struct {
 	Producer     workq.Producer
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 // parseRef splits a reference into either a tag or a digest.

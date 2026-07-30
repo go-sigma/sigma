@@ -15,7 +15,6 @@
 package handlers
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -24,13 +23,14 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/app/bootstrap"
 	"github.com/go-sigma/sigma/pkg/config"
-	"github.com/go-sigma/sigma/pkg/infra/registry"
+	"github.com/go-sigma/sigma/pkg/infra/counter"
+	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/service/password"
+	"github.com/go-sigma/sigma/pkg/service/token"
+	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/testkit"
 	"github.com/go-sigma/sigma/pkg/validators"
-
-	_ "github.com/go-sigma/sigma/pkg/infra/lock/inmemory"
 )
 
 const (
@@ -44,30 +44,34 @@ func TestInitializeSkipAuth(t *testing.T) {
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, validators.Initialize())
 
-	err := digCon.Provide(func() *config.Configuration {
-		return &config.Configuration{
-			Auth: config.ConfigurationAuth{
-				Admin: config.ConfigurationAuthAdmin{
-					Username: "sigma",
-					Password: "sigma",
-					Email:    "sigma@gmail.com",
-				},
-				Jwt: config.ConfigurationAuthJwt{
-					PrivateKey: privateKeyString,
-				},
+	cfg := &config.Configuration{
+		Auth: config.ConfigurationAuth{
+			Admin: config.ConfigurationAuthAdmin{
+				Username: "sigma",
+				Password: "sigma",
+				Email:    "sigma@gmail.com",
 			},
-			Locker: config.ConfigurationLocker{
-				Type:   enums.LockerTypeInmemory,
-				Prefix: "sigma-locker",
+			Jwt: config.ConfigurationAuthJwt{
+				PrivateKey: privateKeyString,
 			},
-		}
-	})
+		},
+		Locker: config.ConfigurationLocker{
+			Type:   enums.LockerTypeInmemory,
+			Prefix: "sigma-locker",
+		},
+	}
+	cfg.WithDefaults()
+	err := digCon.Provide(func() *config.Configuration { return cfg })
 	require.NoError(t, err)
 
 	err = digCon.Provide(func() password.Service {
 		return password.New()
 	})
 	require.NoError(t, err)
+	require.NoError(t, digCon.Provide(func() counter.Counter { return nil }))
+	require.NoError(t, digCon.Provide(func() workq.Producer { return nil }))
+	require.NoError(t, digCon.Provide(func() token.Service { return nil }))
+	require.NoError(t, digCon.Provide(func() storage.StorageDriver { return nil }))
 
 	require.NoError(t, testkit.InitializeIntegration(t, digCon))
 
@@ -76,40 +80,6 @@ func TestInitializeSkipAuth(t *testing.T) {
 	require.NoError(t, Initialize(digCon))
 }
 
-type factoryOk struct{}
-
-func (f *factoryOk) Initialize(*dig.Container) error {
-	return nil
-}
-
-func TestInitializeOK(t *testing.T) {
-	Routers = make(registry.Factories[string, Factory])
-	require.NoError(t, Routers.Register("ok", &factoryOk{}))
-	digCon := dig.New()
-	require.NoError(t, digCon.Provide(testkit.NewGin))
-	require.NoError(t, Initialize(digCon))
-}
-
-type factoryErr struct{}
-
-func (f *factoryErr) Initialize(*dig.Container) error {
-	return errors.New("error")
-}
-
-func TestInitializeErr(t *testing.T) {
-	Routers = make(registry.Factories[string, Factory])
-	require.NoError(t, Routers.Register("err", &factoryErr{}))
-	digCon := dig.New()
-	require.NoError(t, digCon.Provide(testkit.NewGin))
-	require.Error(t, Initialize(digCon))
-}
-
 func TestInitializeDistributionMissingEngine(t *testing.T) {
 	require.Error(t, InitializeDistribution(dig.New()))
-}
-
-func TestInitializeDup(t *testing.T) {
-	Routers = make(registry.Factories[string, Factory])
-	require.NoError(t, Routers.Register("err", &factoryErr{}))
-	require.Error(t, Routers.Register("err", &factoryErr{}))
 }

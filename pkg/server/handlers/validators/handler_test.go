@@ -27,10 +27,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
-func TestFactory(t *testing.T) {
+func TestInitialize(t *testing.T) {
 	digCon := dig.New()
 	require.NoError(t, digCon.Provide(testkit.NewGin))
-	require.NoError(t, factory{}.Initialize(digCon))
+	require.NoError(t, digCon.Invoke(Initialize))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
 		routes := engine.Routes()
 		require.Len(t, routes, 5)

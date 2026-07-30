@@ -15,9 +15,6 @@
 package coderepos
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/coderepos"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the system handlers
@@ -58,27 +53,19 @@ type handler struct {
 	CodeRepoSvc coderepos.Service
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		config := config.GetConfig()
-		if config.Daemon.Builder.Enabled { // TODO: use dig
-			codereposGroup := e.Group(consts.APIV1 + "/coderepos")
-			codereposGroup.GET("/providers", server.Wrap(h.Providers))
-			codereposGroup.GET("/:provider", server.WrapRequest(h.List))
-			codereposGroup.GET("/:provider/repos/:id", server.WrapRequest(h.Get))
-			codereposGroup.GET("/:provider/user3rdparty", server.WrapRequest(h.User3rdParty))
-			codereposGroup.GET("/:provider/resync", server.WrapRequest(h.Resync))
-			codereposGroup.GET("/:provider/owners", server.WrapRequest(h.ListOwners))
-			codereposGroup.GET("/:provider/repos/:id/branches", server.WrapRequest(h.ListBranches))
-			codereposGroup.GET("/:provider/repos/:id/branches/:name", server.WrapRequest(h.GetBranch))
-		}
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	config := config.GetConfig()
+	if config.Daemon.Builder.Enabled { // TODO: use dig
+		codereposGroup := e.Group(consts.APIV1 + "/coderepos")
+		codereposGroup.GET("/providers", server.Wrap(h.Providers))
+		codereposGroup.GET("/:provider", server.WrapRequest(h.List))
+		codereposGroup.GET("/:provider/repos/:id", server.WrapRequest(h.Get))
+		codereposGroup.GET("/:provider/user3rdparty", server.WrapRequest(h.User3rdParty))
+		codereposGroup.GET("/:provider/resync", server.WrapRequest(h.Resync))
+		codereposGroup.GET("/:provider/owners", server.WrapRequest(h.ListOwners))
+		codereposGroup.GET("/:provider/repos/:id/branches", server.WrapRequest(h.ListBranches))
+		codereposGroup.GET("/:provider/repos/:id/branches/:name", server.WrapRequest(h.GetBranch))
+	}
+	return nil
 }

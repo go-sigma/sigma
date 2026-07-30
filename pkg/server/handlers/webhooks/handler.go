@@ -15,9 +15,6 @@
 package webhooks
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -26,9 +23,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	svcwebhook "github.com/go-sigma/sigma/pkg/service/webhooks"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the webhook handlers
@@ -65,26 +60,18 @@ type handler struct {
 	Config     *config.Configuration
 }
 
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
-}
-
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		webhookGroup := e.Group(consts.APIV1 + "/webhooks")
-		webhookGroup.POST("/", server.WrapRequest(h.PostWebhook))
-		webhookGroup.PUT("/:webhook_id", server.WrapRequest(h.PutWebhook))
-		webhookGroup.GET("/", server.WrapRequest(h.ListWebhook))
-		webhookGroup.GET("/:webhook_id", server.WrapRequest(h.GetWebhook))
-		webhookGroup.DELETE("/:webhook_id", server.WrapRequest(h.DeleteWebhook))
-		webhookGroup.GET("/:webhook_id/logs/", server.WrapRequest(h.ListWebhookLogs))
-		webhookGroup.GET("/:webhook_id/logs/:webhook_log_id", server.WrapRequest(h.GetWebhookLog))
-		webhookGroup.DELETE("/:webhook_id/logs/:webhook_log_id", server.WrapRequest(h.DeleteWebhookLog))
-		webhookGroup.GET("/:webhook_id/ping", server.WrapRequest(h.GetWebhookPing))
-		webhookGroup.GET("/:webhook_id/logs/:webhook_log_id/resend", server.WrapRequest(h.GetWebhookLogResend))
-		return nil
-	})
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	webhookGroup := e.Group(consts.APIV1 + "/webhooks")
+	webhookGroup.POST("/", server.WrapRequest(h.PostWebhook))
+	webhookGroup.PUT("/:webhook_id", server.WrapRequest(h.PutWebhook))
+	webhookGroup.GET("/", server.WrapRequest(h.ListWebhook))
+	webhookGroup.GET("/:webhook_id", server.WrapRequest(h.GetWebhook))
+	webhookGroup.DELETE("/:webhook_id", server.WrapRequest(h.DeleteWebhook))
+	webhookGroup.GET("/:webhook_id/logs/", server.WrapRequest(h.ListWebhookLogs))
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id", server.WrapRequest(h.GetWebhookLog))
+	webhookGroup.DELETE("/:webhook_id/logs/:webhook_log_id", server.WrapRequest(h.DeleteWebhookLog))
+	webhookGroup.GET("/:webhook_id/ping", server.WrapRequest(h.GetWebhookPing))
+	webhookGroup.GET("/:webhook_id/logs/:webhook_log_id/resend", server.WrapRequest(h.GetWebhookLogResend))
+	return nil
 }

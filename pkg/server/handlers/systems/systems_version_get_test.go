@@ -47,7 +47,7 @@ func TestGetVersion(t *testing.T) {
 	e := testkit.NewGin()
 	require.NoError(t, digCon.Provide(func() *gin.Engine { return e }))
 
-	require.NoError(t, systems.NewService(digCon))
+	require.NoError(t, digCon.Provide(systems.NewService))
 	var systemsSvc systems.Service
 	require.NoError(t, digCon.Invoke(func(service systems.Service) {
 		systemsSvc = service

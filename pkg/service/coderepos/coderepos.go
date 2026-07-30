@@ -65,10 +65,8 @@ type service struct {
 	Producer workq.Producer
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 func (s *service) ListCodeRepositories(ctx context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, []*models.CodeRepositoryOwner, int64, error) {

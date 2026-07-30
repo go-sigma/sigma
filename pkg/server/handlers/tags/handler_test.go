@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
-func TestFactory(t *testing.T) {
+func TestInitialize(t *testing.T) {
 	digCon := dig.New()
 	require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.RepositoryRepository { return nil }))
@@ -38,7 +38,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() tags.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
-	require.NoError(t, factory{}.Initialize(digCon))
+	require.NoError(t, digCon.Invoke(Initialize))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
 		routes := engine.Routes()
 		require.Len(t, routes, 3)

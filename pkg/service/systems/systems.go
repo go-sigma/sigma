@@ -42,10 +42,8 @@ type service struct {
 	Config *config.Configuration
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 func (s *service) GetConfig(ctx context.Context) (config.Configuration, error) {

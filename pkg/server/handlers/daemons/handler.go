@@ -15,18 +15,13 @@
 package daemons
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/daemons"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the gc handlers
@@ -108,53 +103,45 @@ type handler struct {
 	DaemonSvc daemons.Service
 }
 
-type factory struct{}
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	daemonGroup := e.Group(consts.APIV1 + "/daemons")
 
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		daemonGroup := e.Group(consts.APIV1 + "/daemons")
+	daemonGroup.PUT("/gc-repository/:namespace_id/", server.WrapRequest(h.UpdateGcRepositoryRule))
+	daemonGroup.GET("/gc-repository/:namespace_id/", server.WrapRequest(h.GetGcRepositoryRule))
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/latest", server.WrapRequest(h.GetGcRepositoryLatestRunner))
+	daemonGroup.POST("/gc-repository/:namespace_id/runners/", server.WrapRequest(h.CreateGcRepositoryRunner))
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/", server.WrapRequest(h.ListGcRepositoryRunners))
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcRepositoryRunner))
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcRepositoryRecords))
+	daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcRepositoryRecord))
 
-		daemonGroup.PUT("/gc-repository/:namespace_id/", server.WrapRequest(h.UpdateGcRepositoryRule))
-		daemonGroup.GET("/gc-repository/:namespace_id/", server.WrapRequest(h.GetGcRepositoryRule))
-		daemonGroup.GET("/gc-repository/:namespace_id/runners/latest", server.WrapRequest(h.GetGcRepositoryLatestRunner))
-		daemonGroup.POST("/gc-repository/:namespace_id/runners/", server.WrapRequest(h.CreateGcRepositoryRunner))
-		daemonGroup.GET("/gc-repository/:namespace_id/runners/", server.WrapRequest(h.ListGcRepositoryRunners))
-		daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcRepositoryRunner))
-		daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcRepositoryRecords))
-		daemonGroup.GET("/gc-repository/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcRepositoryRecord))
+	daemonGroup.PUT("/gc-tag/:namespace_id/", server.WrapRequest(h.UpdateGcTagRule))
+	daemonGroup.GET("/gc-tag/:namespace_id/", server.WrapRequest(h.GetGcTagRule))
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/latest", server.WrapRequest(h.GetGcTagLatestRunner))
+	daemonGroup.POST("/gc-tag/:namespace_id/runners/", server.WrapRequest(h.CreateGcTagRunner))
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/", server.WrapRequest(h.ListGcTagRunners))
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcTagRunner))
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcTagRecords))
+	daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcTagRecord))
 
-		daemonGroup.PUT("/gc-tag/:namespace_id/", server.WrapRequest(h.UpdateGcTagRule))
-		daemonGroup.GET("/gc-tag/:namespace_id/", server.WrapRequest(h.GetGcTagRule))
-		daemonGroup.GET("/gc-tag/:namespace_id/runners/latest", server.WrapRequest(h.GetGcTagLatestRunner))
-		daemonGroup.POST("/gc-tag/:namespace_id/runners/", server.WrapRequest(h.CreateGcTagRunner))
-		daemonGroup.GET("/gc-tag/:namespace_id/runners/", server.WrapRequest(h.ListGcTagRunners))
-		daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcTagRunner))
-		daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcTagRecords))
-		daemonGroup.GET("/gc-tag/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcTagRecord))
+	daemonGroup.PUT("/gc-artifact/:namespace_id/", server.WrapRequest(h.UpdateGcArtifactRule))
+	daemonGroup.GET("/gc-artifact/:namespace_id/", server.WrapRequest(h.GetGcArtifactRule))
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/latest", server.WrapRequest(h.GetGcArtifactLatestRunner))
+	daemonGroup.POST("/gc-artifact/:namespace_id/runners/", server.WrapRequest(h.CreateGcArtifactRunner))
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/", server.WrapRequest(h.ListGcArtifactRunners))
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcArtifactRunner))
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcArtifactRecords))
+	daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcArtifactRecord))
 
-		daemonGroup.PUT("/gc-artifact/:namespace_id/", server.WrapRequest(h.UpdateGcArtifactRule))
-		daemonGroup.GET("/gc-artifact/:namespace_id/", server.WrapRequest(h.GetGcArtifactRule))
-		daemonGroup.GET("/gc-artifact/:namespace_id/runners/latest", server.WrapRequest(h.GetGcArtifactLatestRunner))
-		daemonGroup.POST("/gc-artifact/:namespace_id/runners/", server.WrapRequest(h.CreateGcArtifactRunner))
-		daemonGroup.GET("/gc-artifact/:namespace_id/runners/", server.WrapRequest(h.ListGcArtifactRunners))
-		daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcArtifactRunner))
-		daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcArtifactRecords))
-		daemonGroup.GET("/gc-artifact/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcArtifactRecord))
+	daemonGroup.PUT("/gc-blob/:namespace_id/", server.WrapRequest(h.UpdateGcBlobRule))
+	daemonGroup.GET("/gc-blob/:namespace_id/", server.WrapRequest(h.GetGcBlobRule))
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/latest", server.WrapRequest(h.GetGcBlobLatestRunner))
+	daemonGroup.POST("/gc-blob/:namespace_id/runners/", server.WrapRequest(h.CreateGcBlobRunner))
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/", server.WrapRequest(h.ListGcBlobRunners))
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcBlobRunner))
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcBlobRecords))
+	daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcBlobRecord))
 
-		daemonGroup.PUT("/gc-blob/:namespace_id/", server.WrapRequest(h.UpdateGcBlobRule))
-		daemonGroup.GET("/gc-blob/:namespace_id/", server.WrapRequest(h.GetGcBlobRule))
-		daemonGroup.GET("/gc-blob/:namespace_id/runners/latest", server.WrapRequest(h.GetGcBlobLatestRunner))
-		daemonGroup.POST("/gc-blob/:namespace_id/runners/", server.WrapRequest(h.CreateGcBlobRunner))
-		daemonGroup.GET("/gc-blob/:namespace_id/runners/", server.WrapRequest(h.ListGcBlobRunners))
-		daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id", server.WrapRequest(h.GetGcBlobRunner))
-		daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/", server.WrapRequest(h.ListGcBlobRecords))
-		daemonGroup.GET("/gc-blob/:namespace_id/runners/:runner_id/records/:record_id", server.WrapRequest(h.GetGcBlobRecord))
-
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+	return nil
 }

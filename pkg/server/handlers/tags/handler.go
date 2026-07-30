@@ -15,9 +15,6 @@
 package tags
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/tags"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the tag handlers
@@ -49,18 +44,11 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
-
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		tagGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/tags")
-		tagGroup.GET("/", server.WrapRequest(h.ListTag))
-		tagGroup.GET("/:id", server.WrapRequest(h.GetTag))
-		tagGroup.DELETE("/:id", server.WrapRequest(h.DeleteTag))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	tagGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/tags")
+	tagGroup.GET("/", server.WrapRequest(h.ListTag))
+	tagGroup.GET("/:id", server.WrapRequest(h.GetTag))
+	tagGroup.DELETE("/:id", server.WrapRequest(h.DeleteTag))
+	return nil
 }

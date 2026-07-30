@@ -15,9 +15,6 @@
 package builders
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
@@ -25,9 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/builders"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the builder handlers
@@ -59,27 +54,19 @@ type handler struct {
 	Config     *config.Configuration
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		config := config.GetConfig() // TODO: use dig
-		if config.Daemon.Builder.Enabled {
-			builderGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
-			builderGroup.POST("/", server.WrapRequest(h.CreateBuilder))
-			builderGroup.PUT("/:builder_id", server.WrapRequest(h.UpdateBuilder))
-			builderGroup.GET("/:builder_id/runners/", server.WrapRequest(h.ListRunners))
-			builderGroup.POST("/:builder_id/runners/run", server.WrapRequest(h.PostRunnerRun))
-			builderGroup.GET("/:builder_id/runners/:runner_id", server.WrapRequest(h.GetRunner))
-			builderGroup.GET("/:builder_id/runners/:runner_id/stop", server.WrapRequest(h.GetRunnerStop))
-			builderGroup.GET("/:builder_id/runners/:runner_id/rerun", server.WrapRequest(h.GetRunnerRerun))
-			builderGroup.GET("/:builder_id/runners/:runner_id/log", server.WrapRequest(h.GetRunnerLog))
-		}
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	config := config.GetConfig() // TODO: use dig
+	if config.Daemon.Builder.Enabled {
+		builderGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/builders")
+		builderGroup.POST("/", server.WrapRequest(h.CreateBuilder))
+		builderGroup.PUT("/:builder_id", server.WrapRequest(h.UpdateBuilder))
+		builderGroup.GET("/:builder_id/runners/", server.WrapRequest(h.ListRunners))
+		builderGroup.POST("/:builder_id/runners/run", server.WrapRequest(h.PostRunnerRun))
+		builderGroup.GET("/:builder_id/runners/:runner_id", server.WrapRequest(h.GetRunner))
+		builderGroup.GET("/:builder_id/runners/:runner_id/stop", server.WrapRequest(h.GetRunnerStop))
+		builderGroup.GET("/:builder_id/runners/:runner_id/rerun", server.WrapRequest(h.GetRunnerRerun))
+		builderGroup.GET("/:builder_id/runners/:runner_id/log", server.WrapRequest(h.GetRunnerLog))
+	}
+	return nil
 }

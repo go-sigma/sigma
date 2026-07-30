@@ -77,12 +77,8 @@ type service struct {
 	cacheCli   cacher.Cacher[string]
 }
 
-// NewService registers the token service into the dig container.
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(newService)
-}
-
-func newService(params service) (Service, error) {
+// NewService creates the token service.
+func NewService(params service) (Service, error) {
 	privateKeyBytes, err := base64.StdEncoding.DecodeString(params.Config.Auth.Jwt.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -111,7 +107,7 @@ func newService(params service) (Service, error) {
 
 // NewWithConfig creates a token service outside dig.
 func NewWithConfig(configuration *config.Configuration, redisClientFactory dalredis.ClientFactory) (Service, error) {
-	return newService(service{
+	return NewService(service{
 		Config:             configuration,
 		RedisClientFactory: redisClientFactory,
 	})

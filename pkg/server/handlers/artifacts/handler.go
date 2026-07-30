@@ -15,18 +15,13 @@
 package artifacts
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/artifacts"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the artifact handlers
@@ -47,19 +42,11 @@ type handler struct {
 	ArtifactSvc artifacts.Service
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		artifactGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/artifacts")
-		artifactGroup.GET("/", server.WrapRequest(h.ListArtifact))
-		artifactGroup.GET("/:digest", server.WrapRequest(h.GetArtifact))
-		artifactGroup.DELETE("/:digest", server.WrapRequest(h.DeleteArtifact))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	artifactGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/artifacts")
+	artifactGroup.GET("/", server.WrapRequest(h.ListArtifact))
+	artifactGroup.GET("/:digest", server.WrapRequest(h.GetArtifact))
+	artifactGroup.DELETE("/:digest", server.WrapRequest(h.DeleteArtifact))
+	return nil
 }

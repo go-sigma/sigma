@@ -74,10 +74,8 @@ type service struct {
 	SvcToken    token.Service
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 func (s *service) ListUsers(ctx context.Context, exceptUsernames []string, withoutAdmin bool, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.User, int64, error) {

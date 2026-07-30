@@ -15,17 +15,12 @@
 package systems
 
 import (
-	"path"
-	"reflect"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server"
-	"github.com/go-sigma/sigma/pkg/server/handlers"
 	"github.com/go-sigma/sigma/pkg/service/systems"
-	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Handler is the interface for the system handlers
@@ -46,19 +41,11 @@ type handler struct {
 	SystemsSvc systems.Service
 }
 
-type factory struct{}
-
-// Initialize initializes the namespace handlers
-func (f factory) Initialize(digCon *dig.Container) error {
-	return digCon.Invoke(func(e *gin.Engine, h handler) error {
-		group := e.Group(consts.APIV1 + "/systems")
-		group.GET("/endpoint", server.Wrap(h.GetEndpoint))
-		group.GET("/version", server.Wrap(h.GetVersion))
-		group.GET("/config", server.Wrap(h.GetConfig))
-		return nil
-	})
-}
-
-func init() {
-	utils.PanicIf(handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{}))
+// Initialize registers the handler routes.
+func Initialize(e *gin.Engine, h handler) error {
+	group := e.Group(consts.APIV1 + "/systems")
+	group.GET("/endpoint", server.Wrap(h.GetEndpoint))
+	group.GET("/version", server.Wrap(h.GetVersion))
+	group.GET("/config", server.Wrap(h.GetConfig))
+	return nil
 }

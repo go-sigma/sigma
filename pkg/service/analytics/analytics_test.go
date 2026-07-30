@@ -171,7 +171,7 @@ func newTestService(t *testing.T, repo *fakeAnalyticsRepository, backend string,
 	require.NoError(t, digCon.Provide(func() lock.Locker {
 		return locker
 	}))
-	require.NoError(t, NewService(digCon))
+	require.NoError(t, digCon.Provide(NewService))
 
 	var svc Service
 	require.NoError(t, digCon.Invoke(func(service Service) {

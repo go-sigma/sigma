@@ -16,21 +16,6 @@ package cmd
 
 // nolint: gci
 import (
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/analytics"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/artifacts"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/builders"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/coderepos"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/daemons"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/namespaces"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/oauth2"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/repositories"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/systems"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/tags"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/tokens"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/users"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/validators"
-	_ "github.com/go-sigma/sigma/pkg/server/handlers/webhooks"
-
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/base"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/blob"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/manifest"

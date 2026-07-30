@@ -47,10 +47,8 @@ type service struct {
 	RepoArtifact reporegistry.ArtifactRepository
 }
 
-func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params service) Service {
-		return &params
-	})
+func NewService(params service) Service {
+	return &params
 }
 
 func (s *service) ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error) {

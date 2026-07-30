@@ -67,8 +67,8 @@ func (h *handler) GetRunnerLog(c *gin.Context, req *api.GetRunnerLog) {
 				slog.Error("close the ws failed", "err", err)
 			}
 		}()
-		// nolint: staticcheck
-		if runnerObj.Status == enums.BuildStatusFailed || runnerObj.Status == enums.BuildStatusSuccess { // already built
+		switch runnerObj.Status {
+		case enums.BuildStatusFailed, enums.BuildStatusSuccess: // already built
 			reader, compressed, err := builderSvc.RunnerLogReader(ctx, req.BuilderID, runnerObj.ID, runnerObj.Status)
 			if err != nil {
 				slog.Error("read log failed", "err", err)
@@ -78,7 +78,7 @@ func (h *handler) GetRunnerLog(c *gin.Context, req *api.GetRunnerLog) {
 				slog.Error("send log failed", "err", err)
 				return
 			}
-		} else if runnerObj.Status == enums.BuildStatusBuilding { // still building
+		case enums.BuildStatusBuilding: // still building
 			for {
 				reader, compressed, err := builderSvc.RunnerLogReader(ctx, req.BuilderID, req.RunnerID, runnerObj.Status)
 				if err != nil {
