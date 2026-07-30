@@ -50,7 +50,7 @@ func TestGetArtifact(t *testing.T) {
 	require.Contains(t, recorder.Body.String(), `"digest":"sha256:abc"`)
 }
 
-func TestGetArtifactServiceError(t *testing.T) {
+func TestGetServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	service := svcartifact.NewMockArtifactService(ctrl)
 	service.EXPECT().GetArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(nil, errors.New("failed"))

@@ -46,7 +46,7 @@ func TestListArtifact(t *testing.T) {
 	require.Contains(t, recorder.Body.String(), `"id":"artifact-1"`)
 }
 
-func TestListArtifactServiceError(t *testing.T) {
+func TestListServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	service := svcartifact.NewMockArtifactService(ctrl)
 	request := api.ListArtifactRequest{Namespace: "library", Repository: "library/alpine"}

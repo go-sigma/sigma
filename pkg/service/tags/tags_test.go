@@ -31,10 +31,10 @@ func TestListTags(t *testing.T) {
 	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
 	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
 	tagRepository := reporegistry.NewMockTagRepository(ctrl)
-	service := &tagService{
-		namespaceRepository:  namespaceRepository,
-		repositoryRepository: repositoryRepository,
-		tagRepository:        tagRepository,
+	service := &service{
+		RepoNs:       namespaceRepository,
+		RepoRegistry: repositoryRepository,
+		RepoTag:      tagRepository,
 	}
 	namespaceRepository.EXPECT().
 		Get(gomock.Any(), "namespace-1").
@@ -57,7 +57,7 @@ func TestListTags(t *testing.T) {
 func TestGetTagAndInvalidArtifactDigest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	tagRepository := reporegistry.NewMockTagRepository(ctrl)
-	service := &tagService{tagRepository: tagRepository}
+	service := &service{RepoTag: tagRepository}
 	tagRepository.EXPECT().
 		GetByID(gomock.Any(), "tag-1").
 		Return(&models.Tag{ID: "tag-1"}, nil)

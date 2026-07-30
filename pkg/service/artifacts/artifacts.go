@@ -28,10 +28,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-//go:generate mockgen -destination=artifacts_mocks.go -package=artifacts github.com/go-sigma/sigma/pkg/service/artifacts ArtifactService
+//go:generate mockgen -mock_names Service=MockArtifactService -destination=artifacts_mocks.go -package=artifacts github.com/go-sigma/sigma/pkg/service/artifacts Service
 
-// ArtifactService encapsulates artifact-related business logic.
-type ArtifactService interface {
+// Service encapsulates artifact-related business logic.
+type Service interface {
 	// ListArtifacts lists artifacts and returns the total count.
 	ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error)
 	// GetArtifact gets an artifact by repository name and digest.
@@ -40,43 +40,33 @@ type ArtifactService interface {
 	DeleteArtifact(ctx context.Context, repository string, digest string) error
 }
 
-type artifactService struct {
-	repositoryRepository reporegistry.RepositoryRepository
-	artifactRepository   reporegistry.ArtifactRepository
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	RepositoryRepository reporegistry.RepositoryRepository
-	ArtifactRepository   reporegistry.ArtifactRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoArtifact reporegistry.ArtifactRepository
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) ArtifactService {
-		return &artifactService{
-			repositoryRepository: params.RepositoryRepository,
-			artifactRepository:   params.ArtifactRepository,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *artifactService) ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error) {
-	artifactRepository := s.artifactRepository
-	artifactObjs, err := artifactRepository.ListArtifact(ctx, req)
+func (s *service) ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error) {
+	artifactObjs, err := s.RepoArtifact.ListArtifact(ctx, req)
 	if err != nil {
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List artifact from db failed: %v", err))
 	}
-	total, err := artifactRepository.CountArtifact(ctx, req)
+	total, err := s.RepoArtifact.CountArtifact(ctx, req)
 	if err != nil {
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Count artifact from db failed: %v", err))
 	}
 	return artifactObjs, total, nil
 }
 
-func (s *artifactService) GetArtifact(ctx context.Context, repositoryName string, digest string) (*models.Artifact, error) {
-	repositoryRepository := s.repositoryRepository
-	repositoryObj, err := repositoryRepository.GetByName(ctx, repositoryName)
+func (s *service) GetArtifact(ctx context.Context, repositoryName string, digest string) (*models.Artifact, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repositoryName)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Cannot find repository: %v", err))
@@ -84,8 +74,7 @@ func (s *artifactService) GetArtifact(ctx context.Context, repositoryName string
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get repository failed: %v", err))
 	}
 
-	artifactRepository := s.artifactRepository
-	artifactObj, err := artifactRepository.GetByDigest(ctx, repositoryObj.ID, digest)
+	artifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, digest)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Artifact not found: %v", err))
@@ -95,9 +84,8 @@ func (s *artifactService) GetArtifact(ctx context.Context, repositoryName string
 	return artifactObj, nil
 }
 
-func (s *artifactService) DeleteArtifact(ctx context.Context, repositoryName string, digest string) error {
-	artifactRepository := s.artifactRepository
-	err := artifactRepository.DeleteByDigest(ctx, repositoryName, digest)
+func (s *service) DeleteArtifact(ctx context.Context, repositoryName string, digest string) error {
+	err := s.RepoArtifact.DeleteByDigest(ctx, repositoryName, digest)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errcode.HTTPErrCodeNotFound.Detail(fmt.Sprintf("Artifact not found: %v", err))

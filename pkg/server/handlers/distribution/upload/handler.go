@@ -46,7 +46,7 @@ var _ Handler = &handler{}
 type handler struct {
 	dig.In
 
-	UploadSvc  svcupload.DistributionUploadService
+	UploadSvc  svcupload.Service
 	Authorizer authz.Authorizer
 }
 

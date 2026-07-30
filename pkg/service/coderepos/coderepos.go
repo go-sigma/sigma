@@ -35,10 +35,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-//go:generate mockgen -destination=coderepos_mocks.go -package=coderepos github.com/go-sigma/sigma/pkg/service/coderepos CodeRepositoryService
+//go:generate mockgen -mock_names Service=MockCodeRepositoryService -destination=coderepos_mocks.go -package=coderepos github.com/go-sigma/sigma/pkg/service/coderepos Service
 
-// CodeRepositoryService encapsulates code repository related business logic.
-type CodeRepositoryService interface {
+// Service encapsulates code repository related business logic.
+type Service interface {
 	// ListCodeRepositories lists code repositories with pagination (also returns owners for DTO mapping).
 	ListCodeRepositories(ctx context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, []*models.CodeRepositoryOwner, int64, error)
 	// GetCodeRepository gets a code repository by id (also returns owners for DTO mapping).
@@ -57,47 +57,35 @@ type CodeRepositoryService interface {
 	GetCodeRepositoryUser3rdParty(ctx context.Context, userID string, provider enums.Provider) (*models.User3rdParty, error)
 }
 
-type codeRepositoryService struct {
-	codeRepositoryRepository repocoderepo.CodeRepositoryRepository
-	userRepository           repouser.UserRepository
-	producer                 workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	CodeRepositoryRepository repocoderepo.CodeRepositoryRepository
-	UserRepository           repouser.UserRepository
-	Producer                 workq.Producer
+	RepoCode repocoderepo.CodeRepositoryRepository
+	RepoUser repouser.UserRepository
+	Producer workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) CodeRepositoryService {
-		return &codeRepositoryService{
-			codeRepositoryRepository: params.CodeRepositoryRepository,
-			userRepository:           params.UserRepository,
-			producer:                 params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *codeRepositoryService) ListCodeRepositories(ctx context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, []*models.CodeRepositoryOwner, int64, error) {
+func (s *service) ListCodeRepositories(ctx context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, []*models.CodeRepositoryOwner, int64, error) {
 	pagination = utils.NormalizePagination(pagination)
-	userRepository := s.userRepository
-	user3rdPartyObj, err := userRepository.GetUser3rdPartyByProvider(ctx, userID, provider)
+	user3rdPartyObj, err := s.RepoUser.GetUser3rdPartyByProvider(ctx, userID, provider)
 	if err != nil {
 		slog.Error("get user 3rdParty by provider failed", "err", err, "Provider", provider.String())
 		return nil, nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
 	}
 
-	codeRepositoryRepository := s.codeRepositoryRepository
-	ownerObjs, err := codeRepositoryRepository.ListOwnersAll(ctx, user3rdPartyObj.ID)
+	ownerObjs, err := s.RepoCode.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
 		slog.Error("list all owners failed", "err", err)
 		return nil, nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List all owners failed: %v", err))
 	}
 
-	codeRepositoryObjs, total, err := codeRepositoryRepository.ListWithPagination(ctx, userID, provider, owner, name, pagination, sort)
+	codeRepositoryObjs, total, err := s.RepoCode.ListWithPagination(ctx, userID, provider, owner, name, pagination, sort)
 	if err != nil {
 		slog.Error("list code repositories failed", "err", err)
 		return nil, nil, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -105,22 +93,20 @@ func (s *codeRepositoryService) ListCodeRepositories(ctx context.Context, userID
 	return codeRepositoryObjs, ownerObjs, total, nil
 }
 
-func (s *codeRepositoryService) GetCodeRepository(ctx context.Context, userID string, provider enums.Provider, id string) (*models.CodeRepository, []*models.CodeRepositoryOwner, error) {
-	codeRepositoryRepository := s.codeRepositoryRepository
-	userRepository := s.userRepository
-	user3rdPartyObj, err := userRepository.GetUser3rdPartyByProvider(ctx, userID, provider)
+func (s *service) GetCodeRepository(ctx context.Context, userID string, provider enums.Provider, id string) (*models.CodeRepository, []*models.CodeRepositoryOwner, error) {
+	user3rdPartyObj, err := s.RepoUser.GetUser3rdPartyByProvider(ctx, userID, provider)
 	if err != nil {
 		slog.Error("get user 3rdParty by provider failed", "err", err, "Provider", provider.String())
 		return nil, nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user 3rdParty by provider failed: %v", err))
 	}
 
-	ownerObjs, err := codeRepositoryRepository.ListOwnersAll(ctx, user3rdPartyObj.ID)
+	ownerObjs, err := s.RepoCode.ListOwnersAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
 		slog.Error("list all owners failed", "err", err)
 		return nil, nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List all owners failed: %v", err))
 	}
 
-	codeRepositoryObj, err := codeRepositoryRepository.Get(ctx, id)
+	codeRepositoryObj, err := s.RepoCode.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("code repository not found", "err", err, "provider", provider.String(), "id", id)
@@ -136,9 +122,8 @@ func (s *codeRepositoryService) GetCodeRepository(ctx context.Context, userID st
 	return codeRepositoryObj, ownerObjs, nil
 }
 
-func (s *codeRepositoryService) ListCodeRepositoryOwners(ctx context.Context, userID string, provider enums.Provider, name *string) ([]*models.CodeRepositoryOwner, int64, error) {
-	codeRepositoryRepository := s.codeRepositoryRepository
-	codeRepositoryOwnerObjs, total, err := codeRepositoryRepository.ListOwnerWithoutPagination(ctx, userID, provider, name)
+func (s *service) ListCodeRepositoryOwners(ctx context.Context, userID string, provider enums.Provider, name *string) ([]*models.CodeRepositoryOwner, int64, error) {
+	codeRepositoryOwnerObjs, total, err := s.RepoCode.ListOwnerWithoutPagination(ctx, userID, provider, name)
 	if err != nil {
 		slog.Error("list code repository owners failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -146,9 +131,8 @@ func (s *codeRepositoryService) ListCodeRepositoryOwners(ctx context.Context, us
 	return codeRepositoryOwnerObjs, total, nil
 }
 
-func (s *codeRepositoryService) ListCodeRepositoryBranches(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
-	codeRepositoryRepository := s.codeRepositoryRepository
-	branchObjs, total, err := codeRepositoryRepository.ListBranchesWithoutPagination(ctx, codeRepositoryID)
+func (s *service) ListCodeRepositoryBranches(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
+	branchObjs, total, err := s.RepoCode.ListBranchesWithoutPagination(ctx, codeRepositoryID)
 	if err != nil {
 		slog.Error("list branches failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List branches failed: %v", err))
@@ -156,9 +140,8 @@ func (s *codeRepositoryService) ListCodeRepositoryBranches(ctx context.Context, 
 	return branchObjs, total, nil
 }
 
-func (s *codeRepositoryService) GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID string, name string) (*models.CodeRepositoryBranch, error) {
-	codeRepositoryRepository := s.codeRepositoryRepository
-	branchObj, err := codeRepositoryRepository.GetBranchByName(ctx, codeRepositoryID, name)
+func (s *service) GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID string, name string) (*models.CodeRepositoryBranch, error) {
+	branchObj, err := s.RepoCode.GetBranchByName(ctx, codeRepositoryID, name)
 	if err != nil {
 		slog.Error("get branch by id failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List branches failed: %v", err))
@@ -166,9 +149,8 @@ func (s *codeRepositoryService) GetCodeRepositoryBranch(ctx context.Context, cod
 	return branchObj, nil
 }
 
-func (s *codeRepositoryService) ResyncCodeRepositories(ctx context.Context, userID string, provider enums.Provider) error {
-	userRepository := s.userRepository
-	user3rdPartyObj, err := userRepository.GetUser3rdPartyByProvider(ctx, userID, provider)
+func (s *service) ResyncCodeRepositories(ctx context.Context, userID string, provider enums.Provider) error {
+	user3rdPartyObj, err := s.RepoUser.GetUser3rdPartyByProvider(ctx, userID, provider)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("code repository not found", "err", err, "userID", userID, "provider", provider.String())
@@ -182,8 +164,8 @@ func (s *codeRepositoryService) ResyncCodeRepositories(ctx context.Context, user
 		return errcode.HTTPErrCodeConflict.Detail(fmt.Sprintf("Code repository(%s) status already is syncing", provider.String()))
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userRepository := repouser.NewUserRepository(tx)
-		err = userRepository.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
+		repoUser := repouser.NewUserRepository(tx)
+		err = repoUser.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
 			query.User3rdParty.CrLastUpdateTimestamp.ColumnName().String(): time.Now().UnixMilli(),
 			query.User3rdParty.CrLastUpdateStatus.ColumnName().String():    enums.TaskCommonStatusDoing,
 			query.User3rdParty.CrLastUpdateMessage.ColumnName().String():   "",
@@ -191,7 +173,7 @@ func (s *codeRepositoryService) ResyncCodeRepositories(ctx context.Context, user
 		if err != nil {
 			return errcode.HTTPErrCodeInternalError.Detail("Update user status failed")
 		}
-		err = s.producer.Produce(ctx, enums.DaemonCodeRepository,
+		err = s.Producer.Produce(ctx, enums.DaemonCodeRepository,
 			api.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
 		if err != nil {
 			slog.Error("publish sync code repository failed", "err", err, "user_id", user3rdPartyObj.UserID)
@@ -204,9 +186,8 @@ func (s *codeRepositoryService) ResyncCodeRepositories(ctx context.Context, user
 	return nil
 }
 
-func (s *codeRepositoryService) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]*models.User3rdParty, error) {
-	userRepository := s.userRepository
-	user3rdPartyObjs, err := userRepository.ListUser3rdParty(ctx, userID)
+func (s *service) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]*models.User3rdParty, error) {
+	user3rdPartyObjs, err := s.RepoUser.ListUser3rdParty(ctx, userID)
 	if err != nil {
 		slog.Error("list providers failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List providers failed: %v", err))
@@ -214,9 +195,8 @@ func (s *codeRepositoryService) ListCodeRepositoryProviders(ctx context.Context,
 	return user3rdPartyObjs, nil
 }
 
-func (s *codeRepositoryService) GetCodeRepositoryUser3rdParty(ctx context.Context, userID string, provider enums.Provider) (*models.User3rdParty, error) {
-	userRepository := s.userRepository
-	user3rdPartyObj, err := userRepository.GetUser3rdPartyByProvider(ctx, userID, provider)
+func (s *service) GetCodeRepositoryUser3rdParty(ctx context.Context, userID string, provider enums.Provider) (*models.User3rdParty, error) {
+	user3rdPartyObj, err := s.RepoUser.GetUser3rdPartyByProvider(ctx, userID, provider)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("code repository not found", "err", err, "userID", userID, "provider", provider.String())

@@ -73,31 +73,19 @@ type Service interface {
 }
 
 type service struct {
-	config              *config.Configuration
-	analyticsRepository repoanalytics.AnalyticsRepository
-	ctr                 counter.Counter
-	locker              lock.Locker
-}
-
-// ServiceParams contains dependencies for creating an analytics service.
-type ServiceParams struct {
 	dig.In
 
-	Config              *config.Configuration
-	AnalyticsRepository repoanalytics.AnalyticsRepository
-	Counter             counter.Counter
-	Locker              lock.Locker
+	Config        *config.Configuration
+	RepoAnalytics repoanalytics.AnalyticsRepository
+	Counter       counter.Counter
+	Locker        lock.Locker
 }
 
 // NewService registers the analytics service in the dependency container.
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) Service {
-		return &service{
-			config:              withDefaults(params.Config),
-			analyticsRepository: params.AnalyticsRepository,
-			ctr:                 params.Counter,
-			locker:              params.Locker,
-		}
+	return digCon.Provide(func(params service) Service {
+		params.Config = withDefaults(params.Config)
+		return &params
 	})
 }
 
@@ -109,67 +97,67 @@ func withDefaults(config *config.Configuration) *config.Configuration {
 }
 
 func (s *service) RecordPush(ctx context.Context, event PushEvent) error {
-	if !s.config.Analytics.Enabled || event.UserID == "" || event.NamespaceID == "" {
+	if !s.Config.Analytics.Enabled || event.UserID == "" || event.NamespaceID == "" {
 		return nil
 	}
 	hour := hourValue(time.Now().UTC())
 	if event.UserID != "" {
-		if err := s.ctr.HIncrBy(ctx, userPushKey(hour), map[string]int64{event.UserID: 1}); err != nil {
+		if err := s.Counter.HIncrBy(ctx, userPushKey(hour), map[string]int64{event.UserID: 1}); err != nil {
 			return err
 		}
 	}
-	if err := s.ctr.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
+	if err := s.Counter.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
 		event.NamespaceID + ":push": 1,
 	}); err != nil {
 		return err
 	}
-	return s.ctr.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
+	return s.Counter.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
 }
 
 func (s *service) RecordPull(ctx context.Context, event PullEvent) error {
-	if !s.config.Analytics.Enabled || event.NamespaceID == "" {
+	if !s.Config.Analytics.Enabled || event.NamespaceID == "" {
 		return nil
 	}
 	hour := hourValue(time.Now().UTC())
-	if err := s.ctr.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
+	if err := s.Counter.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
 		event.NamespaceID + ":pull": 1,
 	}); err != nil {
 		return err
 	}
-	return s.ctr.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
+	return s.Counter.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
 }
 
 func (s *service) RecordNamespaceSizeDelta(ctx context.Context, namespaceID string, delta int64) error {
-	if !s.config.Analytics.Enabled || namespaceID == "" || delta == 0 {
+	if !s.Config.Analytics.Enabled || namespaceID == "" || delta == 0 {
 		return nil
 	}
 	hour := hourValue(time.Now().UTC())
-	if err := s.ctr.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
+	if err := s.Counter.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
 		namespaceID + ":size_delta": delta,
 	}); err != nil {
 		return err
 	}
-	return s.ctr.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
+	return s.Counter.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
 }
 
 func (s *service) RecordNamespaceTagDelta(ctx context.Context, namespaceID string, delta int64) error {
-	if !s.config.Analytics.Enabled || namespaceID == "" || delta == 0 {
+	if !s.Config.Analytics.Enabled || namespaceID == "" || delta == 0 {
 		return nil
 	}
 	hour := hourValue(time.Now().UTC())
-	if err := s.ctr.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
+	if err := s.Counter.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
 		namespaceID + ":tag_delta": delta,
 	}); err != nil {
 		return err
 	}
-	return s.ctr.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
+	return s.Counter.SAdd(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
 }
 
 func (s *service) Flush(ctx context.Context) error {
-	if !s.config.Analytics.Enabled {
+	if !s.Config.Analytics.Enabled {
 		return nil
 	}
-	dirtyHours, err := s.ctr.SMembers(ctx, dirtyHoursKey())
+	dirtyHours, err := s.Counter.SMembers(ctx, dirtyHoursKey())
 	if err != nil {
 		return err
 	}
@@ -187,14 +175,14 @@ func (s *service) Flush(ctx context.Context) error {
 }
 
 func (s *service) flushDirtyHour(ctx context.Context, hour int64) error {
-	if s.config.Analytics.CounterBackend != redisCounterBackend {
+	if s.Config.Analytics.CounterBackend != redisCounterBackend {
 		return s.flushHour(ctx, hour)
 	}
 
 	lockCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	key := analyticsLockKey(hour)
-	if err := s.locker.AcquireWithRenew(lockCtx, key, analyticsLockExpire, analyticsLockWaitTimeout); err != nil {
+	if err := s.Locker.AcquireWithRenew(lockCtx, key, analyticsLockExpire, analyticsLockWaitTimeout); err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			slog.Info("skip analytics flush because another runner holds the lock", "hour", hour)
 			return nil
@@ -205,14 +193,14 @@ func (s *service) flushDirtyHour(ctx context.Context, hour int64) error {
 }
 
 func (s *service) GetUserPushHeatmap(ctx context.Context, userID string, days int) ([]api.DailyCount, error) {
-	if days <= 0 || days > s.config.Analytics.RetentionDays {
-		days = min(max(days, 1), s.config.Analytics.RetentionDays)
+	if days <= 0 || days > s.Config.Analytics.RetentionDays {
+		days = min(max(days, 1), s.Config.Analytics.RetentionDays)
 	}
 	now := time.Now().UTC()
 	startDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).AddDate(0, 0, -days+1)
 	startHour := hourValue(startDay)
 	endHour := hourValue(now)
-	rows, err := s.analyticsRepository.ListUserPush(ctx, userID, startHour, endHour)
+	rows, err := s.RepoAnalytics.ListUserPush(ctx, userID, startHour, endHour)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +233,7 @@ func (s *service) GetNamespaceTrends(
 	start := now.Add(-time.Duration(days*24-1) * time.Hour)
 	startHour := hourValue(start)
 	endHour := hourValue(now)
-	rows, err := s.analyticsRepository.ListNamespaceActivity(ctx, namespaceID, startHour, endHour)
+	rows, err := s.RepoAnalytics.ListNamespaceActivity(ctx, namespaceID, startHour, endHour)
 	if err != nil {
 		return nil, err
 	}
@@ -281,28 +269,28 @@ func (s *service) flushHour(ctx context.Context, hour int64) error {
 	namespaceKey := namespaceKey(hour)
 	userFlushingKey := flushingKey(userKey)
 	namespaceFlushingKey := flushingKey(namespaceKey)
-	if err := s.ctr.Rename(ctx, userKey, userFlushingKey); err != nil {
+	if err := s.Counter.Rename(ctx, userKey, userFlushingKey); err != nil {
 		return err
 	}
-	if err := s.ctr.Rename(ctx, namespaceKey, namespaceFlushingKey); err != nil {
+	if err := s.Counter.Rename(ctx, namespaceKey, namespaceFlushingKey); err != nil {
 		return err
 	}
-	userCounts, err := s.ctr.HGetAll(ctx, userFlushingKey)
+	userCounts, err := s.Counter.HGetAll(ctx, userFlushingKey)
 	if err != nil {
 		return err
 	}
-	namespaceCounts, err := s.ctr.HGetAll(ctx, namespaceFlushingKey)
+	namespaceCounts, err := s.Counter.HGetAll(ctx, namespaceFlushingKey)
 	if err != nil {
 		return err
 	}
 	for userID, count := range userCounts {
-		if incrErr := s.analyticsRepository.IncrUserPush(ctx, hour, userID, count); incrErr != nil {
+		if incrErr := s.RepoAnalytics.IncrUserPush(ctx, hour, userID, count); incrErr != nil {
 			return incrErr
 		}
 	}
 	namespaceDeltas := parseNamespaceDeltas(namespaceCounts)
 	for namespaceID, delta := range namespaceDeltas {
-		if err := s.analyticsRepository.IncrNamespace(
+		if err := s.RepoAnalytics.IncrNamespace(
 			ctx,
 			hour,
 			namespaceID,
@@ -314,10 +302,10 @@ func (s *service) flushHour(ctx context.Context, hour int64) error {
 			return err
 		}
 	}
-	if err := s.ctr.Del(ctx, userFlushingKey, namespaceFlushingKey); err != nil {
+	if err := s.Counter.Del(ctx, userFlushingKey, namespaceFlushingKey); err != nil {
 		return err
 	}
-	return s.ctr.SRem(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
+	return s.Counter.SRem(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
 }
 
 type namespaceDelta struct {

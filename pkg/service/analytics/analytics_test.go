@@ -83,7 +83,7 @@ func TestFlushRedisSkipsLockedHourAndContinues(t *testing.T) {
 		},
 	}
 	svc := newTestService(t, repo, redisCounterBackend, locker)
-	ctr := svc.ctr.(*fakeCounter)
+	ctr := svc.Counter.(*fakeCounter)
 	require.NoError(t, ctr.HIncrBy(t.Context(), userPushKey(firstHour), map[string]int64{"first": 1}))
 	require.NoError(t, ctr.HIncrBy(t.Context(), userPushKey(secondHour), map[string]int64{"second": 2}))
 	require.NoError(t, ctr.SAdd(t.Context(), dirtyHoursKey(), "2026072701", "2026072702"))
@@ -101,7 +101,7 @@ func TestFlushRedisReturnsLockError(t *testing.T) {
 	lockErr := errors.New("locker unavailable")
 	locker := &fakeLocker{errs: map[string]error{analyticsLockKey(hour): lockErr}}
 	svc := newTestService(t, repo, redisCounterBackend, locker)
-	require.NoError(t, svc.ctr.SAdd(t.Context(), dirtyHoursKey(), "2026072701"))
+	require.NoError(t, svc.Counter.SAdd(t.Context(), dirtyHoursKey(), "2026072701"))
 
 	err := svc.Flush(t.Context())
 

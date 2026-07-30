@@ -129,10 +129,7 @@ func genTokenService(t *testing.T, digCon *dig.Container) token.Service {
 	require.NoError(t, digCon.Invoke(func(c *config.Configuration) { cfg = c }))
 	var redisClientFactory dalredis.ClientFactory
 	_ = digCon.Invoke(func(f dalredis.ClientFactory) { redisClientFactory = f })
-	tokenSvc, err := token.New(token.Params{
-		Config:             cfg,
-		RedisClientFactory: redisClientFactory,
-	})
+	tokenSvc, err := token.NewWithConfig(cfg, redisClientFactory)
 	require.NoError(t, err)
 	return tokenSvc
 }

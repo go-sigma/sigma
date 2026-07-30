@@ -70,7 +70,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() reporegistry.ArtifactRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.TagRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.BlobRepository { return nil }))
-	require.NoError(t, digCon.Provide(func() svcmanifest.DistributionManifestService { return nil }))
+	require.NoError(t, digCon.Provide(func() svcmanifest.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() storage.StorageDriver { return nil }))
 	require.NoError(t, digCon.Provide(func() workq.Producer { return nil }))
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())

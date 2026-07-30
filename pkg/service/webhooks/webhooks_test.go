@@ -31,7 +31,7 @@ import (
 func TestWebhookQueries(t *testing.T) {
 	repository := newTestWebhookRepository(t)
 	webhook := createTestWebhook(t, repository)
-	service := &webhookService{webhookRepository: repository}
+	service := &service{RepoWebhook: repository}
 
 	items, total, err := service.ListWebhooks(t.Context(), nil, api.Pagination{}, api.Sortable{})
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ func TestCreateWebhookRejectsLimitBoundary(t *testing.T) {
 	for range consts.MaxWebhooks {
 		createTestWebhook(t, repository)
 	}
-	service := &webhookService{webhookRepository: repository}
+	service := &service{RepoWebhook: repository}
 
 	err := service.CreateWebhook(t.Context(), "user-1", api.PostWebhookRequest{
 		URL: "https://example.test/hook",
@@ -63,7 +63,7 @@ func TestCreateWebhookRejectsLimitBoundary(t *testing.T) {
 func TestUpdateWebhookUpdatesDaemonGCEvent(t *testing.T) {
 	repository := newTestWebhookRepository(t)
 	webhook := createTestWebhook(t, repository)
-	service := &webhookService{webhookRepository: repository}
+	service := &service{RepoWebhook: repository}
 	enabled := true
 
 	err := service.UpdateWebhook(t.Context(), "user-1", webhook.ID, api.PutWebhookRequest{
@@ -89,7 +89,7 @@ func TestDeleteWebhookLogDeletesLog(t *testing.T) {
 		RespBody:     []byte("{}"),
 	}
 	require.NoError(t, repository.CreateLog(t.Context(), log))
-	service := &webhookService{webhookRepository: repository}
+	service := &service{RepoWebhook: repository}
 
 	require.NoError(t, service.DeleteWebhookLog(
 		t.Context(), "user-1", webhook.ID, log.ID,

@@ -45,8 +45,8 @@ type handler struct {
 	dig.In
 
 	Config     *config.Configuration
-	RepoSvc    svcrepository.RepositoryService
-	TagSvc     svctag.TagService
+	RepoSvc    svcrepository.Service
+	TagSvc     svctag.Service
 	Authorizer authz.Authorizer
 }
 

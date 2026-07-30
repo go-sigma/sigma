@@ -40,10 +40,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=upload_mocks.go -package=upload github.com/go-sigma/sigma/pkg/service/distribution/upload DistributionUploadService
+//go:generate mockgen -mock_names Service=MockDistributionUploadService -destination=upload_mocks.go -package=upload github.com/go-sigma/sigma/pkg/service/distribution/upload Service
 
-// DistributionUploadService encapsulates distribution blob upload business logic.
-type DistributionUploadService interface {
+// Service encapsulates distribution blob upload business logic.
+type Service interface {
 	// GetNamespaceByName gets a namespace by name (used by handler for auth check).
 	GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error)
 	// PostUpload starts a new upload session. If digestStr is non-empty, performs a single-shot upload.
@@ -59,40 +59,28 @@ type DistributionUploadService interface {
 	DeleteUpload(ctx context.Context, uploadID string) error
 }
 
-type distributionUploadService struct {
-	blobRepository       reporegistry.BlobRepository
-	repositoryRepository reporegistry.RepositoryRepository
-	namespaceRepository  reponamespace.NamespaceRepository
-	storageDriver        storage.StorageDriver
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	BlobRepository       reporegistry.BlobRepository
-	RepositoryRepository reporegistry.RepositoryRepository
-	NamespaceRepository  reponamespace.NamespaceRepository
-	StorageDriver        storage.StorageDriver
+	RepoBlob     reporegistry.BlobRepository
+	RepoRegistry reporegistry.RepositoryRepository
+	RepoNs       reponamespace.NamespaceRepository
+	Storage      storage.StorageDriver
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) DistributionUploadService {
-		return &distributionUploadService{
-			blobRepository:       params.BlobRepository,
-			repositoryRepository: params.RepositoryRepository,
-			namespaceRepository:  params.NamespaceRepository,
-			storageDriver:        params.StorageDriver,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
 // GetNamespaceByName gets a namespace by name.
-func (s *distributionUploadService) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
-	return s.namespaceRepository.GetByName(ctx, name)
+func (s *service) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
+	return s.RepoNs.GetByName(ctx, name)
 }
 
 // PostUpload starts a new upload session. If digestStr is non-empty, performs a single-shot upload.
-func (s *distributionUploadService) PostUpload(ctx context.Context, repositoryName string, digestStr string, body io.Reader, contentType string) (string, error) {
+func (s *service) PostUpload(ctx context.Context, repositoryName string, digestStr string, body io.Reader, contentType string) (string, error) {
 	// fileID is the filename that upload to the blob_uploads
 	fileID := uuid.NewV7String()
 
@@ -107,19 +95,19 @@ func (s *distributionUploadService) PostUpload(ctx context.Context, repositoryNa
 		countReader := counter.NewCounter(body)
 
 		srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, fileID)
-		err = s.storageDriver.Upload(ctx, srcPath, countReader)
+		err = s.Storage.Upload(ctx, srcPath, countReader)
 		if err != nil {
 			slog.Error("upload blob failed", "err", err)
 			return "", errcode.DSErrCodeBlobUploadInvalid
 		}
 		destPath := utils.GenBlobPathByDigest(dgest)
-		err = s.storageDriver.Move(ctx, srcPath, destPath)
+		err = s.Storage.Move(ctx, srcPath, destPath)
 		if err != nil {
 			slog.Error("move blob failed", "err", err)
 			return "", errcode.DSErrCodeUnknown
 		}
 
-		err = s.storageDriver.Delete(ctx, srcPath)
+		err = s.Storage.Delete(ctx, srcPath)
 		if err != nil {
 			slog.Error("delete blob upload failed", "err", err)
 			return "", errcode.DSErrCodeUnknown
@@ -127,8 +115,7 @@ func (s *distributionUploadService) PostUpload(ctx context.Context, repositoryNa
 
 		size := countReader.Count()
 
-		blobRepository := s.blobRepository
-		err = blobRepository.Create(ctx, &models.Blob{
+		err = s.RepoBlob.Create(ctx, &models.Blob{
 			ID:          uuid.NewV7String(),
 			Digest:      dgest.String(),
 			Size:        size,
@@ -140,14 +127,13 @@ func (s *distributionUploadService) PostUpload(ctx context.Context, repositoryNa
 		}
 	}
 
-	uploadID, err := s.storageDriver.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
+	uploadID, err := s.Storage.CreateUploadID(ctx, fmt.Sprintf("%s/%s", consts.BlobUploads, fileID))
 	if err != nil {
 		slog.Error("create blob upload id failed", "err", err)
 		return "", errcode.DSErrCodeUnknown
 	}
 
-	blobRepository := s.blobRepository
-	err = blobRepository.UploadCreate(ctx, &models.BlobUpload{
+	err = s.RepoBlob.UploadCreate(ctx, &models.BlobUpload{
 		ID:         uuid.NewV7String(),
 		PartNumber: 0,
 		UploadID:   uploadID,
@@ -164,15 +150,14 @@ func (s *distributionUploadService) PostUpload(ctx context.Context, repositoryNa
 }
 
 // PatchUpload appends data to an upload session. Returns (sizeBefore, sizeUploaded, error).
-func (s *distributionUploadService) PatchUpload(ctx context.Context, uploadID string, body io.Reader, repositoryName string) (int64, int64, error) {
-	blobRepository := s.blobRepository
-	uploadObj, err := blobRepository.UploadGetLastPart(ctx, uploadID)
+func (s *service) PatchUpload(ctx context.Context, uploadID string, body io.Reader, repositoryName string) (int64, int64, error) {
+	uploadObj, err := s.RepoBlob.UploadGetLastPart(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload record failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	sizeBefore, err := blobRepository.UploadTotalSizeByUploadID(ctx, uploadID)
+	sizeBefore, err := s.RepoBlob.UploadTotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload record failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
@@ -181,14 +166,14 @@ func (s *distributionUploadService) PatchUpload(ctx context.Context, uploadID st
 	counterReader := counter.NewCounter(body)
 
 	path := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
-	etag, err := s.storageDriver.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
+	etag, err := s.Storage.UploadPart(ctx, path, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 	if err != nil {
 		slog.Error("upload part failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	size := counterReader.Count()
-	err = blobRepository.UploadCreate(ctx, &models.BlobUpload{
+	err = s.RepoBlob.UploadCreate(ctx, &models.BlobUpload{
 		ID:         uuid.NewV7String(),
 		PartNumber: uploadObj.PartNumber + 1,
 		UploadID:   uploadID,
@@ -206,28 +191,27 @@ func (s *distributionUploadService) PatchUpload(ctx context.Context, uploadID st
 }
 
 // PutUpload completes an upload session and commits the blob. Returns (sizeBefore, sizeUploaded, error).
-func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID string, digestStr string, body io.Reader, repositoryName string, contentType string, contentLength int64) (int64, int64, error) {
+func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr string, body io.Reader, repositoryName string, contentType string, contentLength int64) (int64, int64, error) {
 	dgest, err := digest.Parse(digestStr)
 	if err != nil {
 		slog.Error("parse digest failed", "err", err, "digest", digestStr)
 		return 0, 0, errcode.DSErrCodeDigestInvalid
 	}
 
-	blobRepository := s.blobRepository
-	uploadObj, err := blobRepository.UploadGetLastPart(ctx, uploadID)
+	uploadObj, err := s.RepoBlob.UploadGetLastPart(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload record failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
 
-	exist, err := blobRepository.Exists(ctx, dgest.String())
+	exist, err := s.RepoBlob.Exists(ctx, dgest.String())
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("check blob exist failed", "err", err, "digest", dgest.String())
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	if exist {
-		err = s.storageDriver.AbortUpload(ctx, srcPath, uploadObj.UploadID)
+		err = s.Storage.AbortUpload(ctx, srcPath, uploadObj.UploadID)
 		if err != nil {
 			slog.Error("abort upload failed", "err", err)
 			return 0, 0, errcode.DSErrCodeUnknown
@@ -240,13 +224,13 @@ func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID stri
 		return 0, 0, errcode.DSErrCodeNameInvalid
 	}
 
-	etags, err := blobRepository.UploadTotalEtagsByUploadID(ctx, uploadID)
+	etags, err := s.RepoBlob.UploadTotalEtagsByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload etags failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	sizeBefore, err := blobRepository.UploadTotalSizeByUploadID(ctx, uploadID)
+	sizeBefore, err := s.RepoBlob.UploadTotalSizeByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload size failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
@@ -255,14 +239,14 @@ func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID stri
 	var sizeUploaded int64
 	if contentLength != 0 {
 		counterReader := counter.NewCounter(body)
-		etag, err := s.storageDriver.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
+		etag, err := s.Storage.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
 		if err != nil {
 			slog.Error("upload part failed", "err", err, "uploadID", uploadObj.UploadID)
 			return 0, 0, errcode.DSErrCodeUnknown
 		}
 		size := counterReader.Count()
 		etags = append(etags, strings.Trim(etag, "\""))
-		err = blobRepository.UploadCreate(ctx, &models.BlobUpload{
+		err = s.RepoBlob.UploadCreate(ctx, &models.BlobUpload{
 			ID:         uuid.NewV7String(),
 			PartNumber: uploadObj.PartNumber + 1,
 			UploadID:   uploadID,
@@ -279,13 +263,13 @@ func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID stri
 	}
 
 	slog.Info("committing upload", "uploadID", uploadID, "etags", etags)
-	err = s.storageDriver.CommitUpload(ctx, srcPath, uploadID, etags)
+	err = s.Storage.CommitUpload(ctx, srcPath, uploadID, etags)
 	if err != nil {
 		slog.Error("commit upload failed", "err", err, "id", uploadID, "etags", etags)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	srcPathReader, err := s.storageDriver.Reader(ctx, srcPath)
+	srcPathReader, err := s.Storage.Reader(ctx, srcPath)
 	if err != nil {
 		slog.Error("get blob upload failed", "err", err, "srcPath", srcPath)
 		return 0, 0, errcode.DSErrCodeUnknown
@@ -301,25 +285,25 @@ func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID stri
 	}
 
 	destPath := utils.GenBlobPathByDigest(dgest)
-	err = s.storageDriver.Move(ctx, srcPath, destPath)
+	err = s.Storage.Move(ctx, srcPath, destPath)
 	if err != nil {
 		slog.Error("move blob failed", "err", err, "path", srcPath, "digest", dgest.String(), "dest", destPath)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	err = s.storageDriver.Delete(ctx, srcPath)
+	err = s.Storage.Delete(ctx, srcPath)
 	if err != nil {
 		slog.Error("delete blob upload failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	err = blobRepository.UploadDeleteByUploadID(ctx, uploadID)
+	err = s.RepoBlob.UploadDeleteByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("delete blob upload record failed", "err", err)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
-	err = blobRepository.Create(ctx, &models.Blob{
+	err = s.RepoBlob.Create(ctx, &models.Blob{
 		ID:          uuid.NewV7String(),
 		Digest:      dgest.String(),
 		Size:        sizeBefore + contentLength,
@@ -335,25 +319,24 @@ func (s *distributionUploadService) PutUpload(ctx context.Context, uploadID stri
 }
 
 // GetUpload gets upload status.
-func (s *distributionUploadService) GetUpload(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
-	return s.blobRepository.UploadGetLastPart(ctx, uploadID)
+func (s *service) GetUpload(ctx context.Context, uploadID string) (*models.BlobUpload, error) {
+	return s.RepoBlob.UploadGetLastPart(ctx, uploadID)
 }
 
 // DeleteUpload cancels an upload session.
-func (s *distributionUploadService) DeleteUpload(ctx context.Context, uploadID string) error {
-	blobRepository := s.blobRepository
-	uploadObj, err := blobRepository.UploadGetLastPart(ctx, uploadID)
+func (s *service) DeleteUpload(ctx context.Context, uploadID string) error {
+	uploadObj, err := s.RepoBlob.UploadGetLastPart(ctx, uploadID)
 	if err != nil {
 		slog.Error("get blob upload record failed", "err", err)
 		return errcode.DSErrCodeUnknown
 	}
 	srcPath := fmt.Sprintf("%s/%s", consts.BlobUploads, uploadObj.FileID)
-	err = s.storageDriver.AbortUpload(ctx, srcPath, uploadObj.UploadID)
+	err = s.Storage.AbortUpload(ctx, srcPath, uploadObj.UploadID)
 	if err != nil {
 		slog.Error("abort upload failed", "err", err)
 		return errcode.DSErrCodeUnknown
 	}
-	err = blobRepository.UploadDeleteByUploadID(ctx, uploadID)
+	err = s.RepoBlob.UploadDeleteByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("delete blob upload record failed", "err", err)
 		return errcode.DSErrCodeUnknown

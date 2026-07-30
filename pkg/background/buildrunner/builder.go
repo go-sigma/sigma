@@ -99,10 +99,7 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	tokenSvc, err := token.New(token.Params{
-		Config:             config,
-		RedisClientFactory: dalredis.NewClientFactory(config),
-	})
+	tokenSvc, err := token.NewWithConfig(config, dalredis.NewClientFactory(config))
 	if err != nil {
 		return nil, err
 	}

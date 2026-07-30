@@ -38,10 +38,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=users_mocks.go -package=users github.com/go-sigma/sigma/pkg/service/users UserService
+//go:generate mockgen -mock_names Service=MockUserService -destination=users_mocks.go -package=users github.com/go-sigma/sigma/pkg/service/users Service
 
-// UserService encapsulates user-related business logic.
-type UserService interface {
+// Service encapsulates user-related business logic.
+type Service interface {
 	// ListUsers lists users with pagination, excluding specified usernames.
 	ListUsers(ctx context.Context, exceptUsernames []string, withoutAdmin bool, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.User, int64, error)
 	// Login updates the user's lastLogin timestamp and creates new access/refresh tokens.
@@ -66,38 +66,26 @@ type UserService interface {
 	SelfResetPassword(ctx context.Context, userID string, password string) error
 }
 
-type userService struct {
-	userRepository repouser.UserRepository
-	passwordSvc    password.Service
-	tokenSvc       token.Service
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	UserRepository repouser.UserRepository
-	PasswordSvc    password.Service
-	TokenSvc       token.Service
+	RepoUser    repouser.UserRepository
+	SvcPassword password.Service
+	SvcToken    token.Service
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) UserService {
-		return &userService{
-			userRepository: params.UserRepository,
-			passwordSvc:    params.PasswordSvc,
-			tokenSvc:       params.TokenSvc,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
-func (s *userService) ListUsers(ctx context.Context, exceptUsernames []string, withoutAdmin bool, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.User, int64, error) {
-	userRepository := s.userRepository
-	return userRepository.ListWithoutUsername(ctx, exceptUsernames, withoutAdmin, name, pagination, sort)
+func (s *service) ListUsers(ctx context.Context, exceptUsernames []string, withoutAdmin bool, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.User, int64, error) {
+	return s.RepoUser.ListWithoutUsername(ctx, exceptUsernames, withoutAdmin, name, pagination, sort)
 }
 
-func (s *userService) Login(ctx context.Context, userID string, ttl, refreshTTL time.Duration) (string, string, error) {
-	userRepository := s.userRepository
-	err := userRepository.UpdateByID(ctx, userID, map[string]any{
+func (s *service) Login(ctx context.Context, userID string, ttl, refreshTTL time.Duration) (string, string, error) {
+	err := s.RepoUser.UpdateByID(ctx, userID, map[string]any{
 		query.User.LastLogin.ColumnName().String(): time.Now().UnixMilli(),
 	})
 	if err != nil {
@@ -105,13 +93,13 @@ func (s *userService) Login(ctx context.Context, userID string, ttl, refreshTTL 
 		return "", "", errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update user last login failed: %v", err))
 	}
 
-	refreshToken, err := s.tokenSvc.New(userID, refreshTTL)
+	refreshToken, err := s.SvcToken.New(userID, refreshTTL)
 	if err != nil {
 		slog.Error("create refresh token failed", "err", err)
 		return "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	accessToken, err := s.tokenSvc.New(userID, ttl)
+	accessToken, err := s.SvcToken.New(userID, ttl)
 	if err != nil {
 		slog.Error("create token failed", "err", err)
 		return "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -120,13 +108,13 @@ func (s *userService) Login(ctx context.Context, userID string, ttl, refreshTTL 
 	return accessToken, refreshToken, nil
 }
 
-func (s *userService) Logout(ctx context.Context, tokens []string, jti string) error {
+func (s *service) Logout(ctx context.Context, tokens []string, jti string) error {
 	ids := sets.New[string]()
 	for _, t := range tokens {
 		if t == "" {
 			continue
 		}
-		id, _, err := s.tokenSvc.Validate(ctx, t)
+		id, _, err := s.SvcToken.Validate(ctx, t)
 		if err != nil {
 			if errors.Is(err, token.ErrRevoked) || errors.Is(err, jwt.ErrTokenExpired) {
 				continue
@@ -147,7 +135,7 @@ func (s *userService) Logout(ctx context.Context, tokens []string, jti string) e
 		if !ok {
 			break
 		}
-		err := s.tokenSvc.Revoke(ctx, id)
+		err := s.SvcToken.Revoke(ctx, id)
 		if err != nil {
 			slog.Error("revoke token failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -156,8 +144,8 @@ func (s *userService) Logout(ctx context.Context, tokens []string, jti string) e
 	return nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, req api.PostUserRequest) error {
-	pwdHash, err := s.passwordSvc.Hash(req.Password)
+func (s *service) CreateUser(ctx context.Context, req api.PostUserRequest) error {
+	pwdHash, err := s.SvcPassword.Hash(req.Password)
 	if err != nil {
 		slog.Error("hash password failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -190,9 +178,8 @@ func (s *userService) CreateUser(ctx context.Context, req api.PostUserRequest) e
 	return nil
 }
 
-func (s *userService) UpdateUser(ctx context.Context, userID string, req api.PutUserRequest) error {
-	userRepository := s.userRepository
-	userObj, err := userRepository.Get(ctx, userID)
+func (s *service) UpdateUser(ctx context.Context, userID string, req api.PutUserRequest) error {
+	userObj, err := s.RepoUser.Get(ctx, userID)
 	if err != nil {
 		slog.Error("get user failed", "err", err, "id", userID)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user failed: %v", err))
@@ -209,7 +196,7 @@ func (s *userService) UpdateUser(ctx context.Context, userID string, req api.Put
 		updates[query.User.Status.ColumnName().String()] = req.Status
 	}
 	if req.Password != nil {
-		pwdHash, err := s.passwordSvc.Hash(ptr.To(req.Password))
+		pwdHash, err := s.SvcPassword.Hash(ptr.To(req.Password))
 		if err != nil {
 			slog.Error("hash password failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Hash password failed: %v", err))
@@ -220,8 +207,8 @@ func (s *userService) UpdateUser(ctx context.Context, userID string, req api.Put
 		updates[query.User.NamespaceLimit.ColumnName().String()] = req.NamespaceLimit
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		userRepository := repouser.NewUserRepository(tx)
-		err = userRepository.UpdateByID(ctx, userObj.ID, updates)
+		repoUser := repouser.NewUserRepository(tx)
+		err = repoUser.UpdateByID(ctx, userObj.ID, updates)
 		if err != nil {
 			slog.Error("update user failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update user failed: %v", err))
@@ -234,15 +221,14 @@ func (s *userService) UpdateUser(ctx context.Context, userID string, req api.Put
 	return nil
 }
 
-func (s *userService) Signup(ctx context.Context, req api.PostUserSignupRequest, ttl, refreshTTL time.Duration) (*models.User, string, string, error) {
-	pwdHash, err := s.passwordSvc.Hash(req.Password)
+func (s *service) Signup(ctx context.Context, req api.PostUserSignupRequest, ttl, refreshTTL time.Duration) (*models.User, string, string, error) {
+	pwdHash, err := s.SvcPassword.Hash(req.Password)
 	if err != nil {
 		slog.Error("hash password failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	userRepository := s.userRepository
-	_, err = userRepository.GetByUsername(ctx, req.Username)
+	_, err = s.RepoUser.GetByUsername(ctx, req.Username)
 	if err == nil {
 		slog.Error("username already exists")
 		return nil, "", "", errcode.HTTPErrCodeConflict.Detail("username already exists")
@@ -258,19 +244,19 @@ func (s *userService) Signup(ctx context.Context, req api.PostUserSignupRequest,
 		Password: new(pwdHash),
 		Email:    new(req.Email),
 	}
-	err = userRepository.Create(ctx, userObj)
+	err = s.RepoUser.Create(ctx, userObj)
 	if err != nil {
 		slog.Error("create user failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	refreshToken, err := s.tokenSvc.New(userObj.ID, refreshTTL)
+	refreshToken, err := s.SvcToken.New(userObj.ID, refreshTTL)
 	if err != nil {
 		slog.Error("create refresh token failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	accessToken, err := s.tokenSvc.New(userObj.ID, ttl)
+	accessToken, err := s.SvcToken.New(userObj.ID, ttl)
 	if err != nil {
 		slog.Error("create token failed", "err", err)
 		return nil, "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -279,9 +265,8 @@ func (s *userService) Signup(ctx context.Context, req api.PostUserSignupRequest,
 	return userObj, accessToken, refreshToken, nil
 }
 
-func (s *userService) RecoverPassword(ctx context.Context, req api.PostUserRecoverPasswordRequest) error {
-	userRepository := s.userRepository
-	user, err := userRepository.GetByUsername(ctx, req.Username)
+func (s *service) RecoverPassword(ctx context.Context, req api.PostUserRecoverPasswordRequest) error {
+	user, err := s.RepoUser.GetByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("username not found", "err", err, "username", req.Username)
@@ -295,7 +280,7 @@ func (s *userService) RecoverPassword(ctx context.Context, req api.PostUserRecov
 		return errcode.HTTPErrCodeNotFound.Detail("User or email not found")
 	}
 
-	_, err = userRepository.GetRecoverCodeByUserID(ctx, user.ID)
+	_, err = s.RepoUser.GetRecoverCodeByUserID(ctx, user.ID)
 	if err == nil {
 		slog.Error("recover code already exists", "err", err, "username", req.Username)
 		return errcode.HTTPErrCodeConflict.Detail("Recover code already exists")
@@ -306,8 +291,8 @@ func (s *userService) RecoverPassword(ctx context.Context, req api.PostUserRecov
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		userRepository := repouser.NewUserRepository(tx)
-		err = userRepository.CreateRecoverCode(ctx, &models.UserRecoverCode{
+		repoUser := repouser.NewUserRepository(tx)
+		err = repoUser.CreateRecoverCode(ctx, &models.UserRecoverCode{
 			ID:     uuid.NewV7String(),
 			UserID: user.ID,
 			Code:   uuid.NewV7String(),
@@ -320,9 +305,8 @@ func (s *userService) RecoverPassword(ctx context.Context, req api.PostUserRecov
 	})
 }
 
-func (s *userService) RecoverPasswordReset(ctx context.Context, req api.PostUserRecoverResetPasswordRequest) error {
-	userRepository := s.userRepository
-	userObj, err := userRepository.GetByRecoverCode(ctx, req.Code)
+func (s *service) RecoverPasswordReset(ctx context.Context, req api.PostUserRecoverResetPasswordRequest) error {
+	userObj, err := s.RepoUser.GetByRecoverCode(ctx, req.Code)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("recover code not found", "err", err, "code", req.Code)
@@ -333,18 +317,18 @@ func (s *userService) RecoverPasswordReset(ctx context.Context, req api.PostUser
 	}
 
 	return query.Q.Transaction(func(tx *query.Query) error {
-		userRepository := repouser.NewUserRepository(tx)
-		err = userRepository.DeleteRecoverCode(ctx, userObj.ID)
+		repoUser := repouser.NewUserRepository(tx)
+		err = repoUser.DeleteRecoverCode(ctx, userObj.ID)
 		if err != nil {
 			slog.Error("delete recover code failed", "err", err, "code", req.Code)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete recover code failed: %v", err))
 		}
-		pwdHash, err := s.passwordSvc.Hash(req.Password)
+		pwdHash, err := s.SvcPassword.Hash(req.Password)
 		if err != nil {
 			slog.Error("hash password failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
-		err = userRepository.UpdateByID(ctx, userObj.ID, map[string]any{
+		err = repoUser.UpdateByID(ctx, userObj.ID, map[string]any{
 			query.User.Password.ColumnName().String(): pwdHash,
 		})
 		if err != nil {
@@ -355,8 +339,8 @@ func (s *userService) RecoverPasswordReset(ctx context.Context, req api.PostUser
 	})
 }
 
-func (s *userService) ResetPassword(ctx context.Context, userID string, password string) error {
-	pwdHash, err := s.passwordSvc.Hash(password)
+func (s *service) ResetPassword(ctx context.Context, userID string, password string) error {
+	pwdHash, err := s.SvcPassword.Hash(password)
 	if err != nil {
 		slog.Error("hash password failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
@@ -374,7 +358,7 @@ func (s *userService) ResetPassword(ctx context.Context, userID string, password
 	})
 }
 
-func (s *userService) SelfUpdate(ctx context.Context, userID string, req api.PutUserSelfRequest) error {
+func (s *service) SelfUpdate(ctx context.Context, userID string, req api.PutUserSelfRequest) error {
 	updates := make(map[string]any, 5)
 	if req.Username != nil {
 		updates[query.User.Username.ColumnName().String()] = ptr.To(req.Username)
@@ -393,10 +377,10 @@ func (s *userService) SelfUpdate(ctx context.Context, userID string, req api.Put
 	})
 }
 
-func (s *userService) SelfResetPassword(ctx context.Context, userID string, password string) error {
+func (s *service) SelfResetPassword(ctx context.Context, userID string, password string) error {
 	return query.Q.Transaction(func(tx *query.Query) error {
 		userRepository := repouser.NewUserRepository(tx)
-		pwdHash, err := s.passwordSvc.Hash(password)
+		pwdHash, err := s.SvcPassword.Hash(password)
 		if err != nil {
 			slog.Error("hash password failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(err.Error())

@@ -24,7 +24,7 @@ import (
 )
 
 func TestGetClientID(t *testing.T) {
-	service := &oauth2Service{config: &config.Configuration{
+	service := &service{Config: &config.Configuration{
 		Auth: config.ConfigurationAuth{
 			Oauth2: config.ConfigurationAuthOauth2{
 				Github: config.ConfigurationAuthOauth2Github{ClientID: "github-client"},

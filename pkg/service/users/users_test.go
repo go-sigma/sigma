@@ -37,7 +37,7 @@ func TestListUsers(t *testing.T) {
 		ListWithoutUsername(gomock.Any(), []string{"admin"}, true, nil, api.Pagination{}, api.Sortable{}).
 		Return(items, int64(1), nil)
 
-	got, total, err := (&userService{userRepository: userRepository}).ListUsers(
+	got, total, err := (&service{RepoUser: userRepository}).ListUsers(
 		t.Context(), []string{"admin"}, true, nil, api.Pagination{}, api.Sortable{},
 	)
 	require.NoError(t, err)
@@ -50,10 +50,10 @@ func TestSignupUsesAccessAndRefreshTTL(t *testing.T) {
 	userRepository := repouser.NewMockUserRepository(ctrl)
 	passwordSvc := passwordmocks.NewMockService(ctrl)
 	tokenSvc := token.NewMockService(ctrl)
-	service := &userService{
-		userRepository: userRepository,
-		passwordSvc:    passwordSvc,
-		tokenSvc:       tokenSvc,
+	service := &service{
+		RepoUser:    userRepository,
+		SvcPassword: passwordSvc,
+		SvcToken:    tokenSvc,
 	}
 	request := api.PostUserSignupRequest{
 		Username: "sigma",

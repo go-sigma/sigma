@@ -35,7 +35,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() reporegistry.RepositoryRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.TagRepository { return nil }))
 	require.NoError(t, digCon.Provide(func() reporegistry.ArtifactRepository { return nil }))
-	require.NoError(t, digCon.Provide(func() tags.TagService { return nil }))
+	require.NoError(t, digCon.Provide(func() tags.Service { return nil }))
 	require.NoError(t, digCon.Provide(func() authz.Authorizer { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))

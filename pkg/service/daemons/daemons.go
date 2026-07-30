@@ -37,10 +37,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=daemons_mocks.go -package=daemons github.com/go-sigma/sigma/pkg/service/daemons DaemonService
+//go:generate mockgen -mock_names Service=MockDaemonService -destination=daemons_mocks.go -package=daemons github.com/go-sigma/sigma/pkg/service/daemons Service
 
-// DaemonService encapsulates daemon GC runner related business logic
-type DaemonService interface {
+// Service encapsulates daemon GC runner related business logic
+type Service interface {
 	// --- GcArtifact ---
 
 	// UpdateGcArtifactRule updates or creates the GC artifact rule and emits a webhook when updating
@@ -118,24 +118,16 @@ type DaemonService interface {
 	GetGcBlobRecord(ctx context.Context, runnerID, recordID string) (*models.DaemonGcBlobRecord, error)
 }
 
-type daemonService struct {
-	daemonRepository repodaemon.DaemonRepository
-	producer         workq.Producer
-}
-
-type ServiceParams struct {
+type service struct {
 	dig.In
 
-	DaemonRepository repodaemon.DaemonRepository
-	Producer         workq.Producer
+	RepoDaemon repodaemon.DaemonRepository
+	Producer   workq.Producer
 }
 
 func NewService(digCon *dig.Container) error {
-	return digCon.Provide(func(params ServiceParams) DaemonService {
-		return &daemonService{
-			daemonRepository: params.DaemonRepository,
-			producer:         params.Producer,
-		}
+	return digCon.Provide(func(params service) Service {
+		return &params
 	})
 }
 
@@ -152,13 +144,12 @@ func parseCronNextTrigger(cronRule *string) *int64 {
 // ===================== GcArtifact =====================
 
 // UpdateGcArtifactRule updates or creates the GC artifact rule and emits a webhook when updating
-func (s *daemonService) UpdateGcArtifactRule(ctx context.Context, req api.UpdateGcArtifactRuleRequest) error {
+func (s *service) UpdateGcArtifactRule(ctx context.Context, req api.UpdateGcArtifactRuleRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get gc artifact rule failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc artifact rule failed: %v", err))
@@ -179,9 +170,9 @@ func (s *daemonService) UpdateGcArtifactRule(ctx context.Context, req api.Update
 		updates[query.DaemonGcArtifactRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
-		daemonRepository := repodaemon.NewDaemonRepository(tx)
+		repoDaemon := repodaemon.NewDaemonRepository(tx)
 		if ruleObj == nil {
-			err = daemonRepository.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
+			err = repoDaemon.CreateGcArtifactRule(ctx, &models.DaemonGcArtifactRule{
 				ID:              uuid.NewV7String(),
 				NamespaceID:     namespaceID,
 				RetentionDay:    req.RetentionDay,
@@ -195,12 +186,12 @@ func (s *daemonService) UpdateGcArtifactRule(ctx context.Context, req api.Update
 			}
 			return nil
 		}
-		err = daemonRepository.UpdateGcArtifactRule(ctx, ruleObj.ID, updates)
+		err = repoDaemon.UpdateGcArtifactRule(ctx, ruleObj.ID, updates)
 		if err != nil {
 			slog.Error("update gc artifact rule failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc artifact rule failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRule,
@@ -215,13 +206,12 @@ func (s *daemonService) UpdateGcArtifactRule(ctx context.Context, req api.Update
 }
 
 // GetGcArtifactRule gets the GC artifact rule by namespace ID
-func (s *daemonService) GetGcArtifactRule(ctx context.Context, namespaceID string) (*models.DaemonGcArtifactRule, error) {
+func (s *service) GetGcArtifactRule(ctx context.Context, namespaceID string) (*models.DaemonGcArtifactRule, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact rule not found", "err", err, "NamespaceID", namespaceID)
@@ -234,13 +224,12 @@ func (s *daemonService) GetGcArtifactRule(ctx context.Context, namespaceID strin
 }
 
 // GetGcArtifactLatestRunner gets the latest GC artifact runner by namespace ID
-func (s *daemonService) GetGcArtifactLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcArtifactRunner, error) {
+func (s *service) GetGcArtifactLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcArtifactRunner, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact rule not found", "err", err, "NamespaceID", namespaceID)
@@ -249,7 +238,7 @@ func (s *daemonService) GetGcArtifactLatestRunner(ctx context.Context, namespace
 		slog.Error("get gc artifact rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
-	runnerObj, err := daemonRepository.GetGcArtifactLatestRunner(ctx, ruleObj.ID)
+	runnerObj, err := s.RepoDaemon.GetGcArtifactLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact runner not found", "err", err, "NamespaceID", namespaceID)
@@ -262,13 +251,12 @@ func (s *daemonService) GetGcArtifactLatestRunner(ctx context.Context, namespace
 }
 
 // CreateGcArtifactRunner creates a GC artifact runner and queues the GC task and webhook event
-func (s *daemonService) CreateGcArtifactRunner(ctx context.Context, req api.CreateGcArtifactRunnerRequest) error {
+func (s *service) CreateGcArtifactRunner(ctx context.Context, req api.CreateGcArtifactRunnerRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact rule not found", "err", err, "namespaceID", req.NamespaceID)
@@ -283,18 +271,18 @@ func (s *daemonService) CreateGcArtifactRunner(ctx context.Context, req api.Crea
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
 		runnerObj := &models.DaemonGcArtifactRunner{ID: uuid.NewV7String(), RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
-		err = daemonRepository.CreateGcArtifactRunner(ctx, runnerObj)
+		err = s.RepoDaemon.CreateGcArtifactRunner(ctx, runnerObj)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Create gc artifact runner failed: %v", err), "ruleID", ruleObj.ID)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc artifact runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonGcArtifact,
+		err = s.Producer.Produce(ctx, enums.DaemonGcArtifact,
 			api.DaemonGcPayload{RunnerID: runnerObj.ID})
 		if err != nil {
 			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String()), "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcArtifact.String()))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
@@ -309,13 +297,12 @@ func (s *daemonService) CreateGcArtifactRunner(ctx context.Context, req api.Crea
 }
 
 // ListGcArtifactRunners lists GC artifact runners by namespace ID
-func (s *daemonService) ListGcArtifactRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error) {
+func (s *service) ListGcArtifactRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcArtifactRunner, int64, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact rule not found", "err", err, "namespaceID", namespaceID)
@@ -324,7 +311,7 @@ func (s *daemonService) ListGcArtifactRunners(ctx context.Context, namespaceID s
 		slog.Error("get gc artifact rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonRepository.ListGcArtifactRunners(ctx, ruleObj.ID, pagination, sort)
+	runnerObjs, total, err := s.RepoDaemon.ListGcArtifactRunners(ctx, ruleObj.ID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc artifact rules failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc artifact rules failed: %v", err))
@@ -333,9 +320,8 @@ func (s *daemonService) ListGcArtifactRunners(ctx context.Context, namespaceID s
 }
 
 // GetGcArtifactRunner gets a GC artifact runner by namespace ID and runner ID
-func (s *daemonService) GetGcArtifactRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcArtifactRunner, error) {
-	daemonRepository := s.daemonRepository
-	runnerObj, err := daemonRepository.GetGcArtifactRunner(ctx, runnerID)
+func (s *service) GetGcArtifactRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcArtifactRunner, error) {
+	runnerObj, err := s.RepoDaemon.GetGcArtifactRunner(ctx, runnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact runner not found", "err", err, "namespaceID", namespaceID, "runnerID", runnerID)
@@ -352,9 +338,8 @@ func (s *daemonService) GetGcArtifactRunner(ctx context.Context, namespaceID, ru
 }
 
 // ListGcArtifactRecords lists GC artifact records by runner ID
-func (s *daemonService) ListGcArtifactRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error) {
-	daemonRepository := s.daemonRepository
-	recordObjs, total, err := daemonRepository.ListGcArtifactRecords(ctx, runnerID, pagination, sort)
+func (s *service) ListGcArtifactRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcArtifactRecord, int64, error) {
+	recordObjs, total, err := s.RepoDaemon.ListGcArtifactRecords(ctx, runnerID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc artifact records failed", "err", err, "ruleID", runnerID)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc artifact records failed: %v", err))
@@ -363,13 +348,12 @@ func (s *daemonService) ListGcArtifactRecords(ctx context.Context, runnerID stri
 }
 
 // GetGcArtifactRecord gets a GC artifact record by namespace ID, runner ID and record ID
-func (s *daemonService) GetGcArtifactRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcArtifactRecord, error) {
+func (s *service) GetGcArtifactRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcArtifactRecord, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcArtifactRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcArtifactRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact rule not found", "err", err, "namespaceID", namespaceID)
@@ -378,7 +362,7 @@ func (s *daemonService) GetGcArtifactRecord(ctx context.Context, namespaceID, ru
 		slog.Error("get gc artifact rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc artifact rule failed: %v", err))
 	}
-	recordObj, err := daemonRepository.GetGcArtifactRecord(ctx, recordID)
+	recordObj, err := s.RepoDaemon.GetGcArtifactRecord(ctx, recordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc artifact record not found", "err", err, "namespaceID", namespaceID, "runnerID", runnerID)
@@ -397,13 +381,12 @@ func (s *daemonService) GetGcArtifactRecord(ctx context.Context, namespaceID, ru
 // ===================== GcRepository =====================
 
 // UpdateGcRepositoryRule updates or creates the GC repository rule and emits a webhook when updating
-func (s *daemonService) UpdateGcRepositoryRule(ctx context.Context, req api.UpdateGcRepositoryRuleRequest) error {
+func (s *service) UpdateGcRepositoryRule(ctx context.Context, req api.UpdateGcRepositoryRuleRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get gc repository rule failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc repository rule failed: %v", err))
@@ -424,9 +407,9 @@ func (s *daemonService) UpdateGcRepositoryRule(ctx context.Context, req api.Upda
 		updates[query.DaemonGcRepositoryRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
-		daemonRepository := repodaemon.NewDaemonRepository(tx)
+		repoDaemon := repodaemon.NewDaemonRepository(tx)
 		if ruleObj == nil {
-			err = daemonRepository.CreateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
+			err = repoDaemon.CreateGcRepositoryRule(ctx, &models.DaemonGcRepositoryRule{
 				ID:              uuid.NewV7String(),
 				NamespaceID:     namespaceID,
 				RetentionDay:    req.RetentionDay,
@@ -440,12 +423,12 @@ func (s *daemonService) UpdateGcRepositoryRule(ctx context.Context, req api.Upda
 			}
 			return nil
 		}
-		err = daemonRepository.UpdateGcRepositoryRule(ctx, ruleObj.ID, updates)
+		err = repoDaemon.UpdateGcRepositoryRule(ctx, ruleObj.ID, updates)
 		if err != nil {
 			slog.Error("update gc repository rule failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc repository rule failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRule,
@@ -460,13 +443,12 @@ func (s *daemonService) UpdateGcRepositoryRule(ctx context.Context, req api.Upda
 }
 
 // GetGcRepositoryRule gets the GC repository rule by namespace ID
-func (s *daemonService) GetGcRepositoryRule(ctx context.Context, namespaceID string) (*models.DaemonGcRepositoryRule, error) {
+func (s *service) GetGcRepositoryRule(ctx context.Context, namespaceID string) (*models.DaemonGcRepositoryRule, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "NamespaceID", namespaceID)
@@ -479,13 +461,12 @@ func (s *daemonService) GetGcRepositoryRule(ctx context.Context, namespaceID str
 }
 
 // GetGcRepositoryLatestRunner gets the latest GC repository runner by namespace ID
-func (s *daemonService) GetGcRepositoryLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcRepositoryRunner, error) {
+func (s *service) GetGcRepositoryLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcRepositoryRunner, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "NamespaceID", namespaceID)
@@ -494,7 +475,7 @@ func (s *daemonService) GetGcRepositoryLatestRunner(ctx context.Context, namespa
 		slog.Error("get gc repository rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
-	runnerObj, err := daemonRepository.GetGcRepositoryLatestRunner(ctx, ruleObj.ID)
+	runnerObj, err := s.RepoDaemon.GetGcRepositoryLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "NamespaceID", namespaceID)
@@ -507,13 +488,12 @@ func (s *daemonService) GetGcRepositoryLatestRunner(ctx context.Context, namespa
 }
 
 // CreateGcRepositoryRunner creates a GC repository runner and queues the GC task and webhook event
-func (s *daemonService) CreateGcRepositoryRunner(ctx context.Context, req api.CreateGcRepositoryRunnerRequest) error {
+func (s *service) CreateGcRepositoryRunner(ctx context.Context, req api.CreateGcRepositoryRunnerRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "namespaceID", req.NamespaceID)
@@ -528,18 +508,18 @@ func (s *daemonService) CreateGcRepositoryRunner(ctx context.Context, req api.Cr
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
 		runnerObj := &models.DaemonGcRepositoryRunner{ID: uuid.NewV7String(), RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
-		err = daemonRepository.CreateGcRepositoryRunner(ctx, runnerObj)
+		err = s.RepoDaemon.CreateGcRepositoryRunner(ctx, runnerObj)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Create gc repository runner failed: %v", err), "ruleID", ruleObj.ID)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc repository runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonGcRepository,
+		err = s.Producer.Produce(ctx, enums.DaemonGcRepository,
 			api.DaemonGcPayload{RunnerID: runnerObj.ID})
 		if err != nil {
 			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()), "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcRepository.String()))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
@@ -554,13 +534,12 @@ func (s *daemonService) CreateGcRepositoryRunner(ctx context.Context, req api.Cr
 }
 
 // ListGcRepositoryRunners lists GC repository runners by namespace ID
-func (s *daemonService) ListGcRepositoryRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error) {
+func (s *service) ListGcRepositoryRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRepositoryRunner, int64, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "NamespaceID", namespaceID)
@@ -569,7 +548,7 @@ func (s *daemonService) ListGcRepositoryRunners(ctx context.Context, namespaceID
 		slog.Error("get gc repository rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonRepository.ListGcRepositoryRunners(ctx, ruleObj.ID, pagination, sort)
+	runnerObjs, total, err := s.RepoDaemon.ListGcRepositoryRunners(ctx, ruleObj.ID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc repository rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc repository rule failed: %v", err))
@@ -578,9 +557,8 @@ func (s *daemonService) ListGcRepositoryRunners(ctx context.Context, namespaceID
 }
 
 // GetGcRepositoryRunner gets a GC repository runner by namespace ID and runner ID
-func (s *daemonService) GetGcRepositoryRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcRepositoryRunner, error) {
-	daemonRepository := s.daemonRepository
-	runnerObj, err := daemonRepository.GetGcRepositoryRunner(ctx, runnerID)
+func (s *service) GetGcRepositoryRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcRepositoryRunner, error) {
+	runnerObj, err := s.RepoDaemon.GetGcRepositoryRunner(ctx, runnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository runner not found", "err", err, "namespaceID", namespaceID, "runnerID", runnerID)
@@ -597,9 +575,8 @@ func (s *daemonService) GetGcRepositoryRunner(ctx context.Context, namespaceID, 
 }
 
 // ListGcRepositoryRecords lists GC repository records by runner ID
-func (s *daemonService) ListGcRepositoryRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error) {
-	daemonRepository := s.daemonRepository
-	recordObjs, total, err := daemonRepository.ListGcRepositoryRecords(ctx, runnerID, pagination, sort)
+func (s *service) ListGcRepositoryRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRepositoryRecord, int64, error) {
+	recordObjs, total, err := s.RepoDaemon.ListGcRepositoryRecords(ctx, runnerID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc repository records failed", "err", err, "ruleID", runnerID)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc repository records failed: %v", err))
@@ -608,13 +585,12 @@ func (s *daemonService) ListGcRepositoryRecords(ctx context.Context, runnerID st
 }
 
 // GetGcRepositoryRecord gets a GC repository record by namespace ID, runner ID and record ID
-func (s *daemonService) GetGcRepositoryRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcRepositoryRecord, error) {
+func (s *service) GetGcRepositoryRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcRepositoryRecord, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcRepositoryRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcRepositoryRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository rule not found", "err", err, "namespaceID", namespaceID)
@@ -623,7 +599,7 @@ func (s *daemonService) GetGcRepositoryRecord(ctx context.Context, namespaceID, 
 		slog.Error("get gc repository rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc repository rule failed: %v", err))
 	}
-	recordObj, err := daemonRepository.GetGcRepositoryRecord(ctx, recordID)
+	recordObj, err := s.RepoDaemon.GetGcRepositoryRecord(ctx, recordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc repository record not found", "err", err, "namespaceID", namespaceID, "runnerID", runnerID)
@@ -642,13 +618,12 @@ func (s *daemonService) GetGcRepositoryRecord(ctx context.Context, namespaceID, 
 // ===================== GcTag =====================
 
 // UpdateGcTagRule updates or creates the GC tag rule and emits a webhook when updating
-func (s *daemonService) UpdateGcTagRule(ctx context.Context, req api.UpdateGcTagRuleRequest) error {
+func (s *service) UpdateGcTagRule(ctx context.Context, req api.UpdateGcTagRuleRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, namespaceID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get gc tag rule failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc tag rule failed: %v", err))
@@ -675,9 +650,9 @@ func (s *daemonService) UpdateGcTagRule(ctx context.Context, req api.UpdateGcTag
 		updates[query.DaemonGcTagRule.RetentionPattern.ColumnName().String()] = ptr.To(req.RetentionPattern)
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
-		daemonRepository := repodaemon.NewDaemonRepository(tx)
+		repoDaemon := repodaemon.NewDaemonRepository(tx)
 		if ruleObj == nil {
-			err = daemonRepository.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
+			err = repoDaemon.CreateGcTagRule(ctx, &models.DaemonGcTagRule{
 				ID:                  uuid.NewV7String(),
 				NamespaceID:         namespaceID,
 				CronEnabled:         req.CronEnabled,
@@ -693,12 +668,12 @@ func (s *daemonService) UpdateGcTagRule(ctx context.Context, req api.UpdateGcTag
 			}
 			return nil
 		}
-		err = daemonRepository.UpdateGcTagRule(ctx, ruleObj.ID, updates)
+		err = repoDaemon.UpdateGcTagRule(ctx, ruleObj.ID, updates)
 		if err != nil {
 			slog.Error("update gc tag rule failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc tag rule failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRule,
@@ -713,13 +688,12 @@ func (s *daemonService) UpdateGcTagRule(ctx context.Context, req api.UpdateGcTag
 }
 
 // GetGcTagRule gets the GC tag rule by namespace ID
-func (s *daemonService) GetGcTagRule(ctx context.Context, namespaceID string) (*models.DaemonGcTagRule, error) {
+func (s *service) GetGcTagRule(ctx context.Context, namespaceID string) (*models.DaemonGcTagRule, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", namespaceID)
@@ -732,13 +706,12 @@ func (s *daemonService) GetGcTagRule(ctx context.Context, namespaceID string) (*
 }
 
 // GetGcTagLatestRunner gets the latest GC tag runner by namespace ID
-func (s *daemonService) GetGcTagLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcTagRunner, error) {
+func (s *service) GetGcTagLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcTagRunner, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", namespaceID)
@@ -747,7 +720,7 @@ func (s *daemonService) GetGcTagLatestRunner(ctx context.Context, namespaceID st
 		slog.Error("get gc tag rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	runnerObj, err := daemonRepository.GetGcTagLatestRunner(ctx, ruleObj.ID)
+	runnerObj, err := s.RepoDaemon.GetGcTagLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", namespaceID)
@@ -760,13 +733,12 @@ func (s *daemonService) GetGcTagLatestRunner(ctx context.Context, namespaceID st
 }
 
 // CreateGcTagRunner creates a GC tag runner and queues the GC task and webhook event
-func (s *daemonService) CreateGcTagRunner(ctx context.Context, req api.CreateGcTagRunnerRequest) error {
+func (s *service) CreateGcTagRunner(ctx context.Context, req api.CreateGcTagRunnerRequest) error {
 	var namespaceID *string
 	if req.NamespaceID != "" {
 		namespaceID = &req.NamespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, namespaceID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, namespaceID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", req.NamespaceID)
@@ -781,18 +753,18 @@ func (s *daemonService) CreateGcTagRunner(ctx context.Context, req api.CreateGcT
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
 		runnerObj := &models.DaemonGcTagRunner{ID: uuid.NewV7String(), RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending, OperateType: enums.OperateTypeManual}
-		err = daemonRepository.CreateGcTagRunner(ctx, runnerObj)
+		err = s.RepoDaemon.CreateGcTagRunner(ctx, runnerObj)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Create gc tag runner failed: %v", err), "RuleID", ruleObj.ID)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc tag runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonGcTag,
+		err = s.Producer.Produce(ctx, enums.DaemonGcTag,
 			api.DaemonGcPayload{RunnerID: runnerObj.ID})
 		if err != nil {
 			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcTag.String()), "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcTag.String()))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			NamespaceID:  namespaceID,
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRule,
@@ -807,13 +779,12 @@ func (s *daemonService) CreateGcTagRunner(ctx context.Context, req api.CreateGcT
 }
 
 // ListGcTagRunners lists GC tag runners by namespace ID
-func (s *daemonService) ListGcTagRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcTagRunner, int64, error) {
+func (s *service) ListGcTagRunners(ctx context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcTagRunner, int64, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", namespaceID)
@@ -822,7 +793,7 @@ func (s *daemonService) ListGcTagRunners(ctx context.Context, namespaceID string
 		slog.Error("get gc tag rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonRepository.ListGcTagRunners(ctx, ruleObj.ID, pagination, sort)
+	runnerObjs, total, err := s.RepoDaemon.ListGcTagRunners(ctx, ruleObj.ID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc tag rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc tag rule failed: %v", err))
@@ -831,9 +802,8 @@ func (s *daemonService) ListGcTagRunners(ctx context.Context, namespaceID string
 }
 
 // GetGcTagRunner gets a GC tag runner by namespace ID and runner ID
-func (s *daemonService) GetGcTagRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcTagRunner, error) {
-	daemonRepository := s.daemonRepository
-	runnerObj, err := daemonRepository.GetGcTagRunner(ctx, runnerID)
+func (s *service) GetGcTagRunner(ctx context.Context, namespaceID, runnerID string) (*models.DaemonGcTagRunner, error) {
+	runnerObj, err := s.RepoDaemon.GetGcTagRunner(ctx, runnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag runner not found", "err", err, "NamespaceID", namespaceID, "runnerID", runnerID)
@@ -850,9 +820,8 @@ func (s *daemonService) GetGcTagRunner(ctx context.Context, namespaceID, runnerI
 }
 
 // ListGcTagRecords lists GC tag records by runner ID
-func (s *daemonService) ListGcTagRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcTagRecord, int64, error) {
-	daemonRepository := s.daemonRepository
-	recordObjs, total, err := daemonRepository.ListGcTagRecords(ctx, runnerID, pagination, sort)
+func (s *service) ListGcTagRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcTagRecord, int64, error) {
+	recordObjs, total, err := s.RepoDaemon.ListGcTagRecords(ctx, runnerID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc tag records failed", "err", err, "RuleID", runnerID)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc tag records failed: %v", err))
@@ -861,13 +830,12 @@ func (s *daemonService) ListGcTagRecords(ctx context.Context, runnerID string, p
 }
 
 // GetGcTagRecord gets a GC tag record by namespace ID, runner ID and record ID
-func (s *daemonService) GetGcTagRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcTagRecord, error) {
+func (s *service) GetGcTagRecord(ctx context.Context, namespaceID, runnerID, recordID string) (*models.DaemonGcTagRecord, error) {
 	var nsID *string
 	if namespaceID != "" {
 		nsID = &namespaceID
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcTagRule(ctx, nsID)
+	ruleObj, err := s.RepoDaemon.GetGcTagRule(ctx, nsID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag rule not found", "err", err, "NamespaceID", namespaceID)
@@ -876,7 +844,7 @@ func (s *daemonService) GetGcTagRecord(ctx context.Context, namespaceID, runnerI
 		slog.Error("get gc tag rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc tag rule failed: %v", err))
 	}
-	recordObj, err := daemonRepository.GetGcTagRecord(ctx, recordID)
+	recordObj, err := s.RepoDaemon.GetGcTagRecord(ctx, recordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag record not found", "err", err, "NamespaceID", namespaceID, "runnerID", runnerID)
@@ -895,13 +863,12 @@ func (s *daemonService) GetGcTagRecord(ctx context.Context, namespaceID, runnerI
 // ===================== GcBlob =====================
 
 // UpdateGcBlobRule updates or creates the global GC blob rule and emits a webhook when updating
-func (s *daemonService) UpdateGcBlobRule(ctx context.Context, req api.UpdateGcBlobRuleRequest) error {
+func (s *service) UpdateGcBlobRule(ctx context.Context, req api.UpdateGcBlobRuleRequest) error {
 	if req.NamespaceID != "" {
 		slog.Error("namespaceID should always be 0 in action UpdateGcBlobRule")
 		return errcode.HTTPErrCodeUnauthorized.Detail("NamespaceID should always be 0 in action UpdateGcBlobRule")
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get gc tag rule failed", "err", err)
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc tag rule failed: %v", err))
@@ -922,9 +889,9 @@ func (s *daemonService) UpdateGcBlobRule(ctx context.Context, req api.UpdateGcBl
 		updates[query.DaemonGcBlobRule.CronNextTrigger.ColumnName().String()] = ptr.To(nextTrigger)
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
-		daemonRepository := repodaemon.NewDaemonRepository(tx)
+		repoDaemon := repodaemon.NewDaemonRepository(tx)
 		if ruleObj == nil {
-			err = daemonRepository.CreateGcBlobRule(ctx, &models.DaemonGcBlobRule{
+			err = repoDaemon.CreateGcBlobRule(ctx, &models.DaemonGcBlobRule{
 				ID:              uuid.NewV7String(),
 				CronEnabled:     req.CronEnabled,
 				RetentionDay:    req.RetentionDay,
@@ -937,12 +904,12 @@ func (s *daemonService) UpdateGcBlobRule(ctx context.Context, req api.UpdateGcBl
 			}
 			return nil
 		}
-		err = daemonRepository.UpdateGcBlobRule(ctx, ruleObj.ID, updates)
+		err = repoDaemon.UpdateGcBlobRule(ctx, ruleObj.ID, updates)
 		if err != nil {
 			slog.Error("update gc blob rule failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Update gc blob rule failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			Action:       enums.WebhookActionUpdate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRule,
 			Payload:      utils.MustMarshal(req),
@@ -956,9 +923,8 @@ func (s *daemonService) UpdateGcBlobRule(ctx context.Context, req api.UpdateGcBl
 }
 
 // GetGcBlobRule gets the global GC blob rule
-func (s *daemonService) GetGcBlobRule(ctx context.Context) (*models.DaemonGcBlobRule, error) {
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+func (s *service) GetGcBlobRule(ctx context.Context) (*models.DaemonGcBlobRule, error) {
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob rule not found", "err", err)
@@ -971,13 +937,12 @@ func (s *daemonService) GetGcBlobRule(ctx context.Context) (*models.DaemonGcBlob
 }
 
 // GetGcBlobLatestRunner gets the latest global GC blob runner after validating namespace scope
-func (s *daemonService) GetGcBlobLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcBlobRunner, error) {
+func (s *service) GetGcBlobLatestRunner(ctx context.Context, namespaceID string) (*models.DaemonGcBlobRunner, error) {
 	if namespaceID != "" {
 		slog.Error("namespaceID should always be 0 in action GetGcBlobLatestRunner")
 		return nil, errcode.HTTPErrCodeUnauthorized.Detail("NamespaceID should always be 0 in action GetGcBlobLatestRunner")
 	}
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob rule not found", "err", err)
@@ -986,7 +951,7 @@ func (s *daemonService) GetGcBlobLatestRunner(ctx context.Context, namespaceID s
 		slog.Error("get gc blob rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
-	runnerObj, err := daemonRepository.GetGcBlobLatestRunner(ctx, ruleObj.ID)
+	runnerObj, err := s.RepoDaemon.GetGcBlobLatestRunner(ctx, ruleObj.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob latest runner not found", "err", err)
@@ -999,9 +964,8 @@ func (s *daemonService) GetGcBlobLatestRunner(ctx context.Context, namespaceID s
 }
 
 // CreateGcBlobRunner creates a global GC blob runner and queues the GC task and webhook event
-func (s *daemonService) CreateGcBlobRunner(ctx context.Context, userID string, req api.CreateGcBlobRunnerRequest) error {
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+func (s *service) CreateGcBlobRunner(ctx context.Context, userID string, req api.CreateGcBlobRunnerRequest) error {
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob rule not found", "err", err)
@@ -1018,18 +982,18 @@ func (s *daemonService) CreateGcBlobRunner(ctx context.Context, userID string, r
 		runnerObj := &models.DaemonGcBlobRunner{ID: uuid.NewV7String(), RuleID: ruleObj.ID, Status: enums.TaskCommonStatusPending,
 			OperateType:   enums.OperateTypeManual,
 			OperateUserID: new(userID)}
-		err = daemonRepository.CreateGcBlobRunner(ctx, runnerObj)
+		err = s.RepoDaemon.CreateGcBlobRunner(ctx, runnerObj)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Create gc blob runner failed: %v", err), "RuleID", ruleObj.ID)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gc blob runner failed: %v", err))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonGcBlob,
+		err = s.Producer.Produce(ctx, enums.DaemonGcBlob,
 			api.DaemonGcPayload{RunnerID: runnerObj.ID})
 		if err != nil {
 			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()), "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonGcBlob.String()))
 		}
-		err = s.producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
+		err = s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
 			Action:       enums.WebhookActionCreate,
 			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 			Payload:      utils.MustMarshal(req),
@@ -1043,9 +1007,8 @@ func (s *daemonService) CreateGcBlobRunner(ctx context.Context, userID string, r
 }
 
 // ListGcBlobRunners lists global GC blob runners
-func (s *daemonService) ListGcBlobRunners(ctx context.Context, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcBlobRunner, int64, error) {
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+func (s *service) ListGcBlobRunners(ctx context.Context, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcBlobRunner, int64, error) {
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob rule not found", "err", err)
@@ -1054,7 +1017,7 @@ func (s *daemonService) ListGcBlobRunners(ctx context.Context, pagination api.Pa
 		slog.Error("get gc blob rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
-	runnerObjs, total, err := daemonRepository.ListGcBlobRunners(ctx, ruleObj.ID, pagination, sort)
+	runnerObjs, total, err := s.RepoDaemon.ListGcBlobRunners(ctx, ruleObj.ID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc blob rule failed", "err", err)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc blob rule failed: %v", err))
@@ -1063,9 +1026,8 @@ func (s *daemonService) ListGcBlobRunners(ctx context.Context, pagination api.Pa
 }
 
 // GetGcBlobRunner gets a global GC blob runner by runner ID
-func (s *daemonService) GetGcBlobRunner(ctx context.Context, runnerID string) (*models.DaemonGcBlobRunner, error) {
-	daemonRepository := s.daemonRepository
-	runnerObj, err := daemonRepository.GetGcBlobRunner(ctx, runnerID)
+func (s *service) GetGcBlobRunner(ctx context.Context, runnerID string) (*models.DaemonGcBlobRunner, error) {
+	runnerObj, err := s.RepoDaemon.GetGcBlobRunner(ctx, runnerID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc tag runner not found", "err", err, "runnerID", runnerID)
@@ -1078,9 +1040,8 @@ func (s *daemonService) GetGcBlobRunner(ctx context.Context, runnerID string) (*
 }
 
 // ListGcBlobRecords lists global GC blob records by runner ID
-func (s *daemonService) ListGcBlobRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcBlobRecord, int64, error) {
-	daemonRepository := s.daemonRepository
-	recordObjs, total, err := daemonRepository.ListGcBlobRecords(ctx, runnerID, pagination, sort)
+func (s *service) ListGcBlobRecords(ctx context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcBlobRecord, int64, error) {
+	recordObjs, total, err := s.RepoDaemon.ListGcBlobRecords(ctx, runnerID, pagination, sort)
 	if err != nil {
 		slog.Error("list gc blob records failed", "err", err, "RuleID", runnerID)
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List gc blob records failed: %v", err))
@@ -1089,9 +1050,8 @@ func (s *daemonService) ListGcBlobRecords(ctx context.Context, runnerID string, 
 }
 
 // GetGcBlobRecord gets a global GC blob record by runner ID and record ID
-func (s *daemonService) GetGcBlobRecord(ctx context.Context, runnerID, recordID string) (*models.DaemonGcBlobRecord, error) {
-	daemonRepository := s.daemonRepository
-	ruleObj, err := daemonRepository.GetGcBlobRule(ctx)
+func (s *service) GetGcBlobRecord(ctx context.Context, runnerID, recordID string) (*models.DaemonGcBlobRecord, error) {
+	ruleObj, err := s.RepoDaemon.GetGcBlobRule(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob rule not found", "err", err)
@@ -1100,7 +1060,7 @@ func (s *daemonService) GetGcBlobRecord(ctx context.Context, runnerID, recordID 
 		slog.Error("get gc blob rule failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get gc blob rule failed: %v", err))
 	}
-	recordObj, err := daemonRepository.GetGcBlobRecord(ctx, recordID)
+	recordObj, err := s.RepoDaemon.GetGcBlobRecord(ctx, recordID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("get gc blob record not found", "err", err, "runnerID", runnerID)

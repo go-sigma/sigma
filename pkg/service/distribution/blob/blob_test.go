@@ -34,7 +34,7 @@ func TestGetNamespaceByName(t *testing.T) {
 		GetByName(gomock.Any(), "sigma").
 		Return(&models.Namespace{ID: "namespace-1", Name: "sigma"}, nil)
 
-	namespace, err := (&distributionBlobService{namespaceRepository: namespaceRepository}).
+	namespace, err := (&service{RepoNs: namespaceRepository}).
 		GetNamespaceByName(t.Context(), "sigma")
 	require.NoError(t, err)
 	require.Equal(t, "namespace-1", namespace.ID)
@@ -43,7 +43,7 @@ func TestGetNamespaceByName(t *testing.T) {
 func TestDeleteBlob(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
-	service := &distributionBlobService{blobRepository: blobRepository}
+	service := &service{RepoBlob: blobRepository}
 	blobRepository.EXPECT().
 		FindByDigest(gomock.Any(), "sha256:digest").
 		Return(&models.Blob{ID: "blob-1"}, nil)

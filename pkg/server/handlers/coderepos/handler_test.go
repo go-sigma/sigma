@@ -36,7 +36,7 @@ func TestFactory(t *testing.T) {
 	})
 
 	digCon := dig.New()
-	require.NoError(t, digCon.Provide(func() coderepos.CodeRepositoryService { return nil }))
+	require.NoError(t, digCon.Provide(func() coderepos.Service { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {

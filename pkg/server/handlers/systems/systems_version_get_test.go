@@ -48,8 +48,8 @@ func TestGetVersion(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() *gin.Engine { return e }))
 
 	require.NoError(t, systems.NewService(digCon))
-	var systemsSvc systems.SystemsService
-	require.NoError(t, digCon.Invoke(func(service systems.SystemsService) {
+	var systemsSvc systems.Service
+	require.NoError(t, digCon.Invoke(func(service systems.Service) {
 		systemsSvc = service
 	}))
 	handler := &handler{SystemsSvc: systemsSvc}

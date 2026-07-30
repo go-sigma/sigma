@@ -40,18 +40,18 @@ const (
 )
 
 var (
-	// ErrRevoked token has been revoked
+	// ErrRevoked token has been revoked.
 	ErrRevoked = fmt.Errorf("token has been revoked")
 )
 
-// JWTClaims is the claims for the JWT token
+// JWTClaims is the claims for the JWT token.
 type JWTClaims struct {
 	jwt.RegisteredClaims
 
 	UID string `json:"uid"`
 }
 
-// Valid validates the claims
+// Valid validates the claims.
 func (j JWTClaims) Valid() error {
 	return nil
 }
@@ -66,24 +66,24 @@ type Service interface {
 	Revoke(ctx context.Context, id string) error
 }
 
-type tokenService struct {
+type service struct {
+	dig.In `ignore-unexported:"true"`
+
+	Config             *config.Configuration
+	RedisClientFactory dalredis.ClientFactory `optional:"true"`
+
 	privateKey crypto.PrivateKey
 	publicKey  crypto.PublicKey
 	cacheCli   cacher.Cacher[string]
 }
 
-// Params declares dependencies needed to construct a token service.
-type Params struct {
-	dig.In
-
-	Config             *config.Configuration
-	RedisClientFactory dalredis.ClientFactory `optional:"true"`
+// NewService registers the token service into the dig container.
+func NewService(digCon *dig.Container) error {
+	return digCon.Provide(newService)
 }
 
-// New creates a new token service.
-func New(params Params) (Service, error) {
-	config := params.Config
-	privateKeyBytes, err := base64.StdEncoding.DecodeString(config.Auth.Jwt.PrivateKey)
+func newService(params service) (Service, error) {
+	privateKeyBytes, err := base64.StdEncoding.DecodeString(params.Config.Auth.Jwt.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -97,21 +97,28 @@ func New(params Params) (Service, error) {
 	}
 
 	cacheCli, err := cacher.New[string](cacher.Params{
-		Config:             config,
+		Config:             params.Config,
 		RedisClientFactory: params.RedisClientFactory,
 	}, consts.AppName+":expire:jwt", nil)
 	if err != nil {
 		return nil, fmt.Errorf("new cacher failed: %v", err)
 	}
-	return &tokenService{
-		privateKey: privateKey,
-		publicKey:  publicKey.Public(),
-		cacheCli:   cacheCli,
-	}, nil
+	params.privateKey = privateKey
+	params.publicKey = publicKey.Public()
+	params.cacheCli = cacheCli
+	return &params, nil
+}
+
+// NewWithConfig creates a token service outside dig.
+func NewWithConfig(configuration *config.Configuration, redisClientFactory dalredis.ClientFactory) (Service, error) {
+	return newService(service{
+		Config:             configuration,
+		RedisClientFactory: redisClientFactory,
+	})
 }
 
 // New creates a new token.
-func (s *tokenService) New(id string, expire time.Duration) (string, error) {
+func (s *service) New(id string, expire time.Duration) (string, error) {
 	now := time.Now()
 	claims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -132,7 +139,7 @@ func (s *tokenService) New(id string, expire time.Duration) (string, error) {
 }
 
 // Validate validates the token.
-func (s *tokenService) Validate(ctx context.Context, token string) (string, string, error) {
+func (s *service) Validate(ctx context.Context, token string) (string, string, error) {
 	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
 		return s.publicKey, nil
 	})
@@ -164,7 +171,7 @@ func (s *tokenService) Validate(ctx context.Context, token string) (string, stri
 }
 
 // Revoke revokes the token.
-func (s *tokenService) Revoke(ctx context.Context, id string) error {
+func (s *service) Revoke(ctx context.Context, id string) error {
 	err := s.cacheCli.Set(ctx, id, expireVal, time.Second*3600)
 	if err != nil {
 		return err

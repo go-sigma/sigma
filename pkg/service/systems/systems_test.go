@@ -23,11 +23,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/version"
 )
 
-func TestSystemsService(t *testing.T) {
+func TestService(t *testing.T) {
 	configuration := &config.Configuration{
 		HTTP: config.ConfigurationHTTP{Endpoint: "https://sigma.example.test"},
 	}
-	service := &systemsService{config: configuration}
+	service := &service{Config: configuration}
 
 	gotConfig, err := service.GetConfig(t.Context())
 	require.NoError(t, err)

@@ -30,7 +30,7 @@ import (
 func TestFactory(t *testing.T) {
 	digCon := dig.New()
 	require.NoError(t, digCon.Provide(func() *config.Configuration { return &config.Configuration{} }))
-	require.NoError(t, digCon.Provide(func() oauth2svc.OAuth2Service { return nil }))
+	require.NoError(t, digCon.Provide(func() oauth2svc.Service { return nil }))
 	require.NoError(t, digCon.Provide(testkit.NewGin))
 	require.NoError(t, factory{}.Initialize(digCon))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
