@@ -33,6 +33,8 @@ import (
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 )
 
+//go:generate mockgen -destination=authorizer_mocks.go -package=authz github.com/go-sigma/sigma/pkg/authz Authorizer
+
 // Authorizer decides whether a user may perform an HTTP method on a request URI.
 //
 // Admin/Root users are bypassed by the caller (middleware) before invoking the
@@ -55,8 +57,6 @@ type Authorizer interface {
 	// Artifact checks permissions for a concrete artifact id.
 	Artifact(ctx context.Context, user models.User, artifactID string, auth enums.Auth) (bool, error)
 }
-
-//go:generate mockgen -destination=authorizer_mocks.go -package=authz github.com/go-sigma/sigma/pkg/authz Authorizer
 
 // authorizer declares dependencies needed to construct an Authorizer.
 type authorizer struct {

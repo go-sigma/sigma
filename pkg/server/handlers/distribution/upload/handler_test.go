@@ -15,6 +15,7 @@
 package upload
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,6 +33,14 @@ import (
 	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
 	"github.com/go-sigma/sigma/pkg/storage"
 )
+
+func newUploadContext(t *testing.T, method, target string, body io.Reader) (*httptest.ResponseRecorder, *gin.Context) {
+	t.Helper()
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(method, target, body)
+	return recorder, c
+}
 
 func TestFactory(t *testing.T) {
 	digCon := dig.New()
