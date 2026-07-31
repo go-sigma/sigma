@@ -15,15 +15,19 @@
 package namespaces
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
 func TestListNamespaces(t *testing.T) {
@@ -66,6 +70,54 @@ func TestGetNamespace(t *testing.T) {
 	require.Equal(t, "namespace-1", namespace.ID)
 	require.Equal(t, int64(2), repositoryCount)
 	require.Equal(t, int64(3), tagCount)
+}
+
+func TestGetNamespaceMapsRepositoryCountFailure(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
+	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
+	service := &service{RepoNs: namespaceRepository, RepoRegistry: repositoryRepository}
+	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1"}, nil)
+	repositoryRepository.EXPECT().CountByNamespace(gomock.Any(), []string{"namespace-1"}).Return(nil, errors.New("database unavailable"))
+
+	_, _, _, err := service.GetNamespace(t.Context(), "namespace-1")
+	code, ok := errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "INTERNAL_ERROR", code.Code)
+}
+
+func TestUpdateNamespaceRejectsQuotaReduction(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
+	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1", SizeLimit: 100}, nil)
+	limit := int64(99)
+
+	err := (&service{RepoNs: namespaceRepository}).UpdateNamespace(t.Context(), "user-1", "namespace-1", api.UpdateNamespaceRequest{SizeLimit: &limit})
+	code, ok := errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "BAD_REQUEST", code.Code)
+}
+
+func TestAddNamespaceMemberValidatesExistingMembershipAndQuota(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
+	memberRepository := reponamespace.NewMockNamespaceMemberRepository(ctrl)
+	service := &service{RepoNs: namespaceRepository, RepoNsMember: memberRepository}
+
+	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1"}, nil)
+	memberRepository.EXPECT().GetNamespaceMember(gomock.Any(), "namespace-1", "user-2").Return(&models.NamespaceMember{}, nil)
+	_, err := service.AddNamespaceMember(t.Context(), "user-1", "namespace-1", "user-2", enums.NamespaceRoleReader)
+	code, ok := errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "CONFLICT", code.Code)
+
+	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1"}, nil)
+	memberRepository.EXPECT().GetNamespaceMember(gomock.Any(), "namespace-1", "user-2").Return(nil, gorm.ErrRecordNotFound)
+	memberRepository.EXPECT().CountNamespaceMember(gomock.Any(), "user-2", "namespace-1").Return(int64(100), nil)
+	_, err = service.AddNamespaceMember(t.Context(), "user-1", "namespace-1", "user-2", enums.NamespaceRoleReader)
+	code, ok = errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "BAD_REQUEST", code.Code)
 }
 
 func TestNamespaceMemberQueries(t *testing.T) {
