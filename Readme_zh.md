@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/go-sigma/sigma">
-    <img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/main/assets/sigma.svg" width="220"/>
+    <img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/dev/assets/sigma.svg" width="220"/>
   </a>
 </p>
 <h1 align="center">sigma</h1>
@@ -13,7 +13,7 @@ Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实�
 
 你可以用以下的一个简单的命令来运行起来 Sigma 镜像仓库:
 
-``` bash
+```bash
 docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
@@ -42,6 +42,13 @@ docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 - [x] 支持镜像签名。
 - [x] 支持镜像构建，构建的镜像自动签名，构建的驱动支持 Docker，Podman，Kubernetes。
 - [ ] 支持镜像复制。
+
+## AI 客户端与自动化
+
+Sigma 为 AI 客户端和外部自动化工具提供了两种集成方式：
+
+- 内置 MCP server：Sigma 可以通过现有的 server 进程暴露镜像仓库管理工具。该能力默认关闭，可以通过 `mcp` 配置项启用。详细说明见 [MCP Server](docs/mcp.md)。
+- 外部 REST API skill：`tools/skill/sigma-api-operator` 打包了可复用的 skill 和 `swagger.yaml`，方便 Claude Code、Copilot CLI 等 CLI agent 发现 Sigma API，并通过 HTTP 请求操作资源。
 
 ## Alternatives
 

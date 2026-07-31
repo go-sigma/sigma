@@ -150,7 +150,7 @@ func (w webhook) resend(ctx context.Context, payload api.DaemonWebhookPayload) (
 		RetryDuration: webhookLogObj.Webhook.RetryDuration,
 	})
 	resp, err := client.SetContext(ctx).
-		SetDoNotParseResponse(true).
+		SetResponseDoNotParse(true).
 		SetHeaders(headers).
 		SetBody(webhookLogObj.ReqBody).
 		Execute(http.MethodPost, webhookLogObj.Webhook.URL)
@@ -220,7 +220,7 @@ func (w webhook) send(ctx context.Context, payload api.DaemonWebhookPayload) err
 			RetryDuration: webhookObj.RetryDuration,
 		})
 		resp, err := client.SetContext(ctx).
-			SetDoNotParseResponse(true).
+			SetResponseDoNotParse(true).
 			SetHeaders(requestHeaders).
 			SetBody(webhookLogObj.ReqBody).
 			Execute(http.MethodPost, webhookObj.URL)
@@ -283,7 +283,7 @@ func (w webhook) ping(ctx context.Context, payload api.DaemonWebhookPayload) (*m
 		RetryDuration: webhookObj.RetryDuration,
 	})
 	resp, err := client.SetContext(ctx).
-		SetDoNotParseResponse(true).
+		SetResponseDoNotParse(true).
 		SetHeaders(headers).
 		SetBody(body).
 		Execute(http.MethodPost, webhookObj.URL)

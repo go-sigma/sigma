@@ -47,7 +47,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 
 	var repos []*gitlab.Project
 
-	page := 1
+	page := int64(1)
 	for {
 		rs, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{
 			Owned:       new(true),
@@ -111,8 +111,8 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 		repo := &models.CodeRepository{
 			ID:             uuid.NewV7String(),
 			User3rdPartyID: user3rdPartyObj.ID,
-			RepositoryID:   strconv.Itoa(r.ID),
-			OwnerID:        strconv.Itoa(r.Namespace.ID),
+			RepositoryID:   strconv.FormatInt(r.ID, 10),
+			OwnerID:        strconv.FormatInt(r.Namespace.ID, 10),
 			Owner:          r.Namespace.Path,
 			Name:           r.Name,
 			SshUrl:         r.SSHURLToRepo,

@@ -235,7 +235,7 @@ func (c *clients) DoRequest(ctx context.Context, method, path string, headers ht
 		req.Header.Add(consts.HeaderAccept, "application/json")
 		req.Header.Add(consts.HeaderAccept, "application/octet-stream")
 	}
-	req.SetDoNotParseResponse(true)
+	req.SetResponseDoNotParse(true)
 	if len(bodyReaders) != 0 {
 		req.SetBody(bodyReaders[0])
 	}

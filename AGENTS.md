@@ -41,14 +41,14 @@ netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp
 make lint                       # runs golangci-lint + hadolint
 make lint-go                    # golangci-lint only (timeout 10m)
 
-# Tests (set CI_DATABASE_TYPE=sqlite3|mysql|postgresql)
+# Tests (set CI_DATABASE_TYPE=sqlite3|turso|mysql|postgresql)
 CI_DATABASE_TYPE=sqlite3 go test -parallel 1 -failfast \
   -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
   -timeout 30m ./...
 
 # Code generation
 make gormgen                    # regenerate gorm models/queries from DB
-make swagen                     # regenerate swagger docs
+make swagen                     # format Swagger comments and regenerate skill swagger.yaml
 make migration-create MIGRATION_NAME=<name>   # new SQL migration
 
 # Formatting
@@ -74,9 +74,12 @@ make clean
 - For DI setup in tests, construct a fresh `dig.New()` container and provide `config.Configuration{}` plus `testkit.NewGin` before calling `factory{}.Initialize(digCon)`.
 - Use `testkit.NewGin()` (in `pkg/testkit/gin.go`) to get a gin engine in `TestMode`; do not call `gin.New()` directly in tests.
 - Repository tests must import the target repository domain package with a
-  semantic alias, such as `registryrepo`, `namespacerepo`, or `userrepo`.
+  semantic `repo`-prefixed alias, such as `reporegistry`, `reponamespace`, or
+  `repouser`.
 - Generate cryptographic keys (e.g., Ed25519) at runtime in tests; do not hardcode base64 keys.
-- Tests are excluded for these packages (do not expect tests there): `pkg/testkit`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/handlers/apidocs`, and various `mocks` subpackages.
+- Tests are excluded for generated or infrastructure-only packages such as
+  `pkg/api`, `pkg/dal/models`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/version`,
+  and various `mocks` subpackages.
 - Some storage tests (`pkg/storage/cos`, `pkg/storage/oss`) are skipped on PRs and require secret env vars (`COS_*`, `OSS_*`).
 - Mocks are generated via `go.uber.org/mock` and live alongside the code as `*_mocks.go`.
 
@@ -112,7 +115,8 @@ make clean
 ### Dependency Injection
 
 - DI is powered by `go.uber.org/dig`. Handlers declare `dig.In` and request services by field.
-- Do NOT use the old `utils.GetObjFromDigCon` / `utils.MustGetObjFromDigCon` helpers (removed). Call `digCon.Invoke(func(deps ...) error { ... })` directly.
+- Resolve ad hoc dependencies with `digCon.Invoke(func(deps ...) error { ... })`
+  instead of adding global container helpers.
 - Handler factories register routes via `handlers.Routers.Register(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{})` in an `init()`.
 
 ### Handler structure
@@ -207,7 +211,7 @@ make clean
 ## Project Structure
 
 ```text
-cmd/                     CLI entrypoints (server, worker, builder, distribution, tools)
+cmd/                     CLI entrypoints (server, worker, builder, distribution, tools, cli)
 main.go                  Program entry; calls cmd.Execute()
 pkg/
   app/                   Application assembly layer
@@ -269,9 +273,10 @@ pkg/
   version/               Build-time version info (set via -ldflags)
 conf/                    Example config files & TLS certs
 deploy/sigma/            Helm chart
-build/                   Dockerfiles (server, builder, web, base)
-docs/                    Docusaurus documentation site
+build/                   Dockerfile and entrypoint for server/builder image targets
+docs/                    VitePress documentation site
 e2e/                     End-to-end test scripts
+tools/skill/             External AI/CLI agent skills and packaged API specs
 ```
 
 Directory rules:
@@ -285,8 +290,8 @@ Directory rules:
 
 ## CI Workflows (`.github/workflows/`)
 
-- **lint.yml**: golangci-lint (Go 1.25) + hadolint on Dockerfiles. Triggers on `main`/`dev` PRs.
-- **test.yml**: matrix runs for `sqlite3`, `mysql`, `postgresql` (Go 1.23). Uses MySQL 8.0, Postgres 15, Redis 7, Minio services. Uploads coverage to Codecov.
+- **lint.yml**: Go 1.26 + Bun web build + golangci-lint v2.12.2 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
+- **test.yml**: Go 1.26 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and Minio services. Uploads coverage to Codecov.
 - **e2e.yml**, **image-build.yml**, **gh-pages.yml**, **codeql.yml**: end-to-end, image build, docs deploy, security scan.
 
 ## Important Files
@@ -303,7 +308,6 @@ Directory rules:
 
 ## Things to Avoid
 
-- Do not reintroduce `GetObjFromDigCon` / `MustGetObjFromDigCon`; use `dig.Container.Invoke`.
 - Do not use `errors.As` directly when an `errcode.AsType[T]` variant exists.
 - Do not introduce non-UUID or unordered UUID generators. Use
   `pkg/utils/uuid.NewV7String()` so new IDs remain UUIDv7 and time-ordered.

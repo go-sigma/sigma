@@ -170,7 +170,7 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 		}
 		userInfo = api.Oauth2UserInfo{
 			Provider:     provider,
-			ID:           strconv.FormatInt(int64(user.ID), 10),
+			ID:           strconv.FormatInt(user.ID, 10),
 			Username:     user.Name,
 			Email:        user.Email,
 			Token:        oauth2Token.AccessToken,
