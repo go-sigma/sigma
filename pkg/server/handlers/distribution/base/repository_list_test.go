@@ -34,7 +34,7 @@ func TestListRepositories(t *testing.T) {
 	svc := svcrepository.NewMockRepositoryService(ctrl)
 	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).
 		Return([]*models.Repository{{Name: "library/alpine"}, {Name: "library/busybox"}}, nil, int64(2), nil)
-	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog?n=200")
+	recorder, c := newDistributionContext("/v2/_catalog?n=200")
 	c.Request.Host = "registry.example.com"
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
@@ -47,7 +47,7 @@ func TestListRepositories(t *testing.T) {
 }
 
 func TestListRepositoriesInvalidLimit(t *testing.T) {
-	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog?n=invalid")
+	recorder, c := newDistributionContext("/v2/_catalog?n=invalid")
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
 	(&handler{}).ListRepositories(c)
@@ -60,7 +60,7 @@ func TestListRepositoriesServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	svc := svcrepository.NewMockRepositoryService(ctrl)
 	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).Return(nil, nil, int64(0), errors.New("list failed"))
-	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog")
+	recorder, c := newDistributionContext("/v2/_catalog")
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
 	(&handler{RepoSvc: svc}).ListRepositories(c)
@@ -69,9 +69,9 @@ func TestListRepositoriesServiceError(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, recorder.Code)
 }
 
-func newDistributionContext(method, target string) (*httptest.ResponseRecorder, *gin.Context) {
+func newDistributionContext(target string) (*httptest.ResponseRecorder, *gin.Context) {
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(method, target, nil)
+	c.Request = httptest.NewRequest(http.MethodGet, target, nil)
 	return recorder, c
 }

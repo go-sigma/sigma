@@ -18,13 +18,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-
 	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
 	svctag "github.com/go-sigma/sigma/pkg/service/tags"
 )
@@ -37,7 +37,7 @@ func TestListTags(t *testing.T) {
 	repoSvc.EXPECT().GetRepositoryByName(gomock.Any(), "library/alpine").Return(&models.Repository{ID: "repository-1", NamespaceID: "namespace-1"}, nil)
 	authorizer.EXPECT().Repository(gomock.Any(), gomock.Any(), "repository-1", enums.AuthRead).Return(true, nil)
 	tagSvc.EXPECT().ListTags(gomock.Any(), "namespace-1", "repository-1", nil, nil, gomock.Any(), gomock.Any()).Return([]*models.Tag{{Name: "latest"}}, int64(1), nil)
-	recorder, c := newDistributionContext(http.MethodGet, "/v2/library/alpine/tags/list?n=10")
+	recorder, c := newDistributionContext("/v2/library/alpine/tags/list?n=10")
 	c.Request.Host = "registry.example.com"
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
@@ -50,7 +50,7 @@ func TestListTags(t *testing.T) {
 }
 
 func TestListTagsInvalidRepository(t *testing.T) {
-	recorder, c := newDistributionContext(http.MethodGet, "/v2/INVALID/tags/list")
+	recorder, c := newDistributionContext("/v2/INVALID/tags/list")
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
 	(&handler{}).ListTags(c)
