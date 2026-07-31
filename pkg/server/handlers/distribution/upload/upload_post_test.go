@@ -19,13 +19,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/authz"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
 )
 
