@@ -15,9 +15,11 @@
 package users
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -25,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 	passwordmocks "github.com/go-sigma/sigma/pkg/service/password/mocks"
 	"github.com/go-sigma/sigma/pkg/service/token"
 )
@@ -43,6 +46,39 @@ func TestListUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, items, got)
 	require.Equal(t, int64(1), total)
+}
+
+func TestLogoutSkipsExpiredTokensAndRevokesUniqueIDs(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	tokenSvc := token.NewMockService(ctrl)
+	service := &service{SvcToken: tokenSvc}
+
+	tokenSvc.EXPECT().Validate(gomock.Any(), "expired").Return("", "", jwt.ErrTokenExpired)
+	tokenSvc.EXPECT().Validate(gomock.Any(), "valid").Return("token-jti", "user-1", nil)
+	tokenSvc.EXPECT().Revoke(gomock.Any(), gomock.Any()).DoAndReturn(func(_ any, id string) error {
+		require.Contains(t, []string{"token-jti", "request-jti"}, id)
+		return nil
+	}).Times(2)
+
+	err := service.Logout(t.Context(), []string{"", "expired", "valid"}, "request-jti")
+	require.NoError(t, err)
+}
+
+func TestLogoutRequiresJTIAndMapsValidationFailure(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	tokenSvc := token.NewMockService(ctrl)
+	service := &service{SvcToken: tokenSvc}
+
+	err := service.Logout(t.Context(), nil, "")
+	code, ok := errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "UNAUTHORIZED", code.Code)
+
+	tokenSvc.EXPECT().Validate(gomock.Any(), "invalid").Return("", "", errors.New("invalid signature"))
+	err = service.Logout(t.Context(), []string{"invalid"}, "request-jti")
+	code, ok = errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, "INTERNAL_ERROR", code.Code)
 }
 
 func TestSignupUsesAccessAndRefreshTTL(t *testing.T) {
