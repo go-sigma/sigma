@@ -89,7 +89,7 @@ func (a apiClient) doRequest(ctx context.Context, method, path string, headers h
 	}
 	req.SetHeader(consts.HeaderAuthorization, fmt.Sprintf("Bearer %s", a.authorization))
 	req.SetHeader(consts.HeaderContentType, "application/json")
-	req.SetDoNotParseResponse(true)
+	req.SetResponseDoNotParse(true)
 	if len(bodyReaders) != 0 {
 		req.SetBody(bodyReaders[0])
 	}

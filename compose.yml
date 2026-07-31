@@ -1,11 +1,10 @@
-version: "2"
 services:
   sigma:
     container_name: sigma
-    image: ghcr.io/go-sigma/sigma:nightly-alpine
+    image: ghcr.io/go-sigma/sigma:nightly
     ports:
       - "3000:3000"
-    command: ["sigma", "server"]
+    command: ["sigma", "server", "-c", "/etc/sigma/config-compose.yaml"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PWD}/conf:/etc/sigma
@@ -16,38 +15,27 @@ services:
       retries: 10
     restart: always
     depends_on:
-      mysql:
+      postgresql:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
+      rs3:
         condition: service_healthy
     networks:
       - default
-  mysql:
-    container_name: mysql
-    image: mysql:8.0
+  postgresql:
+    container_name: postgresql
+    image: postgres:16-alpine
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      MYSQL_ROOT_PASSWORD: sigma
-      MYSQL_DATABASE: sigma
-      MYSQL_USER: sigma
-      MYSQL_PASSWORD: sigma
+      POSTGRES_PASSWORD: sigma
+      POSTGRES_USER: sigma
+      POSTGRES_DB: sigma
     volumes:
-      - ${PWD}/storage/mysql:/var/lib/mysql
+      - ${PWD}/storage/postgresql:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u",
-          "sigma",
-          "--password=sigma",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U sigma -d sigma || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -68,22 +56,26 @@ services:
       retries: 10
     networks:
       - default
-  minio:
-    container_name: minio
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+  rs3:
+    container_name: rs3
+    image: ghcr.io/go-sigma/rs3:nightly
     ports:
       - "9000:9000"
-      - "9001:9001"
     environment:
-      MINIO_ROOT_USER: sigma
-      MINIO_ROOT_PASSWORD: sigma-sigma
-      MINIO_REGION_NAME: cn-north-1
-    entrypoint: ""
-    command: /bin/sh -c 'mkdir -p /data/sigma && minio server /data --console-address ":9001"'
+      RS3_HOST: 0.0.0.0
+      RS3_PORT: 9000
+      RS3_DATA_DIR: /var/lib/rs3/data
+      RS3_ACCESS_KEY: sigma
+      RS3_SECRET_KEY: sigma-sigma
+      RS3_ENDPOINT: http://127.0.0.1:9000
+    entrypoint:
+      - /bin/sh
+      - -c
+      - mkdir -p /var/lib/rs3/data/sigma && exec rs3
     volumes:
-      - ${PWD}/storage/minio:/data
+      - ${PWD}/storage/rs3:/var/lib/rs3/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "rs3-cli ls s3://sigma >/dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 10
