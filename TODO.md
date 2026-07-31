@@ -279,7 +279,7 @@
 - [ ] Add focused tests for `pkg/service/distribution/manifest`, especially manifest push/pull flows, digest validation, tag handling, delete behavior, and error mapping
 - [ ] Add tests for `pkg/service/distribution/blob` and `pkg/service/distribution/upload`, covering blob reads, uploads, mounts, cleanup, and storage error handling
 - [ ] Add tests for `pkg/server/handlers/distribution/base`, `blob`, `manifest`, and `upload`, covering HTTP methods, headers, status codes, range behavior, and distribution-spec errors
-- [ ] Add service-layer tests for `pkg/service/repositories`, `pkg/service/namespaces`, and `pkg/service/users`, covering permissions, quotas, member changes, login flows, and state updates
+- [x] Add service-layer tests for `pkg/service/repositories`, `pkg/service/namespaces`, and `pkg/service/users`, covering permissions, quotas, member changes, login flows, and state updates
 - [ ] Add tests for `pkg/service/builders`, `pkg/service/coderepos`, and `pkg/service/daemons`, with emphasis on asynchronous task creation, queue payloads, and status transitions
 
 **P1 recommendations**:

@@ -14,60 +14,64 @@
 
 package distribution
 
-// import (
-// 	"context"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
-// 	"time"
+import (
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// )
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+)
 
-// func TestListRepositories(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+func TestListRepositories(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := svcrepository.NewMockRepositoryService(ctrl)
+	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).
+		Return([]*models.Repository{{Name: "library/alpine"}, {Name: "library/busybox"}}, nil, int64(2), nil)
+	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog?n=200")
+	c.Request.Host = "registry.example.com"
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
-// 	ctx := context.Background()
+	(&handler{RepoSvc: svc}).ListRepositories(c)
+	c.Writer.WriteHeaderNow()
 
-// 	const (
-// 		namespaceName  = "test"
-// 		repositoryName = "test/busybox"
-// 	)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"repositories":["library/alpine","library/busybox"]}`, recorder.Body.String())
+	require.Equal(t, `<http://registry.example.com/v2/_catalog?last=library%2Fbusybox&n=200>; rel="next"`, recorder.Header().Get("Link"))
+}
 
-// 	userObj := &models.User{Username: "post-namespace", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-// 	assert.NoError(t, repouser.NewUserRepository().Create(ctx, userObj))
-// 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-// 	assert.NoError(t, reponamespace.NewNamespaceRepository().Create(ctx, namespaceObj))
-// 	repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
-// 	assert.NoError(t, reporegistry.NewRepositoryRepository().Create(ctx, repositoryObj, reporegistry.AutoCreateNamespace{UserID: userObj.ID}))
-// 	artifactObj := &models.Artifact{NamespaceID: namespaceObj.ID, RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
-// 	assert.NoError(t, reporegistry.NewArtifactRepository().Create(ctx, artifactObj))
-// 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
-// 	assert.NoError(t, reporegistry.NewTagRepository().Create(ctx, tagObj))
+func TestListRepositoriesInvalidLimit(t *testing.T) {
+	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog?n=invalid")
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
-// 	req := httptest.NewRequest(http.MethodGet, "/v2/_catalog", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, (&factory{}).Initialize(c))
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
-// }
+	(&handler{}).ListRepositories(c)
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
+func TestListRepositoriesServiceError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := svcrepository.NewMockRepositoryService(ctrl)
+	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).Return(nil, nil, int64(0), errors.New("list failed"))
+	recorder, c := newDistributionContext(http.MethodGet, "/v2/_catalog")
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+
+	(&handler{RepoSvc: svc}).ListRepositories(c)
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+func newDistributionContext(method, target string) (*httptest.ResponseRecorder, *gin.Context) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(method, target, nil)
+	return recorder, c
+}

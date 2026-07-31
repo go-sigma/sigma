@@ -14,62 +14,47 @@
 
 package distribution
 
-// import (
-// 	"context"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
-// 	"time"
+import (
+	"net/http"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/authz"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// )
+	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+)
 
-// func TestListTags(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+func TestListTags(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repoSvc := svcrepository.NewMockRepositoryService(ctrl)
+	tagSvc := svctag.NewMockTagService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	repoSvc.EXPECT().GetRepositoryByName(gomock.Any(), "library/alpine").Return(&models.Repository{ID: "repository-1", NamespaceID: "namespace-1"}, nil)
+	authorizer.EXPECT().Repository(gomock.Any(), gomock.Any(), "repository-1", enums.AuthRead).Return(true, nil)
+	tagSvc.EXPECT().ListTags(gomock.Any(), "namespace-1", "repository-1", nil, nil, gomock.Any(), gomock.Any()).Return([]*models.Tag{{Name: "latest"}}, int64(1), nil)
+	recorder, c := newDistributionContext(http.MethodGet, "/v2/library/alpine/tags/list?n=10")
+	c.Request.Host = "registry.example.com"
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
-// 	ctx := context.Background()
+	(&handler{RepoSvc: repoSvc, TagSvc: tagSvc, Authorizer: authorizer}).ListTags(c)
+	c.Writer.WriteHeaderNow()
 
-// 	const (
-// 		namespaceName  = "test"
-// 		repositoryName = "test/busybox"
-// 	)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"name":"library/alpine","tags":["latest"]}`, recorder.Body.String())
+	require.Equal(t, `<http://registry.example.com/v2/library/alpine/tags/list?last=latest&n=10>; rel="next"`, recorder.Header().Get("Link"))
+}
 
-// 	userObj := &models.User{Username: "list-tags", Password: ptr.Of("test"), Email: ptr.Of("test@gmail.com")}
-// 	assert.NoError(t, repouser.NewUserRepository().Create(ctx, userObj))
-// 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-// 	assert.NoError(t, reponamespace.NewNamespaceRepository().Create(ctx, namespaceObj))
-// 	_, err := reponamespace.NewNamespaceMemberRepository().AddNamespaceMember(ctx, userObj.ID, ptr.To(namespaceObj), enums.NamespaceRoleAdmin)
-// 	assert.NoError(t, err)
-// 	repositoryObj := &models.Repository{Name: repositoryName, NamespaceID: namespaceObj.ID}
-// 	assert.NoError(t, reporegistry.NewRepositoryRepository().Create(ctx, repositoryObj, reporegistry.AutoCreateNamespace{UserID: userObj.ID}))
-// 	artifactObj := &models.Artifact{NamespaceID: namespaceObj.ID, RepositoryID: repositoryObj.ID, Digest: "sha256:1234567890", Size: 1234, ContentType: "application/octet-stream", Raw: []byte("test"), PushedAt: time.Now().UnixMilli()}
-// 	assert.NoError(t, reporegistry.NewArtifactRepository().Create(ctx, artifactObj))
-// 	tagObj := &models.Tag{Name: "latest", RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, PushedAt: time.Now().UnixMilli()}
-// 	assert.NoError(t, reporegistry.NewTagRepository().Create(ctx, tagObj))
+func TestListTagsInvalidRepository(t *testing.T) {
+	recorder, c := newDistributionContext(http.MethodGet, "/v2/INVALID/tags/list")
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
 
-// 	req := httptest.NewRequest(http.MethodGet, "/v2/test/busybox/tags/list", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, (&factory{}).Initialize(c))
-// 	assert.Equal(t, http.StatusOK, c.Response().Status)
-// }
+	(&handler{}).ListTags(c)
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+}
