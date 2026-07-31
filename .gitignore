@@ -199,7 +199,5 @@ pkg/**/*.html
 *.tar.gz
 *.tar
 *.zstd
-web/.yarn/
-docs/.yarn/
 coverage.txt
 .trae/

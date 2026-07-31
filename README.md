@@ -13,7 +13,7 @@ Sigma is an image registry that is extremely easy to deploy and maintain, and it
 
 Now you can use this command to run a simple server:
 
-``` bash
+```bash
 docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
@@ -42,6 +42,17 @@ Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 - [x] Support Image sign.
 - [x] Support Image build in docker, podman and kubernetes.
 - [ ] Support Image replication.
+
+## AI Clients and Automation
+
+Sigma provides two integration paths for AI clients and external automation:
+
+- Embedded MCP server: Sigma can expose registry management tools through the
+  existing server process. It is disabled by default and can be enabled through
+  the `mcp` configuration section. See [MCP Server](docs/mcp.md).
+- External REST API skill: `tools/skill/sigma-api-operator` packages a reusable
+  skill and `swagger.yaml` so CLI agents such as Claude Code or Copilot CLI can
+  discover Sigma APIs and operate resources through HTTP requests.
 
 ## Alternatives
 
