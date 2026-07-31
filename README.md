@@ -21,7 +21,7 @@ The default username and password is: sigma/Admin@123. If you want to modify the
 
 ## Demo Server
 
-It is deployed on an AWS EC2 instance (2C4G, 40G disk) running Debian 12.1 as the Linux distribution. The Docker version used is 25.0.3. The demo server was set up following these [instructions](https://github.com/go-sigma/demo-server).
+It is deployed on an AWS EC2 instance (2C4G, 40G disk) running Debian 12.1 as the Linux distribution. The Docker version used is 25.0.3. The demo server was set up following these [instructions](tools/demo-server).
 
 Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
