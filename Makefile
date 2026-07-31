@@ -104,8 +104,8 @@ gormgen: ## Generate GORM models from the database schema
 
 .PHONY: swagen
 swagen: ## Generate Swagger documentation from code comments
-	# go install github.com/swaggo/swag/cmd/swag@latest
-	@swag fmt
+	@$(GOCMD) tool swag fmt
+	@$(GOCMD) tool swag init --output tools/skill/sigma-api-operator --outputTypes yaml
 
 .PHONY: addlicense
 addlicense: ## Add license headers to source files
