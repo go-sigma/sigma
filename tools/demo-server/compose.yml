@@ -1,0 +1,232 @@
+services:
+  traefik:
+    hostname: traefik
+    container_name: traefik
+    image: traefik:v2.11
+    pull_policy: if_not_present
+    restart: always
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker
+      - --api
+      - --ping
+      - --certificatesresolvers.leresolver.acme.email=${EMAIL}
+      - --certificatesresolvers.leresolver.acme.tlschallenge=true
+      - --certificatesresolvers.leresolver.acme.caserver=${LETSENCRYPT_CASERVER}
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addServicesLabels=true
+      - --entryPoints.metrics.address=:8899
+      - --metrics.prometheus.entryPoint=metrics
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${VOLUME_PREFIX}/traefik/acme.json:/acme.json
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.http.routers.traefik.rule=Host(`traefik.sigma${HOST_DOMAIN}`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.tls.certresolver=leresolver
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.middlewares=authtraefik
+      - traefik.http.middlewares.authtraefik.basicauth.users=sigma:$$apr1$$KeXNZcB7$$NmJjSt3c1bWBKKekr6ac80
+      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.entrypoints=web
+      - traefik.http.routers.http-catchall.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.gzip.compress=true
+
+  sigma:
+    hostname: sigma
+    container_name: sigma
+    image: docker.io/tosone/sigma:nightly-alpine-trivydb
+    pull_policy: if_not_present
+    restart: always
+    command: ["sigma", "server"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PWD}/sigma:/etc/sigma
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-s", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rs3:
+        condition: service_healthy
+    networks:
+      - default
+    labels:
+      - traefik.http.routers.sigma.rule=Host(`sigma${HOST_DOMAIN}`)
+      - traefik.http.routers.sigma.entrypoints=websecure
+      - traefik.http.routers.sigma.tls=true
+      - traefik.http.routers.sigma.tls.certresolver=leresolver
+      - traefik.http.services=sigma
+      - traefik.http.services.sigma.loadbalancer.server.port=3000
+      - traefik.http.routers.sigma.middlewares=gzip@docker
+
+  postgresql:
+    hostname: postgresql
+    container_name: postgresql
+    image: postgres:16-alpine
+    pull_policy: if_not_present
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${PASSWORD}
+      POSTGRES_USER: ${USERNAME}
+      POSTGRES_DB: sigma
+    volumes:
+      - ${VOLUME_PREFIX}/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USERNAME} -d sigma || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+
+  redis:
+    hostname: redis
+    container_name: redis
+    image: redis:alpine
+    pull_policy: if_not_present
+    restart: always
+    command: redis-server --requirepass ${PASSWORD}
+    volumes:
+      - ${VOLUME_PREFIX}/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${PASSWORD} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+
+  rs3:
+    hostname: rs3
+    container_name: rs3
+    image: ghcr.io/go-sigma/rs3:nightly
+    pull_policy: if_not_present
+    restart: always
+    environment:
+      RS3_HOST: 0.0.0.0
+      RS3_PORT: 9000
+      RS3_DATA_DIR: /var/lib/rs3/data
+      RS3_ACCESS_KEY: ${USERNAME}
+      RS3_SECRET_KEY: ${PASSWORD}
+      RS3_ENDPOINT: http://127.0.0.1:9000
+    entrypoint:
+      - /bin/sh
+      - -c
+      - mkdir -p /var/lib/rs3/data/sigma && exec rs3
+    volumes:
+      - ${VOLUME_PREFIX}/rs3:/var/lib/rs3/data
+    healthcheck:
+      test: ["CMD-SHELL", "rs3-cli ls s3://sigma >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+
+  prometheus:
+    hostname: prometheus
+    container_name: prometheus
+    image: prom/prometheus:v2.45.3
+    pull_policy: if_not_present
+    restart: always
+    user: root
+    privileged: true
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ${PWD}/prometheus:/etc/prometheus
+      - ${VOLUME_PREFIX}/prometheus:/prometheus
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -O - -q http://localhost:9090/-/healthy | grep -q 'Prometheus Server is Healthy'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+
+  grafana:
+    hostname: grafana
+    container_name: grafana
+    image: grafana/grafana:10.2.4
+    pull_policy: if_not_present
+    restart: always
+    user: root
+    privileged: true
+    environment:
+      - GF_SECURITY_ADMIN_USER=${USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${PASSWORD}
+      - GF_SECURITY_ADMIN_EMAIL=${EMAIL}
+      - GF_SERVER_ROOT_URL=https://grafana.sigma.tosone.cn
+    volumes:
+      - ${PWD}/grafana:/etc/grafana/provisioning/
+      - ${VOLUME_PREFIX}/grafana:/var/lib/grafana/
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-s", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+    labels:
+      - traefik.http.routers.grafana.rule=Host(`grafana.sigma${HOST_DOMAIN}`)
+      - traefik.http.routers.grafana.entrypoints=websecure
+      - traefik.http.routers.grafana.tls=true
+      - traefik.http.routers.grafana.tls.certresolver=leresolver
+      - traefik.http.services=grafana
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+      - traefik.http.routers.grafana.middlewares=gzip@docker
+
+  cadvisor:
+    hostname: cadvisor
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    pull_policy: if_not_present
+    restart: always
+    privileged: true
+    devices:
+      - "/dev/kmsg"
+    networks:
+      - default
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    labels:
+      - traefik.enable=false
+
+networks:
+  default:
+    name: ${DOCKER_NETWORK:-sigma}

@@ -21,7 +21,7 @@ docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 
 ## Demo Server
 
-演示服务器部署在一个运行 Debian 12.1 Linux 发行版的 AWS EC2 实例上(2核4G内存, 40G磁盘)，使用的 Docker 版本是 25.0.3，演示服务器是参照[这里](https://github.com/go-sigma/demo-server)说明搭建的。
+演示服务器部署在一个运行 Debian 12.1 Linux 发行版的 AWS EC2 实例上(2核4G内存, 40G磁盘)，使用的 Docker 版本是 25.0.3，演示服务器是参照[这里](tools/demo-server)说明搭建的。
 
 访问: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
