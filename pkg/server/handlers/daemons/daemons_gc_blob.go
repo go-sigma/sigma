@@ -332,7 +332,7 @@ func (h *handler) ListGcBlobRecords(c *gin.Context, req *api.ListGcBlobRecordsRe
 	for _, recordObj := range recordObjs {
 		resp = append(resp, api.GcBlobRecordItem{
 			ID:        recordObj.ID,
-			Digest:    recordObj.Digest,
+			Digest:    recordObj.Resource,
 			Status:    recordObj.Status,
 			Message:   string(recordObj.Message),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
@@ -371,7 +371,7 @@ func (h *handler) GetGcBlobRecord(c *gin.Context, req *api.GetGcBlobRecordReques
 	}
 	c.JSON(http.StatusOK, api.GcBlobRecordItem{
 		ID:        recordObj.ID,
-		Digest:    recordObj.Digest,
+		Digest:    recordObj.Resource,
 		Status:    recordObj.Status,
 		Message:   string(recordObj.Message),
 		CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),

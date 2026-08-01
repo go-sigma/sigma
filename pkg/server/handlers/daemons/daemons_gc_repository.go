@@ -321,7 +321,7 @@ func (h *handler) ListGcRepositoryRecords(c *gin.Context, req *api.ListGcReposit
 	for _, recordObj := range recordObjs {
 		resp = append(resp, api.GcRepositoryRecordItem{
 			ID:         recordObj.ID,
-			Repository: recordObj.Repository,
+			Repository: recordObj.Resource,
 			Status:     recordObj.Status,
 			Message:    string(recordObj.Message),
 			CreatedAt:  time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
@@ -360,7 +360,7 @@ func (h *handler) GetGcRepositoryRecord(c *gin.Context, req *api.GetGcRepository
 	}
 	c.JSON(http.StatusOK, api.GcRepositoryRecordItem{
 		ID:         recordObj.ID,
-		Repository: recordObj.Repository,
+		Repository: recordObj.Resource,
 		Status:     recordObj.Status,
 		Message:    string(recordObj.Message),
 		CreatedAt:  time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),

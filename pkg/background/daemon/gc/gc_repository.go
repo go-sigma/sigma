@@ -58,7 +58,7 @@ func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID 
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcRepositoryRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc repository runner failed: %v", err), g.successCount, g.failedCount)
 		return fmt.Errorf("get gc repository runner failed: %v", err)
@@ -128,7 +128,7 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 		}
 		var mu sync.Mutex
 		if err := runWorkers(ctx, g.config.Daemon.GC.WorkerCount, repositories, func(ctx context.Context, repositoryObj *models.Repository) error {
-			record := &models.DaemonGcRepositoryRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Repository: repositoryObj.Name, Status: enums.GcRecordStatusSuccess}
+			record := &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: repositoryObj.Name, Status: enums.GcRecordStatusSuccess}
 			if err := repositoryRepository.DeleteByID(ctx, repositoryObj.ID); err != nil {
 				record.Status = enums.GcRecordStatusFailed
 				record.Message = []byte(err.Error())
@@ -140,7 +140,7 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 				g.successCount++
 				mu.Unlock()
 			}
-			if err := daemonRepository.CreateGcRepositoryRecords(ctx, []*models.DaemonGcRepositoryRecord{record}); err != nil {
+			if err := daemonRepository.CreateGcRecords(ctx, []*models.DaemonGcRecord{record}); err != nil {
 				slog.Error("create gc repository record failed", "err", err)
 			}
 			return nil

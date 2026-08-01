@@ -63,7 +63,7 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcBlobRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc blob runner failed: %v", err), g.successCount, g.failedCount)
 		return fmt.Errorf("get gc blob runner failed: %v", err)
@@ -110,7 +110,7 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 			} else {
 				g.failedCount++
 			}
-			if err := daemonRepository.CreateGcBlobRecords(lockCtx, []*models.DaemonGcBlobRecord{record}); err != nil {
+			if err := daemonRepository.CreateGcRecords(lockCtx, []*models.DaemonGcRecord{record}); err != nil {
 				slog.Error("create gc blob record failed", "err", err)
 			}
 			return nil
@@ -138,7 +138,7 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 	return nil
 }
 
-func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlobRunner, blob models.Blob) *models.DaemonGcBlobRecord {
+func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlobRunner, blob models.Blob) *models.DaemonGcRecord {
 	daemonRepository := g.daemonRepository
 	storagePath := utils.GenBlobPathByDigest(digest.Digest(blob.Digest))
 	task := &models.GcStorageDeletionTask{
@@ -151,12 +151,12 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 		Status:       enums.TaskCommonStatusPending,
 	}
 	if err := daemonRepository.UpsertGcStorageDeletionTask(ctx, task); err != nil {
-		return &models.DaemonGcBlobRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Digest: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "create storage deletion task failed: %v", err)}
+		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "create storage deletion task failed: %v", err)}
 	}
 	if err := daemonRepository.UpdateGcStorageDeletionTask(ctx, task.ID, map[string]any{
 		"status": enums.TaskCommonStatusDoing,
 	}); err != nil {
-		return &models.DaemonGcBlobRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Digest: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "mark storage deletion task doing failed: %v", err)}
+		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "mark storage deletion task doing failed: %v", err)}
 	}
 	if err := g.storageDriver.Delete(ctx, storagePath); err != nil {
 		_ = daemonRepository.UpdateGcStorageDeletionTask(ctx, task.ID, map[string]any{
@@ -164,7 +164,7 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 			"attempts": task.Attempts + 1,
 			"message":  []byte(err.Error()),
 		})
-		return &models.DaemonGcBlobRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Digest: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "delete blob object failed: %v", err)}
+		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "delete blob object failed: %v", err)}
 	}
 	err := query.Q.Transaction(func(tx *query.Query) error {
 		if err := reporegistry.NewBlobRepository(tx).DeleteByID(ctx, blob.ID); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -175,9 +175,9 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 		})
 	})
 	if err != nil {
-		return &models.DaemonGcBlobRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Digest: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "finalize blob deletion failed: %v", err)}
+		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "finalize blob deletion failed: %v", err)}
 	}
-	return &models.DaemonGcBlobRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Digest: blob.Digest, Status: enums.GcRecordStatusSuccess}
+	return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusSuccess}
 }
 
 func (g *gcBlob) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcBlob {

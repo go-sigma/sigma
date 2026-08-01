@@ -29,18 +29,9 @@ var (
 	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
-	DaemonGcArtifactRecord        *daemonGcArtifactRecord
-	DaemonGcArtifactRule          *daemonGcArtifactRule
-	DaemonGcArtifactRunner        *daemonGcArtifactRunner
-	DaemonGcBlobRecord            *daemonGcBlobRecord
-	DaemonGcBlobRule              *daemonGcBlobRule
-	DaemonGcBlobRunner            *daemonGcBlobRunner
-	DaemonGcRepositoryRecord      *daemonGcRepositoryRecord
-	DaemonGcRepositoryRule        *daemonGcRepositoryRule
-	DaemonGcRepositoryRunner      *daemonGcRepositoryRunner
-	DaemonGcTagRecord             *daemonGcTagRecord
-	DaemonGcTagRule               *daemonGcTagRule
-	DaemonGcTagRunner             *daemonGcTagRunner
+	DaemonGcRecord                *daemonGcRecord
+	DaemonGcRule                  *daemonGcRule
+	DaemonGcRunner                *daemonGcRunner
 	Namespace                     *namespace
 	NamespaceActivityHourly       *namespaceActivityHourly
 	NamespaceMember               *namespaceMember
@@ -69,18 +60,9 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
-	DaemonGcArtifactRecord = &Q.DaemonGcArtifactRecord
-	DaemonGcArtifactRule = &Q.DaemonGcArtifactRule
-	DaemonGcArtifactRunner = &Q.DaemonGcArtifactRunner
-	DaemonGcBlobRecord = &Q.DaemonGcBlobRecord
-	DaemonGcBlobRule = &Q.DaemonGcBlobRule
-	DaemonGcBlobRunner = &Q.DaemonGcBlobRunner
-	DaemonGcRepositoryRecord = &Q.DaemonGcRepositoryRecord
-	DaemonGcRepositoryRule = &Q.DaemonGcRepositoryRule
-	DaemonGcRepositoryRunner = &Q.DaemonGcRepositoryRunner
-	DaemonGcTagRecord = &Q.DaemonGcTagRecord
-	DaemonGcTagRule = &Q.DaemonGcTagRule
-	DaemonGcTagRunner = &Q.DaemonGcTagRunner
+	DaemonGcRecord = &Q.DaemonGcRecord
+	DaemonGcRule = &Q.DaemonGcRule
+	DaemonGcRunner = &Q.DaemonGcRunner
 	Namespace = &Q.Namespace
 	NamespaceActivityHourly = &Q.NamespaceActivityHourly
 	NamespaceMember = &Q.NamespaceMember
@@ -110,18 +92,9 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
-		DaemonGcArtifactRecord:        newDaemonGcArtifactRecord(db, opts...),
-		DaemonGcArtifactRule:          newDaemonGcArtifactRule(db, opts...),
-		DaemonGcArtifactRunner:        newDaemonGcArtifactRunner(db, opts...),
-		DaemonGcBlobRecord:            newDaemonGcBlobRecord(db, opts...),
-		DaemonGcBlobRule:              newDaemonGcBlobRule(db, opts...),
-		DaemonGcBlobRunner:            newDaemonGcBlobRunner(db, opts...),
-		DaemonGcRepositoryRecord:      newDaemonGcRepositoryRecord(db, opts...),
-		DaemonGcRepositoryRule:        newDaemonGcRepositoryRule(db, opts...),
-		DaemonGcRepositoryRunner:      newDaemonGcRepositoryRunner(db, opts...),
-		DaemonGcTagRecord:             newDaemonGcTagRecord(db, opts...),
-		DaemonGcTagRule:               newDaemonGcTagRule(db, opts...),
-		DaemonGcTagRunner:             newDaemonGcTagRunner(db, opts...),
+		DaemonGcRecord:                newDaemonGcRecord(db, opts...),
+		DaemonGcRule:                  newDaemonGcRule(db, opts...),
+		DaemonGcRunner:                newDaemonGcRunner(db, opts...),
 		Namespace:                     newNamespace(db, opts...),
 		NamespaceActivityHourly:       newNamespaceActivityHourly(db, opts...),
 		NamespaceMember:               newNamespaceMember(db, opts...),
@@ -152,18 +125,9 @@ type Query struct {
 	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
-	DaemonGcArtifactRecord        daemonGcArtifactRecord
-	DaemonGcArtifactRule          daemonGcArtifactRule
-	DaemonGcArtifactRunner        daemonGcArtifactRunner
-	DaemonGcBlobRecord            daemonGcBlobRecord
-	DaemonGcBlobRule              daemonGcBlobRule
-	DaemonGcBlobRunner            daemonGcBlobRunner
-	DaemonGcRepositoryRecord      daemonGcRepositoryRecord
-	DaemonGcRepositoryRule        daemonGcRepositoryRule
-	DaemonGcRepositoryRunner      daemonGcRepositoryRunner
-	DaemonGcTagRecord             daemonGcTagRecord
-	DaemonGcTagRule               daemonGcTagRule
-	DaemonGcTagRunner             daemonGcTagRunner
+	DaemonGcRecord                daemonGcRecord
+	DaemonGcRule                  daemonGcRule
+	DaemonGcRunner                daemonGcRunner
 	Namespace                     namespace
 	NamespaceActivityHourly       namespaceActivityHourly
 	NamespaceMember               namespaceMember
@@ -197,18 +161,9 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
-		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.clone(db),
-		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.clone(db),
-		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.clone(db),
-		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.clone(db),
-		DaemonGcBlobRule:              q.DaemonGcBlobRule.clone(db),
-		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.clone(db),
-		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.clone(db),
-		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.clone(db),
-		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.clone(db),
-		DaemonGcTagRecord:             q.DaemonGcTagRecord.clone(db),
-		DaemonGcTagRule:               q.DaemonGcTagRule.clone(db),
-		DaemonGcTagRunner:             q.DaemonGcTagRunner.clone(db),
+		DaemonGcRecord:                q.DaemonGcRecord.clone(db),
+		DaemonGcRule:                  q.DaemonGcRule.clone(db),
+		DaemonGcRunner:                q.DaemonGcRunner.clone(db),
 		Namespace:                     q.Namespace.clone(db),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.clone(db),
 		NamespaceMember:               q.NamespaceMember.clone(db),
@@ -247,18 +202,9 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
-		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.replaceDB(db),
-		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.replaceDB(db),
-		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.replaceDB(db),
-		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.replaceDB(db),
-		DaemonGcBlobRule:              q.DaemonGcBlobRule.replaceDB(db),
-		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.replaceDB(db),
-		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.replaceDB(db),
-		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.replaceDB(db),
-		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.replaceDB(db),
-		DaemonGcTagRecord:             q.DaemonGcTagRecord.replaceDB(db),
-		DaemonGcTagRule:               q.DaemonGcTagRule.replaceDB(db),
-		DaemonGcTagRunner:             q.DaemonGcTagRunner.replaceDB(db),
+		DaemonGcRecord:                q.DaemonGcRecord.replaceDB(db),
+		DaemonGcRule:                  q.DaemonGcRule.replaceDB(db),
+		DaemonGcRunner:                q.DaemonGcRunner.replaceDB(db),
 		Namespace:                     q.Namespace.replaceDB(db),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.replaceDB(db),
 		NamespaceMember:               q.NamespaceMember.replaceDB(db),
@@ -287,18 +233,9 @@ type queryCtx struct {
 	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
-	DaemonGcArtifactRecord        *daemonGcArtifactRecordDo
-	DaemonGcArtifactRule          *daemonGcArtifactRuleDo
-	DaemonGcArtifactRunner        *daemonGcArtifactRunnerDo
-	DaemonGcBlobRecord            *daemonGcBlobRecordDo
-	DaemonGcBlobRule              *daemonGcBlobRuleDo
-	DaemonGcBlobRunner            *daemonGcBlobRunnerDo
-	DaemonGcRepositoryRecord      *daemonGcRepositoryRecordDo
-	DaemonGcRepositoryRule        *daemonGcRepositoryRuleDo
-	DaemonGcRepositoryRunner      *daemonGcRepositoryRunnerDo
-	DaemonGcTagRecord             *daemonGcTagRecordDo
-	DaemonGcTagRule               *daemonGcTagRuleDo
-	DaemonGcTagRunner             *daemonGcTagRunnerDo
+	DaemonGcRecord                *daemonGcRecordDo
+	DaemonGcRule                  *daemonGcRuleDo
+	DaemonGcRunner                *daemonGcRunnerDo
 	Namespace                     *namespaceDo
 	NamespaceActivityHourly       *namespaceActivityHourlyDo
 	NamespaceMember               *namespaceMemberDo
@@ -327,18 +264,9 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
-		DaemonGcArtifactRecord:        q.DaemonGcArtifactRecord.WithContext(ctx),
-		DaemonGcArtifactRule:          q.DaemonGcArtifactRule.WithContext(ctx),
-		DaemonGcArtifactRunner:        q.DaemonGcArtifactRunner.WithContext(ctx),
-		DaemonGcBlobRecord:            q.DaemonGcBlobRecord.WithContext(ctx),
-		DaemonGcBlobRule:              q.DaemonGcBlobRule.WithContext(ctx),
-		DaemonGcBlobRunner:            q.DaemonGcBlobRunner.WithContext(ctx),
-		DaemonGcRepositoryRecord:      q.DaemonGcRepositoryRecord.WithContext(ctx),
-		DaemonGcRepositoryRule:        q.DaemonGcRepositoryRule.WithContext(ctx),
-		DaemonGcRepositoryRunner:      q.DaemonGcRepositoryRunner.WithContext(ctx),
-		DaemonGcTagRecord:             q.DaemonGcTagRecord.WithContext(ctx),
-		DaemonGcTagRule:               q.DaemonGcTagRule.WithContext(ctx),
-		DaemonGcTagRunner:             q.DaemonGcTagRunner.WithContext(ctx),
+		DaemonGcRecord:                q.DaemonGcRecord.WithContext(ctx),
+		DaemonGcRule:                  q.DaemonGcRule.WithContext(ctx),
+		DaemonGcRunner:                q.DaemonGcRunner.WithContext(ctx),
 		Namespace:                     q.Namespace.WithContext(ctx),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.WithContext(ctx),
 		NamespaceMember:               q.NamespaceMember.WithContext(ctx),

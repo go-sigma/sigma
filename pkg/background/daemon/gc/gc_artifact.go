@@ -57,7 +57,7 @@ func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext, runnerID st
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcArtifactRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc artifact runner failed: %v", err), g.successCount, g.failedCount)
 		return fmt.Errorf("get gc artifact runner failed: %v", err)
@@ -154,16 +154,16 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 			return fmt.Errorf("find artifact referrers failed: %v", err)
 		}
 		deleteIDs := make([]string, 0, len(artifacts)+len(referrers))
-		records := make([]*models.DaemonGcArtifactRecord, 0, len(artifacts)+len(referrers))
+		records := make([]*models.DaemonGcRecord, 0, len(artifacts)+len(referrers))
 		var deletedBlobsSize int64
 		for _, artifactObj := range artifacts {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
-			records = append(records, &models.DaemonGcArtifactRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Digest: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
+			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
 			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		for _, artifactObj := range referrers {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
-			records = append(records, &models.DaemonGcArtifactRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Digest: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
+			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
 			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		if len(deleteIDs) > 0 {
@@ -186,7 +186,7 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 					}
 				}
 			}
-			if err := daemonRepository.CreateGcArtifactRecords(ctx, records); err != nil {
+			if err := daemonRepository.CreateGcRecords(ctx, records); err != nil {
 				slog.Error("create gc artifact record failed", "err", err)
 			}
 		}

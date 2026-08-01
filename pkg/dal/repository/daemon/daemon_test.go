@@ -33,7 +33,7 @@ func TestNewDaemonRepository(t *testing.T) {
 	require.NotNil(t, repodaemon.NewDaemonRepository(query.Q))
 }
 
-func TestDaemonRepositoryGcTagFlow(t *testing.T) {
+func TestDaemonRepositoryGcFlows(t *testing.T) {
 	testkit.InitRepository(t)
 
 	ctx := t.Context()
@@ -41,289 +41,58 @@ func TestDaemonRepositoryGcTagFlow(t *testing.T) {
 	namespaceID := uuid.NewV7String()
 	cronRule := "0 0 * * *"
 	nextTrigger := int64(100)
-	rule := &models.DaemonGcTagRule{
-		ID:                  uuid.NewV7String(),
-		NamespaceID:         &namespaceID,
-		CronEnabled:         true,
-		CronRule:            &cronRule,
-		CronNextTrigger:     &nextTrigger,
-		RetentionRuleType:   enums.RetentionRuleTypeDay,
-		RetentionRuleAmount: 7,
+	tests := []struct {
+		name        string
+		daemon      enums.Daemon
+		namespaceID *string
+		resource    string
+	}{
+		{name: "tag", daemon: enums.DaemonGcTag, namespaceID: &namespaceID, resource: "v1"},
+		{name: "repository", daemon: enums.DaemonGcRepository, namespaceID: &namespaceID, resource: "library/alpine"},
+		{name: "artifact", daemon: enums.DaemonGcArtifact, namespaceID: &namespaceID, resource: "sha256:artifact"},
+		{name: "blob", daemon: enums.DaemonGcBlob, resource: "sha256:blob"},
 	}
-	require.NoError(t, daemonRepository.CreateGcTagRule(ctx, rule))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rule := &models.DaemonGcRule{
+				ID:                  uuid.NewV7String(),
+				Type:                tt.daemon,
+				NamespaceID:         tt.namespaceID,
+				CronEnabled:         true,
+				CronRule:            &cronRule,
+				CronNextTrigger:     &nextTrigger,
+				RetentionDay:        7,
+				RetentionRuleType:   enums.RetentionRuleTypeDay,
+				RetentionRuleAmount: 7,
+			}
+			require.NoError(t, daemonRepository.CreateGcRule(ctx, rule))
+			gotRule, err := daemonRepository.GetGcRule(ctx, tt.daemon, tt.namespaceID)
+			require.NoError(t, err)
+			require.Equal(t, rule.ID, gotRule.ID)
+			require.NoError(t, daemonRepository.UpdateGcRule(ctx, rule.ID, map[string]any{
+				query.DaemonGcRule.IsRunning.ColumnName().String(): true,
+			}))
 
-	gotRule, err := daemonRepository.GetGcTagRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRule.ID)
+			runner := &models.DaemonGcRunner{ID: uuid.NewV7String(), RuleID: rule.ID, Status: enums.TaskCommonStatusDoing, OperateType: enums.OperateTypeManual}
+			require.NoError(t, daemonRepository.CreateGcRunner(ctx, runner))
+			gotRunner, err := daemonRepository.GetGcLatestRunner(ctx, rule.ID)
+			require.NoError(t, err)
+			require.Equal(t, runner.ID, gotRunner.ID)
+			gotRunner, err = daemonRepository.GetGcRunner(ctx, runner.ID)
+			require.NoError(t, err)
+			require.Equal(t, tt.daemon, gotRunner.Rule.Type)
 
-	require.NoError(t, daemonRepository.UpdateGcTagRule(ctx, rule.ID, map[string]any{
-		query.DaemonGcTagRule.IsRunning.ColumnName().String():           true,
-		query.DaemonGcTagRule.RetentionRuleAmount.ColumnName().String(): int64(14),
-	}))
-	gotRule, err = daemonRepository.GetGcTagRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.True(t, gotRule.IsRunning)
-	require.Equal(t, int64(14), gotRule.RetentionRuleAmount)
-
-	oldRunner := &models.DaemonGcTagRunner{
-		ID:          uuid.NewV7String(),
-		CreatedAt:   10,
-		RuleID:      rule.ID,
-		Status:      enums.TaskCommonStatusPending,
-		OperateType: enums.OperateTypeAutomatic,
+			record := &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: tt.resource, Status: enums.GcRecordStatusSuccess}
+			require.NoError(t, daemonRepository.CreateGcRecords(ctx, []*models.DaemonGcRecord{record}))
+			records, total, err := daemonRepository.ListGcRecords(ctx, runner.ID, testPagination(), testSort("resource"))
+			require.NoError(t, err)
+			require.Equal(t, int64(1), total)
+			require.Equal(t, tt.resource, records[0].Resource)
+			gotRecord, err := daemonRepository.GetGcRecord(ctx, record.ID)
+			require.NoError(t, err)
+			require.Equal(t, rule.ID, gotRecord.Runner.Rule.ID)
+		})
 	}
-	runner := &models.DaemonGcTagRunner{
-		ID:          uuid.NewV7String(),
-		CreatedAt:   20,
-		RuleID:      rule.ID,
-		Status:      enums.TaskCommonStatusDoing,
-		OperateType: enums.OperateTypeManual,
-	}
-	require.NoError(t, daemonRepository.CreateGcTagRunner(ctx, oldRunner))
-	require.NoError(t, daemonRepository.CreateGcTagRunner(ctx, runner))
-
-	latestRunner, err := daemonRepository.GetGcTagLatestRunner(ctx, rule.ID)
-	require.NoError(t, err)
-	require.Equal(t, runner.ID, latestRunner.ID)
-
-	gotRunner, err := daemonRepository.GetGcTagRunner(ctx, runner.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRunner.Rule.ID)
-
-	runners, total, err := daemonRepository.ListGcTagRunners(ctx, rule.ID, testPagination(), testSort("created_at"))
-	require.NoError(t, err)
-	require.Equal(t, int64(2), total)
-	require.Equal(t, []string{oldRunner.ID, runner.ID}, []string{runners[0].ID, runners[1].ID})
-
-	require.NoError(t, daemonRepository.UpdateGcTagRunner(ctx, runner.ID, map[string]any{
-		query.DaemonGcTagRunner.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
-	}))
-	gotRunner, err = daemonRepository.GetGcTagRunner(ctx, runner.ID)
-	require.NoError(t, err)
-	require.Equal(t, enums.TaskCommonStatusSuccess, gotRunner.Status)
-
-	recordOne := &models.DaemonGcTagRecord{
-		ID:       uuid.NewV7String(),
-		RunnerID: runner.ID,
-		Tag:      "v1",
-		Status:   enums.GcRecordStatusSuccess,
-	}
-	recordTwo := &models.DaemonGcTagRecord{
-		ID:       uuid.NewV7String(),
-		RunnerID: runner.ID,
-		Tag:      "v2",
-		Status:   enums.GcRecordStatusFailed,
-	}
-	require.NoError(t, daemonRepository.CreateGcTagRecords(ctx, []*models.DaemonGcTagRecord{recordOne, recordTwo}))
-
-	records, total, err := daemonRepository.ListGcTagRecords(ctx, runner.ID, testPagination(), testSort("tag"))
-	require.NoError(t, err)
-	require.Equal(t, int64(2), total)
-	require.Equal(t, []string{"v1", "v2"}, []string{records[0].Tag, records[1].Tag})
-
-	gotRecord, err := daemonRepository.GetGcTagRecord(ctx, recordOne.ID)
-	require.NoError(t, err)
-	require.Equal(t, runner.ID, gotRecord.Runner.ID)
-	require.Equal(t, rule.ID, gotRecord.Runner.Rule.ID)
-}
-
-func TestDaemonRepositoryGcRepositoryFlow(t *testing.T) {
-	testkit.InitRepository(t)
-
-	ctx := t.Context()
-	daemonRepository := repodaemon.NewDaemonRepository()
-	namespaceID := uuid.NewV7String()
-	rule := &models.DaemonGcRepositoryRule{
-		ID:           uuid.NewV7String(),
-		NamespaceID:  &namespaceID,
-		RetentionDay: 7,
-	}
-	require.NoError(t, daemonRepository.CreateGcRepositoryRule(ctx, rule))
-
-	gotRule, err := daemonRepository.GetGcRepositoryRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRule.ID)
-
-	require.NoError(t, daemonRepository.UpdateGcRepositoryRule(ctx, rule.ID, map[string]any{
-		query.DaemonGcRepositoryRule.RetentionDay.ColumnName().String(): 14,
-	}))
-	gotRule, err = daemonRepository.GetGcRepositoryRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.Equal(t, 14, gotRule.RetentionDay)
-
-	runner := &models.DaemonGcRepositoryRunner{
-		ID:          uuid.NewV7String(),
-		RuleID:      rule.ID,
-		Status:      enums.TaskCommonStatusDoing,
-		OperateType: enums.OperateTypeManual,
-	}
-	require.NoError(t, daemonRepository.CreateGcRepositoryRunner(ctx, runner))
-
-	gotRunner, err := daemonRepository.GetGcRepositoryLatestRunner(ctx, rule.ID)
-	require.NoError(t, err)
-	require.Equal(t, runner.ID, gotRunner.ID)
-
-	gotRunner, err = daemonRepository.GetGcRepositoryRunner(ctx, runner.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRunner.Rule.ID)
-
-	runners, total, err := daemonRepository.ListGcRepositoryRunners(ctx, rule.ID, testPagination(), testSort("created_at"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, runner.ID, runners[0].ID)
-
-	require.NoError(t, daemonRepository.UpdateGcRepositoryRunner(ctx, runner.ID, map[string]any{
-		query.DaemonGcRepositoryRunner.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
-	}))
-
-	record := &models.DaemonGcRepositoryRecord{
-		ID:         uuid.NewV7String(),
-		RunnerID:   runner.ID,
-		Repository: "library/alpine",
-		Status:     enums.GcRecordStatusSuccess,
-	}
-	require.NoError(t, daemonRepository.CreateGcRepositoryRecords(ctx, []*models.DaemonGcRepositoryRecord{record}))
-
-	records, total, err := daemonRepository.ListGcRepositoryRecords(ctx, runner.ID, testPagination(), testSort("repository"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, "library/alpine", records[0].Repository)
-
-	gotRecord, err := daemonRepository.GetGcRepositoryRecord(ctx, record.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRecord.Runner.Rule.ID)
-}
-
-func TestDaemonRepositoryGcArtifactFlow(t *testing.T) {
-	testkit.InitRepository(t)
-
-	ctx := t.Context()
-	daemonRepository := repodaemon.NewDaemonRepository()
-	namespaceID := uuid.NewV7String()
-	rule := &models.DaemonGcArtifactRule{
-		ID:           uuid.NewV7String(),
-		NamespaceID:  &namespaceID,
-		RetentionDay: 7,
-	}
-	require.NoError(t, daemonRepository.CreateGcArtifactRule(ctx, rule))
-
-	gotRule, err := daemonRepository.GetGcArtifactRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRule.ID)
-
-	require.NoError(t, daemonRepository.UpdateGcArtifactRule(ctx, rule.ID, map[string]any{
-		query.DaemonGcArtifactRule.RetentionDay.ColumnName().String(): 14,
-	}))
-	gotRule, err = daemonRepository.GetGcArtifactRule(ctx, &namespaceID)
-	require.NoError(t, err)
-	require.Equal(t, 14, gotRule.RetentionDay)
-
-	runner := &models.DaemonGcArtifactRunner{
-		ID:          uuid.NewV7String(),
-		RuleID:      rule.ID,
-		Status:      enums.TaskCommonStatusDoing,
-		OperateType: enums.OperateTypeManual,
-	}
-	require.NoError(t, daemonRepository.CreateGcArtifactRunner(ctx, runner))
-
-	gotRunner, err := daemonRepository.GetGcArtifactLatestRunner(ctx, rule.ID)
-	require.NoError(t, err)
-	require.Equal(t, runner.ID, gotRunner.ID)
-
-	gotRunner, err = daemonRepository.GetGcArtifactRunner(ctx, runner.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRunner.Rule.ID)
-
-	runners, total, err := daemonRepository.ListGcArtifactRunners(ctx, rule.ID, testPagination(), testSort("created_at"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, runner.ID, runners[0].ID)
-
-	require.NoError(t, daemonRepository.UpdateGcArtifactRunner(ctx, runner.ID, map[string]any{
-		query.DaemonGcArtifactRunner.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
-	}))
-
-	record := &models.DaemonGcArtifactRecord{
-		ID:       uuid.NewV7String(),
-		RunnerID: runner.ID,
-		Digest:   "sha256:artifact",
-		Status:   enums.GcRecordStatusSuccess,
-	}
-	require.NoError(t, daemonRepository.CreateGcArtifactRecords(ctx, []*models.DaemonGcArtifactRecord{record}))
-
-	records, total, err := daemonRepository.ListGcArtifactRecords(ctx, runner.ID, testPagination(), testSort("digest"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, "sha256:artifact", records[0].Digest)
-
-	gotRecord, err := daemonRepository.GetGcArtifactRecord(ctx, record.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRecord.Runner.Rule.ID)
-}
-
-func TestDaemonRepositoryGcBlobFlow(t *testing.T) {
-	testkit.InitRepository(t)
-
-	ctx := t.Context()
-	daemonRepository := repodaemon.NewDaemonRepository()
-	rule := &models.DaemonGcBlobRule{
-		ID:           uuid.NewV7String(),
-		RetentionDay: 7,
-	}
-	require.NoError(t, daemonRepository.CreateGcBlobRule(ctx, rule))
-
-	gotRule, err := daemonRepository.GetGcBlobRule(ctx)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRule.ID)
-
-	require.NoError(t, daemonRepository.UpdateGcBlobRule(ctx, rule.ID, map[string]any{
-		query.DaemonGcBlobRule.RetentionDay.ColumnName().String(): 14,
-	}))
-	gotRule, err = daemonRepository.GetGcBlobRule(ctx)
-	require.NoError(t, err)
-	require.Equal(t, 14, gotRule.RetentionDay)
-
-	runner := &models.DaemonGcBlobRunner{
-		ID:          uuid.NewV7String(),
-		RuleID:      rule.ID,
-		Status:      enums.TaskCommonStatusDoing,
-		OperateType: enums.OperateTypeManual,
-	}
-	require.NoError(t, daemonRepository.CreateGcBlobRunner(ctx, runner))
-
-	gotRunner, err := daemonRepository.GetGcBlobLatestRunner(ctx, rule.ID)
-	require.NoError(t, err)
-	require.Equal(t, runner.ID, gotRunner.ID)
-
-	gotRunner, err = daemonRepository.GetGcBlobRunner(ctx, runner.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRunner.Rule.ID)
-
-	runners, total, err := daemonRepository.ListGcBlobRunners(ctx, rule.ID, testPagination(), testSort("created_at"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, runner.ID, runners[0].ID)
-
-	require.NoError(t, daemonRepository.UpdateGcBlobRunner(ctx, runner.ID, map[string]any{
-		query.DaemonGcBlobRunner.Status.ColumnName().String(): enums.TaskCommonStatusSuccess,
-	}))
-
-	record := &models.DaemonGcBlobRecord{
-		ID:       uuid.NewV7String(),
-		RunnerID: runner.ID,
-		Digest:   "sha256:blob",
-		Status:   enums.GcRecordStatusSuccess,
-	}
-	require.NoError(t, daemonRepository.CreateGcBlobRecords(ctx, []*models.DaemonGcBlobRecord{record}))
-
-	records, total, err := daemonRepository.ListGcBlobRecords(ctx, runner.ID, testPagination(), testSort("digest"))
-	require.NoError(t, err)
-	require.Equal(t, int64(1), total)
-	require.Equal(t, "sha256:blob", records[0].Digest)
-
-	gotRecord, err := daemonRepository.GetGcBlobRecord(ctx, record.ID)
-	require.NoError(t, err)
-	require.Equal(t, rule.ID, gotRecord.Runner.Rule.ID)
 }
 
 func TestDaemonRepositoryStorageDeletionTask(t *testing.T) {

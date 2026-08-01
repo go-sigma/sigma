@@ -314,172 +314,26 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
 
 CREATE INDEX `artifact_blobs_idx_blob_artifact` ON `artifact_blobs` (`blob_id`, `artifact_id`);
 
-CREATE TABLE IF NOT EXISTS `daemon_gc_tag_rules` (
-    `id` varchar(36) PRIMARY KEY,
-    `namespace_id` varchar(36),
-    `is_running` integer NOT NULL DEFAULT 0,
-    `cron_enabled` integer NOT NULL DEFAULT 0,
-    `cron_rule` varchar(30),
-    `cron_next_trigger` integer,
-    `retention_rule_type` varchar(64) NOT NULL DEFAULT 'Quantity',
-    `retention_rule_amount` integer NOT NULL DEFAULT 1,
-    `retention_pattern` varchar(64),
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0,
-    CONSTRAINT `daemon_gc_tag_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
+CREATE TABLE IF NOT EXISTS `daemon_gc_rules` (
+    `id` varchar(36) PRIMARY KEY, `type` varchar(64) NOT NULL, `namespace_id` varchar(36),
+    `is_running` integer NOT NULL DEFAULT 0, `retention_day` integer NOT NULL DEFAULT 0,
+    `cron_enabled` integer NOT NULL DEFAULT 0, `cron_rule` varchar(30), `cron_next_trigger` integer,
+    `retention_rule_type` varchar(64), `retention_rule_amount` integer, `retention_pattern` varchar(64),
+    `created_at` integer NOT NULL, `updated_at` integer NOT NULL, `deleted_at` integer NOT NULL DEFAULT 0,
+    CONSTRAINT `daemon_gc_rules_unique_type_namespace` UNIQUE (`type`, `namespace_id`, `deleted_at`)
 );
 
-CREATE TABLE IF NOT EXISTS `daemon_gc_tag_runners` (
-    `id` varchar(36) PRIMARY KEY,
-    `rule_id` varchar(36) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Pending',
-    `operate_type` varchar(64) NOT NULL DEFAULT 'Automatic',
-    `operate_user_id` varchar(36),
-    `message` BLOB,
-    `started_at` integer,
-    `ended_at` integer,
-    `duration` integer,
-    `success_count` integer,
-    `failed_count` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
+CREATE TABLE IF NOT EXISTS `daemon_gc_runners` (
+    `id` varchar(36) PRIMARY KEY, `rule_id` varchar(36) NOT NULL, `message` BLOB,
+    `status` varchar(64) NOT NULL DEFAULT 'Pending', `operate_type` varchar(64) NOT NULL DEFAULT 'Automatic', `operate_user_id` varchar(36),
+    `started_at` integer, `ended_at` integer, `duration` integer, `success_count` integer, `failed_count` integer,
+    `created_at` integer NOT NULL, `updated_at` integer NOT NULL, `deleted_at` integer NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS `daemon_gc_tag_records` (
-    `id` varchar(36) PRIMARY KEY,
-    `runner_id` varchar(36) NOT NULL,
-    `tag` varchar(128) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Success',
-    `message` BLOB,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_repository_rules` (
-    `id` varchar(36) PRIMARY KEY,
-    `namespace_id` varchar(36),
-    `is_running` integer NOT NULL DEFAULT 0,
-    `retention_day` integer NOT NULL DEFAULT 0,
-    `cron_enabled` integer NOT NULL DEFAULT 0,
-    `cron_rule` varchar(30),
-    `cron_next_trigger` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0,
-    CONSTRAINT `daemon_gc_repository_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_repository_runners` (
-    `id` varchar(36) PRIMARY KEY,
-    `rule_id` varchar(36) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Pending',
-    `operate_type` varchar(64) NOT NULL DEFAULT 'Automatic',
-    `operate_user_id` varchar(36),
-    `message` BLOB,
-    `started_at` integer,
-    `ended_at` integer,
-    `duration` integer,
-    `success_count` integer,
-    `failed_count` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_repository_records` (
-    `id` varchar(36) PRIMARY KEY,
-    `runner_id` varchar(36) NOT NULL,
-    `repository` varchar(64) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Success',
-    `message` BLOB,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_rules` (
-    `id` varchar(36) PRIMARY KEY,
-    `namespace_id` varchar(36),
-    `is_running` integer NOT NULL DEFAULT 0,
-    `retention_day` integer NOT NULL DEFAULT 0,
-    `cron_enabled` integer NOT NULL DEFAULT 0,
-    `cron_rule` varchar(30),
-    `cron_next_trigger` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0,
-    CONSTRAINT `daemon_gc_artifact_rules_unique_with_ns` UNIQUE (`namespace_id`, `deleted_at`)
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_runners` (
-    `id` varchar(36) PRIMARY KEY,
-    `rule_id` varchar(36),
-    `message` BLOB,
-    `status` varchar(64) NOT NULL DEFAULT 'Pending',
-    `operate_type` varchar(64) NOT NULL DEFAULT 'Automatic',
-    `operate_user_id` varchar(36),
-    `started_at` integer,
-    `ended_at` integer,
-    `duration` integer,
-    `success_count` integer,
-    `failed_count` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_artifact_records` (
-    `id` varchar(36) PRIMARY KEY,
-    `runner_id` varchar(36) NOT NULL,
-    `digest` varchar(256) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Success',
-    `message` BLOB,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_blob_rules` (
-    `id` varchar(36) PRIMARY KEY,
-    `is_running` integer NOT NULL DEFAULT 0,
-    `retention_day` integer NOT NULL DEFAULT 0,
-    `cron_enabled` integer NOT NULL DEFAULT 0,
-    `cron_rule` varchar(30),
-    `cron_next_trigger` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_blob_runners` (
-    `id` varchar(36) PRIMARY KEY,
-    `rule_id` varchar(36) NOT NULL,
-    `message` BLOB,
-    `status` varchar(64) NOT NULL DEFAULT 'Pending',
-    `operate_type` varchar(64) NOT NULL DEFAULT 'Automatic',
-    `operate_user_id` varchar(36),
-    `started_at` integer,
-    `ended_at` integer,
-    `duration` integer,
-    `success_count` integer,
-    `failed_count` integer,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS `daemon_gc_blob_records` (
-    `id` varchar(36) PRIMARY KEY,
-    `runner_id` varchar(36) NOT NULL,
-    `digest` varchar(256) NOT NULL,
-    `status` varchar(64) NOT NULL DEFAULT 'Success',
-    `message` BLOB,
-    `created_at` integer NOT NULL,
-    `updated_at` integer NOT NULL,
-    `deleted_at` integer NOT NULL DEFAULT 0
+CREATE TABLE IF NOT EXISTS `daemon_gc_records` (
+    `id` varchar(36) PRIMARY KEY, `runner_id` varchar(36) NOT NULL, `resource` varchar(256) NOT NULL,
+    `status` varchar(64) NOT NULL DEFAULT 'Success', `message` BLOB,
+    `created_at` integer NOT NULL, `updated_at` integer NOT NULL, `deleted_at` integer NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS `gc_storage_deletion_tasks` (
@@ -732,27 +586,6 @@ DROP TABLE IF EXISTS `user_recover_codes`;
 DROP TABLE IF EXISTS `settings`;
 
 DROP TABLE IF EXISTS `gc_storage_deletion_tasks`;
-
-DROP TABLE IF EXISTS `daemon_gc_tag_rules`;
-
-DROP TABLE IF EXISTS `daemon_gc_tag_runners`;
-
-DROP TABLE IF EXISTS `daemon_gc_tag_records`;
-
-DROP TABLE IF EXISTS `daemon_gc_repository_rules`;
-
-DROP TABLE IF EXISTS `daemon_gc_repository_runners`;
-
-DROP TABLE IF EXISTS `daemon_gc_repository_records`;
-
-DROP TABLE IF EXISTS `daemon_gc_artifact_rules`;
-
-DROP TABLE IF EXISTS `daemon_gc_artifact_runners`;
-
-DROP TABLE IF EXISTS `daemon_gc_artifact_records`;
-
-DROP TABLE IF EXISTS `daemon_gc_blob_rules`;
-
-DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
-
-DROP TABLE IF EXISTS `daemon_gc_blob_runners`;
+DROP TABLE IF EXISTS `daemon_gc_records`;
+DROP TABLE IF EXISTS `daemon_gc_runners`;
+DROP TABLE IF EXISTS `daemon_gc_rules`;
