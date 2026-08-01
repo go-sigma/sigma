@@ -94,7 +94,7 @@ func checkDatabase(config Configuration) error {
 }
 
 func checkMysql(config Configuration) error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&loc=UTC",
 		config.Database.Mysql.Username, config.Database.Mysql.Password,
 		config.Database.Mysql.Host, config.Database.Mysql.Port,
 		config.Database.Mysql.Database) // TODO: query values
