@@ -1,7 +1,7 @@
-INSERT INTO `daemon_gc_artifact_rules` (`id`, `namespace_id`, `is_running`, `retention_day`, `cron_enabled`, `cron_rule`, `cron_next_trigger`, `created_at`, `updated_at`, `deleted_at`)
-  VALUES (1, NULL, 0, 0, 0, NULL, NULL, 1710257712890, 1710257712890, 0);
+INSERT INTO `daemon_gc_rules` (`id`, `type`, `namespace_id`, `is_running`, `retention_day`, `cron_enabled`, `cron_rule`, `cron_next_trigger`, `created_at`, `updated_at`, `deleted_at`)
+  VALUES (1, 'GcArtifact', NULL, 0, 0, 0, NULL, NULL, 1710257712890, 1710257712890, 0);
 
-INSERT INTO `daemon_gc_artifact_runners` (`id`, `rule_id`, `message`, `status`, `operate_type`, `operate_user_id`, `started_at`, `ended_at`, `duration`, `success_count`, `failed_count`, `created_at`, `updated_at`, `deleted_at`)
+INSERT INTO `daemon_gc_runners` (`id`, `rule_id`, `message`, `status`, `operate_type`, `operate_user_id`, `started_at`, `ended_at`, `duration`, `success_count`, `failed_count`, `created_at`, `updated_at`, `deleted_at`)
   VALUES (1, 1, NULL, 'Pending', 'Manual', NULL, NULL, NULL, NULL, NULL, NULL, 1710257941577, 1710257943729, 0);
 
 INSERT INTO `repositories` (`id`, `name`, `description`, `overview`, `size_limit`, `size`, `tag_limit`, `tag_count`, `namespace_id`, `created_at`, `updated_at`, `deleted_at`)

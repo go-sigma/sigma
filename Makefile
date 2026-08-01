@@ -1,8 +1,5 @@
-GOCMD             = go
-GOTEST            = $(GOCMD) test
-GOVET             = $(GOCMD) vet
 BINARY_NAME       = sigma
-CLI_BINARY_NAME   = sigma-cli
+CLI_BINARY_NAME   = $(BINARY_NAME)-cli
 VERSION          ?= $(shell git describe --tags --always)
 SERVICE_PORT     ?= 3000
 DOCKER_REGISTRY  ?= ghcr.io/go-sigma
@@ -43,11 +40,11 @@ all: build
 ## Build:
 .PHONY: build
 build: ## Build sigma and put the output binary in ./bin
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" $(GOCMD) build $(GOFLAGS) -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" go build $(GOFLAGS) -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
 
 .PHONY: build-cli
 build-cli: ## Build sigma CLI and put the output binary in ./bin
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 $(GOCMD) build $(GOFLAGS) -o bin/$(CLI_BINARY_NAME) -v ./cmd/cli
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build $(GOFLAGS) -o bin/$(CLI_BINARY_NAME) -v ./cmd/cli
 
 .PHONY: clean
 clean: ## Remove build output files
@@ -55,7 +52,7 @@ clean: ## Remove build output files
 
 .PHONY: vendor
 vendor: ## Tidy Go module dependencies
-	@$(GOCMD) mod tidy
+	@go mod tidy
 
 ## Lint:
 .PHONY: lint
@@ -87,11 +84,14 @@ migration-create: ## Create a new migration file
 	@migrate create -dir ./pkg/dal/migrations/mysql -seq -digits 4 -ext sql $(MIGRATION_NAME)
 
 .PHONY: sql-format
-sql-format: ## Format all SQL migration files
+sql-format: ## Format SQL migrations and GC fixtures
 	@find ${PWD}/pkg/dal/migrations/mysql -type f -iname "*.sql" | xargs -n1 sql-formatter -l mysql --fix
 	@find ${PWD}/pkg/dal/migrations/sqlite3 -type f -iname "*.sql" | xargs -n1 sql-formatter -l sqlite --fix
 	@find ${PWD}/pkg/dal/migrations/turso -type f -iname "*.sql" | xargs -n1 sql-formatter -l sqlite --fix
 	@find ${PWD}/pkg/dal/migrations/postgresql -type f -iname "*.sql" | xargs -n1 sql-formatter -l postgresql --fix
+	@find ${PWD}/pkg/background/daemon/gc/testdata -type f -name "*.mysql.sql" | xargs -n1 sql-formatter -l mysql --fix
+	@find ${PWD}/pkg/background/daemon/gc/testdata -type f \( -name "*.sqlite3.sql" -o -name "*.turso.sql" \) | xargs -n1 sql-formatter -l sqlite --fix
+	@find ${PWD}/pkg/background/daemon/gc/testdata -type f -name "*.postgresql.sql" | xargs -n1 sql-formatter -l postgresql --fix
 
 .PHONY: changelog
 changelog: ## Generate changelog
@@ -100,12 +100,12 @@ changelog: ## Generate changelog
 
 .PHONY: gormgen
 gormgen: ## Generate GORM models from the database schema
-	@$(GOCMD) run ./pkg/dal/cmd/gen.go
+	@go run ./pkg/dal/cmd/gen.go
 
 .PHONY: swagen
 swagen: ## Generate Swagger documentation from code comments
-	@$(GOCMD) tool swag fmt
-	@$(GOCMD) tool swag init --output tools/skill/sigma-api-operator --outputTypes yaml
+	@go tool swag fmt
+	@go tool swag init --output tools/skill/sigma-api-operator --outputTypes yaml
 
 .PHONY: addlicense
 addlicense: ## Add license headers to source files
