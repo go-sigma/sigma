@@ -61,7 +61,7 @@ func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string)
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcTagRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc tag runner failed: %v", err), g.successCount, g.failedCount)
 		return fmt.Errorf("get gc tag runner failed: %v", err)
@@ -175,7 +175,7 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 			if pattern != nil && !pattern.MatchString(tagObj.Name) {
 				return nil
 			}
-			record := &models.DaemonGcTagRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Tag: tagObj.Name, Status: enums.GcRecordStatusSuccess}
+			record := &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: tagObj.Name, Status: enums.GcRecordStatusSuccess}
 			if err := tagRepository.DeleteByID(ctx, tagObj.ID); err != nil {
 				record.Status = enums.GcRecordStatusFailed
 				record.Message = []byte(err.Error())
@@ -187,7 +187,7 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 				g.successCount++
 				mu.Unlock()
 			}
-			if err := daemonRepository.CreateGcTagRecords(ctx, []*models.DaemonGcTagRecord{record}); err != nil {
+			if err := daemonRepository.CreateGcRecords(ctx, []*models.DaemonGcRecord{record}); err != nil {
 				slog.Error("create gc tag record failed", "err", err)
 			}
 			return nil

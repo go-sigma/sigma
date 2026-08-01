@@ -321,7 +321,7 @@ func (h *handler) ListGcArtifactRecords(c *gin.Context, req *api.ListGcArtifactR
 	for _, recordObj := range recordObjs {
 		resp = append(resp, api.GcArtifactRecordItem{
 			ID:        recordObj.ID,
-			Digest:    recordObj.Digest,
+			Digest:    recordObj.Resource,
 			Status:    recordObj.Status,
 			Message:   string(recordObj.Message),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
@@ -360,7 +360,7 @@ func (h *handler) GetGcArtifactRecord(c *gin.Context, req *api.GetGcArtifactReco
 	}
 	c.JSON(http.StatusOK, api.GcArtifactRecordItem{
 		ID:        recordObj.ID,
-		Digest:    recordObj.Digest,
+		Digest:    recordObj.Resource,
 		Status:    recordObj.Status,
 		Message:   string(recordObj.Message),
 		CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),

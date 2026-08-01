@@ -323,7 +323,7 @@ func (h *handler) ListGcTagRecords(c *gin.Context, req *api.ListGcTagRecordsRequ
 	for _, recordObj := range recordObjs {
 		resp = append(resp, api.GcTagRecordItem{
 			ID:        recordObj.ID,
-			Tag:       recordObj.Tag,
+			Tag:       recordObj.Resource,
 			Status:    recordObj.Status,
 			Message:   string(recordObj.Message),
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
@@ -362,7 +362,7 @@ func (h *handler) GetGcTagRecord(c *gin.Context, req *api.GetGcTagRecordRequest)
 	}
 	c.JSON(http.StatusOK, api.GcTagRecordItem{
 		ID:        recordObj.ID,
-		Tag:       recordObj.Tag,
+		Tag:       recordObj.Resource,
 		Status:    recordObj.Status,
 		Message:   string(recordObj.Message),
 		CreatedAt: time.Unix(0, int64(time.Millisecond)*recordObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),

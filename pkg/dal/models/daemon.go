@@ -20,17 +20,19 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
-// DaemonGcTagRule ...
-type DaemonGcTagRule struct {
+// DaemonGcRule defines retention configuration for one garbage collection type.
+type DaemonGcRule struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
+	Type        enums.Daemon
 	NamespaceID *string
 	Namespace   *Namespace
 
 	IsRunning           bool `gorm:"default:false"`
+	RetentionDay        int  `gorm:"default:0"`
 	CronEnabled         bool `gorm:"default:false"`
 	CronRule            *string
 	CronNextTrigger     *int64
@@ -39,15 +41,15 @@ type DaemonGcTagRule struct {
 	RetentionPattern    *string
 }
 
-// DaemonGcTagRunner ...
-type DaemonGcTagRunner struct {
+// DaemonGcRunner records one garbage collection execution.
+type DaemonGcRunner struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
 	RuleID string
-	Rule   DaemonGcTagRule
+	Rule   DaemonGcRule
 
 	Message []byte
 	Status  enums.TaskCommonStatus
@@ -63,183 +65,37 @@ type DaemonGcTagRunner struct {
 	FailedCount  *int64
 }
 
-// DaemonGcTagRecords ...
-type DaemonGcTagRecord struct {
+// DaemonGcRecord records one resource processed by a garbage collection execution.
+type DaemonGcRecord struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
 	RunnerID string
-	Runner   DaemonGcTagRunner
+	Runner   DaemonGcRunner
 
-	Tag     string
-	Status  enums.GcRecordStatus `gorm:"default:Success"`
-	Message []byte
+	Resource string
+	Status   enums.GcRecordStatus `gorm:"default:Success"`
+	Message  []byte
 }
 
-// DaemonGcRepositoryRule ...
-type DaemonGcRepositoryRule struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	NamespaceID *string
-	Namespace   *Namespace
-
-	IsRunning       bool `gorm:"default:false"`
-	RetentionDay    int  `gorm:"default:0"`
-	CronEnabled     bool `gorm:"default:false"`
-	CronRule        *string
-	CronNextTrigger *int64
-}
-
-// DaemonGcRepositoryRunner ...
-type DaemonGcRepositoryRunner struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RuleID string
-	Rule   DaemonGcRepositoryRule
-
-	Status  enums.TaskCommonStatus `gorm:"status"`
-	Message []byte
-
-	OperateType   enums.OperateType
-	OperateUserID *string
-	OperateUser   *User
-
-	StartedAt    *int64
-	EndedAt      *int64
-	Duration     *int64
-	SuccessCount *int64
-	FailedCount  *int64
-}
-
-// DaemonGcRepositoryRecord ...
-type DaemonGcRepositoryRecord struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RunnerID string
-	Runner   DaemonGcRepositoryRunner
-
-	Repository string
-	Status     enums.GcRecordStatus `gorm:"default:Success"`
-	Message    []byte
-}
-
-// DaemonGcArtifactRule ...
-type DaemonGcArtifactRule struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	NamespaceID *string
-	Namespace   *Namespace
-
-	IsRunning       bool `gorm:"default:false"`
-	RetentionDay    int  `gorm:"default:0"`
-	CronEnabled     bool `gorm:"default:false"`
-	CronRule        *string
-	CronNextTrigger *int64
-}
-
-type DaemonGcArtifactRunner struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RuleID string
-	Rule   DaemonGcArtifactRule
-
-	Status  enums.TaskCommonStatus `gorm:"status"`
-	Message []byte
-
-	OperateType   enums.OperateType
-	OperateUserID *string
-	OperateUser   *User
-
-	StartedAt    *int64
-	EndedAt      *int64
-	Duration     *int64
-	SuccessCount *int64
-	FailedCount  *int64
-}
-
-// DaemonGcArtifactRecord ...
-type DaemonGcArtifactRecord struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RunnerID string
-	Runner   DaemonGcArtifactRunner
-
-	Digest  string
-	Status  enums.GcRecordStatus `gorm:"default:Success"`
-	Message []byte
-}
-
-// DaemonGcBlobRule ...
-type DaemonGcBlobRule struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	IsRunning       bool `gorm:"default:false"`
-	RetentionDay    int  `gorm:"default:0"`
-	CronEnabled     bool `gorm:"default:false"`
-	CronRule        *string
-	CronNextTrigger *int64
-}
-
-// DaemonGcBlobRunner ...
-type DaemonGcBlobRunner struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RuleID string
-	Rule   DaemonGcBlobRule
-
-	Status  enums.TaskCommonStatus `gorm:"status"`
-	Message []byte
-
-	OperateType   enums.OperateType
-	OperateUserID *string
-	OperateUser   *User
-
-	StartedAt    *int64
-	EndedAt      *int64
-	Duration     *int64
-	SuccessCount *int64
-	FailedCount  *int64
-}
-
-type DaemonGcBlobRecord struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	RunnerID string
-	Runner   DaemonGcBlobRunner
-
-	Digest  string
-	Status  enums.GcRecordStatus `gorm:"default:Success"`
-	Message []byte
-}
+// Legacy type aliases preserve the public service and handler contracts while
+// the persistence layer uses the shared GC tables.
+type (
+	DaemonGcTagRule          = DaemonGcRule
+	DaemonGcRepositoryRule   = DaemonGcRule
+	DaemonGcArtifactRule     = DaemonGcRule
+	DaemonGcBlobRule         = DaemonGcRule
+	DaemonGcTagRunner        = DaemonGcRunner
+	DaemonGcRepositoryRunner = DaemonGcRunner
+	DaemonGcArtifactRunner   = DaemonGcRunner
+	DaemonGcBlobRunner       = DaemonGcRunner
+	DaemonGcTagRecord        = DaemonGcRecord
+	DaemonGcRepositoryRecord = DaemonGcRecord
+	DaemonGcArtifactRecord   = DaemonGcRecord
+	DaemonGcBlobRecord       = DaemonGcRecord
+)
 
 // GcStorageDeletionTask records object storage deletion intent for retryable GC.
 type GcStorageDeletionTask struct {

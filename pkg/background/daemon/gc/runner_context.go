@@ -93,13 +93,13 @@ func (r *runnerContext) update(updates map[string]any) error {
 	var err error
 	switch r.daemon {
 	case enums.DaemonGcRepository:
-		err = r.daemonRepository.UpdateGcRepositoryRunner(r.ctx, r.runnerID, updates)
+		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
 	case enums.DaemonGcTag:
-		err = r.daemonRepository.UpdateGcTagRunner(r.ctx, r.runnerID, updates)
+		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
 	case enums.DaemonGcArtifact:
-		err = r.daemonRepository.UpdateGcArtifactRunner(r.ctx, r.runnerID, updates)
+		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
 	case enums.DaemonGcBlob:
-		err = r.daemonRepository.UpdateGcBlobRunner(r.ctx, r.runnerID, updates)
+		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
 	default:
 		err = fmt.Errorf("daemon %s not support", r.daemon.String())
 	}
