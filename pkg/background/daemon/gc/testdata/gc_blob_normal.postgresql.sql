@@ -1,7 +1,7 @@
-INSERT INTO "daemon_gc_blob_rules" ("id", "is_running", "retention_day", "cron_enabled", "cron_rule", "cron_next_trigger", "created_at", "updated_at", "deleted_at")
-  VALUES (1, 0, 0, 0, NULL, NULL, 1711288066277, 1711288066277, 0);
+INSERT INTO "daemon_gc_rules" ("id", "type", "is_running", "retention_day", "cron_enabled", "cron_rule", "cron_next_trigger", "created_at", "updated_at", "deleted_at")
+  VALUES (1, 'GcBlob', 0, 0, 0, NULL, NULL, 1711288066277, 1711288066277, 0);
 
-INSERT INTO "daemon_gc_blob_runners" ("id", "rule_id", "message", "status", "operate_type", "operate_user_id", "started_at", "ended_at", "duration", "success_count", "failed_count", "created_at", "updated_at", "deleted_at")
+INSERT INTO "daemon_gc_runners" ("id", "rule_id", "message", "status", "operate_type", "operate_user_id", "started_at", "ended_at", "duration", "success_count", "failed_count", "created_at", "updated_at", "deleted_at")
   VALUES (1, 1, NULL, 'Success', 'Manual', NULL, NULL, NULL, NULL, NULL, NULL, 1711288072580, 1711288072619, 0);
 
 INSERT INTO "repositories" ("id", "name", "description", "overview", "size_limit", "size", "tag_limit", "tag_count", "namespace_id", "created_at", "updated_at", "deleted_at")
