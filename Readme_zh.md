@@ -27,7 +27,9 @@ docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 
 ## Architecture
 
-<img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/main/assets/architecture.png" width="100%" />
+下图按运行层次展示 Sigma 的主要组件，从客户端入口到请求处理、后台任务，再到它们依赖的基础设施服务。
+
+![Sigma architecture](assets/architecture.svg)
 
 ## Features
 
