@@ -1,0 +1,231 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1840" height="1016" viewBox="0 0 1840 1016"
+  role="img" aria-labelledby="title desc">
+  <title id="title">Sigma architecture</title>
+  <desc id="desc">Sigma clients connect to server, distribution, and webhook entry points.
+    Application and background services use databases, Redis, object storage, build executors,
+    and external registries.</desc>
+  <defs>
+    <marker id="arrow-request" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#fa5252" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-flow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#339af0" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-database" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#7950f2" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-redis" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f06595" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-storage" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#12b886" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-executor" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f59f00" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-registry" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7"
+      markerHeight="7" markerUnits="strokeWidth" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#0ca6a6" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <style>
+      text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #212529; }
+      .title { font-size: 28px; font-weight: 600; }
+      .column-title { font-size: 16px; font-weight: 600; fill: #343a40; }
+      .group-title { font-size: 15px; font-weight: 600; fill: #1864ab; }
+      .node-title { font-size: 12px; font-weight: 600; fill: #343a40; }
+      .node-desc { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 11px; fill: #868e96; }
+      .container { fill: #ffffff; stroke: #ced4da; stroke-width: 1.8; }
+      .group { fill: #e7f5ff; stroke: #4dabf7; stroke-width: 1.8; }
+      .client { fill: #f8f9fa; stroke: #adb5bd; stroke-width: 1.8; }
+      .process { fill: #edf2ff; stroke: #748ffc; stroke-width: 1.8; }
+      .node { fill: #ffffff; stroke: #74c0fc; stroke-width: 1.8; }
+      .database { fill: #f3f0ff; stroke: #845ef7; stroke-width: 1.8; }
+      .redis { fill: #fff0f6; stroke: #f06595; stroke-width: 1.8; }
+      .storage { fill: #e6fcf5; stroke: #20c997; stroke-width: 1.8; }
+      .executor { fill: #fff9db; stroke: #fcc419; stroke-width: 1.8; }
+      .registry { fill: #e6fcfc; stroke: #20c9c9; stroke-width: 1.8; }
+      .connector { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        stroke-dasharray: 7 7; stroke-dashoffset: 0; animation: stream 1.2s linear infinite; }
+      .request { stroke: #fa5252; }
+      .flow { stroke: #339af0; }
+      .to-database { stroke: #7950f2; }
+      .to-redis { stroke: #f06595; }
+      .to-storage { stroke: #12b886; }
+      .to-executor { stroke: #f59f00; }
+      .to-registry { stroke: #0ca6a6; }
+      @keyframes stream { to { stroke-dashoffset: -14; } }
+      @media (prefers-reduced-motion: reduce) { .connector { animation: none; } }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1840" height="1016" fill="#ffffff" />
+  <text class="title" x="40" y="64">Sigma architecture</text>
+
+  <rect class="container" x="40" y="110" width="250" height="866" rx="10" />
+  <rect class="container" x="350" y="110" width="360" height="866" rx="10" />
+  <rect class="container" x="770" y="110" width="600" height="866" rx="10" />
+  <rect class="container" x="1430" y="110" width="370" height="866" rx="10" />
+
+  <text class="column-title" x="70" y="148">Clients</text>
+  <text class="column-title" x="380" y="148">Entrypoints</text>
+  <text class="column-title" x="800" y="148">Runtime</text>
+  <text class="column-title" x="1460" y="148">Infrastructure</text>
+
+  <rect class="group" x="800" y="180" width="540" height="333" rx="10" />
+  <text class="group-title" x="830" y="212">Application</text>
+
+  <rect class="group" x="800" y="543" width="540" height="403" rx="10" />
+  <text class="group-title" x="830" y="575">Background processing</text>
+
+  <g id="base-connectors">
+    <path class="connector request" d="M260 256H380" marker-end="url(#arrow-request)" />
+    <path class="connector request" d="M260 326H380" marker-end="url(#arrow-request)" />
+    <path class="connector request" d="M260 396H380" marker-end="url(#arrow-request)" />
+
+    <path class="connector flow" d="M680 256H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M680 326H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M680 396H830" marker-end="url(#arrow-flow)" />
+
+    <path class="connector flow" d="M680 689H740" />
+    <path class="connector flow" d="M740 689V619" />
+    <path class="connector flow" d="M740 689V759" />
+    <path class="connector flow" d="M740 619H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M740 689H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M740 759H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M680 829H740" />
+    <path class="connector flow" d="M740 829H830" marker-end="url(#arrow-flow)" />
+    <path class="connector flow" d="M740 829V899" />
+    <path class="connector flow" d="M740 899H830" marker-end="url(#arrow-flow)" />
+
+    <path class="connector to-database" d="M1310 396H1385" />
+    <path class="connector to-database" d="M1310 458H1385" />
+    <path class="connector to-database" d="M1310 678H1385" />
+    <path class="connector to-database" d="M1310 759H1385" />
+    <path class="connector to-database" d="M1385 396V759" />
+    <path class="connector to-database" d="M1385 759H1460" marker-end="url(#arrow-database)" />
+
+    <path class="connector to-redis" d="M1310 248H1400" />
+    <path class="connector to-redis" d="M1310 619H1400" />
+    <path class="connector to-redis" d="M1310 689H1400" />
+    <path class="connector to-redis" d="M1400 248V396" />
+    <path class="connector to-redis" d="M1400 689V396" />
+    <path class="connector to-redis" d="M1400 396H1460" marker-end="url(#arrow-redis)" />
+
+    <path class="connector to-storage" d="M1310 326H1415" />
+    <path class="connector to-storage" d="M1310 474H1415" />
+    <path class="connector to-storage" d="M1310 701H1415" />
+    <path class="connector to-storage" d="M1415 326V619" />
+    <path class="connector to-storage" d="M1415 701V619" />
+    <path class="connector to-storage" d="M1415 619H1460" marker-end="url(#arrow-storage)" />
+
+    <path class="connector to-executor" d="M1310 829H1460" marker-end="url(#arrow-executor)" />
+    <path class="connector to-registry" d="M1310 899H1460" marker-end="url(#arrow-registry)" />
+  </g>
+
+  <rect class="client" x="70" y="233" width="190" height="46" rx="10" />
+  <text class="node-title" x="165" y="253" text-anchor="middle">Web UI and sigma-cli</text>
+  <text class="node-desc" x="165" y="269" text-anchor="middle">dashboard · API clients</text>
+
+  <rect class="client" x="70" y="303" width="190" height="46" rx="10" />
+  <text class="node-title" x="165" y="323" text-anchor="middle">OCI clients</text>
+  <text class="node-desc" x="165" y="339" text-anchor="middle">docker · oras · helm</text>
+
+  <rect class="client" x="70" y="373" width="190" height="46" rx="10" />
+  <text class="node-title" x="165" y="393" text-anchor="middle">SCM providers</text>
+  <text class="node-desc" x="165" y="409" text-anchor="middle">webhook callbacks</text>
+
+  <rect class="process" x="380" y="233" width="300" height="46" rx="10" />
+  <text class="node-title" x="530" y="253" text-anchor="middle">Server</text>
+  <text class="node-desc" x="530" y="269" text-anchor="middle">REST API · Web UI · MCP</text>
+
+  <rect class="process" x="380" y="303" width="300" height="46" rx="10" />
+  <text class="node-title" x="530" y="323" text-anchor="middle">Distribution</text>
+  <text class="node-desc" x="530" y="339" text-anchor="middle">OCI Distribution Specification</text>
+
+  <rect class="process" x="380" y="373" width="300" height="46" rx="10" />
+  <text class="node-title" x="530" y="393" text-anchor="middle">Webhook endpoints</text>
+  <text class="node-desc" x="530" y="409" text-anchor="middle">GitHub · GitLab · Gitea</text>
+
+  <rect class="process" x="380" y="666" width="300" height="46" rx="10" />
+  <text class="node-title" x="530" y="686" text-anchor="middle">Worker</text>
+  <text class="node-desc" x="530" y="702" text-anchor="middle">queue consumers · scheduled jobs</text>
+
+  <rect class="process" x="380" y="806" width="300" height="46" rx="10" />
+  <text class="node-title" x="530" y="826" text-anchor="middle">Builder jobs</text>
+  <text class="node-desc" x="530" y="842" text-anchor="middle">builder command · callbacks</text>
+
+  <rect class="node" x="830" y="233" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="253" text-anchor="middle">HTTP handlers and access control</text>
+  <text class="node-desc" x="1070" y="269" text-anchor="middle">authn · authz · validation · routing</text>
+
+  <rect class="node" x="830" y="303" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="323" text-anchor="middle">Distribution services</text>
+  <text class="node-desc" x="1070" y="339" text-anchor="middle">blobs · uploads · manifests · tags</text>
+
+  <rect class="node" x="830" y="373" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="393" text-anchor="middle">Domain services</text>
+  <text class="node-desc" x="1070" y="409" text-anchor="middle">users · namespaces · repositories ·
+    builders</text>
+
+  <rect class="node" x="830" y="443" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="463" text-anchor="middle">Repository and storage adapters</text>
+  <text class="node-desc" x="1070" y="479" text-anchor="middle">GORM repositories · pluggable
+    storage drivers</text>
+
+  <rect class="node" x="830" y="596" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="616" text-anchor="middle">Work queue consumers</text>
+  <text class="node-desc" x="1070" y="632" text-anchor="middle">Redis topics · bounded concurrency</text>
+
+  <rect class="node" x="830" y="666" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="686" text-anchor="middle">Daemons</text>
+  <text class="node-desc" x="1070" y="702" text-anchor="middle">GC · scan · SCM sync · webhooks ·
+    analytics</text>
+
+  <rect class="node" x="830" y="736" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="756" text-anchor="middle">Cronjobs</text>
+  <text class="node-desc" x="1070" y="772" text-anchor="middle">audit cleanup · size calculation ·
+    build scheduling</text>
+
+  <rect class="node" x="830" y="806" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="826" text-anchor="middle">Build runner drivers</text>
+  <text class="node-desc" x="1070" y="842" text-anchor="middle">start · stop · restart · log stream</text>
+
+  <rect class="node" x="830" y="876" width="480" height="46" rx="10" />
+  <text class="node-title" x="1070" y="896" text-anchor="middle">Transfer and signing</text>
+  <text class="node-desc" x="1070" y="912" text-anchor="middle">remote copy · cosign · OCI push</text>
+
+  <rect class="database" x="1460" y="736" width="310" height="46" rx="10" />
+  <text class="node-title" x="1615" y="756" text-anchor="middle">Database</text>
+  <text class="node-desc" x="1615" y="772" text-anchor="middle">pg/mysql/sqlite/turso</text>
+
+  <rect class="redis" x="1460" y="373" width="310" height="46" rx="10" />
+  <text class="node-title" x="1615" y="393" text-anchor="middle">Redis</text>
+  <text class="node-desc" x="1615" y="409" text-anchor="middle">cache · locks · counters · work
+    queue</text>
+
+  <rect class="storage" x="1460" y="596" width="310" height="46" rx="10" />
+  <text class="node-title" x="1615" y="616" text-anchor="middle">Object storage</text>
+  <text class="node-desc" x="1615" y="632" text-anchor="middle">filesystem · S3 · COS · OSS</text>
+
+  <rect class="executor" x="1460" y="806" width="310" height="46" rx="10" />
+  <text class="node-title" x="1615" y="826" text-anchor="middle">Build executors</text>
+  <text class="node-desc" x="1615" y="842" text-anchor="middle">Docker · Podman · Kubernetes ·
+    BuildKit</text>
+
+  <rect class="registry" x="1460" y="876" width="310" height="46" rx="10" />
+  <text class="node-title" x="1615" y="896" text-anchor="middle">External registries</text>
+  <text class="node-desc" x="1615" y="912" text-anchor="middle">pull · transfer · publish</text>
+</svg>

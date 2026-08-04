@@ -27,7 +27,9 @@ Visit: <https://sigma.tosone.cn>, username/password: sigma/Admin@123
 
 ## Architecture
 
-<img alt="sigma" src="https://raw.githubusercontent.com/go-sigma/sigma/main/assets/architecture.png" width="100%" />
+The diagram below maps Sigma's main runtime layers, from client entry points to request handling, background workers, and the infrastructure services they depend on.
+
+![Sigma architecture](assets/architecture.svg)
 
 ## Features
 
