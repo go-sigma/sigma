@@ -7,7 +7,7 @@ Guidance for AI agents working in the `sigma` repository.
 `sigma` is an OCI artifact storage and distribution system written in Go. It implements the [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0) and acts as a private/public container registry. It supports docker registry v2 protocol, OCI images/artifacts/sboms, security scanning, registry proxy, namespace quotas, garbage collection, image signing (cosign), and image building via docker/podman/kubernetes.
 
 - Module path: `github.com/go-sigma/sigma`
-- Go version: 1.26.3 (godebug default=go1.26)
+- Go version: 1.27.0 (godebug default=go1.27)
 - License: Apache 2.0
 - Entry point: `main.go` -> `cmd.Execute()`
 - Default port: 3000
@@ -130,19 +130,14 @@ make clean
 - All application IDs must be time-ordered UUIDv7 strings.
 - Generate UUIDs through `pkg/utils/uuid.NewV7String()` instead of calling an
   external UUID package directly.
-- While the project is on Go 1.26, `pkg/utils/uuid` is backed by
-  `github.com/google/uuid`.
-- After upgrading to Go 1.27 or later, switch the `pkg/utils/uuid`
-  implementation to the standard library UUID implementation and remove the
-  external UUID generator.
+- `pkg/utils/uuid` is backed by the Go standard library `uuid` package.
 
 ### Modernize Go
 
-- Prefer modern Go idioms over legacy patterns. This project targets Go 1.26 and
-  follows the modernizations that `go fix` (rewritten in Go 1.26 on top of the
-  analysis framework) applies. Run `go fix ./...` after a toolchain bump to keep
-  the codebase current (use `go fix -diff ./...` to preview first). See commit
-  `feat: update with go fix modernize`.
+- Prefer modern Go idioms over legacy patterns. This project targets Go 1.27 and
+  follows the modernizations that `go fix` applies. Run `go fix ./...` after a
+  toolchain bump to keep the codebase current (use `go fix -diff ./...` to
+  preview first). See commit `feat: update with go fix modernize`.
 - Concretely, prefer:
   - `any` over `interface{}`.
   - the `min`/`max` builtins over hand-written if/else comparisons.
@@ -290,8 +285,8 @@ Directory rules:
 
 ## CI Workflows (`.github/workflows/`)
 
-- **lint.yml**: Go 1.26 + Bun web build + golangci-lint v2.12.2 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
-- **test.yml**: Go 1.26 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and Minio services. Uploads coverage to Codecov.
+- **lint.yml**: Go 1.27 + Bun web build + golangci-lint v2.12.2 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
+- **test.yml**: Go 1.27 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and Minio services. Uploads coverage to Codecov.
 - **e2e.yml**, **image-build.yml**, **gh-pages.yml**, **codeql.yml**: end-to-end, image build, docs deploy, security scan.
 
 ## Important Files

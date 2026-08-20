@@ -1,9 +1,9 @@
 # =============================================================
 # Global build-arg declarations (available to every stage)
 # =============================================================
-ARG ALPINE_VERSION=3.23
-ARG GOLANG_VERSION=1.26-alpine3.23
-ARG NODE_VERSION=1.3.9-alpine
+ARG ALPINE_VERSION=3.24
+ARG GOLANG_VERSION=1.27-alpine3.24
+ARG BUN_VERSION=1.3.14-alpine
 ARG BUILDKIT_VERSION=v0.30.0-rootless
 ARG SWAGGER_UI_VERSION=5.32.8
 
@@ -62,7 +62,7 @@ RUN set -eux && \
 # =============================================================
 # web stage  (originally Dockerfile.web)
 # =============================================================
-FROM oven/bun:${NODE_VERSION} AS web
+FROM oven/bun:${BUN_VERSION} AS web
 
 ARG USE_MIRROR=false
 

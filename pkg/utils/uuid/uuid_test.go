@@ -22,8 +22,8 @@ func TestNewV7StringReturnsOrderedUUIDV7(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse uuid: %v", err)
 	}
-	if parsed.Version() != 7 {
-		t.Fatalf("uuid version = %d, want 7", parsed.Version())
+	if version := parsed[6] >> 4; version != 7 {
+		t.Fatalf("uuid version = %d, want 7", version)
 	}
 
 	for range 1000 {
@@ -32,8 +32,8 @@ func TestNewV7StringReturnsOrderedUUIDV7(t *testing.T) {
 		if err != nil {
 			t.Fatalf("parse uuid: %v", err)
 		}
-		if parsed.Version() != 7 {
-			t.Fatalf("uuid version = %d, want 7", parsed.Version())
+		if version := parsed[6] >> 4; version != 7 {
+			t.Fatalf("uuid version = %d, want 7", version)
 		}
 		if current <= previous {
 			t.Fatalf("uuid order is not increasing: current=%s previous=%s", current, previous)

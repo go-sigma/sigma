@@ -52,7 +52,7 @@ jobs:
           username: tosone
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Build sigma-server
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./build/Dockerfile
@@ -64,7 +64,7 @@ jobs:
           sbom: false
           outputs: "${{ github.event_name != 'pull_request' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
       - name: Build sigma-builder
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./build/Dockerfile

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        go: ["1.26"]
+        go: ["1.27"]
         bun: ["latest"]
     steps:
       - name: Checkout branch
