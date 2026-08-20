@@ -48,6 +48,19 @@ func TestConfigurationDaemonVulnerabilityWithDefaults(t *testing.T) {
 	require.Equal(t, 3*time.Hour, vulnerability.StaleTimeout)
 }
 
+func TestConfigurationDaemonBuilderTLSVerifyEnabled(t *testing.T) {
+	var builder ConfigurationDaemonBuilder
+	require.True(t, builder.TLSVerifyEnabled())
+
+	enabled := true
+	builder.TlsVerify = &enabled
+	require.True(t, builder.TLSVerifyEnabled())
+
+	enabled = false
+	builder.TlsVerify = &enabled
+	require.False(t, builder.TLSVerifyEnabled())
+}
+
 func TestConfigurationCacheWithDefaults(t *testing.T) {
 	var cache ConfigurationCache
 	cache.WithDefaults()

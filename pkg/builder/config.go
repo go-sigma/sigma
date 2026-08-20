@@ -23,10 +23,11 @@ type Config struct {
 	BuilderID string `env:"BUILDER_ID,notEmpty"`
 	RunnerID  string `env:"RUNNER_ID,notEmpty"`
 
-	Authorization string `env:"AUTHORIZATION,notEmpty"`
-	Endpoint      string `env:"ENDPOINT,notEmpty"`
-	Repository    string `env:"REPOSITORY,notEmpty"`
-	Tag           string `env:"TAG,notEmpty"`
+	Authorization     string `env:"AUTHORIZATION,notEmpty"`
+	Endpoint          string `env:"ENDPOINT,notEmpty"`
+	EndpointTLSVerify bool   `env:"ENDPOINT_TLS_VERIFY" envDefault:"true"`
+	Repository        string `env:"REPOSITORY,notEmpty"`
+	Tag               string `env:"TAG,notEmpty"`
 
 	Source enums.BuilderSource `env:"SOURCE,notEmpty"`
 

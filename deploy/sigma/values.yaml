@@ -186,6 +186,7 @@ config:
         repository: tosone/sigma-builder
         tag: latest
       type: kubernetes
+      tlsVerify: true
       kubernetes:
         kubeconfig: ""
         namespace: sigma-builder

@@ -125,6 +125,7 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 		fmt.Sprintf("RUNNER_ID=%s", builderConfig.RunnerID),
 
 		fmt.Sprintf("ENDPOINT=%s", config.HTTP.InternalEndpoint),
+		fmt.Sprintf("ENDPOINT_TLS_VERIFY=%t", config.Daemon.Builder.TLSVerifyEnabled()),
 		fmt.Sprintf("AUTHORIZATION=%s", crypt.MustEncrypt(fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), authorization)),
 		fmt.Sprintf("REPOSITORY=%s", builderConfig.Repository),
 		fmt.Sprintf("TAG=%s", builderConfig.Tag),
