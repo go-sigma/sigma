@@ -14,14 +14,14 @@
 
 package uuid
 
-import googleuuid "github.com/google/uuid"
+import "uuid"
 
 // NewV7String returns a time-ordered UUIDv7 string
 func NewV7String() string {
-	return googleuuid.Must(googleuuid.NewV7()).String()
+	return uuid.NewV7().String()
 }
 
 // Parse parses a UUID string
-func Parse(s string) (googleuuid.UUID, error) {
-	return googleuuid.Parse(s)
+func Parse(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
 }

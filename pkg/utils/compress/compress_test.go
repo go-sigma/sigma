@@ -14,10 +14,7 @@
 
 package compress
 
-import (
-	"reflect"
-	"testing"
-)
+import "testing"
 
 func TestCompress(t *testing.T) {
 	type args struct {
@@ -26,7 +23,7 @@ func TestCompress(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []byte
+		want    string
 		wantErr bool
 	}{
 		{
@@ -34,7 +31,7 @@ func TestCompress(t *testing.T) {
 			args: args{
 				src: "test.txt",
 			},
-			want:    []byte{31, 139, 8, 0, 0, 0, 0, 0, 4, 255, 0, 15, 0, 240, 255, 104, 101, 108, 108, 111, 32, 115, 105, 103, 109, 97, 33, 33, 33, 10, 1, 0, 0, 255, 255, 38, 36, 146, 114, 15, 0, 0, 0},
+			want:    "hello sigma!!!\n",
 			wantErr: false,
 		},
 		{
@@ -42,7 +39,7 @@ func TestCompress(t *testing.T) {
 			args: args{
 				src: "no-exist.txt",
 			},
-			want:    nil,
+			want:    "",
 			wantErr: true,
 		},
 	}
@@ -53,8 +50,16 @@ func TestCompress(t *testing.T) {
 				t.Errorf("Compress() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Compress() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				return
+			}
+			decompressed, err := Decompress(got)
+			if err != nil {
+				t.Errorf("Decompress(Compress()) error = %v", err)
+				return
+			}
+			if decompressed != tt.want {
+				t.Errorf("Decompress(Compress()) = %q, want %q", decompressed, tt.want)
 			}
 		})
 	}

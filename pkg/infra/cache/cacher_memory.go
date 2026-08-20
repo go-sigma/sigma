@@ -90,10 +90,7 @@ func (c *memoryCacher[T]) Get(ctx context.Context, key string) (T, error) {
 		if err != nil {
 			observeCacheFetch(backendMemory, c.prefix, resultFetchError, startedAt)
 			if c.options.IsNotFound(err) {
-				if setErr := c.setNegative(key); setErr != nil {
-					recordCacheRequest(backendMemory, c.prefix, resultSetError)
-					return result, fmt.Errorf("set negative value failed: %w", setErr)
-				}
+				c.setNegative(key)
 				return result, ErrNotFound
 			}
 			return result, err
@@ -151,12 +148,11 @@ func (c *memoryCacher[T]) getCached(key string) (T, bool, error) {
 	return zero, false, nil
 }
 
-func (c *memoryCacher[T]) setNegative(key string) error {
+func (c *memoryCacher[T]) setNegative(key string) {
 	c.cache.Add(genNegativeKey(c.config, c.prefix, key), cacheEntry[T]{
 		expiresAt: c.negativeExpiresAt(),
 		negative:  true,
 	})
-	return nil
 }
 
 func (c *memoryCacher[T]) expiresAt(ttls ...time.Duration) time.Time {

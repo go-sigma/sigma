@@ -2,7 +2,7 @@ services:
   traefik:
     hostname: traefik
     container_name: traefik
-    image: traefik:v2.11
+    image: traefik:v3.7.10
     pull_policy: if_not_present
     restart: always
     command:
@@ -40,7 +40,7 @@ services:
       - traefik.http.routers.traefik.entrypoints=websecure
       - traefik.http.routers.traefik.middlewares=authtraefik
       - traefik.http.middlewares.authtraefik.basicauth.users=sigma:$$apr1$$KeXNZcB7$$NmJjSt3c1bWBKKekr6ac80
-      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.rule=HostRegexp(`^.+$`)
       - traefik.http.routers.http-catchall.entrypoints=web
       - traefik.http.routers.http-catchall.middlewares=redirect-to-https
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
