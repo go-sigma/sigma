@@ -154,6 +154,7 @@ daemon:
     enabled: false
     image: ghcr.io/go-sigma/sigma-builder:nightly
     type: docker
+    tlsVerify: true
     docker:
       sock:
       network: sigma

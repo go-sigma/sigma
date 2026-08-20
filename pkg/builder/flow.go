@@ -48,7 +48,7 @@ func (f *BuildFlow) Run() error {
 	if err := f.checker(); err != nil {
 		return err
 	}
-	f.api = newAPIClient(f.Authorization, f.Endpoint)
+	f.api = newAPIClient(f.Authorization, f.Endpoint, f.EndpointTLSVerify)
 	if err := f.initCache(); err != nil {
 		return err
 	}

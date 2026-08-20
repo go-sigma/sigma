@@ -169,6 +169,7 @@ daemon:
     enabled: false
     image: sigma-builder:latest
     type: docker
+    tlsVerify: true
     docker:
       sock:
       network: sigma

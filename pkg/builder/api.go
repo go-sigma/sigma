@@ -36,11 +36,16 @@ type apiClient struct {
 }
 
 // newAPIClient 创建缓存 API 客户端
-func newAPIClient(authorization, endpoint string) apiClient {
+func newAPIClient(authorization, endpoint string, tlsVerify bool) apiClient {
 	client := resty.New()
-	if strings.HasPrefix(endpoint, "https") {
+	if strings.HasPrefix(endpoint, "https://") && !tlsVerify {
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		skipVerify := true
+		tlsConfig := &tls.Config{}
+		tlsConfig.InsecureSkipVerify = skipVerify // nolint: gosec
+		transport.TLSClientConfig = tlsConfig
 		client = resty.NewWithClient(&http.Client{
-			Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}, // nolint: gosec
+			Transport: transport,
 		})
 	}
 	return apiClient{

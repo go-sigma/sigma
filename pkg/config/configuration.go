@@ -660,10 +660,16 @@ type ConfigurationDaemonBuilder struct {
 	Enabled    bool                          `yaml:"enabled"`
 	Type       enums.BuilderType             `yaml:"type"`
 	Image      string                        `yaml:"image"`
+	TlsVerify  *bool                         `yaml:"tlsVerify"`
 	Docker     ConfigurationDaemonDocker     `yaml:"docker"`
 	Kubernetes ConfigurationDaemonKubernetes `yaml:"kubernetes"`
 	Podman     ConfigurationDaemonPodman     `yaml:"podman"`
 	ExtraHosts []string                      `yaml:"extra_hosts"` // 构建容器的额外 hosts，格式: "hostname:ip"
+}
+
+// TLSVerifyEnabled reports whether builder cache API TLS certificates should be verified.
+func (c ConfigurationDaemonBuilder) TLSVerifyEnabled() bool {
+	return c.TlsVerify == nil || *c.TlsVerify
 }
 
 // ConfigurationDaemonVulnerabilityGrype configures grype vulnerability scanning.
