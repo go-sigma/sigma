@@ -19,7 +19,7 @@ import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import {
   Combobox, ComboboxButton, ComboboxInput, ComboboxOption,
   ComboboxOptions, Dialog, DialogPanel, DialogTitle, Listbox,

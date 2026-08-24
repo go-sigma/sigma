@@ -16,11 +16,12 @@
 
 import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { ScaleIcon } from '@heroicons/react/24/outline';
+import { ScaleIcon } from 'lucide-react';
 
 import Header from "../../components/Header";
 import Menu from "../../components/Menu";
 import { useTranslation } from "../../i18n/useTranslation";
+import { Card, CardContent } from "@/components/ui/card";
 
 const cards = [
   { name: 'Account balance1', href: '#', icon: ScaleIcon, amount: '$30,659.45' },
@@ -39,7 +40,7 @@ export default function Home({ localServer }: { localServer: string }) {
           <title>{t("header.home")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950 min-w-[1600px]">
+      <div className="min-h-screen flex overflow-hidden bg-background min-w-[1600px]">
         <Menu item="home" localServer={localServer} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
@@ -47,23 +48,23 @@ export default function Home({ localServer }: { localServer: string }) {
             <div className="py-3 px-3 sm:px-6 lg:px-8">
               <div className="flex flex-wrap justify-around mt-2 gap-5">
                 {cards.map((card) => (
-                  <div key={card.name} className="overflow-hidden rounded-lg bg-white shadow w-1/5">
-                    <div className="p-5">
+                  <Card key={card.name} className="w-1/5">
+                    <CardContent className="p-5">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <card.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
+                          <card.icon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                         </div>
                         <div className="ml-5 w-0 flex-1">
                           <dl>
-                            <dt className="truncate text-sm font-medium text-gray-500">{card.name}</dt>
+                            <dt className="truncate text-sm font-medium text-muted-foreground">{card.name}</dt>
                             <dd>
-                              <div className="text-lg font-medium text-gray-900">{card.amount}</div>
+                              <div className="text-lg font-medium text-foreground">{card.amount}</div>
                             </dd>
                           </dl>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>

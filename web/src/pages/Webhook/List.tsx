@@ -1,3 +1,4 @@
+import { Dialog, Menu, Transition } from "@headlessui/react";
 /**
  * Copyright 2023 sigma
  *
@@ -15,7 +16,8 @@
  */
 
 import axios from "axios";
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Dialog as ShadDialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
@@ -29,6 +31,7 @@ import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookItem, IWebhookList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
+import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 import { useTranslation } from "../../i18n/useTranslation";

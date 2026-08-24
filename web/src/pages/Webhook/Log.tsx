@@ -1,3 +1,4 @@
+import { Dialog, Menu, Transition } from "@headlessui/react";
 /**
  * Copyright 2024 sigma
  *
@@ -18,7 +19,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Dialog as ShadDialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom';
 
 import Header from "../../components/Header";
@@ -28,6 +30,7 @@ import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookLogItem, IWebhookLogList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
+import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 

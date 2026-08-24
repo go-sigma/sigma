@@ -15,6 +15,13 @@
  */
 
 import { useTranslation } from "../../i18n/useTranslation";
+import {
+  Pagination as ShadPagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
 
 export default function ({ limit, page, total, setPage }: { limit: number, page: number, total: number, setPage: (page: number) => void }) {
   const { t } = useTranslation();
@@ -23,7 +30,7 @@ export default function ({ limit, page, total, setPage }: { limit: number, page:
 
   return (
     <div
-      className="flex flex-2 items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100 dark:border-gray-800 dark:bg-gray-900"
+      className="flex items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100 dark:border-gray-800 dark:bg-gray-900"
       aria-label="Pagination"
     >
       <div>
@@ -31,32 +38,30 @@ export default function ({ limit, page, total, setPage }: { limit: number, page:
           {t("pagination.summary", { start, end, total })}
         </p>
       </div>
-      <div className="flex flex-1 justify-between sm:justify-end">
-        <button
-          className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
-          onClick={() => {
-            if (page <= 1) {
-              return;
-            } else {
-              setPage(page - 1)
-            }
-          }}
-        >
-          {t("common.previous")}
-        </button>
-        <button
-          className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
-          onClick={() => {
-            if (total / limit < page) {
-              return;
-            } else {
-              setPage(page + 1)
-            }
-          }}
-        >
-          {t("common.next")}
-        </button>
-      </div>
+      <ShadPagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              text={t("common.previous")}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                if (page > 1) setPage(page - 1);
+              }}
+              className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext
+              text={t("common.next")}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                if (total / limit > page) setPage(page + 1);
+              }}
+              className={total / limit <= page ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </ShadPagination>
     </div>
   )
 }

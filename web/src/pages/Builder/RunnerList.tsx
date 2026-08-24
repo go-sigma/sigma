@@ -17,6 +17,8 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { Dialog, Transition } from "@headlessui/react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";

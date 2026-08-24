@@ -1,3 +1,4 @@
+import { Dialog, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 /**
  * Copyright 2023 sigma
  *
@@ -17,9 +18,7 @@
 import axios from "axios";
 import dayjs from 'dayjs';
 import humanFormat from "human-format";
-import { Dialog, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
