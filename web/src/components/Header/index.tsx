@@ -15,21 +15,24 @@
  */
 
 import { ReactNode } from 'react';
+import { Separator } from "@/components/ui/separator";
 
 export default function Header({ title, breadcrumb, props }: { title: ReactNode, breadcrumb?: ReactNode, props?: ReactNode }) {
   return (
-    <div className={breadcrumb === undefined ? "" : "border-gray-200 border-b dark:border-gray-800"}>
-      <div className="border-gray-200 border-b px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16 dark:border-gray-800">
+    <div className={breadcrumb === undefined ? "" : "border-b border-border"}>
+      <div className="border-b border-border px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16">
         <div className="flex-1 min-w-0 my-4">
-          <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate mr-8 dark:text-gray-100">{title}</h1>
+          <h1 className="text-lg font-medium leading-6 text-foreground sm:truncate mr-8">{title}</h1>
         </div>
         <div className="flex h-16">
           {props}
         </div>
       </div>
-      <div className={breadcrumb === undefined ? "" : "px-4 py-3 dark:text-gray-200"}>
-        {breadcrumb}
-      </div>
+      {breadcrumb && (
+        <div className="px-4 py-3 text-muted-foreground">
+          {breadcrumb}
+        </div>
+      )}
     </div>
   );
 }

@@ -15,23 +15,26 @@
  */
 
 import humanFormat from 'human-format';
+import { Badge } from "@/components/ui/badge";
 
 import Settings from "../../Settings";
 
 export default function ({ current, limit }: { current: number, limit: number }) {
   const threshold = limit !== 0 ? (current / limit > 1 ? 1 : current / limit) : 0;
+  const percentage = limit !== 0 ? Math.min((current / limit * 100), 100) : 0;
 
   return (
-    <div className={limit === 0 ? "text-right text-sm" : "text-right"}>
+    <div className="text-right text-sm">
       {
         limit === 0 ? (
           <>{humanFormat(current)}</>
         ) : (
-          <>
-            <div className="text-sm font-medium">
-              {humanFormat(current)} / {humanFormat(limit)} (<span className={threshold > Settings.QuotaThreshold ? "text-red-700 dark:text-red-500" : "text-blue-700 dark:text-blue-500"}>{(current / limit * 100 > 100 ? 100 : current / limit * 100).toFixed(1)}%</span>)
-            </div>
-          </>
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-sm">{humanFormat(current)} / {humanFormat(limit)}</span>
+            <Badge variant={threshold > Settings.QuotaThreshold ? "destructive" : "secondary"}>
+              {percentage.toFixed(1)}%
+            </Badge>
+          </div>
         )
       }
     </div>

@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useParams } from 'react-router-dom';
-import { useDebounce } from "react-use";
 
 import Header from "../../components/Header";
 import Menu from "../../components/Menu";
 import { useTranslation } from "../../i18n/useTranslation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -35,18 +32,22 @@ export default function ({ localServer }: { localServer: string }) {
           <title>{t("header.setting")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <Menu localServer={localServer} item="settings" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.setting")} />
           </main>
-          <div className="flex flex-1 overflow-y-auto">
-            <div className="align-middle inline-block min-w-full border-b border-gray-200">
-
-            </div>
+          <div className="flex flex-1 overflow-y-auto p-6">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>{t("header.setting")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Select a setting from the sidebar.</p>
+              </CardContent>
+            </Card>
           </div>
-          {/* <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} /> */}
         </div>
       </div>
     </Fragment >

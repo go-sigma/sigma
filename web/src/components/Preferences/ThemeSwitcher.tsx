@@ -1,7 +1,15 @@
 import { useUiStore, ThemeMode } from "../../stores";
 import { useTranslation } from "../../i18n/useTranslation";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Sun, Moon, Monitor } from "lucide-react";
 
 const themeModes: ThemeMode[] = ["light", "dark", "system"];
+
+const themeIcons: Record<ThemeMode, typeof Sun> = {
+  light: Sun,
+  dark: Moon,
+  system: Monitor,
+};
 
 const themeMessageKeys: Record<ThemeMode, "preferences.theme.light" | "preferences.theme.dark" | "preferences.theme.system"> = {
   light: "preferences.theme.light",
@@ -16,21 +24,26 @@ export default function ThemeSwitcher() {
 
   return (
     <div className="space-y-2">
-      <div className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      <div className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {t("preferences.theme")}
       </div>
-      <div className="grid grid-cols-3 rounded-lg bg-gray-100 p-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-        {themeModes.map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            className={`rounded-md px-2 py-1.5 transition ${themeMode === mode ? "bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white" : "hover:text-gray-900 dark:hover:text-white"}`}
-            onClick={() => setThemeMode(mode)}
-          >
-            {t(themeMessageKeys[mode])}
-          </button>
-        ))}
-      </div>
+      <ToggleGroup
+        value={[themeMode]}
+        onValueChange={(values) => {
+          if (values.length > 0) setThemeMode(values[0] as ThemeMode);
+        }}
+        className="w-full"
+      >
+        {themeModes.map((mode) => {
+          const Icon = themeIcons[mode];
+          return (
+            <ToggleGroupItem key={mode} value={mode} className="flex-1 gap-1.5" size="sm">
+              <Icon className="h-3.5 w-3.5" />
+              <span className="sr-only">{t(themeMessageKeys[mode])}</span>
+            </ToggleGroupItem>
+          );
+        })}
+      </ToggleGroup>
     </div>
   );
 }

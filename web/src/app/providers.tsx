@@ -16,11 +16,10 @@
 
 import { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
-import { ToastContainer } from 'react-toastify';
+import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { useUiStore } from '../stores';
+import { TooltipProvider } from "@/components/ui/tooltip";
 import useThemeEffect from './useThemeEffect';
 
 const queryClient = new QueryClient({
@@ -36,34 +35,13 @@ const queryClient = new QueryClient({
 export default function AppProviders({ children }: { children: ReactNode }) {
   useThemeEffect();
 
-  const resolvedTheme = useUiStore((state) => state.resolvedTheme);
-
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        {children}
-        <Toaster
-          toastOptions={{
-            style: {
-              maxWidth: "500px",
-              fontSize: "0.875rem",
-              lineHeight: "1.25rem",
-            }
-          }}
-        />
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme={resolvedTheme}
-          style={{ top: "3rem" }}
-        />
+        <TooltipProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </TooltipProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );

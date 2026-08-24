@@ -15,11 +15,13 @@
  */
 
 import humanFormat from "human-format";
+import { Progress } from "@/components/ui/progress";
 
 import Settings from "../../Settings";
 
 export default function ({ current, limit }: { current: number, limit: number }) {
   const threshold = limit !== 0 ? (current / limit > 1 ? 1 : current / limit) : 0;
+  const percentage = limit !== 0 ? Math.min((current / limit * 100), 100) : 0;
 
   return (
     <div className={limit === 0 ? "text-right text-sm" : "text-left"}>
@@ -27,14 +29,15 @@ export default function ({ current, limit }: { current: number, limit: number })
         limit === 0 ? (
           <>{humanFormat(current, { scale: "binary", unit: "B" })}</>
         ) : (
-          <>
-            <div className="mb-1 text-xs font-medium">
-              {humanFormat(current, { scale: "binary", unit: "B" })} / {humanFormat(limit, { scale: "binary", unit: "B" })} (<span className={threshold > Settings.QuotaThreshold ? "text-red-700 dark:text-red-500" : "text-green-700 dark:text-green-500"}>{(current / limit * 100 > 100 ? 100 : current / limit * 100).toFixed(1)}%</span>)
+          <div className="flex flex-col gap-1">
+            <div className="text-xs font-medium">
+              {humanFormat(current, { scale: "binary", unit: "B" })} / {humanFormat(limit, { scale: "binary", unit: "B" })}
+              <span className={threshold > Settings.QuotaThreshold ? "text-destructive ml-1" : "text-green-600 dark:text-green-500 ml-1"}>
+                ({percentage.toFixed(1)}%)
+              </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1 mb-1 dark:bg-gray-700">
-              <div className={(threshold > Settings.QuotaThreshold ? "dark:bg-red-500 bg-red-600" : "dark:bg-green-500 bg-green-600") + " h-1 rounded-full"} style={{ width: (current / limit * 100 > 100 ? 100 : current / limit * 100).toFixed(1) + "%" }}></div>
-            </div>
-          </>
+            <Progress value={percentage} className={threshold > Settings.QuotaThreshold ? "[&>div]:bg-destructive" : ""} />
+          </div>
         )
       }
     </div>

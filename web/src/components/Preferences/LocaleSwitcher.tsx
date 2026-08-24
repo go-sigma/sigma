@@ -1,5 +1,6 @@
 import { Locale, useUiStore } from "../../stores";
 import { useTranslation } from "../../i18n/useTranslation";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const locales: Locale[] = ["en-US", "zh-CN"];
 
@@ -15,21 +16,22 @@ export default function LocaleSwitcher() {
 
   return (
     <div className="space-y-2">
-      <div className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      <div className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {t("preferences.language")}
       </div>
-      <div className="grid grid-cols-2 rounded-lg bg-gray-100 p-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+      <ToggleGroup
+        value={[locale]}
+        onValueChange={(values) => {
+          if (values.length > 0) setLocale(values[0] as Locale);
+        }}
+        className="w-full"
+      >
         {locales.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`rounded-md px-2 py-1.5 transition ${locale === item ? "bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white" : "hover:text-gray-900 dark:hover:text-white"}`}
-            onClick={() => setLocale(item)}
-          >
+          <ToggleGroupItem key={item} value={item} className="flex-1" size="sm">
             {t(localeLabels[item])}
-          </button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
     </div>
   );
 }

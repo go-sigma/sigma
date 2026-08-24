@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import 'react-toastify/dist/ReactToastify.css';
-
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist/wght-italic.css';
 import './index.css';
 
 import dayjs from 'dayjs';
