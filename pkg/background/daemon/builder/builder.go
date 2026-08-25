@@ -29,7 +29,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/background/daemon"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -74,22 +74,22 @@ func builderRunner(p params) func(ctx context.Context, data []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshal payload failed: %v", err)
 		}
-		b := runner{
+		b := taskRunner{
 			builderRepository:    p.BuilderRepository,
 			repositoryRepository: p.RepositoryRepository,
 		}
-		return b.runner(ctx, payload)
+		return b.run(ctx, payload)
 	}
 }
 
-type runner struct {
+type taskRunner struct {
 	builderRepository    repobuilder.BuilderRepository
 	repositoryRepository reporegistry.RepositoryRepository
 }
 
-func (b runner) runner(ctx context.Context, payload api.DaemonBuilderPayload) error {
+func (b taskRunner) run(ctx context.Context, payload api.DaemonBuilderPayload) error {
 	if payload.Action == enums.DaemonBuilderActionStop {
-		return buildrunner.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
+		return runtime.Driver.Stop(ctx, payload.BuilderID, payload.RunnerID)
 	}
 	repositoryRepository := b.repositoryRepository
 	repositoryObj, err := repositoryRepository.Get(ctx, payload.RepositoryID)
@@ -134,7 +134,7 @@ func (b runner) runner(ctx context.Context, payload api.DaemonBuilderPayload) er
 		}
 	}()
 
-	if buildrunner.Driver == nil {
+	if runtime.Driver == nil {
 		err = fmt.Errorf("buildrunner driver is not initialized")
 		return fmt.Errorf("buildrunner driver is not initialized, or check config.daemon.builder.enabled is true or not")
 	}
@@ -144,7 +144,7 @@ func (b runner) runner(ctx context.Context, payload api.DaemonBuilderPayload) er
 		platforms = append(platforms, enums.OciPlatform(p))
 	}
 
-	buildConfig := buildrunner.BuilderConfig{
+	buildConfig := runtime.Config{
 		Builder: api.Builder{
 			BuilderID: payload.BuilderID,
 			RunnerID:  runnerObj.ID,
@@ -205,7 +205,7 @@ func (b runner) runner(ctx context.Context, payload api.DaemonBuilderPayload) er
 	}
 
 	if payload.Action == enums.DaemonBuilderActionStart || payload.Action == enums.DaemonBuilderActionRestart {
-		err = buildrunner.Driver.Start(ctx, buildConfig)
+		err = runtime.Driver.Start(ctx, buildConfig)
 		if err != nil {
 			slog.Error("start or restart builder failed", "err", err)
 			return fmt.Errorf("start or restart builder failed: %v", err)

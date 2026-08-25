@@ -21,32 +21,33 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/registry"
 )
 
-// BuilderLogger ...
-type BuilderLogger interface {
+// LogStore persists and reads completed build runner logs.
+type LogStore interface {
 	// Write write log to object storage or database
 	Write(builderID, runnerID string) io.WriteCloser
 	// Read get log from object storage or database
 	Read(ctx context.Context, id string) (io.Reader, error)
 }
 
-// Driver is the builder logger driver, maybe implement by s3, database, etc.
-var Driver BuilderLogger
+// LogStoreDriver is the build log store driver, maybe implement by s3, database, etc.
+var LogStoreDriver LogStore
 
-// Factory is the interface for the builder logger factory
-type Factory interface {
-	New() (BuilderLogger, error)
+// LogStoreFactory is the interface for the build log store factory.
+type LogStoreFactory interface {
+	New() (LogStore, error)
 }
 
-// DriverFactories ...
-var DriverFactories = registry.New[Factory]()
+// LogStoreFactories stores registered build log store factories.
+var LogStoreFactories = registry.New[LogStoreFactory]()
 
-func Initialize() error {
-	factory, err := DriverFactories.Get("database")
+// InitializeLogStore selects and initializes the configured build log store.
+func InitializeLogStore() error {
+	factory, err := LogStoreFactories.Get("database")
 	if err != nil {
 		return err
 	}
 
-	Driver, err = factory.New()
+	LogStoreDriver, err = factory.New()
 	if err != nil {
 		return err
 	}

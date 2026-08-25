@@ -28,7 +28,7 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/app"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/background/cronjob"
 	"github.com/go-sigma/sigma/pkg/background/daemon"
 	"github.com/go-sigma/sigma/pkg/config"
@@ -85,7 +85,7 @@ func Serve(digCon *dig.Container) error {
 		}
 	}
 	if !serverConfig.WithoutWorker {
-		err = buildrunner.Initialize(cfg)
+		err = runtime.Initialize(cfg)
 		if err != nil {
 			return err
 		}

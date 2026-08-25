@@ -17,20 +17,17 @@ package docker
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/stdcopy"
 
-	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner/logger"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
 func (i *instance) informer(ctx context.Context) {
@@ -68,7 +65,7 @@ func (i *instance) informer(ctx context.Context) {
 								// TODO: we should test all case
 								container.State.Status == "exited") {
 							slog.Info("builder container started", "id", evt.Actor.ID, "name", container.Name)
-							builderID, runnerID, err := buildrunner.ParseContainerID(container.Name)
+							builderID, runnerID, err := runtime.ParseContainerID(container.Name)
 							if err != nil {
 								slog.Error("parse builder task id failed", "err", err, "container", container.Name)
 								continue
@@ -99,7 +96,7 @@ func (i *instance) informer(ctx context.Context) {
 							}
 						}
 
-						builderID, runnerID, err := buildrunner.ParseContainerID(container.Name)
+						builderID, runnerID, err := runtime.ParseContainerID(container.Name)
 						if err != nil {
 							slog.Error("parse builder task id failed", "err", err, "container", container.Name)
 							continue
@@ -114,27 +111,19 @@ func (i *instance) informer(ctx context.Context) {
 
 						i.controlled.Remove(evt.Actor.ID)
 
-						builderRepository := i.builderRepository
-						updates := make(map[string]any, 1)
 						if container.ContainerJSONBase != nil && container.State != nil {
 							if container.State.ExitCode == 0 {
-								updates = map[string]any{
-									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
-									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
-								}
 								slog.Info("builder container succeed", "id", evt.Actor.ID, "name", container.Name)
 							} else {
-								updates = map[string]any{
-									query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
-									query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
-								}
 								slog.Error("builder container exited",
 									"ExitCode", container.State.ExitCode,
 									"Error", container.State.Error,
 									"OOMKilled", container.State.OOMKilled)
 							}
+							err = i.coordinator.MarkCompleted(ctx, builderID, runnerID, container.State.ExitCode)
+						} else {
+							err = i.coordinator.MarkFailed(ctx, builderID, runnerID)
 						}
-						err = builderRepository.UpdateRunner(ctx, builderID, runnerID, updates)
 						if err != nil {
 							slog.Error("update runner failed", "err", err)
 						}
@@ -155,23 +144,23 @@ func (i *instance) logStore(ctx context.Context, containerID, builderID, runnerI
 		slog.Error("add container id to controlled array failed", "container", containerID, "builder", builderID, "runner", runnerID)
 		return fmt.Errorf("add container id to controlled array failed")
 	}
-	reader, err := i.client.ContainerLogs(ctx, containerID, container.LogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Follow:     true,
+	err := i.coordinator.StoreLogs(builderID, runnerID, func(stdout, stderr io.Writer) error {
+		reader, err := i.client.ContainerLogs(ctx, containerID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Follow:     true,
+		})
+		if err != nil {
+			return fmt.Errorf("get container logs failed: %v", err)
+		}
+		_, err = stdcopy.StdCopy(stdout, stderr, reader)
+		if err != nil {
+			return fmt.Errorf("copy container logs failed: %v", err)
+		}
+		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("get container logs failed: %v", err)
-	}
-
-	writer := logger.Driver.Write(builderID, runnerID)
-	_, err = stdcopy.StdCopy(writer, writer, reader)
-	if err != nil {
-		return fmt.Errorf("copy container logs failed: %v", err)
-	}
-	err = writer.Close()
-	if err != nil {
-		return fmt.Errorf("close container logs failed: %v", err)
+		return err
 	}
 
 	err = i.client.ContainerRemove(ctx, containerID, container.RemoveOptions{})
@@ -199,7 +188,7 @@ func (i *instance) cacheList(ctx context.Context) error {
 		} else {
 			continue
 		}
-		builderID, runnerID, err := buildrunner.ParseContainerID(name)
+		builderID, runnerID, err := runtime.ParseContainerID(name)
 		if err != nil {
 			slog.Error("parse builder task id failed", "err", err)
 			continue
@@ -214,27 +203,19 @@ func (i *instance) cacheList(ctx context.Context) error {
 			if err != nil {
 				slog.Error("get container log failed", "err", err, "id", id)
 			}
-			updates := map[string]any{query.BuilderRunner.Status.ColumnName().String(): enums.BuildStatusFailed}
 			if con.ContainerJSONBase != nil && con.State != nil {
 				if con.State.ExitCode == 0 {
-					updates = map[string]any{
-						query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusSuccess,
-						query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
-					}
 					slog.Info("builder container succeed", "id", id, "name", con.Name)
 				} else {
-					updates = map[string]any{
-						query.BuilderRunner.Status.ColumnName().String():  enums.BuildStatusFailed,
-						query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
-					}
 					slog.Error("builder container exited",
 						"ExitCode", con.State.ExitCode,
 						"Error", con.State.Error,
 						"OOMKilled", con.State.OOMKilled)
 				}
+				err = i.coordinator.MarkCompleted(ctx, bID, rID, con.State.ExitCode)
+			} else {
+				err = i.coordinator.MarkFailed(ctx, bID, rID)
 			}
-			builderRepository := i.builderRepository
-			err = builderRepository.UpdateRunner(ctx, bID, rID, updates)
 			if err != nil {
 				slog.Error("update runner failed", "err", err)
 			}
