@@ -30,22 +30,23 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
+	"github.com/go-sigma/sigma/pkg/background/build"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
-	buildrunner.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
+	runtime.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
 }
 
 type factory struct{}
 
-var _ buildrunner.Factory = factory{}
+var _ runtime.Factory = factory{}
 
-// New returns a new filesystem storage driver
-func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) {
+// New returns a new kubernetes runtime.
+func (f factory) New(config *config.Configuration, _ build.Coordinator) (runtime.Builder, error) {
 	i := &instance{
 		config: config,
 	}
@@ -72,7 +73,7 @@ func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) 
 
 	i.client, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
-		return nil, fmt.Errorf("get reset client failed: %v", err)
+		return nil, fmt.Errorf("create kubernetes client failed: %v", err)
 	}
 
 	go i.informer(context.Background())
@@ -86,14 +87,14 @@ type instance struct {
 }
 
 // Start start a container to build oci image and push to registry
-func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
-	envs, err := buildrunner.BuildK8sEnv(builderConfig)
+func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error {
+	envs, err := runtime.BuildK8sEnv(builderConfig)
 	if err != nil {
 		return err
 	}
 	_, err = i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: buildrunner.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID),
+			Name: runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID),
 			Labels: map[string]string{
 				"oci-image-builder": consts.AppName,
 				"builder-id":        builderConfig.BuilderID,
@@ -120,14 +121,14 @@ func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderCo
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID string) error {
-	podName := buildrunner.GenContainerID(builderID, runnerID)
+	podName := runtime.GenContainerID(builderID, runnerID)
 	return i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).
 		Delete(ctx, podName, metav1.DeleteOptions{})
 }
 
 // Restart wrap stop and start
-func (i instance) Restart(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
-	podName := buildrunner.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
+func (i instance) Restart(ctx context.Context, builderConfig runtime.Config) error {
+	podName := runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
 	propagationPolicy := metav1.DeletePropagationForeground
 	err := i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Delete(ctx, podName, metav1.DeleteOptions{
 		PropagationPolicy: &propagationPolicy,
@@ -140,7 +141,7 @@ func (i instance) Restart(ctx context.Context, builderConfig buildrunner.Builder
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID string, writer io.Writer) error {
-	podName := buildrunner.GenContainerID(builderID, runnerID)
+	podName := runtime.GenContainerID(builderID, runnerID)
 	reader, err := i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).
 		GetLogs(podName, &corev1.PodLogOptions{
 			Follow: true,

@@ -29,33 +29,31 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 
-	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
+	"github.com/go-sigma/sigma/pkg/background/build"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/dal/query"
-	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
 )
 
 func init() {
-	buildrunner.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
+	runtime.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
 }
 
 type factory struct{}
 
-var _ buildrunner.Factory = factory{}
+var _ runtime.Factory = factory{}
 
-// New returns a new filesystem storage driver
-func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) {
+// New returns a new docker runtime.
+func (f factory) New(config *config.Configuration, coordinator build.Coordinator) (runtime.Builder, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, fmt.Errorf("create docker client failed: %v", err)
 	}
 	i := &instance{
-		config:            config,
-		client:            cli,
-		controlled:        mapset.NewSet[string](),
-		builderRepository: repobuilder.NewBuilderRepository(),
+		config:      config,
+		client:      cli,
+		controlled:  mapset.NewSet[string](),
+		coordinator: coordinator,
 	}
 	err = i.cacheList(context.Background())
 	if err != nil {
@@ -68,17 +66,17 @@ func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) 
 }
 
 type instance struct {
-	config            *config.Configuration
-	client            *client.Client
-	controlled        mapset.Set[string] // the controlled container in docker container
-	builderRepository repobuilder.BuilderRepository
+	config      *config.Configuration
+	client      *client.Client
+	controlled  mapset.Set[string] // the controlled containers in docker
+	coordinator build.Coordinator
 }
 
-var _ buildrunner.Builder = instance{}
+var _ runtime.Builder = instance{}
 
 // Start start a container to build oci image and push to registry
-func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
-	envs, err := buildrunner.BuildEnv(builderConfig)
+func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error {
+	envs, err := runtime.BuildEnv(builderConfig)
 	if err != nil {
 		return err
 	}
@@ -99,21 +97,17 @@ func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderCo
 		NetworkMode: container.NetworkMode(i.config.Daemon.Builder.Docker.Network),
 		ExtraHosts:  builderConfig.ExtraHosts,
 	}
-	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, buildrunner.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
+	_, err = i.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID))
 
 	if err != nil {
 		return fmt.Errorf("create container failed: %v", err)
 	}
 
-	err = i.client.ContainerStart(ctx, buildrunner.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID), container.StartOptions{})
+	err = i.client.ContainerStart(ctx, runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID), container.StartOptions{})
 	if err != nil {
 		return fmt.Errorf("start container failed: %v", err)
 	}
-	builderRepository := i.builderRepository
-	err = builderRepository.UpdateRunner(ctx, builderConfig.BuilderID, builderConfig.RunnerID, map[string]any{
-		query.BuilderRunner.Status.ColumnName().String():    enums.BuildStatusBuilding,
-		query.BuilderRunner.StartedAt.ColumnName().String(): time.Now().UnixMilli(),
-	})
+	err = i.coordinator.MarkBuilding(ctx, builderConfig.BuilderID, builderConfig.RunnerID)
 	if err != nil {
 		return fmt.Errorf("update runner status failed: %v", err)
 	}
@@ -129,47 +123,33 @@ const (
 func (i instance) Stop(ctx context.Context, builderID, runnerID string) error {
 	var err error
 	defer func() {
-		status := enums.BuildStatusStopped
-
-		if err != nil {
-			if !(strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")) { // nolint: staticcheck
-				status = enums.BuildStatusFailed
-			}
-		}
-
-		builderRepository := i.builderRepository
-		err := builderRepository.UpdateRunner(ctx, builderID, runnerID, map[string]any{
-			query.BuilderRunner.Status.ColumnName().String():  status,
-			query.BuilderRunner.EndedAt.ColumnName().String(): time.Now().UnixMilli(),
-		})
-
-		if err != nil {
-			slog.Error("update runner status failed", "err", err)
+		if e := i.coordinator.MarkStopped(ctx, builderID, runnerID, err, isExpectedStopError); e != nil {
+			slog.Error("update runner status failed", "err", e)
 		}
 	}()
 
-	err = i.client.ContainerKill(ctx, buildrunner.GenContainerID(builderID, runnerID), "SIGKILL")
+	err = i.client.ContainerKill(ctx, runtime.GenContainerID(builderID, runnerID), "SIGKILL")
 	if err != nil {
 		if strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running") {
-			slog.Info("container is not running or container is not exist", "id", buildrunner.GenContainerID(builderID, runnerID))
+			slog.Info("container is not running or container is not exist", "id", runtime.GenContainerID(builderID, runnerID))
 			return nil
 		}
 
-		slog.Error("kill container failed", "err", err, "id", buildrunner.GenContainerID(builderID, runnerID))
+		slog.Error("kill container failed", "err", err, "id", runtime.GenContainerID(builderID, runnerID))
 
 		return fmt.Errorf("kill container failed: %v", err)
 	}
 
-	err = i.client.ContainerRemove(ctx, buildrunner.GenContainerID(builderID, runnerID), container.RemoveOptions{})
+	err = i.client.ContainerRemove(ctx, runtime.GenContainerID(builderID, runnerID), container.RemoveOptions{})
 	if err != nil {
-		slog.Error("remove container failed", "err", err, "id", buildrunner.GenContainerID(builderID, runnerID))
+		slog.Error("remove container failed", "err", err, "id", runtime.GenContainerID(builderID, runnerID))
 		return fmt.Errorf("remove container failed: %v", err)
 	}
 
 	for range retryMax {
-		_, err = i.client.ContainerInspect(ctx, buildrunner.GenContainerID(builderID, runnerID))
+		_, err = i.client.ContainerInspect(ctx, runtime.GenContainerID(builderID, runnerID))
 		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf("No such container: %s", buildrunner.GenContainerID(builderID, runnerID))) {
+			if strings.Contains(err.Error(), fmt.Sprintf("No such container: %s", runtime.GenContainerID(builderID, runnerID))) {
 				return nil
 			}
 			return fmt.Errorf("inspect container with error: %v", err)
@@ -178,11 +158,18 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID string) error {
 		<-time.After(retryDuration)
 	}
 
-	return fmt.Errorf("container %s still exists after %d retries", buildrunner.GenContainerID(builderID, runnerID), retryMax)
+	return fmt.Errorf("container %s still exists after %d retries", runtime.GenContainerID(builderID, runnerID), retryMax)
+}
+
+func isExpectedStopError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), "No such container") || strings.Contains(err.Error(), "is not running")
 }
 
 // Restart wrap stop and start
-func (i instance) Restart(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
+func (i instance) Restart(ctx context.Context, builderConfig runtime.Config) error {
 	err := i.Stop(ctx, builderConfig.BuilderID, builderConfig.RunnerID)
 	if err != nil {
 		return err
@@ -192,7 +179,7 @@ func (i instance) Restart(ctx context.Context, builderConfig buildrunner.Builder
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID string, writer io.Writer) error {
-	reader, err := i.client.ContainerLogs(ctx, buildrunner.GenContainerID(builderID, runnerID),
+	reader, err := i.client.ContainerLogs(ctx, runtime.GenContainerID(builderID, runnerID),
 		container.LogsOptions{
 			ShowStdout: true,
 			ShowStderr: false,

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package buildrunner
+package runtime
 
 import (
 	"context"
@@ -23,10 +23,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-sigma/sigma/pkg/api"
-	"github.com/go-sigma/sigma/pkg/background/buildrunner/logger"
+	"github.com/go-sigma/sigma/pkg/background/build"
+	buildlogger "github.com/go-sigma/sigma/pkg/background/build/logger"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
+	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
 	reposetting "github.com/go-sigma/sigma/pkg/dal/repository/setting"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
 	"github.com/go-sigma/sigma/pkg/service/token"
@@ -35,38 +37,38 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=builder_mocks.go -package=buildrunner github.com/go-sigma/sigma/pkg/background/buildrunner Builder
+//go:generate mockgen -destination=runtime_mocks.go -package=runtime github.com/go-sigma/sigma/pkg/background/build/runtime Builder
 
-// Builder ...
+// Builder controls one runtime backend for executing build runners.
 type Builder interface {
-	// Start start a container to build oci image and push to registry
-	Start(ctx context.Context, builderConfig BuilderConfig) error
-	// Stop stop the container
+	// Start launches a build runner with the given build configuration.
+	Start(ctx context.Context, builderConfig Config) error
+	// Stop terminates the build runner identified by builderID and runnerID.
 	Stop(ctx context.Context, builderID, runnerID string) error
-	// Restart wrap stop and start
-	Restart(ctx context.Context, builderConfig BuilderConfig) error
-	// LogStream get the real time log stream
+	// Restart terminates an existing build runner and starts it again.
+	Restart(ctx context.Context, builderConfig Config) error
+	// LogStream streams live runner logs to writer.
 	LogStream(ctx context.Context, builderID, runnerID string, writer io.Writer) error
 }
 
-// BuilderConfig ...
-type BuilderConfig struct {
+// Config contains the build request and runtime-specific host settings.
+type Config struct {
 	api.Builder
 	ExtraHosts []string
 }
 
-// Driver is the builder driver, maybe implement by docker, podman, k8s, etc.
+// Driver is the selected build runner runtime driver.
 var Driver Builder
 
-// Factory is the interface for the builder driver factory
+// Factory creates a build runner runtime driver.
 type Factory interface {
-	New(config *config.Configuration) (Builder, error)
+	New(config *config.Configuration, coordinator build.Coordinator) (Builder, error)
 }
 
-// DriverFactories ...
+// DriverFactories stores registered build runner runtime driver factories.
 var DriverFactories = make(map[string]Factory)
 
-// Initialize ...
+// Initialize selects and initializes the configured build runner runtime.
 func Initialize(config *config.Configuration) error {
 	if !config.Daemon.Builder.Enabled {
 		return nil
@@ -77,19 +79,20 @@ func Initialize(config *config.Configuration) error {
 		return fmt.Errorf("builder driver %s not registered", builderType.String())
 	}
 	var err error
-	err = logger.Initialize()
+	err = buildlogger.InitializeLogStore()
 	if err != nil {
 		return err
 	}
-	Driver, err = factory.New(config)
+	coordinator := build.NewCoordinator(repobuilder.NewBuilderRepository(), buildlogger.LogStoreDriver)
+	Driver, err = factory.New(config, coordinator)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// BuildEnv ...
-func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
+// BuildEnv builds the environment variables passed to a build runtime.
+func BuildEnv(builderConfig Config) ([]string, error) {
 	config := config.GetConfig()
 
 	ctx := context.Background()
@@ -197,8 +200,8 @@ func BuildEnv(builderConfig BuilderConfig) ([]string, error) {
 	return buildConfigEnvs, nil
 }
 
-// BuildK8sEnv ...
-func BuildK8sEnv(builderConfig BuilderConfig) ([]corev1.EnvVar, error) {
+// BuildK8sEnv converts build runner environment variables to Kubernetes values.
+func BuildK8sEnv(builderConfig Config) ([]corev1.EnvVar, error) {
 	envs, err := BuildEnv(builderConfig)
 	if err != nil {
 		return nil, err
@@ -214,8 +217,8 @@ func BuildK8sEnv(builderConfig BuilderConfig) ([]corev1.EnvVar, error) {
 	return k8sEnvs, nil
 }
 
-// BuildEnvMap ...
-func BuildEnvMap(builderConfig BuilderConfig) (map[string]string, error) {
+// BuildEnvMap converts build runner environment variables to a name-value map.
+func BuildEnvMap(builderConfig Config) (map[string]string, error) {
 	envs, err := BuildEnv(builderConfig)
 	if err != nil {
 		return nil, err
@@ -229,16 +232,16 @@ func BuildEnvMap(builderConfig BuilderConfig) (map[string]string, error) {
 }
 
 const (
-	// ContainerPrefix ...
+	// ContainerPrefix is the name prefix used for build runner containers.
 	ContainerPrefix = "sigma-builder-"
 )
 
-// GenContainerID ...
+// GenContainerID returns the runtime container name for a builder runtime.
 func GenContainerID(builderID, runnerID string) string {
 	return fmt.Sprintf("%s%s_%s", ContainerPrefix, builderID, runnerID)
 }
 
-// ParseContainerID ...
+// ParseContainerID extracts builder and runner IDs from a runtime container name.
 func ParseContainerID(containerName string) (string, string, error) {
 	containerName = strings.TrimPrefix(containerName, "/")
 	ids := strings.TrimPrefix(containerName, ContainerPrefix)

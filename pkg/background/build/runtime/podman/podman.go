@@ -28,32 +28,33 @@ import (
 	"go.podman.io/podman/v6/pkg/bindings/containers"
 	"go.podman.io/podman/v6/pkg/specgen"
 
-	"github.com/go-sigma/sigma/pkg/background/buildrunner"
+	"github.com/go-sigma/sigma/pkg/background/build"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
 )
 
 func init() {
-	buildrunner.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
+	runtime.DriverFactories[path.Base(reflect.TypeFor[factory]().PkgPath())] = &factory{}
 }
 
 type factory struct{}
 
-var _ buildrunner.Factory = factory{}
+var _ runtime.Factory = factory{}
 
 type instance struct {
 	conn              context.Context
 	config            *config.Configuration
-	controlled        mapset.Set[string] // the controlled container in docker container
+	controlled        mapset.Set[string] // the controlled containers in podman
 	builderRepository repobuilder.BuilderRepository
 }
 
-// New returns a new filesystem storage driver
-func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) {
+// New returns a new podman runtime.
+func (f factory) New(config *config.Configuration, _ build.Coordinator) (runtime.Builder, error) {
 	ctx, err := bindings.NewConnection(context.Background(), "unix:///run/podman/podman.sock")
 	if err != nil {
-		return nil, fmt.Errorf("create docker client failed: %v", err)
+		return nil, fmt.Errorf("create podman connection failed: %v", err)
 	}
 
 	i := &instance{
@@ -66,13 +67,13 @@ func (f factory) New(config *config.Configuration) (buildrunner.Builder, error) 
 }
 
 // Start start a container to build oci image and push to registry
-func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
-	envs, err := buildrunner.BuildEnvMap(builderConfig)
+func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error {
+	envs, err := runtime.BuildEnvMap(builderConfig)
 	if err != nil {
 		return err
 	}
 	s := specgen.NewSpecGenerator(i.config.Daemon.Builder.Image, false)
-	s.Name = buildrunner.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
+	s.Name = runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
 	s.Env = envs
 	s.Entrypoint = []string{}
 	s.Command = []string{"sigma-builder"}
@@ -99,7 +100,7 @@ func (i instance) Start(ctx context.Context, builderConfig buildrunner.BuilderCo
 
 // Stop stop the container
 func (i instance) Stop(ctx context.Context, builderID, runnerID string) error {
-	name := buildrunner.GenContainerID(builderID, runnerID)
+	name := runtime.GenContainerID(builderID, runnerID)
 	signal := "SIGKILL"
 	err := containers.Kill(i.conn, name, &containers.KillOptions{Signal: &signal})
 	if err != nil {
@@ -108,24 +109,24 @@ func (i instance) Stop(ctx context.Context, builderID, runnerID string) error {
 	ignore := true
 	rmReports, err := containers.Remove(i.conn, name, &containers.RemoveOptions{Ignore: &ignore})
 	if err != nil {
-		return fmt.Errorf("remove container failed")
+		return fmt.Errorf("remove container failed: %v", err)
 	}
 	for _, rmReport := range rmReports {
 		if rmReport.Err != nil {
-			return fmt.Errorf("remove container with something error: %v", rmReport.Err)
+			return fmt.Errorf("remove container failed: %v", rmReport.Err)
 		}
 	}
 	return nil
 }
 
 // Restart wrap stop and start
-func (i instance) Restart(ctx context.Context, builderConfig buildrunner.BuilderConfig) error {
+func (i instance) Restart(ctx context.Context, builderConfig runtime.Config) error {
 	return nil
 }
 
 // LogStream get the real time log stream
 func (i instance) LogStream(ctx context.Context, builderID, runnerID string, writer io.Writer) error {
-	var name = buildrunner.GenContainerID(builderID, runnerID)
+	var name = runtime.GenContainerID(builderID, runnerID)
 	var stdoutChan = make(chan string, 10)
 	var stderrChan = make(chan string, 10)
 

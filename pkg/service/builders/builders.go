@@ -28,8 +28,8 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
-	backgroundbuilder "github.com/go-sigma/sigma/pkg/background/buildrunner"
-	builderlogger "github.com/go-sigma/sigma/pkg/background/buildrunner/logger"
+	buildlogger "github.com/go-sigma/sigma/pkg/background/build/logger"
+	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
@@ -128,10 +128,10 @@ func createBuilderValidator(req api.CreateBuilderRequest) error {
 
 func (s *service) RunnerLogReader(ctx context.Context, builderID string, runnerID string, status enums.BuildStatus) (io.Reader, bool, error) {
 	if status == enums.BuildStatusFailed || status == enums.BuildStatusSuccess {
-		if builderlogger.Driver == nil {
+		if buildlogger.LogStoreDriver == nil {
 			return strings.NewReader(""), true, nil
 		}
-		reader, err := builderlogger.Driver.Read(ctx, runnerID)
+		reader, err := buildlogger.LogStoreDriver.Read(ctx, runnerID)
 		return reader, true, err
 	}
 
@@ -143,7 +143,7 @@ func (s *service) RunnerLogReader(ctx context.Context, builderID string, runnerI
 					slog.Error("close log pipe writer failed", "err", err)
 				}
 			}()
-			if err := backgroundbuilder.Driver.LogStream(ctx, builderID, runnerID, writer); err != nil {
+			if err := runtime.Driver.LogStream(ctx, builderID, runnerID, writer); err != nil {
 				slog.Error("read log failed", "err", err)
 				if _, writeErr := writer.Write([]byte{10}); writeErr != nil {
 					slog.Error("write log failed", "err", writeErr)

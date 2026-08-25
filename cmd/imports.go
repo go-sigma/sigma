@@ -21,11 +21,11 @@ import (
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/manifest"
 	_ "github.com/go-sigma/sigma/pkg/server/handlers/distribution/upload"
 
-	_ "github.com/go-sigma/sigma/pkg/background/buildrunner/docker"
-	_ "github.com/go-sigma/sigma/pkg/background/buildrunner/kubernetes"
-	_ "github.com/go-sigma/sigma/pkg/background/buildrunner/logger/database"
-	_ "github.com/go-sigma/sigma/pkg/background/buildrunner/logger/obs"
-	_ "github.com/go-sigma/sigma/pkg/background/buildrunner/podman"
+	_ "github.com/go-sigma/sigma/pkg/background/build/logger/database"
+	_ "github.com/go-sigma/sigma/pkg/background/build/logger/obs"
+	_ "github.com/go-sigma/sigma/pkg/background/build/runtime/docker"
+	_ "github.com/go-sigma/sigma/pkg/background/build/runtime/kubernetes"
+	_ "github.com/go-sigma/sigma/pkg/background/build/runtime/podman"
 
 	_ "github.com/go-sigma/sigma/pkg/background/cronjob/audit"
 	_ "github.com/go-sigma/sigma/pkg/background/cronjob/builder"

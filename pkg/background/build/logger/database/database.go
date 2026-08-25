@@ -24,21 +24,21 @@ import (
 	"path"
 	"reflect"
 
-	builderlogger "github.com/go-sigma/sigma/pkg/background/buildrunner/logger"
+	buildlogger "github.com/go-sigma/sigma/pkg/background/build/logger"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
 )
 
 func init() {
-	builderlogger.DriverFactories.MustRegister(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{})
+	buildlogger.LogStoreFactories.MustRegister(path.Base(reflect.TypeFor[factory]().PkgPath()), &factory{})
 }
 
 type factory struct{}
 
-var _ builderlogger.Factory = factory{}
+var _ buildlogger.LogStoreFactory = factory{}
 
-// New returns a new filesystem storage driver
-func (f factory) New() (builderlogger.BuilderLogger, error) {
+// New returns a database-backed build log store.
+func (f factory) New() (buildlogger.LogStore, error) {
 	return &database{
 		builderRepository: repobuilder.NewBuilderRepository(),
 	}, nil

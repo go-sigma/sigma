@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-// MustEncrypt ...
+// MustEncrypt encrypts plaintext with key and panics if encryption fails.
 func MustEncrypt(key, plaintext string) string {
 	result, err := Encrypt(key, plaintext)
 	if err != nil {
@@ -35,7 +35,7 @@ func MustEncrypt(key, plaintext string) string {
 	return result
 }
 
-// Encrypt ...
+// Encrypt encrypts plaintext with an AES-CTR key derived from key.
 func Encrypt(key, plaintext string) (string, error) {
 	keyBytes := sha256.Sum256([]byte(key))
 
@@ -61,7 +61,7 @@ func Encrypt(key, plaintext string) (string, error) {
 	return base64.StdEncoding.WithPadding(base64.StdPadding).EncodeToString(encrypted), nil
 }
 
-// Decrypt ...
+// Decrypt decrypts a base64-encoded AES-CTR ciphertext produced by Encrypt.
 func Decrypt(key, ciphertext string) (string, error) {
 	keyBytes := sha256.Sum256([]byte(key))
 
