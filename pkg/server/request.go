@@ -15,9 +15,7 @@
 package server
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
+	"encoding/json/v2"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -49,8 +47,7 @@ func bindBody(c *gin.Context, dst any) error {
 
 	switch c.ContentType() {
 	case binding.MIMEJSON:
-		decoder := json.NewDecoder(c.Request.Body)
-		if err := decoder.Decode(dst); err != nil && !errors.Is(err, io.EOF) {
+		if err := json.UnmarshalRead(c.Request.Body, dst); err != nil {
 			return err
 		}
 	case binding.MIMEPOSTForm:

@@ -17,7 +17,7 @@ package scan
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"os"
@@ -120,7 +120,7 @@ func runnerSbom(ctx context.Context, p params, artifact *models.Artifact, status
 	defer func() {
 		fileContent.Close() // nolint: errcheck
 	}()
-	err = json.NewDecoder(fileContent).Decode(&syftObj)
+	err = json.UnmarshalRead(fileContent, &syftObj)
 	if err != nil {
 		slog.Error("decode sbom file failed", "err", err, "filename", filename)
 		statusChan <- decoratorArtifactStatus{

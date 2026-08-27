@@ -16,7 +16,6 @@ package mcpserver
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"time"
 
@@ -28,10 +27,8 @@ import (
 
 type toolFunc func(context.Context, mcp.CallToolRequest) (any, error)
 
-var openObjectSchema = json.RawMessage(`{"type":"object","additionalProperties":true}`)
-
 func (s *Server) addTool(mcpServer *mcpsdk.MCPServer, name, description string, write bool, handler toolFunc) {
-	tool := mcp.NewToolWithRawSchema(name, description, openObjectSchema)
+	tool := mcp.NewTool(name, mcp.WithDescription(description), mcp.WithSchemaAdditionalProperties(true))
 	tool.Annotations = mcp.ToolAnnotation{
 		ReadOnlyHint:    mcp.ToBoolPtr(!write),
 		DestructiveHint: mcp.ToBoolPtr(write),

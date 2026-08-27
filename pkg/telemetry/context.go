@@ -16,7 +16,7 @@ package telemetry
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"maps"
 	"strings"
 

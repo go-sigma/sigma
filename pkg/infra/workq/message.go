@@ -16,7 +16,8 @@ package workq
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,7 +28,7 @@ import (
 )
 
 type envelope struct {
-	Payload      json.RawMessage   `json:"payload"`
+	Payload      jsontext.Value    `json:"payload"`
 	TraceContext map[string]string `json:"trace_context,omitempty"`
 }
 

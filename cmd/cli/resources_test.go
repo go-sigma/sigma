@@ -15,7 +15,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -293,7 +293,7 @@ func TestResourceCommands(t *testing.T) {
 				require.Equal(t, "secret", password)
 				if tt.body != nil {
 					var body map[string]any
-					require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+					require.NoError(t, json.UnmarshalRead(r.Body, &body))
 					requireMapContains(t, tt.body, body)
 				}
 				w.Header().Set("Content-Type", "application/json")

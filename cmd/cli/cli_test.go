@@ -16,7 +16,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -125,7 +125,7 @@ func TestClientDo(t *testing.T) {
 		require.Equal(t, "override", username)
 		require.Equal(t, "secret", password)
 		var body map[string]string
-		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		require.NoError(t, json.UnmarshalRead(r.Body, &body))
 		require.Equal(t, "payload", body["name"])
 		w.Header().Set("Content-Type", "application/json")
 		_, err := w.Write([]byte(`{"status":"ok"}`))
