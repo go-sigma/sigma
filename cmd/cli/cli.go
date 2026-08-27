@@ -15,9 +15,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -202,17 +202,20 @@ type basicAuth struct {
 }
 
 func formatErrorBody(data []byte) string {
-	var pretty bytes.Buffer
-	if json.Indent(&pretty, data, "", "  ") == nil {
-		return strings.TrimSpace(pretty.String())
+	pretty := jsontext.Value(data).Clone()
+	if pretty.Indent(jsontext.WithIndent("  ")) == nil {
+		return strings.TrimSpace(string(pretty))
 	}
 	return strings.TrimSpace(string(data))
 }
 
 func printJSON(value any) error {
-	encoder := json.NewEncoder(os.Stdout)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(value)
+	data, err := json.Marshal(value, jsontext.WithIndent("  "))
+	if err != nil {
+		return err
+	}
+	_, err = os.Stdout.Write(append(data, '\n'))
+	return err
 }
 
 func envOrDefault(name, fallback string) string {
@@ -253,7 +256,7 @@ func saveCredentials(path string, cred credentials) error {
 		return fmt.Errorf("create credentials directory: %w", err)
 	}
 	// #nosec G117 -- The CLI intentionally persists Basic Auth credentials with 0600 permissions.
-	data, err := json.MarshalIndent(cred, "", "  ")
+	data, err := json.Marshal(cred, jsontext.WithIndent("  "))
 	if err != nil {
 		return err
 	}

@@ -16,7 +16,7 @@ package clients
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -126,7 +126,7 @@ func TestBearerAuthToken(t *testing.T) {
 						t.Error("service or scope not match")
 					}
 					w.WriteHeader(http.StatusOK)
-					err := json.NewEncoder(w).Encode(api.PostUserTokenResponse{Token: token})
+					err := json.MarshalWrite(w, api.PostUserTokenResponse{Token: token})
 					assert.NoError(t, err)
 					return
 				}
@@ -179,7 +179,7 @@ func TestDoRequest(t *testing.T) {
 						t.Error("service or scope not match")
 					}
 					w.WriteHeader(http.StatusOK)
-					err := json.NewEncoder(w).Encode(api.PostUserTokenResponse{Token: token})
+					err := json.MarshalWrite(w, api.PostUserTokenResponse{Token: token})
 					assert.NoError(t, err)
 					return
 				}
@@ -188,7 +188,7 @@ func TestDoRequest(t *testing.T) {
 			if r.Header.Get("Authorization") == "Bearer "+token {
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json")
-				err := json.NewEncoder(w).Encode(dtspecv1.RepositoryList{Repositories: []string{"library/alpine"}})
+				err := json.MarshalWrite(w, dtspecv1.RepositoryList{Repositories: []string{"library/alpine"}})
 				assert.NoError(t, err)
 				return
 			}
