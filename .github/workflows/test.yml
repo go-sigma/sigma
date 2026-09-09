@@ -95,17 +95,13 @@ jobs:
             ${{ runner.os }}-go-build-test-
       - name: Run unit tests
         env:
-          COS_ENDPOINT_SQLITE: ${{ secrets.COS_ENDPOINT_SQLITE }}
-          COS_ENDPOINT_POSTGRESQL: ${{ secrets.COS_ENDPOINT_POSTGRESQL }}
-          COS_ENDPOINT_MYSQL: ${{ secrets.COS_ENDPOINT_MYSQL }}
+          COS_ENDPOINT: ${{ secrets.COS_ENDPOINT }}
           COS_AK: ${{ secrets.COS_AK }}
           COS_SK: ${{ secrets.COS_SK }}
           OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
           OSS_AK: ${{ secrets.OSS_AK }}
           OSS_SK: ${{ secrets.OSS_SK }}
-          OSS_BUCKET_SQLITE: ${{ secrets.OSS_BUCKET_SQLITE }}
-          OSS_BUCKET_POSTGRESQL: ${{ secrets.OSS_BUCKET_POSTGRESQL }}
-          OSS_BUCKET_MYSQL: ${{ secrets.OSS_BUCKET_MYSQL }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
           GOCACHE: /home/runner/.cache/go-build
         run: |
           set -euo pipefail
@@ -200,11 +196,11 @@ jobs:
           }
 
           status=0
-          run_tests "application" "postgresql" "${COS_ENDPOINT_POSTGRESQL}" "${OSS_BUCKET_POSTGRESQL}" || status=1
-          run_tests "database" "sqlite3" "${COS_ENDPOINT_SQLITE}" "${OSS_BUCKET_SQLITE}" || status=1
-          run_tests "database" "turso" "${COS_ENDPOINT_SQLITE}" "${OSS_BUCKET_SQLITE}" || status=1
-          run_tests "database" "postgresql" "${COS_ENDPOINT_POSTGRESQL}" "${OSS_BUCKET_POSTGRESQL}" || status=1
-          run_tests "database" "mysql" "${COS_ENDPOINT_MYSQL}" "${OSS_BUCKET_MYSQL}" || status=1
+          run_tests "application" "postgresql" "${COS_ENDPOINT}" "${OSS_BUCKET}" || status=1
+          run_tests "database" "sqlite3" "${COS_ENDPOINT}" "${OSS_BUCKET}" || status=1
+          run_tests "database" "turso" "${COS_ENDPOINT}" "${OSS_BUCKET}" || status=1
+          run_tests "database" "postgresql" "${COS_ENDPOINT}" "${OSS_BUCKET}" || status=1
+          run_tests "database" "mysql" "${COS_ENDPOINT}" "${OSS_BUCKET}" || status=1
 
           {
             echo "### Package Results"

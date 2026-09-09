@@ -61,7 +61,16 @@ func genNegativeKey(config *config.Configuration, prefix, key string) string {
 	return fmt.Sprintf("%s:missing", genKey(config, prefix, key))
 }
 
-// New ...
+// New creates a read-through cache with default options.
+//
+// It is a convenience wrapper around NewWithOptions that uses Options{} so the
+// TTL, NegativeTTL and IsNotFound defaults are resolved from the config (see
+// Options.withDefaults). Pass a custom Options to NewWithOptions when you need
+// to override those defaults.
+//
+// On a miss, Get invokes fetcher to load the value; when fetcher returns an
+// error matching IsNotFound, a negative entry is cached so subsequent lookups
+// short-circuit without hitting the backend until NegativeTTL expires.
 func New[T any](params Params, prefix string, fetcher Fetcher[T]) (Cacher[T], error) {
 	return NewWithOptions(params, prefix, fetcher, Options{})
 }
