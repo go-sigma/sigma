@@ -15,22 +15,40 @@
 // Package authz implements a database-backed authorization system that
 // replaces casbin. Authorization decisions are made by querying the
 // `namespaces` and `namespace_members` tables directly, with a short-TTL
-// in-memory cache to reduce database load. This keeps policy state
-// eventually consistent across multiple instances without requiring Redis.
+// cache to reduce database load. The cache is backed by the shared
+// infra/cache Cacher (in-memory or Redis depending on config), keeping policy
+// state eventually consistent across multiple instances.
 package authz
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"go.uber.org/dig"
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+)
+
+// authzCacheTTL is the time-to-live for cached authorization lookups. A short
+// TTL keeps multi-instance state eventually consistent without requiring a
+// Redis watcher.
+const authzCacheTTL = 30 * time.Second
+
+// authzCachePrefixes namespace the authz cache keys.
+const (
+	authzRoleCachePrefix     = "authz:role"
+	authzNamespaceIDPrefix   = "authz:namespace:id"
+	authzNamespaceNamePrefix = "authz:namespace:name"
 )
 
 //go:generate mockgen -destination=authorizer_mocks.go -package=authz github.com/go-sigma/sigma/pkg/authz Authorizer
@@ -62,22 +80,53 @@ type Authorizer interface {
 type authorizer struct {
 	dig.In `ignore-unexported:"true"`
 
+	Config             *config.Configuration
+	RedisClientFactory dalredis.ClientFactory `optional:"true"`
+
 	RepoNs         reponamespace.NamespaceRepository
 	RepoNsMember   reponamespace.NamespaceMemberRepository
 	RepoRepository reporegistry.RepositoryRepository
 	RepoTag        reporegistry.TagRepository
 	RepoArtifact   reporegistry.ArtifactRepository
 
-	cacheRole *roleCache
-	cacheNs   *namespaceCache
+	cacheRole     cacher.Cacher[enums.NamespaceRole]
+	cacheNsByID   cacher.Cacher[*models.Namespace]
+	cacheNsByName cacher.Cacher[*models.Namespace]
 }
 
 // NewAuthorizer constructs an Authorizer backed by the given repositories.
 // It is intended to be provided via the dig container.
-func NewAuthorizer(params authorizer) Authorizer {
-	params.cacheRole = newRoleCache()
-	params.cacheNs = newNamespaceCache()
-	return &params
+func NewAuthorizer(params authorizer) (Authorizer, error) {
+	a := &params
+	options := cacher.Options{
+		TTL:         authzCacheTTL,
+		NegativeTTL: authzCacheTTL,
+		IsNotFound: func(err error) bool {
+			return errors.Is(err, gorm.ErrRecordNotFound)
+		},
+	}
+	cacheParams := cacher.Params{
+		Config:             params.Config,
+		RedisClientFactory: params.RedisClientFactory,
+	}
+
+	cacheRole, err := cacher.NewWithOptions[enums.NamespaceRole](cacheParams, authzRoleCachePrefix, a.fetchRole, options)
+	if err != nil {
+		return nil, err
+	}
+	cacheNsByID, err := cacher.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceIDPrefix, a.fetchNamespaceByID, options)
+	if err != nil {
+		return nil, err
+	}
+	cacheNsByName, err := cacher.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceNamePrefix, a.fetchNamespaceByName, options)
+	if err != nil {
+		return nil, err
+	}
+
+	a.cacheRole = cacheRole
+	a.cacheNsByID = cacheNsByID
+	a.cacheNsByName = cacheNsByName
+	return a, nil
 }
 
 // Authorize implements the Authorizer interface.
@@ -214,55 +263,68 @@ func (a *authorizer) Artifact(ctx context.Context, user models.User, artifactID 
 // does not exist, found is false and ns is nil.
 func (a *authorizer) lookupNamespace(ctx context.Context, desc ResourceDescriptor) (ns *models.Namespace, found bool, err error) {
 	if desc.NamespaceID != "" {
-		if cached, ok := a.cacheNs.getByID(desc.NamespaceID); ok {
-			return cached, true, nil
-		}
-		ns, err = a.RepoNs.Get(ctx, desc.NamespaceID)
+		ns, err = a.cacheNsByID.Get(ctx, desc.NamespaceID)
 		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
+			if errors.Is(err, cacher.ErrNotFound) {
 				return nil, false, nil
 			}
 			return nil, false, err
 		}
-		a.cacheNs.set(ns)
 		return ns, true, nil
 	}
 	if desc.NamespaceName != "" {
-		if cached, ok := a.cacheNs.getByName(desc.NamespaceName); ok {
-			return cached, true, nil
-		}
-		ns, err = a.RepoNs.GetByName(ctx, desc.NamespaceName)
+		ns, err = a.cacheNsByName.Get(ctx, desc.NamespaceName)
 		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
+			if errors.Is(err, cacher.ErrNotFound) {
 				return nil, false, nil
 			}
 			return nil, false, err
 		}
-		a.cacheNs.set(ns)
 		return ns, true, nil
 	}
 	return nil, false, errors.New("namespace not resolvable from descriptor")
 }
 
+// fetchNamespaceByID loads a namespace by id from the repository. It is the
+// read-through fetcher for cacheNsByID; ErrRecordNotFound is treated as a
+// negative cache entry by the Cacher.
+func (a *authorizer) fetchNamespaceByID(ctx context.Context, id string) (*models.Namespace, error) {
+	return a.RepoNs.Get(ctx, id)
+}
+
+// fetchNamespaceByName loads a namespace by name from the repository. It is the
+// read-through fetcher for cacheNsByName.
+func (a *authorizer) fetchNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
+	return a.RepoNs.GetByName(ctx, name)
+}
+
 // lookupRole returns the user's role in the namespace. isMember is false when
 // the user has no membership record.
 func (a *authorizer) lookupRole(ctx context.Context, userID, namespaceID string) (enums.NamespaceRole, bool, error) {
-	if cached, ok := a.cacheRole.get(userID, namespaceID); ok {
-		if cached == "" {
-			return "", false, nil
-		}
-		return cached, true, nil
-	}
-	member, err := a.RepoNsMember.GetNamespaceMember(ctx, namespaceID, userID)
+	role, err := a.cacheRole.Get(ctx, userID+":"+namespaceID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			a.cacheRole.set(userID, namespaceID, "")
+		if errors.Is(err, cacher.ErrNotFound) {
+			// Not a member (negative cache entry).
 			return "", false, nil
 		}
 		return "", false, err
 	}
-	a.cacheRole.set(userID, namespaceID, member.Role)
-	return member.Role, true, nil
+	return role, true, nil
+}
+
+// fetchRole loads a user's role in a namespace from the repository. It is the
+// read-through fetcher for cacheRole; ErrRecordNotFound is treated as a
+// negative cache entry by the Cacher.
+func (a *authorizer) fetchRole(ctx context.Context, key string) (enums.NamespaceRole, error) {
+	userID, namespaceID, ok := strings.Cut(key, ":")
+	if !ok {
+		return "", fmt.Errorf("malformed role cache key: %s", key)
+	}
+	member, err := a.RepoNsMember.GetNamespaceMember(ctx, namespaceID, userID)
+	if err != nil {
+		return "", err
+	}
+	return member.Role, nil
 }
 
 // Compile-time interface check.

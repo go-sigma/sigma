@@ -18,7 +18,6 @@ import (
 	"context"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +25,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 )
@@ -173,64 +173,38 @@ func TestCheckRole(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Cache tests
+// NewAuthorizer construction tests
 // ---------------------------------------------------------------------------
 
-func TestRoleCache(t *testing.T) {
-	c := newRoleCache()
-
-	// Miss.
-	_, ok := c.get("1", "100")
-	assert.False(t, ok)
-
-	// Hit.
-	c.set("1", "100", enums.NamespaceRoleReader)
-	role, ok := c.get("1", "100")
-	require.True(t, ok)
-	assert.Equal(t, enums.NamespaceRoleReader, role)
-
-	// Empty role cached (non-member).
-	c.set("2", "100", "")
-	role, ok = c.get("2", "100")
-	require.True(t, ok)
-	assert.Equal(t, enums.NamespaceRole(""), role)
-
-	// Expiry: manually backdate entry.
-	c.mu.Lock()
-	c.entries[roleCacheKey{"3", "100"}] = roleCacheEntry{role: enums.NamespaceRoleAdmin, expiresAt: time.Now().Add(-time.Second)}
-	c.mu.Unlock()
-	_, ok = c.get("3", "100")
-	assert.False(t, ok)
+func TestNewAuthorizerInmemory(t *testing.T) {
+	cfg := testAuthzConfig()
+	a, err := NewAuthorizer(authorizer{
+		Config:       cfg,
+		RepoNs:       reponamespace.NewMockNamespaceRepository(gomock.NewController(t)),
+		RepoNsMember: reponamespace.NewMockNamespaceMemberRepository(gomock.NewController(t)),
+	})
+	require.NoError(t, err)
+	require.True(t, a != nil)
 }
 
-func TestNamespaceCache(t *testing.T) {
-	c := newNamespaceCache()
+func TestNewAuthorizerRedisDisabled(t *testing.T) {
+	cfg := &config.Configuration{}
+	cfg.Cache.Type = enums.CacherTypeRedis
+	cfg.Cache.WithDefaults()
+	// Redis not enabled and no client factory: construction must fail.
+	_, err := NewAuthorizer(authorizer{
+		Config:       cfg,
+		RepoNs:       reponamespace.NewMockNamespaceRepository(gomock.NewController(t)),
+		RepoNsMember: reponamespace.NewMockNamespaceMemberRepository(gomock.NewController(t)),
+	})
+	require.Error(t, err)
+}
 
-	ns := &models.Namespace{ID: "10", Name: "library", Visibility: enums.VisibilityPublic}
-
-	// Miss by name.
-	_, ok := c.getByName("library")
-	assert.False(t, ok)
-
-	// Miss by id.
-	_, ok = c.getByID("10")
-	assert.False(t, ok)
-
-	// Set and hit both indexes.
-	c.set(ns)
-	got, ok := c.getByName("library")
-	require.True(t, ok)
-	assert.Equal(t, ns, got)
-	got, ok = c.getByID("10")
-	require.True(t, ok)
-	assert.Equal(t, ns, got)
-
-	// Expiry by name.
-	c.mu.Lock()
-	c.entries[nsCacheKey{name: "library"}] = nsCacheEntry{namespace: ns, expiresAt: time.Now().Add(-time.Second)}
-	c.mu.Unlock()
-	_, ok = c.getByName("library")
-	assert.False(t, ok)
+func testAuthzConfig() *config.Configuration {
+	cfg := &config.Configuration{}
+	cfg.Cache.Type = enums.CacherTypeInmemory
+	cfg.Cache.WithDefaults()
+	return cfg
 }
 
 // ---------------------------------------------------------------------------
@@ -315,10 +289,12 @@ func TestAuthorizer(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Use a fresh authorizer per case to avoid cache cross-contamination.
-			aFresh := NewAuthorizer(authorizer{
+			aFresh, err := NewAuthorizer(authorizer{
+				Config:       testAuthzConfig(),
 				RepoNs:       nsRepo,
 				RepoNsMember: memberRepo,
 			})
+			require.NoError(t, err)
 			passed, err := aFresh.Authorize(ctx, tc.userID, tc.isAnonymous, tc.uri, tc.method)
 			require.NoError(t, err)
 			assert.Equal(t, tc.wantPass, passed)
@@ -345,10 +321,12 @@ func TestAuthorizerCacheHit(t *testing.T) {
 	// GetNamespaceMember should be called exactly once (cached afterwards).
 	memberRepo.EXPECT().GetNamespaceMember(gomock.Any(), "1", "100").Return(&models.NamespaceMember{Role: enums.NamespaceRoleReader}, nil).Times(1)
 
-	a := NewAuthorizer(authorizer{
+	a, err := NewAuthorizer(authorizer{
+		Config:       testAuthzConfig(),
 		RepoNs:       nsRepo,
 		RepoNsMember: memberRepo,
 	})
+	require.NoError(t, err)
 	ctx := context.Background()
 
 	// First call hits DB.
