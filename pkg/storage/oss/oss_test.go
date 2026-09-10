@@ -19,31 +19,62 @@ import (
 	"context"
 	"crypto/rand"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
-func TestBigFileMove(t *testing.T) {
-	ctx := context.Background()
-	var config = config.Configuration{
+func newTestDriver(t *testing.T) *alioss {
+	t.Helper()
+
+	var missing []string
+	ak := os.Getenv("OSS_AK")
+	if ak == "" {
+		missing = append(missing, "OSS_AK")
+	}
+	sk := os.Getenv("OSS_SK")
+	if sk == "" {
+		missing = append(missing, "OSS_SK")
+	}
+	bucket := os.Getenv("OSS_BUCKET")
+	if bucket == "" {
+		missing = append(missing, "OSS_BUCKET")
+	}
+	endpoint := os.Getenv("OSS_ENDPOINT")
+	if endpoint == "" {
+		missing = append(missing, "OSS_ENDPOINT")
+	}
+	if len(missing) > 0 {
+		slices.Sort(missing)
+		t.Skipf("OSS integration test requires %s", strings.Join(missing, ", "))
+	}
+
+	driver, err := factory{}.New(&config.Configuration{
 		Storage: config.ConfigurationStorage{
 			Oss: config.ConfigurationStorageOss{
-				Ak:             os.Getenv("OSS_AK"),
-				Sk:             os.Getenv("OSS_SK"),
-				Bucket:         os.Getenv("OSS_BUCKET"),
-				Endpoint:       os.Getenv("OSS_ENDPOINT"),
+				Ak:             ak,
+				Sk:             sk,
+				Bucket:         bucket,
+				Endpoint:       endpoint,
 				ForcePathStyle: false,
 			},
 			RootDirectory: "sigma",
 		},
-	}
-	f := factory{}
-	driver, err := f.New(&config)
-	assert.NoError(t, err)
+	})
+	require.NoError(t, err)
+	require.NotNil(t, driver)
+	return driver.(*alioss)
+}
+
+func TestBigFileMove(t *testing.T) {
+	ctx := context.Background()
+	driver := newTestDriver(t)
+	var err error
 
 	var bigFile = "test-big-file.bin"
 	originalFile, _ := os.Create(bigFile)
@@ -73,21 +104,8 @@ func TestBigFileMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	var config = config.Configuration{
-		Storage: config.ConfigurationStorage{
-			Oss: config.ConfigurationStorageOss{
-				Ak:             os.Getenv("OSS_AK"),
-				Sk:             os.Getenv("OSS_SK"),
-				Bucket:         os.Getenv("OSS_BUCKET"),
-				Endpoint:       os.Getenv("OSS_ENDPOINT"),
-				ForcePathStyle: false,
-			},
-			RootDirectory: "sigma",
-		},
-	}
-	f := factory{}
-	driver, err := f.New(&config)
-	assert.NoError(t, err)
+	driver := newTestDriver(t)
+	var err error
 
 	err = driver.Upload(ctx, "dir/unit-test/unit-test/test.txt", strings.NewReader("test"))
 	assert.NoError(t, err)
@@ -102,21 +120,8 @@ func TestDelete(t *testing.T) {
 
 func TestMultiUpload(t *testing.T) {
 	ctx := context.Background()
-	var config = config.Configuration{
-		Storage: config.ConfigurationStorage{
-			Oss: config.ConfigurationStorageOss{
-				Ak:             os.Getenv("OSS_AK"),
-				Sk:             os.Getenv("OSS_SK"),
-				Bucket:         os.Getenv("OSS_BUCKET"),
-				Endpoint:       os.Getenv("OSS_ENDPOINT"),
-				ForcePathStyle: false,
-			},
-			RootDirectory: "sigma",
-		},
-	}
-	f := factory{}
-	driver, err := f.New(&config)
-	assert.NoError(t, err)
+	driver := newTestDriver(t)
+	var err error
 
 	uploadID, err := driver.CreateUploadID(ctx, "upload-test")
 	assert.NoError(t, err)

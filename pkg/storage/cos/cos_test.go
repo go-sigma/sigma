@@ -19,28 +19,55 @@ import (
 	"crypto/rand"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
-func TestBigFileMove(t *testing.T) {
-	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(&config.Configuration{
+func newTestDriver(t *testing.T) *tencentcos {
+	t.Helper()
+
+	var missing []string
+	endpoint := os.Getenv("COS_ENDPOINT")
+	if endpoint == "" {
+		missing = append(missing, "COS_ENDPOINT")
+	}
+	ak := os.Getenv("COS_AK")
+	if ak == "" {
+		missing = append(missing, "COS_AK")
+	}
+	sk := os.Getenv("COS_SK")
+	if sk == "" {
+		missing = append(missing, "COS_SK")
+	}
+	if len(missing) > 0 {
+		slices.Sort(missing)
+		t.Skipf("COS integration test requires %s", strings.Join(missing, ", "))
+	}
+
+	driver, err := factory{}.New(&config.Configuration{
 		Storage: config.ConfigurationStorage{
 			Cos: config.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
+				Endpoint: endpoint,
+				Ak:       ak,
+				Sk:       sk,
 			},
 		},
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, driver)
+	require.NoError(t, err)
+	require.NotNil(t, driver)
+	return driver.(*tencentcos)
+}
+
+func TestBigFileMove(t *testing.T) {
+	ctx := context.Background()
+	driver := newTestDriver(t)
+	var err error
 
 	var bigFile = "test-big-file.bin"
 	originalFile, _ := os.Create(bigFile)
@@ -68,18 +95,8 @@ func TestBigFileMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(&config.Configuration{
-		Storage: config.ConfigurationStorage{
-			Cos: config.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, driver)
+	driver := newTestDriver(t)
+	var err error
 
 	err = driver.Upload(ctx, "dir/unit-test", strings.NewReader("test"))
 	assert.NoError(t, err)
@@ -102,18 +119,8 @@ func TestDelete(t *testing.T) {
 
 func TestMultiUpload(t *testing.T) {
 	ctx := context.Background()
-	var f = factory{}
-	driver, err := f.New(&config.Configuration{
-		Storage: config.ConfigurationStorage{
-			Cos: config.ConfigurationStorageCos{
-				Endpoint: os.Getenv("COS_ENDPOINT"),
-				Ak:       os.Getenv("COS_AK"),
-				Sk:       os.Getenv("COS_SK"),
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, driver)
+	driver := newTestDriver(t)
+	var err error
 
 	uploadID, err := driver.CreateUploadID(ctx, "upload-test")
 	assert.NoError(t, err)
