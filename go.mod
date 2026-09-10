@@ -498,7 +498,6 @@ require (
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.9 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.9.0 // indirect
-	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.44.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.70.0 // indirect
@@ -557,6 +556,7 @@ tool (
 	github.com/abice/go-enum
 	github.com/google/addlicense
 	github.com/swaggo/swag/cmd/swag
+	go.uber.org/mock/mockgen
 )
 
 exclude google.golang.org/grpc/stats/opentelemetry v0.0.0-20240907200651-3ffb98b2c93a

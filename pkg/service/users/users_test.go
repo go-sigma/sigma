@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	passwordmocks "github.com/go-sigma/sigma/pkg/service/password/mocks"
+	passwordmocks "github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
 )
 

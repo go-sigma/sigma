@@ -39,8 +39,7 @@ import (
 	_ "github.com/distribution/distribution/v3/manifest/schema2"
 )
 
-//go:generate mockgen -destination=mocks/clients.go -package=mocks github.com/go-sigma/sigma/pkg/distribution/clients Clients
-//go:generate mockgen -destination=mocks/clients_factory.go -package=mocks github.com/go-sigma/sigma/pkg/distribution/clients ClientsFactory
+//go:generate mockgen -destination=clients_mocks.go -package=clients github.com/go-sigma/sigma/pkg/distribution/clients Clients,ClientsFactory
 
 // Clients is the interface of clients
 type Clients interface {

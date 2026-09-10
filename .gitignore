@@ -20,7 +20,6 @@
 
 # Dependency directories (remove the comment below to include it)
 vendor/
-!3rdparty/distribution/vendor
 
 # Binaries for programs
 bin/sigma*
@@ -34,9 +33,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
 pids
@@ -97,9 +93,6 @@ web_modules/
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
-
 # dotenv environment variable files
 .env
 .env.development.local
@@ -131,9 +124,6 @@ dist
 
 # vuepress v2.x temp and cache directory
 .temp
-
-# Docusaurus cache and generated files
-.docusaurus
 
 # Serverless directories
 .serverless/
@@ -174,12 +164,6 @@ dist
 node_modules
 web/pkg/
 
-*.sublime*
-
-psd
-thumb
-sketch
-
 # End of https://www.toptal.com/developers/gitignore/api/go,node,react
 
 # jetbrains ide
@@ -192,8 +176,6 @@ conf/sigma-dev.yaml
 *.db
 *.db*
 
-pkg/**/*.html
-
 .vscode/
 .zed/
 
@@ -202,3 +184,7 @@ pkg/**/*.html
 *.zstd
 coverage.txt
 .trae/
+
+# local tools
+.pi/
+skills-lock.json
