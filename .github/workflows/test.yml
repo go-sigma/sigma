@@ -21,7 +21,7 @@ jobs:
         bun: ["latest"]
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:9
         env:
           MYSQL_ROOT_PASSWORD: sigma
           MYSQL_DATABASE: sigma
@@ -31,7 +31,7 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgresql:
-        image: postgres:15-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_PASSWORD: sigma
           POSTGRES_USER: sigma
@@ -114,9 +114,6 @@ jobs:
               "pkg/dal/models"
               "pkg/dal/query"
               "pkg/dal/cmd"
-              "pkg/distribution/clients/mocks"
-              "pkg/service/password/mocks"
-              "pkg/storage/cos"
               "pkg/version"
             )
             if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
