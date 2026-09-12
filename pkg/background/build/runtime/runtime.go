@@ -37,7 +37,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=runtime_mocks.go -package=runtime github.com/go-sigma/sigma/pkg/background/build/runtime Builder
+//go:generate go tool mockgen -destination=runtime_mocks.go -package=runtime github.com/go-sigma/sigma/pkg/background/build/runtime Builder
 
 // Builder controls one runtime backend for executing build runners.
 type Builder interface {

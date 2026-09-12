@@ -36,7 +36,7 @@ const (
 	MaxPaginationKeys = 1000 // 1000 keys
 )
 
-//go:generate mockgen -destination=storage_mocks.go -package=storage github.com/go-sigma/sigma/pkg/storage StorageDriver
+//go:generate go tool mockgen -destination=storage_mocks.go -package=storage github.com/go-sigma/sigma/pkg/storage StorageDriver
 
 // StorageDriver is the interface for the storage driver
 type StorageDriver interface {

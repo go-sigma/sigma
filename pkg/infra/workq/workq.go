@@ -27,7 +27,7 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 )
 
-//go:generate mockgen -destination=workq_mocks.go -package=workq github.com/go-sigma/sigma/pkg/infra/workq Producer,ProducerFactory,ConsumerFactory
+//go:generate go tool mockgen -destination=workq_mocks.go -package=workq github.com/go-sigma/sigma/pkg/infra/workq Producer,ProducerFactory,ConsumerFactory
 
 // Consumer ...
 type Consumer struct {

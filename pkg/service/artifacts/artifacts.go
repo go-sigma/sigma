@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-//go:generate mockgen -mock_names Service=MockArtifactService -destination=artifacts_mocks.go -package=artifacts github.com/go-sigma/sigma/pkg/service/artifacts Service
+//go:generate go tool mockgen -mock_names Service=MockArtifactService -destination=artifacts_mocks.go -package=artifacts github.com/go-sigma/sigma/pkg/service/artifacts Service
 
 // Service encapsulates artifact-related business logic.
 type Service interface {

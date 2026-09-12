@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=setting_mocks.go -package=setting github.com/go-sigma/sigma/pkg/dal/repository/setting SettingRepository
+//go:generate go tool mockgen -destination=setting_mocks.go -package=setting github.com/go-sigma/sigma/pkg/dal/repository/setting SettingRepository
 
 // SettingRepository defines setting repository operations
 type SettingRepository interface {

@@ -37,7 +37,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -mock_names Service=MockDaemonService -destination=daemons_mocks.go -package=daemons github.com/go-sigma/sigma/pkg/service/daemons Service
+//go:generate go tool mockgen -mock_names Service=MockDaemonService -destination=daemons_mocks.go -package=daemons github.com/go-sigma/sigma/pkg/service/daemons Service
 
 // Service encapsulates daemon GC runner related business logic
 type Service interface {

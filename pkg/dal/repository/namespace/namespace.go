@@ -31,7 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=namespace_mocks.go -package=namespace github.com/go-sigma/sigma/pkg/dal/repository/namespace NamespaceRepository
+//go:generate go tool mockgen -destination=namespace_mocks.go -package=namespace github.com/go-sigma/sigma/pkg/dal/repository/namespace NamespaceRepository
 
 // NamespaceRepository defines namespace repository operations
 type NamespaceRepository interface {

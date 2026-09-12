@@ -39,7 +39,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -mock_names Service=MockRepositoryService -destination=repositories_mocks.go -package=repositories github.com/go-sigma/sigma/pkg/service/repositories Service
+//go:generate go tool mockgen -mock_names Service=MockRepositoryService -destination=repositories_mocks.go -package=repositories github.com/go-sigma/sigma/pkg/service/repositories Service
 
 // Service encapsulates repository-related business logic.
 type Service interface {

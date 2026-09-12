@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=builder_mocks.go -package=builder github.com/go-sigma/sigma/pkg/dal/repository/builder BuilderRepository
+//go:generate go tool mockgen -destination=builder_mocks.go -package=builder github.com/go-sigma/sigma/pkg/dal/repository/builder BuilderRepository
 
 // BuilderRepository defines builder repository operations
 type BuilderRepository interface {

@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=blob_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry BlobRepository
+//go:generate go tool mockgen -destination=blob_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry BlobRepository
 
 // BlobRepository defines blob repository operations
 type BlobRepository interface {

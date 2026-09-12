@@ -32,7 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=tag_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry TagRepository
+//go:generate go tool mockgen -destination=tag_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry TagRepository
 
 // TagRepository defines tag repository operations
 type TagRepository interface {

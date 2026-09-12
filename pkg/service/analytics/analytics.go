@@ -41,7 +41,7 @@ const (
 	analyticsLockWaitTimeout = 100 * time.Millisecond
 )
 
-//go:generate mockgen -destination=analytics_mocks.go -package=analytics github.com/go-sigma/sigma/pkg/service/analytics Service
+//go:generate go tool mockgen -destination=analytics_mocks.go -package=analytics github.com/go-sigma/sigma/pkg/service/analytics Service
 
 // PushEvent describes a successful manifest push.
 type PushEvent struct {

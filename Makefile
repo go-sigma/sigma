@@ -109,13 +109,13 @@ swagen: ## Generate Swagger documentation from code comments
 
 .PHONY: addlicense
 addlicense: ## Add license headers to source files
-	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs addlicense -l apache -y 2026 -c "sigma"
-	@find cmd -type f -name "*.go" | xargs addlicense -l apache -y 2026 -c "sigma"
-	@addlicense -l apache -y 2026 -c "sigma" main.go
-	@addlicense -l apache -y 2026 -c "sigma" web/web.go
-	@find web/src -type f -name "*.tsx" | xargs addlicense -l apache -y 2026 -c "sigma"
-	@find web/src -type f -name "*.ts" | xargs addlicense -l apache -y 2026 -c "sigma"
-	@find web/src -type f -name "*.css" | xargs addlicense -l apache -y 2026 -c "sigma"
+	@find pkg -type f -name "*.go" | grep -v "pkg/handlers/apidocs/docs.go" | xargs go tool addlicense -l apache -y 2026 -c "sigma"
+	@find cmd -type f -name "*.go" | xargs go tool addlicense -l apache -y 2026 -c "sigma"
+	@go tool addlicense -l apache -y 2026 -c "sigma" main.go
+	@go tool addlicense -l apache -y 2026 -c "sigma" web/web.go
+	@find web/src -type f -name "*.tsx" | xargs go tool addlicense -l apache -y 2026 -c "sigma"
+	@find web/src -type f -name "*.ts" | xargs go tool addlicense -l apache -y 2026 -c "sigma"
+	@find web/src -type f -name "*.css" | xargs go tool addlicense -l apache -y 2026 -c "sigma"
 
 ## Kube:
 .PHONY: kube_install

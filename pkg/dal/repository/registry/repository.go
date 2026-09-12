@@ -32,7 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=repository_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry RepositoryRepository
+//go:generate go tool mockgen -destination=repository_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry RepositoryRepository
 
 // RepositoryRepository defines repository operations
 type RepositoryRepository interface {

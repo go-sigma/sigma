@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=analytics_mocks.go -package=analytics github.com/go-sigma/sigma/pkg/dal/repository/analytics AnalyticsRepository
+//go:generate go tool mockgen -destination=analytics_mocks.go -package=analytics github.com/go-sigma/sigma/pkg/dal/repository/analytics AnalyticsRepository
 
 // AnalyticsRepository defines analytics rollup repository operations
 type AnalyticsRepository interface {

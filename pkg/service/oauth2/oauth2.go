@@ -45,7 +45,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -mock_names Service=MockOAuth2Service -destination=oauth2_mocks.go -package=oauth2 github.com/go-sigma/sigma/pkg/service/oauth2 Service
+//go:generate go tool mockgen -mock_names Service=MockOAuth2Service -destination=oauth2_mocks.go -package=oauth2 github.com/go-sigma/sigma/pkg/service/oauth2 Service
 
 // Service encapsulates oauth2-related business logic.
 type Service interface {

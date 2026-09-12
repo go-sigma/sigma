@@ -23,7 +23,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
-//go:generate mockgen -destination=signing_mocks.go -package=signing github.com/go-sigma/sigma/pkg/distribution/signing Signing,Verifying,SigningFactory,VerifyingFactory
+//go:generate go tool mockgen -destination=signing_mocks.go -package=signing github.com/go-sigma/sigma/pkg/distribution/signing Signing,Verifying,SigningFactory,VerifyingFactory
 
 // Signing ...
 type Signing interface {

@@ -32,7 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=artifact_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry ArtifactRepository
+//go:generate go tool mockgen -destination=artifact_mocks.go -package=registry github.com/go-sigma/sigma/pkg/dal/repository/registry ArtifactRepository
 
 // ArtifactRepository defines artifact repository operations
 type ArtifactRepository interface {

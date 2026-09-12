@@ -14,7 +14,7 @@
 
 package enums
 
-//go:generate go-enum --sql --mustparse --output-suffix=_generated
+//go:generate go tool go-enum --sql --mustparse --output-suffix=_generated
 
 // LogLevel x ENUM(
 // trace,

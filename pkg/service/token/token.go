@@ -33,7 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=token_mocks.go -package=token github.com/go-sigma/sigma/pkg/service/token Service
+//go:generate go tool mockgen -destination=token_mocks.go -package=token github.com/go-sigma/sigma/pkg/service/token Service
 
 const (
 	expireVal = "1"

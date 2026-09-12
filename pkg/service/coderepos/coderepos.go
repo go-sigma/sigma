@@ -35,7 +35,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
-//go:generate mockgen -mock_names Service=MockCodeRepositoryService -destination=coderepos_mocks.go -package=coderepos github.com/go-sigma/sigma/pkg/service/coderepos Service
+//go:generate go tool mockgen -mock_names Service=MockCodeRepositoryService -destination=coderepos_mocks.go -package=coderepos github.com/go-sigma/sigma/pkg/service/coderepos Service
 
 // Service encapsulates code repository related business logic.
 type Service interface {

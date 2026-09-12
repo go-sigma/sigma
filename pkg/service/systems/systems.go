@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/version"
 )
 
-//go:generate mockgen -mock_names Service=MockSystemsService -destination=systems_mocks.go -package=systems github.com/go-sigma/sigma/pkg/service/systems Service
+//go:generate go tool mockgen -mock_names Service=MockSystemsService -destination=systems_mocks.go -package=systems github.com/go-sigma/sigma/pkg/service/systems Service
 
 // Service encapsulates system-related business logic.
 type Service interface {

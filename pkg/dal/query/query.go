@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:generate mockgen -destination=query_mocks.go -package=query github.com/go-sigma/sigma/pkg/dal/query IQuery
+//go:generate go tool mockgen -destination=query_mocks.go -package=query github.com/go-sigma/sigma/pkg/dal/query IQuery
 
 type IQuery interface {
 	Available() bool

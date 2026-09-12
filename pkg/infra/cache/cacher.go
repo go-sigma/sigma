@@ -24,7 +24,7 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 )
 
-//go:generate mockgen -destination=cacher_mocks.go -package=cacher github.com/go-sigma/sigma/pkg/infra/cache Cacher
+//go:generate go tool mockgen -destination=cacher_mocks.go -package=cacher github.com/go-sigma/sigma/pkg/infra/cache Cacher
 
 // Fetcher loads a value when the cache misses.
 type Fetcher[T any] func(ctx context.Context, key string) (T, error)

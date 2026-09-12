@@ -38,7 +38,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -mock_names Service=MockUserService -destination=users_mocks.go -package=users github.com/go-sigma/sigma/pkg/service/users Service
+//go:generate go tool mockgen -mock_names Service=MockUserService -destination=users_mocks.go -package=users github.com/go-sigma/sigma/pkg/service/users Service
 
 // Service encapsulates user-related business logic.
 type Service interface {

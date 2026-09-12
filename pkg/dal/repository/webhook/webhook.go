@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=webhook_mocks.go -package=webhook github.com/go-sigma/sigma/pkg/dal/repository/webhook WebhookRepository
+//go:generate go tool mockgen -destination=webhook_mocks.go -package=webhook github.com/go-sigma/sigma/pkg/dal/repository/webhook WebhookRepository
 
 // WebhookRepository defines webhook repository operations
 type WebhookRepository interface {

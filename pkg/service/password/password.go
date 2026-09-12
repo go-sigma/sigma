@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//go:generate mockgen -destination=password_mocks.go -package=password github.com/go-sigma/sigma/pkg/service/password Service
+//go:generate go tool mockgen -destination=password_mocks.go -package=password github.com/go-sigma/sigma/pkg/service/password Service
 
 // Service is an interface for password hashing
 type Service interface {

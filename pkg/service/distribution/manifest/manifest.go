@@ -61,7 +61,7 @@ const (
 	cosignSimpleSigningMediaType = "application/vnd.dev.cosign.simplesigning.v1+json"
 )
 
-//go:generate mockgen -mock_names Service=MockDistributionManifestService -destination=manifest_mocks.go -package=manifest github.com/go-sigma/sigma/pkg/service/distribution/manifest Service
+//go:generate go tool mockgen -mock_names Service=MockDistributionManifestService -destination=manifest_mocks.go -package=manifest github.com/go-sigma/sigma/pkg/service/distribution/manifest Service
 
 // Service encapsulates the OCI registry manifest business logic.
 type Service interface {

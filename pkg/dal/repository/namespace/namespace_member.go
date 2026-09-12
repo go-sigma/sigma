@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -destination=namespace_member_mocks.go -package=namespace github.com/go-sigma/sigma/pkg/dal/repository/namespace NamespaceMemberRepository
+//go:generate go tool mockgen -destination=namespace_member_mocks.go -package=namespace github.com/go-sigma/sigma/pkg/dal/repository/namespace NamespaceMemberRepository
 
 // NamespaceMemberRepository defines namespace member repository operations
 type NamespaceMemberRepository interface {

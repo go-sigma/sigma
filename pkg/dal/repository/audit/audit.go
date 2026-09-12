@@ -21,7 +21,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-//go:generate mockgen -destination=audit_mocks.go -package=audit github.com/go-sigma/sigma/pkg/dal/repository/audit AuditRepository
+//go:generate go tool mockgen -destination=audit_mocks.go -package=audit github.com/go-sigma/sigma/pkg/dal/repository/audit AuditRepository
 
 // AuditRepository defines audit repository operations
 type AuditRepository interface {

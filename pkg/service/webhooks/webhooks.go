@@ -36,7 +36,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate mockgen -mock_names Service=MockWebhookService -destination=webhooks_mocks.go -package=webhooks github.com/go-sigma/sigma/pkg/service/webhooks Service
+//go:generate go tool mockgen -mock_names Service=MockWebhookService -destination=webhooks_mocks.go -package=webhooks github.com/go-sigma/sigma/pkg/service/webhooks Service
 
 // Service encapsulates webhook-related business logic.
 type Service interface {

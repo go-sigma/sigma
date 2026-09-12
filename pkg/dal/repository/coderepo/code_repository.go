@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate mockgen -destination=code_repository_mocks.go -package=coderepo github.com/go-sigma/sigma/pkg/dal/repository/coderepo CodeRepositoryRepository
+//go:generate go tool mockgen -destination=code_repository_mocks.go -package=coderepo github.com/go-sigma/sigma/pkg/dal/repository/coderepo CodeRepositoryRepository
 
 // CodeRepositoryRepository defines code repository operations
 type CodeRepositoryRepository interface {

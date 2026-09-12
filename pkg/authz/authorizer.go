@@ -51,7 +51,7 @@ const (
 	authzNamespaceNamePrefix = "authz:namespace:name"
 )
 
-//go:generate mockgen -destination=authorizer_mocks.go -package=authz github.com/go-sigma/sigma/pkg/authz Authorizer
+//go:generate go tool mockgen -destination=authorizer_mocks.go -package=authz github.com/go-sigma/sigma/pkg/authz Authorizer
 
 // Authorizer decides whether a user may perform an HTTP method on a request URI.
 //
