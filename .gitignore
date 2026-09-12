@@ -187,4 +187,5 @@ coverage.txt
 
 # local tools
 .pi/
+.kilo/
 skills-lock.json
