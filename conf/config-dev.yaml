@@ -180,6 +180,11 @@ auth:
       enabled: true
       clientId: "4df6efcf8c319efb73e8116c72d881c559ccaf822096220a13cee3047b05ed70"
       clientSecret: "94ceddf22fc1560f33caec6be32c9c61a91719bd2df3b5127ccd43187192f95b"
+  loginRateLimit:
+    enabled: true
+    maxFailures: 5
+    window: 5m
+    delay: 1s
 
 mcp:
   enabled: false

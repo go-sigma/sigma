@@ -165,6 +165,11 @@ auth:
     github:
       clientId: "e5f9fa9e372dfac66aed"
       clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"
+  loginRateLimit:
+    enabled: true
+    maxFailures: 5
+    window: 5m
+    delay: 1s
 
 mcp:
   enabled: false

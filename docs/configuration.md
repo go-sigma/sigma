@@ -190,6 +190,15 @@ auth:
       enabled: false
       clientId: "4df6efcf8c319efb73e8116c72d881c559ccaf822096220a13cee3047b05ed70"
       clientSecret: "94ceddf22fc1560f33caec6be32c9c61a91719bd2df3b5127ccd43187192f95b"
+  # throttle failed logins by username: once maxFailures is reached, each
+  # authentication attempt is delayed by delay instead of being rejected
+  loginRateLimit:
+    enabled: true
+    maxFailures: 5
+    # failure counter window; it resets after this with no failures
+    window: 5m
+    # fixed delay applied to every authentication attempt after maxFailures
+    delay: 1s
 
 mcp:
   enabled: false

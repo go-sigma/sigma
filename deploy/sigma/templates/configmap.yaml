@@ -141,3 +141,8 @@ data:
         ttl: 1h
         refreshTtl: 24h
         privateKey: {{ genPrivateKey "rsa" | b64enc }}
+      loginRateLimit:
+        enabled: {{ .Values.config.auth.loginRateLimit.enabled | default false }}
+        maxFailures: {{ .Values.config.auth.loginRateLimit.maxFailures | default 5 }}
+        window: {{ .Values.config.auth.loginRateLimit.window | default "5m" | quote }}
+        delay: {{ .Values.config.auth.loginRateLimit.delay | default "1s" | quote }}

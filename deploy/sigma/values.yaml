@@ -231,6 +231,13 @@ config:
       ttl: 1h
       refreshTtl: 24h
       privateKey: ""
+    loginRateLimit:
+      # throttle failed logins per username; when enabled, once maxFailures is
+      # reached each authentication attempt is delayed by delay instead of rejected
+      enabled: false
+      maxFailures: 5
+      window: 5m
+      delay: 1s
 
 external:
   postgresql:

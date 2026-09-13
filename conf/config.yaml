@@ -205,15 +205,13 @@ auth:
       enabled: false
       clientId: "e5f9fa9e372dfac66aed"
       clientSecret: "49ab83f4d0665f8579516f7a3f2f753a6a57189b"
-  # throttle failed logins by username: once maxFailures is reached, each
-  # authentication attempt is delayed by delay instead of being rejected
+  # limit the number of failed login attempts before rejecting further requests
   loginRateLimit:
-    enabled: true
+    enabled: false
     maxFailures: 5
-    # failure counter window; it resets after this with no failures
-    window: 5m
-    # fixed delay applied to every authentication attempt after maxFailures
-    delay: 1s
+    lockDuration: 60s
+    # inmemory | redis
+    backend: inmemory
 
 mcp:
   # expose MCP management tools on the existing server port
