@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/go-sigma/sigma/pkg/config"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 )
 
 // cachePrefix namespaces failed-login records in the shared cache.
@@ -42,14 +42,14 @@ type Limiter interface {
 }
 
 type cacheLimiter struct {
-	cacher cacher.Cacher[FailureRecord]
+	cacher cache.Cacher[FailureRecord]
 	window time.Duration
 }
 
 // New returns a cache-backed Limiter. The cache backend (inmemory or redis) is
 // selected by config.cache.type.
-func New(cfg *config.ConfigurationAuthLoginRateLimit, params cacher.Params) (Limiter, error) {
-	c, err := cacher.New[FailureRecord](params, cachePrefix, func(context.Context, string) (FailureRecord, error) {
+func New(cfg *config.ConfigurationAuthLoginRateLimit, params cache.Params) (Limiter, error) {
+	c, err := cache.New(params, cachePrefix, func(context.Context, string) (FailureRecord, error) {
 		return FailureRecord{}, nil
 	})
 	if err != nil {

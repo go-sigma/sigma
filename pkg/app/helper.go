@@ -39,7 +39,7 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	repoaudit "github.com/go-sigma/sigma/pkg/dal/repository/audit"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 	"github.com/go-sigma/sigma/pkg/infra/ratelimit"
 	"github.com/go-sigma/sigma/pkg/server/middlewares"
 	"github.com/go-sigma/sigma/pkg/server/middlewares/audit"
@@ -149,7 +149,7 @@ func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 	e.Use(middlewares.RedirectRepository(params.Config))
 	var loginRateLimiter ratelimit.Limiter
 	if params.Config.Auth.LoginRateLimit.IsEnabled() {
-		l, lerr := ratelimit.New(&params.Config.Auth.LoginRateLimit, cacher.Params{
+		l, lerr := ratelimit.New(&params.Config.Auth.LoginRateLimit, cache.Params{
 			Config:             params.Config,
 			RedisClientFactory: params.RedisClientFactory,
 		})

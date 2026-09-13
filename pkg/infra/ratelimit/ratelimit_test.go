@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 )
 
 func newTestLimiter(t *testing.T, window time.Duration) Limiter {
@@ -31,7 +31,7 @@ func newTestLimiter(t *testing.T, window time.Duration) Limiter {
 	cfg.Cache.WithDefaults()
 	cfg.Cache.Type = enums.CacherTypeInmemory
 	cfg.Cache.Prefix = "test-cache"
-	limiter, err := New(&config.ConfigurationAuthLoginRateLimit{Window: window}, cacher.Params{Config: cfg})
+	limiter, err := New(&config.ConfigurationAuthLoginRateLimit{Window: window}, cache.Params{Config: cfg})
 	require.NoError(t, err)
 	return limiter
 }

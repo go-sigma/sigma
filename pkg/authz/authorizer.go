@@ -36,7 +36,7 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 )
 
 // authzCacheTTL is the time-to-live for cached authorization lookups. A short
@@ -89,36 +89,36 @@ type authorizer struct {
 	RepoTag        reporegistry.TagRepository
 	RepoArtifact   reporegistry.ArtifactRepository
 
-	cacheRole     cacher.Cacher[enums.NamespaceRole]
-	cacheNsByID   cacher.Cacher[*models.Namespace]
-	cacheNsByName cacher.Cacher[*models.Namespace]
+	cacheRole     cache.Cacher[enums.NamespaceRole]
+	cacheNsByID   cache.Cacher[*models.Namespace]
+	cacheNsByName cache.Cacher[*models.Namespace]
 }
 
 // NewAuthorizer constructs an Authorizer backed by the given repositories.
 // It is intended to be provided via the dig container.
 func NewAuthorizer(params authorizer) (Authorizer, error) {
 	a := &params
-	options := cacher.Options{
+	options := cache.Options{
 		TTL:         authzCacheTTL,
 		NegativeTTL: authzCacheTTL,
 		IsNotFound: func(err error) bool {
 			return errors.Is(err, gorm.ErrRecordNotFound)
 		},
 	}
-	cacheParams := cacher.Params{
+	cacheParams := cache.Params{
 		Config:             params.Config,
 		RedisClientFactory: params.RedisClientFactory,
 	}
 
-	cacheRole, err := cacher.NewWithOptions[enums.NamespaceRole](cacheParams, authzRoleCachePrefix, a.fetchRole, options)
+	cacheRole, err := cache.NewWithOptions[enums.NamespaceRole](cacheParams, authzRoleCachePrefix, a.fetchRole, options)
 	if err != nil {
 		return nil, err
 	}
-	cacheNsByID, err := cacher.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceIDPrefix, a.fetchNamespaceByID, options)
+	cacheNsByID, err := cache.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceIDPrefix, a.fetchNamespaceByID, options)
 	if err != nil {
 		return nil, err
 	}
-	cacheNsByName, err := cacher.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceNamePrefix, a.fetchNamespaceByName, options)
+	cacheNsByName, err := cache.NewWithOptions[*models.Namespace](cacheParams, authzNamespaceNamePrefix, a.fetchNamespaceByName, options)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (a *authorizer) lookupNamespace(ctx context.Context, desc ResourceDescripto
 	if desc.NamespaceID != "" {
 		ns, err = a.cacheNsByID.Get(ctx, desc.NamespaceID)
 		if err != nil {
-			if errors.Is(err, cacher.ErrNotFound) {
+			if errors.Is(err, cache.ErrNotFound) {
 				return nil, false, nil
 			}
 			return nil, false, err
@@ -275,7 +275,7 @@ func (a *authorizer) lookupNamespace(ctx context.Context, desc ResourceDescripto
 	if desc.NamespaceName != "" {
 		ns, err = a.cacheNsByName.Get(ctx, desc.NamespaceName)
 		if err != nil {
-			if errors.Is(err, cacher.ErrNotFound) {
+			if errors.Is(err, cache.ErrNotFound) {
 				return nil, false, nil
 			}
 			return nil, false, err
@@ -303,7 +303,7 @@ func (a *authorizer) fetchNamespaceByName(ctx context.Context, name string) (*mo
 func (a *authorizer) lookupRole(ctx context.Context, userID, namespaceID string) (enums.NamespaceRole, bool, error) {
 	role, err := a.cacheRole.Get(ctx, userID+":"+namespaceID)
 	if err != nil {
-		if errors.Is(err, cacher.ErrNotFound) {
+		if errors.Is(err, cache.ErrNotFound) {
 			// Not a member (negative cache entry).
 			return "", false, nil
 		}

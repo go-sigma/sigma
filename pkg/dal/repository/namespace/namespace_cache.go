@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 )
 
 const (
@@ -47,8 +47,8 @@ type NamespaceCacheSeeder interface {
 
 type cachedNamespaceRepository struct {
 	next   NamespaceRepository
-	byID   cacher.Cacher[*models.Namespace]
-	byName cacher.Cacher[*models.Namespace]
+	byID   cache.Cacher[*models.Namespace]
+	byName cache.Cacher[*models.Namespace]
 }
 
 type CachedNamespaceRepositoryParams struct {
@@ -61,19 +61,19 @@ type CachedNamespaceRepositoryParams struct {
 // NewCachedNamespaceRepository creates a cached namespace repository for DI.
 func NewCachedNamespaceRepository(params CachedNamespaceRepositoryParams) (NamespaceRepository, error) {
 	next := NewNamespaceRepository()
-	options := cacher.Options{
+	options := cache.Options{
 		IsNotFound: func(err error) bool {
 			return errors.Is(err, gorm.ErrRecordNotFound)
 		},
 	}
-	byID, err := cacher.NewWithOptions(cacher.Params{
+	byID, err := cache.NewWithOptions(cache.Params{
 		Config:             params.Config,
 		RedisClientFactory: params.RedisClientFactory,
 	}, namespaceCacheByIDPrefix, next.Get, options)
 	if err != nil {
 		return nil, err
 	}
-	byName, err := cacher.NewWithOptions(cacher.Params{
+	byName, err := cache.NewWithOptions(cache.Params{
 		Config:             params.Config,
 		RedisClientFactory: params.RedisClientFactory,
 	}, namespaceCacheByNamePrefix, next.GetByName, options)
@@ -132,7 +132,7 @@ func (r *cachedNamespaceRepository) UpdateQuota(ctx context.Context, namespaceID
 func (r *cachedNamespaceRepository) Get(ctx context.Context, id string) (*models.Namespace, error) {
 	namespaceObj, err := r.byID.Get(ctx, id)
 	if err != nil {
-		if errors.Is(err, cacher.ErrNotFound) {
+		if errors.Is(err, cache.ErrNotFound) {
 			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
@@ -146,7 +146,7 @@ func (r *cachedNamespaceRepository) Get(ctx context.Context, id string) (*models
 func (r *cachedNamespaceRepository) GetByName(ctx context.Context, name string) (*models.Namespace, error) {
 	namespaceObj, err := r.byName.Get(ctx, name)
 	if err != nil {
-		if errors.Is(err, cacher.ErrNotFound) {
+		if errors.Is(err, cache.ErrNotFound) {
 			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err

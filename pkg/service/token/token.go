@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
@@ -74,7 +74,7 @@ type service struct {
 
 	privateKey crypto.PrivateKey
 	publicKey  crypto.PublicKey
-	cacheCli   cacher.Cacher[string]
+	cacheCli   cache.Cacher[string]
 }
 
 // NewService creates the token service.
@@ -92,7 +92,7 @@ func NewService(params service) (Service, error) {
 		return nil, fmt.Errorf("invalid private key")
 	}
 
-	cacheCli, err := cacher.New[string](cacher.Params{
+	cacheCli, err := cache.New[string](cache.Params{
 		Config:             params.Config,
 		RedisClientFactory: params.RedisClientFactory,
 	}, consts.AppName+":expire:jwt", nil)
@@ -156,7 +156,7 @@ func (s *service) Validate(ctx context.Context, token string) (string, string, e
 	}
 
 	val, err := s.cacheCli.Get(ctx, id)
-	if err != nil && !errors.Is(err, cacher.ErrNotFound) {
+	if err != nil && !errors.Is(err, cache.ErrNotFound) {
 		return "", "", err
 	}
 	if val == expireVal {

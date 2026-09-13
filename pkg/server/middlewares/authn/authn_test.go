@@ -38,7 +38,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
-	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/cache"
 	"github.com/go-sigma/sigma/pkg/infra/ratelimit"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/service/password"
@@ -395,7 +395,7 @@ func TestAuthWithConfig(t *testing.T) {
 					MaxFailures: 2,
 					Window:      time.Minute,
 					Delay:       5 * time.Millisecond,
-				}, cacher.Params{Config: cfg.Config})
+				}, cache.Params{Config: cfg.Config})
 				require.NoError(t, lerr)
 				cfg.LoginRateLimiter = limiter
 				return cfg
