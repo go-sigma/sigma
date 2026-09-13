@@ -36,6 +36,10 @@ const (
 	defaultMCPTransport      = "streamable_http"
 	defaultMCPToolTimeout    = 30 * time.Second
 	defaultMCPMaxRequestBody = int64(1 << 20) // 1Mi
+
+	defaultAuthLoginRateLimitMaxFailures = 5
+	defaultAuthLoginRateLimitWindow      = 5 * time.Minute
+	defaultAuthLoginRateLimitDelay       = time.Second
 )
 
 var configuration = &Configuration{}
@@ -75,6 +79,7 @@ type Configuration struct {
 func (c *Configuration) WithDefaults() {
 	c.HTTP.WithDefaults()
 	c.Auth.Jwt.WithDefaults()
+	c.Auth.LoginRateLimit.WithDefaults()
 	c.Namespace.WithDefaults()
 	c.Daemon.WithDefaults()
 	c.Audit.Cleanup.WithDefaults()
@@ -801,9 +806,36 @@ type ConfigurationAuthAnonymous struct {
 
 // ConfigurationAuth ...
 type ConfigurationAuth struct {
-	Anonymous ConfigurationAuthAnonymous `yaml:"anonymous"`
-	Admin     ConfigurationAuthAdmin     `yaml:"admin"`
-	Token     ConfigurationAuthToken     `yaml:"token"`
-	Oauth2    ConfigurationAuthOauth2    `yaml:"oauth2"`
-	Jwt       ConfigurationAuthJwt       `yaml:"jwt"`
+	Anonymous      ConfigurationAuthAnonymous      `yaml:"anonymous"`
+	Admin          ConfigurationAuthAdmin          `yaml:"admin"`
+	Token          ConfigurationAuthToken          `yaml:"token"`
+	Oauth2         ConfigurationAuthOauth2         `yaml:"oauth2"`
+	Jwt            ConfigurationAuthJwt            `yaml:"jwt"`
+	LoginRateLimit ConfigurationAuthLoginRateLimit `yaml:"loginRateLimit"`
+}
+
+// ConfigurationAuthLoginRateLimit configures failed-login throttling by username.
+type ConfigurationAuthLoginRateLimit struct {
+	Enabled     *bool         `yaml:"enabled"`
+	MaxFailures int           `yaml:"maxFailures"`
+	Window      time.Duration `yaml:"window"`
+	Delay       time.Duration `yaml:"delay"`
+}
+
+// IsEnabled reports whether failed-login throttling is enabled.
+func (c ConfigurationAuthLoginRateLimit) IsEnabled() bool {
+	return c.Enabled == nil || *c.Enabled
+}
+
+// WithDefaults applies default values for auth login rate limiting.
+func (c *ConfigurationAuthLoginRateLimit) WithDefaults() {
+	if c.MaxFailures == 0 {
+		c.MaxFailures = defaultAuthLoginRateLimitMaxFailures
+	}
+	if c.Window == 0 {
+		c.Window = defaultAuthLoginRateLimitWindow
+	}
+	if c.Delay == 0 {
+		c.Delay = defaultAuthLoginRateLimitDelay
+	}
 }

@@ -39,6 +39,8 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	repoaudit "github.com/go-sigma/sigma/pkg/dal/repository/audit"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/ratelimit"
 	"github.com/go-sigma/sigma/pkg/server/middlewares"
 	"github.com/go-sigma/sigma/pkg/server/middlewares/audit"
 	"github.com/go-sigma/sigma/pkg/server/middlewares/authn"
@@ -145,12 +147,25 @@ func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 		ginpprof.Register(e, consts.PprofPath)
 	}
 	e.Use(middlewares.RedirectRepository(params.Config))
+	var loginRateLimiter ratelimit.Limiter
+	if params.Config.Auth.LoginRateLimit.IsEnabled() {
+		l, lerr := ratelimit.New(&params.Config.Auth.LoginRateLimit, cacher.Params{
+			Config:             params.Config,
+			RedisClientFactory: params.RedisClientFactory,
+		})
+		if lerr != nil {
+			slog.Warn("login rate limiter disabled", "err", lerr)
+		} else {
+			loginRateLimiter = l
+		}
+	}
 	e.Use(authn.AuthnWithConfig(authn.Config{
-		Skipper:        genSkipper(),
-		Config:         params.Config,
-		TokenSvc:       params.TokenSvc,
-		PasswordSvc:    params.PasswordSvc,
-		UserRepository: params.UserRepository,
+		Skipper:          genSkipper(),
+		Config:           params.Config,
+		TokenSvc:         params.TokenSvc,
+		PasswordSvc:      params.PasswordSvc,
+		UserRepository:   params.UserRepository,
+		LoginRateLimiter: loginRateLimiter,
 	}))
 	e.Use(authz.AuthzWithConfig(authz.Config{
 		Skipper:    genAuthzSkipper(),

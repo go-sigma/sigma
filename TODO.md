@@ -2,11 +2,11 @@
 
 > Architecture analysis based on the current codebase as of 2026-07-13.
 > Re-audited on 2026-08-01 against the current codebase and git history.
-> Items are grouped by status: **未完成 / 进行中 / 已完成**，按优先级排序。
+> Items are grouped by status: **Not Started / In Progress / Completed**, ordered by priority.
 
 ---
 
-## 未完成
+## Not Started
 
 ### 1. Missing Rate Limiting and Overload Protection
 
@@ -48,13 +48,13 @@ Completed:
 
 Remaining:
 
-- [ ] Add login failure rate limiting, for example 5 attempts per minute per IP (also complements item 1)
+- [x] Add failed-login throttling: after `auth.loginRateLimit.maxFailures` failed Basic auth attempts within the window per username, each authentication attempt is delayed by `auth.loginRateLimit.delay` (no hard lockout). Counters are stored through `pkg/infra/cache`, and all Basic failures (including `/v2/`) are counted.
 
 **Why high priority**: login brute-force protection is cheap to add and closes an active attack surface; removing `multiStatements=true` reduces SQL injection risk.
 
 ---
 
-## 进行中
+## In Progress
 
 ### 4. Missing Fine-Grained Distributed Mutual Exclusion for Some Background Tasks
 
@@ -74,7 +74,7 @@ Remaining:
 
 ---
 
-## 已完成
+## Completed
 
 ### 5. Database Connection Pool Configuration
 

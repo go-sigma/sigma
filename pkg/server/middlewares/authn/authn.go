@@ -15,9 +15,11 @@
 package authn
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,12 +27,16 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	"github.com/go-sigma/sigma/pkg/infra/ratelimit"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
+
+// maxLoginRateLimitDelay caps the delay applied to throttled login attempts.
+const maxLoginRateLimitDelay = 5 * time.Second
 
 // Skipper defines a function to skip middleware.
 type Skipper func(c *gin.Context) bool
@@ -47,6 +53,8 @@ type Config struct {
 	PasswordSvc password.Service
 	// UserRepository creates user repositories.
 	UserRepository repouser.UserRepository
+	// LoginRateLimiter limits failed login attempts per username. Nil disables.
+	LoginRateLimiter ratelimit.Limiter
 }
 
 // AuthnConfig ...
@@ -107,9 +115,12 @@ func AuthnWithConfig(config Config) gin.HandlerFunc {
 				return
 			}
 
+			config.loginRateLimitDelay(ctx, username)
+
 			user, err := userRepository.GetByUsername(ctx, username)
 			if err != nil {
 				slog.Error("get user by username failed", "err", err)
+				config.recordLoginFailure(ctx, username)
 				c.Header(consts.HeaderWWWAuthenticate, genWwwAuthenticate(config.Config, req.Host, scheme(c)))
 				if isDistribution {
 					errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
@@ -124,6 +135,7 @@ func AuthnWithConfig(config Config) gin.HandlerFunc {
 			verify := config.PasswordSvc.Verify(pwd, ptr.To(user.Password))
 			if !verify {
 				slog.Error("verify password failed", "err", err)
+				config.recordLoginFailure(ctx, username)
 				c.Header(consts.HeaderWWWAuthenticate, genWwwAuthenticate(config.Config, req.Host, scheme(c)))
 				if isDistribution {
 					errcode.NewDSError(c, errcode.DSErrCodeUnauthorized)
@@ -133,6 +145,7 @@ func AuthnWithConfig(config Config) gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+			config.resetLoginFailure(ctx, username)
 		case strings.HasPrefix(authorization, "Bearer"):
 			jti, uid, err = config.TokenSvc.Validate(ctx, strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer")))
 			if err != nil {
@@ -199,6 +212,59 @@ func AuthnWithConfig(config Config) gin.HandlerFunc {
 		c.Set(consts.ContextJti, jti)
 
 		c.Next()
+	}
+}
+
+// loginRateLimitDelay slows down authentication attempts once the username has
+// reached the configured failure threshold. It never rejects the request, and
+// the wait honors context cancellation so a disconnected client returns early.
+func (c *Config) loginRateLimitDelay(ctx context.Context, username string) {
+	if c.LoginRateLimiter == nil || c.Config == nil {
+		return
+	}
+	cfg := c.Config.Auth.LoginRateLimit
+	if cfg.MaxFailures <= 0 || cfg.Delay <= 0 {
+		return
+	}
+	count, err := c.LoginRateLimiter.Count(ctx, username)
+	if err != nil {
+		slog.Warn("login rate limit count failed", "err", err)
+		return
+	}
+	if count < int64(cfg.MaxFailures) {
+		return
+	}
+	delay := cfg.Delay
+	if delay > maxLoginRateLimitDelay {
+		delay = maxLoginRateLimitDelay
+	}
+	ratelimit.RecordDelayed()
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+	case <-timer.C:
+	}
+}
+
+// recordLoginFailure increments the failure count for username. Backend errors
+// are tolerated so a store outage never breaks authentication.
+func (c *Config) recordLoginFailure(ctx context.Context, username string) {
+	if c.LoginRateLimiter == nil {
+		return
+	}
+	if err := c.LoginRateLimiter.Incr(ctx, username); err != nil {
+		slog.Warn("record login failure failed", "err", err)
+	}
+}
+
+// resetLoginFailure clears the failure count for username after a successful login.
+func (c *Config) resetLoginFailure(ctx context.Context, username string) {
+	if c.LoginRateLimiter == nil {
+		return
+	}
+	if err := c.LoginRateLimiter.Reset(ctx, username); err != nil {
+		slog.Warn("reset login failure failed", "err", err)
 	}
 }
 

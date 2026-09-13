@@ -38,6 +38,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	cacher "github.com/go-sigma/sigma/pkg/infra/cache"
+	"github.com/go-sigma/sigma/pkg/infra/ratelimit"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
@@ -340,6 +342,89 @@ func TestAuthWithConfig(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "login_rate_limit",
+			genDigCon: func(t *testing.T) *dig.Container {
+				digCon := dig.New()
+
+				err := digCon.Provide(func() *config.Configuration {
+					return &config.Configuration{
+						Auth: config.ConfigurationAuth{
+							Admin: config.ConfigurationAuthAdmin{
+								Username: "sigma",
+								Password: "sigma",
+								Email:    "sigma@gmail.com",
+							},
+							Jwt: config.ConfigurationAuthJwt{
+								PrivateKey: privateKeyString,
+							},
+							LoginRateLimit: config.ConfigurationAuthLoginRateLimit{
+								MaxFailures: 2,
+								Window:      time.Minute,
+								Delay:       5 * time.Millisecond,
+							},
+						},
+						Locker: config.ConfigurationLocker{
+							Type:   enums.LockerTypeInmemory,
+							Prefix: "sigma-locker",
+						},
+						Redis: config.ConfigurationRedis{},
+						Cache: config.ConfigurationCache{
+							Type:   enums.CacherTypeInmemory,
+							Prefix: "sigma-cache",
+							Inmemory: config.ConfigurationCacheInmemory{
+								Size: 100,
+							},
+						},
+					}
+				})
+				require.NoError(t, err)
+
+				err = digCon.Provide(func() password.Service {
+					return password.New()
+				})
+				require.NoError(t, err)
+
+				require.NoError(t, testkit.InitializeIntegration(t, digCon))
+
+				return digCon
+			},
+			genAuthConfig: func(t *testing.T, c *dig.Container) Config {
+				cfg := genAuthConfig(t, c, nil)
+				limiter, lerr := ratelimit.New(&config.ConfigurationAuthLoginRateLimit{
+					MaxFailures: 2,
+					Window:      time.Minute,
+					Delay:       5 * time.Millisecond,
+				}, cacher.Params{Config: cfg.Config})
+				require.NoError(t, lerr)
+				cfg.LoginRateLimiter = limiter
+				return cfg
+			},
+			afterCheck: func(t *testing.T, digCon *dig.Container, middleware gin.HandlerFunc) {
+				err := bootstrap.Initialize(digCon)
+				require.NoError(t, err)
+
+				request := func(pwd string) int {
+					req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`{}`))
+					req.Header.Set("Content-Type", "application/json")
+					req.SetBasicAuth("sigma", pwd)
+					rec := httptest.NewRecorder()
+					router := gin.New()
+					router.Use(middleware)
+					router.POST("/", func(c *gin.Context) {
+						c.String(http.StatusOK, "OK")
+					})
+					router.ServeHTTP(rec, req)
+					return rec.Code
+				}
+
+				// two failures are allowed
+				require.Equal(t, http.StatusUnauthorized, request("wrong-1"))
+				require.Equal(t, http.StatusUnauthorized, request("wrong-2"))
+				// past the threshold a correct password is delayed, not rejected
+				require.Equal(t, http.StatusOK, request("sigma"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -350,4 +435,41 @@ func TestAuthWithConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+type stubLoginLimiter struct {
+	count int64
+}
+
+func (s *stubLoginLimiter) Count(context.Context, string) (int64, error) { return s.count, nil }
+func (s *stubLoginLimiter) Incr(context.Context, string) error           { s.count++; return nil }
+func (s *stubLoginLimiter) Reset(context.Context, string) error          { s.count = 0; return nil }
+
+func TestLoginRateLimitDelay(t *testing.T) {
+	const delay = 40 * time.Millisecond
+	cfg := &config.Configuration{
+		Auth: config.ConfigurationAuth{
+			LoginRateLimit: config.ConfigurationAuthLoginRateLimit{
+				MaxFailures: 2,
+				Delay:       delay,
+			},
+		},
+	}
+	limiter := &stubLoginLimiter{}
+	c := &Config{Config: cfg, LoginRateLimiter: limiter}
+
+	start := time.Now()
+	c.loginRateLimitDelay(t.Context(), "alice")
+	require.Less(t, time.Since(start), delay)
+
+	limiter.count = 2
+	start = time.Now()
+	c.loginRateLimitDelay(t.Context(), "alice")
+	require.GreaterOrEqual(t, time.Since(start), delay)
+
+	canceled, cancel := context.WithCancel(t.Context())
+	cancel()
+	start = time.Now()
+	c.loginRateLimitDelay(canceled, "alice")
+	require.Less(t, time.Since(start), delay)
 }
