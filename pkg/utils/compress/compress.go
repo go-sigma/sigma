@@ -54,7 +54,8 @@ func Compress(src string) ([]byte, error) {
 	return dst.Bytes(), nil
 }
 
-// CompressBytes ...
+// CompressBytes gzip-compresses src at gzip.BestSpeed and returns the compressed
+// bytes; the returned slice aliases a buffer owned by the writer and must not be mutated.
 func CompressBytes(src []byte) ([]byte, error) {
 	srcReader := bytes.NewReader(src)
 	var dst bytes.Buffer

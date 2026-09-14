@@ -38,15 +38,15 @@ type Handler interface {
 	DeleteWebhook(c *gin.Context, req *api.DeleteWebhookRequest)
 	// PutWebhook handles the put webhook request
 	PutWebhook(c *gin.Context, req *api.PutWebhookRequest)
-	// GetWebhookPing ...
+	// GetWebhookPing sends a test ping event to the webhook's configured endpoint and responds with no content.
 	GetWebhookPing(c *gin.Context, req *api.GetWebhookPingRequest)
-	// GetWebhookLog ...
+	// GetWebhookLog returns the recorded delivery log for the webhook, including request and response headers and bodies.
 	GetWebhookLog(c *gin.Context, req *api.GetWebhookLogRequest)
-	// DeleteWebhookLog ...
+	// DeleteWebhookLog removes the recorded webhook delivery log and responds with no content.
 	DeleteWebhookLog(c *gin.Context, req *api.DeleteWebhookLogRequest)
-	// ListWebhookLogs ...
+	// ListWebhookLogs returns a paginated list of delivery logs for the webhook.
 	ListWebhookLogs(c *gin.Context, req *api.ListWebhookLogRequest)
-	// GetWebhookLogResend ...
+	// GetWebhookLogResend re-delivers a previously recorded webhook request and responds with no content.
 	GetWebhookLogResend(c *gin.Context, req *api.GetWebhookLogResendRequest)
 }
 

@@ -70,7 +70,8 @@ which can be deployed on any cloud platform or on-premises.`,
 	return cmd
 }
 
-// Execute ...
+// Execute runs the root command and exits the process with status 1 if it
+// returns an error.
 func Execute() {
 	err := NewRootCmd().Execute()
 	if err != nil {

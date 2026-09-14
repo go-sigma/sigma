@@ -31,11 +31,11 @@ import (
 
 // Handler is the interface for the distribution blob handlers
 type Handler interface {
-	// DeleteBlob ...
+	// DeleteBlob removes the blob identified by the path digest after a namespace-level manage authorization check and responds 202 Accepted; a blob still referenced by an artifact cannot be deleted.
 	DeleteBlob(ctx *gin.Context)
-	// HeadBlob ...
+	// HeadBlob reports whether the blob identified by the path digest exists, returning its Content-Length, Content-Type and Docker-Content-Digest headers with 200 OK and no body.
 	HeadBlob(ctx *gin.Context)
-	// GetBlob ...
+	// GetBlob serves the blob identified by the path digest with its Content-Length, Content-Type and Docker-Content-Digest headers; it returns a 301 redirect when the storage backend is configured to redirect, falls back to the configured proxy when the blob is missing locally, and otherwise streams the bytes.
 	GetBlob(ctx *gin.Context)
 }
 

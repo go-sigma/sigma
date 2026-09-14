@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-// GetRunnerRerun ...
+// GetRunnerRerun handles GET .../builders/:builder_id/runners/:runner_id/rerun; it starts a new run from the original runner's spec and returns the new runner id with 200, or an error code on failure.
 func (h *handler) GetRunnerRerun(c *gin.Context, req *api.GetRunnerStop) {
 	ctx := c.Request.Context()
 

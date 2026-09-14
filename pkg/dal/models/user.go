@@ -37,7 +37,7 @@ type User struct {
 	NamespaceCount int64            `gorm:"default:0"`
 }
 
-// User3rdParty ...
+// User3rdParty stores a third-party (e.g. GitHub, GitLab) account linked to a User, including its OAuth tokens and last code-repository sync status.
 type User3rdParty struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -57,7 +57,7 @@ type User3rdParty struct {
 	User User
 }
 
-// TableName ...
+// TableName overrides the GORM table name for User3rdParty to "user_3rdparty".
 func (User3rdParty) TableName() string {
 	return "user_3rdparty"
 }

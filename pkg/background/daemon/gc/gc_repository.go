@@ -50,7 +50,7 @@ type gcRepository struct {
 	locker               lock.Locker
 }
 
-// Run ...
+// Run deletes repositories left empty past the rule's retention period, either scoped to the rule's namespace or across all namespaces in cursor batches, recording a DaemonGcRecord for each deletion.
 func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
 	if err := runner.start(); err != nil {
 		return fmt.Errorf("start gc repository runner failed: %v", err)

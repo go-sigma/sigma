@@ -104,9 +104,9 @@ type decoratorWebhook struct {
 	WebhookObj  any
 }
 
-// Runner ...
+// Runner runs a single GC task; each GC kind (blob, repository, tag) provides an implementation selected by initGc.
 type Runner interface {
-	// Run ...
+	// Run executes the GC task identified by runnerID, reporting progress and the final status through runner.
 	Run(ctx context.Context, runner *runnerContext, runnerID string) error
 }
 

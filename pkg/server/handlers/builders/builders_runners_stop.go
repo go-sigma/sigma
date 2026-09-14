@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-// GetRunnerStop ...
+// GetRunnerStop handles GET .../builders/:builder_id/runners/:runner_id/stop; it cancels the running runner and returns 204, or an error code describing the failure.
 func (h *handler) GetRunnerStop(c *gin.Context, req *api.GetRunnerStop) {
 	ctx := c.Request.Context()
 

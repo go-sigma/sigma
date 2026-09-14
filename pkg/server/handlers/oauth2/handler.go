@@ -31,7 +31,7 @@ type Handler interface {
 	Callback(c *gin.Context, req *api.Oauth2CallbackRequest)
 	// ClientID handles the client id request
 	ClientID(c *gin.Context, req *api.Oauth2ClientIDRequest)
-	// RedirectCallback ...
+	// RedirectCallback redirects the browser to the frontend login callback with the provider and authorization code so the client can finish the OAuth2 flow.
 	RedirectCallback(c *gin.Context, req *api.Oauth2CallbackRequest)
 }
 

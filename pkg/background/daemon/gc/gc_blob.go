@@ -55,7 +55,7 @@ type gcBlob struct {
 	locker           lock.Locker
 }
 
-// Run ...
+// Run deletes blobs that are unreferenced and last pulled before the rule's retention window, batch by batch through the storage driver, recording a DaemonGcRecord per blob and finishing the runner with the success/failure counts.
 func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
 	if err := runner.start(); err != nil {
 		return fmt.Errorf("start gc blob runner failed: %v", err)

@@ -248,7 +248,7 @@ var (
 	}
 )
 
-// GenDSErrCodeResourceSizeQuotaExceedNamespace ...
+// GenDSErrCodeResourceSizeQuotaExceedNamespace builds a DENIED distribution error (403) reporting that the push would exceed the namespace's storage size quota, including current usage, the limit, and the requested increase.
 func GenDSErrCodeResourceSizeQuotaExceedNamespace(name string, current, limit, increase int64) ErrCode {
 	c := ErrCode{
 		Code: "DENIED",
@@ -263,7 +263,7 @@ func GenDSErrCodeResourceSizeQuotaExceedNamespace(name string, current, limit, i
 	return c
 }
 
-// GenDSErrCodeResourceSizeQuotaExceedRepository ...
+// GenDSErrCodeResourceSizeQuotaExceedRepository builds a DENIED distribution error (403) reporting that the push would exceed the repository's storage size quota, including current usage, the limit, and the requested increase.
 func GenDSErrCodeResourceSizeQuotaExceedRepository(name string, current, limit, increase int64) ErrCode {
 	c := ErrCode{
 		Code: "DENIED",
@@ -287,7 +287,7 @@ func toFixed(num float64, precision int) float64 {
 	return float64(round(num*output)) / output
 }
 
-// GenDSErrCodeResourceCountQuotaExceedRepository ...
+// GenDSErrCodeResourceCountQuotaExceedRepository builds a DENIED distribution error (403) reporting that the repository's tag count quota has been exceeded.
 func GenDSErrCodeResourceCountQuotaExceedRepository(name string, limit int64) ErrCode {
 	c := ErrCode{
 		Code:           "DENIED",
@@ -298,7 +298,7 @@ func GenDSErrCodeResourceCountQuotaExceedRepository(name string, limit int64) Er
 	return c
 }
 
-// GenDSErrCodeResourceCountQuotaExceedNamespaceRepository ...
+// GenDSErrCodeResourceCountQuotaExceedNamespaceRepository builds a DENIED distribution error (403) reporting that the namespace's repository count quota has been exceeded.
 func GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(name string, limit int64) ErrCode {
 	c := ErrCode{
 		Code:           "DENIED",
@@ -309,7 +309,7 @@ func GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(name string, limit 
 	return c
 }
 
-// GenDSErrCodeResourceCountQuotaExceedNamespaceTag ...
+// GenDSErrCodeResourceCountQuotaExceedNamespaceTag builds a DENIED distribution error (403) reporting that the namespace's tag count quota has been exceeded.
 func GenDSErrCodeResourceCountQuotaExceedNamespaceTag(name string, limit int64) ErrCode {
 	c := ErrCode{
 		Code:           "DENIED",
@@ -320,7 +320,7 @@ func GenDSErrCodeResourceCountQuotaExceedNamespaceTag(name string, limit int64) 
 	return c
 }
 
-// GenDSErrCodeResourceNotFound ...
+// GenDSErrCodeResourceNotFound builds a RESOURCE_NOT_FOUND distribution error (404) whose title carries the given error's message.
 func GenDSErrCodeResourceNotFound(err error) ErrCode {
 	c := ErrCode{
 		Code:           "RESOURCE_NOT_FOUND",

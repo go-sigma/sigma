@@ -42,7 +42,8 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-// New ...
+// New builds a Tencent COS-backed driver from the [storage.cos] endpoint, AK/SK
+// and storage.root_directory; it returns an error if the endpoint URL is invalid.
 func (f factory) New(config *config.Configuration) (storage.StorageDriver, error) {
 	u, err := url.Parse(config.Storage.Cos.Endpoint)
 	if err != nil {

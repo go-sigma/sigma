@@ -29,7 +29,8 @@ import (
 // Fetcher loads a value when the cache misses.
 type Fetcher[T any] func(ctx context.Context, key string) (T, error)
 
-// Cacher ...
+// Cacher is a generic read-through key/value cache: Get invokes the Fetcher to
+// load and cache a missing value, while Set and Del manage stored entries.
 type Cacher[T any] interface {
 	// Set sets the value of given key if it is new to the cache.
 	// Param val should not be nil.

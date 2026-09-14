@@ -24,7 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-// PostRunnerRun ...
+// PostRunnerRun handles POST .../builders/:builder_id/runners/run; it starts a new builder runner from the request spec and returns the new runner id with 201, or an error code on failure.
 func (h *handler) PostRunnerRun(c *gin.Context, req *api.PostRunnerRun) {
 	ctx := c.Request.Context()
 

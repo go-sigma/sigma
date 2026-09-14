@@ -70,7 +70,11 @@ type GinServerParams struct {
 	RedisClientFactory dalredis.ClientFactory `optional:"true"`
 }
 
-// NewGinServer ...
+// NewGinServer builds the gin engine in release mode with the full middleware
+// chain (tracing, CORS, ETag, metrics, body limit, health probes, authn, authz
+// and optional audit) and returns it ready to serve. The login rate limiter and
+// pprof are enabled only when configured; login throttling is skipped with a
+// warning if its limiter cannot be created.
 func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 	gin.SetMode(gin.ReleaseMode)
 	e := gin.New()

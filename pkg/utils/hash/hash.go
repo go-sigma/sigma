@@ -28,7 +28,7 @@ import (
 	"strings"
 )
 
-// ErrNoSuchFile ...
+// ErrNoSuchFile is returned by File and FileVerify when the path is not an existing regular file.
 var ErrNoSuchFile = errors.New("no such file")
 
 func isFile(filePath string) bool {
@@ -100,7 +100,7 @@ func String(str string, method ...string) (hash string, err error) {
 	return
 }
 
-// MustString ...
+// MustString is String for callers that cannot handle an error; it panics if hashing fails.
 func MustString(str string, method ...string) string {
 	hash, err := String(str, method...)
 	if err != nil {
@@ -145,7 +145,8 @@ const (
 	cacheSize = 10240
 )
 
-// Reader ...
+// Reader hashes reader to completion in 10 KiB chunks and returns the hex digest;
+// method defaults to sha256 and may be md5, sha1, sha256 or sha512.
 func Reader(reader io.Reader, method ...string) (hash string, err error) {
 	var h = selectMethod(method)
 	var data = make([]byte, cacheSize)

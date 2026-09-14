@@ -53,9 +53,9 @@ type Clients interface {
 	HeadBlob(ctx context.Context, repository string, digest digest.Digest) (distribution.Descriptor, error)
 	// PutBlob upload blob to target
 	PutBlob(ctx context.Context, repository string, digest digest.Digest, content io.Reader) error
-	// GetManifest ...
+	// GetManifest fetches and unmarshals the manifest for reference and returns it with its descriptor.
 	GetManifest(ctx context.Context, repository, reference string) (distribution.Manifest, distribution.Descriptor, error)
-	// HeadManifest ...
+	// HeadManifest reports whether a manifest exists for reference, returning false without error on a 404 response.
 	HeadManifest(ctx context.Context, repository, reference string) (bool, error)
 }
 
@@ -66,14 +66,14 @@ type clients struct {
 	endpoint string
 }
 
-// ClientsFactory ...
+// ClientsFactory creates a Clients bound to the upstream registry described by the supplied configuration.
 type ClientsFactory interface {
 	New(config *config.Configuration) (Clients, error)
 }
 
 type clientsFactory struct{}
 
-// NewClientsFactory ...
+// NewClientsFactory returns a stateless ClientsFactory that builds a new registry client for each configuration passed to New.
 func NewClientsFactory() ClientsFactory {
 	return &clientsFactory{}
 }

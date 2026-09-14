@@ -112,7 +112,7 @@ func (h *handler) HeadManifest(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// headManifestFallbackProxy ...
+// headManifestFallbackProxy probes the manifest in the upstream registry via the configured proxy, forwarding the upstream content type and its 200/404 status, and reports an unknown distribution error for any other status.
 func (h *handler) headManifestFallbackProxy(c *gin.Context) {
 	statusCode, header, _, err := h.fallbackProxy(c)
 	if err != nil {

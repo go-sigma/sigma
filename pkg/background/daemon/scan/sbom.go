@@ -35,13 +35,13 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-// reportDistro ...
+// reportDistro is the OS distribution identity extracted from a syft report.
 type reportDistro struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
-// reportSbom ...
+// reportSbom mirrors the summary fields (distro, OS, architecture) that sigma persists from a syft JSON document.
 type reportSbom struct {
 	Distro       reportDistro `json:"distro"`
 	Os           string       `json:"os"`

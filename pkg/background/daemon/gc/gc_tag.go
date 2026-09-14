@@ -53,7 +53,7 @@ type gcTag struct {
 	locker               lock.Locker
 }
 
-// Run ...
+// Run deletes tags matching the rule's retention type (age or count) and optional name pattern, scoped to the rule's namespace or all namespaces, and fails early on an unsupported retention type or invalid pattern.
 func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
 	if err := runner.start(); err != nil {
 		return fmt.Errorf("start gc tag runner failed: %v", err)

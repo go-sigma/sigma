@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 )
 
-// GetBlob ...
+// GetBlob fetches the blob at GET /v2/<repository>/blobs/<digest> and returns its descriptor plus the caller-owned response body reader. It errors on transport failure or any status other than 200 OK.
 func (c *clients) GetBlob(ctx context.Context, repository string, digest digest.Digest) (distribution.Descriptor, io.ReadCloser, error) {
 	statusCode, header, reader, err := c.DoRequest(ctx, http.MethodGet, path.Join("/v2/", repository, "blobs", digest.String()), nil)
 	if err != nil {
@@ -45,7 +45,7 @@ func (c *clients) GetBlob(ctx context.Context, repository string, digest digest.
 	return descriptor, reader, nil
 }
 
-// HeadBlob ...
+// HeadBlob issues HEAD /v2/<repository>/blobs/<digest> to read the blob's descriptor (media type, size, digest) without downloading its content.
 func (c *clients) HeadBlob(ctx context.Context, repository string, digest digest.Digest) (distribution.Descriptor, error) {
 	statusCode, header, _, err := c.DoRequest(ctx, http.MethodHead, path.Join("/v2/", repository, "blobs", digest.String()), nil)
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *clients) initUpload(ctx context.Context, repository string) (*url.URL, 
 	return locationURL, nil
 }
 
-// PutBlob ...
+// PutBlob uploads content as the blob identified by digest: it opens an upload session with POST /v2/<repository>/blobs/uploads/, then completes it with a PUT to the returned location carrying the digest query parameter. It errors unless the registry answers 201 Created.
 func (c *clients) PutBlob(ctx context.Context, repository string, digest digest.Digest, content io.Reader) error {
 	location, err := c.initUpload(ctx, repository)
 	if err != nil {

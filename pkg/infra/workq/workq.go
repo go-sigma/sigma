@@ -29,16 +29,17 @@ import (
 
 //go:generate go tool mockgen -destination=workq_mocks.go -package=workq github.com/go-sigma/sigma/pkg/infra/workq Producer,ProducerFactory,ConsumerFactory
 
-// Consumer ...
+// Consumer describes a topic handler along with the concurrency limit and
+// timeout a consumer driver applies when dispatching messages to it.
 type Consumer struct {
 	Handler     func(ctx context.Context, payload []byte) error
 	Concurrency int
 	Timeout     time.Duration
 }
 
-// Producer ...
+// Producer enqueues a payload for a topic so that registered consumers process it.
 type Producer interface {
-	// Produce ...
+	// Produce enqueues payload for the given topic so that a registered consumer processes it.
 	Produce(ctx context.Context, topic enums.Daemon, payload any) error
 }
 
@@ -75,7 +76,8 @@ type ConsumerParams struct {
 	HandlerRegistry    HandlerRegistry
 }
 
-// Message ...
+// Message is a serialized work item, pairing a topic with its raw payload, as
+// exchanged with a queue backend.
 type Message struct {
 	Topic   string
 	Payload []byte
@@ -142,7 +144,9 @@ func RegisterConsumer(name enums.WorkQueueType, factory ConsumerFactory) error {
 	return nil
 }
 
-// InitProducer ...
+// InitProducer constructs the Producer for the driver named by
+// Config.WorkQueue.Type, returning an error when no factory has been registered
+// for that (unsupported) work-queue type.
 func InitProducer(params ProducerParams) (Producer, error) {
 	factory, ok := producerFactories[params.Config.WorkQueue.Type]
 	if !ok {
@@ -151,7 +155,9 @@ func InitProducer(params ProducerParams) (Producer, error) {
 	return factory.New(params)
 }
 
-// InitConsumer ...
+// InitConsumer constructs the consumer for the driver named by
+// Config.WorkQueue.Type, returning an error when no factory has been registered
+// for that (unsupported) work-queue type.
 func InitConsumer(params ConsumerParams) error {
 	factory, ok := consumerFactories[params.Config.WorkQueue.Type]
 	if !ok {

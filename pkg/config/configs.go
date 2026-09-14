@@ -20,7 +20,8 @@ type checker func(cfg Configuration) error
 
 var checkers []checker
 
-// CheckMiddleware ...
+// CheckMiddleware runs every registered configuration checker against the singleton configuration and returns the first error.
+// It is invoked during startup by the server and worker bootstrap (cmd/tools/middleware_checker.go).
 func CheckMiddleware() error {
 	for _, checker := range checkers {
 		err := checker(ptr.To(configuration))

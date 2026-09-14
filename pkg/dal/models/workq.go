@@ -20,7 +20,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
-// WorkQueue ...
+// WorkQueue stores a queued daemon task to be executed asynchronously, keyed by topic and payload with its processing status.
 type WorkQueue struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`

@@ -30,15 +30,15 @@ import (
 
 // Handler is the interface for the distribution manifest handlers
 type Handler interface {
-	// GetManifest ...
+	// GetManifest returns the raw manifest stored for the given tag or digest together with its stored content type and digest headers, records a pull event, and falls back to the upstream registry proxy when mirroring is enabled.
 	GetManifest(ctx *gin.Context)
-	// HeadManifest ...
+	// HeadManifest returns the manifest metadata (content type, content length and digest headers) for the given tag or digest without a body and without recording a pull event.
 	HeadManifest(ctx *gin.Context)
-	// PutManifest ...
+	// PutManifest stores the request body as a manifest for the given tag or digest, handling image manifests, image indexes and artifacts, advances the tag, and responds 201 Created with Docker-Content-Digest and Location headers.
 	PutManifest(ctx *gin.Context)
-	// DeleteManifest ...
+	// DeleteManifest deletes the manifest referenced by the path tag or digest, removing only the tag when a tag is given and the artifact plus every tag pointing to it when a digest is given, and responds 202 Accepted.
 	DeleteManifest(ctx *gin.Context)
-	// GetReferrer ...
+	// GetReferrer implements the OCI referrers API, returning an image index of the manifests whose subject is the path digest, filtered by the optional artifactType query parameter echoed back in OCI-Filters-Applied.
 	GetReferrer(ctx *gin.Context)
 }
 

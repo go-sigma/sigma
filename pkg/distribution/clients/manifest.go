@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 )
 
-// GetManifest ...
+// GetManifest fetches the manifest at GET /v2/<repository>/manifests/<reference>, advertising the Docker v2 and OCI manifest/index media types, and unmarshals the body according to the response Content-Type. It errors on transport failure, any status other than 200 OK, a body read failure, or an unsupported media type.
 func (c *clients) GetManifest(ctx context.Context, repository, reference string) (distribution.Manifest, distribution.Descriptor, error) {
 	var header = http.Header{}
 	header.Add(consts.HeaderAccept, "application/vnd.docker.distribution.manifest.v2+json")
@@ -52,7 +52,7 @@ func (c *clients) GetManifest(ctx context.Context, repository, reference string)
 	return manifest, descriptor, nil
 }
 
-// HeadManifest ...
+// HeadManifest reports whether a manifest exists via HEAD /v2/<repository>/manifests/<reference>. A 404 returns (false, nil), 200 returns (true, nil), and any other status is an error.
 func (c *clients) HeadManifest(ctx context.Context, repository, reference string) (bool, error) {
 	var header = http.Header{}
 	header.Add(consts.HeaderAccept, "application/vnd.docker.distribution.manifest.v2+json")

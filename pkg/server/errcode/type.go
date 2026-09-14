@@ -40,12 +40,12 @@ type ErrCode struct {
 	HTTPStatusCode int `json:"http_status_code" example:"401"`
 }
 
-// Error ...
+// Error implements the built-in error interface, rendering the code and title as "code: title".
 func (e ErrCode) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Title)
 }
 
-// Detail ...
+// Detail sets the error's Description to desc in place and returns a copy of the receiver, allowing the Description to be customized while building an ErrCode.
 func (e *ErrCode) Detail(desc string) ErrCode {
 	e.Description = desc
 	return ptr.To(e)

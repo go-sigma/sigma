@@ -25,17 +25,17 @@ import (
 
 //go:generate go tool mockgen -destination=signing_mocks.go -package=signing github.com/go-sigma/sigma/pkg/distribution/signing Signing,Verifying,SigningFactory,VerifyingFactory
 
-// Signing ...
+// Signing signs the image referenced by ref against the registry, authenticating with token and using priKey as the signing key.
 type Signing interface {
 	Sign(ctx context.Context, token, priKey, ref string) error
 }
 
-// Verifying ...
+// Verifying validates the signature of the image referenced by ref, using token to authenticate to the registry.
 type Verifying interface {
 	Verify(ref, token string) error
 }
 
-// Options ...
+// Options selects the signing driver and carries the driver settings used when constructing a Signing or Verifying instance.
 type Options struct {
 	Type enums.SigningType
 
@@ -56,7 +56,7 @@ var verifyingFactories = make(map[enums.SigningType]VerifyingFactory)
 
 var signingFactories = make(map[enums.SigningType]SigningFactory)
 
-// RegisterSigning ...
+// RegisterSigning registers factory as the signing driver for signingType, typically from a driver's init function. Registering a type that is already present is a no-op, so it always returns nil.
 func RegisterSigning(signingType enums.SigningType, factory SigningFactory) error {
 	if _, ok := signingFactories[signingType]; ok {
 		return nil
@@ -65,7 +65,7 @@ func RegisterSigning(signingType enums.SigningType, factory SigningFactory) erro
 	return nil
 }
 
-// RegisterVerifying ...
+// RegisterVerifying registers factory as the verifying driver for signingType, typically from a driver's init function. Registering a type that is already present is a no-op, so it always returns nil.
 func RegisterVerifying(signingType enums.SigningType, factory VerifyingFactory) error {
 	if _, ok := verifyingFactories[signingType]; ok {
 		return nil
@@ -74,7 +74,7 @@ func RegisterVerifying(signingType enums.SigningType, factory VerifyingFactory) 
 	return nil
 }
 
-// NewSigning ...
+// NewSigning instantiates a Signing from the factory registered for opt.Type, passing opt.Http and opt.MultiArch to the driver. It errors when the type has no registered signing driver.
 func NewSigning(opt Options) (Signing, error) {
 	factory, ok := signingFactories[opt.Type]
 	if !ok {
@@ -87,7 +87,7 @@ func NewSigning(opt Options) (Signing, error) {
 	return signing, nil
 }
 
-// NewVerifying ...
+// NewVerifying instantiates a Verifying from the factory registered for opt.Type, passing it a fresh dependency-injection container. It errors when the type has no registered verifying driver.
 func NewVerifying(opt Options) (Verifying, error) {
 	factory, ok := verifyingFactories[opt.Type]
 	if !ok {

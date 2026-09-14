@@ -74,7 +74,7 @@ func Initialize(digCon *dig.Container) error {
 	return nil
 }
 
-// InitializeDistribution ...
+// InitializeDistribution mounts the OCI distribution endpoints on /v2/*path, dispatching every HTTP method through distribution.All, and returns an error if route registration fails.
 func InitializeDistribution(digCon *dig.Container) error {
 	if err := digCon.Invoke(func(e *gin.Engine) error {
 		e.Any("/v2/*path", server.Wrap(func(c *gin.Context) {

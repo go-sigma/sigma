@@ -33,15 +33,15 @@ type Handler interface {
 	UpdateBuilder(c *gin.Context, req *api.UpdateBuilderRequest)
 	// ListRunners handles the list builder runners request
 	ListRunners(c *gin.Context, req *api.ListBuilderRunnersRequest)
-	// PostRunnerRun ...
+	// PostRunnerRun starts a new builder runner from the request spec and returns the created runner ID.
 	PostRunnerRun(c *gin.Context, req *api.PostRunnerRun)
-	// GetRunnerRerun ...
+	// GetRunnerRerun starts a fresh run reusing the original runner's build spec and returns the new runner ID.
 	GetRunnerRerun(c *gin.Context, req *api.GetRunnerStop)
-	// GetRunnerStop ...
+	// GetRunnerStop cancels the specified running builder runner and responds with no content.
 	GetRunnerStop(c *gin.Context, req *api.GetRunnerStop)
-	// GetRunnerLog ...
+	// GetRunnerLog upgrades the request to a websocket and streams the runner's log, repeating while the build is still running.
 	GetRunnerLog(c *gin.Context, req *api.GetRunnerLog)
-	// GetRunner ...
+	// GetRunner returns the builder runner identified by the request, including its status, tag, and duration.
 	GetRunner(c *gin.Context, req *api.GetRunner)
 }
 

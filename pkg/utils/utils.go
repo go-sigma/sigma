@@ -41,7 +41,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-// GetFromCtx ...
+// GetFromCtx reads key from the gin context and asserts it to T; it returns the
+// zero value of T and false when the key is missing or holds a different type.
 func GetFromCtx[T any](c *gin.Context, key string) (T, bool) {
 	val, exists := c.Get(key)
 	if !exists {
@@ -119,7 +120,8 @@ func NormalizePagination(in api.Pagination) api.Pagination {
 	return in
 }
 
-// TrimHTTP ...
+// TrimHTTP strips a leading "http://" or "https://" scheme from in, or, when no
+// scheme is present, a trailing "/".
 func TrimHTTP(in string) string {
 	if after, ok := strings.CutPrefix(in, "http://"); ok {
 		return after
@@ -199,7 +201,8 @@ type stringsJoin interface {
 	String() string
 }
 
-// StringsJoin ...
+// StringsJoin joins the String() form of each element of strs with sep, returning
+// an empty string for an empty slice.
 func StringsJoin[T stringsJoin](strs []T, sep string) string {
 	if len(strs) == 0 {
 		return ""
@@ -214,7 +217,8 @@ func StringsJoin[T stringsJoin](strs []T, sep string) string {
 	return strings.Join(b, sep)
 }
 
-// UnwrapJoinedErrors ...
+// UnwrapJoinedErrors flattens an errors.Join-style error into a single ": "-joined
+// string, falling back to err.Error() when it does not implement Unwrap() []error.
 func UnwrapJoinedErrors(err error) string {
 	e, ok := err.(interface{ Unwrap() []error })
 	if !ok {
@@ -254,7 +258,8 @@ func GetUserFromCtx(c *gin.Context, format UserCtxErrorFormat) (*models.User, bo
 	return user, false
 }
 
-// OnceWithErr ...
+// OnceWithErr runs fn at most once via once and returns its error; a panic inside
+// fn (or a second call racing the first) yields an error instead of propagating it.
 func OnceWithErr(once *sync.Once, fn func() error) error {
 	var errChan = make(chan error, 1)
 	defer close(errChan)
@@ -270,7 +275,8 @@ func OnceWithErr(once *sync.Once, fn func() error) error {
 	return <-errChan
 }
 
-// GenRsaPriKey ...
+// GenRsaPriKey generates an RSA private key of 1024, 2048 or 4096 bits and returns
+// it as a base64-encoded PKCS#1 PEM block; other lengths are rejected.
 func GenRsaPriKey(length int) (string, error) {
 	if length != 1024 && length != 2048 && length != 4096 {
 		return "", fmt.Errorf("rsa length is not allow")
@@ -288,7 +294,8 @@ func GenRsaPriKey(length int) (string, error) {
 	return base64.StdEncoding.EncodeToString(pem.EncodeToMemory(privateKeyPEM)), nil
 }
 
-// GenSecureID ...
+// GenSecureID returns a lowercase base32 (hex alphabet) encoding of n
+// cryptographically random bytes; it panics if the system entropy source fails.
 func GenSecureID(n int) string {
 	b := make([]byte, n)
 	_, err := rand.Read(b)

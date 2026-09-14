@@ -44,7 +44,7 @@ type factory struct{}
 
 var _ signing.SigningFactory = factory{}
 
-// New ...
+// New returns a cosign signing client; http selects plain-HTTP registries instead of TLS, and multiArch enables recursive signing of a multi-architecture index.
 func (factory) New(http, multiArch bool) (signing.Signing, error) {
 	return &client{
 		MultiArch: multiArch,
@@ -52,7 +52,7 @@ func (factory) New(http, multiArch bool) (signing.Signing, error) {
 	}, nil
 }
 
-// Sign ...
+// Sign signs the image identified by ref with the PEM private key priKey, resolving ref to a digest-pinned reference and shelling out to the cosign executable with signature transparency logging disabled. The key is written to a temporary file that is removed afterwards, and the command's exit error is returned.
 func (s *client) Sign(ctx context.Context, token, priKey, ref string) error {
 	imageRef, err := s.GetImageRef(ctx, token, ref)
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *client) Sign(ctx context.Context, token, priKey, ref string) error {
 	return cmd.Run()
 }
 
-// GetDigest ...
+// GetImageRef resolves ref against its registry and returns a digest-pinned reference of the form <domain>/<repository>@sha256:<digest>, where the digest is computed over the raw manifest payload. It honors the client's Http flag by contacting the registry over http instead of https.
 func (s *client) GetImageRef(ctx context.Context, token, ref string) (string, error) {
 	domain, _, repo, tag, err := reference.Parse(ref)
 	if err != nil {

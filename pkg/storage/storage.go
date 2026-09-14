@@ -26,13 +26,13 @@ import (
 )
 
 const (
-	// MultipartCopyThresholdSize ...
+	// MultipartCopyThresholdSize is the source object size at or below which a copy is done in one request instead of as a multipart copy; 64 MiB.
 	MultipartCopyThresholdSize = 64 << 20 // 64MB
-	// MultipartCopyChunkSize ...
+	// MultipartCopyChunkSize is the byte size of each part of a multipart copy; 64 MiB.
 	MultipartCopyChunkSize = 64 << 20 // 64MB
-	// MultipartCopyMaxConcurrency ...
+	// MultipartCopyMaxConcurrency caps the number of goroutines copying parts concurrently; 100.
 	MultipartCopyMaxConcurrency = 100 // 100 goroutines
-	// MaxPaginationKeys ...
+	// MaxPaginationKeys is the maximum number of object keys requested per paginated listing call; 1000.
 	MaxPaginationKeys = 1000 // 1000 keys
 )
 
@@ -105,7 +105,8 @@ func Initialize(config *config.Configuration) (StorageDriver, error) {
 	return factory.New(config)
 }
 
-// SanitizePath ...
+// SanitizePath joins rootDirectory and p into a storage path, trimming a leading
+// "./" from both; when rootDirectory is empty, ".", "./" or "/" it returns p as is.
 func SanitizePath(rootDirectory, p string) string {
 	if rootDirectory == "" || rootDirectory == "." || rootDirectory == "./" || rootDirectory == "/" {
 		return p

@@ -20,7 +20,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
-// CodeRepository ...
+// CodeRepository stores a source-code repository synced from a third-party provider, bound to one OCI repository and the User3rdParty account that owns it.
 type CodeRepository struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -44,7 +44,7 @@ type CodeRepository struct {
 	Branches []CodeRepositoryBranch
 }
 
-// CodeRepositoryBranch ...
+// CodeRepositoryBranch stores a branch of a CodeRepository.
 type CodeRepositoryBranch struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -55,7 +55,7 @@ type CodeRepositoryBranch struct {
 	Name             string
 }
 
-// CodeRepositoryOwner ...
+// CodeRepositoryOwner caches the owners (users or organizations) seen for a third-party account, for filtering code repositories.
 type CodeRepositoryOwner struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -70,7 +70,7 @@ type CodeRepositoryOwner struct {
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
 
-// CodeRepositoryCloneCredential ...
+// CodeRepositoryCloneCredential stores the per-provider credentials (SSH key, username/password or token) used to clone a User3rdParty's code repositories.
 type CodeRepositoryCloneCredential struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`

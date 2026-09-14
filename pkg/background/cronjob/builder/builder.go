@@ -164,13 +164,13 @@ func builderLockKey(builderID string) string {
 	return fmt.Sprintf("%s:%s", consts.LockerCronjobBuilder, builderID)
 }
 
-// buildRunnerOption ...
+// buildRunnerOption carries the tag and source branch to apply to the runner.
 type buildRunnerOption struct {
 	Tag       string
 	ScmBranch *string
 }
 
-// buildRunner ...
+// buildRunner creates a pending BuilderRunner for builder with a fresh UUID and the tag/branch from option.
 // nolint: unparam
 func buildRunner(builder *models.Builder, option buildRunnerOption) (*models.BuilderRunner, error) {
 	runner := &models.BuilderRunner{
@@ -184,14 +184,14 @@ func buildRunner(builder *models.Builder, option buildRunnerOption) (*models.Bui
 	return runner, nil
 }
 
-// buildTagOption ...
+// buildTagOption supplies the template variables (branch, tag, ref) used to render a build tag.
 type buildTagOption struct {
 	ScmBranch string
 	ScmTag    string
 	ScmRef    string
 }
 
-// buildTag ...
+// buildTag renders tmpl as a sprig-augmented text/template over option and returns the resulting tag, wrapping parse or execute failures.
 func buildTag(tmpl string, option buildTagOption) (string, error) {
 	t, err := template.New("tag").Funcs(sprig.FuncMap()).Parse(tmpl)
 	if err != nil {

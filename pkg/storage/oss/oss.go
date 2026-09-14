@@ -43,7 +43,8 @@ type factory struct{}
 
 var _ storage.Factory = factory{}
 
-// New ...
+// New builds an Alibaba OSS-backed driver from the [storage.oss] endpoint, AK/SK,
+// bucket and force-path-style flag, rooted at storage.root_directory.
 func (f factory) New(config *config.Configuration) (storage.StorageDriver, error) {
 	client, err := oss.New(config.Storage.Oss.Endpoint, config.Storage.Oss.Ak, config.Storage.Oss.Sk,
 		oss.ForcePathStyle(config.Storage.Oss.ForcePathStyle))

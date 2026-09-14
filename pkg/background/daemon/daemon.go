@@ -17,7 +17,7 @@ type Factory interface {
 // Daemons is the registry for daemon factories
 var Daemons = make(registry.Factories[string, Factory])
 
-// Initialize ...
+// Initialize initializes the validators, then every registered daemon factory, naming the failing factory in the returned error.
 func Initialize(digCon *dig.Container) error {
 	err := validators.Initialize()
 	if err != nil {

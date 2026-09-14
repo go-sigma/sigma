@@ -37,7 +37,9 @@ const defaultMaxBacklog = 1000
 // This is only for small-scale deployment; the default queue backlog limit is 1000 messages.
 var packs = make(map[enums.Daemon]chan *models.WorkQueue, 10)
 
-// New ...
+// New allocates one bounded channel per registered topic and starts a goroutine
+// consuming each topic up to its handler's Concurrency; a non-positive
+// Config.WorkQueue.Inmemory.MaxBacklog falls back to defaultMaxBacklog.
 func (consumerFactory) New(params workq.ConsumerParams) error {
 	maxBacklog := params.Config.WorkQueue.Inmemory.MaxBacklog
 	if maxBacklog <= 0 {

@@ -28,7 +28,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 )
 
-// TxnWithRetry ...
+// TxnWithRetry runs fc in a query transaction, retrying up to six times with
+// jittered backoff (capped at 10s) when the database reports a deadlock. It
+// returns the last error once the attempts are exhausted.
 func TxnWithRetry(fc func(tx *query.Query) error, opts ...*sql.TxOptions) error {
 	randInt, err := rand.Int(rand.Reader, big.NewInt(300))
 	if err != nil {

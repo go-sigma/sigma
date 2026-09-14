@@ -45,7 +45,9 @@ type producerFactory struct{}
 
 var _ workq.ProducerFactory = producerFactory{}
 
-// New ...
+// New builds a Redis-backed Producer with an asynq client and inspector, taking
+// the backlog limit from Config.WorkQueue.Redis.MaxBacklog; it errors when Redis
+// or its client factory is not configured.
 func (producerFactory) New(params workq.ProducerParams) (workq.Producer, error) {
 	config := params.Config
 	if !config.Redis.Enabled() {
@@ -70,7 +72,8 @@ func (producerFactory) New(params workq.ProducerParams) (workq.Producer, error) 
 	return p, nil
 }
 
-// Produce ...
+// Produce rejects the payload when the queue backlog has reached its limit,
+// otherwise marshals it into an asynq task on the default queue and enqueues it.
 func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any) error {
 	if err := p.ensureBacklogAvailable(); err != nil {
 		return err

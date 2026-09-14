@@ -54,7 +54,7 @@ func GetConfig() *Configuration {
 	return configuration
 }
 
-// Configuration ...
+// Configuration is the root configuration object; it aggregates every YAML section and is exposed as a singleton by GetConfig.
 type Configuration struct {
 	Log       ConfigurationLog       `yaml:"log"`
 	Database  ConfigurationDatabase  `yaml:"database" mapstructure:"DATABASE"`
@@ -192,23 +192,23 @@ type ConfigurationBuilderK8s struct {
 type ConfigurationBuilderDocker struct {
 }
 
-// ConfigurationLog ...
+// ConfigurationLog sets the application log level and the separate level used for the registry proxy.
 type ConfigurationLog struct {
 	Level      enums.LogLevel `yaml:"level"`
 	ProxyLevel enums.LogLevel `yaml:"proxyLevel"`
 }
 
-// ConfigurationDatabaseSqlite3 ...
+// ConfigurationDatabaseSqlite3 configures the embedded SQLite3 backend by its database file path.
 type ConfigurationDatabaseSqlite3 struct {
 	Path string `yaml:"path"`
 }
 
-// ConfigurationDatabaseTurso ...
+// ConfigurationDatabaseTurso configures the Turso/libSQL backend via its DSN.
 type ConfigurationDatabaseTurso struct {
 	DSN string `yaml:"dsn"`
 }
 
-// ConfigurationDatabaseMysql ...
+// ConfigurationDatabaseMysql configures connection parameters for the MySQL backend.
 type ConfigurationDatabaseMysql struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
@@ -217,7 +217,7 @@ type ConfigurationDatabaseMysql struct {
 	Database string `yaml:"database"`
 }
 
-// ConfigurationDatabase ...
+// ConfigurationDatabasePostgresql configures connection parameters for the PostgreSQL backend, including the SSL mode.
 type ConfigurationDatabasePostgresql struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
@@ -227,7 +227,7 @@ type ConfigurationDatabasePostgresql struct {
 	SslMode  string `yaml:"sslMode"`
 }
 
-// ConfigurationDatabase ...
+// ConfigurationDatabase selects the database backend and configures the shared connection pool and per-backend settings.
 type ConfigurationDatabase struct {
 	Type            enums.Database                  `yaml:"type" mapstructure:"TYPE"`
 	MaxOpenConns    int                             `yaml:"maxOpenConns"`
@@ -256,7 +256,7 @@ func (c *ConfigurationDatabase) WithDefaults() {
 	}
 }
 
-// ConfigurationRedis ...
+// ConfigurationRedis configures the shared Redis client used by the cache, locker and work queue.
 //
 // 启用条件：URL 或 Addrs 任一非空，即视为启用 Redis；两者皆空则视为未启用。
 type ConfigurationRedis struct {
@@ -277,7 +277,7 @@ func (r ConfigurationRedis) Enabled() bool {
 	return r.URL != "" || len(r.Addrs) > 0 || r.MasterName != ""
 }
 
-// ConfigurationCacheRedis ...
+// ConfigurationCacheRedis holds the TTL applied when the Redis cache backend is selected.
 type ConfigurationCacheRedis struct {
 	Ttl time.Duration `yaml:"ttl"`
 }
@@ -294,12 +294,12 @@ func (c ConfigurationCachePrewarm) IsEnabled() bool {
 	return c.Enabled == nil || *c.Enabled
 }
 
-// ConfigurationCacheInmemory ...
+// ConfigurationCacheInmemory configures the in-memory cache backend, where size is the maximum number of cached entries.
 type ConfigurationCacheInmemory struct {
 	Size int `yaml:"size"`
 }
 
-// ConfigurationCache ...
+// ConfigurationCache selects the cache backend (redis or inmemory) and configures the key prefix, TTLs and prewarming.
 type ConfigurationCache struct {
 	Type        enums.CacherType           `yaml:"type"`
 	Prefix      string                     `yaml:"prefix"`
@@ -361,7 +361,7 @@ func (c *ConfigurationWorkQueueInmemmory) WithDefaults() {
 	}
 }
 
-// ConfigurationWorkQueue ...
+// ConfigurationWorkQueue selects the work queue backend (redis, database or inmemory) and its per-backend settings.
 type ConfigurationWorkQueue struct {
 	Type     enums.WorkQueueType             `yaml:"type"`
 	Redis    ConfigurationWorkQueueRedis     `yaml:"redis"`
@@ -370,10 +370,10 @@ type ConfigurationWorkQueue struct {
 	Inmemory ConfigurationWorkQueueInmemmory `yaml:"inmemory"`
 }
 
-// ConfigurationLockerRedis ...
+// ConfigurationLockerRedis is the option-less configuration for the Redis locker backend.
 type ConfigurationLockerRedis struct{}
 
-// ConfigurationLocker ...
+// ConfigurationLocker selects the distributed locker backend (redis or inmemory) and the shared key prefix.
 type ConfigurationLocker struct {
 	Type   enums.LockerType         `yaml:"type"`
 	Redis  ConfigurationLockerRedis `yaml:"redis"`
@@ -387,7 +387,7 @@ func (c *ConfigurationLocker) WithDefaults() {
 	}
 }
 
-// ConfigurationNamespace ...
+// ConfigurationNamespace controls whether namespaces are created automatically on push and the visibility assigned to them.
 type ConfigurationNamespace struct {
 	AutoCreate bool             `yaml:"autoCreate"`
 	Visibility enums.Visibility `yaml:"visibility"`
@@ -400,7 +400,7 @@ func (c *ConfigurationNamespace) WithDefaults() {
 	}
 }
 
-// ConfigurationHttpTLS ...
+// ConfigurationHttpTLS enables TLS termination for the HTTP server and points at the certificate and private key files.
 type ConfigurationHttpTLS struct {
 	Enabled     bool   `yaml:"enabled"`
 	Certificate string `yaml:"certificate"`
@@ -499,7 +499,7 @@ func (c *ConfigurationHTTPTimeout) WithDefaults() {
 	}
 }
 
-// ConfigurationHTTP ...
+// ConfigurationHTTP configures the HTTP server endpoints, TLS, request body-size limits and timeouts.
 type ConfigurationHTTP struct {
 	Endpoint                     string                     `yaml:"endpoint"`
 	InternalEndpoint             string                     `yaml:"internalEndpoint"`
@@ -535,12 +535,12 @@ func durationOrZero(v *time.Duration) time.Duration {
 	return *v
 }
 
-// ConfigurationStorageFilesystem ...
+// ConfigurationStorageFilesystem configures the local filesystem storage backend by its root path.
 type ConfigurationStorageFilesystem struct {
 	Path string `yaml:"path"`
 }
 
-// ConfigurationStorageS3 ...
+// ConfigurationStorageS3 configures the S3-compatible object storage backend, including credentials, endpoint and path-style access.
 type ConfigurationStorageS3 struct {
 	Ak                      string `yaml:"ak"`
 	Sk                      string `yaml:"sk"`
@@ -552,7 +552,7 @@ type ConfigurationStorageS3 struct {
 	ChecksumValidation      string `yaml:"checksumValidation"`
 }
 
-// ConfigurationStorageCos ...
+// ConfigurationStorageCos configures the Tencent Cloud COS storage backend.
 type ConfigurationStorageCos struct {
 	Ak             string `yaml:"ak"`
 	Sk             string `yaml:"sk"`
@@ -560,7 +560,7 @@ type ConfigurationStorageCos struct {
 	ForcePathStyle bool   `yaml:"forcePathStyle"`
 }
 
-// ConfigurationStorageQiniu ...
+// ConfigurationStorageQiniu configures the Qiniu object storage backend.
 type ConfigurationStorageQiniu struct {
 	Ak       string `yaml:"ak"`
 	Sk       string `yaml:"sk"`
@@ -569,7 +569,7 @@ type ConfigurationStorageQiniu struct {
 	UseHTTPS bool   `yaml:"useHttps"`
 }
 
-// ConfigurationStorageOss ...
+// ConfigurationStorageOss configures the Alibaba Cloud OSS storage backend.
 type ConfigurationStorageOss struct {
 	Ak             string `yaml:"ak"`
 	Sk             string `yaml:"sk"`
@@ -578,7 +578,7 @@ type ConfigurationStorageOss struct {
 	ForcePathStyle bool   `yaml:"forcePathStyle"`
 }
 
-// ConfigurationStorage ...
+// ConfigurationStorage selects the blob storage backend (filesystem, s3, cos, oss or qiniu) and shared options such as redirects.
 type ConfigurationStorage struct {
 	RootDirectory string                         `yaml:"rootDirectory"`
 	Redirect      bool                           `yaml:"redirect"`
@@ -589,7 +589,7 @@ type ConfigurationStorage struct {
 	Oss           ConfigurationStorageOss        `yaml:"oss"`
 }
 
-// ConfigurationProxy ...
+// ConfigurationProxy configures the upstream registry proxy used to pull and cache images from a remote registry.
 type ConfigurationProxy struct {
 	Enabled   bool   `yaml:"enabled"`
 	Endpoint  string `yaml:"endpoint"`
@@ -599,7 +599,7 @@ type ConfigurationProxy struct {
 	Token     string `yaml:"token"`
 }
 
-// ConfigurationDaemonGc ...
+// ConfigurationDaemonGc configures the garbage collection daemon, including retention, schedule, batch sizes and lock behaviour.
 type ConfigurationDaemonGc struct {
 	Retention       time.Duration `yaml:"retention"`
 	Cron            string        `yaml:"cron"`
@@ -629,13 +629,13 @@ func (c *ConfigurationDaemonGc) WithDefaults() {
 	}
 }
 
-// ConfigurationDaemonDocker ...
+// ConfigurationDaemonDocker configures the docker builder backend, pointing at the daemon socket and container network.
 type ConfigurationDaemonDocker struct {
 	Sock    *string `yaml:"sock"`
 	Network string  `yaml:"network"`
 }
 
-// ConfigurationDaemonKubernetes ...
+// ConfigurationDaemonKubernetes configures the kubernetes builder backend by kubeconfig and target namespace.
 type ConfigurationDaemonKubernetes struct {
 	Kubeconfig *string `yaml:"kubeconfig"`
 	Namespace  string  `yaml:"namespace"`
@@ -648,7 +648,7 @@ func (c *ConfigurationDaemonKubernetes) WithDefaults() {
 	}
 }
 
-// ConfigurationDaemonPodman ...
+// ConfigurationDaemonPodman configures the podman builder backend by its service URI.
 type ConfigurationDaemonPodman struct {
 	URI string `yaml:"uri"`
 }
@@ -660,7 +660,7 @@ func (c *ConfigurationDaemonPodman) WithDefaults() {
 	}
 }
 
-// ConfigurationDaemonBuilder ...
+// ConfigurationDaemonBuilder selects the image builder backend (docker, kubernetes or podman) and holds its shared options.
 type ConfigurationDaemonBuilder struct {
 	Enabled    bool                          `yaml:"enabled"`
 	Type       enums.BuilderType             `yaml:"type"`
@@ -719,7 +719,7 @@ func (c *ConfigurationDaemonSizeReconcile) WithDefaults() {
 	}
 }
 
-// ConfigurationDaemon ...
+// ConfigurationDaemon groups the background daemons: builder, garbage collection, vulnerability scanning and size reconciliation.
 type ConfigurationDaemon struct {
 	Builder       ConfigurationDaemonBuilder       `yaml:"builder"`
 	GC            ConfigurationDaemonGc            `yaml:"gc"`
@@ -736,25 +736,25 @@ func (c *ConfigurationDaemon) WithDefaults() {
 	c.SizeReconcile.WithDefaults()
 }
 
-// ConfigurationAuthInternalUser ...
+// ConfigurationAuthInternalUser configures the built-in internal user account used by system components.
 type ConfigurationAuthInternalUser struct {
 	Username string `yaml:"username"`
 }
 
-// ConfigurationAuthAdmin ...
+// ConfigurationAuthAdmin configures the initial administrator account created on first startup.
 type ConfigurationAuthAdmin struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Email    string `yaml:"email"`
 }
 
-// ConfigurationAuthToken ...
+// ConfigurationAuthToken configures the realm and service name advertised by the Docker token authentication flow.
 type ConfigurationAuthToken struct {
 	Realm   string `yaml:"realm"`
 	Service string `yaml:"service"`
 }
 
-// ConfigurationAuthJwt ...
+// ConfigurationAuthJwt configures the JWT signing key and the access and refresh token lifetimes.
 type ConfigurationAuthJwt struct {
 	Ttl        time.Duration `yaml:"ttl"`
 	RefreshTTL time.Duration `yaml:"refreshTTL"`
@@ -771,40 +771,40 @@ func (c *ConfigurationAuthJwt) WithDefaults() {
 	}
 }
 
-// ConfigurationAuthOauth2Github ...
+// ConfigurationAuthOauth2Github configures GitHub as an OAuth2 login provider.
 type ConfigurationAuthOauth2Github struct {
 	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
 
-// ConfigurationAuthOauth2Gitlab ...
+// ConfigurationAuthOauth2Gitlab configures GitLab as an OAuth2 login provider.
 type ConfigurationAuthOauth2Gitlab struct {
 	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
 
-// ConfigurationAuthOauth2Gitea ...
+// ConfigurationAuthOauth2Gitea configures Gitea as an OAuth2 login provider.
 type ConfigurationAuthOauth2Gitea struct {
 	Enabled      bool   `yaml:"enabled"`
 	ClientID     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
 }
 
-// ConfigurationAuthOauth2 ...
+// ConfigurationAuthOauth2 groups the supported external OAuth2 login providers.
 type ConfigurationAuthOauth2 struct {
 	Github ConfigurationAuthOauth2Github `yaml:"github"`
 	Gitlab ConfigurationAuthOauth2Gitlab `yaml:"gitlab"`
 	Gitea  ConfigurationAuthOauth2Gitea  `yaml:"gitea"`
 }
 
-// ConfigurationAuthAnonymous ...
+// ConfigurationAuthAnonymous controls whether unauthenticated access to public resources is allowed.
 type ConfigurationAuthAnonymous struct {
 	Enabled bool `yaml:"enabled"`
 }
 
-// ConfigurationAuth ...
+// ConfigurationAuth configures authentication: the admin account, token service, JWT, OAuth2 providers and anonymous access.
 type ConfigurationAuth struct {
 	Anonymous      ConfigurationAuthAnonymous      `yaml:"anonymous"`
 	Admin          ConfigurationAuthAdmin          `yaml:"admin"`

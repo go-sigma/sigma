@@ -20,7 +20,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
-// Webhook ...
+// Webhook stores an HTTP endpoint that receives notifications for the selected events, optionally scoped to a namespace.
 type Webhook struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -44,7 +44,7 @@ type Webhook struct {
 	EventDaemonTaskGc bool
 }
 
-// WebhookLog ...
+// WebhookLog stores the request/response payloads and status code of one webhook delivery attempt.
 type WebhookLog struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`

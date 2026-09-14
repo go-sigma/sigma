@@ -20,7 +20,8 @@ type makeClient struct {
 	redisCli redis.UniversalClient
 }
 
-// MakeRedisClient ...
+// MakeRedisClient exposes the wrapped redis.UniversalClient as an any, adapting
+// it to the client interface expected by asynq and redsync.
 func (m makeClient) MakeRedisClient() any {
 	return m.redisCli
 }

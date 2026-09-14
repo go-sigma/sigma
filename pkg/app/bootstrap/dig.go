@@ -32,7 +32,10 @@ import (
 var digCon = dig.New()
 var digConOnce = sync.Once{}
 
-// NewDigContainer ...
+// NewDigContainer returns the process-wide dig container, registering the
+// config, redis, password, token, locker, counter, work queue and storage
+// providers on first call. Registration happens once; the first error from a
+// provider is returned and the partially populated container is reused.
 func NewDigContainer() (*dig.Container, error) {
 	var err error
 	digConOnce.Do(func() {

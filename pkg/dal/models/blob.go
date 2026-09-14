@@ -37,7 +37,7 @@ type Blob struct {
 	Artifacts []*Artifact `gorm:"many2many:artifact_blobs;"`
 }
 
-// BlobAssociateWithArtifact ...
+// BlobAssociateWithArtifact defines the generated query that returns which of the given blob IDs are still referenced by at least one artifact.
 type BlobAssociateWithArtifact interface {
 	// SELECT blob_id FROM artifact_blobs WHERE blob_id in (@ids)
 	BlobAssociateWithArtifact(ids []string) (gen.M, error)

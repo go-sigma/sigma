@@ -34,13 +34,15 @@ type producerFactory struct{}
 
 var _ workq.ProducerFactory = producerFactory{}
 
-// NewWorkQueueProducer ...
+// New returns the stateless in-memory Producer; Params is ignored and the call
+// never fails.
 func (producerFactory) New(_ workq.ProducerParams) (workq.Producer, error) {
 	p := &producer{}
 	return p, nil
 }
 
-// Produce ...
+// Produce marshals payload and performs a non-blocking send on the topic's
+// channel, erroring when the topic was never initialized or the backlog is full.
 func (p *producer) Produce(ctx context.Context, topic enums.Daemon, payload any) error {
 	data, err := workq.MarshalPayload(ctx, payload)
 	if err != nil {

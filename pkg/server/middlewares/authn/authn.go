@@ -57,7 +57,7 @@ type Config struct {
 	LoginRateLimiter ratelimit.Limiter
 }
 
-// AuthnConfig ...
+// AuthnConfig holds options for the authentication middleware; Skip disables authentication entirely when true.
 type AuthnConfig struct {
 	Skip bool
 }

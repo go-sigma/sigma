@@ -115,7 +115,9 @@ func connectDatabase(cfg *config.Configuration) (*gorm.DB, error) {
 	}
 }
 
-// DeInitialize ...
+// DeInitialize closes the database connection resolved from digCon, releasing
+// the connection pool. It returns an error if no database is registered or the
+// underlying connection cannot be closed.
 func DeInitialize(digCon *dig.Container) error {
 	var db *gorm.DB
 	if err := digCon.Invoke(func(database *gorm.DB) { db = database }); err != nil {

@@ -42,12 +42,15 @@ type item struct {
 	f     func()
 }
 
-// GetCtx ...
+// GetCtx returns the package shutdown context tagged with name, so shutdown
+// hooks can identify which component they belong to. The returned context is
+// cancelled when Shutdown begins.
 func GetCtx(name string) context.Context {
 	return context.WithValue(ctx, ctxNameKey, name) // nolint: staticcheck
 }
 
-// RunAtShutdown ...
+// RunAtShutdown registers f to be invoked by Shutdown, ordered by ascending
+// index; nil hooks are ignored. Registration is safe for concurrent use.
 func RunAtShutdown(name string, index int, f func()) {
 	if f == nil {
 		return

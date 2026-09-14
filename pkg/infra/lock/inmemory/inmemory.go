@@ -47,7 +47,8 @@ type factory struct{}
 
 var _ lock.Factory = factory{}
 
-// New ...
+// New builds an in-memory Locker backed by a fresh per-key lock map; Params is
+// ignored and the call never fails.
 func (factory) New(_ lock.Params) (lock.Locker, error) {
 	return &lockerMemory{
 		locks: make(map[string]*memoryLock),

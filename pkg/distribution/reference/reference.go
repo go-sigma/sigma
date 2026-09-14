@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package reference ...
+// Package reference parses registry image references into their domain, namespace, repository, and tag or digest components.
 package reference
 
 import (
@@ -22,7 +22,7 @@ import (
 	"github.com/distribution/reference"
 )
 
-// Parse ...
+// Parse splits name into its domain, namespace (first repository path component), full repository path, and tag or digest. It requires a namespaced reference and, when neither a tag nor a digest is present, falls back to the default tag "latest"; a missing namespace yields an error.
 func Parse(name string) (string, string, string, string, error) {
 	if !strings.Contains(name, "/") {
 		return "", "", "", "", fmt.Errorf("invalid reference: %s", name)

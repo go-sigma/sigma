@@ -34,7 +34,9 @@ type consumerFactory struct{}
 
 var _ workq.ConsumerFactory = consumerFactory{}
 
-// New ...
+// New starts an asynq server that dispatches the registered topics to their
+// handlers with tracing and the configured Redis concurrency; it errors when
+// Redis or its client factory is not configured.
 func (consumerFactory) New(params workq.ConsumerParams) error {
 	config := params.Config
 	if !config.Redis.Enabled() {

@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-// GetReferrer ...
+// GetReferrer handles GET /v2/<name>/referrers/<digest>; it validates the digest, echoes the requested artifactType filter in OCI-Filters-Applied, and returns the referrers image index with 200, or a distribution error on failure.
 func (h *handler) GetReferrer(c *gin.Context) {
 	ctx := c.Request.Context()
 	uri := c.Request.URL.Path

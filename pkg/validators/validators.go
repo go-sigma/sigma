@@ -136,14 +136,16 @@ func newValidator() (*validator.Validate, error) {
 	return v, nil
 }
 
-// ValidateNamespaceRole ...
+// ValidateNamespaceRole reports whether the field parses as an enums.NamespaceRole;
+// note the is_valid_namespace_role tag is currently bound to ValidateRetentionPattern.
 func ValidateNamespaceRole(field validator.FieldLevel) bool {
 	v := field.Field().String()
 	_, err := enums.ParseNamespaceRole(v)
 	return err == nil
 }
 
-// ValidateRetentionPattern ...
+// ValidateRetentionPattern implements the is_valid_retention_pattern tag: the field
+// is a comma-separated list of non-empty regular expressions that must all compile.
 func ValidateRetentionPattern(field validator.FieldLevel) bool {
 	patterns := strings.SplitSeq(field.Field().String(), ",")
 	for pattern := range patterns {
@@ -158,14 +160,16 @@ func ValidateRetentionPattern(field validator.FieldLevel) bool {
 	return true
 }
 
-// ValidateRetentionRuleType ...
+// ValidateRetentionRuleType implements the is_valid_retention_rule_type tag,
+// accepting field values recognized by enums.ParseRetentionRuleType.
 func ValidateRetentionRuleType(field validator.FieldLevel) bool {
 	v := field.Field().String()
 	_, err := enums.ParseRetentionRuleType(v)
 	return err == nil
 }
 
-// ValidateCronRule ...
+// ValidateCronRule implements the is_valid_cron_rule tag, accepting field values
+// that cron.ParseStandard parses as standard 5-field cron expressions.
 func ValidateCronRule(field validator.FieldLevel) bool {
 	v := field.Field().String()
 	_, err := cron.ParseStandard(v)
@@ -209,7 +213,8 @@ func ValidateRepository(field validator.FieldLevel) bool {
 	return ValidateRepositoryRaw(field.Field().String())
 }
 
-// ValidateRepositoryRaw ...
+// ValidateRepositoryRaw reports whether repository contains at least one "/" and
+// parses as a normalized named reference; it backs the is_valid_repository tag.
 func ValidateRepositoryRaw(repository string) bool {
 	if len(strings.Split(repository, "/")) < 2 {
 		return false
@@ -230,7 +235,8 @@ func ValidateNamespace(field validator.FieldLevel) bool {
 	return ValidateNamespaceRaw(field.Field().String())
 }
 
-// ValidateNamespaceRaw ...
+// ValidateNamespaceRaw reports whether namespace matches ^[a-z][0-9a-z-]{0,20}$
+// and is at most 20 characters; it backs the is_valid_namespace tag.
 func ValidateNamespaceRaw(namespace string) bool {
 	return namespaceRegex.MatchString(namespace) && len(namespace) <= maxNamespace
 }

@@ -40,7 +40,8 @@ import (
 	mcpserver "github.com/go-sigma/sigma/pkg/server/mcp"
 )
 
-// ServerConfig ...
+// ServerConfig selects which optional subsystems Serve initializes; each
+// Without* field disables the corresponding component.
 type ServerConfig struct {
 	WithoutDistribution bool
 	WithoutWorker       bool

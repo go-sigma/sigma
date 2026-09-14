@@ -117,7 +117,7 @@ func (h *handler) GetManifest(c *gin.Context) {
 	c.Data(http.StatusOK, contentType, body)
 }
 
-// getManifestFallbackProxy ...
+// getManifestFallbackProxy fetches the manifest from the upstream registry via the configured proxy and writes it to the client: an upstream 200 is relayed with the content digest and ETag headers, an upstream 404 becomes a manifest-unknown distribution error, and any other status becomes an unknown distribution error.
 func (h *handler) getManifestFallbackProxy(c *gin.Context, refs Refs) {
 	statusCode, header, bodyBytes, err := h.fallbackProxy(c)
 	if err != nil {

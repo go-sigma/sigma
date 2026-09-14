@@ -58,7 +58,8 @@ type factory struct{}
 
 var _ lock.Factory = factory{}
 
-// New ...
+// New builds a Redis-backed Locker wrapping a Redsync instance over the client
+// from RedisClientFactory; it errors when the factory or its client is nil.
 func (factory) New(params lock.Params) (lock.Locker, error) {
 	if params.RedisClientFactory == nil {
 		return nil, fmt.Errorf("redis client factory is required")

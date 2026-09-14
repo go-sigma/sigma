@@ -33,9 +33,9 @@ type Handler interface {
 	Get(c *gin.Context, req *api.GetCodeRepositoryRequest)
 	// ListOwner list all of the code repository owner
 	ListOwners(c *gin.Context, req *api.ListCodeRepositoryOwnerRequest)
-	// ListBranches ...
+	// ListBranches returns a paginated list of branches for the requested source code repository.
 	ListBranches(c *gin.Context, req *api.ListCodeRepositoryBranchesRequest)
-	// GetBranch ...
+	// GetBranch returns the source code repository branch identified by name.
 	GetBranch(c *gin.Context, req *api.GetCodeRepositoryBranchRequest)
 	// Resync resync all of the code repositories
 	Resync(c *gin.Context, req *api.GetCodeRepositoryResyncRequest)

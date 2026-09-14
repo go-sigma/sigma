@@ -25,7 +25,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
-// Client ...
+// Client is the process-wide Redis client handle, nil until the embedding
+// application assigns a client to it.
 var Client redis.UniversalClient
 
 // ClientFactory lazily creates a Redis client.

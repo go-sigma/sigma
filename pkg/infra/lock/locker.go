@@ -31,7 +31,7 @@ import (
 //go:generate go tool mockgen -destination=locker_mocks.go -package=lock github.com/go-sigma/sigma/pkg/infra/lock Locker,Lock,Factory
 
 const (
-	// MinLockExpire ...
+	// MinLockExpire is the shortest lease TTL accepted by Acquire and Renew; a shorter one fails with ErrLockTooShort.
 	MinLockExpire = 100 * time.Millisecond
 )
 
@@ -46,9 +46,9 @@ var (
 
 // Lock lock interface
 type Lock interface {
-	// Unlock ...
+	// Unlock releases the held lease, returning ErrLockNotHeld when it is no longer held because it expired or was taken over.
 	Unlock(ctx context.Context) error
-	// Renew ...
+	// Renew extends the held lease by the given TTL, or by the original TTL when none is supplied, keeping the lock alive; it returns ErrLockTooShort for a TTL below MinLockExpire and ErrLockNotHeld once the lease is lost.
 	Renew(ctx context.Context, ttls ...time.Duration) error
 }
 
@@ -75,7 +75,8 @@ type Params struct {
 
 var Factories = make(registry.Factories[enums.LockerType, Factory])
 
-// New ...
+// Initialize constructs the Locker for the driver named by Config.Locker.Type,
+// returning an error when that driver has not been registered.
 func Initialize(params Params) (Locker, error) {
 	factory, ok := Factories[params.Config.Locker.Type]
 	if !ok {

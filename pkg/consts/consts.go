@@ -64,17 +64,17 @@ const (
 	ContextUser = "ctx-user"
 	// HotNamespace top hot namespaces
 	HotNamespace = 3
-	// WebhookSecretHeader ...
+	// WebhookSecretHeader is the HTTP header carrying the hex-encoded HMAC-SHA256 signature of a webhook payload.
 	WebhookSecretHeader = "X-Sigma-Signature-256" // nolint: gosec
-	// InsertBatchSize ...
+	// InsertBatchSize is the number of records written per statement when inserting rows in bulk.
 	InsertBatchSize = 10
-	// MaxNamespaceMember ...
+	// MaxNamespaceMember is the maximum number of members a single namespace may have.
 	MaxNamespaceMember = 10
-	// MaxWebhooks ...
+	// MaxWebhooks is the maximum number of webhooks a single namespace may have.
 	MaxWebhooks = 5
 	// ObsPresignMaxTtl
 	ObsPresignMaxTtl = time.Minute * 30
-	// PprofPath ...
+	// PprofPath is the URL path where the pprof profiling handlers are mounted when debug logging is enabled.
 	PprofPath = "/__debug/pprof"
 )
 
@@ -103,9 +103,9 @@ var (
 )
 
 const (
-	// CacherBlob ...
+	// CacherBlob is the cache prefix under which blob metadata entries are stored.
 	CacherBlob = "blob"
-	// CacherManifest ...
+	// CacherManifest is the cache prefix under which manifest entries are stored.
 	CacherManifest = "manifest"
 )
 
@@ -124,17 +124,17 @@ const (
 )
 
 const (
-	// LockerMigration ...
+	// LockerMigration is the distributed lock key serializing database migration runs.
 	LockerMigration = "locker-migration"
-	// LockerCronjobBuilder ...
+	// LockerCronjobBuilder is the distributed lock key prefix serializing builder cronjob runs; a builder ID is appended to it.
 	LockerCronjobBuilder = "locker-cronjob-builder"
-	// LockerAnalyticsFlush ...
+	// LockerAnalyticsFlush is the distributed lock key prefix serializing analytics flush runs; the target hour is appended to it.
 	LockerAnalyticsFlush = "locker-analytics-flush"
-	// LockerCronjobAudit ...
+	// LockerCronjobAudit is the distributed lock key serializing audit log cleanup runs.
 	LockerCronjobAudit = "locker-cronjob-audit"
-	// LockerCronjobSize ...
+	// LockerCronjobSize is the distributed lock key serializing namespace size reconciliation runs.
 	LockerCronjobSize = "locker-cronjob-size"
-	// LockerVulnerabilityScan ...
+	// LockerVulnerabilityScan is the distributed lock key serializing vulnerability scan runs.
 	LockerVulnerabilityScan = "locker-vulnerability-scan"
 )
 
@@ -144,8 +144,8 @@ var (
 )
 
 const (
-	// LockerRetryDelay ...
+	// LockerRetryDelay is the delay between successive attempts to acquire a distributed lock.
 	LockerRetryDelay = time.Second * 1
-	// LockerRetryMaxTimes ...
+	// LockerRetryMaxTimes is the maximum number of attempts made to acquire a distributed lock before giving up.
 	LockerRetryMaxTimes = 6
 )

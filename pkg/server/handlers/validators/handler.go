@@ -22,7 +22,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server"
 )
 
-// Handler ...
+// Handler validates user-supplied container references, tags, passwords, cron expressions and regular expressions for the API.
 type Handler interface {
 	// GetReference handles the validate reference request
 	GetReference(c *gin.Context, req *api.GetValidatorReferenceRequest)

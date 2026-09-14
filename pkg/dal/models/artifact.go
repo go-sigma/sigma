@@ -59,7 +59,7 @@ type Artifact struct {
 	Tags         []*Tag      `gorm:"foreignKey:ArtifactID;"`
 }
 
-// ArtifactSizeByNamespaceOrRepository ...
+// ArtifactSizeByNamespaceOrRepository defines generated queries that sum the blob sizes of all artifacts in a namespace or in a single repository.
 type ArtifactSizeByNamespaceOrRepository interface {
 	// SELECT sum(blobs_size) as size FROM @@table WHERE repository_id in (
 	// SELECT id from repositories where namespace_id = @namespaceID)
@@ -68,7 +68,7 @@ type ArtifactSizeByNamespaceOrRepository interface {
 	ArtifactSizeByRepository(repositoryID string) (gen.T, error)
 }
 
-// ArtifactAssociated ...
+// ArtifactAssociated defines the generated query that counts the artifacts referencing the given artifact as their sub-artifact.
 type ArtifactAssociated interface {
 	// SELECT COUNT(artifact_id) as count FROM artifact_artifacts LEFT JOIN artifacts ON artifacts.id = artifact_artifacts.artifact_id WHERE artifacts.deleted_at = 0 AND artifact_sub_id=@artifactID
 	ArtifactAssociated(artifactID string) (gen.M, error)

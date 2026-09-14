@@ -29,13 +29,13 @@ const (
 	MaxJob = 100
 )
 
-// Starter ...
+// Starter holds the cronjob registration functions run in order by Initialize.
 var Starter []func(*dig.Container) error
 
-// Stopper ...
+// Stopper holds the cronjob teardown functions run by DeInitialize.
 var Stopper []func()
 
-// Initialize ...
+// Initialize runs every registered cronjob starter, rolling back via DeInitialize and returning the error if one fails.
 func Initialize(digCon *dig.Container) error {
 	for _, start := range Starter {
 		if err := start(digCon); err != nil {

@@ -15,10 +15,10 @@
 package version
 
 var (
-	// Version ...
+	// Version is the git describe tag of the build, injected at link time via -X github.com/go-sigma/sigma/pkg/version.Version.
 	Version = ""
-	// GitHash ...
+	// GitHash is the short git commit hash of the build, injected at link time via -X github.com/go-sigma/sigma/pkg/version.GitHash.
 	GitHash = ""
-	// BuildDate ...
+	// BuildDate is the UTC build timestamp, injected at link time via -X github.com/go-sigma/sigma/pkg/version.BuildDate.
 	BuildDate = ""
 )

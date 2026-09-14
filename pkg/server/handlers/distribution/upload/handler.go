@@ -29,15 +29,15 @@ import (
 
 // Handler is the interface for the distribution blob handlers
 type Handler interface {
-	// DeleteUpload ...
+	// DeleteUpload cancels an upload session, discarding its partial content and responding 204 No Content.
 	DeleteUpload(ctx *gin.Context)
-	// GetUpload ...
+	// GetUpload reports the status of an upload session, responding 204 No Content with the upload UUID and Location headers, or a distribution error when the session is unknown.
 	GetUpload(ctx *gin.Context)
-	// PatchUpload ...
+	// PatchUpload appends the request body as a chunk to an existing upload session and responds 202 Accepted with an inclusive Range header covering the bytes received so far.
 	PatchUpload(ctx *gin.Context)
-	// PostUpload ...
+	// PostUpload starts a blob upload session, responding 202 Accepted with a Docker-Upload-UUID and Location header, or performs a single-shot upload that stores the blob directly when a digest query parameter is present; cross-repository blob mounting is not supported.
 	PostUpload(ctx *gin.Context)
-	// PutUpload ...
+	// PutUpload finalises an upload session under the digest query parameter, appending any remaining request body and responding 201 Created with a Docker-Content-Digest header.
 	PutUpload(ctx *gin.Context)
 }
 

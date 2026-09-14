@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
-// GetRunnerLog ...
+// GetRunnerLog handles GET .../builders/:builder_id/runners/:runner_id/log; it upgrades the request to a websocket and streams the runner's log (gzip-decoding it when stored compressed), looping while the runner is still building and replying 204 once the websocket handler returns.
 func (h *handler) GetRunnerLog(c *gin.Context, req *api.GetRunnerLog) {
 	ctx := c.Request.Context()
 
