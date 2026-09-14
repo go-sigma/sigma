@@ -106,6 +106,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Avoid the flaky turso native library cache ("cached library file hash sum mismatch")
+          rm -rf "${HOME}/.cache/turso-go"
+
           mkdir -p test-results
 
           packages() {
