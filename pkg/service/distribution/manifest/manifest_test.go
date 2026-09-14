@@ -31,7 +31,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
@@ -416,4 +418,227 @@ func (f fakeManifest) References() []distribution.Descriptor {
 
 func (f fakeManifest) Payload() (string, []byte, error) {
 	return f.mediaType, f.payload, nil
+}
+
+func requireErrCode(t *testing.T, err error, want string) {
+	t.Helper()
+	code, ok := errcode.AsType[errcode.ErrCode](err)
+	require.True(t, ok)
+	require.Equal(t, want, code.Code)
+}
+
+func TestResolveRepositoryNamespace(t *testing.T) {
+	ctx := t.Context()
+	tests := []struct {
+		name          string
+		namespaceID   string
+		namespaceName string
+		cfg           *config.Configuration
+		setup         func(*gomock.Controller) *service
+		wantID        string
+		wantCreate    bool
+		wantErrCode   string
+	}{
+		{
+			name:          "by_id_match",
+			namespaceID:   "ns-1",
+			namespaceName: "sigma",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(&models.Namespace{ID: "ns-1", Name: "sigma"}, nil)
+				return &service{RepoNs: repoNs}
+			},
+			wantID: "ns-1",
+		},
+		{
+			name:          "by_id_mismatch",
+			namespaceID:   "ns-1",
+			namespaceName: "sigma",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(&models.Namespace{ID: "ns-1", Name: "other"}, nil)
+				return &service{RepoNs: repoNs}
+			},
+			wantErrCode: errcode.DSErrCodeNameUnknown.Code,
+		},
+		{
+			name:          "by_id_not_found",
+			namespaceID:   "ns-1",
+			namespaceName: "sigma",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(nil, gorm.ErrRecordNotFound)
+				return &service{RepoNs: repoNs}
+			},
+			wantErrCode: errcode.DSErrCodeNameUnknown.Code,
+		},
+		{
+			name:          "by_name_found",
+			namespaceName: "sigma",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(&models.Namespace{ID: "ns-1", Name: "sigma"}, nil)
+				return &service{RepoNs: repoNs}
+			},
+			wantID: "ns-1",
+		},
+		{
+			name:          "by_name_autocreate",
+			namespaceName: "sigma",
+			cfg:           &config.Configuration{Namespace: config.ConfigurationNamespace{AutoCreate: true, Visibility: enums.VisibilityPublic}},
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
+				return &service{RepoNs: repoNs}
+			},
+			wantCreate: true,
+		},
+		{
+			name:          "by_name_autocreate_disabled",
+			namespaceName: "sigma",
+			cfg:           &config.Configuration{},
+			setup: func(ctrl *gomock.Controller) *service {
+				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
+				return &service{RepoNs: repoNs}
+			},
+			wantErrCode: errcode.DSErrCodeNameUnknown.Code,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			svc := tt.setup(ctrl)
+			svc.Config = tt.cfg
+			if svc.Config == nil {
+				svc.Config = &config.Configuration{}
+			}
+
+			got, create, err := svc.resolveRepositoryNamespace(ctx, tt.namespaceID, tt.namespaceName)
+			if tt.wantErrCode != "" {
+				requireErrCode(t, err, tt.wantErrCode)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.wantCreate, create)
+			if tt.wantID != "" {
+				require.Equal(t, tt.wantID, got.ID)
+			} else {
+				require.Equal(t, tt.namespaceName, got.Name)
+			}
+		})
+	}
+}
+
+func TestEnsureRepositoryAlreadyExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	existing := &models.Repository{ID: "repo-1", NamespaceID: "ns-1", Name: "sigma/alpine"}
+	repoRegistry.EXPECT().GetByName(gomock.Any(), "sigma/alpine").Return(existing, nil)
+
+	got, err := (&service{RepoRegistry: repoRegistry}).ensureRepository(t.Context(), "user-1", "ns-1", "sigma/alpine")
+	require.NoError(t, err)
+	require.Equal(t, "repo-1", got.ID)
+}
+
+func TestEnsureRepositoryErrorMapping(t *testing.T) {
+	ctx := t.Context()
+	tests := []struct {
+		name        string
+		repo        string
+		setup       func(*gomock.Controller) *service
+		wantErrCode string
+	}{
+		{
+			name: "get repository db error",
+			repo: "sigma/alpine",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry.EXPECT().GetByName(gomock.Any(), "sigma/alpine").Return(nil, errors.New("db error"))
+				return &service{RepoRegistry: repoRegistry}
+			},
+			wantErrCode: errcode.DSErrCodeUnknown.Code,
+		},
+		{
+			name: "invalid repository name",
+			repo: "alpine",
+			setup: func(ctrl *gomock.Controller) *service {
+				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry.EXPECT().GetByName(gomock.Any(), "alpine").Return(nil, gorm.ErrRecordNotFound)
+				return &service{RepoRegistry: repoRegistry}
+			},
+			wantErrCode: errcode.DSErrCodeManifestWithNamespace.Code,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			_, err := tt.setup(ctrl).ensureRepository(ctx, "user-1", "", tt.repo)
+			requireErrCode(t, err, tt.wantErrCode)
+		})
+	}
+}
+
+func TestDeleteManifestByDigestNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ctx := t.Context()
+	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
+	artifactDigest := digest.FromString("manifest").String()
+
+	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
+	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, artifactDigest).Return(nil, gorm.ErrRecordNotFound)
+
+	err := (&service{RepoRegistry: repoRegistry, RepoArtifact: repoArtifact}).
+		DeleteManifest(ctx, repository.NamespaceID, repository.Name, artifactDigest, "user-id")
+	require.Equal(t, errcode.DSErrCodeManifestUnknown, err)
+}
+
+func TestGetReferrerErrorMapping(t *testing.T) {
+	ctx := t.Context()
+	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
+	subjectDigest := digest.FromString("subject").String()
+
+	ctrl := gomock.NewController(t)
+	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(nil, gorm.ErrRecordNotFound)
+	_, err := (&service{RepoRegistry: repoRegistry}).GetReferrer(ctx, repository.Name, subjectDigest, nil)
+	require.Equal(t, errcode.DSErrCodeUnknown, err)
+
+	ctrl = gomock.NewController(t)
+	repoRegistry = reporegistry.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
+	repoArtifact.EXPECT().GetReferrers(ctx, repository.ID, subjectDigest, nil).Return(nil, errors.New("db error"))
+	_, err = (&service{RepoRegistry: repoRegistry, RepoArtifact: repoArtifact}).
+		GetReferrer(ctx, repository.Name, subjectDigest, nil)
+	require.Equal(t, errcode.DSErrCodeUnknown, err)
+}
+
+func TestGetArtifactTypeExtended(t *testing.T) {
+	svc := &service{}
+
+	require.Equal(t, enums.ArtifactTypeCosign, svc.getArtifactType(
+		distribution.Descriptor{},
+		fakeManifest{references: []distribution.Descriptor{{MediaType: cosignSimpleSigningMediaType}}},
+	))
+	require.Equal(t, enums.ArtifactTypeCnab, svc.getArtifactType(
+		distribution.Descriptor{},
+		fakeManifest{references: []distribution.Descriptor{{MediaType: "application/vnd.cnab.manifest.v1"}}},
+	))
+	require.Equal(t, enums.ArtifactTypeWasm, svc.getArtifactType(
+		distribution.Descriptor{},
+		fakeManifest{references: []distribution.Descriptor{{MediaType: "application/vnd.wasm.config.v1+json"}}},
+	))
+	require.Equal(t, enums.ArtifactTypeChart, svc.getArtifactType(
+		distribution.Descriptor{},
+		fakeManifest{references: []distribution.Descriptor{{MediaType: helmConfigMediaType}}},
+	))
+	require.Equal(t, enums.ArtifactTypeSif, svc.getArtifactType(
+		distribution.Descriptor{},
+		fakeManifest{references: []distribution.Descriptor{{MediaType: sifConfigMediaType}}},
+	))
 }
