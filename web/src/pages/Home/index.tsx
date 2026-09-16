@@ -40,18 +40,18 @@ export default function Home({ localServer }: { localServer: string }) {
           <title>{t("header.home")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-background min-w-[1600px]">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <Menu item="home" localServer={localServer} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative z-0 focus:outline-none" tabIndex={0}>
             <Header title={t("header.home")} />
             <div className="py-3 px-3 sm:px-6 lg:px-8">
-              <div className="flex flex-wrap justify-around mt-2 gap-5">
+              <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((card) => (
-                  <Card key={card.name} className="w-1/5">
-                    <CardContent className="p-5">
+                  <Card key={card.name} className="w-full">
+                    <CardContent>
                       <div className="flex items-center">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <card.icon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                         </div>
                         <div className="ml-5 w-0 flex-1">

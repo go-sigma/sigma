@@ -109,7 +109,7 @@ function AppLayout() {
     <AppLayoutMenuContext.Provider value={true}>
       <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
         <Menu localServer={apiBaseURL} persistent {...menuProps} />
-        <div className="flex min-w-0 flex-1 [&>*]:w-full">
+        <div className="flex min-w-0 flex-1 *:w-full">
           <Outlet />
         </div>
       </div>

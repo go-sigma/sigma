@@ -25,10 +25,9 @@ import { useTranslation } from "../../i18n/useTranslation";
 import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "../../interfaces";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 export default function Login({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -49,6 +48,8 @@ export default function Login({ localServer }: { localServer: string }) {
           const resp = response.data as IUserLoginResponse;
           localStorage.setItem("token", resp.token);
           localStorage.setItem("refresh_token", resp.refresh_token);
+          localStorage.setItem("username", resp.username);
+          localStorage.setItem("email", resp.email);
           navigate("/namespaces");
         } else {
           const errorcode = response.data as IHTTPError;
@@ -99,63 +100,62 @@ export default function Login({ localServer }: { localServer: string }) {
           <title>{t("login.title")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="flex min-h-full flex-1 flex-col justify-center py-12 dark:bg-gray-950 sm:px-6 lg:px-8">
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="w-40 mx-auto">
-            <SigmaSvg />
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="flex w-full max-w-sm flex-col gap-6 pb-28">
+          <div className="flex items-center gap-2 self-center font-medium">
+            <span className="flex size-10 items-center justify-center [&>svg]:size-10">
+              <SigmaSvg />
+            </span>
+            <span className="text-xl">sigma</span>
           </div>
-          <Card className="mt-6">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="username">{t("common.username")}</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">{t("common.password")}</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter") login(username, password);
-                    }}
-                  />
-                </div>
-                <Button
-                  className="w-full"
-                  onClick={() => login(username, password)}
-                >
-                  {t("common.signIn")}
-                </Button>
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("login.cardTitle")}</CardTitle>
+              <CardDescription>{t("login.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  login(username, password);
+                }}
+              >
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="username">{t("common.username")}</FieldLabel>
+                    <Input
+                      id="username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">{t("common.password")}</FieldLabel>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Button type="submit">{t("common.signIn")}</Button>
+                    {config.anonymous && (
+                      <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => login("", "", true)}
+                      >
+                        {t("login.anonymous")}
+                      </Button>
+                    )}
+                    {config.oauth2.github && <GitHubButton localServer={localServer} endpoint={endpoint} />}
+                    {config.oauth2.gitlab && <GitLabButton localServer={localServer} endpoint={endpoint} />}
+                  </Field>
+                </FieldGroup>
+              </form>
             </CardContent>
-
-            {(config.anonymous || config.oauth2.github || config.oauth2.gitlab) && (
-              <>
-                <Separator className="my-2" />
-                <CardFooter className="flex-col gap-3">
-                  <p className="text-sm text-muted-foreground">{t("login.continueWith")}</p>
-                  {config.anonymous && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => login("", "", true)}
-                    >
-                      {t("login.anonymous")}
-                    </Button>
-                  )}
-                  {config.oauth2.github && <GitHubButton localServer={localServer} endpoint={endpoint} />}
-                  {config.oauth2.gitlab && <GitLabButton localServer={localServer} endpoint={endpoint} />}
-                </CardFooter>
-              </>
-            )}
           </Card>
         </div>
       </div>

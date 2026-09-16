@@ -139,8 +139,8 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative focus:outline-none" tabIndex={0}>
             <Header title={t("header.codeRepository")} />
-            <div className="pt-2 pb-2 flex justify-between items-center">
-              <div className="pr-2 pl-2 flex-1">
+            <div className="pt-4 pb-4 flex justify-between items-center">
+              <div className="px-4 flex-1">
                 <div className="flex items-end gap-2">
                   <div className="grid gap-1 relative w-40">
                     <Label htmlFor="codeRepositorySearch" className="text-xs text-foreground">Organization</Label>
@@ -192,7 +192,7 @@ export default function ({ localServer }: { localServer: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead><span className="lg:pl-2">Name</span></TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead className="text-right">Oci Repo Count</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>

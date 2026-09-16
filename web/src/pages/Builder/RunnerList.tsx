@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Tooltip } from '../../utils/tooltip';
+import { Tooltip } from '../../utils';
 import { useNavigate } from 'react-router-dom';
 
 import Header from "../../components/Header";
@@ -233,7 +233,7 @@ export default function ({ localServer }: { localServer: string }) {
                 )
               } />
             <div className="pt-2 pb-2 flex flex-row-reverse justify-between">
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 {
                   builderObj === undefined ? (
                     <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"

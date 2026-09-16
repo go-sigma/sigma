@@ -46,6 +46,7 @@ const enUS = {
   "common.search": "Search",
   "common.setting": "Setting",
   "common.settings": "Settings",
+  "common.login": "Login",
   "common.signIn": "Sign in",
   "common.size": "Size",
   "common.startedAt": "Started At",
@@ -100,6 +101,8 @@ const enUS = {
   "pagination.summary": "Showing {start} to {end} of {total} results",
 
   "login.title": "sigma - Login",
+  "login.cardTitle": "Login to your account",
+  "login.subtitle": "Enter your username and password to login",
   "login.anonymous": "Anonymous",
   "login.continueWith": "Or continue with",
   "login.callbackTitle": "sigma - Login Callback",

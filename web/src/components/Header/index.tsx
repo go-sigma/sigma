@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 export default function Header({ title, breadcrumb, props }: { title: ReactNode, breadcrumb?: ReactNode, props?: ReactNode }) {
   return (
     <div className={breadcrumb === undefined ? "" : "border-b border-border"}>
-      <div className="border-b border-border px-4 py-0 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 h-16">
+      <div className="border-b border-border px-4 py-0 sm:flex sm:items-center sm:justify-between h-16">
         <div className="flex-1 min-w-0 my-4">
           <h1 className="text-lg font-medium leading-6 text-foreground sm:truncate mr-8">{title}</h1>
         </div>

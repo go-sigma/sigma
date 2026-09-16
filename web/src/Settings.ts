@@ -18,6 +18,7 @@ export default {
   // QuotaThreshold turn green when quota is less than this value
   QuotaThreshold: 0.8,
   PageSize: 20,
-  MaxSizeLimit: 102400 * (1 << 40),
+  // MaxSizeLimit is the maximum storage size, 100 PiB
+  MaxSizeLimit: 100 * 1024 ** 5,
   AutoCompleteSize: 5,
 };

@@ -25,7 +25,7 @@ import Menu from "../../components/Menu";
 import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
 import QuotaSimple from "../../components/QuotaSimple";
-import Regex from "../../utils/regex";
+import { Regex } from "../../utils";
 import Settings from "../../Settings";
 import Toast from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -53,7 +53,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Info } from "lucide-react";
+import { CornerDownLeft, Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -162,15 +162,17 @@ export default function ({ localServer }: { localServer: string }) {
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.settingUsers")} />
-            <div className="pt-2 pb-2 flex justify-between">
-              <div className="pr-2 pl-2 flex gap-2">
+            <div className="pt-4 pb-4 flex justify-between">
+              <div className="px-4 flex gap-2">
                 <div className="relative flex items-center">
                   <Label htmlFor="usernameSearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">Username</Label>
                   <Input id="usernameSearch" placeholder="search username" value={searchUsername} onChange={e => setSearchUsername(e.target.value)} onKeyDown={e => { if (e.key == "Enter") setRefresh({}); }} className="h-10 pr-14" />
-                  <kbd className="absolute inset-y-0 right-0 flex items-center py-1.5 pr-3 text-xs text-muted-foreground">enter</kbd>
+                  <kbd className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground" aria-hidden="true">
+                    <CornerDownLeft className="size-3.5" />
+                  </kbd>
                 </div>
               </div>
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 <Button onClick={() => setCreateUserModal(true)}>Create</Button>
               </div>
             </div>
@@ -180,7 +182,7 @@ export default function ({ localServer }: { localServer: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead><span className="lg:pl-2">Username</span></TableHead>
+                    <TableHead>Username</TableHead>
                     <TableHead>Namespace</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right"><OrderHeader text="Last Login" orderStatus={lastLoginOrder} setOrder={e => { resetOrder(); setLastLoginOrder(e); setSortOrder(e); setSortName("last_login"); setRefresh({}); }} /></TableHead>

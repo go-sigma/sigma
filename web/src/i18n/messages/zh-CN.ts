@@ -48,6 +48,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "common.search": "搜索",
   "common.setting": "设置",
   "common.settings": "设置",
+  "common.login": "登录",
   "common.signIn": "登录",
   "common.size": "大小",
   "common.startedAt": "开始时间",
@@ -102,6 +103,8 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "pagination.summary": "显示第 {start} 到 {end} 条，共 {total} 条结果",
 
   "login.title": "sigma - 登录",
+  "login.cardTitle": "登录你的账号",
+  "login.subtitle": "输入用户名和密码登录",
   "login.anonymous": "匿名访问",
   "login.continueWith": "或继续使用",
   "login.callbackTitle": "sigma - 登录回调",

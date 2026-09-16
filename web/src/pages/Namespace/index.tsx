@@ -15,7 +15,6 @@
  */
 
 import axios from "axios";
-import dayjs from 'dayjs';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useNavigate } from 'react-router-dom';
@@ -27,12 +26,12 @@ import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
+import RelativeTime from "../../components/RelativeTime";
 import Settings from "../../Settings";
-import calcUnit from "../../utils/calcUnit";
+import { calcUnit } from "../../utils";
 import { useTranslation } from "../../i18n/useTranslation";
 import { IHTTPError, INamespaceItem, INamespaceList, IOrder, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
-import TableItemDropdown from "../../components/Menu/TableItemDropdown";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +63,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -183,8 +183,8 @@ export default function Namespace({ localServer }: { localServer: string }) {
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.namespace")} />
-            <div className="pt-2 pb-2 flex justify-between items-center">
-              <div className="pr-2 pl-2">
+            <div className="pt-4 pb-4 flex justify-between items-center">
+              <div className="px-4">
                 <div className="relative flex items-center">
                   <Label htmlFor="namespaceSearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">
                     {t("common.namespace")}
@@ -197,10 +197,12 @@ export default function Namespace({ localServer }: { localServer: string }) {
                     onKeyDown={e => { if (e.key == "Enter") fetchNamespace() }}
                     className="h-10 pr-14"
                   />
-                  <kbd className="absolute inset-y-0 right-0 flex items-center py-1.5 pr-3 text-xs text-muted-foreground">enter</kbd>
+                  <kbd className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground" aria-hidden="true">
+                    <CornerDownLeft className="size-3.5" />
+                  </kbd>
                 </div>
               </div>
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 <Button onClick={() => setCreateNamespaceModal(true)}>{t("common.create")}</Button>
               </div>
             </div>
@@ -210,7 +212,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead><span className="lg:pl-2">{t("namespace.table.name")}</span></TableHead>
+                    <TableHead>{t("namespace.table.name")}</TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("namespace.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("namespace.table.repositoryCount")} orderStatus={repositoryCountOrder} setOrder={e => { resetOrder(); setRepositoryOrder(e); setSortOrder(e); setSortName("repository_count"); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("namespace.table.tagCount")} orderStatus={tagCountOrder} setOrder={e => { resetOrder(); setTagCountOrder(e); setSortOrder(e); setSortName("tag_count"); }} /></TableHead>
@@ -221,8 +223,8 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {namespaceList.items?.map((ns, index) => (
-                    <TableItem key={ns.id} index={index} user={userObj} namespace={ns} localServer={localServer} setRefresh={setRefresh} />
+                  {namespaceList.items?.map((ns) => (
+                    <TableItem key={ns.id} user={userObj} namespace={ns} localServer={localServer} setRefresh={setRefresh} />
                   ))}
                 </TableBody>
               </Table>
@@ -297,7 +299,8 @@ export default function Namespace({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, user, namespace: ns, setRefresh }: { localServer: string, index: number, user: IUserSelf, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServer: string, user: IUserSelf, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [updateNamespaceModal, setUpdateNamespaceModal] = useState(false);
@@ -357,7 +360,7 @@ function TableItem({ localServer, index, user, namespace: ns, setRefresh }: { lo
     <>
       <TableRow className="align-middle">
         <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`)}>
-          <div className="truncate hover:text-muted-foreground">
+          <div className="truncate">
             <span className="font-medium">{ns.name}</span>
             <span className="text-muted-foreground font-normal ml-4">{ns.description}</span>
           </div>
@@ -366,16 +369,33 @@ function TableItem({ localServer, index, user, namespace: ns, setRefresh }: { lo
         <TableCell className="text-right"><QuotaSimple current={ns.repository_count} limit={ns.repository_limit} /></TableCell>
         <TableCell className="text-right"><QuotaSimple current={ns.tag_count} limit={ns.tag_limit} /></TableCell>
         <TableCell className="text-right"><Badge variant="outline" className="capitalize">{ns.visibility}</Badge></TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(ns.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(ns.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-        <TableCell className="text-center">
-          <TableItemDropdown
-            index={index}
-            items={[
-              { name: "Update", disable: !canManage, onClick: () => { setUpdateNamespaceModal(true); setNamespaceVisibility(ns.visibility); } },
-              { name: "Delete", disable: !canManage, warn: true, onClick: () => setDeleteNamespaceModal(true) },
-            ]}
-          />
+        <TableCell className="text-right text-muted-foreground"><RelativeTime time={ns.created_at} /></TableCell>
+        <TableCell className="text-right text-muted-foreground"><RelativeTime time={ns.updated_at} /></TableCell>
+        <TableCell className="text-right">
+          {canManage && (
+            <div className="flex items-center justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-6"
+                title={t("common.update")}
+                aria-label={t("common.update")}
+                onClick={() => { setUpdateNamespaceModal(true); setNamespaceVisibility(ns.visibility); }}
+              >
+                <SquarePen />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-6 text-destructive hover:text-destructive"
+                title={t("common.delete")}
+                aria-label={t("common.delete")}
+                onClick={() => setDeleteNamespaceModal(true)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          )}
         </TableCell>
       </TableRow>
 

@@ -239,7 +239,7 @@ export default function ({ localServer }: { localServer: string }) {
               }
             />
             <div className="pt-2 pb-2 flex flex-row-reverse justify-between">
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 {
                   runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
                     <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
@@ -252,7 +252,7 @@ export default function ({ localServer }: { localServer: string }) {
                   )
                 }
               </div>
-              <div className='pr-2 pl-2 flex gap-1'>
+              <div className='px-4 flex gap-1'>
                 <div className='text-gray-600 px-2 py-2 h-10'>
                   Elapsed: {runnerObj?.status != "Failed" && runnerObj?.status != "Success" && runnerObj?.status != "Stopped" ? Math.floor((Date.now() - (runnerObj?.started_at || Date.now())) / 1000) : Math.floor((runnerObj.raw_duration || 0) / 1000)}s
                 </div>

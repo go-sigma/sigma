@@ -22,7 +22,7 @@ import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Tooltip } from '../../utils/tooltip';
+
 import { useCopyToClipboard } from 'react-use';
 
 import Header from "../../components/Header";
@@ -47,7 +47,7 @@ import {
   IVuln
 } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
-import { trimHTTP } from "../../utils";
+import { Tooltip, trimHTTP } from "../../utils";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -228,8 +228,8 @@ export default function Tag({ localServer }: { localServer: string }) {
                 )
               }
             />
-            <div className="pt-2 pb-2 flex">
-              <div className="pr-2 pl-2">
+            <div className="pt-4 pb-4 flex">
+              <div className="px-4">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">
                     <label
@@ -285,7 +285,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                     >
                       <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                         <div className="sm:flex sm:items-start">
-                          <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                          <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                             <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
                           </div>
                           <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">

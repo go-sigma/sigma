@@ -19,7 +19,7 @@ import dayjs from 'dayjs';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { Tooltip } from '../../utils/tooltip';
+import { Tooltip } from '../../utils';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";

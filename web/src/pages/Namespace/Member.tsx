@@ -201,7 +201,7 @@ export default function Member({ localServer }: { localServer: string }) {
               }
             />
             <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">
                     <label
@@ -231,7 +231,7 @@ export default function Member({ localServer }: { localServer: string }) {
                   </div>
                 </div>
               </div>
-              <div className="pr-2 pl-2 flex flex-col">
+              <div className="px-4 flex flex-col">
                 <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
                   onClick={e => { setCreateUserNamespaceModal(true) }}
                 >Add</button>

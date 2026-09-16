@@ -44,6 +44,8 @@ export default function ({ localServer }: { localServer: string }) {
         let resp = response.data as IUserLoginResponse;
         localStorage.setItem("token", resp.token);
         localStorage.setItem("refresh_token", resp.refresh_token);
+        localStorage.setItem("username", resp.username);
+        localStorage.setItem("email", resp.email);
         setSuccess(true);
         setTimeout(() => { setRequestDone(true); window.location.assign("/"); }, 500)
       } else {

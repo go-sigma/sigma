@@ -30,7 +30,7 @@ export default function ({ limit, page, total, setPage }: { limit: number, page:
 
   return (
     <div
-      className="flex items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100 dark:border-gray-800 dark:bg-gray-900"
+      className="flex items-center justify-between border-gray-200 px-4 py-3 border-t-0 bg-slate-100 dark:border-gray-800 dark:bg-gray-900"
       aria-label="Pagination"
     >
       <div>

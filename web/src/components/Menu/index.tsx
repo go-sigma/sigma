@@ -19,12 +19,12 @@ import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
-import Regex from "../../utils/regex";
+import { Regex } from "../../utils";
 import Toast from "../../components/Notification";
-import { LocaleSwitcher, ThemeSwitcher } from "../../components/Preferences";
 import { useTranslation } from "../../i18n/useTranslation";
 import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "../../interfaces";
-import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/refreshToken";
+import { Locale, ThemeMode, useUiStore } from "../../stores";
+import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/request";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -43,13 +43,21 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -71,8 +79,13 @@ import {
   User,
   Lock,
   Info,
+  LogIn,
   LogOut,
   Circle,
+  Languages,
+  Monitor,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 export const AppLayoutMenuContext = createContext(false);
@@ -96,7 +109,10 @@ export default function Menu(props: MenuProps) {
   }
 
   return (
-    <SidebarProvider defaultOpen>
+    // The sidebar is rendered as a sibling of the page content, so the
+    // SidebarProvider wrapper must size itself to the sidebar width instead of
+    // taking the full width (its default `w-full` would squeeze the content).
+    <SidebarProvider defaultOpen className="w-auto shrink-0">
       <MenuContent {...props} />
     </SidebarProvider>
   );
@@ -104,6 +120,10 @@ export default function Menu(props: MenuProps) {
 
 function MenuContent({ localServer, item, namespace, namespace_id, repository, selfClick }: MenuProps) {
   const { t } = useTranslation();
+  const themeMode = useUiStore((state) => state.themeMode);
+  const setThemeMode = useUiStore((state) => state.setThemeMode);
+  const locale = useUiStore((state) => state.locale);
+  const setLocale = useUiStore((state) => state.setLocale);
   const [menuActive, setMenuActive] = useState(item === "" ? "home" : item);
   const navigate = useNavigate();
 
@@ -112,9 +132,10 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
   }, [item]);
 
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem("username"));
   const [userID, setUserID] = useState(0);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(() => localStorage.getItem("username") || "");
+  const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
   const [refresh, setRefresh] = useState({});
 
   useEffect(() => {
@@ -124,9 +145,12 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         setUsername(user.username);
         setEmail(user.email);
         setUserID(user.id);
+        localStorage.setItem("username", user.username);
+        localStorage.setItem("email", user.email);
         if (user.role === "Anonymous") {
           setIsAnonymous(true);
         }
+        setLoggedIn(user.role !== "Anonymous");
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -190,6 +214,9 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
     axios.post(localServer + "/api/v1/users/logout", { tokens }).then(() => {
       localStorage.removeItem("token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("email");
+      setLoggedIn(false);
       navigate("/login");
     }).catch(error => {
       const errorcode = error.response?.data as IHTTPError;
@@ -227,7 +254,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" render={<Link to={isAnonymous ? "/namespaces" : "/home"} />}>
-                <img className="size-8" src="/title.svg" alt="sigma" />
+                <img className="size-8" src="/sigma.svg" alt="sigma" />
                 <span className="font-semibold">sigma</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -246,7 +273,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
 
               {(menuActive === "repositories" || menuActive === "tags" || menuActive === "artifacts") && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repositories?namespace_id=${namespace_id}`} onClick={(e) => { setMenuActive("repositories"); if (item === "repositories" && selfClick !== true) e.preventDefault(); }} />} isActive={menuActive === "repositories"} className="ml-4">
+                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repositories?namespace_id=${namespace_id}`} onClick={(e) => { setMenuActive("repositories"); if (item === "repositories" && selfClick !== true) e.preventDefault(); }} />} isActive={menuActive === "repositories"} className="ml-4 w-[calc(100%_-_1rem)]">
                     <Folder />
                     <span>{t("common.repositories")}</span>
                   </SidebarMenuButton>
@@ -255,7 +282,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
 
               {(menuActive === "tags" || menuActive === "artifacts") && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}`} onClick={(e) => { setMenuActive("tags"); if (item === "tags") e.preventDefault(); }} />} isActive={menuActive === "tags"} className="ml-8">
+                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}`} onClick={(e) => { setMenuActive("tags"); if (item === "tags") e.preventDefault(); }} />} isActive={menuActive === "tags"} className="ml-8 w-[calc(100%_-_2rem)]">
                     <Tag />
                     <span>{t("common.tags")}</span>
                   </SidebarMenuButton>
@@ -283,19 +310,19 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
               {(menuActive === "settings" || menuActive === "users" || menuActive === "daemon-tasks" || menuActive === "webhooks") && (
                 <>
                   <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/users" onClick={() => setMenuActive("users")} />} isActive={menuActive === "users"} className="ml-4">
+                    <SidebarMenuButton render={<Link to="/settings/users" onClick={() => setMenuActive("users")} />} isActive={menuActive === "users"} className="ml-4 w-[calc(100%_-_1rem)]">
                       <Users />
                       <span>{t("common.users")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/daemon-tasks?namespace_id=0" onClick={() => setMenuActive("daemon-tasks")} />} isActive={menuActive === "daemon-tasks"} className="ml-4">
+                    <SidebarMenuButton render={<Link to="/settings/daemon-tasks?namespace_id=0" onClick={() => setMenuActive("daemon-tasks")} />} isActive={menuActive === "daemon-tasks"} className="ml-4 w-[calc(100%_-_1rem)]">
                       <FileText />
                       <span>{t("menu.daemonTask")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/webhooks?namespace_id=0" onClick={() => setMenuActive("webhooks")} />} isActive={menuActive === "webhooks"} className="ml-4">
+                    <SidebarMenuButton render={<Link to="/settings/webhooks?namespace_id=0" onClick={() => setMenuActive("webhooks")} />} isActive={menuActive === "webhooks"} className="ml-4 w-[calc(100%_-_1rem)]">
                       <Webhook />
                       <span>{t("menu.webhook")}</span>
                     </SidebarMenuButton>
@@ -329,49 +356,88 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton render={<a href={`${endpoint}/swagger/index.html`} target="_blank" rel="noreferrer" />}>
-                <ExternalLink />
-                <span>{t("menu.apiDocs")}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <div className="px-2 py-1">
-                <ThemeSwitcher />
-              </div>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <div className="px-2 py-1">
-                <LocaleSwitcher />
-              </div>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger render={<SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground" />}>
                   <Avatar className="size-6">
-                    <AvatarFallback className="text-xs">{username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{(username || "sigma").charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <span>{username}</span>
+                  <span>{username || "sigma"}</span>
                   <ChevronUp className="ml-auto" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" className="w-(--sidebar-width) min-w-56">
-                  {!isAnonymous && (
+                  {loggedIn ? (
                     <>
-                      <DropdownMenuItem onClick={() => setUpdateProfileModal(true)}>
-                        <User />
-                        <span>{t("menu.updateProfile")}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setUpdatePasswordModal(true)}>
-                        <Lock />
-                        <span>{t("menu.resetPassword")}</span>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>{username || "sigma"}</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => setUpdateProfileModal(true)}>
+                          <User />
+                          <span>{t("menu.updateProfile")}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUpdatePasswordModal(true)}>
+                          <Lock />
+                          <span>{t("menu.resetPassword")}</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/login")}>
+                        <LogIn />
+                        <span>{t("common.login")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut />
-                    <span>{t("menu.logout")}</span>
+                  <DropdownMenuItem render={<a href={`${endpoint}/swagger/index.html`} target="_blank" rel="noreferrer" />}>
+                    <ExternalLink />
+                    <span>{t("menu.apiDocs")}</span>
                   </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Sun />
+                      <span>{t("preferences.theme")}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-40">
+                      <DropdownMenuRadioGroup value={themeMode} onValueChange={(value) => setThemeMode(value as ThemeMode)}>
+                        <DropdownMenuRadioItem value="light">
+                          <Sun />
+                          <span>{t("preferences.theme.light")}</span>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark">
+                          <Moon />
+                          <span>{t("preferences.theme.dark")}</span>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="system">
+                          <Monitor />
+                          <span>{t("preferences.theme.system")}</span>
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Languages />
+                      <span>{t("preferences.language")}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-40">
+                      <DropdownMenuRadioGroup value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+                        <DropdownMenuRadioItem value="en-US">
+                          <span>{t("preferences.locale.english")}</span>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="zh-CN">
+                          <span>{t("preferences.locale.chinese")}</span>
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                   <DropdownMenuSeparator />
+                  {loggedIn && (
+                    <DropdownMenuItem onClick={logout}>
+                      <LogOut />
+                      <span>{t("menu.logout")}</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => setAboutModal(true)}>
                     <Info />
                     <span>{t("common.about")}</span>
@@ -402,16 +468,13 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
 
       {/* About Modal */}
       <Dialog open={aboutModal} onOpenChange={setAboutModal}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("common.about")}</DialogTitle>
+            <DialogDescription className="leading-relaxed">
+              {t("menu.aboutDescription", { version: version?.version || t("common.notAvailable") })}
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            {t("menu.aboutDescription", { version: version?.version || t("common.notAvailable") })}
-          </p>
-          <DialogFooter>
-            <Button onClick={() => setAboutModal(false)}>{t("common.confirm")}</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

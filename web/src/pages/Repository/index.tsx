@@ -29,11 +29,10 @@ import Pagination from "../../components/Pagination";
 import Quota from "../../components/Quota";
 import QuotaSimple from "../../components/QuotaSimple";
 import Settings from "../../Settings";
-import calcUnit from "../../utils/calcUnit";
+import { calcUnit } from "../../utils";
 import { useTranslation } from "../../i18n/useTranslation";
 import { IHTTPError, INamespaceItem, IOrder, IRepositoryItem, IRepositoryList, IUserSelf } from "../../interfaces";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
-import TableItemDropdown from "../../components/Menu/TableItemDropdown";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +64,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -199,8 +199,8 @@ export default function ({ localServer }: { localServer: string }) {
                 </Tabs>
               }
             />
-            <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
-              <div className="pr-2 pl-2">
+            <div className="pt-3 pb-3 flex justify-between items-center min-h-[60px]">
+              <div className="px-4">
                 <div className="relative flex items-center">
                   <Label htmlFor="repositorySearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">
                     {t("common.repository")}
@@ -208,10 +208,12 @@ export default function ({ localServer }: { localServer: string }) {
                   <Input id="repositorySearch" placeholder={t("repository.searchPlaceholder")} value={searchRepository}
                     onChange={e => setSearchRepository(e.target.value)} onKeyDown={e => { if (e.key == "Enter") fetchRepository() }}
                     className="h-10 pr-14" />
-                  <kbd className="absolute inset-y-0 right-0 flex items-center py-1.5 pr-3 text-xs text-muted-foreground">enter</kbd>
+                  <kbd className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground" aria-hidden="true">
+                    <CornerDownLeft className="size-3.5" />
+                  </kbd>
                 </div>
               </div>
-              <div className="pr-2 pl-2">
+              <div className="px-4">
                 <Button onClick={() => canManage && setCreateRepositoryModal(true)} disabled={!canManage}>{t("common.create")}</Button>
               </div>
             </div>
@@ -221,7 +223,7 @@ export default function ({ localServer }: { localServer: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead><span className="lg:pl-2">{t("repository.table.name")}</span></TableHead>
+                    <TableHead>{t("repository.table.name")}</TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("repository.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("repository.table.tagCount")} orderStatus={tagCountOrder} setOrder={e => { resetOrder(); setTagCountOrder(e); setSortOrder(e); setSortName("tag_count"); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("repository.table.createdAt")} orderStatus={createdAtOrder} setOrder={e => { resetOrder(); setCreatedAtOrder(e); setSortOrder(e); setSortName("created_at"); }} /></TableHead>
@@ -231,7 +233,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </TableHeader>
                 <TableBody>
                   {repositoryList.items?.map((repo, index) => (
-                    <TableItem key={index} localServer={localServer} index={index} user={userObj} namespace={namespaceObj} repository={repo} setRefresh={setRefresh} />
+                    <TableItem key={index} localServer={localServer} user={userObj} namespace={namespaceObj} repository={repo} setRefresh={setRefresh} />
                   ))}
                 </TableBody>
               </Table>
@@ -290,10 +292,11 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, user, namespace: ns, repository, setRefresh }: {
-  localServer: string; index: number; user: IUserSelf; namespace: INamespaceItem;
+function TableItem({ localServer, user, namespace: ns, repository, setRefresh }: {
+  localServer: string; user: IUserSelf; namespace: INamespaceItem;
   repository: IRepositoryItem; setRefresh: (param: any) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
@@ -352,7 +355,7 @@ function TableItem({ localServer, index, user, namespace: ns, repository, setRef
     <>
       <TableRow>
         <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`)}>
-          <div className="truncate hover:text-muted-foreground">
+          <div className="truncate">
             <span className="font-medium">{repository.name}</span>
             <span className="text-muted-foreground font-normal ml-4">{repository.description}</span>
           </div>
@@ -361,13 +364,31 @@ function TableItem({ localServer, index, user, namespace: ns, repository, setRef
         <TableCell className="text-right"><QuotaSimple current={repository.tag_count} limit={repository.tag_limit} /></TableCell>
         <TableCell className="text-right text-muted-foreground">{dayjs.utc(repository.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
         <TableCell className="text-right text-muted-foreground">{dayjs.utc(repository.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-        <TableCell className="text-center">
-          <TableItemDropdown
-            items={[
-              { name: "Update", disable: !canManage, onClick: () => setUpdateRepositoryModal(true) },
-              { name: "Delete", disable: !canManage, warn: true, onClick: () => setDeleteRepositoryModal(true) },
-            ]}
-          />
+        <TableCell className="text-right">
+          {canManage && (
+            <div className="flex items-center justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-6"
+                title={t("common.update")}
+                aria-label={t("common.update")}
+                onClick={() => setUpdateRepositoryModal(true)}
+              >
+                <SquarePen />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-6 text-destructive hover:text-destructive"
+                title={t("common.delete")}
+                aria-label={t("common.delete")}
+                onClick={() => setDeleteRepositoryModal(true)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          )}
         </TableCell>
       </TableRow>
 

@@ -23,12 +23,7 @@ export type Locale = "en-US" | "zh-CN";
 
 export const uiPreferencesStorageKey = "sigma-ui-preferences";
 
-function getDefaultLocale(): Locale {
-  if (typeof navigator === "undefined") {
-    return "en-US";
-  }
-  return navigator.language.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
-}
+export const defaultLocale: Locale = "en-US";
 
 interface UIState {
   sidebarCollapsed: boolean;
@@ -49,7 +44,7 @@ export const useUiStore = create<UIState>()(
       sidebarCollapsed: false,
       themeMode: "system",
       resolvedTheme: "light",
-      locale: getDefaultLocale(),
+      locale: defaultLocale,
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
       toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setThemeMode: (mode) => set({ themeMode: mode }),

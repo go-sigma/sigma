@@ -99,7 +99,7 @@ export default function ShikiDockerfileEditor({
     >
       <div
         ref={highlightRef}
-        className="pointer-events-none absolute inset-0 overflow-auto p-3 font-mono text-sm leading-6 [&_pre]:!m-0 [&_pre]:!bg-transparent [&_pre]:!p-0 [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-6"
+        className="pointer-events-none absolute inset-0 overflow-auto p-3 font-mono text-sm leading-6 [&_pre]:m-0! [&_pre]:bg-transparent! [&_pre]:p-0! [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-6"
         dangerouslySetInnerHTML={{ __html: html }}
       />
       <textarea

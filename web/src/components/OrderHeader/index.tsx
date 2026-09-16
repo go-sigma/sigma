@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { IOrder } from "../../interfaces";
 
 export default function ({ text, orderStatus, setOrder }: { text: string, orderStatus: IOrder, setOrder: (order: IOrder) => void }) {
@@ -37,9 +37,7 @@ export default function ({ text, orderStatus, setOrder }: { text: string, orderS
         <ArrowUp className="h-3 w-3 text-gray-500" />
       ) : orderStatus === IOrder.Desc ? (
         <ArrowDown className="h-3 w-3 text-gray-500" />
-      ) : (
-        <ArrowUpDown className="h-3 w-3 text-gray-300" />
-      )}
+      ) : null}
     </span>
   );
 }
