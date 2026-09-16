@@ -5,14 +5,14 @@ ARG ALPINE_VERSION=3.24
 ARG GOLANG_VERSION=1.27-alpine3.24
 ARG BUN_VERSION=1.4.2-alpine
 ARG BUILDKIT_VERSION=v0.33.0-rootless
-ARG SWAGGER_UI_VERSION=5.32.15
+ARG SWAGGER_UI_VERSION=5.33.0
 
 # =============================================================
 # base stages  (originally Dockerfile.base)
 # =============================================================
 FROM alpine:${ALPINE_VERSION} AS syft
 
-ARG SYFT_VERSION=1.42.3
+ARG SYFT_VERSION=1.51.1
 ARG TARGETOS
 ARG TARGETARCH
 ARG USE_MIRROR=false
@@ -28,7 +28,7 @@ RUN set -eux && \
 
 FROM alpine:${ALPINE_VERSION} AS grype
 
-ARG GRYPE_VERSION=0.110.0
+ARG GRYPE_VERSION=0.118.0
 ARG TARGETOS
 ARG TARGETARCH
 ARG USE_MIRROR=false
