@@ -34,8 +34,8 @@ export default function ({ localServer }: { localServer: string }) {
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
 
-  const [sortOrder, setSortOrder] = useState(IOrder.None);
-  const [sortName, setSortName] = useState("");
+  const [sortOrder] = useState(IOrder.None);
+  const [sortName] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 

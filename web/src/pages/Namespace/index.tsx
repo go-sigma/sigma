@@ -71,10 +71,18 @@ export default function Namespace({ localServer }: { localServer: string }) {
 
   const [namespaceText, setNamespaceText] = useState("");
   const [namespaceTextValid, setNamespaceTextValid] = useState(true);
-  useEffect(() => { namespaceText != "" && setNamespaceTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(namespaceText)) }, [namespaceText])
+  useEffect(() => {
+    if (namespaceText != "") {
+      setNamespaceTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(namespaceText));
+    }
+  }, [namespaceText])
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  useEffect(() => {
+    if (descriptionText != "") {
+      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
+    }
+  }, [descriptionText]);
   const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(0);
   const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
   useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit]);
@@ -308,7 +316,11 @@ function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServ
 
   const [descriptionText, setDescriptionText] = useState(ns.description);
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  useEffect(() => {
+    if (descriptionText != "") {
+      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
+    }
+  }, [descriptionText]);
   const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(ns.repository_limit);
   const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
   useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit])

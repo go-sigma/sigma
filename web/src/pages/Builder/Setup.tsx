@@ -1631,7 +1631,7 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="flex flex-1 justify-between sm:justify-end">
                 <button
                   className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  onClick={e => {
+                  onClick={() => {
                     if (backTo !== "") {
                       navigate(backTo);
                     }

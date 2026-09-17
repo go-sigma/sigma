@@ -21,8 +21,7 @@ import {
   ICodeRepositoryList,
   ICodeRepositoryOwnerItem,
   ICodeRepositoryOwnerList,
-  ICodeRepositoryUser3rdParty,
-  IOrder
+  ICodeRepositoryUser3rdParty
 } from '../../interfaces';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -56,8 +55,6 @@ export default function ({ localServer }: { localServer: string }) {
   const [searchCodeRepo, setSearchCodeRepo] = useState("");
   const [searchCodeRepoEvent, setSearchCodeRepoEvent] = useState(0);
 
-  const [sortOrder, setSortOrder] = useState(IOrder.None);
-  const [sortName, setSortName] = useState("");
 
   const [codeRepositoryOwners, setCodeRepositoryOwners] = useState<ICodeRepositoryOwnerItem[]>([]);
   const [organization, setOrganization] = useState("");

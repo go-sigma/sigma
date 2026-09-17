@@ -257,7 +257,7 @@ export default function Member({ localServer }: { localServer: string }) {
               </div>
               <div className="px-4 flex flex-col">
                 <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                  onClick={e => { setCreateUserNamespaceModal(true) }}
+                  onClick={() => { setCreateUserNamespaceModal(true) }}
                 >Add</button>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function Member({ localServer }: { localServer: string }) {
                   {
                     memberList.items?.map((member, index) => {
                       return (
-                        <TableItem key={index} index={index} localServer={localServer} namespace={namespaceObj} userSelectedArg={{ username: member.username, id: member.user_id } as IUserItem} member={member} setRefresh={setRefresh} />
+                        <TableItem key={index} localServer={localServer} namespace={namespaceObj} userSelectedArg={{ username: member.username, id: member.user_id } as IUserItem} member={member} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -401,7 +401,7 @@ export default function Member({ localServer }: { localServer: string }) {
   );
 }
 
-function TableItem({ localServer, index, namespace, userSelectedArg, member, setRefresh }: { localServer: string, index: number, namespace: INamespaceItem, userSelectedArg: IUserItem, member: INamespaceMemberItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, namespace, userSelectedArg, member, setRefresh }: { localServer: string, namespace: INamespaceItem, userSelectedArg: IUserItem, member: INamespaceMemberItem, setRefresh: (param: any) => void }) {
   const [updateUserNamespaceModal, setUpdateUserNamespaceModal] = useState(false);
   const [userSelected] = useState<IUserItem>(userSelectedArg);
   const [addNamespaceRoleRole, setAddNamespaceRoleRole] = useState(member.role);

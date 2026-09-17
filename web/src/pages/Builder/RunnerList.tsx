@@ -56,7 +56,11 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [branchText, setBranchText] = useState("");
   const [branchTextValid, setBranchTextValid] = useState(true);
-  useEffect(() => { branchText != "" && setBranchTextValid(/^[a-zA-Z0-9_-]{1,64}$/.test(branchText)) }, [branchText]);
+  useEffect(() => {
+    if (branchText != "") {
+      setBranchTextValid(/^[a-zA-Z0-9_-]{1,64}$/.test(branchText));
+    }
+  }, [branchText]);
 
   useEffect(() => {
     axios.get(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`).then(response => {
@@ -100,7 +104,11 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,50}$/.test(descriptionText)) }, [descriptionText]);
+  useEffect(() => {
+    if (descriptionText != "") {
+      setDescriptionTextValid(/^.{0,50}$/.test(descriptionText));
+    }
+  }, [descriptionText]);
 
   useEffect(() => {
     if (repositoryObj != undefined) {

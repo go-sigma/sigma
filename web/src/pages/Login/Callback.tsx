@@ -20,7 +20,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import { IHTTPError, IUserLoginResponse, IUserSelf } from "../../interfaces";
+import { IHTTPError, IUserLoginResponse } from "../../interfaces";
 import Toast from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
 
@@ -53,7 +53,6 @@ export default function ({ localServer }: { localServer: string }) {
         if (token !== "") {
           axios.get(localServer + "/api/v1/users/self").then(response => {
             if (response.status === 200) {
-              const user = response.data as IUserSelf;
               setSuccess(true);
               setTimeout(() => { setRequestDone(true); window.location.assign("/"); }, 500)
             } else {
@@ -80,7 +79,6 @@ export default function ({ localServer }: { localServer: string }) {
       if (token !== "") {
         axios.get(localServer + "/api/v1/users/self").then(response => {
           if (response.status === 200) {
-            const user = response.data as IUserSelf;
             setSuccess(true);
             setTimeout(() => { setRequestDone(true); window.location.assign("/"); }, 500)
           } else {

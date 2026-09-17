@@ -273,7 +273,7 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
   }, [passwordText]);
 
   const [namespaceCountLimit, setNamespaceCountLimit] = useState<string | number>(user.namespace_limit);
-  const [namespaceCountLimitValid, setNamespaceCountLimitValid] = useState(true);
+  const [, setNamespaceCountLimitValid] = useState(true);
   useEffect(() => { setNamespaceCountLimitValid(Number.isInteger(namespaceCountLimit) && parseInt(namespaceCountLimit.toString()) >= 0) }, [namespaceCountLimit]);
   const [emailInput, setEmailInput] = useState(user.email);
   const [emailInputValid, setEmailInputValid] = useState(true);

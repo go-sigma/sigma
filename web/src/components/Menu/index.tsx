@@ -132,7 +132,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
 
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem("username"));
-  const [userID, setUserID] = useState(0);
+  const [, setUserID] = useState(0);
   const [username, setUsername] = useState(() => localStorage.getItem("username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
   const [refresh, setRefresh] = useState({});

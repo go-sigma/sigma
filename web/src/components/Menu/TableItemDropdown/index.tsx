@@ -24,7 +24,6 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface ITableItemDropdownProps {
-  index?: number;
   items?: ITableItemDropdownItem[];
 }
 
@@ -35,7 +34,7 @@ interface ITableItemDropdownItem {
   disable?: boolean;
 }
 
-export default function ({ index, items }: ITableItemDropdownProps) {
+export default function ({ items }: ITableItemDropdownProps) {
   return items && items.length > 0 && !items.every(item => item.disable) ? (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>

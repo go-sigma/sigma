@@ -36,8 +36,8 @@ export default function ({ localServer }: { localServer: string }) {
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
 
-  const [sortOrder, setSortOrder] = useState(IOrder.None);
-  const [sortName, setSortName] = useState("");
+  const [sortOrder] = useState(IOrder.None);
+  const [sortName] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -165,7 +165,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
               <div className="px-4 flex flex-col">
                 <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                  onClick={e => createGcRunner()}
+                  onClick={() => createGcRunner()}
                 >Run</button>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function ({ localServer }: { localServer: string }) {
                       return (
                         <tr className="border-b" key={runner.id}>
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                            onClick={e => {
+                            onClick={() => {
                               if (location.pathname.startsWith("/settings")) {
                                 navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
                               } else {
@@ -260,7 +260,7 @@ export default function ({ localServer }: { localServer: string }) {
                       return (
                         <tr className="border-b" key={runner.id}>
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                            onClick={e => {
+                            onClick={() => {
                               if (location.pathname.startsWith("/settings")) {
                                 navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
                               } else {
@@ -319,7 +319,7 @@ export default function ({ localServer }: { localServer: string }) {
                       return (
                         <tr className="border-b" key={runner.id}>
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                            onClick={e => {
+                            onClick={() => {
                               if (location.pathname.startsWith("/settings")) {
                                 navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
                               } else {
@@ -378,7 +378,7 @@ export default function ({ localServer }: { localServer: string }) {
                       return (
                         <tr className="border-b" key={runner.id}>
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
-                            onClick={e => {
+                            onClick={() => {
                               if (location.pathname.startsWith("/settings")) {
                                 navigate(`/settings/daemon-tasks/${resource}/${runner.id}/records?namespace_id=${namespaceId}`);
                               } else {

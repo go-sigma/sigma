@@ -181,7 +181,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </div>
                 <div className="flex flex-1 justify-between sm:justify-end">
                   <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                    onClick={e => setEditorState(false)}
+                    onClick={() => setEditorState(false)}
                   >Cancel</button>
                   <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
                     onClick={() => { updateRepository() }}

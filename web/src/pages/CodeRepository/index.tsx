@@ -163,7 +163,7 @@ function GitHubButton({ localServer, endpoint, active }: { localServer: string, 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow min-w-[10rem] cursor-pointer relative group">
       <div className="p-5"
-        onClick={e => {
+        onClick={() => {
           navigate(`/coderepos/github`);
         }}
       >
@@ -215,7 +215,7 @@ function GitLabButton({ localServer, endpoint, active }: { localServer: string, 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow min-w-[10rem] cursor-pointer relative group">
       <div className="p-5"
-        onClick={e => {
+        onClick={() => {
           navigate(`/coderepos/gitlab`);
         }}
       >

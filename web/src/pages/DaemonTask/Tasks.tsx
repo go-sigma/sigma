@@ -950,7 +950,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="leading-6 ">Retention Days</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcBlobRetentionDaysHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-retention-days"),
                             document.getElementById("gcBlobRetentionDaysHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -1033,7 +1033,7 @@ export default function ({ localServer }: { localServer: string }) {
                             <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
                               id="gcBlobRuleHelp"
-                              onClick={e => {
+                              onClick={() => {
                                 let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-cron-rule"),
                                   document.getElementById("gcBlobRuleHelp"), { triggerType: "click" });
                                 tooltip.show();
@@ -1118,7 +1118,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="leading-6 ">Retention Days</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcRepositoryRetentionDaysHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
                             document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -1201,7 +1201,7 @@ export default function ({ localServer }: { localServer: string }) {
                             <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
                               id="gcRepositoryRuleHelp"
-                              onClick={e => {
+                              onClick={() => {
                                 let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-cron-rule"),
                                   document.getElementById("gcRepositoryRuleHelp"), { triggerType: "click" });
                                 tooltip.show();
@@ -1287,7 +1287,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="leading-6 ">Retention Days</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcArtifactRetentionDaysHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-retention-days"),
                             document.getElementById("gcArtifactRetentionDaysHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -1370,7 +1370,7 @@ export default function ({ localServer }: { localServer: string }) {
                             <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
                               id="gcArtifactRuleHelp"
-                              onClick={e => {
+                              onClick={() => {
                                 let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-cron-rule"),
                                   document.getElementById("gcArtifactRuleHelp"), { triggerType: "click" });
                                 tooltip.show();
@@ -1454,7 +1454,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="leading-6 ">Retention Amount</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcTagRetentionAmountHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-amount"),
                             document.getElementById("gcTagRetentionAmountHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -1531,7 +1531,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="leading-6 ">Retention Regex</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcTagRetentionPatternHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-pattern"),
                             document.getElementById("gcTagRetentionPatternHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -1614,7 +1614,7 @@ export default function ({ localServer }: { localServer: string }) {
                             <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
                               id="gcTagRuleHelp"
-                              onClick={e => {
+                              onClick={() => {
                                 let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-cron-rule"),
                                   document.getElementById("gcTagRuleHelp"), { triggerType: "click" });
                                 tooltip.show();

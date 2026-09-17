@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "no-debugger": "error",
+    "no-var": "error",
+    "no-self-compare": "error",
+    "no-unreachable": "error",
+    "no-constant-condition": "error",
+    "no-fallthrough": "error",
+    "no-sparse-arrays": "error",
+    "no-unsafe-optional-chaining": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "public/**"
+  ]
+}

@@ -328,7 +328,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
-        onClick={e => {
+        onClick={() => {
           setDrawerShow(true);
         }}
       >

@@ -88,7 +88,7 @@ export function refreshToken(
       } else {
         onFailed()
       }
-    }).catch(err => {
+    }).catch(() => {
       onFailed()
     })
 }

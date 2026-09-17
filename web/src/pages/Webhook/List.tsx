@@ -107,7 +107,11 @@ export default function ({ localServer }: { localServer: string }) {
   useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
   const [url, setUrl] = useState<string>("");
   const [urlValid, setUrlValid] = useState(true);
-  useEffect(() => { url != "" && setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128) }, [url]);
+  useEffect(() => {
+    if (url != "") {
+      setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128);
+    }
+  }, [url]);
 
   const [createWebhookModal, setCreateWebhookModal] = useState(false);
 
@@ -184,10 +188,14 @@ export default function ({ localServer }: { localServer: string }) {
       data["ssl_verify"] = sslVerify;
     }
 
-    let u = `${localServer}/api/v1/webhooks/`;
     if (location.pathname.startsWith("/settings")) {
       data["event_namespace"] = eventNamespace;
       data["namespace_id"] = parseInt(namespaceId || "");
+    }
+    let u = `${localServer}/api/v1/webhooks/`;
+    if (namespaceObj.id != 0) {
+      data["event_namespace"] = eventNamespace
+      u += `?namespace_id=${namespaceObj.id}`
     }
     axios.post(u, data, {}).then(response => {
       if (response.status === 201) {
@@ -319,9 +327,9 @@ export default function ({ localServer }: { localServer: string }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 max-h-max">
                   {
-                    webhookList.items?.map((webhook, index) => {
+                    webhookList.items?.map((webhook) => {
                       return (
-                        <TableItem key={webhook.id} index={index} userObj={userObj} namespaceObj={namespaceObj} localServer={localServer} webhookObj={webhook} setRefresh={setRefresh} />
+                        <TableItem key={webhook.id} userObj={userObj} namespaceObj={namespaceObj} localServer={localServer} webhookObj={webhook} setRefresh={setRefresh} />
                       );
                     })
                   }
@@ -392,7 +400,7 @@ export default function ({ localServer }: { localServer: string }) {
                     <label className="inline-flex items-center cursor-pointer">
                       <input type="checkbox"
                         checked={sslVerify}
-                        onChange={e => setSslVerify(!sslVerify)}
+                        onChange={() => setSslVerify(!sslVerify)}
                         className="sr-only peer" />
                       <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                     </label>
@@ -425,7 +433,7 @@ export default function ({ localServer }: { localServer: string }) {
                     <span className="leading-6 ">Retry Duration</span>
                     <div className="flex flex-row cursor-pointer"
                       id="gcRepositoryRetentionDaysHelp"
-                      onClick={e => {
+                      onClick={() => {
                         let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
                           document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
                         tooltip.show();
@@ -463,7 +471,7 @@ export default function ({ localServer }: { localServer: string }) {
                 <label className="inline-flex items-center cursor-pointer">
                   <input type="checkbox"
                     checked={enable}
-                    onChange={e => setEnable(!enable)}
+                    onChange={() => setEnable(!enable)}
                     className="sr-only peer" />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
@@ -475,7 +483,7 @@ export default function ({ localServer }: { localServer: string }) {
                   <div className="flex items-center">
                     <input id="event-namespace" type="checkbox"
                       checked={eventNamespace}
-                      onChange={e => setEventNamespace(!eventNamespace)}
+                      onChange={() => setEventNamespace(!eventNamespace)}
                       className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                     <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
                   </div>
@@ -484,35 +492,35 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="flex items-center">
                 <input id="event-member"
                   checked={eventMember}
-                  onChange={e => setEventMember(!eventMember)}
+                  onChange={() => setEventMember(!eventMember)}
                   type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
               </div>
               <div className="flex items-center">
                 <input id="event-repository" type="checkbox"
                   checked={eventRepository}
-                  onChange={e => setEventRepository(!eventRepository)}
+                  onChange={() => setEventRepository(!eventRepository)}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
               </div>
               <div className="flex items-center">
                 <input id="event-tag" type="checkbox"
                   checked={eventTag}
-                  onChange={e => setEventTag(!eventTag)}
+                  onChange={() => setEventTag(!eventTag)}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
               </div>
               <div className="flex items-center">
                 <input id="event-artifact" type="checkbox"
                   checked={eventArtifact}
-                  onChange={e => setEventArtifact(!eventArtifact)}
+                  onChange={() => setEventArtifact(!eventArtifact)}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
               </div>
               <div className="flex items-center">
                 <input id="event-daemon-task-gc" type="checkbox"
                   checked={eventDaemonTaskGc}
-                  onChange={e => setEventDaemonTaskGc(!eventDaemonTaskGc)}
+                  onChange={() => setEventDaemonTaskGc(!eventDaemonTaskGc)}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <label htmlFor="event-daemon-task-gc" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gc Event</label>
               </div>
@@ -528,7 +536,7 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
   const canManageWebhook = userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
   const location = useLocation();
   const navigate = useNavigate();
@@ -572,7 +580,11 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
   useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
   const [url, setUrl] = useState<string>(webhookObj.url);
   const [urlValid, setUrlValid] = useState(true);
-  useEffect(() => { url != "" && setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128) }, [url]);
+  useEffect(() => {
+    if (url != "") {
+      setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128);
+    }
+  }, [url]);
 
   useEffect(() => {
     if (url.startsWith("https://")) {
@@ -609,10 +621,8 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
       data["ssl_verify"] = sslVerify;
     }
 
-    let u = `${localServer}/api/v1/webhooks/`;
     if (namespaceObj.id != 0) {
       data["event_namespace"] = eventNamespace
-      u += `?namespace_id=${namespaceObj.id}`
     }
     axios.put(`${localServer}/api/v1/webhooks/${webhookObj.id}`, data).then(response => {
       if (response.status === 204) {
@@ -742,7 +752,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
                       <label className="inline-flex items-center cursor-pointer">
                         <input type="checkbox"
                           checked={sslVerify}
-                          onChange={e => setSslVerify(!sslVerify)}
+                          onChange={() => setSslVerify(!sslVerify)}
                           className="sr-only peer" />
                         <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                       </label>
@@ -775,7 +785,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
                       <span className="leading-6 ">Retry Duration</span>
                       <div className="flex flex-row cursor-pointer"
                         id="gcRepositoryRetentionDaysHelp"
-                        onClick={e => {
+                        onClick={() => {
                           let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
                             document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
                           tooltip.show();
@@ -813,7 +823,7 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
                   <label className="inline-flex items-center cursor-pointer">
                     <input type="checkbox"
                       checked={enable}
-                      onChange={e => setEnable(!enable)}
+                      onChange={() => setEnable(!enable)}
                       className="sr-only peer" />
                     <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                   </label>
@@ -823,35 +833,35 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
                 <div className="flex items-center">
                   <input id="event-namespace" type="checkbox"
                     checked={eventNamespace}
-                    onChange={e => setEventNamespace(!eventNamespace)}
+                    onChange={() => setEventNamespace(!eventNamespace)}
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                   <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
                 </div>
                 <div className="flex items-center">
                   <input id="event-repository" type="checkbox"
                     checked={eventRepository}
-                    onChange={e => setEventRepository(!eventRepository)}
+                    onChange={() => setEventRepository(!eventRepository)}
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                   <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
                 </div>
                 <div className="flex items-center">
                   <input id="event-tag" type="checkbox"
                     checked={eventTag}
-                    onChange={e => setEventTag(!eventTag)}
+                    onChange={() => setEventTag(!eventTag)}
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                   <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
                 </div>
                 <div className="flex items-center">
                   <input id="event-artifact" type="checkbox"
                     checked={eventArtifact}
-                    onChange={e => setEventArtifact(!eventArtifact)}
+                    onChange={() => setEventArtifact(!eventArtifact)}
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                   <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
                 </div>
                 <div className="flex items-center">
                   <input id="event-member"
                     checked={eventMember}
-                    onChange={e => setEventMember(!eventMember)}
+                    onChange={() => setEventMember(!eventMember)}
                     type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                   <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
                 </div>

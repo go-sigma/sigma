@@ -88,10 +88,18 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [repositoryText, setRepositoryText] = useState("");
   const [repositoryTextValid, setRepositoryTextValid] = useState(true);
-  useEffect(() => { repositoryText != "" && setRepositoryTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(repositoryText)) }, [repositoryText])
+  useEffect(() => {
+    if (repositoryText != "") {
+      setRepositoryTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(repositoryText));
+    }
+  }, [repositoryText])
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  useEffect(() => {
+    if (descriptionText != "") {
+      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
+    }
+  }, [descriptionText]);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
   useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
@@ -302,7 +310,11 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
   const [descriptionText, setDescriptionText] = useState(repository.description);
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => { descriptionText != "" && setDescriptionTextValid(/^.{0,30}$/.test(descriptionText)) }, [descriptionText]);
+  useEffect(() => {
+    if (descriptionText != "") {
+      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
+    }
+  }, [descriptionText]);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(repository.tag_limit);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
   useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])

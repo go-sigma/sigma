@@ -80,7 +80,7 @@ export default function Tag({ localServer }: { localServer: string }) {
 
   const [endpoint, setEndpoint] = useState("");
 
-  const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
+  const [, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
   const [deleteTagModal, setDeleteTagModal] = useState(false);
   const [deleteTagModalTag, setDeleteTagModalTag] = useState<ITagItem>({} as ITagItem);
@@ -100,7 +100,7 @@ export default function Tag({ localServer }: { localServer: string }) {
     });
   }, []);
 
-  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
+  const [, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
 
   useEffect(() => {
     if (namespaceId == null || namespaceId == "") {
@@ -311,7 +311,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                         <div className="flex-1 flex gap-1">
                           <span className="font-semibold text-gray-600 cursor-pointer"
                             id={"tooltip-tag-name-" + index}
-                            onClick={e => {
+                            onClick={() => {
                               copyToClipboard(`${tag.name}`);
                               let tooltip = new Tooltip(document.getElementById("tooltip-top-content"),
                                 document.getElementById("tooltip-tag-name-" + index.toString()), { triggerType: "click" });
@@ -324,7 +324,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                         <div>
                           <code className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
                             id={"tooltip-top-btn-" + index}
-                            onClick={e => {
+                            onClick={() => {
                               let copyText = `docker pull ${trimHTTP(endpoint)}/${repository}:${tag.name}`;
                               if (tag.artifact.config_media_type === "application/vnd.cncf.helm.config.v1+json") {
                                 copyText = `helm pull ${trimHTTP(endpoint)}/${repository} --version ${tag.name}`
@@ -416,7 +416,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                             </th>
                           </tr>
                         </thead>
-                        <TableItem namespace={namespaceObj} repository={repository || ""} artifact={tag.artifact} artifacts={tag.artifacts} />
+                        <TableItem artifact={tag.artifact} artifacts={tag.artifacts} />
                       </table>
                       {/* third row end */}
                     </div>
@@ -442,7 +442,7 @@ function skipManifest(raw: string) {
   return false;
 }
 
-function TableItem({ namespace, repository, artifact, artifacts }: { namespace: INamespaceItem, repository: string, artifact: IArtifact, artifacts: IArtifact[] }) {
+function TableItem({ artifact, artifacts }: { artifact: IArtifact, artifacts: IArtifact[] }) {
   const artifactObj = JSON.parse(artifact.raw);
 
   return (
