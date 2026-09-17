@@ -48,6 +48,10 @@ jobs:
           cd web
           bun install --frozen-lockfile
           bun run build
+      - name: Lint web
+        run: |
+          cd web
+          bun run lint
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
