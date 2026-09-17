@@ -16,11 +16,34 @@
 
 import _ from 'lodash';
 import axios from "axios";
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import { Combobox, Listbox, Transition } from '@headlessui/react';
+import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import Header from '../../components/Header';
 import HeaderMenu from '../../components/Menu';
@@ -581,7 +604,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>{t("header.setupBuilder")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950 min-w-[1600px]">
+      <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950 min-w-400">
         <HeaderMenu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           {/* part 1 begin */}
@@ -600,87 +623,53 @@ export default function ({ localServer }: { localServer: string }) {
                     Namespace
                   </label>
                   <div className="mt-2">
-                    <Combobox value={namespaceSelected}
-                      disabled={(searchParams.get('namespace_stick') || '') === 'true'}
-                      onChange={(namespace: INamespaceItem | null) => {
-                        if (!namespace) {
-                          return;
+                    <Popover>
+                      <PopoverTrigger
+                        render={
+                          <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('namespace_stick') || '') === 'true'}>
+                            {namespaceSelected?.name || "Select"}
+                            <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                          </Button>
                         }
-                        setSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          namespace: namespace.name,
-                          namespace_id: namespace.id.toString(),
-                          repository: '',
-                          repository_id: '',
-                        });
-                        setRepositorySelected({} as IRepositoryItem); // clear the repo selected
-                        setNamespaceSelected(namespace);
-                      }}>
-                      <div className="relative mt-1">
-                        <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                          <Combobox.Input
-                            id="namespace"
-                            className={() => {
-                              let cursor = ''
-                              if ((searchParams.get('namespace_stick') || '') === 'true') {
-                                cursor = 'cursor-not-allowed ';
-                              }
-                              return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                            }}
-                            displayValue={(namespace: INamespaceItem) => namespace.name}
-                            onChange={event => {
-                              setNamespaceSearch(event.target.value);
-                            }}
+                      />
+                      <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Search"
+                            value={namespaceSearch}
+                            onValueChange={setNamespaceSearch}
                           />
-                          <Combobox.Button
-                            className={() => {
-                              let cursor = ''
-                              if ((searchParams.get('namespace_stick') || '') === 'true') {
-                                cursor = 'cursor-not-allowed ';
-                              }
-                              return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
-                            }}
-                          >
-                            <ChevronUpDownIcon
-                              className="h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                          </Combobox.Button>
-                        </div>
-                        <Transition
-                          as={Fragment}
-                          leave="transition ease-in duration-100"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                          afterLeave={() => setNamespaceSearch('')}
-                        >
-                          <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {
-                              namespaceList?.length === 0 ? (
-                                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                  Nothing found.
-                                </div>
-                              ) : (
-                                namespaceList?.map(namespace => (
-                                  <Combobox.Option
-                                    key={namespace.id}
-                                    className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                      }`
+                          <CommandList>
+                            <CommandEmpty>Nothing found.</CommandEmpty>
+                            <CommandGroup>
+                              {namespaceList?.map(item => (
+                                <CommandItem
+                                  key={item.id}
+                                  value={item.name}
+                                  onSelect={() => {
+                                    const namespace = item;
+                                    if (!namespace) {
+                                    return;
                                     }
-                                    value={namespace}
-                                  >
-                                    <span className={`block truncate  font-normal`}>
-                                      {namespace.name}
-                                    </span>
-                                  </Combobox.Option>
-                                ))
-                              )
-                            }
-                          </Combobox.Options>
-                        </Transition>
-                      </div>
-                    </Combobox>
+                                    setSearchParams({
+                                    ...Object.fromEntries(searchParams.entries()),
+                                    namespace: namespace.name,
+                                    namespace_id: namespace.id.toString(),
+                                    repository: '',
+                                    repository_id: '',
+                                    });
+                                    setRepositorySelected({} as IRepositoryItem); // clear the repo selected
+                                    setNamespaceSelected(namespace);
+                                  }}
+                                >
+                                  {item.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 <div className="sm:col-span-1">
@@ -688,89 +677,50 @@ export default function ({ localServer }: { localServer: string }) {
                     Repository
                   </label>
                   <div className="mt-2">
-                    <Combobox value={repositorySelected}
-                      disabled={(searchParams.get('repository_stick') || '') === 'true'}
-                      onChange={(repo: IRepositoryItem | null) => {
-                        if (!repo) {
-                          return;
+                    <Popover>
+                      <PopoverTrigger
+                        render={
+                          <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('repository_stick') || '') === 'true'}>
+                            {repositorySelected?.name || "Select"}
+                            <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                          </Button>
                         }
-                        setSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          repository: repo.name,
-                          repository_id: repo.id.toString(),
-                        });
-                        setRepositorySelected(repo);
-                      }}>
-                      <div className="relative mt-1">
-                        <div className="w-full relative overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm cursor-pointer" >
-                          <Combobox.Input
-                            id="repository"
-                            className={() => {
-                              let cursor = ''
-                              if ((searchParams.get('repository_stick') || '') === 'true') {
-                                cursor = 'cursor-not-allowed ';
-                              }
-                              return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                            }}
-                            displayValue={(repository: IRepositoryItem) => {
-                              if (namespaceSelected.name != undefined && repository.name != undefined) {
-                                return repository.name.substring(namespaceSelected.name.length + 1)
-                              }
-                              return "";
-                            }}
-                            onChange={(event) => {
-                              setRepositorySearch(event.target.value);
-                            }}
+                      />
+                      <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Search"
+                            value={repositorySearch}
+                            onValueChange={setRepositorySearch}
                           />
-                          <Combobox.Button
-                            className={() => {
-                              let cursor = ''
-                              if ((searchParams.get('repository_stick') || '') === 'true') {
-                                cursor = 'cursor-not-allowed ';
-                              }
-                              return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
-                            }}
-                          >
-                            <ChevronUpDownIcon
-                              className="h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                          </Combobox.Button>
-                        </div>
-                        <Transition
-                          as={Fragment}
-                          leave="transition ease-in duration-100"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                          afterLeave={() => setRepositorySearch('')}
-                        >
-                          <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {
-                              repositoryList?.length === 0 ? (
-                                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                  Nothing found.
-                                </div>
-                              ) : (
-                                repositoryList?.map(repository => (
-                                  <Combobox.Option
-                                    key={repository.id}
-                                    className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                      }`
+                          <CommandList>
+                            <CommandEmpty>Nothing found.</CommandEmpty>
+                            <CommandGroup>
+                              {repositoryList?.map(item => (
+                                <CommandItem
+                                  key={item.id}
+                                  value={item.name}
+                                  onSelect={() => {
+                                    const repo = item;
+                                    if (!repo) {
+                                    return;
                                     }
-                                    value={repository}
-                                  >
-                                    <span className={`block truncate font-normal`}>
-                                      {repository.name.substring(namespaceSelected.name.length + 1)}
-                                    </span>
-                                  </Combobox.Option>
-                                ))
-                              )
-                            }
-                          </Combobox.Options>
-                        </Transition>
-                      </div>
-                    </Combobox>
+                                    setSearchParams({
+                                    ...Object.fromEntries(searchParams.entries()),
+                                    repository: repo.name,
+                                    repository_id: repo.id.toString(),
+                                    });
+                                    setRepositorySelected(repo);
+                                  }}
+                                >
+                                  {item.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
@@ -783,73 +733,32 @@ export default function ({ localServer }: { localServer: string }) {
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                     Builder Source
                   </label>
-                  <div className="mt-2 flex flex-row items-center h-[36px]">
-                    <Listbox
-                      disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
+                  <div className="mt-2 flex flex-row items-center h-9">
+                    <Select
                       value={builderSource}
-                      onChange={(source: string) => {
+                      onValueChange={(value) => {
+                        if (value == null) {
+                          return;
+                        }
+                        const source = value;
                         setSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          builder_source: source,
+                        ...Object.fromEntries(searchParams.entries()),
+                        builder_source: source,
                         });
                         setBuilderSource(source);
-                      }}>
-                      <div className="relative mt-1 w-full">
-                        <Listbox.Button
-                          className={() => {
-                            let cursor = ''
-                            if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                              cursor = 'cursor-not-allowed ';
-                            } else {
-                              cursor = 'cursor-pointer ';
-                            }
-                            return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-                          }}
-                        >
-                          <span className="block truncate">{builderSource}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronUpDownIcon
-                              className="h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                          </span>
-                        </Listbox.Button>
-                        <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                          <Transition
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                          >
-                            {
-                              supportBuilderSource.map(source => (
-                                <Listbox.Option key={source.name} value={source.name} className={({ active }) =>
-                                  `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                  }`
-                                }>
-                                  {({ selected }) => (
-                                    <>
-                                      <span
-                                        className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                          }`}
-                                      >
-                                        {source.name}
-                                      </span>
-                                      {
-                                        selected ? (
-                                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                          </span>
-                                        ) : null
-                                      }
-                                    </>
-                                  )}
-                                </Listbox.Option>
-                              ))
-                            }
-                          </Transition>
-                        </Listbox.Options>
-                      </div>
-                    </Listbox>
+                      }}
+                    >
+                      <SelectTrigger className="w-full" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {supportBuilderSource.map(source => (
+                          <SelectItem key={source.name} value={source.name}>
+                            {source.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -863,86 +772,49 @@ export default function ({ localServer }: { localServer: string }) {
                             Provider
                           </label>
                           <div className="mt-2">
-                            <Combobox
-                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
-                              value={codeRepositoryProviderSelected}
-                              onChange={(provider: ICodeRepositoryProviderItem | null) => {
-                                if (!provider) {
-                                  return;
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
+                                    {codeRepositoryProviderSelected?.provider || "Select"}
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
                                 }
-                                setSearchParams({
-                                  ...Object.fromEntries(searchParams.entries()),
-                                  provider: provider.provider,
-                                });
-                                setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
-                                setCodeRepositorySelected({} as ICodeRepositoryItem);
-                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCodeRepositoryProviderSelected(provider);
-                              }}>
-                              <div className="relative mt-1">
-                                <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                  <Combobox.Input
-                                    id="codeProviders"
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    }}
-                                    displayValue={(provider: ICodeRepositoryProviderItem) => provider.provider}
-                                    onChange={(event) => { }}
-                                  />
-                                  <Combobox.Button
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
-                                    }}
-                                  >
-                                    <ChevronUpDownIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </Combobox.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                >
-                                  <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {
-                                      codeRepositoryProviderList?.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                          Nothing found.
-                                        </div>
-                                      ) : (
-                                        codeRepositoryProviderList?.map(provider => (
-                                          <Combobox.Option
-                                            key={provider.provider}
-                                            className={({ active }) =>
-                                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                              }`
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandList>
+                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {codeRepositoryProviderList?.map(item => (
+                                        <CommandItem
+                                          key={item.provider}
+                                          value={item.provider}
+                                          onSelect={() => {
+                                            const provider = item;
+                                            if (!provider) {
+                                            return;
                                             }
-                                            value={provider}
-                                          >
-                                            <span className={`block truncate font-normal`}>
-                                              {provider.provider}
-                                            </span>
-                                          </Combobox.Option>
-                                        ))
-                                      )
-                                    }
-                                  </Combobox.Options>
-                                </Transition>
-                              </div>
-                            </Combobox>
+                                            setSearchParams({
+                                            ...Object.fromEntries(searchParams.entries()),
+                                            provider: provider.provider,
+                                            });
+                                            setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
+                                            setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCodeRepositoryProviderSelected(provider);
+                                          }}
+                                        >
+                                          {item.provider}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : null
@@ -954,89 +826,54 @@ export default function ({ localServer }: { localServer: string }) {
                             Organization
                           </label>
                           <div className="mt-2">
-                            <Combobox
-                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
-                              value={codeRepositoryOwnerSelected}
-                              onChange={(owner: ICodeRepositoryOwnerItem | null) => {
-                                if (!owner) {
-                                  return;
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
+                                    {codeRepositoryOwnerSelected?.owner || "Select"}
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
                                 }
-                                setSearchParams({
-                                  ...Object.fromEntries(searchParams.entries()),
-                                  code_repository_owner: owner.owner,
-                                  code_repository_owner_id: owner.id.toString(),
-                                });
-                                setCodeRepositorySelected({} as ICodeRepositoryItem);
-                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCodeRepositoryOwnerSelected(owner);
-                              }}>
-                              <div className="relative mt-1">
-                                <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                  <Combobox.Input
-                                    id="codeOwners"
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    }}
-                                    displayValue={(owner: ICodeRepositoryOwnerItem) => owner.owner}
-                                    onChange={(event) => {
-                                      setCodeRepositoryOwnerSearch(event.target.value);
-                                    }}
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder="Search"
+                                    value={codeRepositoryOwnerSearch}
+                                    onValueChange={setCodeRepositoryOwnerSearch}
                                   />
-                                  <Combobox.Button
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
-                                    }}
-                                  >
-                                    <ChevronUpDownIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </Combobox.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                  afterLeave={() => setCodeRepositoryOwnerSearch('')}
-                                >
-                                  <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {
-                                      codeRepositoryOwnerFilteredList?.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                          Nothing found.
-                                        </div>
-                                      ) : (
-                                        codeRepositoryOwnerFilteredList?.map(owner => (
-                                          <Combobox.Option
-                                            key={owner.id}
-                                            className={({ active }) =>
-                                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                              }`
+                                  <CommandList>
+                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {codeRepositoryOwnerFilteredList?.map(item => (
+                                        <CommandItem
+                                          key={item.id}
+                                          value={item.owner}
+                                          onSelect={() => {
+                                            const owner = item;
+                                            if (!owner) {
+                                            return;
                                             }
-                                            value={owner}
-                                          >
-                                            <span className={`block truncate  font-normal`}>
-                                              {owner.owner}
-                                            </span>
-                                          </Combobox.Option>
-                                        ))
-                                      )
-                                    }
-                                  </Combobox.Options>
-                                </Transition>
-                              </div>
-                            </Combobox>
+                                            setSearchParams({
+                                            ...Object.fromEntries(searchParams.entries()),
+                                            code_repository_owner: owner.owner,
+                                            code_repository_owner_id: owner.id.toString(),
+                                            });
+                                            setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCodeRepositoryOwnerSelected(owner);
+                                          }}
+                                        >
+                                          {item.owner}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : null
@@ -1048,89 +885,53 @@ export default function ({ localServer }: { localServer: string }) {
                             Repository
                           </label>
                           <div className="mt-2">
-                            <Combobox
-                              disabled={(searchParams.get('code_repository_stick') || '') === 'true'}
-                              value={codeRepositorySelected}
-                              onChange={(cr: ICodeRepositoryItem | null) => {
-                                if (!cr) {
-                                  return;
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
+                                    {codeRepositorySelected?.name || "Select"}
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
                                 }
-                                setSearchParams({
-                                  ...Object.fromEntries(searchParams.entries()),
-                                  code_repository_name: cr.name,
-                                  code_repository_id: cr.id.toString(),
-                                });
-                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCodeRepositorySelected(cr);
-                              }}>
-                              <div className="relative mt-1">
-                                <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                  <Combobox.Input
-                                    id="coderepos"
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    }}
-                                    // className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    displayValue={(cr: ICodeRepositoryItem) => cr.name}
-                                    onChange={(event) => {
-                                      setCodeRepositorySearch(event.target.value);
-                                    }}
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder="Search"
+                                    value={codeRepositorySearch}
+                                    onValueChange={setCodeRepositorySearch}
                                   />
-                                  <Combobox.Button
-                                    className={() => {
-                                      let cursor = ''
-                                      if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                        cursor = 'cursor-not-allowed ';
-                                      }
-                                      return cursor + "absolute inset-y-0 right-0 flex items-center pr-2"
-                                    }}
-                                  >
-                                    <ChevronUpDownIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </Combobox.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                  afterLeave={() => setCodeRepositorySearch('')}
-                                >
-                                  <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {
-                                      codeRepositoryList?.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                          Nothing found.
-                                        </div>
-                                      ) : (
-                                        codeRepositoryList?.map(cr => (
-                                          <Combobox.Option
-                                            key={cr.id}
-                                            className={({ active }) =>
-                                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                              }`
+                                  <CommandList>
+                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {codeRepositoryList?.map(item => (
+                                        <CommandItem
+                                          key={item.id}
+                                          value={item.name}
+                                          onSelect={() => {
+                                            const cr = item;
+                                            if (!cr) {
+                                            return;
                                             }
-                                            value={cr}
-                                          >
-                                            <span className={`block truncate  font-normal`}>
-                                              {cr.name} <span className='text-gray-400'>{cr.clone_url}</span>
-                                            </span>
-                                          </Combobox.Option>
-                                        ))
-                                      )
-                                    }
-                                  </Combobox.Options>
-                                </Transition>
-                              </div>
-                            </Combobox>
+                                            setSearchParams({
+                                            ...Object.fromEntries(searchParams.entries()),
+                                            code_repository_name: cr.name,
+                                            code_repository_id: cr.id.toString(),
+                                            });
+                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCodeRepositorySelected(cr);
+                                          }}
+                                        >
+                                          {item.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : null
@@ -1142,68 +943,50 @@ export default function ({ localServer }: { localServer: string }) {
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Combobox value={codeRepositoryBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
-                              if (!branch) {
-                                return;
-                              }
-                              setSearchParams({
-                                ...Object.fromEntries(searchParams.entries()),
-                                code_repository_branch_name: branch.name,
-                                code_repository_branch_id: branch.id.toString(),
-                              });
-                              setCodeRepositoryBranchSelected(branch);
-                            }}>
-                              <div className="relative mt-1">
-                                <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                  <Combobox.Input
-                                    id="branch"
-                                    className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    displayValue={(branch: ICodeRepositoryBranchItem) => branch.name}
-                                    onChange={(event) => {
-                                      setCodeRepositoryBranchSearch(event.target.value);
-                                    }}
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <Button variant="outline" className="w-full justify-between font-normal">
+                                    {codeRepositoryBranchSelected?.name || "Select"}
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
+                                }
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder="Search"
+                                    value={codeRepositoryBranchSearch}
+                                    onValueChange={setCodeRepositoryBranchSearch}
                                   />
-                                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                    <ChevronUpDownIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </Combobox.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                  afterLeave={() => setCodeRepositoryBranchSearch('')}
-                                >
-                                  <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {
-                                      codeRepositoryBranchFilteredList?.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                          Nothing found.
-                                        </div>
-                                      ) : (
-                                        codeRepositoryBranchFilteredList?.map(branch => (
-                                          <Combobox.Option
-                                            key={branch.id}
-                                            className={({ active }) =>
-                                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                              }`
+                                  <CommandList>
+                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {codeRepositoryBranchFilteredList?.map(item => (
+                                        <CommandItem
+                                          key={item.id}
+                                          value={item.name}
+                                          onSelect={() => {
+                                            const branch = item;
+                                            if (!branch) {
+                                            return;
                                             }
-                                            value={branch}
-                                          >
-                                            <span className={`block truncate  font-normal`}>
-                                              {branch.name}
-                                            </span>
-                                          </Combobox.Option>
-                                        ))
-                                      )
-                                    }
-                                  </Combobox.Options>
-                                </Transition>
-                              </div>
-                            </Combobox>
+                                            setSearchParams({
+                                            ...Object.fromEntries(searchParams.entries()),
+                                            code_repository_branch_name: branch.name,
+                                            code_repository_branch_id: branch.id.toString(),
+                                            });
+                                            setCodeRepositoryBranchSelected(branch);
+                                          }}
+                                        >
+                                          {item.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : null
@@ -1214,7 +997,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="customRepositoryCloneUrl" className="block text-sm font-medium leading-6 text-gray-900">
                             Repository
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-[36px]">
+                          <div className="mt-2 flex flex-row items-center h-9">
                             <input
                               type="text"
                               name="customRepositoryCloneUrl"
@@ -1239,7 +1022,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="customRepositoryBranch" className="block text-sm font-medium leading-6 text-gray-900">
                             Branch
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-[36px]">
+                          <div className="mt-2 flex flex-row items-center h-9">
                             <input
                               type="text"
                               name="customRepositoryBranch"
@@ -1268,60 +1051,32 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                         Credential
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
-                        <Listbox value={customRepositoryCredential} onChange={(cred: string) => {
-                          setSearchParams({
+                      <div className="mt-2 flex flex-row items-center h-9">
+                        <Select
+                          value={customRepositoryCredential}
+                          onValueChange={(value) => {
+                            if (value == null) {
+                              return;
+                            }
+                            const cred = value;
+                            setSearchParams({
                             ...Object.fromEntries(searchParams.entries()),
                             custom_repository_credential: cred,
-                          });
-                          setCustomRepositoryCredential(cred);
-                        }}>
-                          <div className="relative mt-1 w-full">
-                            <Listbox.Button className="relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm cursor-pointer">
-                              <span className="block truncate">{customRepositoryCredential}</span>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                  className="h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            </Listbox.Button>
-                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                              <Transition
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                {
-                                  supportCredential.map((credential) => (
-                                    <Listbox.Option key={credential.id} value={credential.name} className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                      }`
-                                    }>
-                                      {({ selected }) => (
-                                        <>
-                                          <span
-                                            className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                              }`}
-                                          >
-                                            {credential.name}
-                                          </span>
-                                          {
-                                            selected ? (
-                                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                              </span>
-                                            ) : null
-                                          }
-                                        </>
-                                      )}
-                                    </Listbox.Option>
-                                  ))
-                                }
-                              </Transition>
-                            </Listbox.Options>
-                          </div>
-                        </Listbox>
+                            });
+                            setCustomRepositoryCredential(cred);
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {supportCredential.map(credential => (
+                              <SelectItem key={credential.name} value={credential.name}>
+                                {credential.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -1331,7 +1086,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor='customRepositoryUsername' className='block text-sm font-medium leading-6 text-gray-900'>
                             Username
                           </label>
-                          <div className='mt-2 h-[36px]'>
+                          <div className='mt-2 h-9'>
                             <input
                               type='text'
                               name='customRepositoryUsername'
@@ -1356,7 +1111,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="customRepositoryPassword" className="block text-sm font-medium leading-6 text-gray-900">
                             Password
                           </label>
-                          <div className='mt-2 h-[36px]'>
+                          <div className='mt-2 h-9'>
                             <input
                               type='password'
                               autoComplete='new-password'
@@ -1377,7 +1132,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor='customRepositoryToken' className="block text-sm font-medium leading-6 text-gray-900">
                             Token
                           </label>
-                          <div className='mt-2 h-[36px]'>
+                          <div className='mt-2 h-9'>
                             <input
                               type="text"
                               name="customRepositoryToken"
@@ -1397,7 +1152,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="customRepositorySshKey" className="block text-sm font-medium leading-6 text-gray-900">
                             SSH Key
                           </label>
-                          <div className='mt-2 h-[36px]'>
+                          <div className='mt-2 h-9'>
                             <input
                               type="text"
                               name="customRepositorySshKey"
@@ -1420,7 +1175,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label className="block text-sm font-medium leading-6 text-gray-900">
                         Clone Submodule
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={submodule} className="sr-only peer" onChange={e => {
                             setSearchParams({
@@ -1429,7 +1184,7 @@ export default function ({ localServer }: { localServer: string }) {
                             });
                             setSubmodule(e.target.checked);
                           }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                         </label>
                       </div>
                     </div>
@@ -1437,7 +1192,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="depth" className="block text-sm font-medium leading-6 text-gray-900">
                         Clone Depth
                       </label>
-                      <div className="mt-2 h-[36px]">
+                      <div className="mt-2 h-9">
                         <input
                           type="number"
                           name="depth"
@@ -1487,7 +1242,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="dockerfileContext" className="block text-sm font-medium leading-6 text-gray-900">
                         Context
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <input
                           type="text"
                           name="dockerfileContext"
@@ -1512,7 +1267,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="dockerfilePath" className="block text-sm font-medium leading-6 text-gray-900">
                         Dockerfile Path
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <input
                           type="text"
                           name="dockerfilePath"
@@ -1535,66 +1290,45 @@ export default function ({ localServer }: { localServer: string }) {
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                     Platforms
                   </label>
-                  <div className="mt-2 flex flex-row items-center h-[36px]">
-                    <Listbox value={selectedPlatforms} onChange={platforms => {
-                      let ps = "";
-                      for (let i = 0; i < platforms.length; i++) {
-                        if (i == 0) {
-                          ps += platforms[i].name;
-                        } else {
-                          ps += `,${platforms[i].name}`
+                  <div className="mt-2 flex flex-row items-center h-9">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="outline" className="w-full justify-between font-normal">
+                            {selectedPlatforms.map((platform) => platform.name).join(', ') || "Select"}
+                            <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                          </Button>
                         }
-                      }
-                      setSearchParams({
-                        ...Object.fromEntries(searchParams.entries()),
-                        platforms: ps,
-                      });
-                      setSelectedPlatforms(platforms);
-                    }} multiple>
-                      <div className="relative mt-1 w-full">
-                        <Listbox.Button className="relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm cursor-pointer">
-                          <span className="block truncate">{selectedPlatforms.map((platform) => platform.name).join(', ')}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronUpDownIcon
-                              className="h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                          </span>
-                        </Listbox.Button>
-                        <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                          <Transition
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
+                      />
+                      <DropdownMenuContent align="start" className="w-(--anchor-width)">
+                        {supportPlatforms.map(item => (
+                          <DropdownMenuCheckboxItem
+                            key={item.name}
+                            checked={selectedPlatforms.some(selected => selected.name === item.name)}
+                            onCheckedChange={(checked) => {
+                              const platforms = checked
+                                ? [...selectedPlatforms, item]
+                                : selectedPlatforms.filter(selected => selected.name !== item.name);
+                              let ps = "";
+                              for (let i = 0; i < platforms.length; i++) {
+                              if (i == 0) {
+                              ps += platforms[i].name;
+                              } else {
+                              ps += `,${platforms[i].name}`
+                              }
+                              }
+                              setSearchParams({
+                              ...Object.fromEntries(searchParams.entries()),
+                              platforms: ps,
+                              });
+                              setSelectedPlatforms(platforms);
+                            }}
                           >
-                            {
-                              supportPlatforms.map((platform) => (
-                                <Listbox.Option key={platform.name} value={platform} className={({ active }) =>
-                                  `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                  }`
-                                }>
-                                  {({ selected }) => (
-                                    <>
-                                      <span
-                                        className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                          }`}
-                                      >
-                                        {platform.name}
-                                      </span>
-                                      {selected ? (
-                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                        </span>
-                                      ) : null}
-                                    </>
-                                  )}
-                                </Listbox.Option>
-                              ))
-                            }
-                          </Transition>
-                        </Listbox.Options>
-                      </div>
-                    </Listbox>
+                            {item.name}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
@@ -1607,7 +1341,7 @@ export default function ({ localServer }: { localServer: string }) {
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                     Enabled
                   </label>
-                  <div className="mt-2 flex flex-row items-center h-[36px]">
+                  <div className="mt-2 flex flex-row items-center h-9">
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={cronBuild} className="sr-only peer" onChange={e => {
                         setSearchParams({
@@ -1616,7 +1350,7 @@ export default function ({ localServer }: { localServer: string }) {
                         });
                         setCronBuild(e.target.checked);
                       }} />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 </div>
@@ -1626,7 +1360,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="mergeEventBranch" className="block text-sm font-medium leading-6 text-gray-900">
                         Expression
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <input
                           type="text"
                           name="mergeEventBranch"
@@ -1652,68 +1386,50 @@ export default function ({ localServer }: { localServer: string }) {
                         Branch
                       </label>
                       <div className="mt-2">
-                        <Combobox value={cronBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
-                          if (!branch) {
-                            return;
-                          }
-                          setSearchParams({
-                            ...Object.fromEntries(searchParams.entries()),
-                            cron_branch_name: branch.name,
-                            cron_branch_id: branch.id.toString(),
-                          });
-                          setCronBranchSelected(branch);
-                        }}>
-                          <div className="relative mt-1">
-                            <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                              <Combobox.Input
-                                id="cronBranch"
-                                className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                displayValue={(branch: ICodeRepositoryBranchItem) => branch.name}
-                                onChange={e => {
-                                  setCronBranchSearch(e.target.value);
-                                }}
+                        <Popover>
+                          <PopoverTrigger
+                            render={
+                              <Button variant="outline" className="w-full justify-between font-normal">
+                                {cronBranchSelected?.name || "Select"}
+                                <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                              </Button>
+                            }
+                          />
+                          <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                            <Command shouldFilter={false}>
+                              <CommandInput
+                                placeholder="Search"
+                                value={cronBranchSearch}
+                                onValueChange={setCronBranchSearch}
                               />
-                              <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                  className="h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </Combobox.Button>
-                            </div>
-                            <Transition
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
-                              afterLeave={() => setCronBranchSearch('')}
-                            >
-                              <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                {
-                                  cronBranchFilteredList?.length === 0 ? (
-                                    <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                      Nothing found.
-                                    </div>
-                                  ) : (
-                                    cronBranchFilteredList?.map(branch => (
-                                      <Combobox.Option
-                                        key={branch.id}
-                                        className={({ active }) =>
-                                          `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                          }`
+                              <CommandList>
+                                <CommandEmpty>Nothing found.</CommandEmpty>
+                                <CommandGroup>
+                                  {cronBranchFilteredList?.map(item => (
+                                    <CommandItem
+                                      key={item.id}
+                                      value={item.name}
+                                      onSelect={() => {
+                                        const branch = item;
+                                        if (!branch) {
+                                        return;
                                         }
-                                        value={branch}
-                                      >
-                                        <span className={`block truncate  font-normal`}>
-                                          {branch.name}
-                                        </span>
-                                      </Combobox.Option>
-                                    ))
-                                  )
-                                }
-                              </Combobox.Options>
-                            </Transition>
-                          </div>
-                        </Combobox>
+                                        setSearchParams({
+                                        ...Object.fromEntries(searchParams.entries()),
+                                        cron_branch_name: branch.name,
+                                        cron_branch_id: branch.id.toString(),
+                                        });
+                                        setCronBranchSelected(branch);
+                                      }}
+                                    >
+                                      {item.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   ) : (
@@ -1722,7 +1438,7 @@ export default function ({ localServer }: { localServer: string }) {
                         <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
                           Branch
                         </label>
-                        <div className="mt-2 flex flex-row items-center h-[36px]">
+                        <div className="mt-2 flex flex-row items-center h-9">
                           <input
                             type="text"
                             name="mergeEventTagTemplate"
@@ -1742,7 +1458,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
                         OCI tag template
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <input
                           type="text"
                           name="mergeEventTagTemplate"
@@ -1767,10 +1483,10 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                         Merge Event
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={mergeEvent} className="sr-only peer" onChange={e => { setMergeEvent(e.target.checked); }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                         </label>
                       </div>
                     </div>
@@ -1781,68 +1497,50 @@ export default function ({ localServer }: { localServer: string }) {
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Combobox value={mergeEventBranchSelected} onChange={(branch: ICodeRepositoryBranchItem | null) => {
-                              if (!branch) {
-                                return;
-                              }
-                              setSearchParams({
-                                ...Object.fromEntries(searchParams.entries()),
-                                merge_event_branch_name: branch.name,
-                                merge_event_branch_id: branch.id.toString(),
-                              });
-                              setMergeEventBranchSelected(branch);
-                            }}>
-                              <div className="relative mt-1">
-                                <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                  <Combobox.Input
-                                    id="branch"
-                                    className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    displayValue={(branch: ICodeRepositoryBranchItem) => branch.name}
-                                    onChange={(event) => {
-                                      setMergeEventBranchSearch(event.target.value);
-                                    }}
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <Button variant="outline" className="w-full justify-between font-normal">
+                                    {mergeEventBranchSelected?.name || "Select"}
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
+                                }
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder="Search"
+                                    value={mergeEventBranchSearch}
+                                    onValueChange={setMergeEventBranchSearch}
                                   />
-                                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                    <ChevronUpDownIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </Combobox.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                  afterLeave={() => setMergeEventBranchSearch('')}
-                                >
-                                  <Combobox.Options className="absolute mt-1 max-h-60 bottom-12 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {
-                                      mergeEventBranchFilteredList?.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                          Nothing found.
-                                        </div>
-                                      ) : (
-                                        mergeEventBranchFilteredList?.map(branch => (
-                                          <Combobox.Option
-                                            key={branch.id}
-                                            className={({ active }) =>
-                                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                              }`
+                                  <CommandList>
+                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {mergeEventBranchFilteredList?.map(item => (
+                                        <CommandItem
+                                          key={item.id}
+                                          value={item.name}
+                                          onSelect={() => {
+                                            const branch = item;
+                                            if (!branch) {
+                                            return;
                                             }
-                                            value={branch}
-                                          >
-                                            <span className={`block truncate  font-normal`}>
-                                              {branch.name}
-                                            </span>
-                                          </Combobox.Option>
-                                        ))
-                                      )
-                                    }
-                                  </Combobox.Options>
-                                </Transition>
-                              </div>
-                            </Combobox>
+                                            setSearchParams({
+                                            ...Object.fromEntries(searchParams.entries()),
+                                            merge_event_branch_name: branch.name,
+                                            merge_event_branch_id: branch.id.toString(),
+                                            });
+                                            setMergeEventBranchSelected(branch);
+                                          }}
+                                        >
+                                          {item.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : (
@@ -1851,7 +1549,7 @@ export default function ({ localServer }: { localServer: string }) {
                             <label htmlFor="mergeEventBranch" className="block text-sm font-medium leading-6 text-gray-900">
                               Branch
                             </label>
-                            <div className="mt-2 flex flex-row items-center h-[36px]">
+                            <div className="mt-2 flex flex-row items-center h-9">
                               <input
                                 type="text"
                                 name="mergeEventBranch"
@@ -1871,7 +1569,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
                             OCI tag template
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-[36px]">
+                          <div className="mt-2 flex flex-row items-center h-9">
                             <input
                               type="text"
                               name="mergeEventTagTemplate"
@@ -1890,10 +1588,10 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                         Tag Event
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-[36px]">
+                      <div className="mt-2 flex flex-row items-center h-9">
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={tagEvent} className="sr-only peer" onChange={e => { SetTagEvent(e.target.checked); }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                         </label>
                       </div>
                     </div>
@@ -1903,7 +1601,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="tagEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
                             OCI tag template
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-[36px]">
+                          <div className="mt-2 flex flex-row items-center h-9">
                             <input
                               type="text"
                               name="tagEventTagTemplate"

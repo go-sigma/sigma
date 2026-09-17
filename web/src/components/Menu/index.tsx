@@ -38,7 +38,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,

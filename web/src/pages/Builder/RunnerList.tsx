@@ -16,10 +16,9 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { Dialog, Transition } from "@headlessui/react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Fragment, useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Tooltip } from '../../utils';
@@ -322,171 +321,133 @@ export default function ({ localServer }: { localServer: string }) {
         </div>
       </div >
 
-      <Transition.Root show={createRunnerModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setCreateRunnerModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                  <label htmlFor="tagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
-                    <span className="text-red-600">*</span>Tag
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <input
-                      type="text"
-                      id="tagTemplate"
-                      name="tagTemplate"
-                      placeholder="tag template"
-                      className={(tagTemplateTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                      value={tagTemplateText}
-                      onChange={e => {
-                        setTagTemplateText(e.target.value);
-                      }}
-                    />
-                    {
-                      tagTemplateTextValid ? (
-                        <div></div>
-                      ) : (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                          </svg>
-                        </div>
-                      )
-                    }
-                  </div>
-                  <p className="mt-1 text-xs text-red-600">
-                    {
-                      tagTemplateTextValid ? (
-                        <span></span>
-                      ) : (
-                        <span>
-                          Not a valid tag template, you can try 'main', '&#123;&#123;.ScmRef&#125;&#125;', '&#123;&#123;.ScmBrach&#125;&#125;'.
-                        </span>
-                      )
-                    }
-                  </p>
-                  {
-                    builderObj?.source !== "Dockerfile" ? (
-                      <>
-                        <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
-                          <span className="text-red-600">*</span>Branch
-                        </label>
-                        <div className="relative mt-2 rounded-md shadow-sm">
-                          <input
-                            type="text"
-                            name="namespace"
-                            placeholder="1-64 characters"
-                            className={(branchTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={branchText}
-                            onChange={e => {
-                              setBranchText(e.target.value);
-                            }}
-                          />
-                          {
-                            branchTextValid ? (
-                              <div></div>
-                            ) : (
-                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                </svg>
-                              </div>
-                            )
-                          }
-                        </div>
-                        <p className="mt-1 text-xs text-red-600">
-                          {
-                            branchTextValid ? (
-                              <span></span>
-                            ) : (
-                              <span>
-                                Not a valid branch, you can try 'main', 'master', 'dev'.
-                              </span>
-                            )
-                          }
-                        </p>
-                      </>
-                    ) : null
-                  }
-
-                  <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
-                    Description
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <textarea
-                      name="description"
-                      placeholder="30 characters"
-                      className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                      value={descriptionText}
-                      onChange={e => setDescriptionText(e.target.value)}
-                    />
-                    {
-                      descriptionTextValid ? (
-                        <div></div>
-                      ) : (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                          </svg>
-                        </div>
-                      )
-                    }
-                  </div>
-                  <p className="mt-1 text-xs text-red-600">
-                    {
-                      descriptionTextValid ? (
-                        <span></span>
-                      ) : (
-                        <span>
-                          Not a valid description, max 50 characters.
-                        </span>
-                      )
-                    }
-                  </p>
-
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                      onClick={() => createRunner()}
-                    >
-                      Create
-                    </button>
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                      onClick={() => setCreateRunnerModal(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+      <Dialog open={createRunnerModal} onOpenChange={setCreateRunnerModal}>
+        <DialogContent className="sm:max-w-lg" aria-label="Create runner">
+          <label htmlFor="tagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
+            <span className="text-red-600">*</span>Tag
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <input
+              type="text"
+              id="tagTemplate"
+              name="tagTemplate"
+              placeholder="tag template"
+              className={(tagTemplateTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+              value={tagTemplateText}
+              onChange={e => {
+                setTagTemplateText(e.target.value);
+              }}
+            />
+            {
+              tagTemplateTextValid ? (
+                <div></div>
+              ) : (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                </div>
+              )
+            }
           </div>
-        </Dialog>
-      </Transition.Root>
+          <p className="mt-1 text-xs text-red-600">
+            {
+              tagTemplateTextValid ? (
+                <span></span>
+              ) : (
+                <span>
+                  Not a valid tag template, you can try 'main', '&#123;&#123;.ScmRef&#125;&#125;', '&#123;&#123;.ScmBrach&#125;&#125;'.
+                </span>
+              )
+            }
+          </p>
+          {
+            builderObj?.source !== "Dockerfile" ? (
+              <>
+                <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
+                  <span className="text-red-600">*</span>Branch
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <input
+                    type="text"
+                    name="namespace"
+                    placeholder="1-64 characters"
+                    className={(branchTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                    value={branchText}
+                    onChange={e => {
+                      setBranchText(e.target.value);
+                    }}
+                  />
+                  {
+                    branchTextValid ? (
+                      <div></div>
+                    ) : (
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                    )
+                  }
+                </div>
+                <p className="mt-1 text-xs text-red-600">
+                  {
+                    branchTextValid ? (
+                      <span></span>
+                    ) : (
+                      <span>
+                        Not a valid branch, you can try 'main', 'master', 'dev'.
+                      </span>
+                    )
+                  }
+                </p>
+              </>
+            ) : null
+          }
+
+          <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+            Description
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <textarea
+              name="description"
+              placeholder="30 characters"
+              className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+              value={descriptionText}
+              onChange={e => setDescriptionText(e.target.value)}
+            />
+            {
+              descriptionTextValid ? (
+                <div></div>
+              ) : (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                </div>
+              )
+            }
+          </div>
+          <p className="mt-1 text-xs text-red-600">
+            {
+              descriptionTextValid ? (
+                <span></span>
+              ) : (
+                <span>
+                  Not a valid description, max 50 characters.
+                </span>
+              )
+            }
+          </p>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateRunnerModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => createRunner()}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </>
   )

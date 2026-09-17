@@ -18,7 +18,6 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useParams } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import Menu from "../../components/Menu";

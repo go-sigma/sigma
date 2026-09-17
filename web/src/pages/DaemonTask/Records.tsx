@@ -15,7 +15,6 @@
  */
 
 import axios from "axios";
-import dayjs from 'dayjs';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';

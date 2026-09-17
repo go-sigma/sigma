@@ -1,4 +1,3 @@
-import { Dialog, Menu, Transition } from "@headlessui/react";
 /**
  * Copyright 2023 sigma
  *
@@ -16,7 +15,8 @@ import { Dialog, Menu, Transition } from "@headlessui/react";
  */
 
 import axios from "axios";
-import { Dialog as ShadDialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
@@ -31,7 +31,6 @@ import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookItem, IWebhookList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
-import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -226,7 +225,7 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-webhook-retry-duration"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[220px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-55">
         Less than 10, unit is second.
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
@@ -269,7 +268,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </div>
               )
             } />
-            <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
+            <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">
@@ -333,247 +332,204 @@ export default function ({ localServer }: { localServer: string }) {
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
-      <Transition.Root show={createWebhookModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setCreateWebhookModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Create webhook
-                  </Dialog.Title>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-12 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">URL</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-10">
-                        <input
-                          type="text"
-                          name="description"
-                          placeholder="128 characters"
-                          className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={url}
-                          onChange={e => setUrl(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-12 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="leading-6 ">Secret</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-10">
-                        <input
-                          type="text"
-                          name="description"
-                          placeholder="max 63 characters"
-                          className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={secret}
-                          onChange={e => setSecret(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    {
-                      showSslVerify ? (
-                        <div className="grid grid-cols-12 gap-4 mt-4">
-                          <div className="col-span-2 flex flex-row">
-                            <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                              <div className="flex">
-                                <span className="leading-6 ">SSL Verify</span>
-                                <span>:</span>
-                              </div>
-                            </label>
-                          </div>
-                          <div className="col-span-10 flex flex-row">
-                            <label className="inline-flex items-center cursor-pointer">
-                              <input type="checkbox"
-                                checked={sslVerify}
-                                onChange={e => setSslVerify(!sslVerify)}
-                                className="sr-only peer" />
-                              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                            </label>
-                          </div>
-                        </div>
-                      ) : null
-                    }
-                    <div className="grid grid-cols-12 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="leading-6 ">Retry Times</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4 flex flex-row">
-                        <input
-                          type="text"
-                          name="description"
-                          placeholder="1 <= times <= 5"
-                          className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={retryTimes}
-                          onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="leading-6 ">Retry Duration</span>
-                            <div className="flex flex-row cursor-pointer"
-                              id="gcRepositoryRetentionDaysHelp"
-                              onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
-                                  document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                                tooltip.show();
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                              </svg>
-                            </div>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4 flex flex-row">
-                        <input
-                          type="text"
-                          name="description"
-                          placeholder="less than 10"
-                          className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                          value={retryDuration}
-                          onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-12 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="leading-6 ">Enable</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-10 flex flex-row">
-                        <label className="inline-flex items-center cursor-pointer">
-                          <input type="checkbox"
-                            checked={enable}
-                            onChange={e => setEnable(!enable)}
-                            className="sr-only peer" />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-row gap-4">
-                      {
-                        location.pathname.startsWith("/settings") ? (
-                          <div className="flex items-center">
-                            <input id="event-namespace" type="checkbox"
-                              checked={eventNamespace}
-                              onChange={e => setEventNamespace(!eventNamespace)}
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                            <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
-                          </div>
-                        ) : null
-                      }
-                      <div className="flex items-center">
-                        <input id="event-member"
-                          checked={eventMember}
-                          onChange={e => setEventMember(!eventMember)}
-                          type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="event-repository" type="checkbox"
-                          checked={eventRepository}
-                          onChange={e => setEventRepository(!eventRepository)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="event-tag" type="checkbox"
-                          checked={eventTag}
-                          onChange={e => setEventTag(!eventTag)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="event-artifact" type="checkbox"
-                          checked={eventArtifact}
-                          onChange={e => setEventArtifact(!eventArtifact)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="event-daemon-task-gc" type="checkbox"
-                          checked={eventDaemonTaskGc}
-                          onChange={e => setEventDaemonTaskGc(!eventDaemonTaskGc)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                        <label htmlFor="event-daemon-task-gc" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gc Event</label>
-                      </div>
-                    </div>
-                    <div className="flex flex-row-reverse mt-4 pt-4 border-t">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => createWebhook()}
-                      >
-                        Create
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setCreateWebhookModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+      <Dialog open={createWebhookModal} onOpenChange={setCreateWebhookModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Create webhook</DialogTitle>
+          <div className="flex flex-col gap-0 mt-4">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="text-red-600">*</span>
+                    <span className="leading-6 ">URL</span>
+                    <span>:</span>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                </label>
+              </div>
+              <div className="col-span-10">
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="128 characters"
+                  className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4 mt-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="leading-6 ">Secret</span>
+                    <span>:</span>
+                  </div>
+                </label>
+              </div>
+              <div className="col-span-10">
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="max 63 characters"
+                  className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                  value={secret}
+                  onChange={e => setSecret(e.target.value)}
+                />
+              </div>
+            </div>
+            {
+              showSslVerify ? (
+                <div className="grid grid-cols-12 gap-4 mt-4">
+                  <div className="col-span-2 flex flex-row">
+                    <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                      <div className="flex">
+                        <span className="leading-6 ">SSL Verify</span>
+                        <span>:</span>
+                      </div>
+                    </label>
+                  </div>
+                  <div className="col-span-10 flex flex-row">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input type="checkbox"
+                        checked={sslVerify}
+                        onChange={e => setSslVerify(!sslVerify)}
+                        className="sr-only peer" />
+                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+              ) : null
+            }
+            <div className="grid grid-cols-12 gap-4 mt-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="leading-6 ">Retry Times</span>
+                    <span>:</span>
+                  </div>
+                </label>
+              </div>
+              <div className="col-span-4 flex flex-row">
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="1 <= times <= 5"
+                  className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                  value={retryTimes}
+                  onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                />
+              </div>
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="leading-6 ">Retry Duration</span>
+                    <div className="flex flex-row cursor-pointer"
+                      id="gcRepositoryRetentionDaysHelp"
+                      onClick={e => {
+                        let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
+                          document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
+                        tooltip.show();
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <span>:</span>
+                  </div>
+                </label>
+              </div>
+              <div className="col-span-4 flex flex-row">
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="less than 10"
+                  className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                  value={retryDuration}
+                  onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4 mt-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="leading-6 ">Enable</span>
+                    <span>:</span>
+                  </div>
+                </label>
+              </div>
+              <div className="col-span-10 flex flex-row">
+                <label className="inline-flex items-center cursor-pointer">
+                  <input type="checkbox"
+                    checked={enable}
+                    onChange={e => setEnable(!enable)}
+                    className="sr-only peer" />
+                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-row gap-4">
+              {
+                location.pathname.startsWith("/settings") ? (
+                  <div className="flex items-center">
+                    <input id="event-namespace" type="checkbox"
+                      checked={eventNamespace}
+                      onChange={e => setEventNamespace(!eventNamespace)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                    <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                  </div>
+                ) : null
+              }
+              <div className="flex items-center">
+                <input id="event-member"
+                  checked={eventMember}
+                  onChange={e => setEventMember(!eventMember)}
+                  type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
+              </div>
+              <div className="flex items-center">
+                <input id="event-repository" type="checkbox"
+                  checked={eventRepository}
+                  onChange={e => setEventRepository(!eventRepository)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
+              </div>
+              <div className="flex items-center">
+                <input id="event-tag" type="checkbox"
+                  checked={eventTag}
+                  onChange={e => setEventTag(!eventTag)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
+              </div>
+              <div className="flex items-center">
+                <input id="event-artifact" type="checkbox"
+                  checked={eventArtifact}
+                  onChange={e => setEventArtifact(!eventArtifact)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
+              </div>
+              <div className="flex items-center">
+                <input id="event-daemon-task-gc" type="checkbox"
+                  checked={eventDaemonTaskGc}
+                  onChange={e => setEventDaemonTaskGc(!eventDaemonTaskGc)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                <label htmlFor="event-daemon-task-gc" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gc Event</label>
+              </div>
             </div>
           </div>
-        </Dialog>
-      </Transition.Root>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateWebhookModal(false)}>Cancel</Button>
+            <Button onClick={() => createWebhook()}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment >
   )
 }
 
 function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookObj: IWebhookItem, setRefresh: (param: any) => void }) {
+  const canManageWebhook = userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -706,350 +662,233 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookObj, setR
       <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
         e.stopPropagation();
       }}>
-        <Menu as="div" className="relative flex-none" onClick={e => {
-          e.stopPropagation();
-        }}>
-          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-            <span className="sr-only">Open options</span>
-            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-          </Menu.Button>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-              <Menu.Item>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-100' : '') +
-                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                    }
-                    onClick={e => {
-                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setUpdateWebhookModal(true);
-                    }}
-                  >
-                    Update
-                  </div>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-50' : '') +
-                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
-                    }
-                    onClick={e => {
-                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setDeleteWebhookModal(true);
-                    }}
-                  >
-                    Delete
-                  </div>
-                )}
-              </Menu.Item>
-            </Menu.Items>
-          </Transition>
-        </Menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                <span className="sr-only">Open options</span>
+                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-28">
+            <DropdownMenuItem disabled={!canManageWebhook} onClick={() => setUpdateWebhookModal(true)}>
+              Update
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" disabled={!canManageWebhook} onClick={() => setDeleteWebhookModal(true)}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition.Root show={updateWebhookModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={setUpdateWebhookModal}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  enterTo="opacity-100 translate-y-0 sm:scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                  <Dialog.Panel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                    >
-                      Create webhook
-                    </Dialog.Title>
-                    <div className="flex flex-col gap-0 mt-4">
-                      <div className="grid grid-cols-12 gap-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="text-red-600">*</span>
-                              <span className="leading-6 ">URL</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-10">
-                          <input
-                            type="text"
-                            name="description"
-                            placeholder="128 characters"
-                            className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={url}
-                            onChange={e => setUrl(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-12 gap-4 mt-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="leading-6 ">Secret</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-10">
-                          <input
-                            type="text"
-                            name="description"
-                            placeholder="max 63 characters"
-                            className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={secret}
-                            onChange={e => setSecret(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      {
-                        showSslVerify ? (
-                          <div className="grid grid-cols-12 gap-4 mt-4">
-                            <div className="col-span-2 flex flex-row">
-                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                                <div className="flex">
-                                  <span className="leading-6 ">SSL Verify</span>
-                                  <span>:</span>
-                                </div>
-                              </label>
-                            </div>
-                            <div className="col-span-10 flex flex-row">
-                              <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox"
-                                  checked={sslVerify}
-                                  onChange={e => setSslVerify(!sslVerify)}
-                                  className="sr-only peer" />
-                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                              </label>
-                            </div>
-                          </div>
-                        ) : null
-                      }
-                      <div className="grid grid-cols-12 gap-4 mt-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="leading-6 ">Retry Times</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-4 flex flex-row">
-                          <input
-                            type="text"
-                            name="description"
-                            placeholder="1 <= times <= 5"
-                            className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={retryTimes}
-                            onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="leading-6 ">Retry Duration</span>
-                              <div className="flex flex-row cursor-pointer"
-                                id="gcRepositoryRetentionDaysHelp"
-                                onClick={e => {
-                                  let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
-                                    document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                                  tooltip.show();
-                                }}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                                </svg>
-                              </div>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-4 flex flex-row">
-                          <input
-                            type="text"
-                            name="description"
-                            placeholder="less than 10"
-                            className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={retryDuration}
-                            onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-12 gap-4 mt-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="leading-6 ">Enable</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-10 flex flex-row">
-                          <label className="inline-flex items-center cursor-pointer">
-                            <input type="checkbox"
-                              checked={enable}
-                              onChange={e => setEnable(!enable)}
-                              className="sr-only peer" />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex flex-row gap-4">
-                        <div className="flex items-center">
-                          <input id="event-namespace" type="checkbox"
-                            checked={eventNamespace}
-                            onChange={e => setEventNamespace(!eventNamespace)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                          <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input id="event-repository" type="checkbox"
-                            checked={eventRepository}
-                            onChange={e => setEventRepository(!eventRepository)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                          <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input id="event-tag" type="checkbox"
-                            checked={eventTag}
-                            onChange={e => setEventTag(!eventTag)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                          <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input id="event-artifact" type="checkbox"
-                            checked={eventArtifact}
-                            onChange={e => setEventArtifact(!eventArtifact)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                          <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input id="event-member"
-                            checked={eventMember}
-                            onChange={e => setEventMember(!eventMember)}
-                            type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                          <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
-                        </div>
-                      </div>
-                      <div className="flex flex-row-reverse mt-4 pt-4 border-t">
-                        <button
-                          type="button"
-                          className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                          onClick={e => updateWebhook()}
-                        >
-                          Update
-                        </button>
-                        <button
-                          type="button"
-                          className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                          onClick={e => { setUpdateWebhookModal(false) }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
+        <Dialog open={updateWebhookModal} onOpenChange={setUpdateWebhookModal}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogTitle className="border-b pb-4">Update webhook</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">URL</span>
+                      <span>:</span>
                     </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+                  </label>
+                </div>
+                <div className="col-span-10">
+                  <input
+                    type="text"
+                    name="description"
+                    placeholder="128 characters"
+                    className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-12 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="leading-6 ">Secret</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-10">
+                  <input
+                    type="text"
+                    name="description"
+                    placeholder="max 63 characters"
+                    className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                    value={secret}
+                    onChange={e => setSecret(e.target.value)}
+                  />
+                </div>
+              </div>
+              {
+                showSslVerify ? (
+                  <div className="grid grid-cols-12 gap-4 mt-4">
+                    <div className="col-span-2 flex flex-row">
+                      <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                        <div className="flex">
+                          <span className="leading-6 ">SSL Verify</span>
+                          <span>:</span>
+                        </div>
+                      </label>
+                    </div>
+                    <div className="col-span-10 flex flex-row">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input type="checkbox"
+                          checked={sslVerify}
+                          onChange={e => setSslVerify(!sslVerify)}
+                          className="sr-only peer" />
+                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                ) : null
+              }
+              <div className="grid grid-cols-12 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="leading-6 ">Retry Times</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4 flex flex-row">
+                  <input
+                    type="text"
+                    name="description"
+                    placeholder="1 <= times <= 5"
+                    className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                    value={retryTimes}
+                    onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="leading-6 ">Retry Duration</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcRepositoryRetentionDaysHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
+                            document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4 flex flex-row">
+                  <input
+                    type="text"
+                    name="description"
+                    placeholder="less than 10"
+                    className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                    value={retryDuration}
+                    onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-12 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="leading-6 ">Enable</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-10 flex flex-row">
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox"
+                      checked={enable}
+                      onChange={e => setEnable(!enable)}
+                      className="sr-only peer" />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-row gap-4">
+                <div className="flex items-center">
+                  <input id="event-namespace" type="checkbox"
+                    checked={eventNamespace}
+                    onChange={e => setEventNamespace(!eventNamespace)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
+                </div>
+                <div className="flex items-center">
+                  <input id="event-repository" type="checkbox"
+                    checked={eventRepository}
+                    onChange={e => setEventRepository(!eventRepository)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
+                </div>
+                <div className="flex items-center">
+                  <input id="event-tag" type="checkbox"
+                    checked={eventTag}
+                    onChange={e => setEventTag(!eventTag)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
+                </div>
+                <div className="flex items-center">
+                  <input id="event-artifact" type="checkbox"
+                    checked={eventArtifact}
+                    onChange={e => setEventArtifact(!eventArtifact)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
+                </div>
+                <div className="flex items-center">
+                  <input id="event-member"
+                    checked={eventMember}
+                    onChange={e => setEventMember(!eventMember)}
+                    type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
+                </div>
               </div>
             </div>
-          </Dialog>
-        </Transition.Root>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setUpdateWebhookModal(false)}>Cancel</Button>
+              <Button onClick={() => updateWebhook()}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition.Root show={deleteWebhookModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={setDeleteWebhookModal}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
-
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  enterTo="opacity-100 translate-y-0 sm:scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                  <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 min-w-[600px]">
-                    <div className="sm:flex sm:items-start">
-                      <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
-                      </div>
-                      <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                          Delete webhook
-                        </Dialog.Title>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">
-                            Are you sure you want to delete the webhook <span className="text-black font-medium">{webhookObj.url}</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                        onClick={e => { setDeleteWebhookModal(false); deleteWebhook(); }}
-                      >
-                        Delete
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                        onClick={() => setDeleteWebhookModal(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+        <Dialog open={deleteWebhookModal} onOpenChange={setDeleteWebhookModal}>
+          <DialogContent className="sm:max-w-lg">
+            <div className="flex items-start gap-4">
+              <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+              </div>
+              <div className="text-center sm:text-left">
+                <DialogTitle>Delete webhook</DialogTitle>
+                <DialogDescription className="mt-2">
+                  Are you sure you want to delete the webhook{" "}
+                  <span className="text-foreground font-medium">{webhookObj.url}</span>
+                </DialogDescription>
               </div>
             </div>
-          </Dialog>
-        </Transition.Root>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteWebhookModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => { setDeleteWebhookModal(false); deleteWebhook(); }}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </td>
     </tr>
   );

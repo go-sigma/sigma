@@ -22,7 +22,6 @@ import {
   ICodeRepositoryOwnerItem,
   ICodeRepositoryOwnerList,
   ICodeRepositoryUser3rdParty,
-  IHTTPError,
   IOrder
 } from '../../interfaces';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -134,7 +133,7 @@ export default function ({ localServer }: { localServer: string }) {
       <HelmetProvider>
         <Helmet><title>{t("common.codeRepository")}</title></Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-background min-w-[1600px]">
+      <div className="min-h-screen flex overflow-hidden bg-background min-w-400">
         <HeaderMenu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative focus:outline-none" tabIndex={0}>

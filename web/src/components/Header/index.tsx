@@ -15,7 +15,6 @@
  */
 
 import { ReactNode } from 'react';
-import { Separator } from "@/components/ui/separator";
 
 export default function Header({ title, breadcrumb, props }: { title: ReactNode, breadcrumb?: ReactNode, props?: ReactNode }) {
   return (

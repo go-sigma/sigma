@@ -199,7 +199,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </Tabs>
               }
             />
-            <div className="pt-3 pb-3 flex justify-between items-center min-h-[60px]">
+            <div className="pt-3 pb-3 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="relative flex items-center">
                   <Label htmlFor="repositorySearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">

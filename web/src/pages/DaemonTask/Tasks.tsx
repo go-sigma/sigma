@@ -18,9 +18,7 @@ import Toast from 'react-hot-toast';
 import axios from "axios";
 import dayjs from 'dayjs';
 import parser from 'cron-parser';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -30,6 +28,27 @@ import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
 import Notification from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   IGcArtifactRule,
   IGcArtifactRunnerItem,
@@ -688,59 +707,24 @@ export default function ({ localServer }: { localServer: string }) {
                         {gcRepositoryRuleExist && gcRepositoryRule.cron_enabled && gcRepositoryRule.cron_next_trigger != undefined ? gcRepositoryRule.cron_next_trigger : "-"}
                       </td>
                       <td className="pr-3 whitespace-nowrap">
-                        <Menu as="div" className="relative flex-none" onClick={e => {
-                          e.stopPropagation();
-                        }}>
-                          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-                            <span className="sr-only">Open options</span>
-                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                          </Menu.Button>
-                          <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                          >
-                            <Menu.Items className={(1 > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-30 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                                    }
-                                    onClick={e => { setGcRepositoryRuleConfigModal(true); }}
-                                  >
-                                    {
-                                      gcRepositoryRuleExist ? "Update" : "Configuration"
-                                    }
-                                  </div>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item
-                                disabled={!gcRepositoryRuleExist}
-                              >
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      (gcRepositoryRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                                    }
-                                    onClick={e => {
-                                      createGcRepositoryRunner();
-                                    }}
-                                  >
-                                    Run
-                                  </div>
-                                )}
-                              </Menu.Item>
-                            </Menu.Items>
-                          </Transition>
-                        </Menu>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                                <span className="sr-only">Open options</span>
+                                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-30">
+                            <DropdownMenuItem onClick={() => setGcRepositoryRuleConfigModal(true)}>
+                              {gcRepositoryRuleExist ? "Update" : "Configuration"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled={!gcRepositoryRuleExist} onClick={() => createGcRepositoryRunner()}>
+                              Run
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                     <tr className="border-b">
@@ -770,57 +754,24 @@ export default function ({ localServer }: { localServer: string }) {
                         {gcTagRuleExist && gcTagRule.cron_enabled && gcTagRule.cron_next_trigger != undefined ? gcTagRule.cron_next_trigger : "-"}
                       </td>
                       <td className="pr-3 whitespace-nowrap">
-                        <Menu as="div" className="relative flex-none" onClick={e => {
-                          e.stopPropagation();
-                        }}>
-                          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-                            <span className="sr-only">Open options</span>
-                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                          </Menu.Button>
-                          <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                          >
-                            <Menu.Items className={(1 > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-30 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                                    }
-                                    onClick={e => { setGcTagRuleConfigModal(true) }}
-                                  >
-                                    {
-                                      gcTagRuleExist ? "Update" : "Configuration"
-                                    }
-                                  </div>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item
-                                disabled={!gcTagRuleExist}
-                              >
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      (gcTagRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                                    }
-                                    onClick={e => createGcTagRunner()}
-                                  >
-                                    Run
-                                  </div>
-                                )}
-                              </Menu.Item>
-                            </Menu.Items>
-                          </Transition>
-                        </Menu>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                                <span className="sr-only">Open options</span>
+                                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-30">
+                            <DropdownMenuItem onClick={() => setGcTagRuleConfigModal(true)}>
+                              {gcTagRuleExist ? "Update" : "Configuration"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled={!gcTagRuleExist} onClick={() => createGcTagRunner()}>
+                              Run
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                     <tr className="border-b">
@@ -850,57 +801,24 @@ export default function ({ localServer }: { localServer: string }) {
                         {gcArtifactRuleExist && gcArtifactRule.cron_enabled && gcArtifactRule.cron_next_trigger != undefined ? gcArtifactRule.cron_next_trigger : "-"}
                       </td>
                       <td className="pr-3 whitespace-nowrap">
-                        <Menu as="div" className="relative flex-none" onClick={e => {
-                          e.stopPropagation();
-                        }}>
-                          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-                            <span className="sr-only">Open options</span>
-                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                          </Menu.Button>
-                          <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                          >
-                            <Menu.Items className={(1 > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-30 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                                    }
-                                    onClick={e => { setGcArtifactRuleConfigModal(true) }}
-                                  >
-                                    {
-                                      gcArtifactRuleExist ? "Update" : "Configuration"
-                                    }
-                                  </div>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item
-                                disabled={!gcArtifactRuleExist}
-                              >
-                                {({ active }) => (
-                                  <div
-                                    className={
-                                      (active ? 'bg-gray-100' : '') +
-                                      (gcArtifactRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
-                                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                                    }
-                                    onClick={e => createGcArtifactRunner()}
-                                  >
-                                    Run
-                                  </div>
-                                )}
-                              </Menu.Item>
-                            </Menu.Items>
-                          </Transition>
-                        </Menu>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                                <span className="sr-only">Open options</span>
+                                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-30">
+                            <DropdownMenuItem onClick={() => setGcArtifactRuleConfigModal(true)}>
+                              {gcArtifactRuleExist ? "Update" : "Configuration"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled={!gcArtifactRuleExist} onClick={() => createGcArtifactRunner()}>
+                              Run
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                     {
@@ -932,57 +850,24 @@ export default function ({ localServer }: { localServer: string }) {
                             {gcBlobRuleExist && gcBlobRule.cron_enabled && gcBlobRule.cron_next_trigger != undefined ? gcBlobRule.cron_next_trigger : "-"}
                           </td>
                           <td className="pr-3 whitespace-nowrap">
-                            <Menu as="div" className="relative flex-none" onClick={e => {
-                              e.stopPropagation();
-                            }}>
-                              <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-                                <span className="sr-only">Open options</span>
-                                <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                              </Menu.Button>
-                              <Transition
-                                as={Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                              >
-                                <Menu.Items className={(1 > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-30 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <div
-                                        className={
-                                          (active ? 'bg-gray-100' : '') +
-                                          ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                                        }
-                                        onClick={e => { setGcBlobRuleConfigModal(true) }}
-                                      >
-                                        {
-                                          gcBlobRuleExist ? "Update" : "Configuration"
-                                        }
-                                      </div>
-                                    )}
-                                  </Menu.Item>
-                                  <Menu.Item
-                                    disabled={!gcBlobRuleExist}
-                                  >
-                                    {({ active }) => (
-                                      <div
-                                        className={
-                                          (active ? 'bg-gray-100' : '') +
-                                          (gcBlobRuleExist ? ' cursor-pointer ' : ' cursor-not-allowed ') +
-                                          ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                                        }
-                                        onClick={e => createGcBlobRunner()}
-                                      >
-                                        Run
-                                      </div>
-                                    )}
-                                  </Menu.Item>
-                                </Menu.Items>
-                              </Transition>
-                            </Menu>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                render={
+                                  <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                                    <span className="sr-only">Open options</span>
+                                    <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+                                  </Button>
+                                }
+                              />
+                              <DropdownMenuContent align="end" className="w-30">
+                                <DropdownMenuItem onClick={() => setGcBlobRuleConfigModal(true)}>
+                                  {gcBlobRuleExist ? "Update" : "Configuration"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled={!gcBlobRuleExist} onClick={() => createGcBlobRunner()}>
+                                  Run
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       )
@@ -997,7 +882,7 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-gc-repository-retention-days"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-87.5">
         Retention the empty repository for specific days,
         0 means delete immediately, available 0-180
       </div>
@@ -1010,7 +895,7 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-gc-blob-retention-days"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-87.5">
         Retention the blob for specific days,
         0 means delete immediately, available 0-180
       </div>
@@ -1023,7 +908,7 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-gc-artifact-retention-days"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-87.5">
         Retention the artifact for specific days,
         0 means delete immediately, available 0-180
       </div>
@@ -1036,14 +921,14 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-gc-tag-retention-amount"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-87.5">
         Retention the tag for specific days or quantity,
         available 1-180
       </div>
       <div
         id="tooltip-gc-tag-retention-pattern"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[350px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-87.5">
         Retention the tag for specific regexp,
         please try 'v.*'
       </div>
@@ -1053,49 +938,104 @@ export default function ({ localServer }: { localServer: string }) {
         className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
         '0 0 * * 6' means run at 00:00 every Saturday
       </div>
-      <Transition.Root show={gcBlobRuleConfigModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setGcBlobRuleConfigModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Garbage collect blob config
-                  </Dialog.Title>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-6 gap-4">
+      <Dialog open={gcBlobRuleConfigModal} onOpenChange={setGcBlobRuleConfigModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Garbage collect blob config</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Retention Days</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcBlobRetentionDaysHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-retention-days"),
+                            document.getElementById("gcBlobRetentionDaysHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="namespace_count_limit"
+                      name="namespace_count_limit"
+                      placeholder="0 means no limit"
+                      className={(gcBlobRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={gcBlobRuleRetentionDays}
+                      onChange={e => setGcBlobRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                    />
+                    {
+                      gcBlobRuleRetentionDaysValid ? null : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-4">
+                  {
+                    gcBlobRuleRetentionDaysValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Not a valid retention days limit, available 0-180.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Cron Enabled</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="mt-0.5 flex flex-row items-center h-9">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={gcBlobRuleCronEnabled} className="sr-only peer" onChange={e => {
+                        setGcBlobRuleCronEnabled(e.target.checked);
+                      }} />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {
+                !gcBlobRuleCronEnabled ? null : (
+                  <>
+                    <div className="grid grid-cols-6 gap-4 mt-4">
                       <div className="col-span-2 flex flex-row">
                         <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
                           <div className="flex">
                             <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Retention Days</span>
+                            <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
-                              id="gcBlobRetentionDaysHelp"
+                              id="gcBlobRuleHelp"
                               onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-retention-days"),
-                                  document.getElementById("gcBlobRetentionDaysHelp"), { triggerType: "click" });
+                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-cron-rule"),
+                                  document.getElementById("gcBlobRuleHelp"), { triggerType: "click" });
                                 tooltip.show();
                               }}
                             >
@@ -1107,19 +1047,20 @@ export default function ({ localServer }: { localServer: string }) {
                           </div>
                         </label>
                       </div>
+
                       <div className="col-span-4">
                         <div className="relative rounded-md shadow-sm">
                           <input
                             type="text"
-                            id="namespace_count_limit"
-                            name="namespace_count_limit"
-                            placeholder="0 means no limit"
-                            className={(gcBlobRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcBlobRuleRetentionDays}
-                            onChange={e => setGcBlobRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                            id="gc_repository_cron_rule"
+                            name="gc_repository_cron_rule"
+                            placeholder="cron rule"
+                            className={(gcBlobRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcBlobRuleCronRule}
+                            onChange={e => setGcBlobRuleCronRule(e.target.value)}
                           />
                           {
-                            gcBlobRuleRetentionDaysValid ? null : (
+                            gcBlobRuleCronRuleValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1131,689 +1072,331 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2"></div>
-                      <div className="col-span-4">
-                        {
-                          gcBlobRuleRetentionDaysValid ? null : (
-                            <p className="mt-1 text-xs text-red-600">
-                              <span>
-                                Not a valid retention days limit, available 0-180.
-                              </span>
-                            </p>
-                          )
-                        }
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Cron Enabled</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <div className="mt-0.5 flex flex-row items-center h-[36px]">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcBlobRuleCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcBlobRuleCronEnabled(e.target.checked);
-                            }} />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    {
-                      !gcBlobRuleCronEnabled ? null : (
-                        <>
-                          <div className="grid grid-cols-6 gap-4 mt-4">
-                            <div className="col-span-2 flex flex-row">
-                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                                <div className="flex">
-                                  <span className="text-red-600">*</span>
-                                  <span className="leading-6 ">Cron Rule</span>
-                                  <div className="flex flex-row cursor-pointer"
-                                    id="gcBlobRuleHelp"
-                                    onClick={e => {
-                                      let tooltip = new Tooltip(document.getElementById("tooltip-gc-blob-cron-rule"),
-                                        document.getElementById("gcBlobRuleHelp"), { triggerType: "click" });
-                                      tooltip.show();
-                                    }}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                                    </svg>
-                                  </div>
-                                  <span>:</span>
-                                </div>
-                              </label>
-                            </div>
-
-                            <div className="col-span-4">
-                              <div className="relative rounded-md shadow-sm">
-                                <input
-                                  type="text"
-                                  id="gc_repository_cron_rule"
-                                  name="gc_repository_cron_rule"
-                                  placeholder="cron rule"
-                                  className={(gcBlobRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcBlobRuleCronRule}
-                                  onChange={e => setGcBlobRuleCronRule(e.target.value)}
-                                />
-                                {
-                                  gcBlobRuleCronRuleValid ? null : (
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                      </svg>
-                                    </div>
-                                  )
-                                }
-                              </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-6 gap-4">
-                            <div className="col-span-2">
-                            </div>
-                            <div className="col-span-4">
-                              {
-                                !gcBlobRuleCronRuleValid ? (
-                                  <p className="mt-1 text-xs text-red-600">
-                                    <span>
-                                      Not a valid cron rule, you can try '0 0 * * 6'.
-                                    </span>
-                                  </p>
-                                ) : gcBlobRuleCronRule == "" ? null : (
-                                  <p className="mt-1 text-xs text-gray-600">
-                                    <span>
-                                      Next run at '{gcBlobRuleCronRuleNextRunAt}'.
-                                    </span>
-                                  </p>
-                                )
-                              }
-                            </div>
-                          </div>
-                        </>
-                      )
-                    }
-                    <div className="flex flex-row-reverse mt-5">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => createOrUpdateGcBlob()}
-                      >
-                        {
-                          gcBlobRuleExist ? "Update" : "Create"
-                        }
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setGcBlobRuleConfigModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
-      <Transition.Root show={gcRepositoryRuleConfigModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setGcRepositoryRuleConfigModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Garbage collect empty repository config
-                  </Dialog.Title>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Retention Days</span>
-                            <div className="flex flex-row cursor-pointer"
-                              id="gcRepositoryRetentionDaysHelp"
-                              onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
-                                  document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                                tooltip.show();
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                              </svg>
-                            </div>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <div className="relative rounded-md shadow-sm">
-                          <input
-                            type="text"
-                            id="namespace_count_limit"
-                            name="namespace_count_limit"
-                            placeholder="0 means no limit"
-                            className={(gcRepositoryRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcRepositoryRuleRetentionDays}
-                            onChange={e => setGcRepositoryRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                          />
-                          {
-                            gcRepositoryRuleRetentionDaysValid ? null : (
-                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                </svg>
-                              </div>
-                            )
-                          }
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2"></div>
-                      <div className="col-span-4">
-                        {
-                          gcRepositoryRuleRetentionDaysValid ? null : (
-                            <p className="mt-1 text-xs text-red-600">
-                              <span>
-                                Not a valid retention days limit, available 0-180.
-                              </span>
-                            </p>
-                          )
-                        }
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Cron Enabled</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <div className="mt-0.5 flex flex-row items-center h-[36px]">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcRepositoryRuleCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcRepositoryRuleCronEnabled(e.target.checked);
-                            }} />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    {
-                      !gcRepositoryRuleCronEnabled ? null : (
-                        <>
-                          <div className="grid grid-cols-6 gap-4 mt-4">
-                            <div className="col-span-2 flex flex-row">
-                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                                <div className="flex">
-                                  <span className="text-red-600">*</span>
-                                  <span className="leading-6 ">Cron Rule</span>
-                                  <div className="flex flex-row cursor-pointer"
-                                    id="gcRepositoryRuleHelp"
-                                    onClick={e => {
-                                      let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-cron-rule"),
-                                        document.getElementById("gcRepositoryRuleHelp"), { triggerType: "click" });
-                                      tooltip.show();
-                                    }}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                                    </svg>
-                                  </div>
-                                  <span>:</span>
-                                </div>
-                              </label>
-                            </div>
-
-                            <div className="col-span-4">
-                              <div className="relative rounded-md shadow-sm">
-                                <input
-                                  type="text"
-                                  id="gc_repository_cron_rule"
-                                  name="gc_repository_cron_rule"
-                                  placeholder="cron rule"
-                                  className={(gcRepositoryRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcRepositoryRuleCronRule}
-                                  onChange={e => setGcRepositoryRuleCronRule(e.target.value)}
-                                />
-                                {
-                                  gcRepositoryRuleCronRuleValid ? null : (
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                      </svg>
-                                    </div>
-                                  )
-                                }
-                              </div>
-
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-6 gap-4">
-                            <div className="col-span-2">
-                            </div>
-                            <div className="col-span-4">
-                              {
-                                !gcRepositoryRuleCronRuleValid ? (
-                                  <p className="mt-1 text-xs text-red-600">
-                                    <span>
-                                      Not a valid cron rule, you can try '0 0 * * 6'.
-                                    </span>
-                                  </p>
-                                ) : gcRepositoryRuleCronRule == "" ? null : (
-                                  <p className="mt-1 text-xs text-gray-600">
-                                    <span>
-                                      Next run at '{gcRepositoryRuleCronRuleNextRunAt}'.
-                                    </span>
-                                  </p>
-                                )
-                              }
-                            </div>
-                          </div>
-                        </>
-                      )
-                    }
-                    <div className="flex flex-row-reverse mt-5">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => createOrUpdateGcRepository()}
-                      >
-                        {
-                          gcRepositoryRuleExist ? "Update" : "Create"
-                        }
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setGcRepositoryRuleConfigModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
-      <Transition.Root show={gcArtifactRuleConfigModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setGcArtifactRuleConfigModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Garbage collect artifact config
-                  </Dialog.Title>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Retention Days</span>
-                            <div className="flex flex-row cursor-pointer"
-                              id="gcArtifactRetentionDaysHelp"
-                              onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-retention-days"),
-                                  document.getElementById("gcArtifactRetentionDaysHelp"), { triggerType: "click" });
-                                tooltip.show();
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                              </svg>
-                            </div>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <div className="relative rounded-md shadow-sm">
-                          <input
-                            type="text"
-                            id="namespace_count_limit"
-                            name="namespace_count_limit"
-                            placeholder="0 means no limit"
-                            className={(gcArtifactRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcArtifactRuleRetentionDays}
-                            onChange={e => setGcArtifactRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
-                          />
-                          {
-                            gcArtifactRuleRetentionDaysValid ? null : (
-                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                </svg>
-                              </div>
-                            )
-                          }
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2"></div>
-                      <div className="col-span-4">
-                        {
-                          gcArtifactRuleRetentionDaysValid ? null : (
-                            <p className="mt-1 text-xs text-red-600">
-                              <span>
-                                Not a valid retention days limit, available 0-180.
-                              </span>
-                            </p>
-                          )
-                        }
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Cron Enabled</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <div className="mt-0.5 flex flex-row items-center h-[36px]">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcArtifactCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcArtifactCronEnabled(e.target.checked);
-                            }} />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    {
-                      !gcArtifactCronEnabled ? null : (
-                        <>
-                          <div className="grid grid-cols-6 gap-4 mt-4">
-                            <div className="col-span-2 flex flex-row">
-                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                                <div className="flex">
-                                  <span className="text-red-600">*</span>
-                                  <span className="leading-6 ">Cron Rule</span>
-                                  <div className="flex flex-row cursor-pointer"
-                                    id="gcArtifactRuleHelp"
-                                    onClick={e => {
-                                      let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-cron-rule"),
-                                        document.getElementById("gcArtifactRuleHelp"), { triggerType: "click" });
-                                      tooltip.show();
-                                    }}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                                    </svg>
-                                  </div>
-                                  <span>:</span>
-                                </div>
-                              </label>
-                            </div>
-                            <div className="col-span-4">
-                              <div className="relative rounded-md shadow-sm">
-                                <input
-                                  type="text"
-                                  id="gc_repository_cron_rule"
-                                  name="gc_repository_cron_rule"
-                                  placeholder="cron rule"
-                                  className={(gcArtifactRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcArtifactRuleCronRule}
-                                  onChange={e => setGcArtifactRuleCronRule(e.target.value)}
-                                />
-                                {
-                                  gcArtifactRuleCronRuleValid ? null : (
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                      </svg>
-                                    </div>
-                                  )
-                                }
-                              </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-6 gap-4">
-                            <div className="col-span-2">
-                            </div>
-                            <div className="col-span-4">
-                              {
-                                !gcArtifactRuleCronRuleValid ? (
-                                  <p className="mt-1 text-xs text-red-600">
-                                    <span>
-                                      Not a valid cron rule, you can try '0 0 * * 6'.
-                                    </span>
-                                  </p>
-                                ) : gcArtifactRuleCronRule == "" ? null : (
-                                  <p className="mt-1 text-xs text-gray-600">
-                                    <span>
-                                      Next run at '{gcArtifactRuleCronRuleNextRunAt}'.
-                                    </span>
-                                  </p>
-                                )
-                              }
-                            </div>
-                          </div>
-                        </>
-                      )
-                    }
-                    <div className="flex flex-row-reverse mt-5">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => createOrUpdateGcArtifact()}
-                      >
-                        {
-                          gcArtifactRuleExist ? "Update" : "Create"
-                        }
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setGcArtifactRuleConfigModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
-      <Transition.Root show={gcTagRuleConfigModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setGcTagRuleConfigModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all min-w-[700px]">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Garbage collect tag config
-                  </Dialog.Title>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-8 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Retention Amount</span>
-                            <div className="flex flex-row cursor-pointer"
-                              id="gcTagRetentionAmountHelp"
-                              onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-amount"),
-                                  document.getElementById("gcTagRetentionAmountHelp"), { triggerType: "click" });
-                                tooltip.show();
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                              </svg>
-                            </div>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
                       <div className="col-span-2">
-                        <Listbox
-                          value={gcTagRuleRetentionType}
-                          onChange={(source: string) => {
-                            setGcTagRuleRetentionType(source);
-                          }}>
-                          <div className="relative w-full">
-                            <Listbox.Button
-                              className={() => {
-                                let cursor = ''
-                                if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                  cursor = 'cursor-not-allowed ';
-                                } else {
-                                  cursor = 'cursor-pointer ';
-                                }
-                                return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+                      </div>
+                      <div className="col-span-4">
+                        {
+                          !gcBlobRuleCronRuleValid ? (
+                            <p className="mt-1 text-xs text-red-600">
+                              <span>
+                                Not a valid cron rule, you can try '0 0 * * 6'.
+                              </span>
+                            </p>
+                          ) : gcBlobRuleCronRule == "" ? null : (
+                            <p className="mt-1 text-xs text-gray-600">
+                              <span>
+                                Next run at '{gcBlobRuleCronRuleNextRunAt}'.
+                              </span>
+                            </p>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </>
+                )
+              }
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGcBlobRuleConfigModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => createOrUpdateGcBlob()}>
+              {gcBlobRuleExist ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={gcRepositoryRuleConfigModal} onOpenChange={setGcRepositoryRuleConfigModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Garbage collect empty repository config</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Retention Days</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcRepositoryRetentionDaysHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
+                            document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="namespace_count_limit"
+                      name="namespace_count_limit"
+                      placeholder="0 means no limit"
+                      className={(gcRepositoryRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={gcRepositoryRuleRetentionDays}
+                      onChange={e => setGcRepositoryRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                    />
+                    {
+                      gcRepositoryRuleRetentionDaysValid ? null : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-4">
+                  {
+                    gcRepositoryRuleRetentionDaysValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Not a valid retention days limit, available 0-180.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Cron Enabled</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="mt-0.5 flex flex-row items-center h-9">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={gcRepositoryRuleCronEnabled} className="sr-only peer" onChange={e => {
+                        setGcRepositoryRuleCronEnabled(e.target.checked);
+                      }} />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {
+                !gcRepositoryRuleCronEnabled ? null : (
+                  <>
+                    <div className="grid grid-cols-6 gap-4 mt-4">
+                      <div className="col-span-2 flex flex-row">
+                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                          <div className="flex">
+                            <span className="text-red-600">*</span>
+                            <span className="leading-6 ">Cron Rule</span>
+                            <div className="flex flex-row cursor-pointer"
+                              id="gcRepositoryRuleHelp"
+                              onClick={e => {
+                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-cron-rule"),
+                                  document.getElementById("gcRepositoryRuleHelp"), { triggerType: "click" });
+                                tooltip.show();
                               }}
                             >
-                              <span className="block truncate">{gcTagRuleRetentionType}</span>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                  className="h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            </Listbox.Button>
-                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                              <Transition
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                {
-                                  retentionAmountType.map(source => (
-                                    <Listbox.Option key={source.name} value={source.name} className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                      }`
-                                    }>
-                                      {({ selected }) => (
-                                        <>
-                                          <span
-                                            className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                              }`}
-                                          >
-                                            {source.name}
-                                          </span>
-                                          {
-                                            selected ? (
-                                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                              </span>
-                                            ) : null
-                                          }
-                                        </>
-                                      )}
-                                    </Listbox.Option>
-                                  ))
-                                }
-                              </Transition>
-                            </Listbox.Options>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                              </svg>
+                            </div>
+                            <span>:</span>
                           </div>
-                        </Listbox>
+                        </label>
+                      </div>
+
+                      <div className="col-span-4">
+                        <div className="relative rounded-md shadow-sm">
+                          <input
+                            type="text"
+                            id="gc_repository_cron_rule"
+                            name="gc_repository_cron_rule"
+                            placeholder="cron rule"
+                            className={(gcRepositoryRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcRepositoryRuleCronRule}
+                            onChange={e => setGcRepositoryRuleCronRule(e.target.value)}
+                          />
+                          {
+                            gcRepositoryRuleCronRuleValid ? null : (
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                </svg>
+                              </div>
+                            )
+                          }
+                        </div>
+
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-6 gap-4">
+                      <div className="col-span-2">
+                      </div>
+                      <div className="col-span-4">
+                        {
+                          !gcRepositoryRuleCronRuleValid ? (
+                            <p className="mt-1 text-xs text-red-600">
+                              <span>
+                                Not a valid cron rule, you can try '0 0 * * 6'.
+                              </span>
+                            </p>
+                          ) : gcRepositoryRuleCronRule == "" ? null : (
+                            <p className="mt-1 text-xs text-gray-600">
+                              <span>
+                                Next run at '{gcRepositoryRuleCronRuleNextRunAt}'.
+                              </span>
+                            </p>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </>
+                )
+              }
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGcRepositoryRuleConfigModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => createOrUpdateGcRepository()}>
+              {gcRepositoryRuleExist ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={gcArtifactRuleConfigModal} onOpenChange={setGcArtifactRuleConfigModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Garbage collect artifact config</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Retention Days</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcArtifactRetentionDaysHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-retention-days"),
+                            document.getElementById("gcArtifactRetentionDaysHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="namespace_count_limit"
+                      name="namespace_count_limit"
+                      placeholder="0 means no limit"
+                      className={(gcArtifactRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={gcArtifactRuleRetentionDays}
+                      onChange={e => setGcArtifactRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                    />
+                    {
+                      gcArtifactRuleRetentionDaysValid ? null : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-4">
+                  {
+                    gcArtifactRuleRetentionDaysValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Not a valid retention days limit, available 0-180.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div>
+              <div className="grid grid-cols-6 gap-4 mt-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Cron Enabled</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <div className="mt-0.5 flex flex-row items-center h-9">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={gcArtifactCronEnabled} className="sr-only peer" onChange={e => {
+                        setGcArtifactCronEnabled(e.target.checked);
+                      }} />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {
+                !gcArtifactCronEnabled ? null : (
+                  <>
+                    <div className="grid grid-cols-6 gap-4 mt-4">
+                      <div className="col-span-2 flex flex-row">
+                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                          <div className="flex">
+                            <span className="text-red-600">*</span>
+                            <span className="leading-6 ">Cron Rule</span>
+                            <div className="flex flex-row cursor-pointer"
+                              id="gcArtifactRuleHelp"
+                              onClick={e => {
+                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-artifact-cron-rule"),
+                                  document.getElementById("gcArtifactRuleHelp"), { triggerType: "click" });
+                                tooltip.show();
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                              </svg>
+                            </div>
+                            <span>:</span>
+                          </div>
+                        </label>
                       </div>
                       <div className="col-span-4">
                         <div className="relative rounded-md shadow-sm">
                           <input
                             type="text"
-                            id="namespace_count_limit"
-                            name="namespace_count_limit"
-                            placeholder="0 means no limit"
-                            className={(gcTagRuleRetentionAmountValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcTagRuleRetentionAmount}
-                            onChange={e => setGcTagRuleRetentionAmount(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                            id="gc_repository_cron_rule"
+                            name="gc_repository_cron_rule"
+                            placeholder="cron rule"
+                            className={(gcArtifactRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcArtifactRuleCronRule}
+                            onChange={e => setGcArtifactRuleCronRule(e.target.value)}
                           />
                           {
-                            gcTagRuleRetentionAmountValid ? null : (
+                            gcArtifactRuleCronRuleValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1824,32 +1407,216 @@ export default function ({ localServer }: { localServer: string }) {
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-8 gap-4">
-                      <div className="col-span-2"></div>
-                      <div className="col-span-2"></div>
+                    <div className="grid grid-cols-6 gap-4">
+                      <div className="col-span-2">
+                      </div>
                       <div className="col-span-4">
                         {
-                          gcTagRuleRetentionAmountValid ? null : (
+                          !gcArtifactRuleCronRuleValid ? (
                             <p className="mt-1 text-xs text-red-600">
                               <span>
-                                Not a valid retention amount, available 1-180.
+                                Not a valid cron rule, you can try '0 0 * * 6'.
+                              </span>
+                            </p>
+                          ) : gcArtifactRuleCronRule == "" ? null : (
+                            <p className="mt-1 text-xs text-gray-600">
+                              <span>
+                                Next run at '{gcArtifactRuleCronRuleNextRunAt}'.
                               </span>
                             </p>
                           )
                         }
                       </div>
                     </div>
-                    <div className="grid grid-cols-8 mt-4 gap-4">
+                  </>
+                )
+              }
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGcArtifactRuleConfigModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => createOrUpdateGcArtifact()}>
+              {gcArtifactRuleExist ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={gcTagRuleConfigModal} onOpenChange={setGcTagRuleConfigModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Garbage collect tag config</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              <div className="grid grid-cols-8 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Retention Amount</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcTagRetentionAmountHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-amount"),
+                            document.getElementById("gcTagRetentionAmountHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-2">
+                  <Select
+                    value={gcTagRuleRetentionType}
+                    onValueChange={(source) => { if (source) setGcTagRuleRetentionType(source); }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {retentionAmountType.map(source => (
+                        <SelectItem key={source.name} value={source.name}>
+                          {source.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-4">
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="namespace_count_limit"
+                      name="namespace_count_limit"
+                      placeholder="0 means no limit"
+                      className={(gcTagRuleRetentionAmountValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={gcTagRuleRetentionAmount}
+                      onChange={e => setGcTagRuleRetentionAmount(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                    />
+                    {
+                      gcTagRuleRetentionAmountValid ? null : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-2"></div>
+                <div className="col-span-4">
+                  {
+                    gcTagRuleRetentionAmountValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Not a valid retention amount, available 1-180.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div>
+              <div className="grid grid-cols-8 mt-4 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      {/* <span className="text-red-600">*</span> */}
+                      <span className="leading-6 ">Retention Regex</span>
+                      <div className="flex flex-row cursor-pointer"
+                        id="gcTagRetentionPatternHelp"
+                        onClick={e => {
+                          let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-pattern"),
+                            document.getElementById("gcTagRetentionPatternHelp"), { triggerType: "click" });
+                          tooltip.show();
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                      </div>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-6">
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      id="namespace_count_limit"
+                      name="namespace_count_limit"
+                      placeholder="regexp"
+                      className={(gcTagRuleRetentionPatternValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      value={gcTagRuleRetentionPattern}
+                      onChange={e => setGcTagRuleRetentionPattern(e.target.value)}
+                    />
+                    {
+                      gcTagRuleRetentionPatternValid ? null : (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-6">
+                  {
+                    gcTagRuleRetentionPatternValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Not a valid regex, you can try 'v.*'.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div>
+              <div className="grid grid-cols-8 mt-4 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Cron Enabled</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-6">
+                  <div className="mt-0.5 flex flex-row items-center h-9">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={gcTagRuleCronEnabled} className="sr-only peer" onChange={e => {
+                        setGcTagRuleCronEnabled(e.target.checked);
+                      }} />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {
+                !gcTagRuleCronEnabled ? null : (
+                  <>
+                    <div className="grid grid-cols-8 gap-4 mt-4">
                       <div className="col-span-2 flex flex-row">
                         <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
                           <div className="flex">
-                            {/* <span className="text-red-600">*</span> */}
-                            <span className="leading-6 ">Retention Regex</span>
+                            <span className="text-red-600">*</span>
+                            <span className="leading-6 ">Cron Rule</span>
                             <div className="flex flex-row cursor-pointer"
-                              id="gcTagRetentionPatternHelp"
+                              id="gcTagRuleHelp"
                               onClick={e => {
-                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-retention-pattern"),
-                                  document.getElementById("gcTagRetentionPatternHelp"), { triggerType: "click" });
+                                let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-cron-rule"),
+                                  document.getElementById("gcTagRuleHelp"), { triggerType: "click" });
                                 tooltip.show();
                               }}
                             >
@@ -1865,15 +1632,15 @@ export default function ({ localServer }: { localServer: string }) {
                         <div className="relative rounded-md shadow-sm">
                           <input
                             type="text"
-                            id="namespace_count_limit"
-                            name="namespace_count_limit"
-                            placeholder="regexp"
-                            className={(gcTagRuleRetentionPatternValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                            value={gcTagRuleRetentionPattern}
-                            onChange={e => setGcTagRuleRetentionPattern(e.target.value)}
+                            id="gc_repository_cron_rule"
+                            name="gc_repository_cron_rule"
+                            placeholder="cron rule"
+                            className={(gcTagRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            value={gcTagRuleCronRule}
+                            onChange={e => setGcTagRuleCronRule(e.target.value)}
                           />
                           {
-                            gcTagRuleRetentionPatternValid ? null : (
+                            gcTagRuleCronRuleValid ? null : (
                               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -1885,137 +1652,40 @@ export default function ({ localServer }: { localServer: string }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-8 gap-4">
-                      <div className="col-span-2"></div>
+                      <div className="col-span-2">
+                      </div>
                       <div className="col-span-6">
                         {
-                          gcTagRuleRetentionPatternValid ? null : (
+                          !gcTagRuleCronRuleValid ? (
                             <p className="mt-1 text-xs text-red-600">
                               <span>
-                                Not a valid regex, you can try 'v.*'.
+                                Not a valid cron rule, you can try '0 0 * * 6'.
+                              </span>
+                            </p>
+                          ) : gcTagRuleCronRule == "" ? null : (
+                            <p className="mt-1 text-xs text-gray-600">
+                              <span>
+                                Next run at '{gcTagRuleCronRuleNextRunAt}'.
                               </span>
                             </p>
                           )
                         }
                       </div>
                     </div>
-                    <div className="grid grid-cols-8 mt-4 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Cron Enabled</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-6">
-                        <div className="mt-0.5 flex flex-row items-center h-[36px]">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={gcTagRuleCronEnabled} className="sr-only peer" onChange={e => {
-                              setGcTagRuleCronEnabled(e.target.checked);
-                            }} />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    {
-                      !gcTagRuleCronEnabled ? null : (
-                        <>
-                          <div className="grid grid-cols-8 gap-4 mt-4">
-                            <div className="col-span-2 flex flex-row">
-                              <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                                <div className="flex">
-                                  <span className="text-red-600">*</span>
-                                  <span className="leading-6 ">Cron Rule</span>
-                                  <div className="flex flex-row cursor-pointer"
-                                    id="gcTagRuleHelp"
-                                    onClick={e => {
-                                      let tooltip = new Tooltip(document.getElementById("tooltip-gc-tag-cron-rule"),
-                                        document.getElementById("gcTagRuleHelp"), { triggerType: "click" });
-                                      tooltip.show();
-                                    }}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                                    </svg>
-                                  </div>
-                                  <span>:</span>
-                                </div>
-                              </label>
-                            </div>
-                            <div className="col-span-6">
-                              <div className="relative rounded-md shadow-sm">
-                                <input
-                                  type="text"
-                                  id="gc_repository_cron_rule"
-                                  name="gc_repository_cron_rule"
-                                  placeholder="cron rule"
-                                  className={(gcTagRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                                  value={gcTagRuleCronRule}
-                                  onChange={e => setGcTagRuleCronRule(e.target.value)}
-                                />
-                                {
-                                  gcTagRuleCronRuleValid ? null : (
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                      </svg>
-                                    </div>
-                                  )
-                                }
-                              </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-8 gap-4">
-                            <div className="col-span-2">
-                            </div>
-                            <div className="col-span-6">
-                              {
-                                !gcTagRuleCronRuleValid ? (
-                                  <p className="mt-1 text-xs text-red-600">
-                                    <span>
-                                      Not a valid cron rule, you can try '0 0 * * 6'.
-                                    </span>
-                                  </p>
-                                ) : gcTagRuleCronRule == "" ? null : (
-                                  <p className="mt-1 text-xs text-gray-600">
-                                    <span>
-                                      Next run at '{gcTagRuleCronRuleNextRunAt}'.
-                                    </span>
-                                  </p>
-                                )
-                              }
-                            </div>
-                          </div>
-                        </>
-                      )
-                    }
-                    <div className="flex flex-row-reverse mt-5">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => createOrUpdateGcTag()}
-                      >
-                        {
-                          gcTagRuleExist ? "Update" : "Create"
-                        }
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setGcTagRuleConfigModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+                  </>
+                )
+              }
           </div>
-        </Dialog>
-      </Transition.Root>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGcTagRuleConfigModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => createOrUpdateGcTag()}>
+              {gcTagRuleExist ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment >
   )
 }

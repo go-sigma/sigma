@@ -1,4 +1,3 @@
-import { Dialog, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 /**
  * Copyright 2023 sigma
  *
@@ -33,6 +32,21 @@ import Settings from "../../Settings";
 import Toast from "../../components/Notification";
 import distros, { distroName } from '../../utils/distros';
 import { useTranslation } from "../../i18n/useTranslation";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   IArtifact,
   IEndpoint,
@@ -46,7 +60,6 @@ import {
   IUserSelf,
   IVuln
 } from "../../interfaces";
-import { NamespaceRole, UserRole } from "../../interfaces/enums";
 import { Tooltip, trimHTTP } from "../../utils";
 
 export default function Tag({ localServer }: { localServer: string }) {
@@ -258,69 +271,36 @@ export default function Tag({ localServer }: { localServer: string }) {
             </div>
           </main>
           <div className="flex-1 overflow-y-auto">
-            <Transition.Root show={deleteTagModal} as={Fragment}>
-              <Dialog as="div" className="relative z-10" onClose={setDeleteTagModal}>
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0"
-                  enterTo="opacity-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-                </Transition.Child>
-
-                <div className="fixed inset-0 z-10 overflow-y-auto">
-                  <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                    <Transition.Child
-                      as={Fragment}
-                      enter="ease-out duration-300"
-                      enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                      enterTo="opacity-100 translate-y-0 sm:scale-100"
-                      leave="ease-in duration-200"
-                      leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                      leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    >
-                      <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                        <div className="sm:flex sm:items-start">
-                          <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
-                          </div>
-                          <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                            <DialogTitle as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                              Delete tag
-                            </DialogTitle>
-                            <div className="mt-2">
-                              <p className="text-sm text-gray-500">
-                                Are you sure you want to delete the tag <span className="text-black font-medium">{deleteTagModalTag.name}</span>
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                          <button
-                            type="button"
-                            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                            onClick={e => { setDeleteTagModal(false); deleteTag(deleteTagModalTag.id); }}
-                          >
-                            Delete
-                          </button>
-                          <button
-                            type="button"
-                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                            onClick={() => setDeleteTagModal(false)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </Dialog.Panel>
-                    </Transition.Child>
+            <Dialog open={deleteTagModal} onOpenChange={setDeleteTagModal}>
+              <DialogContent className="sm:max-w-lg">
+                <div className="flex items-start gap-4">
+                  <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                    <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <DialogTitle>Delete tag</DialogTitle>
+                    <DialogDescription className="mt-2">
+                      Are you sure you want to delete the tag{' '}
+                      <span className="text-foreground font-medium">{deleteTagModalTag.name}</span>
+                    </DialogDescription>
                   </div>
                 </div>
-              </Dialog>
-            </Transition.Root>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteTagModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => { setDeleteTagModal(false); deleteTag(deleteTagModalTag.id); }}
+                  >
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <div className="flex flex-col border-b border-gray-200">
               {
                 tagList.items?.map((tag, index) => {
@@ -369,43 +349,27 @@ export default function Tag({ localServer }: { localServer: string }) {
                           </code>
                         </div>
                         <div className="flex flex-col justify-center">
-                          <Menu as="div" className="relative flex-none" onClick={e => {
-                            e.stopPropagation();
-                          }}>
-                            <MenuButton className="mx-auto my-auto block p-1 text-gray-500 hover:text-gray-900 margin">
-                              <span className="sr-only">Open options</span>
-                              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                            </MenuButton>
-                            <Transition
-                              as={Fragment}
-                              enter="transition ease-out duration-100"
-                              enterFrom="transform opacity-0 scale-95"
-                              enterTo="transform opacity-100 scale-100"
-                              leave="transition ease-in duration-75"
-                              leaveFrom="transform opacity-100 scale-100"
-                              leaveTo="transform opacity-0 scale-95"
-                            >
-                              <MenuItems className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-                                <MenuItem>
-                                  {({ active }) => (
-                                    <div
-                                      className={
-                                        (active ? 'bg-gray-50' : '') +
-                                        (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                                        ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
-                                      }
-                                      onClick={e => {
-                                        setDeleteTagModal(true);
-                                        setDeleteTagModalTag(tag);
-                                      }}
-                                    >
-                                      Delete
-                                    </div>
-                                  )}
-                                </MenuItem>
-                              </MenuItems>
-                            </Transition>
-                          </Menu>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                                  <span className="sr-only">Open options</span>
+                                  <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="w-20">
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => {
+                                  setDeleteTagModal(true);
+                                  setDeleteTagModalTag(tag);
+                                }}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                       {/* first row end */}
@@ -520,15 +484,15 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
   let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;
   return (
     <tr className="hover:bg-gray-50 cursor-pointer">
-      <td className="text-left w-[180px]">
+      <td className="text-left w-45">
         <code className="text-xs underline underline-offset-1 text-blue-600 hover:text-blue-500">
           {cutDigest(artifact.digest)}
         </code>
       </td>
-      <td className="text-left text-xs w-[180px] capitalize">
+      <td className="text-left text-xs w-45 capitalize">
         {artifact.type}
       </td>
-      <td className="text-left text-xs w-[180px]">
+      <td className="text-left text-xs w-45">
         <div className='flex gap-1'>
           {distros(sbomObj.distro?.name) === "" ? "" : (
             <img src={"/distros/" + distros(sbomObj.distro.name)} alt={sbomObj.distro.name} className="w-4 h-4 inline relative" />
@@ -538,7 +502,7 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
           </div>
         </div>
       </td>
-      <td className="text-left text-xs w-[180px]">
+      <td className="text-left text-xs w-45">
         {
           imageConfigObj.os === undefined ||
             imageConfigObj.architecture === undefined ||
@@ -548,22 +512,22 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
           )
         }
       </td>
-      <td className="text-left text-xs w-[180px]">
+      <td className="text-left text-xs w-45">
         Verified
       </td>
-      <td className="text-left text-xs w-[180px]">
+      <td className="text-left text-xs w-45">
         {(artifact.pull_times || 0) > 0 ? dayjs().to(dayjs(artifact.last_pull)) : "Never pulled"}
       </td>
-      {/* <td className="text-right text-xs w-[180px]">
+      {/* <td className="text-right text-xs w-45">
         {artifact.pull_times}
       </td> */}
-      <td className="text-right text-xs w-[220px]">
+      <td className="text-right text-xs w-55">
         <span className="bg-red-800 text-white text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300"><span>{vulnerabilityObj.critical || 0}</span> C</span>
         <span className="bg-red-300 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.high || 0} H</span>
         <span className="bg-amber-400 text-gray-800 text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.medium || 0} M</span>
         <span className="bg-amber-200 text-gray-800 text-xs font-medium px-2 py-0.5 dark:bg-red-900 dark:text-red-300">{vulnerabilityObj.low || 0} L</span>
       </td>
-      <td className="text-right text-xs w-[180px]">
+      <td className="text-right text-xs w-45">
         {humanFormat(artifact.blob_size || 0)}
       </td>
     </tr>

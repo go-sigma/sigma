@@ -19,13 +19,37 @@ import Toast from 'react-hot-toast';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CheckIcon, ChevronUpDownIcon, EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+import { ChevronUpDownIcon, EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+
+import { Button } from "@/components/ui/button";
 import {
-  Combobox, ComboboxButton, ComboboxInput, ComboboxOption,
-  ComboboxOptions, Dialog, DialogPanel, DialogTitle, Listbox,
-  ListboxButton, ListboxOption, ListboxOptions, Menu, MenuItem,
-  MenuItems, Transition, TransitionChild
-} from "@headlessui/react";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
@@ -200,7 +224,7 @@ export default function Member({ localServer }: { localServer: string }) {
                 )
               }
             />
-            <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
+            <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">
@@ -272,216 +296,107 @@ export default function Member({ localServer }: { localServer: string }) {
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
-      <Transition show={createUserNamespaceModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setCreateUserNamespaceModal}>
-          <TransitionChild
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </TransitionChild>
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <TransitionChild
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <DialogPanel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                  <DialogTitle
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                  >
-                    Add member
-                  </DialogTitle>
-                  <div className="flex flex-col gap-0 mt-4">
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">User</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <Combobox value={userSelected}
-                          onChange={(user: IUserItem | null) => {
-                            if (!user) {
-                              return;
-                            }
-                            setUserSelected(user);
-                          }}>
-                          <div className="relative mt-1">
-                            <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                              <ComboboxInput
-                                id="namespace"
-                                className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                displayValue={(user: IUserItem) => user.username}
-                                onChange={event => {
-                                  setUserSearch(event.target.value);
-                                }}
-                              />
-                              <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                  className="h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </ComboboxButton>
-                            </div>
-                            <Transition
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
-                              afterLeave={() => setUserSearch('')}
-                            >
-                              <ComboboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                                {
-                                  userList?.length === 0 ? (
-                                    <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                      Nothing found.
-                                    </div>
-                                  ) : (
-                                    userList?.map(user => (
-                                      <ComboboxOption
-                                        key={user.id}
-                                        className={`relative cursor-pointer select-none`}
-                                        value={user}
-                                      >
-                                        {({ focus, selected }) => (
-                                          <span className={`block truncate font-normal py-2 px-4 ${focus ? 'bg-gray-200 text-gray-800' : 'text-gray-900'}`}
-                                          >
-                                            {user.username}
-                                          </span>
-                                        )}
-                                      </ComboboxOption>
-                                    ))
-                                  )
-                                }
-                              </ComboboxOptions>
-                            </Transition>
-                          </div>
-                        </Combobox>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4">
-                      <div className="col-span-2"></div>
-                      <div className="col-span-4">
-                        {
-                          userSelectedValid ? null : (
-                            <p className="mt-1 text-xs text-red-600">
-                              <span>
-                                Please select a user.
-                              </span>
-                            </p>
-                          )
-                        }
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-6 gap-4 mt-4">
-                      <div className="col-span-2 flex flex-row">
-                        <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                          <div className="flex">
-                            <span className="text-red-600">*</span>
-                            <span className="leading-6 ">Role</span>
-                            <span>:</span>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-span-4">
-                        <Listbox
-                          value={addNamespaceRoleRole}
-                          onChange={(source: string) => {
-                            setAddNamespaceRoleRole(source);
-                          }}>
-                          <div className="relative w-full">
-                            <ListboxButton
-                              className={() => {
-                                let cursor = ''
-                                if ((searchParams.get('code_repository_stick') || '') === 'true') {
-                                  cursor = 'cursor-not-allowed ';
-                                } else {
-                                  cursor = 'cursor-pointer ';
-                                }
-                                return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-                              }}
-                            >
-                              <span className="block truncate">{addNamespaceRoleRole}</span>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                  className="h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            </ListboxButton>
-                            <ListboxOptions
-                              className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10"
-                            >
-                              {
-                                namespaceRoles.map(source => (
-                                  <ListboxOption key={source.name} value={source.name} className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                    }`
-                                  }>
-                                    {({ selected }) => (
-                                      <>
-                                        <span
-                                          className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                            }`}
-                                        >
-                                          {source.name}
-                                        </span>
-                                        {
-                                          selected ? (
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                              <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                            </span>
-                                          ) : null
-                                        }
-                                      </>
-                                    )}
-                                  </ListboxOption>
-                                ))
-                              }
-                            </ListboxOptions>
-                          </div>
-                        </Listbox>
-                      </div>
-                    </div>
-                    <div className="flex flex-row-reverse mt-5">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={e => addMember()}
-                      >
-                        Add
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={e => { setCreateUserNamespaceModal(false) }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+      <Dialog open={createUserNamespaceModal} onOpenChange={setCreateUserNamespaceModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="border-b pb-4">Add member</DialogTitle>
+          <div className="flex flex-col gap-0 mt-4">
+            <div className="grid grid-cols-6 gap-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="text-red-600">*</span>
+                    <span className="leading-6 ">User</span>
+                    <span>:</span>
                   </div>
-                </DialogPanel>
-              </TransitionChild>
+                </label>
+              </div>
+              <div className="col-span-4">
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button variant="outline" className="w-full justify-between font-normal">
+                        {userSelected?.username || "Select user"}
+                        <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </Button>
+                    }
+                  />
+                  <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Search user"
+                        value={userSearch}
+                        onValueChange={setUserSearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>Nothing found.</CommandEmpty>
+                        <CommandGroup>
+                          {userList?.map(user => (
+                            <CommandItem
+                              key={user.id}
+                              value={user.username}
+                              onSelect={() => setUserSelected(user)}
+                            >
+                              {user.username}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-4">
+              <div className="col-span-2"></div>
+              <div className="col-span-4">
+                {
+                  userSelectedValid ? null : (
+                    <p className="mt-1 text-xs text-red-600">
+                      <span>
+                        Please select a user.
+                      </span>
+                    </p>
+                  )
+                }
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-4 mt-4">
+              <div className="col-span-2 flex flex-row">
+                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                  <div className="flex">
+                    <span className="text-red-600">*</span>
+                    <span className="leading-6 ">Role</span>
+                    <span>:</span>
+                  </div>
+                </label>
+              </div>
+              <div className="col-span-4">
+                <Select
+                  value={addNamespaceRoleRole}
+                  onValueChange={(source) => { if (source) setAddNamespaceRoleRole(source); }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {namespaceRoles.map(source => (
+                      <SelectItem key={source.name} value={source.name}>
+                        {source.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        </Dialog>
-      </Transition>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateUserNamespaceModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => addMember()}>Add</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment >
   );
 }
@@ -547,254 +462,127 @@ function TableItem({ localServer, index, namespace, userSelectedArg, member, set
       <td className="pr-3 whitespace-nowrap" onClick={e => {
         e.stopPropagation();
       }}>
-        <Menu as="div" className="relative flex-none" onClick={e => {
-          e.stopPropagation();
-        }}>
-          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-            <span className="sr-only">Open options</span>
-            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-          </Menu.Button>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <MenuItems className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-              <MenuItem>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-100' : '') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
-                    }
-                    onClick={e => setUpdateUserNamespaceModal(true)}
-                  >
-                    Update
-                  </div>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-50' : '') + ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
-                    }
-                    onClick={e => deleteMember()}
-                  >
-                    Delete
-                  </div>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                <span className="sr-only">Open options</span>
+                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-28">
+            <DropdownMenuItem onClick={() => setUpdateUserNamespaceModal(true)}>
+              Update
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={() => deleteMember()}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition show={updateUserNamespaceModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={setUpdateUserNamespaceModal}>
-            <TransitionChild
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </TransitionChild>
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <TransitionChild
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  enterTo="opacity-100 translate-y-0 sm:scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                  <DialogPanel className="relative transform rounded-lg bg-white px-6 pb-4 text-left shadow-xl transition-all">
-                    <DialogTitle
-                      as="h3"
-                      className="text-lg font-medium leading-6 text-gray-900 border-b pt-4 pb-4"
-                    >
-                      Update member
-                    </DialogTitle>
-                    <div className="flex flex-col gap-0 mt-4">
-                      {/* <div className="grid grid-cols-6 gap-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="text-red-600">*</span>
-                              <span className="leading-6 ">User</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-4">
-                          <Combobox value={userSelected}
-                            onChange={(user: IUserItem) => {
-                              setUserSelected(user);
-                            }}>
-                            <div className="relative mt-1">
-                              <div className="w-full relative cursor-default overflow-hidden rounded-lg bg-white text-left shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
-                                <Combobox.Input
-                                  id="namespace"
-                                  className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                  displayValue={(user: IUserItem) => user.username}
-                                  onChange={event => {
-                                    setUserSearch(event.target.value);
-                                  }}
-                                />
-                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                  <ChevronUpDownIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
-                                  />
-                                </Combobox.Button>
-                              </div>
-                              <Transition
-                                as={Fragment}
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                                afterLeave={() => setUserSearch('')}
-                              >
-                                <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-                                  {
-                                    userList.length === 0 ? (
-                                      <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                        Nothing found.
-                                      </div>
-                                    ) : (
-                                      userList.map(user => (
-                                        <Combobox.Option
-                                          key={user.id}
-                                          className={({ active }) =>
-                                            `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-gray-200 text-gray-800' : 'text-gray-900'
-                                            }`
-                                          }
-                                          value={user}
-                                        >
-                                          <span className={`block truncate font-normal`}>
-                                            {user.username}
-                                          </span>
-                                        </Combobox.Option>
-                                      ))
-                                    )
-                                  }
-                                </Combobox.Options>
-                              </Transition>
-                            </div>
-                          </Combobox>
-                        </div>
-                      </div> */}
-                      {/* <div className="grid grid-cols-6 gap-4">
-                        <div className="col-span-2"></div>
-                        <div className="col-span-4">
-                          {
-                            userSelectedValid ? null : (
-                              <p className="mt-1 text-xs text-red-600">
-                                <span>
-                                  Please select a user.
-                                </span>
-                              </p>
-                            )
-                          }
-                        </div>
-                      </div> */}
-                      <div className="grid grid-cols-6 gap-4">
-                        <div className="col-span-2 flex flex-row">
-                          <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                            <div className="flex">
-                              <span className="text-red-600">*</span>
-                              <span className="leading-6 ">Role</span>
-                              <span>:</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="col-span-4">
-                          <Listbox
-                            value={addNamespaceRoleRole}
-                            onChange={(source: string) => {
-                              setAddNamespaceRoleRole(source);
-                            }}>
-                            <div className="relative w-full">
-                              <ListboxButton
-                                className={() => {
-                                  let cursor = 'cursor-pointer '
-                                  return cursor + "relative w-full rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm min-w-[200px]"
-                                }}
-                              >
-                                <span className="block truncate">{addNamespaceRoleRole}</span>
-                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                  <ChevronUpDownIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              </ListboxButton>
-                              <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-
-                                {
-                                  namespaceRoles.map(source => (
-                                    <ListboxOption key={source.name} value={source.name} className={({ active }) =>
-                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-900'
-                                      }`
-                                    }>
-                                      {({ selected }) => (
-                                        <>
-                                          <span
-                                            className={`block truncate ${selected ? 'font-medium' : 'font-normal'
-                                              }`}
-                                          >
-                                            {source.name}
-                                          </span>
-                                          {
-                                            selected ? (
-                                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                              </span>
-                                            ) : null
-                                          }
-                                        </>
-                                      )}
-                                    </ListboxOption>
-                                  ))
-                                }
-                              </ListboxOptions>
-                            </div>
-                          </Listbox>
-                        </div>
-                      </div>
-                      <div className="flex flex-row-reverse mt-5">
-                        <button
-                          type="button"
-                          className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:bg-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                          onClick={e => updateMember()}
-                        >
-                          Update
-                        </button>
-                        <button
-                          type="button"
-                          className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
-                          onClick={e => { setUpdateUserNamespaceModal(false) }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
+        <Dialog open={updateUserNamespaceModal} onOpenChange={setUpdateUserNamespaceModal}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogTitle className="border-b pb-4">Update member</DialogTitle>
+            <div className="flex flex-col gap-0 mt-4">
+              {/* <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">User</span>
+                      <span>:</span>
                     </div>
-                  </DialogPanel>
-                </TransitionChild>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <Popover>
+                    <PopoverTrigger
+                      render={
+                        <Button variant="outline" className="w-full justify-between font-normal">
+                          {userSelected?.username || "Select user"}
+                          <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                        </Button>
+                      }
+                    />
+                    <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Search user"
+                          value={userSearch}
+                          onValueChange={setUserSearch}
+                        />
+                        <CommandList>
+                          <CommandEmpty>Nothing found.</CommandEmpty>
+                          <CommandGroup>
+                            {userList?.map(user => (
+                              <CommandItem
+                                key={user.id}
+                                value={user.username}
+                                onSelect={() => setUserSelected(user)}
+                              >
+                                {user.username}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div> */}
+              {/* <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2"></div>
+                <div className="col-span-4">
+                  {
+                    userSelectedValid ? null : (
+                      <p className="mt-1 text-xs text-red-600">
+                        <span>
+                          Please select a user.
+                        </span>
+                      </p>
+                    )
+                  }
+                </div>
+              </div> */}
+              <div className="grid grid-cols-6 gap-4">
+                <div className="col-span-2 flex flex-row">
+                  <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
+                    <div className="flex">
+                      <span className="text-red-600">*</span>
+                      <span className="leading-6 ">Role</span>
+                      <span>:</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="col-span-4">
+                  <Select
+                    value={addNamespaceRoleRole}
+                    onValueChange={(source) => { if (source) setAddNamespaceRoleRole(source); }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {namespaceRoles.map(source => (
+                        <SelectItem key={source.name} value={source.name}>
+                          {source.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </Dialog>
-        </Transition>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setUpdateUserNamespaceModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => updateMember()}>Update</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </td>
     </tr>
   )

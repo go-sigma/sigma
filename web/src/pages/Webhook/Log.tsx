@@ -1,4 +1,3 @@
-import { Dialog, Menu, Transition } from "@headlessui/react";
 /**
  * Copyright 2024 sigma
  *
@@ -19,7 +18,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Dialog as ShadDialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom';
 
@@ -30,7 +30,6 @@ import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
 import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookLogItem, IWebhookLogList } from "../../interfaces";
 import OrderHeader from "../../components/OrderHeader";
-import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "../../interfaces/enums";
 
@@ -157,7 +156,7 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-webhook-retry-duration"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-[220px]">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-55">
         Less than 10, unit is second.
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
@@ -200,7 +199,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </div>
               )
             } />
-            <div className="pt-1 pb-1 flex justify-between items-center min-h-[60px]">
+            <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="flex gap-4">
                   <div className="relative mt-2 flex items-center">
@@ -264,74 +263,35 @@ export default function ({ localServer }: { localServer: string }) {
           <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
         </div>
       </div>
-      <Transition.Root show={webhookPingModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setWebhookPingModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 min-w-[600px]">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
-                    </div>
-                    <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                      <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                        Send webhook ping event
-                      </Dialog.Title>
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          Are you sure you want to send the webhook ping event?
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                      onClick={e => { setWebhookPingModal(false); webhookPing(); }}
-                    >
-                      Send
-                    </button>
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                      onClick={() => setWebhookPingModal(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
+      <Dialog open={webhookPingModal} onOpenChange={setWebhookPingModal}>
+        <DialogContent className="sm:max-w-lg">
+          <div className="flex items-start gap-4">
+            <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+              <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+            </div>
+            <div className="text-center sm:text-left">
+              <DialogTitle>Send webhook ping event</DialogTitle>
+              <DialogDescription className="mt-2">
+                Are you sure you want to send the webhook ping event?
+              </DialogDescription>
             </div>
           </div>
-        </Dialog>
-      </Transition.Root>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWebhookPingModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => { setWebhookPingModal(false); webhookPing(); }}>
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment >
   );
 }
 
 function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookLogObj: IWebhookLogItem, setRefresh: (param: any) => void }) {
+  const canManageWebhookLog = userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
   const [webhookLogResendModal, setWebhookLogResendModal] = useState(false);
   const [webhookLogDeleteModal, setWebhookLogDeleteModal] = useState(false);
 
@@ -395,192 +355,80 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
       <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
         e.stopPropagation();
       }}>
-        <Menu as="div" className="relative flex-none" onClick={e => {
-          e.stopPropagation();
-        }}>
-          <Menu.Button className="mx-auto -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900 margin">
-            <span className="sr-only">Open options</span>
-            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-          </Menu.Button>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className={(index > 10 ? "menu-action-top" : "mt-2") + " text-left absolute right-0 z-10 w-20 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"} >
-              <Menu.Item>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-100' : '') +
-                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900'
-                    }
-                    onClick={e => {
-                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setWebhookLogResendModal(true);
-                    }}
-                  >
-                    Resend
-                  </div>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <div
-                    className={
-                      (active ? 'bg-gray-50' : '') +
-                      (((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) ? ' cursor-pointer' : ' cursor-not-allowed') +
-                      ' block px-3 py-1 text-sm leading-6 text-gray-900 hover:text-white hover:bg-red-600 cursor-pointer'
-                    }
-                    onClick={e => {
-                      ((userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager)))) && setWebhookLogDeleteModal(true);
-                    }}
-                  >
-                    Delete
-                  </div>
-                )}
-              </Menu.Item>
-            </Menu.Items>
-          </Transition>
-        </Menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" className="text-gray-500">
+                <span className="sr-only">Open options</span>
+                <EllipsisVerticalIcon className="size-5" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-28">
+            <DropdownMenuItem disabled={!canManageWebhookLog} onClick={() => setWebhookLogResendModal(true)}>
+              Resend
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" disabled={!canManageWebhookLog} onClick={() => setWebhookLogDeleteModal(true)}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition.Root show={webhookLogResendModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={setWebhookLogResendModal}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
-
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  enterTo="opacity-100 translate-y-0 sm:scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                  <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                    <div className="sm:flex sm:items-start">
-                      <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
-                      </div>
-                      <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                          Resend webhook event
-                        </Dialog.Title>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">
-                            Are you sure you want to resend the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.resource_type}</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                        onClick={e => { setWebhookLogResendModal(false); webhookLogResend() }}
-                      >
-                        Resend
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                        onClick={() => setWebhookLogResendModal(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+        <Dialog open={webhookLogResendModal} onOpenChange={setWebhookLogResendModal}>
+          <DialogContent className="sm:max-w-lg">
+            <div className="flex items-start gap-4">
+              <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+              </div>
+              <div className="text-center sm:text-left">
+                <DialogTitle>Resend webhook event</DialogTitle>
+                <DialogDescription className="mt-2">
+                  Are you sure you want to resend the webhook event{" "}
+                  <span className="text-foreground font-medium capitalize">{webhookLogObj.resource_type}</span>
+                </DialogDescription>
               </div>
             </div>
-          </Dialog>
-        </Transition.Root>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setWebhookLogResendModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => { setWebhookLogResendModal(false); webhookLogResend() }}>
+                Resend
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </td>
       <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Transition.Root show={webhookLogDeleteModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={setWebhookLogDeleteModal}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
-
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  enterTo="opacity-100 translate-y-0 sm:scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                  <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                    <div className="sm:flex sm:items-start">
-                      <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
-                      </div>
-                      <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                          Delete webhook log
-                        </Dialog.Title>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">
-                            Are you sure you want to delete the webhook event <span className="text-black font-medium capitalize">{webhookLogObj.resource_type}</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                        onClick={e => { setWebhookLogDeleteModal(false); webhookLogDelete() }}
-                      >
-                        Resend
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                        onClick={() => setWebhookLogDeleteModal(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+        <Dialog open={webhookLogDeleteModal} onOpenChange={setWebhookLogDeleteModal}>
+          <DialogContent className="sm:max-w-lg">
+            <div className="flex items-start gap-4">
+              <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+              </div>
+              <div className="text-center sm:text-left">
+                <DialogTitle>Delete webhook log</DialogTitle>
+                <DialogDescription className="mt-2">
+                  Are you sure you want to delete the webhook event{" "}
+                  <span className="text-foreground font-medium capitalize">{webhookLogObj.resource_type}</span>
+                </DialogDescription>
               </div>
             </div>
-          </Dialog>
-        </Transition.Root>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setWebhookLogDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => { setWebhookLogDeleteModal(false); webhookLogDelete() }}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </td>
       <td className="absolute" onClick={e => { e.preventDefault() }}>
         <div className={`fixed inset-0 z-30 bg-black/20 transition-opacity ${drawerShow ? "opacity-100" : "pointer-events-none opacity-0"}`} onClick={() => setDrawerShow(false)} />
-        <div id={`drawer-${index}`} className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto bg-white w-[800px] shadow-xl transition-transform dark:bg-gray-800 ${drawerShow ? "translate-x-0" : "translate-x-full"}`} aria-labelledby="drawer-right-label">
+        <div id={`drawer-${index}`} className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto bg-white w-200 shadow-xl transition-transform dark:bg-gray-800 ${drawerShow ? "translate-x-0" : "translate-x-full"}`} aria-labelledby="drawer-right-label">
           <button
             type="button"
             className="absolute right-4 top-4 rounded-md text-gray-400 hover:text-gray-600"
