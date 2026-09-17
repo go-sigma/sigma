@@ -79,7 +79,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository_id]);
+  }, [namespace, repository_id, localServer, namespaceId]);
 
   const [runnerObjs, setRunnerObjs] = useState<IBuilderRunnerItem[]>()
 
@@ -100,7 +100,7 @@ export default function ({ localServer }: { localServer: string }) {
       console.log(error);
       setTagTemplateTextValid(false);
     });
-  }, [tagTemplateText]);
+  }, [tagTemplateText, localServer]);
 
   const [descriptionText, setDescriptionText] = useState("");
   const [descriptionTextValid, setDescriptionTextValid] = useState(true);
@@ -145,8 +145,8 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.post(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/run`, data).then(response => {
       if (response?.status === 201) {
-        let data = response.data as IRunOrRerunRunnerResponse;
-        navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${namespaceId}`);
+        let result = response.data as IRunOrRerunRunnerResponse;
+        navigate(`/namespaces/${namespace}/repository/runner-logs/${result.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${namespaceId}`);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -202,7 +202,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository_id, builderObj, refreshState, sortOrder, sortName]);
+  }, [namespace, repository_id, builderObj, refreshState, sortOrder, sortName, localServer, page, repositoryObj?.namespace_id]);
 
   return (
     <>

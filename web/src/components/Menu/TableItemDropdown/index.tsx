@@ -42,10 +42,10 @@ export default function ({ items }: ITableItemDropdownProps) {
           <EllipsisVerticalIcon className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-20">
-        {items.map((item, idx) =>
+        {items.map((item) =>
           item.disable ? null : (
             <DropdownMenuItem
-              key={idx}
+              key={item.name}
               variant={item.warn ? "destructive" : "default"}
               onClick={item.onClick}
             >

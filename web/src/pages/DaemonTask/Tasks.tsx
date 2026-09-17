@@ -141,23 +141,23 @@ export default function ({ localServer }: { localServer: string }) {
     let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcRepositoryRule = response.data as IGcRepositoryRule;
+        const gcRepositoryRuleData = response.data as IGcRepositoryRule;
         setGcRepositoryRuleExist(true);
-        setGcRepositoryRule(gcRepositoryRule);
-        setGcRepositoryRuleRetentionDays(gcRepositoryRule.retention_day);
-        setGcRepositoryRuleCronEnabled(gcRepositoryRule.cron_enabled);
-        if (gcRepositoryRule.cron_enabled) {
-          setGcRepositoryRuleCronRule(gcRepositoryRule.cron_rule == undefined ? "" : gcRepositoryRule.cron_rule);
+        setGcRepositoryRule(gcRepositoryRuleData);
+        setGcRepositoryRuleRetentionDays(gcRepositoryRuleData.retention_day);
+        setGcRepositoryRuleCronEnabled(gcRepositoryRuleData.cron_enabled);
+        if (gcRepositoryRuleData.cron_enabled) {
+          setGcRepositoryRuleCronRule(gcRepositoryRuleData.cron_rule == undefined ? "" : gcRepositoryRuleData.cron_rule);
         }
-        let url = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/runners/latest`;
-        axios.get(url).then(response => {
-          if (response?.status === 200) {
-            const runner = response.data as IGcRepositoryRunnerItem;
+        let requestUrl = `${localServer}/api/v1/daemons/gc-repository/${namespaceId}/runners/latest`;
+        axios.get(requestUrl).then(resp => {
+          if (resp?.status === 200) {
+            const runner = resp.data as IGcRepositoryRunnerItem;
             setGcRepositoryLatestRunner(runner);
-          } else if (response?.status === 404) {
+          } else if (resp?.status === 404) {
             // do nothing
           } else {
-            const errorcode = response.data as IHTTPError;
+            const errorcode = resp.data as IHTTPError;
             Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
           }
         }).catch(error => {
@@ -174,33 +174,33 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, [refreshState]);
+  }, [refreshState, localServer, namespaceId]);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcTagRule = response.data as IGcTagRule;
+        const gcTagRuleData = response.data as IGcTagRule;
         setGcTagRuleExist(true);
-        setGcTagRule(gcTagRule);
-        setGcTagRuleCronEnabled(gcTagRule.cron_enabled);
-        setGcTagRuleRetentionType(gcTagRule.retention_rule_type);
-        setGcTagRuleRetentionAmount(gcTagRule.retention_rule_amount);
-        if (gcTagRule.cron_enabled) {
-          setGcTagRuleCronRule(gcTagRule.cron_rule == undefined ? "" : gcTagRule.cron_rule)
+        setGcTagRule(gcTagRuleData);
+        setGcTagRuleCronEnabled(gcTagRuleData.cron_enabled);
+        setGcTagRuleRetentionType(gcTagRuleData.retention_rule_type);
+        setGcTagRuleRetentionAmount(gcTagRuleData.retention_rule_amount);
+        if (gcTagRuleData.cron_enabled) {
+          setGcTagRuleCronRule(gcTagRuleData.cron_rule == undefined ? "" : gcTagRuleData.cron_rule)
         }
-        if (gcTagRule.retention_pattern != undefined) {
-          setGcTagRuleRetentionPattern(gcTagRule.retention_pattern == undefined ? "" : gcTagRule.retention_pattern);
+        if (gcTagRuleData.retention_pattern != undefined) {
+          setGcTagRuleRetentionPattern(gcTagRuleData.retention_pattern == undefined ? "" : gcTagRuleData.retention_pattern);
         }
-        let url = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/runners/latest`;
-        axios.get(url).then(response => {
-          if (response?.status === 200) {
-            const runner = response.data as IGcTagRunnerItem;
+        let requestUrl = `${localServer}/api/v1/daemons/gc-tag/${namespaceId}/runners/latest`;
+        axios.get(requestUrl).then(resp => {
+          if (resp?.status === 200) {
+            const runner = resp.data as IGcTagRunnerItem;
             setGcTagLatestRunner(runner);
-          } else if (response?.status === 404) {
+          } else if (resp?.status === 404) {
             // do nothing
           } else {
-            const errorcode = response.data as IHTTPError;
+            const errorcode = resp.data as IHTTPError;
             Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
           }
         }).catch(error => {
@@ -217,29 +217,29 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, [refreshState]);
+  }, [refreshState, localServer, namespaceId]);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/daemons/gc-artifact/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcArtifactRule = response.data as IGcArtifactRule;
+        const gcArtifactRuleData = response.data as IGcArtifactRule;
         setGcArtifactRuleExist(true);
-        setGcArtifactRule(gcArtifactRule);
-        setGcArtifactCronEnabled(gcArtifactRule.cron_enabled);
-        if (gcArtifactRule.cron_enabled) {
-          setGcArtifactRuleCronRule(gcArtifactRule.cron_rule == undefined ? "" : gcArtifactRule.cron_rule);
+        setGcArtifactRule(gcArtifactRuleData);
+        setGcArtifactCronEnabled(gcArtifactRuleData.cron_enabled);
+        if (gcArtifactRuleData.cron_enabled) {
+          setGcArtifactRuleCronRule(gcArtifactRuleData.cron_rule == undefined ? "" : gcArtifactRuleData.cron_rule);
         }
-        setGcArtifactRuleRetentionDays(gcArtifactRule.retention_day);
-        let url = `${localServer}/api/v1/daemons/gc-artifact/${namespaceId}/runners/latest`;
-        axios.get(url).then(response => {
-          if (response?.status === 200) {
-            const runner = response.data as IGcArtifactRunnerItem;
+        setGcArtifactRuleRetentionDays(gcArtifactRuleData.retention_day);
+        let requestUrl = `${localServer}/api/v1/daemons/gc-artifact/${namespaceId}/runners/latest`;
+        axios.get(requestUrl).then(resp => {
+          if (resp?.status === 200) {
+            const runner = resp.data as IGcArtifactRunnerItem;
             setGcArtifactLatestRunner(runner);
-          } else if (response?.status === 404) {
+          } else if (resp?.status === 404) {
             // do nothing
           } else {
-            const errorcode = response.data as IHTTPError;
+            const errorcode = resp.data as IHTTPError;
             Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
           }
         }).catch(error => {
@@ -256,7 +256,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, [refreshState]);
+  }, [refreshState, localServer, namespaceId]);
 
   useEffect(() => {
     if (!location.pathname.startsWith("/settings")) {
@@ -265,23 +265,23 @@ export default function ({ localServer }: { localServer: string }) {
     let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const gcBlobRule = response.data as IGcBlobRule;
+        const gcBlobRuleData = response.data as IGcBlobRule;
         setGcBlobRuleExist(true);
-        setGcBlobRule(gcBlobRule);
-        setGcBlobRuleCronEnabled(gcBlobRule.cron_enabled);
-        setGcBlobRuleRetentionDays(gcBlobRule.retention_day);
-        if (gcBlobRule.cron_enabled) {
-          setGcBlobRuleCronRule(gcBlobRule.cron_rule == undefined ? "" : gcBlobRule.cron_rule)
+        setGcBlobRule(gcBlobRuleData);
+        setGcBlobRuleCronEnabled(gcBlobRuleData.cron_enabled);
+        setGcBlobRuleRetentionDays(gcBlobRuleData.retention_day);
+        if (gcBlobRuleData.cron_enabled) {
+          setGcBlobRuleCronRule(gcBlobRuleData.cron_rule == undefined ? "" : gcBlobRuleData.cron_rule)
         }
-        let url = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/runners/latest`;
-        axios.get(url).then(response => {
-          if (response?.status === 200) {
-            const runner = response.data as IGcBlobRunnerItem;
+        let requestUrl = `${localServer}/api/v1/daemons/gc-blob/${namespaceId}/runners/latest`;
+        axios.get(requestUrl).then(resp => {
+          if (resp?.status === 200) {
+            const runner = resp.data as IGcBlobRunnerItem;
             setGcBlobLatestRunner(runner);
-          } else if (response?.status === 404) {
+          } else if (resp?.status === 404) {
             // do nothing
           } else {
-            const errorcode = response.data as IHTTPError;
+            const errorcode = resp.data as IHTTPError;
             Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
           }
         }).catch(error => {
@@ -298,7 +298,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, [refreshState]);
+  }, [refreshState, localServer, location.pathname, namespaceId]);
 
   useEffect(() => {
     if (gcArtifactCronEnabled && gcArtifactRuleCronRule.length > 0) {
@@ -317,7 +317,7 @@ export default function ({ localServer }: { localServer: string }) {
         setGcArtifactRuleCronRuleValid(false);
       });
     }
-  }, [gcArtifactRuleCronRule, gcArtifactCronEnabled]);
+  }, [gcArtifactRuleCronRule, gcArtifactCronEnabled, localServer]);
 
   useEffect(() => {
     if (gcTagRuleRetentionPattern.length > 0) {
@@ -334,7 +334,7 @@ export default function ({ localServer }: { localServer: string }) {
         setGcTagRuleRetentionPatternValid(false);
       });
     }
-  }, [gcTagRuleRetentionPattern]);
+  }, [gcTagRuleRetentionPattern, localServer]);
 
   useEffect(() => {
     if (gcRepositoryRuleCronEnabled && gcRepositoryRuleCronRule.length > 0) {
@@ -353,7 +353,7 @@ export default function ({ localServer }: { localServer: string }) {
         setGcRepositoryRuleCronRuleValid(false);
       });
     }
-  }, [gcRepositoryRuleCronRule, gcRepositoryRuleCronEnabled]);
+  }, [gcRepositoryRuleCronRule, gcRepositoryRuleCronEnabled, localServer]);
 
   useEffect(() => {
     if (gcBlobRuleCronEnabled && gcBlobRuleCronRule.length > 0) {
@@ -372,7 +372,7 @@ export default function ({ localServer }: { localServer: string }) {
         setGcBlobRuleCronRuleValid(false);
       });
     }
-  }, [gcBlobRuleCronRule, gcBlobRuleCronEnabled]);
+  }, [gcBlobRuleCronRule, gcBlobRuleCronEnabled, localServer]);
 
   useEffect(() => {
     if (gcTagRuleCronEnabled && gcTagRuleCronRule.length > 0) {
@@ -391,7 +391,7 @@ export default function ({ localServer }: { localServer: string }) {
         setGcTagRuleCronRuleValid(false);
       });
     }
-  }, [gcTagRuleCronRule, gcTagRuleCronEnabled]);
+  }, [gcTagRuleCronRule, gcTagRuleCronEnabled, localServer]);
 
   const createOrUpdateGcRepository = () => {
     if (!(gcRepositoryRuleRetentionDaysValid && ((gcRepositoryRuleCronEnabled && gcRepositoryRuleCronRuleValid) || !gcRepositoryRuleCronEnabled))) {

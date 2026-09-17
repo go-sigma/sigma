@@ -17,7 +17,7 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { useDebounce } from "react-use";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -84,7 +84,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
       if (response.status == 200) setNamespaceObj(response.data as INamespaceItem);
     }).catch(() => {});
-  }, []);
+  }, [localServer, namespaceId]);
 
   const [repositoryText, setRepositoryText] = useState("");
   const [repositoryTextValid, setRepositoryTextValid] = useState(true);
@@ -94,12 +94,7 @@ export default function ({ localServer }: { localServer: string }) {
     }
   }, [repositoryText])
   const [descriptionText, setDescriptionText] = useState("");
-  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => {
-    if (descriptionText != "") {
-      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
-    }
-  }, [descriptionText]);
+  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
   useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
@@ -157,7 +152,7 @@ export default function ({ localServer }: { localServer: string }) {
     setSizeOrder(IOrder.None); setTagCountOrder(IOrder.None); setCreatedAtOrder(IOrder.None); setUpdatedAtOrder(IOrder.None);
   }
 
-  const fetchRepository = () => {
+  const fetchRepository = useCallback(() => {
     let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/?limit=${Settings.PageSize}&page=${page}`;
     if (searchRepository !== "") url += `&name=${searchRepository}`;
     if (sortName !== "") url += `&sort=${sortName}&method=${sortOrder.toString()}`;
@@ -170,9 +165,9 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response?.data as IHTTPError;
       Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
-  }
+  }, [localServer, namespaceId, page, searchRepository, sortName, sortOrder]);
 
-  useEffect(fetchRepository, [refresh, page]);
+  useEffect(fetchRepository, [fetchRepository, refresh]);
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
@@ -180,7 +175,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(localServer + "/api/v1/users/self").then(response => {
       if (response.status === 200) setUserObj(response.data as IUserSelf);
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   const canManage = userObj.role == UserRole.Admin || userObj.role == UserRole.Root ||
     (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
@@ -240,8 +235,8 @@ export default function ({ localServer }: { localServer: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {repositoryList.items?.map((repo, index) => (
-                    <TableItem key={index} localServer={localServer} user={userObj} namespace={namespaceObj} repository={repo} setRefresh={setRefresh} />
+                  {repositoryList.items?.map((repo) => (
+                    <TableItem key={repo.id} localServer={localServer} user={userObj} namespace={namespaceObj} repository={repo} setRefresh={setRefresh} />
                   ))}
                 </TableBody>
               </Table>
@@ -309,30 +304,19 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
 
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
   const [descriptionText, setDescriptionText] = useState(repository.description);
-  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
+  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   useEffect(() => {
     if (descriptionText != "") {
-      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
     }
   }, [descriptionText]);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(repository.tag_limit);
-  const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
-  const [realSizeLimit, setRealSizeLimit] = useState(repository.size_limit);
+  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   let calcUnitObj = calcUnit(repository.size_limit);
   const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
-  const [sizeLimitValid, setSizeLimitValid] = useState(true);
+  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
-  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit]);
-  useEffect(() => {
-    let sl = 0;
-    if (Number.isInteger(sizeLimit)) sl = parseInt(sizeLimit.toString());
-    switch (sizeLimitUnit) {
-      case "MiB": setRealSizeLimit(sl * 1 << 20); break;
-      case "GiB": setRealSizeLimit(sl * 1 << 30); break;
-      case "TiB": setRealSizeLimit(sl * 1 << 40); break;
-    }
-  }, [sizeLimit, sizeLimitUnit]);
+  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
   const [updateRepositoryModal, setUpdateRepositoryModal] = useState(false);
 
   const canManage = user.role == UserRole.Admin || user.role == UserRole.Root ||

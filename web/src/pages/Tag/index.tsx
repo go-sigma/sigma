@@ -18,7 +18,7 @@ import axios from "axios";
 import dayjs from 'dayjs';
 import humanFormat from "human-format";
 import { EllipsisVerticalIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
@@ -98,7 +98,7 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const [, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
 
@@ -118,7 +118,7 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [localServer, namespaceId]);
 
   useEffect(() => {
     let url = localServer + `/api/v1/systems/endpoint`;
@@ -134,18 +134,18 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository])
+  }, [localServer]);
 
-  const fetchTags = () => {
+  const fetchTags = useCallback(() => {
     let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=Image&type=ImageIndex&type=Chart&type=Sif`;
     if (searchTag !== "") {
       url += `&name=${searchTag}`;
     }
     axios.get(url).then(response => {
       if (response.status === 200) {
-        const tagList = response.data as ITagList;
-        setTagList(tagList);
-        setTotal(tagList.total);
+        const tagListData = response.data as ITagList;
+        setTagList(tagListData);
+        setTotal(tagListData.total);
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -154,9 +154,9 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }
+  }, [localServer, namespaceId, repositoryId, repository, page, searchTag]);
 
-  useEffect(fetchTags, [refresh, page]);
+  useEffect(fetchTags, [fetchTags, refresh]);
 
   const [gotConfig, setGotConfig] = useState(false);
   const [config, setConfig] = useState<ISystemConfig>({
@@ -168,8 +168,8 @@ export default function Tag({ localServer }: { localServer: string }) {
   useEffect(() => {
     axios.get(localServer + "/api/v1/systems/config").then(response => {
       if (response.status === 200) {
-        const config = response.data as ISystemConfig;
-        setConfig(config);
+        const configData = response.data as ISystemConfig;
+        setConfig(configData);
         setGotConfig(true);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -179,7 +179,7 @@ export default function Tag({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const deleteTag = (tagId: number) => {
     axios.delete(`${localServer}/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/${tagId}`).then(response => {
@@ -454,10 +454,10 @@ function TableItem({ artifact, artifacts }: { artifact: IArtifact, artifacts: IA
           <DetailItem artifact={artifact} />
         ) : artifactObj.mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" ||
           artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
-          artifacts.map((artifact: IArtifact, index: number) => {
+          artifacts.map((item: IArtifact) => {
             return (
-              !skipManifest(artifact.raw) && (
-                <DetailItem key={index} artifact={artifact} />
+              !skipManifest(item.raw) && (
+                <DetailItem key={item.digest} artifact={item} />
               )
             )
           })
@@ -469,16 +469,17 @@ function TableItem({ artifact, artifacts }: { artifact: IArtifact, artifacts: IA
   );
 }
 
-function DetailItem({ artifact }: { artifact: IArtifact }) {
-  const cutDigest = (digest: string) => {
-    if (digest === undefined) {
-      return "";
-    }
-    if (digest.indexOf(":") < 0) {
-      return "";
-    }
-    return digest.substring(digest.indexOf(":") + 1, digest.indexOf(":") + 13);
+function cutDigest(digest: string) {
+  if (digest === undefined) {
+    return "";
   }
+  if (digest.indexOf(":") < 0) {
+    return "";
+  }
+  return digest.substring(digest.indexOf(":") + 1, digest.indexOf(":") + 13);
+}
+
+function DetailItem({ artifact }: { artifact: IArtifact }) {
   let sbomObj = JSON.parse(artifact.sbom === "" ? "{}" : artifact.sbom) as ISbom;
   let vulnerabilityObj = JSON.parse(artifact.vulnerability === "" ? "{}" : artifact.vulnerability) as IVuln;
   let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;

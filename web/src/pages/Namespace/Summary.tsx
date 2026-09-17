@@ -56,7 +56,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repositoryId])
+  }, [namespace, repositoryId, localServer, namespaceId]);
 
   const [editorState, setEditorState] = useState(false);
 

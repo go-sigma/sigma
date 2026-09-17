@@ -34,9 +34,9 @@ export default function Login({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const login = (username: string, password: string, anonymous?: boolean) => {
+  const login = (user: string, secret: string, anonymous?: boolean) => {
     let headers: { [key: string]: any } = {
-      "Authorization": "Basic " + btoa(username + ":" + password),
+      "Authorization": "Basic " + btoa(user + ":" + secret),
     };
     if (anonymous) {
       headers = {};
@@ -48,7 +48,7 @@ export default function Login({ localServer }: { localServer: string }) {
           const resp = response.data as IUserLoginResponse;
           localStorage.setItem("token", resp.token);
           localStorage.setItem("refresh_token", resp.refresh_token);
-          localStorage.setItem("username", resp.username);
+          localStorage.setItem("user", resp.username);
           localStorage.setItem("email", resp.email);
           navigate("/namespaces");
         } else {
@@ -69,7 +69,7 @@ export default function Login({ localServer }: { localServer: string }) {
         setEndpoint((response.data as IEndpoint).endpoint);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   useEffect(() => {
     axios.get(localServer + "/api/v1/users/self").then(response => {
@@ -77,7 +77,7 @@ export default function Login({ localServer }: { localServer: string }) {
         navigate("/");
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer, navigate]);
 
   const [config, setConfig] = useState<ISystemConfig>({
     daemon: { builder: true },
@@ -91,7 +91,7 @@ export default function Login({ localServer }: { localServer: string }) {
         setConfig(response.data as ISystemConfig);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   return (
     <>
@@ -172,7 +172,7 @@ function GitHubButton({ localServer, endpoint }: { localServer: string, endpoint
         setClientID((response.data as IOauth2ClientID).client_id);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   return (
     <Button variant="outline" className="w-full" render={<a href={`https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(`${endpoint}/api/v1/oauth2/github/redirect_callback?endpoint=${encodeURIComponent(location.protocol + "//" + location.host)}`)}&scope=repo`} />}>
@@ -193,7 +193,7 @@ function GitLabButton({ localServer, endpoint }: { localServer: string, endpoint
         setClientID((response.data as IOauth2ClientID).client_id);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   return (
     <Button variant="outline" className="w-full" render={<a href={`https://gitlab.com/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(`${endpoint}/api/v1/oauth2/gitlab/redirect_callback?endpoint=${encodeURIComponent(location.protocol + "//" + location.host)}`)}&response_type=code&scope=read_repository+read_user+api+read_api`} />}>

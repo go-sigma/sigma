@@ -16,7 +16,7 @@
 
 import axios from "axios";
 import Toast from 'react-hot-toast';
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronUpDownIcon, EllipsisVerticalIcon } from "@heroicons/react/20/solid";
@@ -71,7 +71,6 @@ export default function Member({ localServer }: { localServer: string }) {
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [refresh, setRefresh] = useState({});
   const [memberSearch, setUsernameSearch] = useState("");
   const [createUserNamespaceModal, setCreateUserNamespaceModal] = useState(false);
   const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
@@ -84,8 +83,8 @@ export default function Member({ localServer }: { localServer: string }) {
     let url = `${localServer}/api/v1/namespaces/${namespaceId}`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const namespaceObj = response.data as INamespaceItem;
-        setNamespaceObj(namespaceObj);
+        const namespaceData = response.data as INamespaceItem;
+        setNamespaceObj(namespaceData);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -94,9 +93,9 @@ export default function Member({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespaceId]);
+  }, [namespaceId, localServer]);
 
-  useEffect(() => {
+  const fetchMembers = useCallback(() => {
     let url = `${localServer}/api/v1/namespaces/${namespaceId}/members/?limit=${Settings.AutoCompleteSize}`;
     if (memberSearch !== "") {
       url += `&name=${memberSearch}`;
@@ -114,12 +113,16 @@ export default function Member({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [refresh]);
+  }, [localServer, memberSearch, namespaceId]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
 
   const [userSearch, setUserSearch] = useState('');
   const [userList, setUserList] = useState<IUserItem[]>();
-  const [userSelectedValid, setUserSelectValid] = useState(true);
   const [userSelected, setUserSelected] = useState<IUserItem>({} as IUserItem);
+  const userSelectedValid = userSelected.username !== undefined;
   const [addNamespaceRoleRole, setAddNamespaceRoleRole] = useState("NamespaceReader");
 
   useEffect(() => {
@@ -139,17 +142,10 @@ export default function Member({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [userSearch]);
-
-  useEffect(() => {
-    if (userSelected.username !== undefined) {
-      setUserSelectValid(true);
-    }
-  }, [userSelected]);
+  }, [userSearch, localServer]);
 
   const addMember = () => {
     if (userSelected.username === undefined) {
-      setUserSelectValid(false);
       return;
     }
     let url = `${localServer}/api/v1/namespaces/${namespaceId}/members/`;
@@ -160,7 +156,7 @@ export default function Member({ localServer }: { localServer: string }) {
       if (response?.status === 201) {
         Toast.success("Add member to namespace success");
         setCreateUserNamespaceModal(false);
-        setRefresh({});
+        fetchMembers();
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -242,7 +238,7 @@ export default function Member({ localServer }: { localServer: string }) {
                       onChange={e => { setUsernameSearch(e.target.value); }}
                       onKeyDown={e => {
                         if (e.key == "Enter") {
-                          setRefresh({});
+                          fetchMembers();
                         }
                       }}
                       className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -283,9 +279,9 @@ export default function Member({ localServer }: { localServer: string }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 max-h-max">
                   {
-                    memberList.items?.map((member, index) => {
+                    memberList.items?.map((member) => {
                       return (
-                        <TableItem key={index} localServer={localServer} namespace={namespaceObj} userSelectedArg={{ username: member.username, id: member.user_id } as IUserItem} member={member} setRefresh={setRefresh} />
+                        <TableItem key={member.id} localServer={localServer} namespace={namespaceObj} userSelectedArg={{ username: member.username, id: member.user_id } as IUserItem} member={member} onChanged={fetchMembers} />
                       );
                     })
                   }
@@ -401,7 +397,7 @@ export default function Member({ localServer }: { localServer: string }) {
   );
 }
 
-function TableItem({ localServer, namespace, userSelectedArg, member, setRefresh }: { localServer: string, namespace: INamespaceItem, userSelectedArg: IUserItem, member: INamespaceMemberItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, namespace, userSelectedArg, member, onChanged }: { localServer: string, namespace: INamespaceItem, userSelectedArg: IUserItem, member: INamespaceMemberItem, onChanged: () => void }) {
   const [updateUserNamespaceModal, setUpdateUserNamespaceModal] = useState(false);
   const [userSelected] = useState<IUserItem>(userSelectedArg);
   const [addNamespaceRoleRole, setAddNamespaceRoleRole] = useState(member.role);
@@ -411,7 +407,7 @@ function TableItem({ localServer, namespace, userSelectedArg, member, setRefresh
     axios.delete(url).then(response => {
       if (response?.status === 204) {
         Toast.success("Delete member success");
-        setRefresh({});
+        onChanged();
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -431,7 +427,7 @@ function TableItem({ localServer, namespace, userSelectedArg, member, setRefresh
       if (response?.status === 204) {
         Toast.success("Update member success");
         setUpdateUserNamespaceModal(false);
-        setRefresh({});
+        onChanged();
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });

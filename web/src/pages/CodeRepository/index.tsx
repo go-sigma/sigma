@@ -53,7 +53,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [])
+  }, [localServer]);
 
   useEffect(() => {
     axios.get(`${localServer}/api/v1/coderepos/providers`).then(response => {
@@ -68,7 +68,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const hasProvider = (provider: string) => {
     if (providers?.length !== undefined && providers?.length > 0) {
@@ -95,9 +95,9 @@ export default function ({ localServer }: { localServer: string }) {
   useEffect(() => {
     axios.get(localServer + "/api/v1/systems/config").then(response => {
       if (response !== undefined && response.status === 200) {
-        const config = response.data as ISystemConfig;
-        console.log(config);
-        setConfig(config);
+        const configData = response.data as ISystemConfig;
+        console.log(configData);
+        setConfig(configData);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -106,7 +106,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   return (
     <Fragment>
@@ -158,7 +158,7 @@ function GitHubButton({ localServer, endpoint, active }: { localServer: string, 
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow min-w-[10rem] cursor-pointer relative group">
@@ -210,7 +210,7 @@ function GitLabButton({ localServer, endpoint, active }: { localServer: string, 
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow min-w-[10rem] cursor-pointer relative group">

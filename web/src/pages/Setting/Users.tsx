@@ -24,7 +24,7 @@ import Menu from "../../components/Menu";
 import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
 import QuotaSimple from "../../components/QuotaSimple";
-import { Regex } from "../../utils";
+import { isEmail, Regex } from "../../utils";
 import Settings from "../../Settings";
 import Toast from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -75,12 +75,7 @@ export default function ({ localServer }: { localServer: string }) {
   const [createUserModal, setCreateUserModal] = useState(false);
 
   const [usernameText, setUsernameText] = useState("");
-  const [usernameTextValid, setUsernameTextValid] = useState(true);
-  useEffect(() => {
-    if (usernameText.length > 0) {
-      setUsernameTextValid(Regex.Username.test(usernameText))
-    }
-  }, [usernameText]);
+  const usernameTextValid = usernameText.length === 0 || Regex.Username.test(usernameText);
   const [passwordText, setPasswordText] = useState("");
   const [passwordTextValid, setPasswordTextValid] = useState(true);
   useEffect(() => {
@@ -89,7 +84,7 @@ export default function ({ localServer }: { localServer: string }) {
         setPasswordTextValid(response?.status === 204);
       }).catch(() => setPasswordTextValid(false));
     }
-  }, [passwordText]);
+  }, [passwordText, localServer]);
 
   const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
   const [lastLoginOrder, setLastLoginOrder] = useState(IOrder.None);
@@ -107,11 +102,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [refresh, setRefresh] = useState({});
 
   const [namespaceCountLimit, setNamespaceCountLimit] = useState<string | number>(0);
-  const [namespaceCountLimitValid, setNamespaceCountLimitValid] = useState(true);
-  useEffect(() => { setNamespaceCountLimitValid(Number.isInteger(namespaceCountLimit) && parseInt(namespaceCountLimit.toString()) >= 0) }, [namespaceCountLimit]);
+  const namespaceCountLimitValid = Number.isInteger(namespaceCountLimit) && parseInt(namespaceCountLimit.toString()) >= 0;
   const [emailInput, setEmailInput] = useState("");
-  const [emailInputValid, setEmailInputValid] = useState(true);
-  useEffect(() => { if (emailInput.length > 0) { setEmailInputValid(Regex.Email.test(emailInput)); } }, [emailInput]);
+  const emailInputValid = emailInput.length === 0 || isEmail(emailInput);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/users/?page=${page}`;
@@ -126,7 +119,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response?.data as IHTTPError;
       Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
-  }, [refresh]);
+  }, [refresh, localServer, page, searchUsername, sortName, sortOrder]);
 
   const [role, setRole] = useState("User");
 
@@ -258,10 +251,7 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
   const [status, setStatus] = useState(user.status === "" ? "Active" : user.status);
   const [role, setRole] = useState(user.role === "" ? "Normal" : user.role);
   const [usernameText, setUsernameText] = useState(user.username);
-  const [usernameTextValid, setUsernameTextValid] = useState(true);
-  useEffect(() => {
-    if (usernameText.length > 0) setUsernameTextValid(Regex.Username.test(usernameText));
-  }, [usernameText]);
+  const usernameTextValid = usernameText.length === 0 || Regex.Username.test(usernameText);
   const [passwordText, setPasswordText] = useState("");
   const [passwordTextValid, setPasswordTextValid] = useState(true);
   useEffect(() => {
@@ -270,14 +260,11 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
         setPasswordTextValid(response?.status === 204);
       }).catch(() => setPasswordTextValid(false));
     }
-  }, [passwordText]);
+  }, [passwordText, localServer]);
 
   const [namespaceCountLimit, setNamespaceCountLimit] = useState<string | number>(user.namespace_limit);
-  const [, setNamespaceCountLimitValid] = useState(true);
-  useEffect(() => { setNamespaceCountLimitValid(Number.isInteger(namespaceCountLimit) && parseInt(namespaceCountLimit.toString()) >= 0) }, [namespaceCountLimit]);
   const [emailInput, setEmailInput] = useState(user.email);
-  const [emailInputValid, setEmailInputValid] = useState(true);
-  useEffect(() => { if (emailInput.length > 0) { setEmailInputValid(Regex.Email.test(emailInput)); } }, [emailInput]);
+  const emailInputValid = emailInput.length === 0 || isEmail(emailInput);
 
   const [updateUserModal, setUpdateUserModal] = useState(false);
 

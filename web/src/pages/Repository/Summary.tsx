@@ -56,7 +56,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository_id])
+  }, [namespace, repository_id, localServer, namespaceId]);
 
   const [editorState, setEditorState] = useState(false);
 
@@ -91,8 +91,8 @@ export default function ({ localServer }: { localServer: string }) {
   useEffect(() => {
     axios.get(localServer + "/api/v1/systems/config").then(response => {
       if (response.status === 200) {
-        const config = response.data as ISystemConfig;
-        setConfig(config);
+        const configData = response.data as ISystemConfig;
+        setConfig(configData);
         setGotConfig(true);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -102,7 +102,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   return (
     <>

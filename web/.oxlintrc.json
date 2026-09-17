@@ -1,7 +1,15 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "typescript",
+    "unicorn",
+    "oxc"
+  ],
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
   },
   "env": {
     "browser": true,
@@ -25,7 +33,8 @@
     "no-sparse-arrays": "error",
     "no-unsafe-optional-chaining": "error",
     "use-isnan": "error",
-    "valid-typeof": "error"
+    "valid-typeof": "error",
+    "react/react-in-jsx-scope": "off"
   },
   "ignorePatterns": [
     "dist/**",

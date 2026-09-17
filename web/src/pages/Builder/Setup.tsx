@@ -90,7 +90,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   useEffect(() => {
     navigate(`?${searchParams.toString()}`);
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const [namespaceSearch, setNamespaceSearch] = useState('');
   const [namespaceList, setNamespaceList] = useState<INamespaceItem[]>();
@@ -109,7 +109,7 @@ export default function ({ localServer }: { localServer: string }) {
     return () => {
       window.removeEventListener('popstate', back);
     }
-  }, []);
+  }, [backTo, navigate]);
 
   useEffect(() => {
     let url = `${localServer}/api/v1/namespaces/?limit=${Settings.AutoCompleteSize}`;
@@ -118,8 +118,8 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const namespaceList = response.data as INamespaceList;
-        setNamespaceList(namespaceList.items);
+        const namespaceListData = response.data as INamespaceList;
+        setNamespaceList(namespaceListData.items);
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -128,7 +128,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespaceSearch]);
+  }, [namespaceSearch, localServer]);
 
   const [repositorySearch, setRepositorySearch] = useState('');
   const [repositoryList, setRepositoryList] = useState<IRepositoryItem[]>();
@@ -147,8 +147,8 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const repositoryList = response.data as IRepositoryList;
-        setRepositoryList(repositoryList.items);
+        const repositoryListData = response.data as IRepositoryList;
+        setRepositoryList(repositoryListData.items);
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -157,7 +157,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespaceSelected, repositorySearch]);
+  }, [namespaceSelected, repositorySearch, localServer]);
 
   const [codeRepositoryProviderList, setCodeRepositoryProviderList] = useState<ICodeRepositoryProviderItem[]>();
   const [codeRepositoryProviderSelected, setCodeRepositoryProviderSelected] = useState<ICodeRepositoryProviderItem>({
@@ -178,7 +178,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const [codeRepositoryOwnerSearch, setCodeRepositoryOwnerSearch] = useState('');
   const [codeRepositoryOwnerList, setCodeRepositoryOwnerList] = useState<ICodeRepositoryOwnerItem[]>();
@@ -205,7 +205,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositoryProviderSelected]);
+  }, [codeRepositoryProviderSelected, localServer]);
 
   useEffect(() => {
     if (codeRepositoryOwnerList?.length == undefined || codeRepositoryOwnerList?.length == 0) {
@@ -222,7 +222,7 @@ export default function ({ localServer }: { localServer: string }) {
       }
     }
     setCodeRepositoryOwnerFilteredList(result);
-  }, [codeRepositoryOwnerSearch])
+  }, [codeRepositoryOwnerSearch, codeRepositoryOwnerList]);
 
   const [codeRepositorySearch, setCodeRepositorySearch] = useState('');
   const [codeRepositoryList, setCodeRepositoryList] = useState<ICodeRepositoryItem[]>();
@@ -254,7 +254,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, codeRepositorySearch]);
+  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, codeRepositorySearch, localServer]);
 
   const [codeRepositoryBranchSearch, setCodeRepositoryBranchSearch] = useState('');
   const [codeRepositoryBranchList, setCodeRepositoryBranchList] = useState<ICodeRepositoryBranchItem[]>();
@@ -308,7 +308,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositorySelected]);
+  }, [codeRepositorySelected, codeRepositoryProviderSelected.provider, localServer, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (codeRepositoryBranchList?.length == undefined || codeRepositoryBranchList?.length == 0) {
@@ -324,7 +324,7 @@ export default function ({ localServer }: { localServer: string }) {
       }
     }
     setCodeRepositoryBranchFilteredList(result);
-  }, [codeRepositoryBranchSearch]);
+  }, [codeRepositoryBranchSearch, codeRepositoryBranchList]);
 
   const [submodule, setSubmodule] = useState(false);
   const [depth, setDepth] = useState<string | number>(0);
@@ -358,7 +358,7 @@ export default function ({ localServer }: { localServer: string }) {
       }
     }
     setMergeEventBranchFilteredList(result);
-  }, [mergeEventBranchSearch, codeRepositoryBranchList]);
+  }, [mergeEventBranchSearch, codeRepositoryBranchList, codeRepositoryBranchSearch]);
 
   const [cronBuild, setCronBuild] = useState(false);
   const [cronExpr, setCronExpr] = useState('');
@@ -384,7 +384,7 @@ export default function ({ localServer }: { localServer: string }) {
       }
     }
     setCronBranchFilteredList(result);
-  }, [cronBranchSearch, codeRepositoryBranchList]);
+  }, [cronBranchSearch, codeRepositoryBranchList, codeRepositoryBranchSearch, mergeEventBranchSearch]);
 
   const [builderSource, setBuilderSource] = useState(searchParams.get('builder_source') || 'CodeRepository');
   const [dockerfile, setDockerfile] = useState('FROM alpine:latest');
@@ -504,7 +504,7 @@ export default function ({ localServer }: { localServer: string }) {
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
     }
-  }, [codeRepositoryInit]);
+  }, [codeRepositoryInit, codeRepositoryProviderSelected.provider, localServer]);
 
   const [codeRepositoryBranchInit, setCodeRepositoryBranchInit] = useState("");
   useEffect(() => {
@@ -520,7 +520,7 @@ export default function ({ localServer }: { localServer: string }) {
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
       });
     }
-  }, [codeRepositoryInit, codeRepositoryBranchInit]);
+  }, [codeRepositoryInit, codeRepositoryBranchInit, codeRepositoryProviderSelected.provider, localServer]);
 
   useEffect(() => {
     if (id === undefined) {
@@ -595,7 +595,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [id]);
+  }, [id, localServer, namespaceSelected.id, searchParams, setSearchParams]);
 
   return (
     <Fragment>
@@ -1200,12 +1200,12 @@ export default function ({ localServer }: { localServer: string }) {
                           className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                           value={depth}
                           onChange={e => {
-                            let depth = Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value);
+                            let depthValue = Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value);
                             setSearchParams({
                               ...Object.fromEntries(searchParams.entries()),
-                              depth: depth.toString(),
+                              depthValue: depthValue.toString(),
                             });
-                            setDepth(depth);
+                            setDepth(depthValue);
                           }}
                         />
                       </div>

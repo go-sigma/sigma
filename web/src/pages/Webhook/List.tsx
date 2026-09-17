@@ -18,7 +18,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useParams, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { Tooltip } from '../../utils';
@@ -52,8 +52,8 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
       if (response.status == 200) {
-        const namespaceObj = response.data as INamespaceItem;
-        setNamespaceObj(namespaceObj);
+        const namespaceData = response.data as INamespaceItem;
+        setNamespaceObj(namespaceData);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -62,7 +62,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [localServer, location.pathname, namespaceId]);
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
@@ -79,7 +79,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -93,35 +93,20 @@ export default function ({ localServer }: { localServer: string }) {
   const [eventDaemonTaskGc, setEventDaemonTaskGc] = useState(true);
 
   const [retryTimes, setRetryTimes] = useState<string | number>(1);
-  const [retryTimesValid, setRetryTimesValid] = useState(true);
-  useEffect(() => { setRetryTimesValid(Number.isInteger(retryTimes) && parseInt(retryTimes.toString()) >= 1 && parseInt(retryTimes.toString()) <= 5) }, [retryTimes]);
+  const retryTimesValid = Number.isInteger(retryTimes) && parseInt(retryTimes.toString()) >= 1 && parseInt(retryTimes.toString()) <= 5;
   const [retryDuration, setRetryDuration] = useState<string | number>(3);
-  const [retryDurationValid, setRetryDurationValid] = useState(true);
-  useEffect(() => { setRetryDurationValid(Number.isInteger(retryDuration) && parseInt(retryDuration.toString()) >= 0 && parseInt(retryDuration.toString()) <= 10) }, [retryDuration]);
+  const retryDurationValid = Number.isInteger(retryDuration) && parseInt(retryDuration.toString()) >= 0 && parseInt(retryDuration.toString()) <= 10;
 
-  const [showSslVerify, setShowSslVerify] = useState(false);
 
   const [sslVerify, setSslVerify] = useState(true);
   const [secret, setSecret] = useState<string | undefined>();
-  const [secretValid, setSecretValid] = useState(true);
-  useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
+  const secretValid = secret == undefined || secret.length <= 63;
   const [url, setUrl] = useState<string>("");
-  const [urlValid, setUrlValid] = useState(true);
-  useEffect(() => {
-    if (url != "") {
-      setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128);
-    }
-  }, [url]);
+  const urlValid = url === "" || (url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128;
 
   const [createWebhookModal, setCreateWebhookModal] = useState(false);
 
-  useEffect(() => {
-    if (url.startsWith("https://")) {
-      setShowSslVerify(true);
-    } else {
-      setShowSslVerify(false);
-    }
-  }, [url]);
+  const showSslVerify = url.startsWith("https://");
 
   const [refresh, setRefresh] = useState({});
   const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
@@ -135,19 +120,19 @@ export default function ({ localServer }: { localServer: string }) {
     setUpdatedAtOrder(IOrder.None);
   }
 
-  const fetchWebhook = () => {
-    let url = localServer + `/api/v1/webhooks/?limit=${Settings.PageSize}&page=${page}`;
+  const fetchWebhook = useCallback(() => {
+    let requestUrl = localServer + `/api/v1/webhooks/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
-      url += `&sort=${sortName}&method=${sortOrder.toString()}`;
+      requestUrl += `&sort=${sortName}&method=${sortOrder.toString()}`;
     }
     if (namespaceId != null && namespaceId != "0") {
-      url += `&namespace_id=${namespaceId}`;
+      requestUrl += `&namespace_id=${namespaceId}`;
     }
-    axios.get(url).then(response => {
+    axios.get(requestUrl).then(response => {
       if (response?.status === 200) {
-        const webhookList = response.data as IWebhookList;
-        setWebhookList(webhookList);
-        setTotal(webhookList.total);
+        const webhookListData = response.data as IWebhookList;
+        setWebhookList(webhookListData);
+        setTotal(webhookListData.total);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -156,13 +141,14 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }
+  }, [localServer, page, sortName, sortOrder, namespaceId]);
 
-  useEffect(() => { fetchWebhook() }, [refresh, page, sortOrder, sortName]);
+  useEffect(() => {
+    fetchWebhook();
+  }, [fetchWebhook, refresh]);
 
   const createWebhook = () => {
     if (url === "") {
-      setUrlValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }
@@ -201,9 +187,7 @@ export default function ({ localServer }: { localServer: string }) {
       if (response.status === 201) {
         setRefresh({});
         setUrl("");
-        setUrlValid(true);
         setSecret("");
-        setSecretValid(true);
         setRetryTimes(1);
         setRetryDuration(5);
         setEnable(true);
@@ -566,37 +550,19 @@ function TableItem({ localServer, userObj, namespaceObj, webhookObj, setRefresh 
   const [eventArtifact, setEventArtifact] = useState(webhookObj.event_artifact);
 
   const [retryTimes, setRetryTimes] = useState<string | number>(webhookObj.retry_times);
-  const [retryTimesValid, setRetryTimesValid] = useState(true);
-  useEffect(() => { setRetryTimesValid(Number.isInteger(retryTimes) && parseInt(retryTimes.toString()) >= 1 && parseInt(retryTimes.toString()) <= 5) }, [retryTimes]);
+  const retryTimesValid = Number.isInteger(retryTimes) && parseInt(retryTimes.toString()) >= 1 && parseInt(retryTimes.toString()) <= 5;
   const [retryDuration, setRetryDuration] = useState<string | number>(webhookObj.retry_duration);
-  const [retryDurationValid, setRetryDurationValid] = useState(true);
-  useEffect(() => { setRetryDurationValid(Number.isInteger(retryDuration) && parseInt(retryDuration.toString()) >= 0 && parseInt(retryDuration.toString()) <= 10) }, [retryDuration]);
+  const retryDurationValid = Number.isInteger(retryDuration) && parseInt(retryDuration.toString()) >= 0 && parseInt(retryDuration.toString()) <= 10;
 
-  const [showSslVerify, setShowSslVerify] = useState(webhookObj.ssl_verify);
 
   const [sslVerify, setSslVerify] = useState(true);
   const [secret, setSecret] = useState<string | undefined>(webhookObj.secret);
-  const [secretValid, setSecretValid] = useState(true);
-  useEffect(() => { if (secret != undefined && secret.length >= 0 && secret.length <= 63) { setSecretValid(true); } }, [secret]);
+  const secretValid = secret == undefined || secret.length <= 63;
   const [url, setUrl] = useState<string>(webhookObj.url);
-  const [urlValid, setUrlValid] = useState(true);
-  useEffect(() => {
-    if (url != "") {
-      setUrlValid((url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128);
-    }
-  }, [url]);
-
-  useEffect(() => {
-    if (url.startsWith("https://")) {
-      setShowSslVerify(true);
-    } else {
-      setShowSslVerify(false);
-    }
-  }, [url]);
-
+  const showSslVerify = url.startsWith("https://");
+  const urlValid = url === "" || (url.startsWith("http://") || url.startsWith("https://")) && /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/.test(url) && url.length <= 128;
   const updateWebhook = () => {
     if (url === "") {
-      setUrlValid(false);
       Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
       return;
     }

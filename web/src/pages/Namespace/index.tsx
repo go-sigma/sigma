@@ -15,7 +15,7 @@
  */
 
 import axios from "axios";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useNavigate } from 'react-router-dom';
 
@@ -70,44 +70,20 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
 
   const [namespaceText, setNamespaceText] = useState("");
-  const [namespaceTextValid, setNamespaceTextValid] = useState(true);
-  useEffect(() => {
-    if (namespaceText != "") {
-      setNamespaceTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(namespaceText));
-    }
-  }, [namespaceText])
+  const namespaceTextValid = namespaceText === "" || /^[a-z][0-9a-z-]{0,20}$/.test(namespaceText);
   const [descriptionText, setDescriptionText] = useState("");
-  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
-  useEffect(() => {
-    if (descriptionText != "") {
-      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
-    }
-  }, [descriptionText]);
+  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(0);
-  const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
-  useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit]);
+  const repositoryCountLimitValid = Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0;
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
-  const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
-  const [realSizeLimit, setRealSizeLimit] = useState(0);
+  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   const [sizeLimit, setSizeLimit] = useState<string | number>(0);
-  const [sizeLimitValid, setSizeLimitValid] = useState(true);
+  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
-  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
-  useEffect(() => {
-    let sl = 0;
-    if (Number.isInteger(sizeLimit)) {
-      sl = parseInt(sizeLimit.toString());
-    }
-    switch (sizeLimitUnit) {
-      case "MiB": setRealSizeLimit(sl * 1 << 20); break;
-      case "GiB": setRealSizeLimit(sl * 1 << 30); break;
-      case "TiB": setRealSizeLimit(sl * 1 << 40); break;
-    }
-  }, [sizeLimit, sizeLimitUnit])
+  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
   const [namespaceVisibility, setNamespaceVisibility] = useState("private");
 
-  const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);
   const [searchNamespace, setSearchNamespace] = useState("");
   const [total, setTotal] = useState(0);
@@ -130,7 +106,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
-  const fetchNamespace = () => {
+  const fetchNamespace = useCallback(() => {
     let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&page=${page}`;
     if (searchNamespace !== "") url += `&name=${searchNamespace}`;
     if (sortName !== "") url += `&sort=${sortName}&method=${sortOrder.toString()}`
@@ -146,9 +122,11 @@ export default function Namespace({ localServer }: { localServer: string }) {
       const errorcode = error.response?.data as IHTTPError;
       Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
-  }
+  }, [localServer, page, searchNamespace, sortName, sortOrder]);
 
-  useEffect(() => { fetchNamespace() }, [refresh, page, sortOrder, sortName]);
+  useEffect(() => {
+    fetchNamespace();
+  }, [fetchNamespace]);
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
@@ -158,7 +136,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
         setUserObj(response.data as IUserSelf);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   const createNamespace = () => {
     if (!(namespaceTextValid && descriptionTextValid && sizeLimitValid && repositoryCountLimitValid && tagCountLimitValid)) {
@@ -173,7 +151,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
       if (response.status === 201) {
         setNamespaceText(""); setDescriptionText(""); setNamespaceVisibility("private");
         setRepositoryCountLimit(0); setTagCountLimit(0); setSizeLimit(0);
-        setRefresh({});
+        fetchNamespace();
       }
     }).catch(error => {
       const errorcode = error.response?.data as IHTTPError;
@@ -232,7 +210,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                 </TableHeader>
                 <TableBody>
                   {namespaceList.items?.map((ns) => (
-                    <TableItem key={ns.id} user={userObj} namespace={ns} localServer={localServer} setRefresh={setRefresh} />
+                    <TableItem key={ns.id} user={userObj} namespace={ns} localServer={localServer} onChanged={fetchNamespace} />
                   ))}
                 </TableBody>
               </Table>
@@ -307,7 +285,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
   )
 }
 
-function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServer: string, user: IUserSelf, namespace: INamespaceItem, setRefresh: (param: any) => void }) {
+function TableItem({ localServer, user, namespace: ns, onChanged }: { localServer: string, user: IUserSelf, namespace: INamespaceItem, onChanged: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -315,33 +293,21 @@ function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServ
   const [deleteNamespaceModal, setDeleteNamespaceModal] = useState(false);
 
   const [descriptionText, setDescriptionText] = useState(ns.description);
-  const [descriptionTextValid, setDescriptionTextValid] = useState(true);
+  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   useEffect(() => {
     if (descriptionText != "") {
-      setDescriptionTextValid(/^.{0,30}$/.test(descriptionText));
     }
   }, [descriptionText]);
   const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(ns.repository_limit);
-  const [repositoryCountLimitValid, setRepositoryCountLimitValid] = useState(true);
-  useEffect(() => { setRepositoryCountLimitValid(Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0) }, [repositoryCountLimit])
+  const repositoryCountLimitValid = Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0;
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(ns.tag_limit);
-  const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
+  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   let calcUnitObj = calcUnit(ns.size_limit);
-  const [realSizeLimit, setRealSizeLimit] = useState(0);
   const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
-  const [sizeLimitValid, setSizeLimitValid] = useState(true);
+  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
-  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
-  useEffect(() => {
-    let sl = 0;
-    if (Number.isInteger(sizeLimit)) { sl = parseInt(sizeLimit.toString()); }
-    switch (sizeLimitUnit) {
-      case "MiB": setRealSizeLimit(sl * 1 << 20); break;
-      case "GiB": setRealSizeLimit(sl * 1 << 30); break;
-      case "TiB": setRealSizeLimit(sl * 1 << 40); break;
-    }
-  }, [sizeLimit, sizeLimitUnit])
+  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
   const [namespaceVisibility, setNamespaceVisibility] = useState("private");
 
   const canManage = user.role == UserRole.Admin || user.role == UserRole.Root || (ns.role != undefined && (ns.role == NamespaceRole.Admin || ns.role == NamespaceRole.Manager));
@@ -352,7 +318,7 @@ function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServ
       description: descriptionText, size_limit: realSizeLimit,
       repository_limit: repositoryCountLimit, tag_limit: tagCountLimit, visibility: namespaceVisibility,
     } as INamespaceItem).then(response => {
-      if (response.status === 204) { setRefresh({}); }
+      if (response.status === 204) { onChanged(); }
     }).catch(error => {
       const errorcode = error.response?.data as IHTTPError;
       Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
@@ -361,7 +327,7 @@ function TableItem({ localServer, user, namespace: ns, setRefresh }: { localServ
 
   const deleteNamespace = () => {
     axios.delete(localServer + `/api/v1/namespaces/${ns.id}`).then(response => {
-      if (response.status === 204) { setRefresh({}); }
+      if (response.status === 204) { onChanged(); }
     }).catch(error => {
       const errorcode = error.response?.data as IHTTPError;
       Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });

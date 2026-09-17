@@ -83,7 +83,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   useEffect(() => {
     axios.get(localServer + `/api/v1/namespaces/${namespaceId}/repositories/${repository_id}`).then(response => {
@@ -101,7 +101,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [namespace, repository_id]);
+  }, [namespace, repository_id, localServer, namespaceId]);
 
   useEffect(() => {
     if (runnerStatus === '') {
@@ -136,7 +136,7 @@ export default function ({ localServer }: { localServer: string }) {
       const attachAddon = new AttachAddon(ws);
       term.loadAddon(attachAddon);
     }
-  }, [runnerStatus, repositoryObj, repository_id])
+  }, [runnerStatus, repositoryObj, repository_id, builderObj?.id, endpoint, runnerId]);
 
   const [refreshState, setRefreshState] = useState({});
 
@@ -171,7 +171,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [refreshState, builderObj, repositoryObj]);
+  }, [refreshState, builderObj, repositoryObj, localServer, repository_id, runnerId]);
 
   let rerunAction = () => {
     axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj?.id}/runners/${runnerId}/rerun`).then(response => {

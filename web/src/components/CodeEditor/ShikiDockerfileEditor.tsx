@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ChangeEvent, KeyboardEvent, UIEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createHighlighterCore, type HighlighterCore } from '@shikijs/core';
 import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript';
 import dockerfile from '@shikijs/langs/dockerfile';
@@ -29,8 +29,19 @@ export default function ShikiDockerfileEditor({
   onChange: (value: string) => void;
   height?: string;
 }) {
-  const [html, setHtml] = useState("");
+
   const [highlighter, setHighlighter] = useState<HighlighterCore>();
+
+  const html = useMemo(
+    () =>
+      highlighter === undefined
+        ? ""
+        : highlighter.codeToHtml(value || " ", {
+            lang: "dockerfile",
+            theme: "github-dark",
+          }),
+    [highlighter, value]
+  );
   const highlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,17 +61,6 @@ export default function ShikiDockerfileEditor({
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (highlighter === undefined) {
-      return;
-    }
-
-    setHtml(highlighter.codeToHtml(value || " ", {
-      lang: "dockerfile",
-      theme: "github-dark",
-    }));
-  }, [highlighter, value]);
 
   const handleScroll = (event: UIEvent<HTMLTextAreaElement>) => {
     if (highlightRef.current === null) {

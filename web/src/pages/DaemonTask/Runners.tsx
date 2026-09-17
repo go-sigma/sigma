@@ -16,7 +16,7 @@
 
 import Toast from 'react-hot-toast';
 import axios from "axios";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Tooltip } from '../../utils';
@@ -57,7 +57,7 @@ export default function ({ localServer }: { localServer: string }) {
     };
   }, []);
 
-  const fetchNamespace = () => {
+  const fetchNamespace = useCallback(() => {
     let url = localServer + `/api/v1/daemons/${resource}/${namespaceId}/runners/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
       url += `&sort=${sortName}&method=${sortOrder.toString()}`
@@ -65,21 +65,21 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(url).then(response => {
       if (response?.status === 200) {
         if (resource === "gc-repository") {
-          const repositoryRunnerList = response.data as IGcRepositoryRunnerList;
-          setRepositoryRunnerList(repositoryRunnerList);
-          setTotal(repositoryRunnerList.total);
+          const repositoryRunnerListData = response.data as IGcRepositoryRunnerList;
+          setRepositoryRunnerList(repositoryRunnerListData);
+          setTotal(repositoryRunnerListData.total);
         } else if (resource === "gc-tag") {
-          const tagRunnerList = response.data as IGcTagRunnerList;
-          setTagRunnerList(tagRunnerList);
-          setTotal(tagRunnerList.total);
+          const tagRunnerListData = response.data as IGcTagRunnerList;
+          setTagRunnerList(tagRunnerListData);
+          setTotal(tagRunnerListData.total);
         } else if (resource === "gc-artifact") {
-          const artifactRunnerList = response.data as IGcArtifactRunnerList;
-          setArtifactRunnerList(artifactRunnerList);
-          setTotal(artifactRunnerList.total);
+          const artifactRunnerListData = response.data as IGcArtifactRunnerList;
+          setArtifactRunnerList(artifactRunnerListData);
+          setTotal(artifactRunnerListData.total);
         } else if (resource === "gc-blob") {
-          const blobRunnerList = response.data as IGcBlobRunnerList;
-          setBlobRunnerList(blobRunnerList);
-          setTotal(blobRunnerList.total);
+          const blobRunnerListData = response.data as IGcBlobRunnerList;
+          setBlobRunnerList(blobRunnerListData);
+          setTotal(blobRunnerListData.total);
         }
       } else {
         const errorcode = response.data as IHTTPError;
@@ -89,9 +89,11 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }
+  }, [localServer, resource, namespaceId, page, sortName, sortOrder]);
 
-  useEffect(() => { fetchNamespace() }, [refreshState, page, sortOrder, sortName]);
+  useEffect(() => {
+    fetchNamespace();
+  }, [fetchNamespace, refreshState]);
 
   const createGcRunner = () => {
     axios.post(localServer + `/api/v1/daemons/${resource}/${namespaceId}/runners/`, {}).then(response => {

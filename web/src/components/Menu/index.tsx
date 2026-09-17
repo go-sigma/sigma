@@ -16,10 +16,10 @@
 
 import _ from 'lodash';
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Regex } from "../../utils";
+import { isEmail, Regex } from "../../utils";
 import Toast from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
 import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "../../interfaces";
@@ -123,19 +123,30 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const locale = useUiStore((state) => state.locale);
   const setLocale = useUiStore((state) => state.setLocale);
-  const [menuActive, setMenuActive] = useState(item === "" ? "home" : item);
+  const [menuActiveOverride, setMenuActive] = useState<string | null>(null);
+  const menuActive = menuActiveOverride ?? (item === "" ? "home" : item);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setMenuActive(item === "" ? "home" : item);
-  }, [item]);
 
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem("username"));
   const [, setUserID] = useState(0);
   const [username, setUsername] = useState(() => localStorage.getItem("username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
-  const [refresh, setRefresh] = useState({});
+
+  const logout = useCallback(() => {
+    let tokens: string[] = [localStorage.getItem("token") || "", localStorage.getItem("refresh_token") || ""];
+    axios.post(localServer + "/api/v1/users/logout", { tokens }).then(() => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("email");
+      setLoggedIn(false);
+      navigate("/login");
+    }).catch(error => {
+      const errorcode = error.response?.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+    });
+  }, [localServer, navigate]);
 
   useEffect(() => {
     axios.get(localServer + "/api/v1/users/self").then(response => {
@@ -170,7 +181,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
     return () => {
       document.removeEventListener("visibilitychange", visibilitychangeHandler);
     }
-  }, [refresh]);
+  }, [localServer, logout]);
 
   const [config, setConfig] = useState<ISystemConfig>({
     daemon: { builder: true }
@@ -188,7 +199,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
       const errorcode = error.response?.data as IHTTPError;
       Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
-  }, []);
+  }, [localServer]);
 
   const [hotNamespaceList, setHotNamespaceList] = useState<INamespaceItem[]>([]);
 
@@ -206,22 +217,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       });
     }
-  }, []);
-
-  const logout = () => {
-    let tokens: string[] = [localStorage.getItem("token") || "", localStorage.getItem("refresh_token") || ""];
-    axios.post(localServer + "/api/v1/users/logout", { tokens }).then(() => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("username");
-      localStorage.removeItem("email");
-      setLoggedIn(false);
-      navigate("/login");
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    });
-  }
+  }, [isAnonymous, localServer]);
 
   const [endpoint, setEndpoint] = useState("");
 
@@ -231,7 +227,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         setEndpoint((response.data as IEndpoint).endpoint);
       }
     }).catch(() => {});
-  }, []);
+  }, [localServer]);
 
   const [updateProfileModal, setUpdateProfileModal] = useState(false);
   const [updatePasswordModal, setUpdatePasswordModal] = useState(false);
@@ -244,7 +240,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         setVersion(response.data as IVersion);
       }
     }).catch(() => {});
-  }, [])
+  }, [localServer]);
 
   return (
     <>
@@ -455,7 +451,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         localServer={localServer}
         username={username}
         email={email}
-        onUpdated={() => setRefresh({})}
+        onUpdated={() => setupAutoRefreshToken(localServer, logout)}
       />
 
       {/* Update Password Modal */}
@@ -489,27 +485,14 @@ function UpdateProfileModal({ open, onOpenChange, localServer, username: initial
   onUpdated: () => void;
 }) {
   const { t } = useTranslation();
-  const [usernameInput, setUsernameInput] = useState(initialUsername);
-  const [usernameInputValid, setUsernameInputValid] = useState(true);
-  const [emailInput, setEmailInput] = useState(initialEmail);
-  const [emailInputValid, setEmailInputValid] = useState(true);
-
-  useEffect(() => {
-    setUsernameInput(initialUsername);
-    setEmailInput(initialEmail);
-  }, [initialUsername, initialEmail]);
-
-  useEffect(() => {
-    if (usernameInput.length > 0) {
-      setUsernameInputValid(Regex.Username.test(usernameInput));
-    }
-  }, [usernameInput]);
-
-  useEffect(() => {
-    if (emailInput.length > 0) {
-      setEmailInputValid(Regex.Email.test(emailInput));
-    }
-  }, [emailInput]);
+  // The profile arrives asynchronously: keep local edits in an override state
+  // and fall back to the loaded profile values instead of syncing with an effect.
+  const [usernameOverride, setUsernameInput] = useState<string | null>(null);
+  const usernameInput = usernameOverride ?? initialUsername;
+  const usernameInputValid = usernameInput.length === 0 || Regex.Username.test(usernameInput);
+  const [emailOverride, setEmailInput] = useState<string | null>(null);
+  const emailInput = emailOverride ?? initialEmail;
+  const emailInputValid = emailInput.length === 0 || isEmail(emailInput);
 
   const updateUser = () => {
     if (!(usernameInputValid && emailInputValid)) {
@@ -579,7 +562,7 @@ function UpdatePasswordModal({ open, onOpenChange, localServer }: {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordInputValid, setPasswordInputValid] = useState(true);
   const [repeatPasswordInput, setRepeatPasswordInput] = useState("");
-  const [repeatPasswordInputValid, setRepeatPasswordInputValid] = useState(true);
+  const repeatPasswordInputValid = passwordInput === repeatPasswordInput;
 
   useEffect(() => {
     if (passwordInput.length > 0) {
@@ -587,11 +570,8 @@ function UpdatePasswordModal({ open, onOpenChange, localServer }: {
         setPasswordInputValid(response?.status === 204);
       }).catch(() => setPasswordInputValid(false));
     }
-  }, [passwordInput]);
+  }, [passwordInput, localServer]);
 
-  useEffect(() => {
-    setRepeatPasswordInputValid(passwordInput === repeatPasswordInput);
-  }, [passwordInput, repeatPasswordInput]);
 
   const updatePassword = () => {
     if (!(passwordInputValid && repeatPasswordInputValid)) {

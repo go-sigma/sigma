@@ -53,8 +53,8 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
       if (response.status == 200) {
-        const namespaceObj = response.data as INamespaceItem;
-        setNamespaceObj(namespaceObj);
+        const namespaceData = response.data as INamespaceItem;
+        setNamespaceObj(namespaceData);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -63,7 +63,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     })
-  }, []);
+  }, [localServer, location.pathname, namespaceId]);
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
@@ -80,7 +80,7 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, []);
+  }, [localServer]);
 
   const [refresh, setRefresh] = useState({});
   const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
@@ -103,9 +103,9 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const webhookLogList = response.data as IWebhookLogList;
-        setWebhookLogList(webhookLogList);
-        setTotal(webhookLogList.total);
+        const webhookLogListData = response.data as IWebhookLogList;
+        setWebhookLogList(webhookLogListData);
+        setTotal(webhookLogListData.total);
         setFetchWebhookSuccess(true);
       } else {
         const errorcode = response.data as IHTTPError;
@@ -117,7 +117,7 @@ export default function ({ localServer }: { localServer: string }) {
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       setFetchWebhookSuccess(false);
     });
-  }, [refresh, page, sortOrder, sortName]);
+  }, [refresh, page, sortOrder, sortName, localServer, webhookId]);
 
   const [webhookPingModal, setWebhookPingModal] = useState(false);
 

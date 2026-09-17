@@ -76,7 +76,7 @@ export default function ({ localServer }: { localServer: string }) {
         }
       }
     }).catch(() => {});
-  }, [provider, refresh]);
+  }, [provider, refresh, localServer]);
 
   const [user3rdparty, setUser3rdparty] = useState<ICodeRepositoryUser3rdParty>();
   const [refreshUser3rdparty, setRefreshUser3rdparty] = useState({});
@@ -85,7 +85,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(`${localServer}/api/v1/coderepos/${provider}/user3rdparty`).then(response => {
       if (response.status == 200) setUser3rdparty(response.data as ICodeRepositoryUser3rdParty);
     }).catch(() => {});
-  }, [provider, refresh, refreshUser3rdparty]);
+  }, [provider, refresh, refreshUser3rdparty, localServer]);
 
   useEffect(() => {
     const timer = setInterval(() => setRefreshUser3rdparty({}), 5000);
@@ -104,11 +104,11 @@ export default function ({ localServer }: { localServer: string }) {
         setTotal((response.data as ICodeRepositoryList).total);
       }
     }).catch(() => {});
-  }, [provider, organization, page, searchCodeRepoEvent]);
+  }, [provider, organization, page, searchCodeRepoEvent, localServer, searchCodeRepo]);
 
-  const setPageAndScrollTop = (page: number) => {
+  const setPageAndScrollTop = (nextPage: number) => {
     if (coderepoRef?.current) coderepoRef.current.scrollTop = 0;
-    setPage(page);
+    setPage(nextPage);
   }
 
   const crResync = () => {

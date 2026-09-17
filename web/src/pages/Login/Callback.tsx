@@ -51,12 +51,12 @@ export default function ({ localServer }: { localServer: string }) {
       } else {
         const token = localStorage.getItem("token");
         if (token !== "") {
-          axios.get(localServer + "/api/v1/users/self").then(response => {
-            if (response.status === 200) {
+          axios.get(localServer + "/api/v1/users/self").then(resp => {
+            if (resp.status === 200) {
               setSuccess(true);
               setTimeout(() => { setRequestDone(true); window.location.assign("/"); }, 500)
             } else {
-              const errorcode = response.data as IHTTPError;
+              const errorcode = resp.data as IHTTPError;
               Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
               setSuccess(false);
               setTimeout(() => { setRequestDone(true); }, 500)
@@ -87,8 +87,8 @@ export default function ({ localServer }: { localServer: string }) {
             setSuccess(false);
             setTimeout(() => { setRequestDone(true); }, 500)
           }
-        }).catch(error => {
-          const errorcode = error.response.data as IHTTPError;
+        }).catch(err => {
+          const errorcode = err.response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
           setSuccess(false);
           setTimeout(() => { setRequestDone(true); }, 500)
@@ -100,7 +100,7 @@ export default function ({ localServer }: { localServer: string }) {
         setTimeout(() => { setRequestDone(true); }, 5000)
       }
     });
-  }, [code]);
+  }, [code, localServer, provider]);
 
   return (
     <div className="bg-white min-h-screen flex items-center dark:bg-gray-950">

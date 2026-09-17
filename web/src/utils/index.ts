@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { z } from "zod";
+
 import { ISizeWithUnit } from "../interfaces";
 
 /** Remove the http(s) scheme from an endpoint. */
@@ -51,11 +53,14 @@ export function calcUnit(size: number): ISizeWithUnit {
   }
 }
 
+const emailSchema = z.email();
+
+/** Validate an email address (zod) — replaces the ported HTML5 pattern. */
+export const isEmail = (value: string) => emailSchema.safeParse(value).success;
+
 /** Shared validation patterns. */
 export const Regex = {
   Username: /^[a-zA-Z0-9_\-@#$%]+$/,
-  // oxlint-disable-next-line no-control-regex -- control chars are part of the HTML5 email pattern
-  Email: /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/,
   Password: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/,
 };
 

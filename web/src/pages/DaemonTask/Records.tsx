@@ -15,7 +15,7 @@
  */
 
 import axios from "axios";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Tooltip } from '../../utils';
@@ -52,16 +52,16 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [recordList, setRunnerList] = useState<IGcArtifactRecordList>({} as IGcArtifactRecordList);
 
-  const fetchNamespace = () => {
+  const fetchNamespace = useCallback(() => {
     let url = localServer + `/api/v1/daemons/${resource}/${namespaceId}/runners/${runner_id}/records/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
       url += `&sort=${sortName}&method=${sortOrder.toString()}`
     }
     axios.get(url).then(response => {
       if (response?.status === 200) {
-        const recordList = response.data as IGcArtifactRecordList;
-        setRunnerList(recordList);
-        setTotal(recordList.total);
+        const recordListData = response.data as IGcArtifactRecordList;
+        setRunnerList(recordListData);
+        setTotal(recordListData.total);
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -70,9 +70,11 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }
+  }, [localServer, resource, namespaceId, runner_id, page, sortName, sortOrder]);
 
-  useEffect(() => { fetchNamespace() }, [refreshState, page, sortOrder, sortName]);
+  useEffect(() => {
+    fetchNamespace();
+  }, [fetchNamespace, refreshState]);
 
   return (
     <Fragment>
