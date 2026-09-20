@@ -277,9 +277,10 @@ jobs:
           name: unit-test-results
           path: |
             test-results/
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v7
+      - name: Upload coverage reports to Coveralls
+        uses: coverallsapp/github-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unit-test
-          files: coverage-application-postgresql.txt,coverage-database-sqlite3.txt,coverage-database-turso.txt,coverage-database-postgresql.txt,coverage-database-mysql.txt
+          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          format: golang
+          flag-name: unit-test
+          files: coverage-application-postgresql.txt coverage-database-sqlite3.txt coverage-database-turso.txt coverage-database-postgresql.txt coverage-database-mysql.txt

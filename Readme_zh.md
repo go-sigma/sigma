@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">sigma</h1>
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Codecov](https://img.shields.io/codecov/c/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/go-sigma/sigma/test.yml?style=for-the-badge) ![Coveralls](https://img.shields.io/coveralls/github/go-sigma/sigma?style=for-the-badge) ![GitHub repo size](https://img.shields.io/github/repo-size/go-sigma/sigma?style=for-the-badge)
 
 Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实现了 [OCI Distribution Specification 1.1](https://github.com/opencontainers/distribution-spec/tree/v1.1.0) 的协议，除了支持 docker 客户端以外，还支持其他类型的各种客户端，例如 [oras](https://github.com/oras-project/oras)，[apptainer](https://github.com/apptainer/apptainer)，[helm](https://github.com/helm/helm), [nerdctl](https://github.com/containerd/nerdctl) 等。在部署层面上完全可以做到 all-in-one 的部署，启动单个容器即可将整体的镜像仓库的所有服务启动起来，在高可用层面也可以将各个模块分别单独部署。
 
