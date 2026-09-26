@@ -1,3 +1,4 @@
 [tools]
 bun = "latest"
 go = "latest"
+node = "latest"

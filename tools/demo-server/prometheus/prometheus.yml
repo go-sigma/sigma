@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://www.schemastore.org/prometheus.json
 global:
   scrape_interval: 15s
   scrape_timeout: 10s
