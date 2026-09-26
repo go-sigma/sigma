@@ -4,12 +4,9 @@ name: Test CI
 on:
   push:
     branches:
-      - main
-      - gh-readonly-queue/main/*
       - dev
   pull_request:
     branches:
-      - main
       - dev
 
 jobs:
@@ -40,6 +37,25 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready -U sigma -d sigma || exit 1" --health-interval=10s --health-timeout=5s --health-retries=10
+      rs3:
+        image: ghcr.io/go-sigma/rs3:latest
+        env:
+          RS3_HOST: 0.0.0.0
+          RS3_PORT: 9000
+          RS3_DATA_DIR: /var/lib/rs3/data
+          RS3_ACCESS_KEY: sigma
+          RS3_SECRET_KEY: sigma-sigma
+          RS3_ENDPOINT: http://127.0.0.1:9000
+        ports:
+          - 9000:9000
+        entrypoint: /bin/sh
+        command: '-c "mkdir -p /var/lib/rs3/data/sigma && exec rs3"'
+        options: >-
+          --health-cmd "curl --fail http://127.0.0.1:${RS3_PORT}/readyz || exit 1"
+          --health-interval 30s
+          --health-timeout 3s
+          --health-start-period 5s
+          --health-retries 3
     steps:
       - name: Checkout branch
         uses: actions/checkout@v7
@@ -73,10 +89,6 @@ jobs:
           cd web
           bun install --frozen-lockfile
           bun run build
-      - name: Setup minio
-        run: |
-          ./scripts/run_minio.sh
-          sleep 5
       - name: Cache go modules
         uses: actions/cache@v6
         with:

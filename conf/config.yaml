@@ -33,7 +33,9 @@ database:
 redis:
   # Redis is enabled when any of url / addrs / masterName is non-empty.
   # Leave all empty to disable redis (inmemory cache/locker/workqueue must be used instead).
-  url: redis://:sigma@localhost:6379/0
+  # The default standalone config uses inmemory cache/locker/workqueue, so redis stays disabled here.
+  # Enable it by setting url (or addrs/masterName) and switching cache/locker/workqueue to redis.
+  url:
   addrs: []
   username: ""
   password: ""

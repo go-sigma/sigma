@@ -287,7 +287,7 @@ Directory rules:
 ## CI Workflows (`.github/workflows/`)
 
 - **lint.yml**: Go 1.27 + Bun web build + golangci-lint v2.12.2 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
-- **test.yml**: Go 1.27 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and Minio services. Uploads coverage to Coveralls.
+- **test.yml**: Go 1.27 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and rs3 services. Uploads coverage to Coveralls.
 - **e2e.yml**, **image-build.yml**, **gh-pages.yml**, **codeql.yml**: end-to-end, image build, docs deploy, security scan.
 
 ## Important Files

@@ -129,7 +129,7 @@ kube_install: ## Install sigma on Kubernetes using Helm
 		--set mysql.auth.rootPassword=$(RANDOM_PASSWORD) \
 		--set mysql.auth.password=$(RANDOM_PASSWORD) \
 		--set redis.auth.password=$(RANDOM_PASSWORD) \
-		--set minio.secretKey=$(RANDOM_PASSWORD) \
+		--set rs3.s3.sk=$(RANDOM_PASSWORD) \
 		--kubeconfig $(KUBECONFIG)
 
 .PHONY: kube_uninstall

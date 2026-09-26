@@ -1,3 +1,4 @@
+error_log /dev/stderr warn;
 pid /tmp/nginx.pid;
 
 worker_processes auto;

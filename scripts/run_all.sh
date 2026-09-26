@@ -2,8 +2,8 @@
 
 SCRIPT_DIR=$(dirname "$0")
 
-echo "Starting minio..."
-"$SCRIPT_DIR/run_minio.sh"
+echo "Starting rs3..."
+"$SCRIPT_DIR/run_rs3.sh"
 
 echo "Starting redis..."
 "$SCRIPT_DIR/run_redis.sh"

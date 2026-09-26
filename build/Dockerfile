@@ -144,7 +144,8 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache ca-certificates mailcap nginx tini
+  apk add --no-cache ca-certificates mailcap nginx tini && \
+  install -d -m 0755 /etc/sigma
 
 COPY --chmod=0755 ./build/entrypoint /usr/local/bin/sigma-server-entrypoint
 COPY --chmod=0644 ./conf/default.conf.template /etc/nginx/nginx.conf

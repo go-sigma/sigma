@@ -4,7 +4,6 @@ name: Deploy Docs Website
 on:
   push:
     branches:
-      - main
       - dev
 
   # Allows you to run this workflow manually from the Actions tab
