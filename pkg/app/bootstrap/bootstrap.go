@@ -32,6 +32,7 @@ var bootstrapTasks = []bootstrapTask{
 	{name: "service", run: service.InitDigContainer},
 	{name: "signing", run: signing},
 	{name: "user", run: initUser},
+	{name: "namespace", run: initNamespaces},
 }
 
 // Initialize runs all registered bootstrap tasks.

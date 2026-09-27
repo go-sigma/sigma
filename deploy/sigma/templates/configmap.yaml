@@ -49,6 +49,12 @@ data:
       minIdleConns: {{ .Values.external.redis.minIdleConns | default 0 }}
       maxRetries: {{ .Values.external.redis.maxRetries | default 0 }}
       {{- end }}
+    namespace:
+      initialize:
+        {{- range .Values.config.namespace.initialize }}
+        - name: {{ .name | quote }}
+          visibility: {{ .visibility | quote }}
+        {{- end }}
     http:
       internalEndpoint: http://{{ include "sigma.distribution" . }}:{{ .Values.service.distribution.port }}
       server: 0.0.0.0:{{.Values.service.server.port}}

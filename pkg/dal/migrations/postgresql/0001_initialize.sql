@@ -426,23 +426,6 @@ CREATE TABLE IF NOT EXISTS "namespace_members" (
   CONSTRAINT "namespace_members_unique_with_user_ns_role" UNIQUE ("user_id", "namespace_id", "role", "deleted_at")
 );
 
-INSERT INTO
-  "namespaces" (
-    "id",
-    "name",
-    "visibility",
-    "created_at",
-    "updated_at"
-  )
-VALUES
-  (
-    '019f56d8-633c-7d64-a115-f793aa8aad22',
-    'library',
-    'public',
-    1775566388880,
-    1775566388880
-  );
-
 CREATE TABLE IF NOT EXISTS "webhooks" (
   "id" varchar(36) PRIMARY KEY,
   "namespace_id" varchar(36),

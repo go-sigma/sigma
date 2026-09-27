@@ -154,6 +154,12 @@ config:
   redis:
     url: ""
     #ex: redis://:sigma@localhost:6789/0
+  namespace:
+    # namespaces created at startup; each entry is created when missing,
+    # and each entry may set its own visibility (public or private)
+    initialize:
+      - name: library
+        visibility: public
   http:
     server: 0.0.0.0:3000
     worker: 0.0.0.0:3001

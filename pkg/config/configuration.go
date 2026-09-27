@@ -387,16 +387,29 @@ func (c *ConfigurationLocker) WithDefaults() {
 	}
 }
 
+// ConfigurationNamespaceInit declares a namespace created at startup. Users can
+// declare any number of namespaces, each with its own visibility.
+type ConfigurationNamespaceInit struct {
+	Name       string           `yaml:"name"`
+	Visibility enums.Visibility `yaml:"visibility"`
+}
+
 // ConfigurationNamespace controls whether namespaces are created automatically on push and the visibility assigned to them.
 type ConfigurationNamespace struct {
-	AutoCreate bool             `yaml:"autoCreate"`
-	Visibility enums.Visibility `yaml:"visibility"`
+	AutoCreate bool                         `yaml:"autoCreate"`
+	Visibility enums.Visibility             `yaml:"visibility"`
+	Initialize []ConfigurationNamespaceInit `yaml:"initialize"`
 }
 
 // WithDefaults applies default values for namespace.
 func (c *ConfigurationNamespace) WithDefaults() {
 	if c.Visibility.String() == "" {
 		c.Visibility = enums.VisibilityPrivate
+	}
+	for i := range c.Initialize {
+		if c.Initialize[i].Visibility.String() == "" {
+			c.Initialize[i].Visibility = c.Visibility
+		}
 	}
 }
 
