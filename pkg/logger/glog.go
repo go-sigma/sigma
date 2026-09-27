@@ -65,11 +65,19 @@ func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, i
 	logDatabaseTrace(ctx, args...)
 }
 
+// databaseTraceCall reports the caller site used for gorm trace logs. When the
+// configured log level is not debug/trace it returns "database".
 func databaseTraceCall() string {
+	return databaseTraceCallFrom(runtime.Caller)
+}
+
+// databaseTraceCallFrom is the testable core of databaseTraceCall. caller is
+// runtime.Caller in production and a fake in tests.
+func databaseTraceCallFrom(caller func(skip int) (uintptr, string, int, bool)) string {
 	logLevel := config.GetConfig().Log.Level
 	if logLevel == enums.LogLevelDebug || logLevel == enums.LogLevelTrace {
 		for i := range 15 {
-			_, file, n, ok := runtime.Caller(i)
+			_, file, n, ok := caller(i)
 			if !ok {
 				break
 			}
