@@ -25,7 +25,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/server"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 )
 
 type bindRequest struct {

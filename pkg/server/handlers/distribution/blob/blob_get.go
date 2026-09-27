@@ -30,8 +30,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/distribution/reference"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 // GetBlob returns the blob's size and digest.

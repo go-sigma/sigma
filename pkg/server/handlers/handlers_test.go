@@ -26,11 +26,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/counter"
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/testkit"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 const (

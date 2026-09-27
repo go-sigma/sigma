@@ -33,9 +33,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
 	"github.com/go-sigma/sigma/pkg/testkit"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 func TestListRepositories(t *testing.T) {

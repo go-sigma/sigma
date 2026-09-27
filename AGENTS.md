@@ -248,6 +248,7 @@ pkg/
         handler_test.go  Factory/DI test
         <action>.go      Individual route handlers
     middlewares/         authn, authz, etag, extractor, healthz, metrics
+    validators/          Request validators (gin binding)
   service/               Business logic layer (interfaces + impls + mocks)
     password/, token/    Auth helpers
   authz/                 Authorizer, permission, resolver, cache
@@ -265,7 +266,6 @@ pkg/
   testkit/               Test helpers (NewGin, CI database setup)
   telemetry/             OpenTelemetry tracer provider init + shutdown
   utils/                 Misc utilities
-  validators/            Request validators
   version/               Build-time version info (set via -ldflags)
 conf/                    Example config files & TLS certs
 deploy/sigma/            Helm chart

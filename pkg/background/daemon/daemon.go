@@ -6,7 +6,6 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/infra/registry"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 // Factory is the interface for the daemon factory
@@ -17,13 +16,8 @@ type Factory interface {
 // Daemons is the registry for daemon factories
 var Daemons = make(registry.Factories[string, Factory])
 
-// Initialize initializes the validators, then every registered daemon factory, naming the failing factory in the returned error.
+// Initialize initializes every registered daemon factory, naming the failing factory in the returned error.
 func Initialize(digCon *dig.Container) error {
-	err := validators.Initialize()
-	if err != nil {
-		return fmt.Errorf("failed to initialize validators: %v", err)
-	}
-
 	for name, factory := range Daemons {
 		if err := factory.Initialize(digCon); err != nil {
 			return fmt.Errorf("failed to initialize daemon factory %q: %v", name, err)

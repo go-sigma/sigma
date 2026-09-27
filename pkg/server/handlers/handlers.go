@@ -37,7 +37,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/handlers/users"
 	handlervalidators "github.com/go-sigma/sigma/pkg/server/handlers/validators"
 	"github.com/go-sigma/sigma/pkg/server/handlers/webhooks"
-	"github.com/go-sigma/sigma/pkg/validators"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 )
 
 // Initialize registers all API handler routes.

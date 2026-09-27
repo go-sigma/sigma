@@ -29,9 +29,9 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	"github.com/go-sigma/sigma/pkg/server/validators"
 	"github.com/go-sigma/sigma/pkg/service/token"
 	"github.com/go-sigma/sigma/pkg/testkit"
-	"github.com/go-sigma/sigma/pkg/validators"
 )
 
 func TestClientID(t *testing.T) {
