@@ -32,7 +32,7 @@ import (
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/storage"
+	storagemocks "github.com/go-sigma/sigma/pkg/storage/mocks"
 )
 
 func TestGetNamespaceByName(t *testing.T) {
@@ -161,7 +161,7 @@ func TestGetBlobNotFound(t *testing.T) {
 func TestGetBlobRedirect(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{
 		Config: &config.Configuration{
 			Storage: config.ConfigurationStorage{Redirect: true, Type: enums.StorageTypeS3},
@@ -184,7 +184,7 @@ func TestGetBlobRedirect(t *testing.T) {
 func TestGetBlobSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("blob content")
@@ -202,7 +202,7 @@ func TestGetBlobSuccess(t *testing.T) {
 func TestGetBlobReaderError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository, Storage: storageDriver}
 
 	dgest := digest.FromBytes([]byte("content")).String()

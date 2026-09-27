@@ -29,7 +29,7 @@ import (
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/storage"
+	storagemocks "github.com/go-sigma/sigma/pkg/storage/mocks"
 )
 
 func TestUploadQueries(t *testing.T) {
@@ -59,7 +59,7 @@ func TestUploadQueries(t *testing.T) {
 func TestDeleteUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	service := &service{
 		RepoBlob: blobRepository,
 		Storage:  storageDriver,
@@ -86,7 +86,7 @@ func TestDeleteUpload(t *testing.T) {
 func TestPostUploadSingleShot(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("hello world")
@@ -107,7 +107,7 @@ func TestPostUploadSingleShot(t *testing.T) {
 func TestPostUploadWithoutDigest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	storageDriver.EXPECT().CreateUploadID(gomock.Any(), gomock.Any()).Return("upload-id-1", nil)
@@ -129,7 +129,7 @@ func TestPostUploadInvalidDigest(t *testing.T) {
 func TestPatchUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	upload := &models.BlobUpload{UploadID: "storage-upload-1", FileID: "file-1", PartNumber: 0}
@@ -174,7 +174,7 @@ func TestPutUploadInvalidDigest(t *testing.T) {
 func TestPutUploadBlobExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	dgest := digest.FromBytes([]byte("content")).String()
@@ -206,7 +206,7 @@ func TestPutUploadInvalidRepositoryName(t *testing.T) {
 func TestPutUploadDigestMismatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("actual content")
@@ -226,7 +226,7 @@ func TestPutUploadDigestMismatch(t *testing.T) {
 func TestPutUploadSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	storageDriver := storage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("hello world")

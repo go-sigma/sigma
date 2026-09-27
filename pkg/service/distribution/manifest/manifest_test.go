@@ -38,7 +38,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
 	analyticsmocks "github.com/go-sigma/sigma/pkg/service/analytics/mocks"
-	mockstorage "github.com/go-sigma/sigma/pkg/storage"
+	storagemocks "github.com/go-sigma/sigma/pkg/storage/mocks"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -106,7 +106,7 @@ func TestGetManifestByTagRecordsPull(t *testing.T) {
 	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
 	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
-	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	analyticsSvc := analyticsmocks.NewMockService(ctrl)
 
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
@@ -151,7 +151,7 @@ func TestHeadManifestDoesNotRecordPull(t *testing.T) {
 
 	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
-	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, artifactDigest).Return(artifact, nil)
@@ -220,7 +220,7 @@ func TestGetManifestErrorMapping(t *testing.T) {
 			setup: func(ctrl *gomock.Controller) *service {
 				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 				repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
-				storageDriver := mockstorage.NewMockStorageDriver(ctrl)
+				storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 				artifact := &models.Artifact{ID: "artifact-id", RepositoryID: repository.ID, Digest: artifactDigest}
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 				repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, artifactDigest).Return(artifact, nil)
@@ -380,7 +380,7 @@ func TestGetReferrerBuildsOCIIndex(t *testing.T) {
 
 	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
-	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetReferrers(ctx, repository.ID, subjectDigest.String(), []string{"signature"}).Return([]*models.Artifact{artifact}, nil)
 	storageDriver.EXPECT().Reader(ctx, utils.GenManifestPathByDigest(referrerDigest)).Return(io.NopCloser(bytes.NewReader(rawManifest)), nil)
