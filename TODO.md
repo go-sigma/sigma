@@ -177,3 +177,23 @@ Remaining:
 - ✅ P2: `pkg/background/daemon/gc`, `pkg/background/daemon/scan/vulngrype`, `pkg/infra/workq` (+redis) — background executor and queue adapters
 
 **Leftovers**: keep `analytics`, `validators`, `systems`, `tokens`, `password`, `pkg/storage`, and `pkg/telemetry` tests current when their adapters change; extend integration-style tests for `pkg/background/buildrunner/docker` and any new storage driver behavior.
+
+---
+
+## Backlog (non-HA)
+
+### 15. Password Recovery Flow Is Not Usable End-to-End
+
+**Current state**: the backend is already wired up — `GET /recover-password` and
+`PUT /recover-password-reset/:code`, `UserService.RecoverPassword` /
+`RecoverPasswordReset`, the `UserRecoverCode` model, its generated query, and
+the `user_recover_codes` migration all exist.
+
+What is missing is the delivery path: a code is generated and stored, but never
+sent to the user (there is no SMTP/email sender or related config), and the web
+UI has no recover/reset pages. As a result the code is created but nobody can
+receive or use it.
+
+- [ ] Deliver the recovery code to the user (email sender + `smtp`/`mail` config)
+- [ ] Add recover-password and reset-password pages to the web UI
+- [ ] Give recovery codes a TTL and rate-limit/reset them on use

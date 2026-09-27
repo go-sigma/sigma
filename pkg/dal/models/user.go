@@ -62,6 +62,12 @@ func (User3rdParty) TableName() string {
 	return "user_3rdparty"
 }
 
+// UserRecoverCode is a one-time code used to reset a user's password.
+//
+// The backend flow is wired up (the recover-password endpoints create a code and
+// the reset endpoint consumes it), but the code is only persisted: nothing
+// delivers it to the user yet (no email sender) and the web UI has no recover
+// page, so the feature is not usable end-to-end. See TODO.md.
 type UserRecoverCode struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
@@ -72,4 +78,9 @@ type UserRecoverCode struct {
 	Code   string
 
 	User User
+}
+
+// TableName overrides the GORM table name for UserRecoverCode to "user_recover_codes".
+func (UserRecoverCode) TableName() string {
+	return "user_recover_codes"
 }
