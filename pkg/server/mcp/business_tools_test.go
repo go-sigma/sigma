@@ -23,15 +23,15 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcartifacts "github.com/go-sigma/sigma/pkg/service/artifacts"
-	svcnamespaces "github.com/go-sigma/sigma/pkg/service/namespaces"
-	svcrepositories "github.com/go-sigma/sigma/pkg/service/repositories"
-	svctags "github.com/go-sigma/sigma/pkg/service/tags"
+	artifactsmocks "github.com/go-sigma/sigma/pkg/service/artifacts/mocks"
+	namespacesmocks "github.com/go-sigma/sigma/pkg/service/namespaces/mocks"
+	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
+	tagsmocks "github.com/go-sigma/sigma/pkg/service/tags/mocks"
 )
 
 func TestNamespaceTools(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceSvc := svcnamespaces.NewMockNamespaceService(ctrl)
+	namespaceSvc := namespacesmocks.NewMockNamespaceService(ctrl)
 	server := &Server{
 		authorizer:   fakeAuthorizer{namespaceAllowed: true},
 		namespaceSvc: namespaceSvc,
@@ -63,7 +63,7 @@ func TestNamespaceTools(t *testing.T) {
 
 func TestRepositoryTools(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositorySvc := svcrepositories.NewMockRepositoryService(ctrl)
+	repositorySvc := repositoriesmocks.NewMockRepositoryService(ctrl)
 	server := &Server{
 		authorizer:    fakeAuthorizer{namespaceAllowed: true, repositoryAllowed: true},
 		repositorySvc: repositorySvc,
@@ -91,7 +91,7 @@ func TestRepositoryTools(t *testing.T) {
 
 func TestTagManifestRawGet(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tagSvc := svctags.NewMockTagService(ctrl)
+	tagSvc := tagsmocks.NewMockTagService(ctrl)
 	server := &Server{
 		authorizer: fakeAuthorizer{repositoryAllowed: true},
 		tagSvc:     tagSvc,
@@ -111,8 +111,8 @@ func TestTagManifestRawGet(t *testing.T) {
 
 func TestArtifactTools(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositorySvc := svcrepositories.NewMockRepositoryService(ctrl)
-	artifactSvc := svcartifacts.NewMockArtifactService(ctrl)
+	repositorySvc := repositoriesmocks.NewMockRepositoryService(ctrl)
+	artifactSvc := artifactsmocks.NewMockArtifactService(ctrl)
 	server := &Server{
 		authorizer:    fakeAuthorizer{repositoryAllowed: true},
 		repositorySvc: repositorySvc,

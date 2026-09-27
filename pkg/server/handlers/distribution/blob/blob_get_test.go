@@ -29,14 +29,14 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcblob "github.com/go-sigma/sigma/pkg/service/distribution/blob"
+	blobmocks "github.com/go-sigma/sigma/pkg/service/distribution/blob/mocks"
 )
 
 const blobDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 func TestGetBlob(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcblob.NewMockDistributionBlobService(ctrl)
+	svc := blobmocks.NewMockDistributionBlobService(ctrl)
 	authorizer := authz.NewMockAuthorizer(ctrl)
 	svc.EXPECT().GetNamespaceByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1"}, nil)
 	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthRead).Return(true, nil)
@@ -58,7 +58,7 @@ func TestGetBlob(t *testing.T) {
 
 func TestGetBlobRedirect(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcblob.NewMockDistributionBlobService(ctrl)
+	svc := blobmocks.NewMockDistributionBlobService(ctrl)
 	authorizer := authz.NewMockAuthorizer(ctrl)
 	svc.EXPECT().GetNamespaceByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1"}, nil)
 	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthRead).Return(true, nil)

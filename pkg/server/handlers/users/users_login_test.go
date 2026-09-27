@@ -27,12 +27,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcuser "github.com/go-sigma/sigma/pkg/service/users"
+	usersmocks "github.com/go-sigma/sigma/pkg/service/users/mocks"
 )
 
 func TestLogin(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcuser.NewMockUserService(ctrl)
+	service := usersmocks.NewMockUserService(ctrl)
 	service.EXPECT().Login(gomock.Any(), "user-1", time.Minute, time.Hour).
 		Return("access-token", "refresh-token", nil)
 	recorder, c := newUserContext()

@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcuser "github.com/go-sigma/sigma/pkg/service/users"
+	usersmocks "github.com/go-sigma/sigma/pkg/service/users/mocks"
 )
 
 func TestSignup(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcuser.NewMockUserService(ctrl)
+	service := usersmocks.NewMockUserService(ctrl)
 	request := api.PostUserSignupRequest{
 		Username: "sigma",
 		Password: "Admin@123",
@@ -57,7 +57,7 @@ func TestSignup(t *testing.T) {
 
 func TestSignupServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcuser.NewMockUserService(ctrl)
+	service := usersmocks.NewMockUserService(ctrl)
 	request := api.PostUserSignupRequest{
 		Username: "sigma",
 		Password: "Admin@123",

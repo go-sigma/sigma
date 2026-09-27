@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -39,7 +39,7 @@ func TestDeleteRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcrepository.NewMockRepositoryService(ctrl)
+	serviceObj := repositoriesmocks.NewMockRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		DeleteRepository(gomock.Any(), "123", "10", "20").
 		DoAndReturn(func(_ context.Context, userID, namespaceID, repositoryID string) error {
@@ -125,7 +125,7 @@ func TestDeleteRepositoryReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcrepository.NewMockRepositoryService(ctrl)
+	serviceObj := repositoriesmocks.NewMockRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		DeleteRepository(gomock.Any(), "123", "10", "20").
 		Return(errors.New("delete failed"))

@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcdaemons "github.com/go-sigma/sigma/pkg/service/daemons"
+	daemonsmocks "github.com/go-sigma/sigma/pkg/service/daemons/mocks"
 )
 
 func TestUpdateGcRepositoryRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcRepositoryRule(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -45,7 +45,7 @@ func TestUpdateGcRepositoryRule(t *testing.T) {
 
 func TestUpdateGcRepositoryRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcRepositoryRule(gomock.Any(), gomock.Any()).
 		Return(errors.New("update failed"))
@@ -59,7 +59,7 @@ func TestUpdateGcRepositoryRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcRepositoryRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRule(gomock.Any(), "1").
 		Return(&models.DaemonGcRule{
@@ -84,7 +84,7 @@ func TestGetGcRepositoryRule(t *testing.T) {
 
 func TestGetGcRepositoryRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRule(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -98,7 +98,7 @@ func TestGetGcRepositoryRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcRepositoryLatestRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryLatestRunner(gomock.Any(), "1").
 		Return(&models.DaemonGcRunner{
@@ -125,7 +125,7 @@ func TestGetGcRepositoryLatestRunner(t *testing.T) {
 
 func TestGetGcRepositoryLatestRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryLatestRunner(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -139,7 +139,7 @@ func TestGetGcRepositoryLatestRunnerReturnsInternalError(t *testing.T) {
 
 func TestCreateGcRepositoryRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcRepositoryRunner(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -153,7 +153,7 @@ func TestCreateGcRepositoryRunner(t *testing.T) {
 
 func TestCreateGcRepositoryRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcRepositoryRunner(gomock.Any(), gomock.Any()).
 		Return(errors.New("create failed"))
@@ -167,7 +167,7 @@ func TestCreateGcRepositoryRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcRepositoryRunners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcRepositoryRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRunner, int64, error) {
@@ -194,7 +194,7 @@ func TestListGcRepositoryRunners(t *testing.T) {
 
 func TestListGcRepositoryRunnersReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcRepositoryRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -208,7 +208,7 @@ func TestListGcRepositoryRunnersReturnsInternalError(t *testing.T) {
 
 func TestGetGcRepositoryRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRunner(gomock.Any(), "1", "2").
 		Return(&models.DaemonGcRunner{
@@ -229,7 +229,7 @@ func TestGetGcRepositoryRunner(t *testing.T) {
 
 func TestGetGcRepositoryRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRunner(gomock.Any(), "1", "2").
 		Return(nil, errors.New("get failed"))
@@ -243,7 +243,7 @@ func TestGetGcRepositoryRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcRepositoryRecords(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcRepositoryRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRecord, int64, error) {
@@ -270,7 +270,7 @@ func TestListGcRepositoryRecords(t *testing.T) {
 
 func TestListGcRepositoryRecordsReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcRepositoryRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -284,7 +284,7 @@ func TestListGcRepositoryRecordsReturnsInternalError(t *testing.T) {
 
 func TestGetGcRepositoryRecord(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRecord(gomock.Any(), "1", "2", "3").
 		Return(&models.DaemonGcRecord{
@@ -307,7 +307,7 @@ func TestGetGcRepositoryRecord(t *testing.T) {
 
 func TestGetGcRepositoryRecordReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcRepositoryRecord(gomock.Any(), "1", "2", "3").
 		Return(nil, errors.New("get failed"))

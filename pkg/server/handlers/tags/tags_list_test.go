@@ -23,12 +23,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+	tagsmocks "github.com/go-sigma/sigma/pkg/service/tags/mocks"
 )
 
 func TestListTag(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tagSvc := svctag.NewMockTagService(ctrl)
+	tagSvc := tagsmocks.NewMockTagService(ctrl)
 	tagSvc.EXPECT().ListTags(
 		gomock.Any(), "namespace-1", "repository-1", nil, nil, api.Pagination{}, api.Sortable{},
 	).Return([]*models.Tag{{

@@ -31,7 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcnamespace "github.com/go-sigma/sigma/pkg/service/namespaces"
+	namespacesmocks "github.com/go-sigma/sigma/pkg/service/namespaces/mocks"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -41,7 +41,7 @@ func TestPutNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		UpdateNamespace(gomock.Any(), "10", "1", gomock.Any()).
 		DoAndReturn(func(_ context.Context, userID, id string, req api.UpdateNamespaceRequest) error {
@@ -95,7 +95,7 @@ func TestPutNamespaceReturnsServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		UpdateNamespace(gomock.Any(), "10", "1", gomock.Any()).
 		Return(errors.New("update failed"))

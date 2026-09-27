@@ -24,12 +24,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcartifact "github.com/go-sigma/sigma/pkg/service/artifacts"
+	artifactsmocks "github.com/go-sigma/sigma/pkg/service/artifacts/mocks"
 )
 
 func TestListArtifact(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	request := api.ListArtifactRequest{Namespace: "library", Repository: "library/alpine"}
 	service.EXPECT().ListArtifacts(gomock.Any(), request).Return([]*models.Artifact{{
 		ID:     "artifact-1",
@@ -48,7 +48,7 @@ func TestListArtifact(t *testing.T) {
 
 func TestListServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	request := api.ListArtifactRequest{Namespace: "library", Repository: "library/alpine"}
 	service.EXPECT().ListArtifacts(gomock.Any(), request).Return(nil, int64(0), errors.New("failed"))
 	recorder, c := newArtifactContext()

@@ -37,6 +37,7 @@ import (
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
+	analyticsmocks "github.com/go-sigma/sigma/pkg/service/analytics/mocks"
 	mockstorage "github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -106,7 +107,7 @@ func TestGetManifestByTagRecordsPull(t *testing.T) {
 	repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
 	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
-	analyticsSvc := svcanalytics.NewMockService(ctrl)
+	analyticsSvc := analyticsmocks.NewMockService(ctrl)
 
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoTag.EXPECT().GetByName(ctx, repository.ID, tag.Name).Return(tag, nil)

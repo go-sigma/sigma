@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcnamespace "github.com/go-sigma/sigma/pkg/service/namespaces"
+	namespacesmocks "github.com/go-sigma/sigma/pkg/service/namespaces/mocks"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -40,7 +40,7 @@ func TestListNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		ListNamespaces(gomock.Any(), "10", gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, userID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Namespace, int64, error) {
@@ -86,7 +86,7 @@ func TestListNamespaceReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		ListNamespaces(gomock.Any(), "", gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))

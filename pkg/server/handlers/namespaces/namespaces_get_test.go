@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcnamespace "github.com/go-sigma/sigma/pkg/service/namespaces"
+	namespacesmocks "github.com/go-sigma/sigma/pkg/service/namespaces/mocks"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
 
@@ -39,7 +39,7 @@ func TestGetNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		GetNamespace(gomock.Any(), "1").
 		DoAndReturn(func(_ context.Context, id string) (*models.Namespace, int64, int64, error) {
@@ -75,7 +75,7 @@ func TestGetNamespaceReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcnamespace.NewMockNamespaceService(ctrl)
+	serviceObj := namespacesmocks.NewMockNamespaceService(ctrl)
 	serviceObj.EXPECT().
 		GetNamespace(gomock.Any(), "1").
 		Return(nil, int64(0), int64(0), errors.New("get failed"))

@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
+	uploadmocks "github.com/go-sigma/sigma/pkg/service/distribution/upload/mocks"
 )
 
 func TestPostUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcupload.NewMockDistributionUploadService(ctrl)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
 	authorizer := authz.NewMockAuthorizer(ctrl)
 	svc.EXPECT().GetNamespaceByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1"}, nil)
 	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
@@ -52,7 +52,7 @@ func TestPostUpload(t *testing.T) {
 
 func TestPostUploadInvalidDigest(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcupload.NewMockDistributionUploadService(ctrl)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
 	authorizer := authz.NewMockAuthorizer(ctrl)
 	svc.EXPECT().GetNamespaceByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1"}, nil)
 	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)

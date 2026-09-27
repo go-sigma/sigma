@@ -32,12 +32,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcwebhook "github.com/go-sigma/sigma/pkg/service/webhooks"
+	webhooksmocks "github.com/go-sigma/sigma/pkg/service/webhooks/mocks"
 )
 
 func TestPostWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		CreateWebhook(gomock.Any(), "10", gomock.Any()).
 		DoAndReturn(func(_ context.Context, userID string, req api.PostWebhookRequest) error {
@@ -59,7 +59,7 @@ func TestPostWebhook(t *testing.T) {
 
 func TestPostWebhookWithNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		CreateWebhook(gomock.Any(), "10", gomock.Any()).
 		Return(nil)
@@ -140,7 +140,7 @@ func TestPostWebhookReturnsInternalErrorWhenAuthCheckFails(t *testing.T) {
 
 func TestPostWebhookReturnsErrCode(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		CreateWebhook(gomock.Any(), "10", gomock.Any()).
 		Return(errcode.HTTPErrCodeBadRequest.Detail("URL is invalid, should start with 'http://' or 'https://'"))
@@ -154,7 +154,7 @@ func TestPostWebhookReturnsErrCode(t *testing.T) {
 
 func TestPostWebhookReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		CreateWebhook(gomock.Any(), "10", gomock.Any()).
 		Return(errors.New("create failed"))
@@ -168,7 +168,7 @@ func TestPostWebhookReturnsInternalError(t *testing.T) {
 
 func TestListWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		ListWebhooks(gomock.Any(), nil, gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, namespaceID *string, pagination api.Pagination, sort api.Sortable) ([]*models.Webhook, int64, error) {
@@ -204,7 +204,7 @@ func TestListWebhook(t *testing.T) {
 
 func TestListWebhookWithNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		ListWebhooks(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, namespaceID *string, pagination api.Pagination, sort api.Sortable) ([]*models.Webhook, int64, error) {
@@ -231,7 +231,7 @@ func TestListWebhookWithNamespace(t *testing.T) {
 
 func TestListWebhookReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		ListWebhooks(gomock.Any(), nil, gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -245,7 +245,7 @@ func TestListWebhookReturnsInternalError(t *testing.T) {
 
 func TestGetWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -278,7 +278,7 @@ func TestGetWebhook(t *testing.T) {
 
 func TestGetWebhookReturnsUnauthorizedForNonAdmin(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -303,7 +303,7 @@ func TestGetWebhookReturnsUnauthorizedForNonAdmin(t *testing.T) {
 
 func TestGetWebhookReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -317,7 +317,7 @@ func TestGetWebhookReturnsInternalError(t *testing.T) {
 
 func TestPutWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -340,7 +340,7 @@ func TestPutWebhook(t *testing.T) {
 
 func TestPutWebhookReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -363,7 +363,7 @@ func TestPutWebhookReturnsInternalError(t *testing.T) {
 
 func TestDeleteWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -386,7 +386,7 @@ func TestDeleteWebhook(t *testing.T) {
 
 func TestGetWebhookPing(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -409,7 +409,7 @@ func TestGetWebhookPing(t *testing.T) {
 
 func TestGetWebhookLog(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -447,7 +447,7 @@ func TestGetWebhookLog(t *testing.T) {
 
 func TestListWebhookLogs(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -484,7 +484,7 @@ func TestListWebhookLogs(t *testing.T) {
 
 func TestDeleteWebhookLog(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -507,7 +507,7 @@ func TestDeleteWebhookLog(t *testing.T) {
 
 func TestGetWebhookLogResend(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{
@@ -530,7 +530,7 @@ func TestGetWebhookLogResend(t *testing.T) {
 
 func TestGetWebhookLogResendReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcwebhook.NewMockWebhookService(ctrl)
+	serviceObj := webhooksmocks.NewMockWebhookService(ctrl)
 	serviceObj.EXPECT().
 		GetWebhook(gomock.Any(), "1").
 		Return(&models.Webhook{

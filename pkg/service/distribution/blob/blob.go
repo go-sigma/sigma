@@ -40,7 +40,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-//go:generate go tool mockgen -mock_names Service=MockDistributionBlobService -destination=blob_mocks.go -package=blob github.com/go-sigma/sigma/pkg/service/distribution/blob Service
+//go:generate go tool mockgen -mock_names Service=MockDistributionBlobService -destination=mocks/blob_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/service/distribution/blob Service
 
 // Service encapsulates distribution blob business logic.
 type Service interface {

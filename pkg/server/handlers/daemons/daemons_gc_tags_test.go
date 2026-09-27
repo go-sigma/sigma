@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcdaemons "github.com/go-sigma/sigma/pkg/service/daemons"
+	daemonsmocks "github.com/go-sigma/sigma/pkg/service/daemons/mocks"
 )
 
 func TestUpdateGcTagRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcTagRule(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -45,7 +45,7 @@ func TestUpdateGcTagRule(t *testing.T) {
 
 func TestUpdateGcTagRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcTagRule(gomock.Any(), gomock.Any()).
 		Return(errors.New("update failed"))
@@ -59,7 +59,7 @@ func TestUpdateGcTagRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcTagRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRule(gomock.Any(), "1").
 		Return(&models.DaemonGcRule{
@@ -85,7 +85,7 @@ func TestGetGcTagRule(t *testing.T) {
 
 func TestGetGcTagRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRule(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -99,7 +99,7 @@ func TestGetGcTagRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcTagLatestRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagLatestRunner(gomock.Any(), "1").
 		Return(&models.DaemonGcRunner{
@@ -126,7 +126,7 @@ func TestGetGcTagLatestRunner(t *testing.T) {
 
 func TestGetGcTagLatestRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagLatestRunner(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -140,7 +140,7 @@ func TestGetGcTagLatestRunnerReturnsInternalError(t *testing.T) {
 
 func TestCreateGcTagRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcTagRunner(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -154,7 +154,7 @@ func TestCreateGcTagRunner(t *testing.T) {
 
 func TestCreateGcTagRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcTagRunner(gomock.Any(), gomock.Any()).
 		Return(errors.New("create failed"))
@@ -168,7 +168,7 @@ func TestCreateGcTagRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcTagRunners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcTagRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRunner, int64, error) {
@@ -195,7 +195,7 @@ func TestListGcTagRunners(t *testing.T) {
 
 func TestListGcTagRunnersReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcTagRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -209,7 +209,7 @@ func TestListGcTagRunnersReturnsInternalError(t *testing.T) {
 
 func TestGetGcTagRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRunner(gomock.Any(), "1", "2").
 		Return(&models.DaemonGcRunner{
@@ -230,7 +230,7 @@ func TestGetGcTagRunner(t *testing.T) {
 
 func TestGetGcTagRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRunner(gomock.Any(), "1", "2").
 		Return(nil, errors.New("get failed"))
@@ -244,7 +244,7 @@ func TestGetGcTagRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcTagRecords(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcTagRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRecord, int64, error) {
@@ -271,7 +271,7 @@ func TestListGcTagRecords(t *testing.T) {
 
 func TestListGcTagRecordsReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcTagRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -285,7 +285,7 @@ func TestListGcTagRecordsReturnsInternalError(t *testing.T) {
 
 func TestGetGcTagRecord(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRecord(gomock.Any(), "1", "2", "3").
 		Return(&models.DaemonGcRecord{
@@ -308,7 +308,7 @@ func TestGetGcTagRecord(t *testing.T) {
 
 func TestGetGcTagRecordReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcTagRecord(gomock.Any(), "1", "2", "3").
 		Return(nil, errors.New("get failed"))

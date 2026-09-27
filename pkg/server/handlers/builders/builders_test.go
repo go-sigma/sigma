@@ -30,12 +30,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcbuilder "github.com/go-sigma/sigma/pkg/service/builders"
+	buildersmocks "github.com/go-sigma/sigma/pkg/service/builders/mocks"
 )
 
 func TestCreateBuilder(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		CreateBuilder(gomock.Any(), "10", gomock.Any()).
 		Return(nil)
@@ -49,7 +49,7 @@ func TestCreateBuilder(t *testing.T) {
 
 func TestCreateBuilderReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		CreateBuilder(gomock.Any(), "10", gomock.Any()).
 		Return(errors.New("create failed"))
@@ -63,7 +63,7 @@ func TestCreateBuilderReturnsInternalError(t *testing.T) {
 
 func TestCreateBuilderReturnsErrCode(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		CreateBuilder(gomock.Any(), "10", gomock.Any()).
 		Return(errcode.HTTPErrCodeBadRequest.Detail("parameter 'dockerfile' is invalid"))
@@ -77,7 +77,7 @@ func TestCreateBuilderReturnsErrCode(t *testing.T) {
 
 func TestUpdateBuilder(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		UpdateBuilder(gomock.Any(), "10", "1", gomock.Any()).
 		Return(nil)
@@ -91,7 +91,7 @@ func TestUpdateBuilder(t *testing.T) {
 
 func TestUpdateBuilderReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		UpdateBuilder(gomock.Any(), "10", "1", gomock.Any()).
 		Return(errors.New("update failed"))
@@ -105,7 +105,7 @@ func TestUpdateBuilderReturnsInternalError(t *testing.T) {
 
 func TestListRunners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		ListRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, builderID string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error) {
@@ -142,7 +142,7 @@ func TestListRunners(t *testing.T) {
 
 func TestListRunnersReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		ListRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -156,7 +156,7 @@ func TestListRunnersReturnsInternalError(t *testing.T) {
 
 func TestGetRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetRunner(gomock.Any(), "2").
 		Return(&models.BuilderRunner{
@@ -187,7 +187,7 @@ func TestGetRunner(t *testing.T) {
 
 func TestGetRunnerReturnsForbiddenOnBuilderMismatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetRunner(gomock.Any(), "2").
 		Return(&models.BuilderRunner{
@@ -208,7 +208,7 @@ func TestGetRunnerReturnsForbiddenOnBuilderMismatch(t *testing.T) {
 
 func TestGetRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetRunner(gomock.Any(), "2").
 		Return(nil, errors.New("get failed"))
@@ -222,7 +222,7 @@ func TestGetRunnerReturnsInternalError(t *testing.T) {
 
 func TestPostRunnerRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		RunRunner(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, req api.PostRunnerRun) (string, error) {
@@ -240,7 +240,7 @@ func TestPostRunnerRun(t *testing.T) {
 
 func TestPostRunnerRunReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		RunRunner(gomock.Any(), gomock.Any()).
 		Return("", errors.New("run failed"))
@@ -254,7 +254,7 @@ func TestPostRunnerRunReturnsInternalError(t *testing.T) {
 
 func TestGetRunnerRerun(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		RerunRunner(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, req api.GetRunnerStop) (string, error) {
@@ -272,7 +272,7 @@ func TestGetRunnerRerun(t *testing.T) {
 
 func TestGetRunnerStop(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		StopRunner(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -286,7 +286,7 @@ func TestGetRunnerStop(t *testing.T) {
 
 func TestGetRunnerStopReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		StopRunner(gomock.Any(), gomock.Any()).
 		Return(errors.New("stop failed"))
@@ -300,7 +300,7 @@ func TestGetRunnerStopReturnsInternalError(t *testing.T) {
 
 func TestGetRunnerLogReturnsInternalErrorWhenBuilderLookupFails(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetBuilderByRepositoryID(gomock.Any(), "1").
 		Return(nil, errors.New("get builder failed"))
@@ -314,7 +314,7 @@ func TestGetRunnerLogReturnsInternalErrorWhenBuilderLookupFails(t *testing.T) {
 
 func TestGetRunnerLogReturnsInternalErrorOnBuilderMismatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetBuilderByRepositoryID(gomock.Any(), "1").
 		Return(&models.Builder{ID: "other"}, nil)
@@ -328,7 +328,7 @@ func TestGetRunnerLogReturnsInternalErrorOnBuilderMismatch(t *testing.T) {
 
 func TestGetRunnerLogReturnsInternalErrorWhenRunnerLookupFails(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcbuilder.NewMockBuilderService(ctrl)
+	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
 		GetBuilderByRepositoryID(gomock.Any(), "1").
 		Return(&models.Builder{ID: "1"}, nil)

@@ -25,14 +25,14 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
-	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
+	tagsmocks "github.com/go-sigma/sigma/pkg/service/tags/mocks"
 )
 
 func TestListTags(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repoSvc := svcrepository.NewMockRepositoryService(ctrl)
-	tagSvc := svctag.NewMockTagService(ctrl)
+	repoSvc := repositoriesmocks.NewMockRepositoryService(ctrl)
+	tagSvc := tagsmocks.NewMockTagService(ctrl)
 	authorizer := authz.NewMockAuthorizer(ctrl)
 	repoSvc.EXPECT().GetRepositoryByName(gomock.Any(), "library/alpine").Return(&models.Repository{ID: "repository-1", NamespaceID: "namespace-1"}, nil)
 	authorizer.EXPECT().Repository(gomock.Any(), gomock.Any(), "repository-1", enums.AuthRead).Return(true, nil)

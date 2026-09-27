@@ -23,12 +23,12 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/api"
-	svcartifact "github.com/go-sigma/sigma/pkg/service/artifacts"
+	artifactsmocks "github.com/go-sigma/sigma/pkg/service/artifacts/mocks"
 )
 
 func TestDeleteArtifact(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	service.EXPECT().DeleteArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(nil)
 	recorder, c := newArtifactContext()
 
@@ -43,7 +43,7 @@ func TestDeleteArtifact(t *testing.T) {
 
 func TestDeleteServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	service.EXPECT().DeleteArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(errors.New("failed"))
 	recorder, c := newArtifactContext()
 

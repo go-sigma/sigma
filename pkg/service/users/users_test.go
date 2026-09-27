@@ -28,8 +28,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	passwordmocks "github.com/go-sigma/sigma/pkg/service/password"
-	"github.com/go-sigma/sigma/pkg/service/token"
+	passwordmocks "github.com/go-sigma/sigma/pkg/service/password/mocks"
+	tokenmocks "github.com/go-sigma/sigma/pkg/service/token/mocks"
 )
 
 func TestListUsers(t *testing.T) {
@@ -50,7 +50,7 @@ func TestListUsers(t *testing.T) {
 
 func TestLogoutSkipsExpiredTokensAndRevokesUniqueIDs(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tokenSvc := token.NewMockService(ctrl)
+	tokenSvc := tokenmocks.NewMockService(ctrl)
 	service := &service{SvcToken: tokenSvc}
 
 	tokenSvc.EXPECT().Validate(gomock.Any(), "expired").Return("", "", jwt.ErrTokenExpired)
@@ -66,7 +66,7 @@ func TestLogoutSkipsExpiredTokensAndRevokesUniqueIDs(t *testing.T) {
 
 func TestLogoutRequiresJTIAndMapsValidationFailure(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tokenSvc := token.NewMockService(ctrl)
+	tokenSvc := tokenmocks.NewMockService(ctrl)
 	service := &service{SvcToken: tokenSvc}
 
 	err := service.Logout(t.Context(), nil, "")
@@ -85,7 +85,7 @@ func TestSignupUsesAccessAndRefreshTTL(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	userRepository := repousermocks.NewMockUserRepository(ctrl)
 	passwordSvc := passwordmocks.NewMockService(ctrl)
-	tokenSvc := token.NewMockService(ctrl)
+	tokenSvc := tokenmocks.NewMockService(ctrl)
 	service := &service{
 		RepoUser:    userRepository,
 		SvcPassword: passwordSvc,

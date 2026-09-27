@@ -29,12 +29,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcdaemons "github.com/go-sigma/sigma/pkg/service/daemons"
+	daemonsmocks "github.com/go-sigma/sigma/pkg/service/daemons/mocks"
 )
 
 func TestUpdateGcBlobRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcBlobRule(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -48,7 +48,7 @@ func TestUpdateGcBlobRule(t *testing.T) {
 
 func TestUpdateGcBlobRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcBlobRule(gomock.Any(), gomock.Any()).
 		Return(errors.New("update failed"))
@@ -62,7 +62,7 @@ func TestUpdateGcBlobRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcBlobRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRule(gomock.Any()).
 		Return(&models.DaemonGcRule{
@@ -87,7 +87,7 @@ func TestGetGcBlobRule(t *testing.T) {
 
 func TestGetGcBlobRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRule(gomock.Any()).
 		Return(nil, errors.New("get failed"))
@@ -101,7 +101,7 @@ func TestGetGcBlobRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcBlobLatestRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobLatestRunner(gomock.Any(), "1").
 		Return(&models.DaemonGcRunner{
@@ -128,7 +128,7 @@ func TestGetGcBlobLatestRunner(t *testing.T) {
 
 func TestGetGcBlobLatestRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobLatestRunner(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -142,7 +142,7 @@ func TestGetGcBlobLatestRunnerReturnsInternalError(t *testing.T) {
 
 func TestCreateGcBlobRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcBlobRunner(gomock.Any(), "10", gomock.Any()).
 		Return(nil)
@@ -156,7 +156,7 @@ func TestCreateGcBlobRunner(t *testing.T) {
 
 func TestCreateGcBlobRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcBlobRunner(gomock.Any(), "10", gomock.Any()).
 		Return(errors.New("create failed"))
@@ -170,7 +170,7 @@ func TestCreateGcBlobRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcBlobRunners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcBlobRunners(gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRunner, int64, error) {
@@ -196,7 +196,7 @@ func TestListGcBlobRunners(t *testing.T) {
 
 func TestListGcBlobRunnersReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcBlobRunners(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -210,7 +210,7 @@ func TestListGcBlobRunnersReturnsInternalError(t *testing.T) {
 
 func TestGetGcBlobRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRunner(gomock.Any(), "2").
 		Return(&models.DaemonGcRunner{
@@ -231,7 +231,7 @@ func TestGetGcBlobRunner(t *testing.T) {
 
 func TestGetGcBlobRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRunner(gomock.Any(), "2").
 		Return(nil, errors.New("get failed"))
@@ -245,7 +245,7 @@ func TestGetGcBlobRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcBlobRecords(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcBlobRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRecord, int64, error) {
@@ -272,7 +272,7 @@ func TestListGcBlobRecords(t *testing.T) {
 
 func TestListGcBlobRecordsReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcBlobRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -286,7 +286,7 @@ func TestListGcBlobRecordsReturnsInternalError(t *testing.T) {
 
 func TestGetGcBlobRecord(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRecord(gomock.Any(), "2", "3").
 		Return(&models.DaemonGcRecord{
@@ -309,7 +309,7 @@ func TestGetGcBlobRecord(t *testing.T) {
 
 func TestGetGcBlobRecordReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcBlobRecord(gomock.Any(), "2", "3").
 		Return(nil, errors.New("get failed"))

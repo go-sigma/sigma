@@ -26,12 +26,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
 )
 
 func TestListRepositories(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcrepository.NewMockRepositoryService(ctrl)
+	svc := repositoriesmocks.NewMockRepositoryService(ctrl)
 	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).
 		Return([]*models.Repository{{Name: "library/alpine"}, {Name: "library/busybox"}}, nil, int64(2), nil)
 	recorder, c := newDistributionContext("/v2/_catalog?n=200")
@@ -58,7 +58,7 @@ func TestListRepositoriesInvalidLimit(t *testing.T) {
 
 func TestListRepositoriesServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcrepository.NewMockRepositoryService(ctrl)
+	svc := repositoriesmocks.NewMockRepositoryService(ctrl)
 	svc.EXPECT().ListRepositories(gomock.Any(), "user-1", "", nil, gomock.Any(), gomock.Any()).Return(nil, nil, int64(0), errors.New("list failed"))
 	recorder, c := newDistributionContext("/v2/_catalog")
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})

@@ -23,7 +23,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
+	uploadmocks "github.com/go-sigma/sigma/pkg/service/distribution/upload/mocks"
 )
 
 func TestGetUpload(t *testing.T) {
@@ -39,7 +39,7 @@ func TestGetUpload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			svc := svcupload.NewMockDistributionUploadService(ctrl)
+			svc := uploadmocks.NewMockDistributionUploadService(ctrl)
 			svc.EXPECT().GetUpload(gomock.Any(), "upload-1").Return(nil, tt.serviceErr)
 			path := "/v2/library/alpine/blobs/uploads/upload-1"
 			recorder, c := newUploadContext(t, http.MethodGet, path, nil)

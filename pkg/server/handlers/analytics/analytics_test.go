@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
+	analyticsmocks "github.com/go-sigma/sigma/pkg/service/analytics/mocks"
 )
 
 func TestGetUserPushHeatmap(t *testing.T) {
@@ -50,7 +50,7 @@ func TestGetUserPushHeatmap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			service := svcanalytics.NewMockService(ctrl)
+			service := analyticsmocks.NewMockService(ctrl)
 			if tt.expectMock {
 				service.EXPECT().GetUserPushHeatmap(gomock.Any(), tt.userID, 30).Return([]api.DailyCount{}, nil)
 			}
@@ -84,7 +84,7 @@ func TestGetNamespaceTrends(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			service := svcanalytics.NewMockService(ctrl)
+			service := analyticsmocks.NewMockService(ctrl)
 			if tt.expectMock {
 				service.EXPECT().GetNamespaceTrends(gomock.Any(), "namespace-1", 7).Return([]api.NamespaceHourlyMetric{}, nil)
 			}

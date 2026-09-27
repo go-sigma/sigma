@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcsystems "github.com/go-sigma/sigma/pkg/service/systems"
+	systemsmocks "github.com/go-sigma/sigma/pkg/service/systems/mocks"
 )
 
 func TestWrapTool(t *testing.T) {
@@ -99,7 +99,7 @@ func TestNewHTTPHandler(t *testing.T) {
 
 func TestSystemTools(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcsystems.NewMockSystemsService(ctrl)
+	service := systemsmocks.NewMockSystemsService(ctrl)
 	service.EXPECT().GetVersion(gomock.Any()).Return(api.GetSystemVersionResponse{Version: "1.0.0"}, nil)
 	service.EXPECT().GetEndpoint(gomock.Any()).Return("https://sigma.example.test", nil)
 	server := &Server{
@@ -137,7 +137,7 @@ func TestSystemTools(t *testing.T) {
 
 func TestSystemEndpointGetError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcsystems.NewMockSystemsService(ctrl)
+	service := systemsmocks.NewMockSystemsService(ctrl)
 	expectedErr := errors.New("failed")
 	service.EXPECT().GetEndpoint(gomock.Any()).Return("", expectedErr)
 

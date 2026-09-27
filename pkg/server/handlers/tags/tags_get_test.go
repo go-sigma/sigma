@@ -29,12 +29,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+	tagsmocks "github.com/go-sigma/sigma/pkg/service/tags/mocks"
 )
 
 func TestGetTag(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tagSvc := svctag.NewMockTagService(ctrl)
+	tagSvc := tagsmocks.NewMockTagService(ctrl)
 	tagSvc.EXPECT().GetTag(gomock.Any(), "tag-1").Return(&models.Tag{
 		ID:   "tag-1",
 		Name: "latest",

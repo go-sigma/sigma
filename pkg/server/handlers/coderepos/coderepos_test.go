@@ -30,12 +30,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svccoderepo "github.com/go-sigma/sigma/pkg/service/coderepos"
+	codereposmocks "github.com/go-sigma/sigma/pkg/service/coderepos/mocks"
 )
 
 func TestList(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositories(gomock.Any(), "10", enums.ProviderGithub, nil, nil, gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, []*models.CodeRepositoryOwner, int64, error) {
@@ -74,7 +74,7 @@ func TestList(t *testing.T) {
 
 func TestListReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositories(gomock.Any(), "10", enums.ProviderGithub, nil, nil, gomock.Any(), gomock.Any()).
 		Return(nil, nil, int64(0), errors.New("list failed"))
@@ -88,7 +88,7 @@ func TestListReturnsInternalError(t *testing.T) {
 
 func TestListReturnsErrCode(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositories(gomock.Any(), "10", enums.ProviderGithub, nil, nil, gomock.Any(), gomock.Any()).
 		Return(nil, nil, int64(0), errcode.HTTPErrCodeBadRequest.Detail("not a valid Provider"))
@@ -102,7 +102,7 @@ func TestListReturnsErrCode(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		GetCodeRepository(gomock.Any(), "10", enums.ProviderGithub, "1").
 		DoAndReturn(func(_ context.Context, userID string, provider enums.Provider, id string) (*models.CodeRepository, []*models.CodeRepositoryOwner, error) {
@@ -134,7 +134,7 @@ func TestGet(t *testing.T) {
 
 func TestGetReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		GetCodeRepository(gomock.Any(), "10", enums.ProviderGithub, "1").
 		Return(nil, nil, errors.New("get failed"))
@@ -148,7 +148,7 @@ func TestGetReturnsInternalError(t *testing.T) {
 
 func TestListOwners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositoryOwners(gomock.Any(), "10", enums.ProviderGithub, nil).
 		DoAndReturn(func(_ context.Context, userID string, provider enums.Provider, name *string) ([]*models.CodeRepositoryOwner, int64, error) {
@@ -174,7 +174,7 @@ func TestListOwners(t *testing.T) {
 
 func TestListBranches(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositoryBranches(gomock.Any(), "1").
 		DoAndReturn(func(_ context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
@@ -198,7 +198,7 @@ func TestListBranches(t *testing.T) {
 
 func TestListBranchesReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositoryBranches(gomock.Any(), "1").
 		Return(nil, int64(0), errors.New("list failed"))
@@ -212,7 +212,7 @@ func TestListBranchesReturnsInternalError(t *testing.T) {
 
 func TestGetBranch(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		GetCodeRepositoryBranch(gomock.Any(), "1", "main").
 		Return(&models.CodeRepositoryBranch{
@@ -232,7 +232,7 @@ func TestGetBranch(t *testing.T) {
 
 func TestResync(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ResyncCodeRepositories(gomock.Any(), "10", enums.ProviderGithub).
 		Return(nil)
@@ -246,7 +246,7 @@ func TestResync(t *testing.T) {
 
 func TestResyncReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ResyncCodeRepositories(gomock.Any(), "10", enums.ProviderGithub).
 		Return(errors.New("resync failed"))
@@ -260,7 +260,7 @@ func TestResyncReturnsInternalError(t *testing.T) {
 
 func TestProviders(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositoryProviders(gomock.Any(), "10").
 		DoAndReturn(func(_ context.Context, userID string) ([]*models.User3rdParty, error) {
@@ -284,7 +284,7 @@ func TestProviders(t *testing.T) {
 
 func TestUser3rdParty(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		GetCodeRepositoryUser3rdParty(gomock.Any(), "10", enums.ProviderGithub).
 		Return(&models.User3rdParty{
@@ -310,7 +310,7 @@ func TestUser3rdParty(t *testing.T) {
 
 func TestUser3rdPartyReturnsNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svccoderepo.NewMockCodeRepositoryService(ctrl)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		GetCodeRepositoryUser3rdParty(gomock.Any(), "10", enums.ProviderGithub).
 		Return(nil, errors.New("not found"))

@@ -33,7 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	svcrepository "github.com/go-sigma/sigma/pkg/service/repositories"
+	repositoriesmocks "github.com/go-sigma/sigma/pkg/service/repositories/mocks"
 	"github.com/go-sigma/sigma/pkg/testkit"
 	"github.com/go-sigma/sigma/pkg/validators"
 )
@@ -44,7 +44,7 @@ func TestListRepositories(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcrepository.NewMockRepositoryService(ctrl)
+	serviceObj := repositoriesmocks.NewMockRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListRepositories(gomock.Any(), "123", "10", gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, userID string, namespaceID string, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.Repository, map[string]*models.Builder, int64, error) {
@@ -89,7 +89,7 @@ func TestListRepositoriesReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	serviceObj := svcrepository.NewMockRepositoryService(ctrl)
+	serviceObj := repositoriesmocks.NewMockRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListRepositories(gomock.Any(), "", "10", gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, nil, int64(0), errors.New("list failed"))

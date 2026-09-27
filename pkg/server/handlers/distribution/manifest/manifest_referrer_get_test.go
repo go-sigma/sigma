@@ -24,14 +24,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	svcmanifest "github.com/go-sigma/sigma/pkg/service/distribution/manifest"
+	manifestmocks "github.com/go-sigma/sigma/pkg/service/distribution/manifest/mocks"
 )
 
 const referrerDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 func TestGetReferrer(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	svc := svcmanifest.NewMockDistributionManifestService(ctrl)
+	svc := manifestmocks.NewMockDistributionManifestService(ctrl)
 	svc.EXPECT().GetReferrer(gomock.Any(), "library/alpine", referrerDigest, []string{"application/example", "application/other"}).Return([]byte(`{"manifests":[]}`), nil)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)

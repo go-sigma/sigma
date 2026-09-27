@@ -22,12 +22,12 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/api"
-	svctag "github.com/go-sigma/sigma/pkg/service/tags"
+	tagsmocks "github.com/go-sigma/sigma/pkg/service/tags/mocks"
 )
 
 func TestDeleteTag(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tagSvc := svctag.NewMockTagService(ctrl)
+	tagSvc := tagsmocks.NewMockTagService(ctrl)
 	tagSvc.EXPECT().DeleteTag(gomock.Any(), "namespace-1", "repository-1", "tag-1").Return(nil)
 
 	recorder, c := newTagContext(t)

@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
+	uploadmocks "github.com/go-sigma/sigma/pkg/service/distribution/upload/mocks"
 )
 
 func TestDeleteUpload(t *testing.T) {
@@ -38,7 +38,7 @@ func TestDeleteUpload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			svc := svcupload.NewMockDistributionUploadService(ctrl)
+			svc := uploadmocks.NewMockDistributionUploadService(ctrl)
 			svc.EXPECT().DeleteUpload(gomock.Any(), "upload-1").Return(tt.serviceErr)
 			recorder, c := newUploadContext(t, http.MethodDelete, "/v2/library/alpine/blobs/uploads/upload-1", nil)
 

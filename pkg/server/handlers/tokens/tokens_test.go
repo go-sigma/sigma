@@ -35,6 +35,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/service/token"
+	tokenmocks "github.com/go-sigma/sigma/pkg/service/token/mocks"
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
@@ -71,7 +72,7 @@ func TestToken(t *testing.T) {
 	require.NoError(t, err)
 
 	const tokenStr = "mock-token-string" // nolint: gosec
-	tokenSvc := token.NewMockService(ctrl)
+	tokenSvc := tokenmocks.NewMockService(ctrl)
 	tokenSvc.EXPECT().New(gomock.Any(), gomock.Any()).DoAndReturn(func(id string, expire time.Duration) (string, error) {
 		return tokenStr, nil
 	})

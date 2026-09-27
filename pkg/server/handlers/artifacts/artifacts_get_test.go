@@ -26,12 +26,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcartifact "github.com/go-sigma/sigma/pkg/service/artifacts"
+	artifactsmocks "github.com/go-sigma/sigma/pkg/service/artifacts/mocks"
 )
 
 func TestGetArtifact(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	service.EXPECT().GetArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(&models.Artifact{
 		ID:     "artifact-1",
 		Digest: "sha256:abc",
@@ -52,7 +52,7 @@ func TestGetArtifact(t *testing.T) {
 
 func TestGetServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcartifact.NewMockArtifactService(ctrl)
+	service := artifactsmocks.NewMockArtifactService(ctrl)
 	service.EXPECT().GetArtifact(gomock.Any(), "library/alpine", "sha256:abc").Return(nil, errors.New("failed"))
 	recorder, c := newArtifactContext()
 

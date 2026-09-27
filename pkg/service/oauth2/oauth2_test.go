@@ -27,8 +27,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/service/password"
-	"github.com/go-sigma/sigma/pkg/service/token"
+	passwordmocks "github.com/go-sigma/sigma/pkg/service/password/mocks"
+	tokenmocks "github.com/go-sigma/sigma/pkg/service/token/mocks"
 )
 
 func TestGetClientID(t *testing.T) {
@@ -101,7 +101,7 @@ func TestTryGetUser(t *testing.T) {
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
 				userRepo := repousermocks.NewMockUserRepository(ctrl)
-				passwordSvc := password.NewMockService(ctrl)
+				passwordSvc := passwordmocks.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Username: "sigma", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
 				passwordSvc.EXPECT().Verify("password", "hashed").Return(true)
@@ -132,7 +132,7 @@ func TestTryGetUser(t *testing.T) {
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
 				userRepo := repousermocks.NewMockUserRepository(ctrl)
-				passwordSvc := password.NewMockService(ctrl)
+				passwordSvc := passwordmocks.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
 				passwordSvc.EXPECT().Verify("password", "hashed").Return(false)
@@ -145,7 +145,7 @@ func TestTryGetUser(t *testing.T) {
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
 				userRepo := repousermocks.NewMockUserRepository(ctrl)
-				passwordSvc := password.NewMockService(ctrl)
+				passwordSvc := passwordmocks.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
 				passwordSvc.EXPECT().Verify("password", "hashed").Return(true)
@@ -159,7 +159,7 @@ func TestTryGetUser(t *testing.T) {
 			authorization: "Bearer token-123",
 			setup: func(ctrl *gomock.Controller) *service {
 				userRepo := repousermocks.NewMockUserRepository(ctrl)
-				tokenSvc := token.NewMockService(ctrl)
+				tokenSvc := tokenmocks.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Username: "sigma"}
 				tokenSvc.EXPECT().Validate(gomock.Any(), "token-123").Return("jti", "user-1", nil)
 				userRepo.EXPECT().Get(gomock.Any(), "user-1").Return(user, nil)
@@ -171,7 +171,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "bearer_validate_error",
 			authorization: "Bearer token-123",
 			setup: func(ctrl *gomock.Controller) *service {
-				tokenSvc := token.NewMockService(ctrl)
+				tokenSvc := tokenmocks.NewMockService(ctrl)
 				tokenSvc.EXPECT().Validate(gomock.Any(), "token-123").Return("", "", errors.New("invalid token"))
 				return &service{SvcToken: tokenSvc}
 			},
@@ -182,7 +182,7 @@ func TestTryGetUser(t *testing.T) {
 			authorization: "Bearer token-123",
 			setup: func(ctrl *gomock.Controller) *service {
 				userRepo := repousermocks.NewMockUserRepository(ctrl)
-				tokenSvc := token.NewMockService(ctrl)
+				tokenSvc := tokenmocks.NewMockService(ctrl)
 				tokenSvc.EXPECT().Validate(gomock.Any(), "token-123").Return("jti", "user-1", nil)
 				userRepo.EXPECT().Get(gomock.Any(), "user-1").Return(nil, errors.New("db error"))
 				return &service{RepoUser: userRepo, SvcToken: tokenSvc}

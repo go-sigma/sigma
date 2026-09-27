@@ -23,12 +23,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
-	svcuser "github.com/go-sigma/sigma/pkg/service/users"
+	usersmocks "github.com/go-sigma/sigma/pkg/service/users/mocks"
 )
 
 func TestLogout(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	service := svcuser.NewMockUserService(ctrl)
+	service := usersmocks.NewMockUserService(ctrl)
 	service.EXPECT().Logout(gomock.Any(), []string{"access-token", "refresh-token"}, "jti-1").Return(nil)
 	recorder, c := newUserContext()
 	c.Set(consts.ContextJti, "jti-1")

@@ -26,12 +26,12 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	svcdaemons "github.com/go-sigma/sigma/pkg/service/daemons"
+	daemonsmocks "github.com/go-sigma/sigma/pkg/service/daemons/mocks"
 )
 
 func TestUpdateGcArtifactRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcArtifactRule(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -45,7 +45,7 @@ func TestUpdateGcArtifactRule(t *testing.T) {
 
 func TestUpdateGcArtifactRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		UpdateGcArtifactRule(gomock.Any(), gomock.Any()).
 		Return(errors.New("update failed"))
@@ -59,7 +59,7 @@ func TestUpdateGcArtifactRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcArtifactRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRule(gomock.Any(), "1").
 		Return(&models.DaemonGcRule{
@@ -84,7 +84,7 @@ func TestGetGcArtifactRule(t *testing.T) {
 
 func TestGetGcArtifactRuleReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRule(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -98,7 +98,7 @@ func TestGetGcArtifactRuleReturnsInternalError(t *testing.T) {
 
 func TestGetGcArtifactLatestRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactLatestRunner(gomock.Any(), "1").
 		Return(&models.DaemonGcRunner{
@@ -125,7 +125,7 @@ func TestGetGcArtifactLatestRunner(t *testing.T) {
 
 func TestGetGcArtifactLatestRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactLatestRunner(gomock.Any(), "1").
 		Return(nil, errors.New("get failed"))
@@ -139,7 +139,7 @@ func TestGetGcArtifactLatestRunnerReturnsInternalError(t *testing.T) {
 
 func TestCreateGcArtifactRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcArtifactRunner(gomock.Any(), gomock.Any()).
 		Return(nil)
@@ -153,7 +153,7 @@ func TestCreateGcArtifactRunner(t *testing.T) {
 
 func TestCreateGcArtifactRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		CreateGcArtifactRunner(gomock.Any(), gomock.Any()).
 		Return(errors.New("create failed"))
@@ -167,7 +167,7 @@ func TestCreateGcArtifactRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcArtifactRunners(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcArtifactRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, namespaceID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRunner, int64, error) {
@@ -194,7 +194,7 @@ func TestListGcArtifactRunners(t *testing.T) {
 
 func TestListGcArtifactRunnersReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcArtifactRunners(gomock.Any(), "1", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -208,7 +208,7 @@ func TestListGcArtifactRunnersReturnsInternalError(t *testing.T) {
 
 func TestGetGcArtifactRunner(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRunner(gomock.Any(), "1", "2").
 		Return(&models.DaemonGcRunner{
@@ -229,7 +229,7 @@ func TestGetGcArtifactRunner(t *testing.T) {
 
 func TestGetGcArtifactRunnerReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRunner(gomock.Any(), "1", "2").
 		Return(nil, errors.New("get failed"))
@@ -243,7 +243,7 @@ func TestGetGcArtifactRunnerReturnsInternalError(t *testing.T) {
 
 func TestListGcArtifactRecords(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcArtifactRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, runnerID string, pagination api.Pagination, sort api.Sortable) ([]*models.DaemonGcRecord, int64, error) {
@@ -270,7 +270,7 @@ func TestListGcArtifactRecords(t *testing.T) {
 
 func TestListGcArtifactRecordsReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		ListGcArtifactRecords(gomock.Any(), "2", gomock.Any(), gomock.Any()).
 		Return(nil, int64(0), errors.New("list failed"))
@@ -284,7 +284,7 @@ func TestListGcArtifactRecordsReturnsInternalError(t *testing.T) {
 
 func TestGetGcArtifactRecord(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRecord(gomock.Any(), "1", "2", "3").
 		Return(&models.DaemonGcRecord{
@@ -307,7 +307,7 @@ func TestGetGcArtifactRecord(t *testing.T) {
 
 func TestGetGcArtifactRecordReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	serviceObj := svcdaemons.NewMockDaemonService(ctrl)
+	serviceObj := daemonsmocks.NewMockDaemonService(ctrl)
 	serviceObj.EXPECT().
 		GetGcArtifactRecord(gomock.Any(), "1", "2", "3").
 		Return(nil, errors.New("get failed"))
