@@ -68,7 +68,7 @@ func Init(cfg *config.Configuration) (func(context.Context) error, error) {
 	// 2. Resource (service.name, etc.)
 	res, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(semconv.SchemaURL,
+		resource.NewSchemaless(
 			semconv.ServiceName(serviceName),
 		),
 	)
