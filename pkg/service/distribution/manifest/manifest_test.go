@@ -33,8 +33,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
 	mockstorage "github.com/go-sigma/sigma/pkg/storage"
@@ -102,9 +102,9 @@ func TestGetManifestByTagRecordsPull(t *testing.T) {
 	}
 	raw := []byte(`{"schemaVersion":2}`)
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoTag := reporegistry.NewMockTagRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
 	analyticsSvc := svcanalytics.NewMockService(ctrl)
 
@@ -148,8 +148,8 @@ func TestHeadManifestDoesNotRecordPull(t *testing.T) {
 	}
 	raw := []byte(`{"schemaVersion":2}`)
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
 
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
@@ -183,7 +183,7 @@ func TestGetManifestErrorMapping(t *testing.T) {
 			name: "repository not found",
 			ref:  artifactDigest,
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry}
 			},
@@ -193,8 +193,8 @@ func TestGetManifestErrorMapping(t *testing.T) {
 			name: "tag not found",
 			ref:  "missing",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-				repoTag := reporegistry.NewMockTagRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+				repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 				repoTag.EXPECT().GetByName(ctx, repository.ID, "missing").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry, RepoTag: repoTag}
@@ -205,8 +205,8 @@ func TestGetManifestErrorMapping(t *testing.T) {
 			name: "artifact not found",
 			ref:  artifactDigest,
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-				repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+				repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 				repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, artifactDigest).Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry, RepoArtifact: repoArtifact}
@@ -217,8 +217,8 @@ func TestGetManifestErrorMapping(t *testing.T) {
 			name: "storage read failed",
 			ref:  artifactDigest,
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-				repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+				repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 				storageDriver := mockstorage.NewMockStorageDriver(ctrl)
 				artifact := &models.Artifact{ID: "artifact-id", RepositoryID: repository.ID, Digest: artifactDigest}
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
@@ -243,7 +243,7 @@ func TestPutManifestRejectsInvalidPayload(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := t.Context()
 	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 
 	svc := &service{RepoRegistry: repoRegistry}
@@ -258,8 +258,8 @@ func TestDeleteManifestByTag(t *testing.T) {
 	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
 	tag := &models.Tag{ID: "tag-id", RepositoryID: repository.ID, Name: "latest"}
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoTag := reporegistry.NewMockTagRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoTag.EXPECT().GetByName(ctx, repository.ID, tag.Name).Return(tag, nil)
 	repoTag.EXPECT().DeleteByName(ctx, repository.ID, tag.Name).Return(nil)
@@ -282,7 +282,7 @@ func TestDeleteManifestErrorMapping(t *testing.T) {
 			name: "repository not found",
 			ref:  "latest",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry}
 			},
@@ -292,8 +292,8 @@ func TestDeleteManifestErrorMapping(t *testing.T) {
 			name: "tag not found",
 			ref:  "missing",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-				repoTag := reporegistry.NewMockTagRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+				repoTag := reporegistrymocks.NewMockTagRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 				repoTag.EXPECT().GetByName(ctx, repository.ID, "missing").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry, RepoTag: repoTag}
@@ -323,8 +323,8 @@ func TestGetArtifactReferrer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, subjectDigest.String()).Return(referrerArtifact, nil)
 
@@ -345,7 +345,7 @@ func TestGetArtifactReferrerWithoutSubject(t *testing.T) {
 	payload, err := json.Marshal(imgspecv1.Manifest{MediaType: imgspecv1.MediaTypeImageManifest})
 	require.NoError(t, err)
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 
 	svc := &service{RepoRegistry: repoRegistry}
@@ -377,8 +377,8 @@ func TestGetReferrerBuildsOCIIndex(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	storageDriver := mockstorage.NewMockStorageDriver(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetReferrers(ctx, repository.ID, subjectDigest.String(), []string{"signature"}).Return([]*models.Artifact{artifact}, nil)
@@ -444,7 +444,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			namespaceID:   "ns-1",
 			namespaceName: "sigma",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(&models.Namespace{ID: "ns-1", Name: "sigma"}, nil)
 				return &service{RepoNs: repoNs}
 			},
@@ -455,7 +455,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			namespaceID:   "ns-1",
 			namespaceName: "sigma",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(&models.Namespace{ID: "ns-1", Name: "other"}, nil)
 				return &service{RepoNs: repoNs}
 			},
@@ -466,7 +466,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			namespaceID:   "ns-1",
 			namespaceName: "sigma",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().Get(gomock.Any(), "ns-1").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoNs: repoNs}
 			},
@@ -476,7 +476,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			name:          "by_name_found",
 			namespaceName: "sigma",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(&models.Namespace{ID: "ns-1", Name: "sigma"}, nil)
 				return &service{RepoNs: repoNs}
 			},
@@ -487,7 +487,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			namespaceName: "sigma",
 			cfg:           &config.Configuration{Namespace: config.ConfigurationNamespace{AutoCreate: true, Visibility: enums.VisibilityPublic}},
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoNs: repoNs}
 			},
@@ -498,7 +498,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			namespaceName: "sigma",
 			cfg:           &config.Configuration{},
 			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespace.NewMockNamespaceRepository(ctrl)
+				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoNs: repoNs}
 			},
@@ -533,7 +533,7 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 
 func TestEnsureRepositoryAlreadyExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	existing := &models.Repository{ID: "repo-1", NamespaceID: "ns-1", Name: "sigma/alpine"}
 	repoRegistry.EXPECT().GetByName(gomock.Any(), "sigma/alpine").Return(existing, nil)
 
@@ -554,7 +554,7 @@ func TestEnsureRepositoryErrorMapping(t *testing.T) {
 			name: "get repository db error",
 			repo: "sigma/alpine",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(gomock.Any(), "sigma/alpine").Return(nil, errors.New("db error"))
 				return &service{RepoRegistry: repoRegistry}
 			},
@@ -564,7 +564,7 @@ func TestEnsureRepositoryErrorMapping(t *testing.T) {
 			name: "invalid repository name",
 			repo: "alpine",
 			setup: func(ctrl *gomock.Controller) *service {
-				repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+				repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 				repoRegistry.EXPECT().GetByName(gomock.Any(), "alpine").Return(nil, gorm.ErrRecordNotFound)
 				return &service{RepoRegistry: repoRegistry}
 			},
@@ -587,8 +587,8 @@ func TestDeleteManifestByDigestNotFound(t *testing.T) {
 	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
 	artifactDigest := digest.FromString("manifest").String()
 
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, artifactDigest).Return(nil, gorm.ErrRecordNotFound)
 
@@ -603,14 +603,14 @@ func TestGetReferrerErrorMapping(t *testing.T) {
 	subjectDigest := digest.FromString("subject").String()
 
 	ctrl := gomock.NewController(t)
-	repoRegistry := reporegistry.NewMockRepositoryRepository(ctrl)
+	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(nil, gorm.ErrRecordNotFound)
 	_, err := (&service{RepoRegistry: repoRegistry}).GetReferrer(ctx, repository.Name, subjectDigest, nil)
 	require.Equal(t, errcode.DSErrCodeUnknown, err)
 
 	ctrl = gomock.NewController(t)
-	repoRegistry = reporegistry.NewMockRepositoryRepository(ctrl)
-	repoArtifact := reporegistry.NewMockArtifactRepository(ctrl)
+	repoRegistry = reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
 	repoArtifact.EXPECT().GetReferrers(ctx, repository.ID, subjectDigest, nil).Return(nil, errors.New("db error"))
 	_, err = (&service{RepoRegistry: repoRegistry, RepoArtifact: repoArtifact}).

@@ -22,15 +22,15 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 )
 
 func TestListTags(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
-	tagRepository := reporegistry.NewMockTagRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	tagRepository := reporegistrymocks.NewMockTagRepository(ctrl)
 	service := &service{
 		RepoNs:       namespaceRepository,
 		RepoRegistry: repositoryRepository,
@@ -56,7 +56,7 @@ func TestListTags(t *testing.T) {
 
 func TestGetTagAndInvalidArtifactDigest(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tagRepository := reporegistry.NewMockTagRepository(ctrl)
+	tagRepository := reporegistrymocks.NewMockTagRepository(ctrl)
 	service := &service{RepoTag: tagRepository}
 	tagRepository.EXPECT().
 		GetByID(gomock.Any(), "tag-1").

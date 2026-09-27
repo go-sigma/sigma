@@ -24,12 +24,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 )
 
 func TestListArtifacts(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	artifactRepository := reporegistry.NewMockArtifactRepository(ctrl)
+	artifactRepository := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	request := api.ListArtifactRequest{Repository: "sigma/demo"}
 	items := []*models.Artifact{{ID: "artifact-1"}}
 
@@ -45,8 +45,8 @@ func TestListArtifacts(t *testing.T) {
 
 func TestGetArtifact(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
-	artifactRepository := reporegistry.NewMockArtifactRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	artifactRepository := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	service := &service{
 		RepoRegistry: repositoryRepository,
 		RepoArtifact: artifactRepository,
@@ -71,7 +71,7 @@ func TestGetArtifact(t *testing.T) {
 
 func TestDeleteArtifactError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	artifactRepository := reporegistry.NewMockArtifactRepository(ctrl)
+	artifactRepository := reporegistrymocks.NewMockArtifactRepository(ctrl)
 	artifactRepository.EXPECT().
 		DeleteByDigest(gomock.Any(), "sigma/demo", "sha256:digest").
 		Return(errors.New("delete failed"))

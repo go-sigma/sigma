@@ -26,16 +26,16 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/storage"
 )
 
 func TestUploadQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	service := &service{
 		RepoNs:   namespaceRepository,
 		RepoBlob: blobRepository,
@@ -58,7 +58,7 @@ func TestUploadQueries(t *testing.T) {
 
 func TestDeleteUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	service := &service{
 		RepoBlob: blobRepository,
@@ -85,7 +85,7 @@ func TestDeleteUpload(t *testing.T) {
 
 func TestPostUploadSingleShot(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -106,7 +106,7 @@ func TestPostUploadSingleShot(t *testing.T) {
 
 func TestPostUploadWithoutDigest(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -128,7 +128,7 @@ func TestPostUploadInvalidDigest(t *testing.T) {
 
 func TestPatchUpload(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -151,7 +151,7 @@ func TestPatchUpload(t *testing.T) {
 
 func TestPatchUploadGetLastPartError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{RepoBlob: blobRepository}
 
 	blobRepository.EXPECT().UploadGetLastPart(gomock.Any(), "upload-1").Return(nil, errors.New("lookup failed"))
@@ -173,7 +173,7 @@ func TestPutUploadInvalidDigest(t *testing.T) {
 
 func TestPutUploadBlobExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -191,7 +191,7 @@ func TestPutUploadBlobExists(t *testing.T) {
 
 func TestPutUploadInvalidRepositoryName(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{RepoBlob: blobRepository}
 
 	dgest := digest.FromBytes([]byte("content")).String()
@@ -205,7 +205,7 @@ func TestPutUploadInvalidRepositoryName(t *testing.T) {
 
 func TestPutUploadDigestMismatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -225,7 +225,7 @@ func TestPutUploadDigestMismatch(t *testing.T) {
 
 func TestPutUploadSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 

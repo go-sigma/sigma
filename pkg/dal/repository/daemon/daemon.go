@@ -31,7 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate go tool mockgen -destination=daemon_mocks.go -package=daemon github.com/go-sigma/sigma/pkg/dal/repository/daemon DaemonRepository
+//go:generate go tool mockgen -destination=mocks/daemon_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/dal/repository/daemon DaemonRepository
 
 type DaemonRepository interface {
 	GetGcRule(context.Context, enums.Daemon, *string) (*models.DaemonGcRule, error)

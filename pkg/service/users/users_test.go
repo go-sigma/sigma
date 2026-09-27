@@ -26,7 +26,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	passwordmocks "github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
@@ -34,7 +34,7 @@ import (
 
 func TestListUsers(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRepository := repouser.NewMockUserRepository(ctrl)
+	userRepository := repousermocks.NewMockUserRepository(ctrl)
 	items := []*models.User{{ID: "user-1"}}
 	userRepository.EXPECT().
 		ListWithoutUsername(gomock.Any(), []string{"admin"}, true, nil, api.Pagination{}, api.Sortable{}).
@@ -83,7 +83,7 @@ func TestLogoutRequiresJTIAndMapsValidationFailure(t *testing.T) {
 
 func TestSignupUsesAccessAndRefreshTTL(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRepository := repouser.NewMockUserRepository(ctrl)
+	userRepository := repousermocks.NewMockUserRepository(ctrl)
 	passwordSvc := passwordmocks.NewMockService(ctrl)
 	tokenSvc := token.NewMockService(ctrl)
 	service := &service{

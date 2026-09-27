@@ -29,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
-	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
+	repobuildermocks "github.com/go-sigma/sigma/pkg/dal/repository/builder/mocks"
 	"github.com/go-sigma/sigma/pkg/infra/lock"
 	"github.com/go-sigma/sigma/pkg/infra/timewheel"
 	"github.com/go-sigma/sigma/pkg/testkit"
@@ -42,7 +42,7 @@ func TestBuilderLockKey(t *testing.T) {
 
 func TestBuilderRunnerContinuesAfterLockFailure(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	builderRepository := repobuilder.NewMockBuilderRepository(ctrl)
+	builderRepository := repobuildermocks.NewMockBuilderRepository(ctrl)
 	builders := []*models.Builder{{ID: "first"}, {ID: "second"}}
 	builderRepository.EXPECT().
 		GetByNextTrigger(gomock.Any(), gomock.Any(), cronjob.MaxJob).

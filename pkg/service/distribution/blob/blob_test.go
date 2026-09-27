@@ -29,15 +29,15 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/storage"
 )
 
 func TestGetNamespaceByName(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 	namespaceRepository.EXPECT().
 		GetByName(gomock.Any(), "sigma").
 		Return(&models.Namespace{ID: "namespace-1", Name: "sigma"}, nil)
@@ -50,7 +50,7 @@ func TestGetNamespaceByName(t *testing.T) {
 
 func TestDeleteBlob(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	service := &service{RepoBlob: blobRepository}
 	blobRepository.EXPECT().
 		FindByDigest(gomock.Any(), "sha256:digest").
@@ -88,7 +88,7 @@ func (r *trackingReadCloser) Close() error {
 
 func TestDeleteBlobNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{RepoBlob: blobRepository}
 
 	blobRepository.EXPECT().FindByDigest(gomock.Any(), "sha256:missing").Return(nil, gorm.ErrRecordNotFound)
@@ -99,7 +99,7 @@ func TestDeleteBlobNotFound(t *testing.T) {
 
 func TestDeleteBlobAssociated(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{RepoBlob: blobRepository}
 
 	blobRepository.EXPECT().FindByDigest(gomock.Any(), "sha256:digest").Return(&models.Blob{ID: "blob-1"}, nil)
@@ -111,7 +111,7 @@ func TestDeleteBlobAssociated(t *testing.T) {
 
 func TestHeadBlobFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository}
 
 	blobRepository.EXPECT().FindByDigest(gomock.Any(), "sha256:digest").Return(&models.Blob{ID: "blob-1"}, nil)
@@ -123,7 +123,7 @@ func TestHeadBlobFound(t *testing.T) {
 
 func TestHeadBlobNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository}
 
 	blobRepository.EXPECT().FindByDigest(gomock.Any(), "sha256:missing").Return(nil, gorm.ErrRecordNotFound)
@@ -145,7 +145,7 @@ func TestGetBlobInvalidDigest(t *testing.T) {
 
 func TestGetBlobNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository}
 
 	dgest := digest.FromBytes([]byte("content")).String()
@@ -160,7 +160,7 @@ func TestGetBlobNotFound(t *testing.T) {
 
 func TestGetBlobRedirect(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{
 		Config: &config.Configuration{
@@ -183,7 +183,7 @@ func TestGetBlobRedirect(t *testing.T) {
 
 func TestGetBlobSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository, Storage: storageDriver}
 
@@ -201,7 +201,7 @@ func TestGetBlobSuccess(t *testing.T) {
 
 func TestGetBlobReaderError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistry.NewMockBlobRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
 	storageDriver := storage.NewMockStorageDriver(ctrl)
 	svc := &service{Config: &config.Configuration{}, RepoBlob: blobRepository, Storage: storageDriver}
 

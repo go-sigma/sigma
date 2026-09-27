@@ -65,73 +65,31 @@ func Initialize() error {
 // newValidator new validator
 func newValidator() (*validator.Validate, error) {
 	v := validator.New()
-	err := v.RegisterValidation("is_valid_namespace_role", ValidateRetentionPattern)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_retention_pattern", ValidateRetentionPattern)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_retention_rule_type", ValidateRetentionRuleType)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_cron_rule", ValidateCronRule)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_user_role", ValidateUserRole)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_user_status", ValidateUserStatue)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_email", ValidateEmail)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_username", ValidateUsername)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_password", ValidatePassword)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_namespace", ValidateNamespace)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_repository", ValidateRepository)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_digest", ValidateDigest)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_tag", ValidateTag)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_visibility", ValidateVisibility)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_provider", ValidateProvider)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_scm_credential_type", ValidateScmCredentialType)
-	if err != nil {
-		return nil, err
-	}
-	err = v.RegisterValidation("is_valid_oci_platforms", ValidateOciPlatforms)
-	if err != nil {
-		return nil, err
+	for _, item := range []struct {
+		tag      string
+		validate validator.Func
+	}{
+		{"is_valid_namespace_role", ValidateRetentionPattern},
+		{"is_valid_retention_pattern", ValidateRetentionPattern},
+		{"is_valid_retention_rule_type", ValidateRetentionRuleType},
+		{"is_valid_cron_rule", ValidateCronRule},
+		{"is_valid_user_role", ValidateUserRole},
+		{"is_valid_user_status", ValidateUserStatue},
+		{"is_valid_email", ValidateEmail},
+		{"is_valid_username", ValidateUsername},
+		{"is_valid_password", ValidatePassword},
+		{"is_valid_namespace", ValidateNamespace},
+		{"is_valid_repository", ValidateRepository},
+		{"is_valid_digest", ValidateDigest},
+		{"is_valid_tag", ValidateTag},
+		{"is_valid_visibility", ValidateVisibility},
+		{"is_valid_provider", ValidateProvider},
+		{"is_valid_scm_credential_type", ValidateScmCredentialType},
+		{"is_valid_oci_platforms", ValidateOciPlatforms},
+	} {
+		if err := v.RegisterValidation(item.tag, item.validate); err != nil {
+			return nil, err
+		}
 	}
 	return v, nil
 }

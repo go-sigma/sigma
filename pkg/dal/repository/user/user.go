@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
-//go:generate go tool mockgen -destination=user_mocks.go -package=user github.com/go-sigma/sigma/pkg/dal/repository/user UserRepository
+//go:generate go tool mockgen -destination=mocks/user_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/dal/repository/user UserRepository
 
 // UserRepository defines user repository operations
 type UserRepository interface {

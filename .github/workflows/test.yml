@@ -130,6 +130,7 @@ jobs:
               "pkg/dal/models"
               "pkg/dal/query"
               "pkg/dal/cmd"
+              "/mocks"
               "pkg/version"
             )
             if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then

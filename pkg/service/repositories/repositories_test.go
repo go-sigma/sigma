@@ -24,15 +24,15 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	repobuildermocks "github.com/go-sigma/sigma/pkg/dal/repository/builder/mocks"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
 func TestGetRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	service := &service{RepoRegistry: repositoryRepository}
 
 	repositoryRepository.EXPECT().
@@ -51,7 +51,7 @@ func TestGetRepository(t *testing.T) {
 
 func TestGetRepositoryByName(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	service := &service{RepoRegistry: repositoryRepository}
 
 	repositoryRepository.EXPECT().
@@ -65,9 +65,9 @@ func TestGetRepositoryByName(t *testing.T) {
 
 func TestListRepositories(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
-	builderRepository := repobuilder.NewMockBuilderRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	builderRepository := repobuildermocks.NewMockBuilderRepository(ctrl)
 	service := &service{
 		RepoNs:       namespaceRepository,
 		RepoRegistry: repositoryRepository,
@@ -91,7 +91,7 @@ func TestListRepositories(t *testing.T) {
 
 func TestListRepositoriesMapsNamespaceNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 	namespaceRepository.EXPECT().Get(gomock.Any(), "missing").Return(nil, gorm.ErrRecordNotFound)
 
 	_, _, _, err := (&service{RepoNs: namespaceRepository}).ListRepositories(t.Context(), "user-1", "missing", nil, api.Pagination{}, api.Sortable{})
@@ -102,8 +102,8 @@ func TestListRepositoriesMapsNamespaceNotFound(t *testing.T) {
 
 func TestUpdateRepositoryRejectsNamespaceMismatchAndSkipsEmptyUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespace.NewMockNamespaceRepository(ctrl)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
+	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	service := &service{RepoNs: namespaceRepository, RepoRegistry: repositoryRepository}
 
 	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1"}, nil)
@@ -121,7 +121,7 @@ func TestUpdateRepositoryRejectsNamespaceMismatchAndSkipsEmptyUpdate(t *testing.
 
 func TestGetRepositoryMapsUnexpectedError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	repositoryRepository := reporegistry.NewMockRepositoryRepository(ctrl)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repositoryRepository.EXPECT().Get(gomock.Any(), "repository-1").Return(nil, errors.New("database unavailable"))
 
 	_, err := (&service{RepoRegistry: repositoryRepository}).GetRepository(t.Context(), "repository-1")

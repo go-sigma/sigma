@@ -26,7 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	repodaemon "github.com/go-sigma/sigma/pkg/dal/repository/daemon"
+	repodaemonmocks "github.com/go-sigma/sigma/pkg/dal/repository/daemon/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
@@ -66,7 +66,7 @@ func TestGetGcRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 
 			got, err := tt.call(&service{RepoDaemon: repo})
@@ -75,7 +75,7 @@ func TestGetGcRule(t *testing.T) {
 		})
 		t.Run(tt.name+"_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -83,7 +83,7 @@ func TestGetGcRule(t *testing.T) {
 		})
 		t.Run(tt.name+"_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, errors.New("db error"))
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -112,7 +112,7 @@ func TestGetGcLatestRunner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().GetGcLatestRunner(gomock.Any(), "rule-1").Return(&models.DaemonGcRunner{ID: "runner-1"}, nil)
 
@@ -122,7 +122,7 @@ func TestGetGcLatestRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_rule_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -130,7 +130,7 @@ func TestGetGcLatestRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_rule_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, errors.New("db error"))
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -138,7 +138,7 @@ func TestGetGcLatestRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_runner_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().GetGcLatestRunner(gomock.Any(), "rule-1").Return(nil, gorm.ErrRecordNotFound)
 
@@ -147,7 +147,7 @@ func TestGetGcLatestRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_runner_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().GetGcLatestRunner(gomock.Any(), "rule-1").Return(nil, errors.New("db error"))
 
@@ -180,7 +180,7 @@ func TestGetGcRunner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			runner := &models.DaemonGcRunner{ID: "runner-1"}
 			if tt.hasNS {
 				runner.Rule = models.DaemonGcRule{NamespaceID: &testNamespace}
@@ -193,7 +193,7 @@ func TestGetGcRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRunner(gomock.Any(), "runner-1").Return(nil, gorm.ErrRecordNotFound)
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -201,7 +201,7 @@ func TestGetGcRunner(t *testing.T) {
 		})
 		t.Run(tt.name+"_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRunner(gomock.Any(), "runner-1").Return(nil, errors.New("db error"))
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -210,7 +210,7 @@ func TestGetGcRunner(t *testing.T) {
 		if tt.hasNS {
 			t.Run(tt.name+"_namespace_mismatch", func(t *testing.T) {
 				ctrl := gomock.NewController(t)
-				repo := repodaemon.NewMockDaemonRepository(ctrl)
+				repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 				repo.EXPECT().GetGcRunner(gomock.Any(), "runner-1").Return(&models.DaemonGcRunner{ID: "runner-1", Rule: models.DaemonGcRule{NamespaceID: &otherNS}}, nil)
 
 				_, err := tt.call(&service{RepoDaemon: repo})
@@ -244,7 +244,7 @@ func TestListGcRunners(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().ListGcRunners(gomock.Any(), "rule-1", gomock.Any(), gomock.Any()).Return([]*models.DaemonGcRunner{{ID: "runner-1"}}, int64(1), nil)
 
@@ -255,7 +255,7 @@ func TestListGcRunners(t *testing.T) {
 		})
 		t.Run(tt.name+"_rule_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 			_, _, err := tt.call(&service{RepoDaemon: repo})
@@ -263,7 +263,7 @@ func TestListGcRunners(t *testing.T) {
 		})
 		t.Run(tt.name+"_rule_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, errors.New("db error"))
 
 			_, _, err := tt.call(&service{RepoDaemon: repo})
@@ -271,7 +271,7 @@ func TestListGcRunners(t *testing.T) {
 		})
 		t.Run(tt.name+"_list_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().ListGcRunners(gomock.Any(), "rule-1", gomock.Any(), gomock.Any()).Return(nil, int64(0), errors.New("db error"))
 
@@ -304,7 +304,7 @@ func TestListGcRecords(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().ListGcRecords(gomock.Any(), "runner-1", gomock.Any(), gomock.Any()).Return([]*models.DaemonGcRecord{{ID: "record-1"}}, int64(1), nil)
 
 			got, total, err := tt.call(&service{RepoDaemon: repo})
@@ -314,7 +314,7 @@ func TestListGcRecords(t *testing.T) {
 		})
 		t.Run(tt.name+"_list_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().ListGcRecords(gomock.Any(), "runner-1", gomock.Any(), gomock.Any()).Return(nil, int64(0), errors.New("db error"))
 
 			_, _, err := tt.call(&service{RepoDaemon: repo})
@@ -347,7 +347,7 @@ func TestGetGcRecord(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_success", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			record := &models.DaemonGcRecord{
 				ID:     "record-1",
 				Runner: models.DaemonGcRunner{ID: "runner-1", Rule: models.DaemonGcRule{ID: "rule-1"}},
@@ -361,7 +361,7 @@ func TestGetGcRecord(t *testing.T) {
 		})
 		t.Run(tt.name+"_rule_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 			_, err := tt.call(&service{RepoDaemon: repo})
@@ -369,7 +369,7 @@ func TestGetGcRecord(t *testing.T) {
 		})
 		t.Run(tt.name+"_record_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1"}, nil)
 			repo.EXPECT().GetGcRecord(gomock.Any(), "record-1").Return(nil, gorm.ErrRecordNotFound)
 
@@ -378,7 +378,7 @@ func TestGetGcRecord(t *testing.T) {
 		})
 		t.Run(tt.name+"_mismatch", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			record := &models.DaemonGcRecord{
 				ID:     "record-1",
 				Runner: models.DaemonGcRunner{ID: "other-runner", Rule: models.DaemonGcRule{ID: "rule-1"}},
@@ -414,7 +414,7 @@ func TestUpdateGcRuleRejectsRunning(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1", IsRunning: true}, nil)
 
 			err := tt.call(&service{RepoDaemon: repo})
@@ -445,7 +445,7 @@ func TestUpdateGcRuleInternalError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, errors.New("db error"))
 
 			err := tt.call(&service{RepoDaemon: repo})
@@ -486,7 +486,7 @@ func TestCreateGcRunnerErrorMapping(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+"_not_found", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 			err := tt.call(&service{RepoDaemon: repo})
@@ -494,7 +494,7 @@ func TestCreateGcRunnerErrorMapping(t *testing.T) {
 		})
 		t.Run(tt.name+"_internal_error", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(nil, errors.New("db error"))
 
 			err := tt.call(&service{RepoDaemon: repo})
@@ -502,7 +502,7 @@ func TestCreateGcRunnerErrorMapping(t *testing.T) {
 		})
 		t.Run(tt.name+"_running", func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			repo := repodaemon.NewMockDaemonRepository(ctrl)
+			repo := repodaemonmocks.NewMockDaemonRepository(ctrl)
 			repo.EXPECT().GetGcRule(gomock.Any(), tt.daemon, gomock.Any()).Return(&models.DaemonGcRule{ID: "rule-1", IsRunning: true}, nil)
 
 			err := tt.call(&service{RepoDaemon: repo})

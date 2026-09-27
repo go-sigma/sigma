@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
 	"github.com/go-sigma/sigma/pkg/logger"
 )
 
@@ -44,7 +45,7 @@ func TestInitNamespaces(t *testing.T) {
 			namespace: config.ConfigurationNamespace{},
 			genDigCon: func(t *testing.T, _ *config.Configuration) *dig.Container {
 				ctrl := gomock.NewController(t)
-				mock := reponamespace.NewMockNamespaceRepository(ctrl)
+				mock := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				digCon := dig.New()
 				require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return mock }))
 				return digCon
@@ -60,7 +61,7 @@ func TestInitNamespaces(t *testing.T) {
 			},
 			genDigCon: func(t *testing.T, _ *config.Configuration) *dig.Container {
 				ctrl := gomock.NewController(t)
-				mock := reponamespace.NewMockNamespaceRepository(ctrl)
+				mock := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				mock.EXPECT().GetByName(gomock.Any(), "library").
 					Return(&models.Namespace{ID: "namespace-1", Name: "library"}, nil)
 				mock.EXPECT().GetByName(gomock.Any(), "internal").
@@ -86,7 +87,7 @@ func TestInitNamespaces(t *testing.T) {
 			},
 			genDigCon: func(t *testing.T, _ *config.Configuration) *dig.Container {
 				ctrl := gomock.NewController(t)
-				mock := reponamespace.NewMockNamespaceRepository(ctrl)
+				mock := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				mock.EXPECT().GetByName(gomock.Any(), "library").
 					Return(nil, gorm.ErrInvalidDB)
 				digCon := dig.New()

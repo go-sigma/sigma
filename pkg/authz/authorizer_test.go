@@ -27,7 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
+	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
 )
 
 // ---------------------------------------------------------------------------
@@ -180,8 +180,8 @@ func TestNewAuthorizerInmemory(t *testing.T) {
 	cfg := testAuthzConfig()
 	a, err := NewAuthorizer(authorizer{
 		Config:       cfg,
-		RepoNs:       reponamespace.NewMockNamespaceRepository(gomock.NewController(t)),
-		RepoNsMember: reponamespace.NewMockNamespaceMemberRepository(gomock.NewController(t)),
+		RepoNs:       reponamespacemocks.NewMockNamespaceRepository(gomock.NewController(t)),
+		RepoNsMember: reponamespacemocks.NewMockNamespaceMemberRepository(gomock.NewController(t)),
 	})
 	require.NoError(t, err)
 	require.True(t, a != nil)
@@ -194,8 +194,8 @@ func TestNewAuthorizerRedisDisabled(t *testing.T) {
 	// Redis not enabled and no client factory: construction must fail.
 	_, err := NewAuthorizer(authorizer{
 		Config:       cfg,
-		RepoNs:       reponamespace.NewMockNamespaceRepository(gomock.NewController(t)),
-		RepoNsMember: reponamespace.NewMockNamespaceMemberRepository(gomock.NewController(t)),
+		RepoNs:       reponamespacemocks.NewMockNamespaceRepository(gomock.NewController(t)),
+		RepoNsMember: reponamespacemocks.NewMockNamespaceMemberRepository(gomock.NewController(t)),
 	})
 	require.Error(t, err)
 }
@@ -215,9 +215,9 @@ func TestAuthorizer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	nsRepo := reponamespace.NewMockNamespaceRepository(ctrl)
+	nsRepo := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 
-	memberRepo := reponamespace.NewMockNamespaceMemberRepository(ctrl)
+	memberRepo := reponamespacemocks.NewMockNamespaceMemberRepository(ctrl)
 	ctx := context.Background()
 	publicNS := &models.Namespace{ID: "1", Name: "library", Visibility: enums.VisibilityPublic}
 	privateNS := &models.Namespace{ID: "2", Name: "private", Visibility: enums.VisibilityPrivate}
@@ -310,9 +310,9 @@ func TestAuthorizerCacheHit(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	nsRepo := reponamespace.NewMockNamespaceRepository(ctrl)
+	nsRepo := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 
-	memberRepo := reponamespace.NewMockNamespaceMemberRepository(ctrl)
+	memberRepo := reponamespacemocks.NewMockNamespaceMemberRepository(ctrl)
 
 	publicNS := &models.Namespace{ID: "1", Name: "library", Visibility: enums.VisibilityPublic}
 

@@ -23,13 +23,13 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	repocoderepo "github.com/go-sigma/sigma/pkg/dal/repository/coderepo"
-	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	repocoderepomocks "github.com/go-sigma/sigma/pkg/dal/repository/coderepo/mocks"
+	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 )
 
 func TestCodeRepositoryQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	codeRepository := repocoderepo.NewMockCodeRepositoryRepository(ctrl)
+	codeRepository := repocoderepomocks.NewMockCodeRepositoryRepository(ctrl)
 	service := &service{RepoCode: codeRepository}
 
 	codeRepository.EXPECT().
@@ -50,7 +50,7 @@ func TestCodeRepositoryQueries(t *testing.T) {
 
 func TestGetCodeRepositoryProviderError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRepository := repouser.NewMockUserRepository(ctrl)
+	userRepository := repousermocks.NewMockUserRepository(ctrl)
 	expectedErr := errors.New("lookup failed")
 	userRepository.EXPECT().
 		GetUser3rdPartyByProvider(gomock.Any(), "user-1", enums.ProviderGithub).

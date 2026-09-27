@@ -167,11 +167,11 @@ func Initialize(t testing.TB, digCon *dig.Container, databaseType enums.Database
 }
 
 // InitializeIntegration initializes an integration test DAL, defaulting to
-// PostgreSQL while allowing EnvDatabaseType to select another database
+// turso while allowing EnvDatabaseType to select another database
 func InitializeIntegration(t testing.TB, digCon *dig.Container) error {
 	t.Helper()
 
-	databaseType, err := DatabaseType(enums.DatabasePostgresql)
+	databaseType, err := DatabaseType(enums.DatabaseTurso)
 	if err != nil {
 		return fmt.Errorf("select integration test database: %w", err)
 	}

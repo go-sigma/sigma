@@ -25,7 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
@@ -100,7 +100,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "basic_success",
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				passwordSvc := password.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Username: "sigma", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
@@ -121,7 +121,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "basic_get_username_error",
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, errors.New("db error"))
 				return &service{RepoUser: userRepo}
 			},
@@ -131,7 +131,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "basic_verify_failed",
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				passwordSvc := password.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
@@ -144,7 +144,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "basic_get_user_error",
 			authorization: sigmaBasicAuth,
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				passwordSvc := password.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Password: &hashedPassword}
 				userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
@@ -158,7 +158,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "bearer_success",
 			authorization: "Bearer token-123",
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				tokenSvc := token.NewMockService(ctrl)
 				user := &models.User{ID: "user-1", Username: "sigma"}
 				tokenSvc.EXPECT().Validate(gomock.Any(), "token-123").Return("jti", "user-1", nil)
@@ -181,7 +181,7 @@ func TestTryGetUser(t *testing.T) {
 			name:          "bearer_get_user_error",
 			authorization: "Bearer token-123",
 			setup: func(ctrl *gomock.Controller) *service {
-				userRepo := repouser.NewMockUserRepository(ctrl)
+				userRepo := repousermocks.NewMockUserRepository(ctrl)
 				tokenSvc := token.NewMockService(ctrl)
 				tokenSvc.EXPECT().Validate(gomock.Any(), "token-123").Return("jti", "user-1", nil)
 				userRepo.EXPECT().Get(gomock.Any(), "user-1").Return(nil, errors.New("db error"))
@@ -211,7 +211,7 @@ func TestTryGetUser(t *testing.T) {
 
 func TestCallbackRejectsUserLookupFailure(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRepo := repouser.NewMockUserRepository(ctrl)
+	userRepo := repousermocks.NewMockUserRepository(ctrl)
 	userRepo.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, errors.New("db error"))
 	svc := &service{RepoUser: userRepo}
 
