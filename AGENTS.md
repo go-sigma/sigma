@@ -79,8 +79,8 @@ make clean
   `repouser`.
 - Generate cryptographic keys (e.g., Ed25519) at runtime in tests; do not hardcode base64 keys.
 - Tests are excluded for generated or infrastructure-only packages such as
-  `pkg/api`, `pkg/dal/models`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/version`,
-  and various `mocks` subpackages.
+  `pkg/api`, `pkg/dal/models`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/testkit`,
+  `pkg/version`, and various `mocks` subpackages.
 - Some storage tests (`pkg/storage/cos`, `pkg/storage/oss`) are skipped on PRs and require secret env vars (`COS_*`, `OSS_*`).
 - Mocks are generated via `go.uber.org/mock` into a `mocks` subpackage as
   `mocks/*_mocks.go` with package name `mocks` (for example
