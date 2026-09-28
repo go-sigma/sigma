@@ -9,7 +9,6 @@ DOCKER=${DOCKER:-docker}
   -e RS3_DATA_DIR=/var/lib/rs3/data \
   -e RS3_ACCESS_KEY=sigma \
   -e RS3_SECRET_KEY=sigma-sigma \
-  -e RS3_ENDPOINT=http://127.0.0.1:9000 \
   --rm -d \
   --entrypoint "" \
   --health-cmd 'curl --fail "http://127.0.0.1:${RS3_PORT}/readyz" || exit 1' \

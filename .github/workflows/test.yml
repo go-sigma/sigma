@@ -45,7 +45,6 @@ jobs:
           RS3_DATA_DIR: /var/lib/rs3/data
           RS3_ACCESS_KEY: sigma
           RS3_SECRET_KEY: sigma-sigma
-          RS3_ENDPOINT: http://127.0.0.1:9000
         ports:
           - 9000:9000
         entrypoint: /bin/sh

@@ -133,7 +133,6 @@ services:
       RS3_DATA_DIR: /var/lib/rs3/data
       RS3_ACCESS_KEY: ${USERNAME}
       RS3_SECRET_KEY: ${PASSWORD}
-      RS3_ENDPOINT: http://127.0.0.1:9000
     entrypoint:
       - /bin/sh
       - -c
@@ -141,10 +140,11 @@ services:
     volumes:
       - ${VOLUME_PREFIX}/rs3:/var/lib/rs3/data
     healthcheck:
-      test: ["CMD-SHELL", "rs3-cli ls s3://sigma >/dev/null 2>&1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD-SHELL", "curl --fail http://127.0.0.1:$$RS3_PORT/readyz || exit 1"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
     networks:
       - default
     labels:
