@@ -17,9 +17,24 @@ package hash
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
+
+// ciFileContent is the content of the fixture file hashed by the file-based tests.
+const ciFileContent = "hello world!!!\n"
+
+// writeCIFile writes the fixture file used by the file-based tests and returns
+// its path. The file is generated per test so no fixture is tracked in the repo.
+func writeCIFile(t *testing.T) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "ci.txt")
+	require.NoError(t, os.WriteFile(path, []byte(ciFileContent), 0o600))
+	return path
+}
 
 func TestHashString(t *testing.T) {
 	type args struct {
@@ -84,6 +99,8 @@ func TestHashString(t *testing.T) {
 }
 
 func TestHashFile(t *testing.T) {
+	ciFile := writeCIFile(t)
+
 	type args struct {
 		file   string
 		method []string
@@ -97,7 +114,7 @@ func TestHashFile(t *testing.T) {
 		{
 			name: "md5",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				method: []string{"md5"},
 			},
 			wantHash: "f621bae50c4c5099943aaaa3ef51c12b",
@@ -106,7 +123,7 @@ func TestHashFile(t *testing.T) {
 		{
 			name: "sha1",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				method: []string{"sha1"},
 			},
 			wantHash: "c560dd44beba55babb7e581de40861d8412d1cb6",
@@ -115,7 +132,7 @@ func TestHashFile(t *testing.T) {
 		{
 			name: "sha256",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				method: []string{"sha256"},
 			},
 			wantHash: "9379c18887bd8cf8895c856bfbb1d4704a13595ff0a6cf4e7823770728cd6ee2",
@@ -124,7 +141,7 @@ func TestHashFile(t *testing.T) {
 		{
 			name: "sha512",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				method: []string{"sha512"},
 			},
 			wantHash: "33500e835ae5009093d54ce1841a723e91a68664aa068a9d4493f1c168f67ab656792ce396de5d599e334e6d143fe8878f7371edea80e2f389511bdba7d095f4",
@@ -155,6 +172,8 @@ func TestHashFile(t *testing.T) {
 }
 
 func TestHashFileVerify(t *testing.T) {
+	ciFile := writeCIFile(t)
+
 	type args struct {
 		file   string
 		hash   string
@@ -169,7 +188,7 @@ func TestHashFileVerify(t *testing.T) {
 		{
 			name: "md5",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				hash:   "f621bae50c4c5099943aaaa3ef51c12b",
 				method: []string{"md5"},
 			},
@@ -179,7 +198,7 @@ func TestHashFileVerify(t *testing.T) {
 		{
 			name: "sha1",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				hash:   "c560dd44beba55babb7e581de40861d8412d1cb6",
 				method: []string{"sha1"},
 			},
@@ -189,7 +208,7 @@ func TestHashFileVerify(t *testing.T) {
 		{
 			name: "sha256",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				hash:   "9379c18887bd8cf8895c856bfbb1d4704a13595ff0a6cf4e7823770728cd6ee2",
 				method: []string{"sha256"},
 			},
@@ -199,7 +218,7 @@ func TestHashFileVerify(t *testing.T) {
 		{
 			name: "sha512",
 			args: args{
-				file:   "ci.txt",
+				file:   ciFile,
 				hash:   "33500e835ae5009093d54ce1841a723e91a68664aa068a9d4493f1c168f67ab656792ce396de5d599e334e6d143fe8878f7371edea80e2f389511bdba7d095f4",
 				method: []string{"sha512"},
 			},
@@ -231,6 +250,8 @@ func TestHashFileVerify(t *testing.T) {
 }
 
 func TestReader(t *testing.T) {
+	ciFile := writeCIFile(t)
+
 	type args struct {
 		prepareReader func() (io.Reader, error)
 		method        []string
@@ -256,7 +277,7 @@ func TestReader(t *testing.T) {
 			name: "md5",
 			args: args{
 				prepareReader: func() (io.Reader, error) {
-					return os.Open("ci.txt")
+					return os.Open(ciFile)
 				},
 				method: []string{"md5"},
 			},

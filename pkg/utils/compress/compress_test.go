@@ -14,9 +14,29 @@
 
 package compress
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+// testFileContent is the content of the fixture file compressed by TestCompress.
+const testFileContent = "hello sigma!!!\n"
+
+// writeTestFile writes the fixture file used by TestCompress and returns its
+// path. The file is generated per test so no fixture is tracked in the repo.
+func writeTestFile(t *testing.T) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "test.txt")
+	require.NoError(t, os.WriteFile(path, []byte(testFileContent), 0o600))
+	return path
+}
 
 func TestCompress(t *testing.T) {
+	testFile := writeTestFile(t)
+
 	type args struct {
 		src string
 	}
@@ -29,7 +49,7 @@ func TestCompress(t *testing.T) {
 		{
 			name: "TestCompress-1",
 			args: args{
-				src: "test.txt",
+				src: testFile,
 			},
 			want:    "hello sigma!!!\n",
 			wantErr: false,
