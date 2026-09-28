@@ -57,7 +57,8 @@ func selectMethod(method []string) hash.Hash {
 	return sha256.New()
 }
 
-// FileVerify 哈希校验一个文件，以 hex 的方式校验，method 支持：md5，sha1，sha256(默认)，sha512
+// FileVerify verifies a file against the expected hex digest.
+// method defaults to sha256 and may be md5, sha1, sha256 or sha512.
 func FileVerify(file, hash string, method ...string) (verify bool, err error) {
 	if !isFile(file) {
 		err = ErrNoSuchFile
@@ -90,7 +91,8 @@ func FileVerify(file, hash string, method ...string) (verify bool, err error) {
 	return
 }
 
-// String 哈希一个字符串，输出 hex 的编码，method 支持：md5，sha1，sha256(默认)，sha512
+// String hashes a string and returns the hex digest.
+// method defaults to sha256 and may be md5, sha1, sha256 or sha512.
 func String(str string, method ...string) (hash string, err error) {
 	var h = selectMethod(method)
 	if _, err = h.Write([]byte(str)); err != nil {
@@ -109,7 +111,8 @@ func MustString(str string, method ...string) string {
 	return hash
 }
 
-// File 哈希一个文件，输出 hex 的编码，method 支持：md5，sha1，sha256(默认)，sha512
+// File hashes a file and returns the hex digest.
+// method defaults to sha256 and may be md5, sha1, sha256 or sha512.
 func File(file string, method ...string) (hash string, err error) {
 	if !isFile(file) {
 		err = ErrNoSuchFile
