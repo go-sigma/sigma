@@ -27,7 +27,7 @@ import (
 	dalredis "github.com/go-sigma/sigma/pkg/dal/redis"
 )
 
-//go:generate go tool mockgen -destination=workq_mocks.go -package=workq github.com/go-sigma/sigma/pkg/infra/workq Producer,ProducerFactory,ConsumerFactory
+//go:generate go tool mockgen -destination=mocks/workq_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/infra/workq Producer,ProducerFactory,ConsumerFactory
 
 // Consumer describes a topic handler along with the concurrency limit and
 // timeout a consumer driver applies when dispatching messages to it.

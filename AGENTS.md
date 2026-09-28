@@ -82,7 +82,10 @@ make clean
   `pkg/api`, `pkg/dal/models`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/version`,
   and various `mocks` subpackages.
 - Some storage tests (`pkg/storage/cos`, `pkg/storage/oss`) are skipped on PRs and require secret env vars (`COS_*`, `OSS_*`).
-- Mocks are generated via `go.uber.org/mock` and live alongside the code as `*_mocks.go`.
+- Mocks are generated via `go.uber.org/mock` into a `mocks` subpackage as
+  `mocks/*_mocks.go` with package name `mocks` (for example
+  `pkg/service/token/mocks/token_mocks.go`), and are regenerated with
+  `go generate ./...` from the `//go:generate` directive on the interface file.
 
 ## Code Conventions
 

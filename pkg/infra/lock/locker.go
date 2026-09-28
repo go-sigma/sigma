@@ -28,7 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/registry"
 )
 
-//go:generate go tool mockgen -destination=locker_mocks.go -package=lock github.com/go-sigma/sigma/pkg/infra/lock Locker,Lock,Factory
+//go:generate go tool mockgen -destination=mocks/locker_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/infra/lock Locker,Lock,Factory
 
 const (
 	// MinLockExpire is the shortest lease TTL accepted by Acquire and Renew; a shorter one fails with ErrLockTooShort.

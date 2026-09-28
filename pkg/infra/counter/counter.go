@@ -25,7 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/registry"
 )
 
-//go:generate go tool mockgen -destination=counter_mocks.go -package=counter github.com/go-sigma/sigma/pkg/infra/counter Counter,Factory
+//go:generate go tool mockgen -destination=mocks/counter_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/infra/counter Counter,Factory
 
 // Counter provides hash and set operations backed by in-memory or Redis storage.
 type Counter interface {
