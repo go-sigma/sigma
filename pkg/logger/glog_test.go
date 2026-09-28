@@ -19,13 +19,18 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"io"
 	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/config"
 )
 
 type MockWriter struct {
@@ -143,4 +148,57 @@ func Test_Logger_Sqlite(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestLogDatabaseTraceDisabled(t *testing.T) {
+	previous := slog.Default()
+	t.Cleanup(func() { slog.SetDefault(previous) })
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelInfo})))
+
+	logDatabaseTrace(context.Background(), "sql", "select 1")
+}
+
+func TestDatabaseTraceCallDebug(t *testing.T) {
+	cfg := config.GetConfig()
+	previous := cfg.Log.Level
+	t.Cleanup(func() { cfg.Log.Level = previous })
+
+	cfg.Log.Level = enums.LogLevelDebug
+	require.NotEmpty(t, databaseTraceCall())
+
+	cfg.Log.Level = enums.LogLevelTrace
+	require.NotEmpty(t, databaseTraceCall())
+}
+
+func TestDatabaseTraceCallFrom(t *testing.T) {
+	cfg := config.GetConfig()
+	previous := cfg.Log.Level
+	t.Cleanup(func() { cfg.Log.Level = previous })
+
+	// At debug level, excluded frames are skipped and the first business frame wins.
+	cfg.Log.Level = enums.LogLevelDebug
+	frames := []string{
+		"github.com/go-sigma/sigma/pkg/logger/glog.go",
+		"github.com/go-sigma/sigma/pkg/dal/query/user.gen.go",
+		"github.com/go-sigma/sigma/pkg/dal/repository/registry/artifact.go",
+		"github.com/go-sigma/sigma/pkg/service/analytics/analytics.go",
+	}
+	index := 0
+	caller := func(int) (uintptr, string, int, bool) {
+		file := frames[index]
+		index++
+		return 0, file, index, true
+	}
+	require.Equal(t, "analytics/analytics.go:4", databaseTraceCallFrom(caller))
+
+	// The walk stops when the stack is exhausted.
+	empty := func(int) (uintptr, string, int, bool) { return 0, "", 0, false }
+	require.Equal(t, "database", databaseTraceCallFrom(empty))
+
+	// Above debug level the stack is never walked.
+	cfg.Log.Level = enums.LogLevelInfo
+	require.Equal(t, "database", databaseTraceCallFrom(func(int) (uintptr, string, int, bool) {
+		t.Fatal("caller must not be invoked above debug level")
+		return 0, "", 0, false
+	}))
 }
